@@ -1,0 +1,265 @@
+<div class="page-wrapper">
+  
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando historia...</p>
+  </div>
+
+  <div *ngIf="errorMsg" class="error-state glass-panel">
+    <h2>Ha ocurrido un error</h2>
+    <p>{{ errorMsg }}</p>
+    <button class="glass-btn" routerLink="/catalog">Volver al Catálogo</button>
+  </div>
+
+  <div *ngIf="book && !isLoading" class="content-container fade-in">
+    
+    <!-- ────────────────────────────────────────────────────────
+         IMMERSIVE HERO SECTION
+         ──────────────────────────────────────────────────────── -->
+    <div class="hero-section">
+      <!-- Background blur -->
+      <div class="hero-backdrop" [style.background-image]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'"></div>
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <!-- PORTADA -->
+        <div class="cover-wrapper">
+          <img [src]="book.cover_image || 'assets/default_cover.jpg'" alt="{{book.title}}" class="book-cover">
+        </div>
+
+        <!-- INFO PRINCIPAL -->
+        <div class="hero-info">
+          <h1 class="book-title">{{ book.title }}</h1>
+          <p class="book-authors">
+            <span *ngFor="let authorObj of book.book_authors; let last = last; trackBy: trackByAuthor">
+              {{ authorObj.author.full_name }}<span *ngIf="!last">, </span>
+            </span>
+          </p>
+
+          <div class="badges-row">
+            <span class="badge difficulty-badge" [ngClass]="book.difficulty_level">
+              <svg lucideSparkles class="icon-sm"></svg>
+              {{ getDifficultyLabel(book.difficulty_level) }}
+            </span>
+            <span class="badge" *ngIf="book.estimated_reading_time">
+              <svg lucideClock class="icon-sm"></svg> {{ book.estimated_reading_time }} 
+              <span class="word-count">({{ book.total_words | number }} pal.)</span>
+            </span>
+            <span class="badge">
+              <svg lucideEye class="icon-sm"></svg> {{ book.view_count | number }} vistas
+            </span>
+          </div>
+
+          <div class="tags-row" *ngIf="book.tags && book.tags.length > 0">
+            <span class="tag-chip" *ngFor="let tag of book.tags; trackBy: trackByTag">{{ tag.name }}</span>
+          </div>
+          
+          <!-- STICKY ACTION BAR -->
+          <div class="action-bar">
+            <div class="action-price" *ngIf="!isOwned && book.editions && book.editions.length > 0">
+              <span class="price-val">{{ book.editions[0].price }} <span class="ink-text">Tinta</span></span>
+            </div>
+            <div class="action-price" *ngIf="isOwned">
+              <span class="price-val" style="color: #34d399;"><svg lucideCheckCircle></svg> Adquirido</span>
+            </div>
+            
+            <div class="action-buttons">
+              <div class="purchase-alert error" *ngIf="purchaseErrorMsg" style="width: 100%;">
+                {{ purchaseErrorMsg }}
+              </div>
+              <button class="action-btn" 
+                      [class.guest-btn]="!isLoggedIn"
+                      [class.buy-btn]="isLoggedIn && !isOwned" 
+                      [class.read-btn]="isLoggedIn && isOwned"
+                      (click)="handleAction()">
+                <ng-container *ngIf="!isLoggedIn">
+                  <svg lucideLogIn></svg> Ingresar para Explorar
+                </ng-container>
+                <ng-container *ngIf="isLoggedIn">
+                  <span *ngIf="!isOwned" class="flex-center"><svg lucideShoppingCart></svg> Adquirir Obra</span>
+                  <span *ngIf="isOwned" class="flex-center"><svg lucideBookOpen></svg> Empezar Lectura</span>
+                </ng-container>
+              </button>
+
+              <button class="download-btn glass-btn" 
+                      *ngIf="isLoggedIn && isOwned" 
+                      (click)="downloadPDF()" title="Descargar PDF">
+                <svg lucideDownload></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────
+         MAIN BODY CONTENT
+         ──────────────────────────────────────────────────────── -->
+    <div class="main-body-grid">
+      
+      <!-- LEFT COLUMN: Synopsis & Author -->
+      <div class="main-left">
+        <div class="synopsis-section glass-panel">
+          <div class="section-header-flex">
+            <h3>Sinopsis</h3>
+            <button class="tts-btn minimal" (click)="speakSynopsis()" *ngIf="book?.synopsis">
+              <svg lucideVolumeX *ngIf="isTalking" class="icon-sm"></svg>
+              <svg lucideVolume2 *ngIf="!isTalking" class="icon-sm"></svg>
+              {{ isTalking ? 'Detener' : 'Escuchar Sinopsis' }}
+            </button>
+          </div>
+          <p class="synopsis-text">{{ book.synopsis }}</p>
+        </div>
+
+        <!-- ABOUT AUTHOR CARD -->
+        <div class="author-card-container glass-panel fade-in" *ngIf="book.book_authors && book.book_authors.length > 0">
+          <ng-container *ngIf="book.book_authors[0] as rel">
+            <div class="author-card-content">
+              <div class="author-card-image">
+                <img [src]="$any(rel).author.photo || 'assets/default_avatar.png'" alt="{{ $any(rel).author.full_name }}" loading="lazy">
+              </div>
+              <div class="author-card-info">
+                <h3>{{ $any(rel).author.full_name | uppercase }}</h3>
+                <p class="author-card-bio">{{ $any(rel).author.bio | slice:0:200 }}{{ $any(rel).author.bio?.length > 200 ? '...' : '' }}</p>
+                <button class="glass-btn primary author-card-btn" routerLink="/author/{{ $any(rel).author.slug }}">
+                  Conocer al autor
+                </button>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Avatars & Legal -->
+      <div class="main-right">
+        
+        <!-- AVATARS -->
+        <div class="avatars-container glass-panel" *ngIf="book.avatars && book.avatars.length > 0">
+          <h3>Personajes Interactivos</h3>
+          
+          <div class="avatars-carousel" #avatarCarousel>
+            <div class="avatar-card" *ngFor="let avatar of displayAvatars; trackBy: trackByAvatar" (click)="selectAvatar(avatar)">
+              <div class="avatar-img-container">
+                <img [src]="avatar.avatar_image || 'assets/default_avatar.png'" alt="{{avatar.name}}" class="avatar-img" loading="lazy">
+                <div class="avatar-overlay">
+                  <svg lucideMessageCircle style="color: white;"></svg>
+                </div>
+              </div>
+              <span class="avatar-name">{{ avatar.name }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- LEGAL NOTICE -->
+        <div class="legal-notice-container glass-panel" *ngIf="book.copyright_notice">
+          <div class="legal-header">
+            <svg lucideShieldCheck style="color: #3b82f6;"></svg>
+            <h3>Derechos y Legal</h3>
+          </div>
+          <p class="legal-text">{{ book.copyright_notice }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────
+         REVIEWS SECTION
+         ──────────────────────────────────────────────────────── -->
+    <div class="reviews-container glass-panel">
+      <div class="reviews-header">
+        <h3>Reseñas de la Comunidad</h3>
+        
+        <div class="avg-rating" *ngIf="book.reviews && book.reviews.length > 0">
+          <span class="avg-number">{{ avgRating }}</span>
+          <div class="avg-stars">
+            <span class="star" *ngFor="let s of [1,2,3,4,5]; trackBy: trackByIndex" [class.filled]="s <= avgRating">★</span>
+          </div>
+          <span style="color:#94a3b8;">({{ book.reviews.length }})</span>
+        </div>
+      </div>
+
+      <div *ngIf="!book.reviews || book.reviews.length === 0" style="text-align: center; color: #64748b; padding: 2rem;">
+        <svg lucideMessageSquare style="width:40px; height:40px; opacity:0.5; margin-bottom:1rem;"></svg>
+        <p>Sé el primero en compartir tu opinión.</p>
+      </div>
+      
+      <!-- FORMULARIO DE RESEÑA -->
+      <div class="review-form-container" *ngIf="isLoggedIn && isOwned">
+        <h4 style="font-family: var(--font-display); font-size: 1.5rem; color:#fff; margin-bottom:1rem;">Tu opinión</h4>
+        <div class="star-rating-input">
+          <span class="star-input" *ngFor="let s of [1,2,3,4,5]; trackBy: trackByIndex" 
+                [class.filled]="s <= reviewRating" 
+                (click)="setRating(s)">★</span>
+        </div>
+        <textarea class="review-textarea" 
+                  [(ngModel)]="reviewComment" 
+                  placeholder="¿Qué te pareció esta obra? (Opcional)" 
+                  rows="3"></textarea>
+        
+        <div class="purchase-alert error" *ngIf="reviewErrorMsg" style="margin-bottom:1rem;">
+          {{ reviewErrorMsg }}
+        </div>
+        
+        <button class="glass-btn primary" 
+                (click)="submitReview()" 
+                [disabled]="isSubmittingReview" style="width: auto; padding: 0.8rem 2.5rem;">
+          {{ isSubmittingReview ? 'Publicando...' : 'Publicar' }}
+        </button>
+      </div>
+
+      <!-- LISTA DE RESEÑAS -->
+      <div class="comments-grid" *ngIf="book.reviews && book.reviews.length > 0">
+        <div class="comment-card" *ngFor="let review of book.reviews; trackBy: trackByReview">
+          <div class="comment-header">
+            <img [src]="review.user_avatar || 'assets/default_avatar.png'" class="comment-avatar" loading="lazy">
+            <div>
+              <div class="comment-user">{{ review.username }}</div>
+              <div class="comment-rating">
+                <span class="star" *ngFor="let s of [1,2,3,4,5]; trackBy: trackByIndex" [class.filled]="s <= review.rating">★</span>
+              </div>
+            </div>
+          </div>
+          <p class="comment-text">{{ review.comment }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- End content-container -->
+</div> <!-- End page-wrapper -->
+
+<!-- MODALS -->
+<!-- AVATAR DETAIL MODAL -->
+<div class="avatar-modal-overlay" *ngIf="selectedAvatar" (click)="closeAvatarModal()" [style.top.px]="modalTop">
+  <div class="avatar-modal glass-panel" (click)="$event.stopPropagation()">
+    <button class="modal-close-btn" (click)="closeAvatarModal()"><svg lucideX></svg></button>
+    
+    <img [src]="selectedAvatar.avatar_image || 'assets/default_avatar.png'" 
+         alt="{{selectedAvatar.name}}" 
+         class="avatar-modal-img">
+    
+    <h2 class="avatar-modal-name">{{ selectedAvatar.name }}</h2>
+    <p class="avatar-modal-desc">{{ selectedAvatar.description }}</p>
+    
+    <div class="avatar-modal-info">
+      <svg lucideInfo class="icon-sm" style="margin-right:0.5rem;"></svg>
+      Este personaje interactuará contigo durante la lectura.
+    </div>
+  </div>
+</div>
+
+<!-- PURCHASE CONFIRMATION MODAL -->
+<div class="mini-modal-overlay" *ngIf="showPurchaseModal" (click)="cancelPurchase()" [style.top.px]="modalTop">
+  <div class="mini-modal-content glass-panel" (click)="$event.stopPropagation()">
+    <svg lucideShoppingCart class="purchase-modal-icon"></svg>
+    <h2 class="purchase-modal-title">Adquirir Obra</h2>
+    <p class="purchase-modal-text">¿Confirmas el intercambio de <strong class="ink-highlight">{{ book.price }} de Tinta</strong> por esta obra?</p>
+    
+    <div class="purchase-modal-balance">
+      Tu balance actual: <span>{{ userInkBalance }} Tinta</span>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="glass-btn cancel-btn" (click)="cancelPurchase()">Cancelar</button>
+      <button class="glass-btn confirm-btn" (click)="confirmPurchase()">Confirmar</button>
+    </div>
+  </div>
+</div>

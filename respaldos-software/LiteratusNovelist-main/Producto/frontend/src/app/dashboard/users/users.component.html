@@ -1,0 +1,64 @@
+<div class="books-list-container">
+  <header class="list-header">
+    <div class="header-text">
+      <h2>Monitoreo de Usuarios</h2>
+      <p>Supervisa los usuarios registrados, su última conexión y actividad.</p>
+    </div>
+  </header>
+
+  <div class="list-controls card">
+    <div class="search-box" style="display: flex; align-items: center; gap: 8px;">
+      <span class="material-symbols-outlined" style="color: #64748b; font-size: 20px;">search</span>
+      <input type="text" placeholder="Buscar por email o usuario..." (input)="filterUsers($event)" style="border: none; background: transparent; outline: none; color: white; width: 100%;">
+    </div>
+    <div class="filter-badges">
+      <span class="badge active">Total: {{ users.length }}</span>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="!loading; else loadingState" style="padding: 0; overflow-x: auto;">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Tinta</th>
+          <th>Chats Activos</th>
+          <th>Última Conexión</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td style="font-weight: 500; color: var(--glow-accent);">{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <div class="status-badge" style="display: inline-flex;">
+              <span class="status-dot"></span>
+              {{ user.role }}
+            </div>
+          </td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <span class="material-symbols-outlined" style="font-size: 16px; color: var(--glow-secondary);">water_drop</span>
+              {{ user.ink_balance }}
+            </div>
+          </td>
+          <td>{{ user.chats_count }}</td>
+          <td style="color: #888;">{{ user.last_login | date:'short' || 'Nunca' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filteredUsers.length === 0" style="padding: 40px;">
+      <p>No se encontraron usuarios.</p>
+    </div>
+  </div>
+
+  <ng-template #loadingState>
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando usuarios...</p>
+    </div>
+  </ng-template>
+</div>

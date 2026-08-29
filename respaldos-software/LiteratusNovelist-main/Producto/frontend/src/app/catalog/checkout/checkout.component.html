@@ -1,0 +1,71 @@
+<div class="checkout-page">
+  <div class="checkout-container">
+
+    <!-- HEADER -->
+    <div class="checkout-header">
+      <div class="checkout-icon"><svg lucideShoppingCart [size]="32" class="lucide-icon"></svg></div>
+      <h1>Confirmar Compra</h1>
+      <p>Revisa los detalles antes de proceder al pago seguro</p>
+    </div>
+
+    <!-- ERROR -->
+    <div class="error-banner" *ngIf="errorMsg">
+      <span>⚠️ {{ errorMsg }}</span>
+    </div>
+
+    <!-- RESUMEN DE LIBRO -->
+    <div class="order-summary glass-panel" *ngIf="itemType === 'book' && bookInfo">
+      <div class="summary-product">
+        <img [src]="bookInfo.cover_image || 'assets/default_cover.png'" alt="{{ bookInfo.title }}" class="product-image">
+        <div class="product-details">
+          <div class="product-type-badge"><svg lucideBookOpen [size]="16" class="lucide-icon"></svg> Libro Digital</div>
+          <h2 class="product-title">{{ bookInfo.title }}</h2>
+          <p class="product-synopsis">{{ bookInfo.synopsis | slice:0:120 }}...</p>
+        </div>
+      </div>
+      <div class="price-row">
+        <span class="price-label">Total a pagar</span>
+        <span class="price-value">${{ bookInfo.price | number:'1.0-0' }} CLP</span>
+      </div>
+    </div>
+
+    <!-- RESUMEN DE TINTA -->
+    <div class="order-summary glass-panel" *ngIf="itemType === 'ink' && inkPackage">
+      <div class="summary-product ink-summary">
+        <div class="ink-icon"><svg lucidePenTool [size]="32" class="lucide-icon"></svg></div>
+        <div class="product-details">
+          <div class="product-type-badge"><svg lucideSparkles [size]="16" class="lucide-icon"></svg> Recarga de Tinta</div>
+          <h2 class="product-title">{{ inkPackage.label }}</h2>
+          <p class="product-synopsis">Recibirás <strong>{{ inkPackage.amount }} Tinta</strong> en tu cuenta, disponibles de inmediato.</p>
+        </div>
+      </div>
+      <div class="price-row">
+        <span class="price-label">Total a pagar</span>
+        <span class="price-value">{{ inkPackage.price }} CLP</span>
+      </div>
+    </div>
+
+    <!-- SECURITY BADGES -->
+    <div class="security-section">
+      <div class="security-badge"><svg lucideLock [size]="16" class="lucide-icon"></svg> Pago 100% Seguro</div>
+      <div class="security-badge"><svg lucideLandmark [size]="16" class="lucide-icon"></svg> Procesado por Transbank</div>
+      <div class="security-badge"><svg lucideShieldCheck [size]="16" class="lucide-icon"></svg> Datos Encriptados</div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="action-buttons">
+      <button class="btn-cancel" (click)="cancel()" [disabled]="isLoading">
+        ← Cancelar
+      </button>
+      <button class="btn-pay" (click)="confirmPurchase()" [disabled]="isLoading || !!errorMsg">
+        <span *ngIf="!isLoading">Pagar con Webpay Plus <svg lucideCreditCard [size]="18" class="lucide-icon"></svg></span>
+        <span *ngIf="isLoading" class="loading-text">
+          <span class="spinner-small"></span> Redirigiendo...
+        </span>
+      </button>
+    </div>
+
+    <p class="webpay-note">Serás redirigido al portal seguro de Webpay Plus de Transbank.</p>
+
+  </div>
+</div>

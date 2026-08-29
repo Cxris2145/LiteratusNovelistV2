@@ -1,0 +1,325 @@
+{
+  "pilot_25": [
+    {
+      "slug": "el-talento-anton-chejov",
+      "title": "El Talento",
+      "authors": [
+        "Anton Pavlovich Chejov"
+      ],
+      "size_bytes": 44068,
+      "readable_chapters": 2,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "small+cover+ok"
+    },
+    {
+      "slug": "el-tragico-anton-chejov",
+      "title": "El Tragico",
+      "authors": [
+        "Anton Pavlovich Chejov"
+      ],
+      "size_bytes": 38473,
+      "readable_chapters": 2,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "small+cover+ok"
+    },
+    {
+      "slug": "fabula-de-polifemo-y-galatea-luis-de-gongora",
+      "title": "Fábula de Polifemo y Galatea",
+      "authors": [
+        "Luis de Góngora"
+      ],
+      "size_bytes": 54586,
+      "readable_chapters": 2,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "small+cover+ok"
+    },
+    {
+      "slug": "fedon-platon",
+      "title": "Fedón, o sobre el alma",
+      "authors": [
+        "Platón"
+      ],
+      "size_bytes": 140632,
+      "readable_chapters": 2,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "small+cover+ok"
+    },
+    {
+      "slug": "fabulas-esopo",
+      "title": "Fábulas",
+      "authors": [
+        "Esopo"
+      ],
+      "size_bytes": 251368,
+      "readable_chapters": 293,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "medium+cover+ok"
+    },
+    {
+      "slug": "flavio-rosalia-de-castro",
+      "title": "Flavio",
+      "authors": [
+        "Rosalía de Castro"
+      ],
+      "size_bytes": 266376,
+      "readable_chapters": 36,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "medium+cover+ok"
+    },
+    {
+      "slug": "hamlet-shakespeare-william",
+      "title": "Hamlet",
+      "authors": [
+        "William Shakespeare"
+      ],
+      "size_bytes": 357262,
+      "readable_chapters": 2,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "medium+cover+ok"
+    },
+    {
+      "slug": "hector-servadac-verne-julio",
+      "title": "Héctor Servadac",
+      "authors": [
+        "Julio Verne"
+      ],
+      "size_bytes": 329954,
+      "readable_chapters": 6,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "medium+cover+ok"
+    },
+    {
+      "slug": "historia-comica-de-los-estados-e-imperios-del-sol-cyrano-de-bergerac",
+      "title": "Historia cómica de los Estados e Imperios del Sol",
+      "authors": [
+        "Cyrano de Bergerac"
+      ],
+      "size_bytes": 155644,
+      "readable_chapters": 4,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "medium+cover+ok"
+    },
+    {
+      "slug": "fatum-e-historia-friedrich-nietzsche",
+      "title": "Fatum e historia",
+      "authors": [
+        "Friedrich Nietzsche"
+      ],
+      "size_bytes": 1022351,
+      "readable_chapters": 1,
+      "has_cover": true,
+      "language": "en",
+      "status": "ok",
+      "reason": "large+cover+ok"
+    },
+    {
+      "slug": "felicidad-katherine-mansfield",
+      "title": "Felicidad",
+      "authors": [
+        "Katherine Mansfield"
+      ],
+      "size_bytes": 1002166,
+      "readable_chapters": 3,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "large+cover+ok"
+    },
+    {
+      "slug": "fiesta-en-el-jardin-katherine-mansfield",
+      "title": "Fiesta en el jardín",
+      "authors": [
+        "Katherine Mansfield"
+      ],
+      "size_bytes": 1065968,
+      "readable_chapters": 3,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "large+cover+ok"
+    },
+    {
+      "slug": "gramatica-castellana-antonio-de-nebrija",
+      "title": "Gramática  Castellana",
+      "authors": [
+        "Antonio de Nebrija"
+      ],
+      "size_bytes": 1291064,
+      "readable_chapters": 3,
+      "has_cover": true,
+      "language": "en",
+      "status": "ok",
+      "reason": "english"
+    },
+    {
+      "slug": "historia-de-los-grandes-viajes-y-los-grandes-viajeros-verne-julio",
+      "title": "Historia de los grandes viajes y de los grandes viajeros",
+      "authors": [
+        "Julio Verne"
+      ],
+      "size_bytes": 1464080,
+      "readable_chapters": 18,
+      "has_cover": false,
+      "language": "en",
+      "status": "ok",
+      "reason": "english"
+    },
+    {
+      "slug": "fabulas-literarias-tomas-de-iriarte",
+      "title": "fabulas-literarias-tomas-de-iriarte",
+      "authors": [
+        "tomás de iriarte"
+      ],
+      "size_bytes": 1072724,
+      "readable_chapters": 2,
+      "has_cover": false,
+      "language": "es",
+      "status": "ok",
+      "reason": "no_cover+ok"
+    },
+    {
+      "slug": "fantasmagoria-carroll-lewis",
+      "title": "tmpq t9wh",
+      "authors": [
+        "Unknown"
+      ],
+      "size_bytes": 16314,
+      "readable_chapters": 1,
+      "has_cover": false,
+      "language": "es",
+      "status": "ok",
+      "reason": "no_cover+ok"
+    },
+    {
+      "slug": "fernando-de-magallanes-zweig-stefan",
+      "title": "tmplks 79",
+      "authors": [
+        "Unknown"
+      ],
+      "size_bytes": 199403,
+      "readable_chapters": 10,
+      "has_cover": false,
+      "language": "es",
+      "status": "ok",
+      "reason": "no_cover+ok"
+    },
+    {
+      "slug": "flores-de-almendro-ramon-maria-del-valle-inclan",
+      "title": "Flores de almendro",
+      "authors": [
+        "Ramón del Valle Inclán"
+      ],
+      "size_bytes": 1236408,
+      "readable_chapters": 36,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "many_chapters"
+    },
+    {
+      "slug": "fortunata-y-jacinta-benito-perez-galdos",
+      "title": "Fortunata y Jacinta",
+      "authors": [
+        "Benito Pérez Galdós"
+      ],
+      "size_bytes": 2039024,
+      "readable_chapters": 35,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "many_chapters"
+    },
+    {
+      "slug": "follas-novas-rosalia-de-castro",
+      "title": "follas-novas-rosalia-de-castro",
+      "authors": [
+        "Rosalía de Castro"
+      ],
+      "size_bytes": 1137694,
+      "readable_chapters": 2,
+      "has_cover": false,
+      "language": "es",
+      "status": "ok",
+      "reason": "few_chapters"
+    },
+    {
+      "slug": "fraternidad-pardo-bazan-emilia",
+      "title": "Fraternidad",
+      "authors": [
+        "Emilia Pardo Bazán"
+      ],
+      "size_bytes": 1130112,
+      "readable_chapters": 3,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "few_chapters"
+    },
+    {
+      "slug": "feathertop-nathaniel-hawthorne",
+      "title": "Feathertop",
+      "authors": [],
+      "size_bytes": 1107799,
+      "readable_chapters": 3,
+      "has_cover": true,
+      "language": "es",
+      "status": "warning",
+      "reason": "warning_no_author"
+    },
+    {
+      "slug": "georgicas-virgilio",
+      "title": "Geórgicas",
+      "authors": [],
+      "size_bytes": 1133345,
+      "readable_chapters": 7,
+      "has_cover": true,
+      "language": "es",
+      "status": "warning",
+      "reason": "warning_no_author"
+    },
+    {
+      "slug": "la-quimera-pardo-bazan-emilia",
+      "title": "La Quimera",
+      "authors": [
+        "condesa de Emilia Pardo Bazán"
+      ],
+      "size_bytes": 1452934,
+      "readable_chapters": 0,
+      "has_cover": true,
+      "language": "es",
+      "status": "warning",
+      "reason": "warning_no_chapters"
+    },
+    {
+      "slug": "filoctetes-sofocles",
+      "title": "Filotectes",
+      "authors": [
+        "Sófocles"
+      ],
+      "size_bytes": 922911,
+      "readable_chapters": 4,
+      "has_cover": true,
+      "language": "es",
+      "status": "ok",
+      "reason": "filler_ok"
+    }
+  ]
+}

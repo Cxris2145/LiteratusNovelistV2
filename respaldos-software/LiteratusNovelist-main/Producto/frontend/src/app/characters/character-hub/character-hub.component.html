@@ -1,0 +1,161 @@
+<div class="hub-container">
+
+  <!-- 1. HERO CAROUSEL (Personajes al azar destacados) -->
+  <section class="hero-section" *ngIf="!isLoading || heroCharacters.length > 0">
+    <div class="hero-carousel">
+      <div class="hero-slide" *ngFor="let char of heroCharacters; let i = index"
+        [class.active]="i === currentHeroIndex">
+        
+        <!-- Fondo desenfocado -->
+        <div class="hero-bg"
+          [style.backgroundImage]="'url(' + (char.avatar_image_url || 'assets/images/default-avatar.png') + ')'"></div>
+        
+        <!-- Degradado para legibilidad -->
+        <div class="hero-overlay"></div>
+
+        <!-- Layout Dividido (Texto Izquierda, Imagen Derecha) -->
+        <div class="hero-content-wrapper">
+          <div class="hero-content">
+            <span class="hero-badge">Destacado</span>
+            <h1 class="hero-name">{{ char.name }}</h1>
+            <p class="hero-book">{{ char.book_title }}</p>
+            <p class="hero-desc">{{ char.description | slice:0:120 }}...</p>
+            <div class="hero-actions">
+              <button class="btn-primary" (click)="openChat(char)">
+                <span class="icon"><svg lucideMessageCircle [size]="18" class="lucide-icon"></svg></span> Conversar ahora
+              </button>
+            </div>
+          </div>
+          
+          <div class="hero-image-container">
+             <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="hero-portrait"
+               onerror="this.src='assets/images/default-avatar.png'">
+          </div>
+        </div>
+      </div>
+
+      <!-- Indicadores -->
+      <div class="carousel-indicators">
+        <span *ngFor="let dot of heroCharacters; let i = index" [class.active]="i === currentHeroIndex"
+          (click)="setHeroIndex(i)"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. SEARCH BAR -->
+  <section class="search-section">
+    <div class="search-bar-wrapper">
+      <span class="search-icon"><svg lucideSearch [size]="18" class="lucide-icon"></svg></span>
+      <input type="text" [(ngModel)]="searchQuery" (input)="onSearchChange()"
+        placeholder="Busca personajes, libros o autores..." class="search-input">
+      <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; onSearchChange()">
+        <svg lucideX [size]="18" class="lucide-icon"></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- 3. RESULTADOS DE BÚSQUEDA -->
+  <section class="results-section" *ngIf="isSearching">
+    <h2 class="section-title">Resultados de "{{ searchQuery }}"</h2>
+    <div class="character-grid">
+      <div class="char-card premium-card" *ngFor="let char of filteredCharacters" (click)="openChat(char)">
+        <div class="card-img-wrapper">
+          <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
+            onerror="this.src='assets/images/default-avatar.png'">
+          <div class="overlay-gradient"></div>
+        </div>
+        <div class="card-content">
+          <h3 class="char-name">{{ char.name }}</h3>
+          <p class="book-origin">{{ char.book_title }}</p>
+        </div>
+      </div>
+      <div class="no-results" *ngIf="filteredCharacters.length === 0 && !isLoading">
+        <p>No se encontraron personajes que coincidan con tu búsqueda.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. CONTENIDO PRINCIPAL (Solo si no está buscando) -->
+  <ng-container *ngIf="!isSearching">
+
+    <!-- RECIENTES -->
+    <section class="hub-section" *ngIf="recentCharacters.length > 0">
+      <div class="section-header">
+        <h2 class="section-title"><span class="icon"><svg lucideClock [size]="20" class="lucide-icon"></svg></span> Continuar conversación</h2>
+      </div>
+      <div class="horizontal-scroll">
+        <div class="char-card mini-card" *ngFor="let char of recentCharacters" (click)="openChat(char)">
+          <div class="card-img-wrapper">
+            <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
+              onerror="this.src='assets/images/default-avatar.png'">
+            <div class="overlay-gradient"></div>
+          </div>
+          <div class="card-content">
+            <h3 class="char-name">{{ char.name }}</h3>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESTACADOS (Por popularidad) -->
+    <section class="hub-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="icon"><svg lucideFlame [size]="20" class="lucide-icon"></svg></span> Más Destacados</h2>
+        <p class="section-subtitle">Los personajes que más cautivan a la comunidad.</p>
+      </div>
+
+      <div class="horizontal-scroll" *ngIf="!isLoading">
+        <div class="char-card premium-card" *ngFor="let char of featuredCharacters" (click)="openChat(char)">
+          <div class="card-img-wrapper">
+            <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
+              onerror="this.src='assets/images/default-avatar.png'">
+            <div class="overlay-gradient"></div>
+            <div class="trend-overlay">
+              <span class="chat-count"><svg lucideUsers [size]="14" class="lucide-icon inline-icon"></svg> {{ char.chat_count || 0 }}</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="char-name">{{ char.name }}</h3>
+            <p class="book-origin">{{ char.book_title }}</p>
+            <div class="badges-container">
+              <span class="badge" *ngFor="let tag of char.tags">{{ tag }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton Loading -->
+      <div class="horizontal-scroll" *ngIf="isLoading">
+        <div class="char-card skeleton-card" *ngFor="let s of skeletonArray">
+          <div class="shimmer-img"></div>
+          <div class="shimmer-content">
+            <div class="shimmer-line title"></div>
+            <div class="shimmer-line subtitle"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLORAR TODOS -->
+    <section class="hub-section">
+      <div class="section-header">
+        <h2 class="section-title"><span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Todos los Personajes</h2>
+      </div>
+      <div class="character-grid">
+        <div class="char-card premium-card" *ngFor="let char of allCharacters" (click)="openChat(char)">
+          <div class="card-img-wrapper">
+            <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
+              onerror="this.src='assets/images/default-avatar.png'">
+            <div class="overlay-gradient"></div>
+          </div>
+          <div class="card-content">
+            <h3 class="char-name">{{ char.name }}</h3>
+            <p class="book-origin">{{ char.book_title }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </ng-container>
+
+</div>

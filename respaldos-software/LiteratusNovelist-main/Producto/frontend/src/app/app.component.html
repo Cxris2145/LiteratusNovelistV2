@@ -1,0 +1,84 @@
+<!-- Navbar superior: oculta en dashboard para experiencia inmersiva -->
+<nav class="glass-navbar" *ngIf="!isDashboard">
+  <div class="nav-container">
+    <a routerLink="/" class="logo" style="text-decoration: none;">
+      <span class="literatus">Literatus</span><span class="novelist">Novelist</span>
+    </a>
+
+    <!-- Hamburger icon for mobile -->
+    <div class="menu-icon" (click)="toggleMenu()">
+      <span class="bar" [class.open]="menuOpen"></span>
+      <span class="bar" [class.open]="menuOpen"></span>
+      <span class="bar" [class.open]="menuOpen"></span>
+    </div>
+
+    <!-- Links de Navegación -->
+    <ul class="nav-links" [class.active]="menuOpen">
+      <li><a routerLink="/catalog" routerLinkActive="active-link" (click)="menuOpen = false">Explorar</a></li>
+      <li><a routerLink="/categories" routerLinkActive="active-link" (click)="menuOpen = false">Categorías</a></li>
+      <li><a routerLink="/authors" routerLinkActive="active-link" (click)="menuOpen = false">Autores</a></li>
+      <li><a routerLink="/characters" routerLinkActive="active-link" (click)="menuOpen = false">Personajes</a></li>
+      <li><a routerLink="/tavern" routerLinkActive="active-link" (click)="menuOpen = false">La Taberna</a></li>
+      <li *ngIf="isLoggedIn"><a routerLink="/library" routerLinkActive="active-link" (click)="menuOpen = false">Mi Biblioteca</a></li>
+
+      <li *ngIf="!isLoggedIn" class="auth-btn"><a routerLink="/login" (click)="menuOpen = false">Login</a></li>
+      <li *ngIf="!isLoggedIn" class="auth-btn highlight"><a routerLink="/register"
+          (click)="menuOpen = false">Registrarse</a></li>
+
+      <!-- User Controls (Loggeado) -->
+      <ng-container *ngIf="isLoggedIn">
+        <!-- La Taberna (Ink Widget) -->
+        <li class="ink-widget" (click)="openTavern()" [@shake]="shakeState" title="La Taberna - Recarga Tinta">
+          <span class="ink-icon material-symbols-rounded">ink_pen</span>
+          <span class="ink-balance">{{ inkBalance$ | async }}</span>
+        </li>
+
+        <!-- User Profile Dropdown -->
+        <li class="profile-dropdown-container">
+          <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="avatar-btn">
+            <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="Avatar" class="user-avatar"
+              onerror="this.src='assets/images/default-avatar.png'">
+            <div *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</div>
+          </button>
+          <mat-menu #profileMenu="matMenu" class="dark-premium-menu">
+            <div class="menu-header">
+              <span class="user-name">{{ userName }}</span>
+            </div>
+            <mat-divider></mat-divider>
+            <button mat-menu-item routerLink="/profile">
+              <!-- Material Symbols Rounded: 'person' con FILL=0 y wght ligero = minimalista -->
+              <span class="mat-symbol">manage_accounts</span>
+              <span>Editar Perfil</span>
+            </button>
+            <ng-container *ngIf="isAdmin">
+              <mat-divider></mat-divider>
+              <button mat-menu-item routerLink="/dashboard/overview">
+                <span class="mat-symbol">dashboard</span>
+                <span>Panel de Control</span>
+              </button>
+            </ng-container>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="logout()" class="logout-btn">
+              <!-- logout: icono de puerta con flecha, universalmente reconocible -->
+              <span class="mat-symbol">logout</span>
+              <span>Cerrar Sesión</span>
+            </button>
+          </mat-menu>
+        </li>
+      </ng-container>
+    </ul>
+  </div>
+</nav>
+
+<!-- DEBUGGING: Global Error Banner -->
+<div *ngIf="globalError" style="background: red; color: white; padding: 20px; font-weight: bold; z-index: 9999; position: relative;">
+  <h1>🚨 CRASH DETECTED 🚨</h1>
+  <p>{{ globalError }}</p>
+</div>
+
+<!-- Contenedor Principal Ruteado con Animaciones -->
+<main class="container" [class.dashboard-mode]="isDashboard" [@routeAnimations]="prepareRoute(outlet)">
+  <router-outlet #outlet="outlet"></router-outlet>
+</main>
+
+<app-footer *ngIf="!isDashboard"></app-footer>

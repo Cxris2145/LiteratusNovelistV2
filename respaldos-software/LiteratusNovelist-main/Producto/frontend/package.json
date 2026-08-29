@@ -1,0 +1,63 @@
+{
+  "name": "frontend",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "dependencies": {
+    "@angular/animations": "^17.3.0",
+    "@angular/cdk": "^17.3.10",
+    "@angular/common": "^17.3.0",
+    "@angular/compiler": "^17.3.0",
+    "@angular/core": "^17.3.0",
+    "@angular/forms": "^17.3.0",
+    "@angular/material": "^17.3.10",
+    "@angular/platform-browser": "^17.3.0",
+    "@angular/platform-browser-dynamic": "^17.3.0",
+    "@angular/router": "^17.3.0",
+    "@angular/service-worker": "^17.3.0",
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/status-bar": "^8.0.2",
+    "@huggingface/transformers": "^4.2.0",
+    "@hugotomazi/capacitor-navigation-bar": "^4.0.1",
+    "@lucide/angular": "^1.16.0",
+    "@supabase/supabase-js": "^2.108.1",
+    "fast-xml-parser": "^5.8.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
+    "kokoro-js": "^1.2.1",
+    "lottie-web": "^5.13.0",
+    "lucide-angular": "^1.0.0",
+    "ngx-lottie": "^12.0.0",
+    "onnxruntime-web": "^1.26.0",
+    "phaser": "^4.1.0",
+    "rxjs": "~7.8.0",
+    "sherpa-onnx": "^1.13.3",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.14.3"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^17.3.17",
+    "@angular/cli": "^17.3.17",
+    "@angular/compiler-cli": "^17.3.0",
+    "@types/jasmine": "~5.1.0",
+    "jasmine-core": "~5.1.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.4.2"
+  }
+}

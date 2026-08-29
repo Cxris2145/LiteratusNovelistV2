@@ -1,0 +1,19 @@
+<div class="result-page success-page">
+  <div class="result-container">
+    <div class="result-icon success-icon"><svg lucideCheckCircle [size]="64" class="lucide-icon"></svg></div>
+    <h1>¡Compra Exitosa!</h1>
+    <p class="result-message">Tu pago ha sido procesado correctamente. Ya puedes acceder a tu contenido.</p>
+    <div class="order-ref" *ngIf="buyOrder">
+      <span class="ref-label">Orden de compra:</span>
+      <span class="ref-value">{{ buyOrder }}</span>
+    </div>
+    <div class="result-actions">
+      <button class="btn-library" (click)="goToLibrary()"><svg lucideLibrary [size]="18" class="lucide-icon inline-icon"></svg> Ir a Mi Biblioteca</button>
+      <button class="btn-catalog" (click)="goToCatalog()">Seguir explorando</button>
+    </div>
+  </div>
+  <!-- Neon particles background -->
+  <div class="particles">
+    <span *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]" class="particle" [style.animationDelay]="(i * 0.3) + 's'"></span>
+  </div>
+</div>

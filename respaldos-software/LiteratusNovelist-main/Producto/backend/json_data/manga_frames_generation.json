@@ -1,0 +1,268 @@
+[
+  {
+    "id": "13c9168e-6682-4b65-ac8b-6ef725690b57",
+    "name": "El Ángel",
+    "book": "El príncipe feliz y otros cuentos",
+    "description": "Enviado por Dios para recoger las dos cosas más valiosas de la ciudad.",
+    "base_prompt": "A beautiful young angel with large white wings, white hair, soft blue eyes, wearing a glowing divine robe",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young angel with large white wings, white hair, soft blue eyes, wearing a glowing divine robe",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young angel with large white wings, white hair, soft blue eyes, wearing a glowing divine robe",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young angel with large white wings, white hair, soft blue eyes, wearing a glowing divine robe",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young angel with large white wings, white hair, soft blue eyes, wearing a glowing divine robe",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young angel with large white wings, white hair, soft blue eyes, wearing a glowing divine robe"
+    }
+  },
+  {
+    "id": "d10fc51a-9283-43f6-b34e-cd1037bef0e1",
+    "name": "El Príncipe Feliz",
+    "book": "El príncipe feliz y otros cuentos",
+    "description": "Una estatua cubierta de oro y joyas que, al ver la miseria de su ciudad, decide ayudar a los pobres.",
+    "base_prompt": "A beautiful young prince statue, skin covered in gold leaf, deep sapphire eyes, holding a ruby-hilted sword",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young prince statue, skin covered in gold leaf, deep sapphire eyes, ruby-hilted sword",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young prince statue, skin covered in gold leaf, deep sapphire eyes, ruby-hilted sword",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young prince statue, skin covered in gold leaf, deep sapphire eyes, ruby-hilted sword",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young prince statue, skin covered in gold leaf, deep sapphire eyes, ruby-hilted sword",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful young prince statue, skin covered in gold leaf, deep sapphire eyes, ruby-hilted sword"
+    }
+  },
+  {
+    "id": "b5990411-0af1-4833-8249-cb63bcc090ab",
+    "name": "El Dramaturgo",
+    "book": "El príncipe feliz y otros cuentos",
+    "description": "Un joven escritor que pasa hambre y frío en una buhardilla mientras intenta terminar su obra.",
+    "base_prompt": "A young handsome Victorian writer, messy brown hair, pale skin, wearing a simple shirt and wool vest, sitting in a cold attic",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young handsome Victorian writer, messy brown hair, pale skin, wearing a simple shirt and wool vest,  in a cold attic",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young handsome Victorian writer, messy brown hair, pale skin, wearing a simple shirt and wool vest,  in a cold attic",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young handsome Victorian writer, messy brown hair, pale skin, wearing a simple shirt and wool vest,  in a cold attic",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young handsome Victorian writer, messy brown hair, pale skin, wearing a simple shirt and wool vest,  in a cold attic",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young handsome Victorian writer, messy brown hair, pale skin, wearing a simple shirt and wool vest,  in a cold attic"
+    }
+  },
+  {
+    "id": "5985b813-e6eb-4855-b30f-ac18f47a4901",
+    "name": "La Niña de los Fósforos",
+    "book": "El príncipe feliz y otros cuentos",
+    "description": "Una pequeña vendedora de cerillas que vive en la extrema pobreza en las calles frías.",
+    "base_prompt": "A small poor Victorian girl, messy blonde hair, tattered clothes, holding a single glowing match in her hands",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A small poor Victorian girl, messy blonde hair, tattered clothes, single glowing match in her hands",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A small poor Victorian girl, messy blonde hair, tattered clothes, single glowing match in her hands",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A small poor Victorian girl, messy blonde hair, tattered clothes, single glowing match in her hands",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A small poor Victorian girl, messy blonde hair, tattered clothes, single glowing match in her hands",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A small poor Victorian girl, messy blonde hair, tattered clothes, single glowing match in her hands"
+    }
+  },
+  {
+    "id": "171c4b22-ed72-41ed-8bc5-9fbd712461dd",
+    "name": "La Costurera",
+    "book": "El príncipe feliz y otros cuentos",
+    "description": "Una mujer pobre que trabaja incansablemente mientras su hijo sufre de fiebre.",
+    "base_prompt": "A poor, tired Victorian woman seamstress, dark brown hair, worn dress, sewing under a single candle",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A poor, tired Victorian woman seamstress, dark brown hair, worn dress, sewing under a single candle",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A poor, tired Victorian woman seamstress, dark brown hair, worn dress, sewing under a single candle",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A poor, tired Victorian woman seamstress, dark brown hair, worn dress, sewing under a single candle",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A poor, tired Victorian woman seamstress, dark brown hair, worn dress, sewing under a single candle",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A poor, tired Victorian woman seamstress, dark brown hair, worn dress, sewing under a single candle"
+    }
+  },
+  {
+    "id": "ed995c1e-e925-4d9c-a3c4-72ec93e2db34",
+    "name": "La Golondrina",
+    "book": "El príncipe feliz y otros cuentos",
+    "description": "Un ave que se refugia en la estatua y actúa como mensajera del príncipe.",
+    "base_prompt": "A beautiful sleek swallow bird, glossy dark blue feathers, warm cream belly, bright amber eyes, perched elegantly",
+    "frames": {
+      "calm": "A beautiful sleek swallow bird, glossy dark blue feathers, warm cream belly, bright amber eyes, perched elegantly, looking at viewer, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "thinking": "A beautiful sleek swallow bird, head tilted thoughtfully, dark blue feathers, amber eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_1": "A beautiful sleek swallow bird, beak slightly open, looking at viewer, dark blue feathers, amber eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_2": "A beautiful sleek swallow bird, wings slightly fanned, beak open, explaining pose, dark blue feathers, amber eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_3": "A beautiful sleek swallow bird, wings spread happily, chirping happily, wide open beak, dark blue feathers, amber eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background"
+    }
+  },
+  {
+    "id": "ffe03155-f8a9-4b52-b434-d71017bf390d",
+    "name": "El Alcalde",
+    "book": "El príncipe feliz y otros cuentos",
+    "description": "El líder de la ciudad, más preocupado por las apariencias y los monumentos que por la gente.",
+    "base_prompt": "A portly wealthy Victorian mayor, thick mustache, top hat, expensive suit with a gold pocket watch",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A portly wealthy Victorian mayor, thick mustache, top hat, expensive suit with a gold pocket watch",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A portly wealthy Victorian mayor, thick mustache, top hat, expensive suit with a gold pocket watch",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A portly wealthy Victorian mayor, thick mustache, top hat, expensive suit with a gold pocket watch",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A portly wealthy Victorian mayor, thick mustache, top hat, expensive suit with a gold pocket watch",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A portly wealthy Victorian mayor, thick mustache, top hat, expensive suit with a gold pocket watch"
+    }
+  },
+  {
+    "id": "89442748-fc88-49aa-b458-f5a6d64a6f9f",
+    "name": "Plutón (El Gato Negro Original)",
+    "book": "El gato negro",
+    "description": "El primer gato negro del narrador, un animal leal y querido que se convierte en víctima de la ira del protagonista.",
+    "base_prompt": "A sleek glossy black cat with bright emerald green eyes, regal sitting pose, thin golden collar",
+    "frames": {
+      "calm": "A sleek glossy black cat, regal sitting pose, piercing emerald green eyes, thin gold collar, looking directly at viewer, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "thinking": "A sleek glossy black cat, head tilted thoughtfully, paw raised slightly, piercing emerald green eyes, thin gold collar, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_1": "A sleek glossy black cat, meowing softly, mouth slightly open, piercing emerald green eyes, thin gold collar, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_2": "A sleek glossy black cat, meowing with mouth open, looking slightly away, piercing emerald green eyes, thin gold collar, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_3": "A sleek glossy black cat, purring happily, eyes closed, mouth open meowing, regal pose, thin gold collar, manga art style, clean bold lineart, cel-shaded, simple neutral studio background"
+    }
+  },
+  {
+    "id": "9c6a51ae-408c-4d0e-a11a-6ff4284c5ae1",
+    "name": "El Segundo Gato Negro",
+    "book": "El gato negro",
+    "description": "Un gato idéntico a Plutón que aparece misteriosamente después de la muerte del primero, desencadenando la paranoia del narrador.",
+    "base_prompt": "A mysterious black cat with a white patch on its chest shaped like a noose, glowing golden eyes",
+    "frames": {
+      "calm": "A mysterious black cat, a prominent white patch on its chest shaped like a noose, glowing golden eyes, looking directly at viewer, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "thinking": "A mysterious black cat, head tilted, thinking pose, white patch on chest shaped like a noose, glowing golden eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_1": "A mysterious black cat, meowing softly, white patch on chest shaped like a noose, glowing golden eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_2": "A mysterious black cat, meowing with mouth open, white patch on chest shaped like a noose, glowing golden eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background",
+      "talking_3": "A mysterious black cat, purring happily, eyes closed, white patch on chest shaped like a noose, glowing golden eyes, manga art style, clean bold lineart, cel-shaded, simple neutral studio background"
+    }
+  },
+  {
+    "id": "5992e3bf-81f3-4af0-88d5-556d5916611f",
+    "name": "El Narrador (Protagonista)",
+    "book": "El gato negro",
+    "description": "El protagonista y narrador de la historia, un hombre que desciende a la locura y la violencia debido a su adicción al alcohol.",
+    "base_prompt": "A disheveled 19th-century man, gaunt pale face, hollow dark eyes, worn dark vest and white shirt",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A disheveled 19th-century man, gaunt pale face, hollow dark eyes, worn dark vest and white shirt",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A disheveled 19th-century man, gaunt pale face, hollow dark eyes, worn dark vest and white shirt",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A disheveled 19th-century man, gaunt pale face, hollow dark eyes, worn dark vest and white shirt",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A disheveled 19th-century man, gaunt pale face, hollow dark eyes, worn dark vest and white shirt",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A disheveled 19th-century man, gaunt pale face, hollow dark eyes, worn dark vest and white shirt"
+    }
+  },
+  {
+    "id": "a9927316-8c45-4f10-a851-5d21f570d552",
+    "name": "La Esposa del Narrador",
+    "book": "El gato negro",
+    "description": "La esposa del narrador, una víctima silenciosa de su violencia y la última en caer ante su locura.",
+    "base_prompt": "A gentle pale woman in a simple Victorian dress, brown hair tied in a bun, worried expression",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A gentle pale woman in a simple Victorian dress, brown hair tied in a bun, worried expression",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A gentle pale woman in a simple Victorian dress, brown hair tied in a bun, worried expression",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A gentle pale woman in a simple Victorian dress, brown hair tied in a bun, worried expression",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A gentle pale woman in a simple Victorian dress, brown hair tied in a bun, worried expression",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A gentle pale woman in a simple Victorian dress, brown hair tied in a bun, worried expression"
+    }
+  },
+  {
+    "id": "c73e5bd8-92fb-4582-a9e8-77c05a1f1bcd",
+    "name": "Júpiter (Zeus)",
+    "book": "Metamorfosis",
+    "description": "Rey de los dioses, antagonista principal de muchas historias en Metamorfosis, impulsor de transformaciones por deseo o venganza.",
+    "base_prompt": "A majestic muscular Greek god, long gray hair and beard, stern eyes, wearing a white toga and laurel wreath",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A majestic muscular Greek god, long gray hair and beard, stern eyes, wearing a white toga and laurel wreath",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A majestic muscular Greek god, long gray hair and beard, stern eyes, wearing a white toga and laurel wreath",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A majestic muscular Greek god, long gray hair and beard, stern eyes, wearing a white toga and laurel wreath",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A majestic muscular Greek god, long gray hair and beard, stern eyes, wearing a white toga and laurel wreath",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A majestic muscular Greek god, long gray hair and beard, stern eyes, wearing a white toga and laurel wreath"
+    }
+  },
+  {
+    "id": "acf734ab-90ec-41ab-bcb8-1caebe1ff162",
+    "name": "Apolo",
+    "book": "Metamorfosis",
+    "description": "Dios de la música, la profecía y la luz, protagonista de varios mitos como el de Dafne y Jacinto, donde sus amores trágicos desencadenan metamorfosis.",
+    "base_prompt": "A handsome radiant Greek god, glowing golden hair, blue eyes, athletic body, wearing a white chiton",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A handsome radiant Greek god, glowing golden hair, blue eyes, athletic body, wearing a white chiton",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A handsome radiant Greek god, glowing golden hair, blue eyes, athletic body, wearing a white chiton",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A handsome radiant Greek god, glowing golden hair, blue eyes, athletic body, wearing a white chiton",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A handsome radiant Greek god, glowing golden hair, blue eyes, athletic body, wearing a white chiton",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A handsome radiant Greek god, glowing golden hair, blue eyes, athletic body, wearing a white chiton"
+    }
+  },
+  {
+    "id": "dbf01bc6-3259-44a3-bde6-10e19a9871c4",
+    "name": "Dafne",
+    "book": "Metamorfosis",
+    "description": "Ninfa perseguida por Apolo, transformada en laurel para escapar de su acoso, símbolo de resistencia y pureza.",
+    "base_prompt": "A beautiful Greek nymph, long flowing brown hair, skin beginning to turn into smooth laurel tree bark",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful Greek nymph, long flowing brown hair, skin beginning to turn into smooth laurel tree bark",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful Greek nymph, long flowing brown hair, skin beginning to turn into smooth laurel tree bark",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful Greek nymph, long flowing brown hair, skin beginning to turn into smooth laurel tree bark",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful Greek nymph, long flowing brown hair, skin beginning to turn into smooth laurel tree bark",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A beautiful Greek nymph, long flowing brown hair, skin beginning to turn into smooth laurel tree bark"
+    }
+  },
+  {
+    "id": "57470834-916a-4a17-85bb-e993e5f38776",
+    "name": "Píramo y Tisbe",
+    "book": "Metamorfosis",
+    "description": "Pareja de amantes jóvenes de Babilonia, cuyo amor trágico termina en suicidio y da origen al color de las moras, precursores de Romeo y Julieta.",
+    "base_prompt": "Two young beautiful Greek lovers standing next to a cracked stone wall, emotional and tragic atmosphere",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, Two young beautiful Greek lovers  next to a cracked stone wall, emotional and tragic atmosphere",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, Two young beautiful Greek lovers  next to a cracked stone wall, emotional and tragic atmosphere",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, Two young beautiful Greek lovers  next to a cracked stone wall, emotional and tragic atmosphere",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, Two young beautiful Greek lovers  next to a cracked stone wall, emotional and tragic atmosphere",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, Two young beautiful Greek lovers  next to a cracked stone wall, emotional and tragic atmosphere"
+    }
+  },
+  {
+    "id": "214d1474-cd6c-493e-9376-7b8bf59d1f2d",
+    "name": "Gregor Samsa",
+    "book": "La metamorfosis",
+    "description": "Protagonista de la obra. Un viajante de comercio que se despierta transformado en un insecto gigante.",
+    "base_prompt": "A giant segmented dark beetle-like insect with sad intelligent human eyes",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A giant segmented dark beetle-like insect with sad intelligent human eyes",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A giant segmented dark beetle-like insect with sad intelligent human eyes",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A giant segmented dark beetle-like insect with sad intelligent human eyes",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A giant segmented dark beetle-like insect with sad intelligent human eyes",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A giant segmented dark beetle-like insect with sad intelligent human eyes"
+    }
+  },
+  {
+    "id": "5cb2116d-79ae-4c4a-b264-9c367cdea33b",
+    "name": "Grete Samsa",
+    "book": "La metamorfosis",
+    "description": "Hermana menor de Gregor. Inicialmente compasiva, pero su actitud cambia drásticamente a lo largo de la obra.",
+    "base_prompt": "A young early 20th-century German girl, blonde hair in braids, wearing a simple apron and dress",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young early 20th-century German girl, blonde hair in braids, wearing a simple apron and dress",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young early 20th-century German girl, blonde hair in braids, wearing a simple apron and dress",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young early 20th-century German girl, blonde hair in braids, wearing a simple apron and dress",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young early 20th-century German girl, blonde hair in braids, wearing a simple apron and dress",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A young early 20th-century German girl, blonde hair in braids, wearing a simple apron and dress"
+    }
+  },
+  {
+    "id": "876d7404-04db-42a8-afac-805a49f7697d",
+    "name": "El señor Samsa",
+    "book": "La metamorfosis",
+    "description": "Padre de Gregor. Un hombre autoritario que pasa de la dependencia a la hostilidad hacia su hijo.",
+    "base_prompt": "A stern elderly German man, thick gray mustache, wearing a dark formal uniform, angry posture",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A stern elderly German man, thick gray mustache, wearing a dark formal uniform, angry posture",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A stern elderly German man, thick gray mustache, wearing a dark formal uniform, angry posture",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A stern elderly German man, thick gray mustache, wearing a dark formal uniform, angry posture",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A stern elderly German man, thick gray mustache, wearing a dark formal uniform, angry posture",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A stern elderly German man, thick gray mustache, wearing a dark formal uniform, angry posture"
+    }
+  },
+  {
+    "id": "876b600d-52c8-4316-8155-4a4583f851e4",
+    "name": "La señora Samsa",
+    "book": "La metamorfosis",
+    "description": "Madre de Gregor. Una mujer frágil y emocional que lucha entre el amor maternal y el horror.",
+    "base_prompt": "A frail middle-aged German woman, pale face, sad weary eyes, wearing a dark Victorian lace collar dress",
+    "frames": {
+      "calm": "(calm expression, looking at viewer, closed mouth:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A frail middle-aged German woman, pale face, sad weary eyes, wearing a dark Victorian lace collar dress",
+      "thinking": "(thoughtful expression, hand on chin, closed eyes, tilted head, thinking pose:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A frail middle-aged German woman, pale face, sad weary eyes, wearing a dark Victorian lace collar dress",
+      "talking_1": "(speaking expression, slightly open mouth, looking at viewer, slight head tilt:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A frail middle-aged German woman, pale face, sad weary eyes, wearing a dark Victorian lace collar dress",
+      "talking_2": "(explaining expression, open mouth, hand gesturing, animated speaking pose, looking slightly away:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A frail middle-aged German woman, pale face, sad weary eyes, wearing a dark Victorian lace collar dress",
+      "talking_3": "(warm friendly expression, smiling while talking, wide open mouth, happy speaking pose, gesturing warmly, looking at viewer:1.3), manga art style, high quality, masterpiece, solo, upper body portrait, clean lineart, simple neutral studio background, A frail middle-aged German woman, pale face, sad weary eyes, wearing a dark Victorian lace collar dress"
+    }
+  }
+]

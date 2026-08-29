@@ -1,0 +1,95 @@
+<div class="authors-container fade-in">
+  <!-- Header Decorativo -->
+  <header class="authors-header">
+    <div class="decorative-line left"></div>
+    <div class="header-content">
+      <h1 class="glow-text title-font">Los Arquitectos de la Imaginación</h1>
+      <p class="subtitle">Bienvenido, estos son nuestros ilustres autores actualmente.</p>
+    </div>
+    <div class="decorative-line right"></div>
+  </header>
+
+  <!-- Buscador Central y Filtros -->
+  <div class="search-section">
+    <div class="search-container">
+      <!-- Input de Búsqueda -->
+      <div class="search-box">
+        <span class="material-symbols-rounded search-icon">search</span>
+        <input type="text" placeholder="Encuentra a tu autor favorito..." (keyup)="onSearch($event)"
+          class="glass-input search-input">
+      </div>
+      
+      <!-- Menú Desplegable de Orden (Más pequeño) -->
+      <div class="filter-box-mini">
+        <select class="glass-select-mini" (change)="setFilter($event)">
+          <option value="a-z">A - Z</option>
+          <option value="z-a">Z - A</option>
+          <option value="books">Más Libros</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Línea Ondulada Decorativa -->
+  <div class="wavy-separator">
+    <svg viewBox="0 0 1000 50" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#3b82f6" />
+          <stop offset="50%" stop-color="#fbbf24" />
+          <stop offset="100%" stop-color="#8b5cf6" />
+        </linearGradient>
+      </defs>
+      <path d="M0,25 C150,50 350,0 500,25 C650,50 850,0 1000,25 L1000,0 L0,0 Z" class="wave-bg"></path>
+      <path d="M0,25 C150,50 350,0 500,25 C650,50 850,0 1000,25" class="wave-line"></path>
+    </svg>
+  </div>
+
+  <!-- Loader -->
+  <div *ngIf="loading" class="loader-container">
+    <div class="shimmer-card" *ngFor="let i of [1,2,3,4]"></div>
+  </div>
+
+  <!-- Grid de Autores -->
+  <div *ngIf="!loading" class="authors-grid">
+    <div class="author-card glass-panel" *ngFor="let author of filteredAuthors" [routerLink]="['/author', author.slug]">
+      <div class="card-inner">
+        <!-- Imagen / Avatar del Autor -->
+        <div class="author-image-wrapper">
+          <img [src]="author.photo || 'assets/images/default-avatar.png'" [alt]="author.full_name" class="author-photo">
+          <div class="book-badge" title="Libros disponibles">
+            <span class="material-symbols-rounded" style="font-size: 1.1rem; line-height: 1;">library_books</span>
+            <span>{{ author.books?.length || 0 }}</span>
+          </div>
+        </div>
+
+        <!-- Info del Autor -->
+        <div class="author-info">
+          <h2 class="author-name">{{ author.full_name }}</h2>
+          <span class="author-nationality" *ngIf="author.nationality">{{ author.nationality }}</span>
+
+          <p class="author-bio">
+            {{ (author.bio | slice:0:120) || 'Descubre la fascinante historia y las obras maestras literarias de este
+            icónico autor...' }}
+            <span class="read-more">Leer más...</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div *ngIf="!loading && totalPages > 1" class="pagination-bar">
+    <span class="results-count">{{ totalCount }} autores</span>
+    <div class="pagination-controls">
+      <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        ← Anterior
+      </button>
+      <span class="page-indicator">pág. {{ currentPage }} / {{ totalPages }}</span>
+      <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+</div>

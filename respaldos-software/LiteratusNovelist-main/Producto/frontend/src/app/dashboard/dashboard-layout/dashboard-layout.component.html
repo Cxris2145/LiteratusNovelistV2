@@ -1,0 +1,132 @@
+<div class="nexus-layout">
+  <!-- SIDEBAR -->
+  <aside class="nexus-sidebar" [class.collapsed]="sidebarCollapsed" [class.mobile-open]="mobileSidebarOpen">
+    <div class="sidebar-header">
+      <div class="logo-container">
+        <div class="logo-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <span class="logo-text" *ngIf="!sidebarCollapsed">Literatus<span class="logo-accent"> Nexus</span></span>
+      </div>
+      <button class="collapse-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed ? 'Expandir' : 'Colapsar'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline *ngIf="!sidebarCollapsed" points="15 18 9 12 15 6"/>
+          <polyline *ngIf="sidebarCollapsed" points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- PRINCIPAL -->
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">PRINCIPAL</div>
+      <a routerLink="overview" routerLinkActive="active" class="nav-item" title="Visión General">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">dashboard</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Visión General</span>
+      </a>
+
+      <!-- CONTENIDO -->
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">CONTENIDO</div>
+      <a routerLink="books" routerLinkActive="active" class="nav-item" title="Biblioteca">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">library_books</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Biblioteca</span>
+      </a>
+      <a routerLink="authors" routerLinkActive="active" class="nav-item" title="Autores">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">history_edu</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Autores</span>
+      </a>
+      <a routerLink="avatars" routerLinkActive="active" class="nav-item" title="Personajes">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">face</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Personajes</span>
+      </a>
+
+      <!-- SISTEMA -->
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">SISTEMA</div>
+      <a routerLink="users" routerLinkActive="active" class="nav-item" title="Monitoreo de Usuarios">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">monitoring</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Monitoreo de Usuarios</span>
+      </a>
+      <a routerLink="/" class="nav-item nav-item-external" title="Ir a la Tienda">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">storefront</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Ir a la Tienda</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed">
+      <div class="version-badge">
+        <span class="version-dot"></span>
+        v1.0 Nexus
+      </div>
+    </div>
+  </aside>
+
+  <!-- MOBILE OVERLAY -->
+  <div class="mobile-sidebar-overlay" *ngIf="mobileSidebarOpen" (click)="toggleMobileSidebar()"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="nexus-main">
+    <!-- TOPBAR -->
+    <header class="nexus-topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" (click)="toggleMobileSidebar()">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="breadcrumb-wrap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span class="breadcrumb-sep">/</span>
+          <h2 class="page-title">{{ pageTitle }}</h2>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          {{ currentDate }}
+        </div>
+        <div class="admin-badge">
+          <span class="badge-dot"></span>
+          Administrador
+        </div>
+        <button class="logout-btn" [matMenuTriggerFor]="themeMenu" style="background: var(--glow-purple); margin-right: 10px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          Tema: {{ currentTheme === 'default' ? 'Classic' : (currentTheme === 'neon' ? 'Neon' : 'Light') }}
+        </button>
+        <mat-menu #themeMenu="matMenu" class="dark-premium-menu">
+          <button mat-menu-item (click)="setThemeDirect('default')">
+            <span class="mat-symbol" [style.color]="currentTheme === 'default' ? 'var(--glow-accent)' : 'inherit'">dark_mode</span>
+            <span>Classic Dark</span>
+          </button>
+          <button mat-menu-item (click)="setThemeDirect('neon')">
+            <span class="mat-symbol" [style.color]="currentTheme === 'neon' ? 'var(--glow-accent)' : 'inherit'">terminal</span>
+            <span>Cyber Neon</span>
+          </button>
+          <button mat-menu-item (click)="setThemeDirect('light-gallery')">
+            <span class="mat-symbol" [style.color]="currentTheme === 'light-gallery' ? 'var(--glow-accent)' : 'inherit'">light_mode</span>
+            <span>Light Gallery</span>
+          </button>
+        </mat-menu>
+        <button class="logout-btn" (click)="logout()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Salir
+        </button>
+      </div>
+    </header>
+
+    <!-- ROUTER OUTLET -->
+    <main class="nexus-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

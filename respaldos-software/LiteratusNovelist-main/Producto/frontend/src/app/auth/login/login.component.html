@@ -1,0 +1,42 @@
+<div class="auth-wrapper">
+  <div class="glass-panel login-box">
+    <h2>Bienvenido a Literatus</h2>
+    <p class="subtitle">Desbloquea el mundo inmersivo de la lectura interactiva.</p>
+    
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label>Correo o Usuario</label>
+        <input type="text" class="glass-input" formControlName="username" placeholder="tu@correo.com o tu alias">
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <div style="position: relative;">
+          <input [type]="showPassword ? 'text' : 'password'" class="glass-input" formControlName="password" placeholder="••••••••">
+          <button type="button" (click)="togglePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;">
+            <svg lucideEyeOff *ngIf="showPassword" style="width: 20px; height: 20px;"></svg>
+            <svg lucideEye *ngIf="!showPassword" style="width: 20px; height: 20px;"></svg>
+          </button>
+        </div>
+      </div>
+      
+      <div class="forgot-password-container" style="text-align: right; margin-top: -10px; margin-bottom: 15px;">
+        <a routerLink="/forgot-password" style="color: var(--glow-gold, #fbbf24); font-size: 0.85rem; text-decoration: none; font-weight: 500; transition: opacity 0.2s;">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMsg">
+        {{ errorMsg }}
+      </div>
+
+      <button type="submit" class="glass-btn" [disabled]="loginForm.invalid || isLoading">
+        {{ isLoading ? 'Conectando...' : 'Iniciar Sesión' }}
+      </button>
+
+    </form>
+
+    <div class="footer-link">
+      <span>¿No tienes una cuenta? <a routerLink="/register">Regístrate gratis</a></span>
+    </div>
+  </div>
+</div>

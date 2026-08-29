@@ -1,0 +1,35 @@
+<!-- LIYUMI WIDGET: Asistente Tortuga Interactivo -->
+<div class="liyumi-root" [class.open]="isOpen">
+
+  <!-- BUBBLE DE MENSAJE (glassmorphism) -->
+  <div class="liyumi-bubble glass-bubble" *ngIf="isOpen && message" @bubbleAnim>
+    <!-- Ondas de audio cuando está hablando -->
+    <div class="wave-bar" *ngIf="isTalking">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <p class="bubble-text">{{ message.text }}</p>
+
+    <!-- Controles onboarding -->
+    <div class="bubble-actions" *ngIf="isOnboarding">
+      <button class="onboarding-next-btn" (click)="nextOnboardingStep()">Siguiente →</button>
+      <button class="onboarding-skip-btn" (click)="skipOnboarding()">Saltar</button>
+    </div>
+
+    <!-- Cerrar mensaje normal -->
+    <button class="bubble-close" *ngIf="!isOnboarding" (click)="dismissMessage()">✕</button>
+  </div>
+
+  <!-- AVATAR DE LIYUMI -->
+  <div class="liyumi-avatar-wrapper" (click)="toggleWidget()" [class.speaking]="isTalking" [class.waving]="state === 'waving'">
+    <img
+      src="assets/liyumi_avatar.png"
+      alt="Liyumi, tu asistente literaria"
+      class="liyumi-img"
+      [class.breathing]="state === 'idle'"
+    >
+    <!-- Indicador de estado -->
+    <div class="liyumi-status-dot" [ngClass]="state"></div>
+  </div>
+
+</div>

@@ -1,0 +1,64 @@
+<div class="editor-container">
+  <div class="editor-header">
+    <div class="header-left">
+      <button class="back-btn" (click)="goBack()">← Volver</button>
+      <h2>{{ authorId ? 'Editar Autor' : 'Nuevo Autor' }}</h2>
+    </div>
+    <div class="header-actions">
+      <button class="save-btn" [disabled]="!newAuthor.full_name || loading" (click)="saveAuthor()">
+        {{ loading ? 'Guardando...' : 'Guardar Autor' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="editor-content card">
+    <div class="nexus-form">
+      <div class="form-row">
+        <div class="form-group" style="flex: 0 0 160px;">
+          <label>Foto de Perfil</label>
+          <div class="photo-uploader" (click)="photoInput.click()">
+            <img *ngIf="photoPreview" [src]="photoPreview" class="photo-preview">
+            <div *ngIf="!photoPreview" class="photo-placeholder">➕</div>
+            <input type="file" #photoInput (change)="onPhotoSelected($event)" accept="image/*" style="display:none">
+          </div>
+        </div>
+        <div class="form-group" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+          <label>Nombre Completo</label>
+          <input type="text" [(ngModel)]="newAuthor.full_name" placeholder="Ej: Mary Shelley">
+          <small style="color: #94a3b8; margin-top: 5px;">Nombre con el que se identificará al autor.</small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Año Nacimiento</label>
+          <input type="number" [(ngModel)]="newAuthor.birth_year" placeholder="1797">
+        </div>
+        <div class="form-group">
+          <label>Año Defunción (vacío si está vivo)</label>
+          <input type="number" [(ngModel)]="newAuthor.death_year" placeholder="1851">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Nacionalidad</label>
+        <input type="text" [(ngModel)]="newAuthor.nationality" placeholder="Reino Unido">
+      </div>
+
+      <div class="form-group">
+        <label>Temas / Estilo (separados por coma)</label>
+        <input type="text" [(ngModel)]="newAuthor.themes" placeholder="Romanticismo, Gótico, Ciencia Ficción">
+      </div>
+
+      <div class="form-group">
+        <label>Wikipedia URL</label>
+        <input type="url" [(ngModel)]="newAuthor.wikipedia_url" placeholder="https://es.wikipedia.org/wiki/Mary_Shelley">
+      </div>
+
+      <div class="form-group">
+        <label>Biografía</label>
+        <textarea [(ngModel)]="newAuthor.bio" rows="6" placeholder="Vida y obra detallada del autor..."></textarea>
+      </div>
+    </div>
+  </div>
+</div>

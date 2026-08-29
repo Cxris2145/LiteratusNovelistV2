@@ -1,0 +1,51 @@
+# ===========================================================================
+# .gitignore — LiteratusNovelist Root Workspace
+# ===========================================================================
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Entornos virtuales (NO subir al repositorio)
+.venv/
+.venv312/
+venv/
+env/
+ENV/
+
+# Variables de entorno sensibles
+.env
+!.env.example
+
+# Archivos de sistema e IDEs
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Frontend (Angular / Node)
+node_modules/
+.angular/
+.next/
+out/
+.nuxt/
+
+# Logs
+*.log
+logs/
+
+# Archivos temporales de Office
+~$*.docx
+~$*.xlsx
+
+# Backups locales temporales
+respaldos-software/LiteratusNovelist-main/Producto/backend/backups/

@@ -1,0 +1,766 @@
+<div class="workbench-container" [ngClass]="'theme-' + currentTheme" [class.immersive]="isToolbarHidden">
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- TOOLBAR SUPERIOR (FIJO)                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <header class="toolbar glass-panel" [class.hidden]="isToolbarHidden">
+
+    <!-- Izquierda: Volver + Info + Personajes -->
+    <div class="toolbar-left">
+      <button class="back-btn" routerLink="/library" title="Volver a mi biblioteca">
+        <span class="icon">✕</span>
+      </button>
+      <div class="book-info">
+        <span class="chapter-label">{{ chapterTitle }}</span>
+        <span class="progress-label">{{ currentPage - 1 > 0 ? 'Capítulo ' + (currentPage - 1) : 'Prólogo' }} · {{ currentPage }} de {{ totalPages }}</span>
+      </div>
+      <!-- Trigger Panel de Personajes (izquierda) -->
+      <button class="char-trigger-btn" (click)="toggleCharPanel()" title="Personajes IA"
+              [class.active]="isCharPanelOpen">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">group</span>
+        <span class="ink-badge" *ngIf="inkBalance <= 10" title="Tinta baja">{{ inkBalance }}</span>
+      </button>
+    </div>
+
+    <!-- Centro: Título del libro (deslizable) -->
+    <div class="toolbar-center">
+      <div class="book-title-container">
+        <span class="book-title-label" [attr.title]="bookTitle">{{ bookTitle }}</span>
+      </div>
+    </div>
+
+    <!-- Derecha: Fuente + Temas + TOC -->
+    <div class="reader-settings">
+      <div class="ink-counter" title="Ir a la Taberna (Recargar Tinta)" routerLink="/tavern">
+        <span class="ink-icon material-symbols-rounded" style="font-size: 1.1rem;">ink_pen</span>
+        <span class="ink-number">{{ inkBalance }}</span>
+      </div>
+      
+      <!-- Selector de Tipo de Letra -->
+      <div class="font-family-selector">
+        <select class="font-family-dropdown" [value]="currentFontFamily" (change)="setFontFamily($any($event.target).value)" title="Tipografía de lectura">
+          <option value="serif">Serif</option>
+          <option value="sans">Outfit</option>
+          <option value="dyslexic">Comic Neue</option>
+          <option value="medieval">Cinzel</option>
+          <option value="garamond">Garamond</option>
+          <option value="georgia">Georgia</option>
+          <option value="palatino">Palatino</option>
+          <option value="opensans">Open Sans</option>
+          <option value="helvetica">Helvetica</option>
+        </select>
+      </div>
+
+      <div class="font-controls">
+        <button (click)="changeFontSize(-2)" title="Disminuir letra">A-</button>
+        <button (click)="changeFontSize(2)" title="Aumentar letra">A+</button>
+      </div>
+
+      <!-- Selector de Tema (Fondo) -->
+      <div class="theme-selector-dropdown">
+        <select class="theme-dropdown" [value]="currentTheme" (change)="setTheme($any($event.target).value)" title="Tema de fondo">
+          <option value="light">Claro</option>
+          <option value="sepia">Sepia</option>
+          <option value="dark">Oscuro</option>
+          <option value="nocturno">Nocturno (OLED)</option>
+        </select>
+      </div>
+
+      <!-- Toggle de Comportamiento de Barra de Progreso -->
+      <button class="toc-trigger-btn" (click)="setHideProgress(!hideProgressOnScroll)" [title]="hideProgressOnScroll ? 'Fijar línea de progreso' : 'Ocultar línea al leer'" [class.active]="!hideProgressOnScroll">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">linear_scale</span>
+      </button>
+
+      <!-- Toggle de Lectura Biónica -->
+      <button class="toc-trigger-btn" (click)="setBionicReading(!bionicReadingActive)" title="Lectura Biónica" [class.active]="bionicReadingActive">
+        <svg lucideEye [size]="20" class="lucide-icon"></svg>
+      </button>
+
+      <!-- Toggle de Escenas (Imágenes) -->
+      <button class="toc-trigger-btn" (click)="toggleSceneImages()" title="Mostrar Imágenes de Escena" [class.active]="showSceneImages">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">image</span>
+      </button>
+
+      <!-- Toggle de Avance Táctil (Toque Fluido) -->
+      <button class="toc-trigger-btn" (click)="toggleTapToScroll()" title="Toque Fluido (Toque para avanzar)" [class.active]="tapToScrollActive">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">touch_app</span>
+      </button>
+
+      <!-- Toggle Modo Inmersivo (Pantalla Completa F11) -->
+      <button class="toc-trigger-btn immersive-toggle-btn" (click)="toggleImmersiveButton()" [title]="isFullscreenActive ? 'Salir de pantalla completa' : 'Pantalla completa (Modo Inmersivo)'">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">{{ isFullscreenActive ? 'fullscreen_exit' : 'fullscreen' }}</span>
+      </button>
+
+      <button class="toc-trigger-btn" (click)="toggleAudioPanel()" title="Narración AI" [class.active]="isAudioPanelOpen">
+        <svg lucideVolume2 [size]="20" class="lucide-icon"></svg>
+      </button>
+      <button class="toc-trigger-btn" (click)="toggleToc()" title="Índice de capítulos" [class.active]="isTocOpen">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">menu</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de progreso de lectura (Wattpad style) fuera del header para que no se oculte forzosamente -->
+  <div class="reading-progress-container"
+       [class.toolbar-hidden]="isToolbarHidden"
+       [class.hide-on-scroll]="hideProgressOnScroll">
+    <div class="reading-progress-bar" [style.width.%]="chapterScrollPercent"></div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- OVERLAY COMPARTIDO (click fuera cierra cualquier panel)         -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="panel-overlay"
+       *ngIf="isTocOpen || isCharPanelOpen"
+       (click)="isTocOpen = false; isCharPanelOpen = false; showCharProfile = false">
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PANEL IZQUIERDO: PERSONAJES                                      -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <aside class="char-sidebar glass-panel" 
+         [class.is-chat-active]="isChatOpen"
+         [@slideFromLeft]="isCharPanelOpen ? 'in' : 'out'">
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- ESTADO 1: LISTA DE PERSONAJES           -->
+    <!-- ════════════════════════════════════════ -->
+    <ng-container *ngIf="!showCharProfile && !isChatOpen" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="sidebar-header list-header">
+        <h3 class="sidebar-title">🎭 Personajes</h3>
+        <button class="sidebar-close-btn" (click)="toggleCharPanel()"><span class="material-symbols-rounded" style="font-size: 1.2rem;">close</span></button>
+      </div>
+
+      <div class="char-list">
+        <!-- Autor -->
+        <div *ngIf="authorAvatar" class="char-list-item" (click)="openCharProfile(authorAvatar)">
+          <div class="char-avatar-pic">
+            <img *ngIf="authorAvatar.avatar_image_url" [src]="authorAvatar.avatar_image_url" [alt]="authorAvatar.name">
+            <div *ngIf="!authorAvatar.avatar_image_url" class="char-avatar-initial">{{ authorAvatar.name.charAt(0) }}</div>
+          </div>
+          <div class="char-info">
+            <span class="char-name">{{ authorAvatar.name }}</span>
+            <span class="char-role">El Autor</span>
+          </div>
+          <span class="char-arrow">›</span>
+        </div>
+
+        <div *ngIf="authorAvatar && characterAvatars.length > 0" class="sidebar-divider"></div>
+
+        <!-- Personajes -->
+        <div *ngFor="let avatar of characterAvatars"
+             class="char-list-item"
+             [class.locked-item]="!avatar.is_unlocked"
+             (click)="openCharProfile(avatar)">
+          <div class="char-avatar-pic">
+            <img *ngIf="avatar.avatar_image_url" [src]="avatar.avatar_image_url" [alt]="avatar.name">
+            <div *ngIf="!avatar.avatar_image_url" class="char-avatar-initial">{{ avatar.name.charAt(0) }}</div>
+            <span class="char-lock-icon" *ngIf="!avatar.is_unlocked">🔒</span>
+          </div>
+          <div class="char-info">
+            <span class="char-name">{{ avatar.name }}</span>
+            <span class="char-status" [class.available]="avatar.is_unlocked">
+              {{ avatar.is_unlocked ? 'Disponible' : 'Cap. ' + avatar.unlock_at_chapter }}
+            </span>
+          </div>
+          <span class="char-arrow">›</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- ESTADO 2: PERFIL DEL PERSONAJE          -->
+    <!-- ════════════════════════════════════════ -->
+    <ng-container *ngIf="showCharProfile && selectedAvatar && !isChatOpen" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="sidebar-header">
+        <button class="sidebar-back-btn" (click)="closeCharProfile()">
+          <span class="material-symbols-rounded" style="font-size: 1.2rem; vertical-align: middle; margin-right: 2px;">arrow_back_ios_new</span> Volver
+        </button>
+        <button class="sidebar-close-btn" (click)="toggleCharPanel()"><span class="material-symbols-rounded" style="font-size: 1.2rem;">close</span></button>
+      </div>
+      <div class="profile-scroll-body">
+      <div class="profile-hero">
+        <img *ngIf="selectedAvatar.avatar_image_url" 
+             [src]="selectedAvatar.avatar_image_url" 
+             [alt]="selectedAvatar.name"
+             class="profile-hero-img">
+        <div *ngIf="!selectedAvatar.avatar_image_url" class="profile-hero-initial">
+          {{ selectedAvatar.name.charAt(0) }}
+        </div>
+      </div>
+
+      <div class="profile-info">
+        <h2 class="profile-name">{{ selectedAvatar.name }}</h2>
+        <p class="profile-desc">{{ selectedAvatar.description || 'Un personaje misterioso...' }}</p>
+      </div>
+
+      <!-- Bloqueado -->
+      <div *ngIf="!selectedAvatar.is_unlocked" class="profile-locked">
+        <span class="lock-icon-big">🔒</span>
+        <p>Se desbloquea en el capítulo <strong>{{ selectedAvatar.unlock_at_chapter }}</strong></p>
+      </div>
+
+      <!-- Desbloqueado -->
+      <div *ngIf="selectedAvatar.is_unlocked" class="profile-actions">
+        <button class="start-chat-cta" (click)="startChat(selectedAvatar)">
+          💬 Iniciar Conversación
+        </button>
+      </div>
+      </div><!-- end profile-scroll-body -->
+    </ng-container>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- ESTADO 3: CHAT ACTIVO (estilo c.ai)     -->
+    <!-- ════════════════════════════════════════ -->
+    <ng-container *ngIf="isChatOpen && chatSession">
+
+      <!-- Header del chat -->
+      <div class="chat-topbar">
+        <button class="topbar-back-btn" (click)="isChatOpen = false"><span class="material-symbols-rounded" style="font-size: 1.4rem;">arrow_back_ios_new</span></button>
+        <div class="topbar-avatar">
+          <img *ngIf="selectedAvatar?.avatar_image_url" [src]="selectedAvatar.avatar_image_url" [alt]="selectedAvatar?.name">
+          <div *ngIf="!selectedAvatar?.avatar_image_url" class="topbar-initial">{{ selectedAvatar?.name?.charAt(0) }}</div>
+        </div>
+        <div class="topbar-info">
+          <span class="topbar-name">{{ selectedAvatar?.name }}</span>
+          <span class="topbar-mode">En línea</span>
+        </div>
+        <!-- Indicador de Estado IA Minimalista -->
+        <div class="ai-status-indicator" 
+             [class]="'status-' + aiStatus" 
+             [title]="'Motor IA: ' + (aiProvider | titlecase)">
+          <span class="ai-pulse"></span>
+          <span class="ai-label">{{ aiProvider === 'gemini' ? 'G' : 'D' }}</span>
+        </div>
+        <!-- Botón de Mute Global -->
+        <button class="topbar-mute-btn" 
+                (click)="toggleMute()" 
+                [title]="isMuted ? 'Activar Voz (TTS)' : 'Silenciar Voz (TTS)'">
+          <span class="material-symbols-rounded" style="font-size: 1.3rem;" [style.color]="isMuted ? '#ff5252' : 'inherit'">
+            {{ isMuted ? 'volume_off' : 'volume_up' }}
+          </span>
+        </button>
+
+        <!-- Botón de Modo Llamada (Voz) -->
+        <button class="topbar-call-btn" 
+                [class.active]="isCallMode"
+                (click)="toggleCallMode()" 
+                title="Modo Llamada (Voz Inmersiva)">
+          <span class="material-symbols-rounded" style="font-size: 1.2rem;">call</span>
+          <span class="beta-badge">BETA</span>
+        </button>
+
+        <button class="topbar-close-btn" (click)="isChatOpen = false; isCharPanelOpen = false"><span class="material-symbols-rounded" style="font-size: 1.3rem;">close</span></button>
+      </div>
+
+      <!-- PANEL DE VIDEO (solo si está activo manualmente o en Modo Llamada) -->
+      <div class="chat-video-panel" *ngIf="(showVideoAvatar || isCallMode) && selectedAvatar?.video_avatar_url" [class.immersive-video]="isCallMode">
+        <video #avatarVideo 
+               [src]="selectedAvatar.video_avatar_url" 
+               [autoplay]="false" 
+               [loop]="true" 
+               [muted]="true"
+               class="chat-video-el"
+               [class.speaking]="isVideoSpeaking">
+        </video>
+        <div class="chat-video-shine"></div>
+      </div>
+
+      <!-- PANEL DE MANGA PORTRAIT (Efecto Novela Visual / Manga) -->
+      <div class="chat-manga-panel" *ngIf="selectedAvatar?.avatar_image_url && !selectedAvatar?.video_avatar_url" [class.immersive-manga]="isCallMode">
+        <div class="manga-portrait-container">
+          <img [src]="getMangaFrameUrl()" 
+               [alt]="selectedAvatar?.name"
+               class="chat-manga-img"
+               [class.speaking]="isVideoSpeaking"
+               [class.thinking]="isSendingMessage">
+          <div class="manga-glow-effect"></div>
+        </div>
+        <div class="manga-status-tag" *ngIf="isSendingMessage || isVideoSpeaking">
+          <span class="status-label" *ngIf="isSendingMessage"><span class="material-symbols-rounded" style="font-size: 1rem; vertical-align: middle; margin-right: 4px;">psychology</span> Pensando...</span>
+          <span class="status-label" *ngIf="isVideoSpeaking"><span class="material-symbols-rounded" style="font-size: 1rem; vertical-align: middle; margin-right: 4px;">graphic_eq</span> Hablando...</span>
+        </div>
+      </div>
+
+      <!-- Mensajes (Se ocultan en Modo Llamada) -->
+      <div class="chat-messages-area" #chatBody *ngIf="!isCallMode">
+        <div *ngFor="let msg of chatMessages" 
+             class="chat-msg-row"
+             [class.user-msg]="msg.role === 'user'"
+             [class.ai-msg]="msg.role !== 'user'">
+          
+          <!-- Avatar mini en mensajes de IA -->
+          <div class="msg-avatar" *ngIf="msg.role !== 'user'">
+            <img *ngIf="selectedAvatar?.avatar_image_url" [src]="selectedAvatar.avatar_image_url">
+          </div>
+          
+          <div class="msg-bubble" [class.user-bubble]="msg.role === 'user'" [class.ai-bubble]="msg.role !== 'user'">
+            <div [innerHTML]="formatMessage(msg.content)"></div>
+            <button *ngIf="msg.role !== 'user'" class="replay-btn" (click)="playMessageAudio(msg)" title="Volver a escuchar">
+              <span class="material-symbols-rounded">play_circle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input y Controles de Voz -->
+      <div class="chat-footer" [class.immersive-footer]="isCallMode">
+        
+        <!-- VISUALIZADOR DE ONDAS (Solo en Modo Llamada) -->
+        <div class="voice-controls" *ngIf="isCallMode">
+          <app-audio-visualizer 
+            [isActive]="(speechService.isListening$ | async) ?? false" 
+            [level]="audioLevel">
+          </app-audio-visualizer>
+          <p class="partial-transcript" *ngIf="partialTranscript">
+            <i>{{ partialTranscript }}</i>
+          </p>
+          <p class="listening-status" *ngIf="!(speechService.isListening$ | async)">
+            <span *ngIf="isVideoSpeaking">Personaje hablando...</span>
+            <span *ngIf="!isVideoSpeaking && !isSendingMessage">Micrófono pausado</span>
+          </p>
+        </div>
+
+        <div class="chat-input-box">
+          <input type="text"
+                 [(ngModel)]="chatInput"
+                 (keyup.enter)="sendMessage()"
+                 [placeholder]="isCallMode ? 'Escribe aquí si el micrófono falla...' : ('Mensaje ' + (selectedAvatar?.name || 'personaje') + '...')"
+                 [disabled]="isSendingMessage"
+                 class="chat-text-input">
+          <button class="chat-send-btn" 
+                  (click)="sendMessage()" 
+                  [disabled]="!chatInput.trim() || isSendingMessage">
+            <span *ngIf="!isSendingMessage" class="material-symbols-rounded" style="font-size: 1.1rem; transform: translateX(2px);">send</span>
+            <span *ngIf="isSendingMessage" class="loader-spin material-symbols-rounded" style="font-size: 1.1rem;">progress_activity</span>
+          </button>
+        </div>
+        <p class="chat-disclaimer">Esto es IA y no una persona real.</p>
+      </div>
+    </ng-container>
+
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PANEL DERECHO: ÍNDICE (TOC)                                      -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <aside class="toc-sidebar glass-panel" [@slideFromRight]="isTocOpen ? 'in' : 'out'">
+    <div class="toc-header">
+      <h3>Índice</h3>
+      <button class="close-btn" (click)="toggleToc()">✕</button>
+    </div>
+    <ul class="toc-list">
+      <li *ngFor="let chapter of chapters; let i = index; trackBy: trackByChapter"
+          [class.active]="i === (currentPage - 1)"
+          (click)="goToChapter(i)">
+        <span class="chapter-number">{{ i }}.</span>
+        <span class="chapter-name">{{ chapter.title || 'Capítulo ' + i }}</span>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- PANEL DE AUDIO (GLASSMORFHISM)                                  -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="audio-controls-panel glass-panel" *ngIf="isAudioPanelOpen">
+    <div class="toc-header">
+      <span class="section-label">Narración</span>
+      <button class="close-btn" (click)="toggleAudioPanel()">✕</button>
+    </div>
+
+    <!-- Selector de modo -->
+    <div class="voice-selector">
+      <!-- VOZ ESTÁNDAR -->
+      <div class="voice-option" [class.active]="currentAudioMode === 'native'" (click)="setAudioMode('native')">
+        <div class="voice-info">
+          <span>Voz Estándar</span>
+          <small>Nativa del navegador</small>
+        </div>
+        <span class="ink-cost">Gratis</span>
+      </div>
+
+      <!-- VOZ PREMIUM AI (KOKORO) -->
+      <div class="voice-option" [class.active]="currentAudioMode === 'kokoro'" (click)="setAudioMode('kokoro')">
+        <div class="voice-info">
+          <span>Voz Kokoro 80M</span>
+          <small>Voz Neuronal API</small>
+        </div>
+        <span class="ink-cost unlocked-badge">Nuevo</span>
+      </div>
+
+      <!-- VOZ WASM (PIPER) -->
+      <div class="voice-option" [class.active]="currentAudioMode === 'wasm'" (click)="setAudioMode('wasm')">
+        <div class="voice-info">
+          <span>Voz Web</span>
+          <small>Modelo Local</small>
+        </div>
+        <span class="ink-cost unlocked-badge" style="background: #2563eb;">WASM</span>
+      </div>
+
+      <!-- VOZ NATIVA ANDROID (CAPACITOR) - OCULTO EN PC -->
+      <div class="voice-option" *ngIf="isMobile" [class.active]="currentAudioMode === 'native-android'" (click)="setAudioMode('native-android')">
+        <div class="voice-info">
+          <span>Voz Nativa (App)</span>
+          <small>Kokoro / Piper HD sin internet</small>
+          <small style="color: #4ade80; font-size: 0.7rem; display: block; margin-top: 2px;">⚡ Rendimiento Móvil Máximo</small>
+        </div>
+        <span class="ink-cost unlocked-badge" style="background: #e11d48;">Nativo</span>
+      </div>
+
+      <!-- OTRAS OPCIONES OCULTAS TEMPORALMENTE -->
+    </div>
+
+    <!-- Selector de voz del navegador (solo modo nativo) -->
+    <div class="audio-config" *ngIf="currentAudioMode === 'native'">
+      <label class="config-label">
+        <span class="material-symbols-rounded" style="font-size:1rem;vertical-align:middle;">piano</span>
+        Voz
+      </label>
+      <select class="voice-dropdown"
+              [value]="audioService.selectedVoiceIndex"
+              (change)="audioService.setVoiceByIndex(+$any($event.target).value)">
+        <option *ngFor="let v of audioService.voices; let i = index" [value]="i">
+          {{ v.name }} ({{ v.lang }})
+        </option>
+      </select>
+    </div>
+
+    <!-- Selector de voz local Kokoro -->
+    <div class="audio-config" *ngIf="currentAudioMode === 'kokoro'">
+      <label class="config-label">
+        <span class="material-symbols-rounded" style="font-size:1rem;vertical-align:middle;">piano</span>
+        Voz de IA
+      </label>
+      <select class="voice-dropdown"
+              [(ngModel)]="kokoroVoice.selectedVoiceId"
+              (change)="kokoroVoice.setVoice($any($event.target).value); stopAudio(true); playAudio()">
+        <option *ngFor="let v of kokoroVoice.kokoroVoices" [value]="v.id">
+          {{ v.name }}
+        </option>
+      </select>
+
+      <button *ngIf="false" class="btn-kokoro-local" 
+              [ngClass]="{'active': (engineMode$ | async) === 'local', 'downloading': kokoroDownloading$ | async}"
+              (click)="toggleKokoroEngine()"
+              [disabled]="kokoroDownloading$ | async">
+        <i class="fas fa-microchip"></i>
+        <span *ngIf="(engineMode$ | async) === 'local'">Desactivar Motor Local</span>
+        <span *ngIf="(engineMode$ | async) !== 'local' && !(kokoroDownloading$ | async)">Activar Motor Local</span>
+        <span *ngIf="kokoroDownloading$ | async">Descargando... {{ kokoroProgress$ | async }}%</span>
+      </button>
+      <div class="kokoro-progress-bar" *ngIf="kokoroDownloading$ | async">
+         <div class="kokoro-progress-fill" [style.width.%]="kokoroProgress$ | async"></div>
+      </div>
+    </div>
+
+    <!-- Selector de voz local Wasm/Piper -->
+    <div class="audio-config" *ngIf="currentAudioMode === 'wasm'">
+      <label class="config-label">
+        <span class="material-symbols-rounded" style="font-size:1rem;vertical-align:middle;">piano</span>
+        Voz Web
+      </label>
+      
+      <select class="voice-select"
+              [disabled]="(wasmVoice.isDownloading$ | async)"
+              [value]="wasmVoice.selectedVoiceModel"
+              (change)="wasmVoice.setVoice($any($event.target).value); stopAudio(true); playAudio()">
+        <option *ngFor="let v of wasmVoices" [value]="v.id">
+          {{ v.name }}
+        </option>
+      </select>
+
+      <div class="wasm-progress-container" *ngIf="wasmVoice.isDownloading$ | async" style="margin-top: 10px;">
+         <div class="warning-box" style="background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.3); border-radius: 8px; padding: 8px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
+            <span class="material-symbols-rounded" style="color: #fbbf24; font-size: 1.2rem;">warning</span>
+            <p style="font-size: 0.75rem; color: #fbbf24; margin: 0; line-height: 1.2;">
+               <strong>Aviso de Recursos:</strong> Este motor descarga y ejecuta un modelo de IA directamente en tu dispositivo. Puede consumir más batería y rendimiento.
+            </p>
+         </div>
+         <span class="status-label" style="font-size: 0.85rem; color: #a1a1aa; display: flex; align-items: center; gap: 6px;">
+            <span class="loader-spin material-symbols-rounded" style="font-size: 1rem;">sync</span> 
+            Descargando modelo seguro... {{ wasmVoice.progress$ | async }}%
+         </span>
+         <div class="kokoro-progress-bar" style="margin-top: 5px;">
+            <div class="kokoro-progress-fill" [style.width.%]="wasmVoice.progress$ | async"></div>
+         </div>
+      </div>
+      <div class="wasm-ready-container" *ngIf="!(wasmVoice.isDownloading$ | async) && wasmVoice.isInitialized" style="margin-top: 10px;">
+         <span class="status-label" style="font-size: 0.85rem; color: #4ade80; display: flex; align-items: center; gap: 4px;">
+           <span class="material-symbols-rounded" style="font-size: 1rem;">check_circle</span> Motor inferencial activado
+         </span>
+      </div>
+    </div>
+
+    <!-- Control de velocidad (solo modo nativo) -->
+    <div class="audio-config" *ngIf="currentAudioMode === 'native'">
+      <label class="config-label">Velocidad: {{ audioService.playbackRate | number:'1.1-1' }}x</label>
+      <input
+        type="range"
+        class="speed-slider"
+        min="0.5" max="2.0" step="0.1"
+        [value]="audioService.playbackRate"
+        (input)="audioService.setSpeed(+$any($event.target).value)">
+      <div class="speed-labels">
+        <span>0.5x</span><span>1.0x</span><span>2.0x</span>
+      </div>
+    </div>
+
+    <!-- Controles de reproducción -->
+    <div class="audio-main-controls">
+      <button class="audio-btn reset" (click)="confirmRestartAudio()" title="Reiniciar audio del capítulo">↺</button>
+
+      <!-- Estado 1: Pausado → botón REANUDAR (verde) -->
+      <button class="audio-btn resume"
+              *ngIf="currentAudioMode === 'kokoro' ? false : !(audioService.isPlaying$ | async) && (audioService.isPaused$ | async)"
+              (click)="resumeAudio()"
+              title="Reanudar donde lo dejaste">
+        ▶
+      </button>
+
+      <!-- Estado 2: Detenido / sin iniciar → botón REPRODUCIR (azul) -->
+      <button class="audio-btn play"
+              *ngIf="currentAudioMode === 'kokoro' ? !(kokoroVoice.isSpeaking$ | async) : (currentAudioMode === 'native-android' ? !(nativeTts.isSpeaking$ | async) : !(audioService.isPlaying$ | async) && !(audioService.isPaused$ | async))"
+              (click)="playAudio()"
+              [disabled]="isAudioLoading || isKokoroProcessing">
+        <span *ngIf="!isAudioLoading && !isKokoroProcessing">▶</span>
+        <span *ngIf="isAudioLoading || isKokoroProcessing" class="loader-spin">◷</span>
+      </button>
+
+      <!-- Estado 3: Reproduciendo → botón PAUSAR -->
+      <button class="audio-btn pause"
+              *ngIf="currentAudioMode === 'kokoro' ? (kokoroVoice.isSpeaking$ | async) : (currentAudioMode === 'native-android' ? (nativeTts.isSpeaking$ | async) : (audioService.isPlaying$ | async))"
+              (click)="currentAudioMode === 'kokoro' ? kokoroVoice.stop() : (currentAudioMode === 'native-android' ? stopAudio() : audioService.pause())"
+              title="Pausar"
+              style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+        <span class="material-symbols-rounded">pause</span>
+      </button>
+    </div>
+
+    <!-- Mensajes de error ocultos -->
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LIENZO DE LECTURA PRINCIPAL                                      -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LIENZO DE LECTURA (renderizado nativo Angular para highlighting) -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <main class="reading-canvas html-reader" [ngClass]="'font-' + currentFontFamily" [class.tap-to-scroll-active]="tapToScrollActive" (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)">
+    <!-- Título principal del capítulo -->
+    <!-- Título principal del capítulo con soporte para highlighting -->
+    <h1 class="chapter-title-main">
+      <ng-container *ngFor="let tok of titleTokens; trackBy: trackByToken">
+        <span *ngIf="tok.isWord"
+              [id]="'word-' + tok.idx"
+              class="word"
+              [class.active-word]="tok.idx === currentWordIndex"
+              (click)="onWordClick(tok.idx)">
+          <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
+          <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
+        </span>
+        <ng-container *ngIf="!tok.isWord && !tok.isImg">{{ tok.text }}</ng-container>
+        <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
+      </ng-container>
+      <!-- Fallback si no se encontró el título en el texto original -->
+      <ng-container *ngIf="titleTokens.length === 0">{{ chapterTitle }}</ng-container>
+    </h1>
+
+    <ng-container *ngFor="let block of renderedBlocks; trackBy: trackByBlock">
+
+      <!-- Imagen a nivel raíz (standalone) -->
+      <figure *ngIf="block.tag === 'img-block' && showSceneImages" class="chapter-image scene-image-container">
+        <img [src]="block.tokens[0].src" [alt]="block.tokens[0].alt || ''" loading="lazy" (click)="openImageModal(block.tokens[0].src)" class="scene-image">
+      </figure>
+
+      <h1 *ngIf="block.tag === 'h1'" class="chapter-heading">
+        <ng-container *ngFor="let sentence of block.sentences">
+          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+            <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
+              <span *ngIf="tok.isWord"
+                    [id]="'word-' + tok.idx"
+                    class="word"
+                    [class.active-word]="tok.idx === currentWordIndex"
+                    (click)="onWordClick(tok.idx)">
+                <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
+                <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
+              </span>
+              <ng-container *ngIf="!tok.isWord && !tok.isImg && !tok.isBr">{{ tok.text }}</ng-container>
+              <br *ngIf="tok.isBr">
+              <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
+            </ng-container>
+          </span>
+        </ng-container>
+      </h1>
+
+      <h2 *ngIf="block.tag === 'h2'" class="chapter-heading">
+        <ng-container *ngFor="let sentence of block.sentences">
+          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+            <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
+              <span *ngIf="tok.isWord"
+                    [id]="'word-' + tok.idx"
+                    class="word"
+                    [class.active-word]="tok.idx === currentWordIndex"
+                    (click)="onWordClick(tok.idx)">
+                <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
+                <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
+              </span>
+              <ng-container *ngIf="!tok.isWord && !tok.isImg && !tok.isBr">{{ tok.text }}</ng-container>
+              <br *ngIf="tok.isBr">
+              <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
+            </ng-container>
+          </span>
+        </ng-container>
+      </h2>
+
+      <p *ngIf="block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote'">
+        <ng-container *ngFor="let sentence of block.sentences">
+          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+            <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
+              <span *ngIf="tok.isWord"
+                    [id]="'word-' + tok.idx"
+                    class="word"
+                    [class.active-word]="tok.idx === currentWordIndex"
+                    (click)="onWordClick(tok.idx)">
+                <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
+                <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
+              </span>
+              <ng-container *ngIf="!tok.isWord && !tok.isImg && !tok.isBr">{{ tok.text }}</ng-container>
+              <br *ngIf="tok.isBr">
+              <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
+            </ng-container>
+          </span>
+        </ng-container>
+      </p>
+
+    </ng-container>
+  </main>
+
+  <!-- Chat integrado en el sidebar - sin código flotante aquí -->
+
+
+  <!-- BOTÓN INTERACTIVO SIGUIENTE CAPÍTULO (Aparece al final del scroll) -->
+  <div class="next-chapter-container" [class.visible]="isNearEnd && currentPage < totalPages">
+    <button class="next-chapter-btn glow-btn" (click)="nextPage()">
+      Pasar al siguiente capítulo <span class="icon">»</span>
+    </button>
+  </div>
+
+
+  <!-- MENU FLOTANTE DE ACCIONES SOBRE EL TEXTO -->
+  <div class="word-action-menu glass-panel" *ngIf="showWordMenu"
+       [class.menu-below]="isMenuBelow"
+       [class.menu-above]="!isMenuBelow"
+       [style.left.px]="wordMenuX"
+       [style.top.px]="wordMenuY">
+    <button class="menu-action-btn" (click)="defineWord()">
+      <span class="icon">📖</span> Definición
+    </button>
+    <button class="menu-action-btn" (click)="saveBookmark()">
+      <span class="icon">🔖</span> Guardar Marcador
+    </button>
+    <button class="menu-action-btn" (click)="playAudioFromSelection()">
+      <span class="icon">▶️</span> Narrar desde aquí
+    </button>
+    <button class="menu-action-btn" (click)="askCharacter()" [disabled]="characterAvatars.length === 0">
+      <span class="icon">🎭</span> Preguntar a Personaje
+    </button>
+  </div>
+
+  <!-- MODAL DE DICCIONARIO PEQUEÑO -->
+  <div class="dictionary-modal glass-panel" *ngIf="showDictionaryModal">
+    <div class="dict-header">
+      <h4>📖 Diccionario</h4>
+      <button class="close-btn" (click)="closeDictionary()">✕</button>
+    </div>
+    <div class="dict-body">
+      <div *ngIf="isDictionaryLoading" class="dict-loading">
+        <span class="loader-spin">◷</span> Buscando definición...
+      </div>
+      <div *ngIf="!isDictionaryLoading && dictionaryResult?.error" class="dict-error">
+        {{ dictionaryResult.error }}
+        <br><br>
+        <a [href]="'https://es.wiktionary.org/wiki/' + selectedText" target="_blank" class="glass-btn">
+          Buscar en Wiktionary
+        </a>
+      </div>
+      <div *ngIf="!isDictionaryLoading && !dictionaryResult?.error && dictionaryResult">
+        <h5 class="dict-word">{{ dictionaryResult.word }}</h5>
+        <p class="dict-phonetic" *ngIf="dictionaryResult.phonetic">{{ dictionaryResult.phonetic }}</p>
+        <div class="dict-meanings">
+          <div *ngFor="let meaning of dictionaryResult.meanings" class="dict-meaning">
+            <span class="dict-pos">{{ $any(meaning).partOfSpeech }}</span>
+            <ul>
+              <li *ngFor="let def of $any(meaning).definitions | slice:0:2">
+                {{ $any(def).definition }}
+                <em class="dict-example" *ngIf="$any(def).example">"{{ $any(def).example }}"</em>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- TOAST DE MARCADOR GUARDADO -->
+  <div class="bookmark-toast glass-panel" [class.show]="showBookmarkToast">
+    <span class="animated-emoji">🔖</span> Marcador guardado
+  </div>
+
+  <!-- LIGHTBOX PARA IMÁGENES -->
+  <div class="image-lightbox-overlay" *ngIf="showImageModal" (click)="closeImageModal()">
+    <button class="close-lightbox-btn" (click)="closeImageModal()">✕</button>
+    <img [src]="modalImageSrc" class="lightbox-img" (click)="$event.stopPropagation()">
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN PARA REINICIAR AUDIO -->
+  <div class="restart-modal-overlay" *ngIf="showRestartModal" (click)="closeRestartModal()">
+    <div class="restart-modal-card glass-panel" (click)="$event.stopPropagation()">
+      <div class="restart-modal-header">
+        <span class="restart-modal-icon">↺</span>
+        <h4>¿Reiniciar Audio?</h4>
+      </div>
+      <div class="restart-modal-body">
+        <p>¿Deseas reiniciar el audio de este capítulo desde el inicio?</p>
+      </div>
+      <div class="restart-modal-actions">
+        <button class="restart-modal-btn cancel-btn" (click)="closeRestartModal()">Cancelar</button>
+        <button class="restart-modal-btn confirm-btn" (click)="restartAudio()">Reiniciar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY DE CARGA (Lottie) -->
+  <div class="reader-loading-overlay glass-panel" [class.hidden]="!isOverlayActive">
+    <div class="reader-loading-content">
+      <div class="loading-lottie-container" #loadingLottie></div>
+      <p class="loading-text">Cargando...</p>
+    </div>
+  </div>
+
+  <!-- CONTROL FLOTANTE DE AUDIO -->
+  <div class="floating-audio-control" *ngIf="!isAudioPanelOpen && (
+    (currentAudioMode === 'kokoro' && ((kokoroVoice.isSpeaking$ | async) || isKokoroProcessing)) ||
+    (currentAudioMode === 'native-android' && ((nativeTts.isSpeaking$ | async) || isAudioLoading)) ||
+    (currentAudioMode !== 'kokoro' && currentAudioMode !== 'native-android' && ((audioService.isPlaying$ | async) || isAudioLoading))
+  )">
+    <button class="fab-btn play"
+            (click)="toggleAudioFromFab()"
+            [disabled]="isAudioLoading || isKokoroProcessing"
+            style="position: relative; overflow: hidden;">
+      <!-- Icono Play: Si no está cargando y NO está reproduciendo -->
+      <span class="material-symbols-rounded" *ngIf="!isAudioLoading && !isKokoroProcessing && (
+        (currentAudioMode === 'kokoro' && !(kokoroVoice.isSpeaking$ | async)) ||
+        (currentAudioMode === 'native-android' && !(nativeTts.isSpeaking$ | async)) ||
+        (currentAudioMode !== 'kokoro' && currentAudioMode !== 'native-android' && !(audioService.isPlaying$ | async))
+      )">play_arrow</span>
+      
+      <!-- Icono de Pausa: Cuando está reproduciendo -->
+      <span class="material-symbols-rounded" *ngIf="!isAudioLoading && !isKokoroProcessing && (
+        (currentAudioMode === 'kokoro' && (kokoroVoice.isSpeaking$ | async)) || 
+        (currentAudioMode === 'native-android' && (nativeTts.isSpeaking$ | async)) || 
+        (currentAudioMode !== 'kokoro' && currentAudioMode !== 'native-android' && (audioService.isPlaying$ | async))
+      )">pause</span>
+    </button>
+  </div>
+
+</div>

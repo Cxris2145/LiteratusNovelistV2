@@ -1,0 +1,223 @@
+/* ── LIYUMI WIDGET ── */
+.liyumi-root {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* ── AVATAR ── */
+.liyumi-avatar-wrapper {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  cursor: pointer;
+  filter: drop-shadow(0 8px 24px rgba(168, 85, 247, 0.5));
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.liyumi-avatar-wrapper:hover {
+  transform: scale(1.12) translateY(-4px);
+}
+
+.liyumi-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 50%;
+  border: 2px solid rgba(168, 85, 247, 0.6);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+/* Animación de respiración en idle */
+.liyumi-img.breathing {
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+/* Cuando habla */
+.liyumi-avatar-wrapper.speaking .liyumi-img {
+  animation: speakBounce 0.4s ease-in-out infinite alternate;
+  border-color: rgba(59, 130, 246, 0.9);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+}
+
+@keyframes speakBounce {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.06) translateY(-2px); }
+}
+
+/* Cuando saluda */
+.liyumi-avatar-wrapper.waving .liyumi-img {
+  animation: wave 0.5s ease-in-out 4;
+}
+
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg) scale(1.05); }
+  75% { transform: rotate(10deg) scale(1.05); }
+}
+
+/* ── STATUS DOT ── */
+.liyumi-status-dot {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #0f172a;
+  transition: background 0.3s;
+}
+
+.liyumi-status-dot.idle { background: #4ade80; }
+.liyumi-status-dot.speaking { background: #3b82f6; animation: pulse-dot 0.8s infinite; }
+.liyumi-status-dot.waving { background: #fbbf24; }
+.liyumi-status-dot.thinking { background: #a855f7; animation: pulse-dot 1.2s infinite; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* ── BUBBLE GLASSMORPHISM ── */
+.glass-bubble {
+  position: relative;
+  max-width: 280px;
+  min-width: 180px;
+  padding: 14px 16px;
+  border-radius: 18px 18px 4px 18px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 0 20px rgba(168, 85, 247, 0.15);
+  color: #e2e8f0;
+  font-family: 'Outfit', sans-serif;
+}
+
+.bubble-text {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+}
+
+.bubble-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: color 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+
+.bubble-close:hover { color: rgba(255,255,255,0.9); }
+
+/* ── WAVE BARS ── */
+.wave-bar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 8px;
+  height: 16px;
+}
+
+.wave-bar span {
+  display: inline-block;
+  width: 3px;
+  background: linear-gradient(to top, #3b82f6, #a855f7);
+  border-radius: 4px;
+  animation: waveBar 0.8s ease-in-out infinite;
+}
+
+.wave-bar span:nth-child(1) { height: 6px; animation-delay: 0s; }
+.wave-bar span:nth-child(2) { height: 12px; animation-delay: 0.1s; }
+.wave-bar span:nth-child(3) { height: 16px; animation-delay: 0.2s; }
+.wave-bar span:nth-child(4) { height: 10px; animation-delay: 0.15s; }
+.wave-bar span:nth-child(5) { height: 7px; animation-delay: 0.05s; }
+
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.8); }
+}
+
+/* ── ONBOARDING ACTIONS ── */
+.bubble-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.onboarding-next-btn {
+  flex: 1;
+  padding: 7px 12px;
+  background: linear-gradient(135deg, #3b82f6, #a855f7);
+  border: none;
+  border-radius: 20px;
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onboarding-next-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+}
+
+.onboarding-skip-btn {
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.5);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onboarding-skip-btn:hover { color: rgba(255,255,255,0.8); }
+
+/* ── ANIMATION ── */
+@keyframes bubbleSlideIn {
+  0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.glass-bubble {
+  animation: bubbleSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 480px) {
+  .liyumi-root {
+    bottom: 16px;
+    right: 16px;
+  }
+  .glass-bubble {
+    max-width: 220px;
+  }
+  .liyumi-avatar-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+}

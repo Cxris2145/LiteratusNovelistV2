@@ -1,0 +1,68 @@
+# ===========================================================================
+# .gitignore — Literatus Novelist Monorepo
+# ===========================================================================
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Entornos virtuales
+.venv/
+.venv312/
+venv/
+env/
+ENV/
+
+# Variables de entorno sensibles
+.env
+!.env.example
+
+# Archivos de sistema e IDEs
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Frontend
+node_modules/
+.angular/
+dist/
+.next/
+out/
+.nuxt/
+
+# Logs y Backups
+*.log
+logs/
+backups/
+**/backups/
+
+# Archivos pesados no necesarios en repo
+*.mp3
+*.wav
+*.epub
+*.pdf
+assets_to_import/
+backend/media/audio_narrations/
+backend/epubs_elejandria/
+src/assets/voices/**/*.onnx
+*.onnx
+*.bin
+.vercel
+~$*.docx
+
+# Excepciones: Permitir base de datos de desarrollo y portadas generadas
+!Producto/backend/db.sqlite3
+!Producto/backend/media/
+!Producto/backend/media/**/
+!Producto/backend/media/books/**/cover.webp
+!Producto/backend/media/sample_covers/**

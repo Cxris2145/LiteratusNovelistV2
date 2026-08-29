@@ -1,0 +1,57 @@
+[
+  {
+    "id": "gregor_samsa",
+    "name": "Gregor Samsa",
+    "book": "La Metamorfosis",
+    "base_prompt": "1other, giant insect monster, brown carapace, cockroach-like, multiple segmented legs, antennas, dark gloomy room background, Kafkaesque, masterpiece, best quality, very detailed, official art, anime style, upper body",
+    "frames": {
+      "neutral": "looking forward, blank stare, neutral expression",
+      "sad": "drooping antennas, looking down, sad, depressed, melancholic",
+      "angry": "mandibles open, aggressive, angry, glowing eyes, intimidating",
+      "surprised": "antennas raised straight up, wide eyes, shocked, surprised",
+      "thinking": "head tilted, thoughtful, confused"
+    }
+  },
+  {
+    "id": "grete_samsa",
+    "name": "Grete Samsa",
+    "book": "La Metamorfosis",
+    "base_prompt": "1girl, 17 years old, early 1900s clothing, simple dress, brown hair updo, holding a violin, tired eyes, masterpiece, best quality, very detailed, official art, anime style, upper body",
+    "frames": {
+      "neutral": "neutral expression, looking at viewer",
+      "happy": "gentle smile, happy, relieved",
+      "sad": "crying, tears, sad, looking down, devastated",
+      "angry": "frowning, angry, resentful, glaring",
+      "surprised": "gasping, wide eyes, hands covering mouth, shocked",
+      "thinking": "looking away, pondering, hesitant"
+    }
+  },
+  {
+    "id": "mr_samsa",
+    "name": "Señor Samsa",
+    "book": "La Metamorfosis",
+    "base_prompt": "1man, old man, bank messenger uniform with gold buttons, stern face, white hair, messy hair, holding an apple, masterpiece, best quality, very detailed, official art, anime style, upper body",
+    "frames": {
+      "neutral": "strict, neutral expression, serious",
+      "happy": "smug smile, satisfied",
+      "sad": "exhausted, looking old, sad, bags under eyes",
+      "angry": "furious, throwing apple, yelling, aggressive",
+      "surprised": "shocked, stepping back, wide eyes",
+      "thinking": "rubbing chin, calculating, worried"
+    }
+  },
+  {
+    "id": "mrs_samsa",
+    "name": "Señora Samsa",
+    "book": "La Metamorfosis",
+    "base_prompt": "1woman, old woman, frail, asthmatic, nightgown, messy gray hair, weak posture, masterpiece, best quality, very detailed, official art, anime style, upper body",
+    "frames": {
+      "neutral": "tired, neutral expression, frail",
+      "happy": "relieved smile, maternal",
+      "sad": "fainting, crying, extremely sad, devastated",
+      "angry": "upset, frowning, scolding",
+      "surprised": "horrified, screaming, wide eyes, hands on head",
+      "thinking": "worried, looking away, anxious"
+    }
+  }
+]
