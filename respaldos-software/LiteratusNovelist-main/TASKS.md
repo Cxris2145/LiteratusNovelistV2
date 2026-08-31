@@ -101,8 +101,8 @@ Coordinador: Project Manager Agent
 - [x] [LIBRARY] Identificar N+1 queries en BookDetailFullSerializer (get_total_words) (2026-08-30: corregido con `chapter_count` anotado; detalle 12 -> 10 queries)
 - [x] [LIBRARY] Crear recomendaciones de índices de BD (2026-08-31: verificados índices `is_published,is_featured`, `status`, `created_at`; SQLite usa `created_at`/`status`, índice booleano compuesto queda disponible pero sin impacto medible con 1046 publicados y 0 destacados)
 - [x] [LIBRARY → BACKEND] Solicitar: agregar índice en Book.is_published y Book.is_featured (2026-08-31: aplicado en migración `0022_book_catalog_boo_is_publ_5fcf8b_idx_and_more`)
-- [ ] [LIBRARY → BACKEND] Solicitar: evaluar campo word_count cacheado en Book
-- [ ] [LIBRARY → BACKEND] Solicitar: evaluar migración a PostgreSQL antes de escalar
+- [x] [LIBRARY → BACKEND] Solicitar: evaluar campo word_count cacheado en Book (2026-08-31: medido; no se crea migración por beneficio marginal actual, estimador mediana 0.834 ms/1 query en top 10 libros)
+- [x] [LIBRARY → BACKEND] Solicitar: evaluar migración a PostgreSQL antes de escalar (2026-08-31: SQLite local íntegro y suficiente para dev actual, 329.23 MiB/19.730 capítulos/303.4 MB HTML; PostgreSQL recomendado antes de producción multiusuario o crecimiento del catálogo)
 - [x] [BACKEND] Revisar y aplicar optimizaciones de consultas (2026-08-31: `BookViewSet` y serializers optimizados; `manage.py test` 63/63 OK)
 
 ---
@@ -120,10 +120,10 @@ Coordinador: Project Manager Agent
 
 - [x] [LIBRARY] Revisar libros con 0 capítulos en BD (2026-08-30: reparado `el-principe-feliz`; global 0 libros sin capítulos)
 - [x] [LIBRARY] Revisar libros con capítulos corruptos (max_chapter_len < 600 chars) (2026-08-30: 0 detectados)
-- [x] [LIBRARY] Detectar autores duplicados por variación de nombre (2026-08-30: `audit_catalog_integrity` detecta 17 grupos potenciales; reporte en `CATALOG_INTEGRITY_AUDIT.md`)
+- [x] [LIBRARY] Detectar autores duplicados por variación de nombre (2026-08-31: `audit_catalog_integrity` deja 0 grupos potenciales; reporte en `CATALOG_INTEGRITY_AUDIT.md`)
 - [x] [LIBRARY] Revisar libros en BD sin portada asignada (2026-08-30: 0 asignaciones faltantes y 0 archivos de portada faltantes)
 - [x] [LIBRARY] Analizar duplicados entre el-principito y el-principito-antoine-de-saint-exupery (2026-08-30: 0 candidatos activos en BD y 0 en `LIBRARY_INVENTORY.json`; no hay duplicado importado que fusionar)
-- [/] [LIBRARY/BACKEND] Revisar y fusionar manualmente, con backup previo, los 17 grupos potenciales de autores duplicados de `CATALOG_INTEGRITY_AUDIT.md` (2026-08-31: creado `merge_duplicate_authors`; fusionados 6 grupos seguros/11 alias/50 relaciones con backup `db_before_author_merge_20260831_023558.sqlite3`; auditoría baja a 11 grupos pendientes)
+- [x] [LIBRARY/BACKEND] Revisar y fusionar manualmente, con backup previo, los grupos potenciales de autores duplicados de `CATALOG_INTEGRITY_AUDIT.md` (2026-08-31: fusionados los 3 grupos restantes; 3 alias/3 relaciones con backup `db_before_author_merge_20260831_200526.sqlite3`; auditoría final: 358 autores, 0 grupos duplicados)
 
 ---
 
@@ -134,8 +134,9 @@ Coordinador: Project Manager Agent
 - [x] [OPTIMIZATION] Activar lazy loading nativo de portadas en la grilla Explorar (2026-08-30)
 - [x] [OPTIMIZATION] Auditar N+1 queries en BookDetailFullSerializer (get_total_words y get_avatars) (2026-08-30: details libro grande 12 -> 10 queries; `get_avatars` ya usa prefetch)
 - [x] [OPTIMIZATION] Evaluar impacto de índices en Book (is_published, is_featured, created_at) (2026-08-31: migración 0022 aplicada; `EXPLAIN` usa `created_at` en listado y `status`; compuesto booleano sin mejora visible por distribución actual)
-- [ ] [OPTIMIZATION] Revisar estrategia de carga de Chapter.content_html (defer vs fetch completo)
-- [ ] [OPTIMIZATION] Auditar suscripciones RxJS y renderizado en reader Angular
+- [x] [OPTIMIZATION] Revisar estrategia de carga de Chapter.content_html (defer vs fetch completo) (2026-08-31: backend ya difiere `content_html` en TOC con `include_content=false`; medido libro mayor 1535 capítulos: TOC 17.13 ms/0 chars vs fetch completo 43.24 ms/1,885,333 chars; agregado test de regresión; `manage.py test` 69/69 OK)
+- [x] [OPTIMIZATION] Auditar suscripciones RxJS y renderizado en reader Angular (2026-08-31: corregida fuga por suscripción duplicada en `speakChatReply`, HTTP/audio del chat cancelables con `takeUntil`, Lottie destruido en `ngOnDestroy`, polling `chatWith` cancelable; `ng.cmd build --configuration production` OK)
+- [x] [FRONTEND] Limpiar bloque duplicado `.glass-panel/.glass-*` en `styles.css` (2026-08-31: queda 1 definición de `.glass-panel`, `.glass-input` y `.glass-btn`; `ng.cmd build --configuration production` OK)
 
 ---
 
@@ -149,7 +150,7 @@ Coordinador: Project Manager Agent
 ---
 ## [BACKEND] TAREAS SOLICITADAS POR LIBRARY AGENT
 
-- [ ] [BACKEND] Evaluar migración de SQLite a PostgreSQL antes de importación masiva
+- [x] [BACKEND] Evaluar migración de SQLite a PostgreSQL antes de importación masiva/escalado futuro (2026-08-31: no se migra en esta ejecución; `DATABASES` ya usa `env.db()`, PostgreSQL vía `DATABASE_URL` queda como ruta de despliegue)
   - Razón: db.sqlite3 puede alcanzar límites con ~25,000 capítulos HTML (~1-3 GB)
 - [x] [BACKEND] Agregar índice explícito en Book.is_published y Book.is_featured (2026-08-31: migración no destructiva `0022` aplicada y verificada)
   - Razón: Filtros frecuentes en catálogo con 1000+ libros

@@ -1,24 +1,24 @@
 {
   "mode": "apply",
-  "generated_at": "2026-08-31T03:38:22.804654+00:00",
+  "generated_at": "2026-08-31T20:05:27.647483+00:00",
   "backup": {
-    "path": "C:\\Users\\guerr\\Downloads\\LiteratusNovelist\\respaldos-software\\LiteratusNovelist-main\\Producto\\backend\\backups\\db_before_author_merge_20260831_033822.sqlite3",
-    "sha256": "ff9c3e624e75642ef73716350bc2af098764fba9ca09df0680c02664821e116c",
-    "size_bytes": 297291776
+    "path": "C:\\Users\\guerr\\Downloads\\LiteratusNovelist\\respaldos-software\\LiteratusNovelist-main\\Producto\\backend\\backups\\db_before_author_merge_20260831_200526.sqlite3",
+    "sha256": "602cde27f2c0274eb2dccc52698f761c78a2246a77db6f5b5d36f559a5bda1a4",
+    "size_bytes": 345219072
   },
   "groups": [
     {
       "canonical": {
-        "id": "15f9764b-7833-4e6c-b3f6-8983c463319e",
-        "slug": "concepcion-arenal",
-        "full_name": "Concepcion Arenal",
+        "id": "583de8c0-d374-4908-8ff8-f8454986c4c7",
+        "slug": "benito-jer-nimo-feij-o",
+        "full_name": "Benito Jerónimo Feijóo",
         "books_count": 1
       },
       "aliases": [
         {
-          "id": "3fb1700c-a3e9-4d19-a79d-3fd105b409a9",
-          "slug": "concepci-n-arenal",
-          "full_name": "Concepción Arenal",
+          "id": "efc04844-69c6-47e9-856d-fda225b76c5c",
+          "slug": "benito-jer-nimo-feijoo",
+          "full_name": "Benito Jerónimo Feijoo",
           "books_count": 1
         }
       ],
@@ -27,10 +27,10 @@
       "authors_merged": 1,
       "moves": [
         {
-          "book_slug": "la-educacion-de-la-mujer-concepcion-arenal",
-          "book_title": "La educación de la mujer",
-          "from": "concepci-n-arenal",
-          "to": "concepcion-arenal",
+          "book_slug": "teatro-critico-universal-benito-jeronimo-feijoo",
+          "book_title": "Teatro crítico universal",
+          "from": "benito-jer-nimo-feijoo",
+          "to": "benito-jer-nimo-feij-o",
           "role": "primary"
         }
       ],
@@ -38,16 +38,16 @@
     },
     {
       "canonical": {
-        "id": "60adffb3-3896-4f47-ac99-df8fdb26bb96",
-        "slug": "calderon-de-la-barca",
-        "full_name": "Calderon de la Barca",
-        "books_count": 3
+        "id": "ae7a941e-ed30-4290-a6d7-a301a103c781",
+        "slug": "schiller-friedrich",
+        "full_name": "Friedrich Schiller",
+        "books_count": 1
       },
       "aliases": [
         {
-          "id": "d5d277df-bf22-459d-81c7-068b4565887a",
-          "slug": "calder-n-de-la-barca",
-          "full_name": "Calderón de la Barca",
+          "id": "e28a918d-00d7-4d83-947c-d09f1a571e47",
+          "slug": "friedrich-schiller",
+          "full_name": "Friedrich Schiller",
           "books_count": 1
         }
       ],
@@ -56,10 +56,10 @@
       "authors_merged": 1,
       "moves": [
         {
-          "book_slug": "la-vida-es-sueno-calderon-de-la-barca-pedro",
-          "book_title": "La vida es sueño - Calderón de la Barca",
-          "from": "calder-n-de-la-barca",
-          "to": "calderon-de-la-barca",
+          "book_slug": "el-crimen-por-la-deshonra-schiller-friedrich",
+          "book_title": "El crimen por la deshonra",
+          "from": "friedrich-schiller",
+          "to": "schiller-friedrich",
           "role": "primary"
         }
       ],
@@ -67,16 +67,16 @@
     },
     {
       "canonical": {
-        "id": "c07367e0-8b48-4534-b396-e0e7f1b22c02",
-        "slug": "vicente-blasco-ib-ez",
-        "full_name": "Vicente Blasco Ibáñez",
-        "books_count": 14
+        "id": "1cb44f36-4fa5-4457-928a-409f26a4a922",
+        "slug": "pr-spero-merim-e",
+        "full_name": "Próspero Merimée",
+        "books_count": 1
       },
       "aliases": [
         {
-          "id": "f4ed1840-3b0c-4ba6-ac10-b713cba13b69",
-          "slug": "vicente-blasco-iba-ez",
-          "full_name": "Vicente Blasco Ibañez",
+          "id": "6b27f86d-58b5-44d2-a0c1-e7027e449220",
+          "slug": "prospero-m-rim-e",
+          "full_name": "Prospero Mérimée",
           "books_count": 1
         }
       ],
@@ -85,10 +85,10 @@
       "authors_merged": 1,
       "moves": [
         {
-          "book_slug": "la-horda-vicente-blasco-ibanez",
-          "book_title": "La horda",
-          "from": "vicente-blasco-iba-ez",
-          "to": "vicente-blasco-ib-ez",
+          "book_slug": "doble-error-prospero-merimee",
+          "book_title": "Doble error",
+          "from": "prospero-m-rim-e",
+          "to": "pr-spero-merim-e",
           "role": "primary"
         }
       ],

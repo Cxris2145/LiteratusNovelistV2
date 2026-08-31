@@ -8,6 +8,7 @@ import { AssistedReadingService } from '../../core/services/assisted-reading.ser
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import lottie from 'lottie-web';
+import type { AnimationItem } from 'lottie-web';
 import { environment } from '../../../environments/environment';
 import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
 import { ChatService } from '../../core/services/chat.service';
@@ -201,6 +202,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   private saveProgressSubject = new Subject<number>();
   private destroy$ = new Subject<void>();
   private savedProgressData: ProgressData | null = null;
+  private isDestroyed = false;
   
   chapterScrollPercent: number = 0;
   isNearEnd: boolean = false;
@@ -239,12 +241,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
   };
   private beforeUnloadHandler = () => this.saveAudioPosition();
+  private avatarPollingInterval?: ReturnType<typeof setInterval>;
+  private avatarPollingTimeout?: ReturnType<typeof setTimeout>;
+  private loadingAnimation?: AnimationItem;
 
   private _loadingLottieContainer?: ElementRef;
   @ViewChild('loadingLottie') set loadingLottie(el: ElementRef) {
     if (el && !this._loadingLottieContainer) {
       this._loadingLottieContainer = el;
-      lottie.loadAnimation({
+      this.loadingAnimation = lottie.loadAnimation({
         container: el.nativeElement,
         renderer: 'svg',
         loop: true,
@@ -314,10 +319,11 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const avatarId = params['chatWith'];
       if (avatarId) {
+        this.clearAvatarPolling();
         // Esperar a que los avatares carguen para poder iniciar el chat
-        const checkAvatars = setInterval(() => {
+        this.avatarPollingInterval = setInterval(() => {
           if (this.avatars && this.avatars.length > 0) {
-            clearInterval(checkAvatars);
+            this.clearAvatarPolling();
             // Usar toString() para comparar UUIDs de forma segura
             const avatar = this.avatars.find(a => String(a.id) === String(avatarId));
             if (avatar) {
@@ -328,7 +334,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
           }
         }, 200);
         // Timeout de seguridad de 10 segundos
-        setTimeout(() => clearInterval(checkAvatars), 10000);
+        this.avatarPollingTimeout = setTimeout(() => this.clearAvatarPolling(), 10000);
       }
     });
 
@@ -545,6 +551,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.isDestroyed = true;
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     window.removeEventListener('beforeunload', this.beforeUnloadHandler);
@@ -553,7 +560,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.kokoroVoice.stop();
     this.saveAudioPosition();
     this.stopThinkingAnimation();
+    this.clearAvatarPolling();
     this.avatarsRequestSub?.unsubscribe();
+    this.loadingAnimation?.destroy();
+    this.loadingAnimation = undefined;
 
     // ── Lectura Asistida: guardar estado y limpiar ──
     this.assistedReading.saveBookState(this.inventoryId);
@@ -563,6 +573,17 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.toggleImmersiveMode(false);
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private clearAvatarPolling() {
+    if (this.avatarPollingInterval) {
+      clearInterval(this.avatarPollingInterval);
+      this.avatarPollingInterval = undefined;
+    }
+    if (this.avatarPollingTimeout) {
+      clearTimeout(this.avatarPollingTimeout);
+      this.avatarPollingTimeout = undefined;
+    }
   }
 
   private async requestWakeLock() {
@@ -1124,6 +1145,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
     };
 
     const renderChunks = (startIndex: number) => {
+      if (this.isDestroyed) return;
+
       // Usar un chunk más grande si estamos tratando de alcanzar rápido el progreso
       const chunkSize = (startIndex <= targetBlockIndex || needsFullRender) ? 50 : 15;
       const chunk = this.parsedBlocks.slice(startIndex, startIndex + chunkSize);
@@ -1139,6 +1162,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
         if (reachedTarget && !lottieDismissed) {
           lottieDismissed = true;
           setTimeout(() => {
+            if (this.isDestroyed) return;
+
             if (this.savedProgressData) {
               if (this.savedProgressData.wordId) {
                 const idx = parseInt(this.savedProgressData.wordId.split('-')[1]);
@@ -1160,7 +1185,9 @@ export class ReaderComponent implements OnInit, OnDestroy {
         
         // Continuar pintando el resto en el siguiente frame
         if (nextIndex < this.parsedBlocks.length) {
-          setTimeout(() => renderChunks(nextIndex), 16);
+          setTimeout(() => {
+            if (!this.isDestroyed) renderChunks(nextIndex);
+          }, 16);
         } else {
           // Finalizado el renderizado total
           this.isFullyRendered = true;
@@ -1364,7 +1391,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
 
     this.isUnlocking = true;
-    this.api.post(`catalog/books/${this.bookSlug}/purchase_narration/`, {}).subscribe({
+    this.api.post(`catalog/books/${this.bookSlug}/purchase_narration/`, {}).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         this.isUnlocking = false;
         this.hasPremiumNarration = true;
@@ -1487,7 +1514,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
         const audio = chapter.audios[0];
         console.log('Reproduciendo audio desde base de datos:', audio.voice_name);
         
-        this.audioService.playRecorded(audio.audio_url, audio.alignment_data).subscribe({
+        this.audioService.playRecorded(audio.audio_url, audio.alignment_data).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => this.isAudioLoading = false,
           error: (err) => {
             this.isAudioLoading = false;
@@ -1517,7 +1544,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
       if (fallbackAudioUrl) {
         console.log('Usando fallback hardcodeado MP3:', fallbackAudioUrl);
-        this.audioService.playRecorded(fallbackAudioUrl).subscribe({
+        this.audioService.playRecorded(fallbackAudioUrl).pipe(takeUntil(this.destroy$)).subscribe({
           next: () => {
             this.isAudioLoading = false;
             // Modo fallback sin JSON: Limpiamos el resaltado ya que ahora usaremos Whisper para sincronizar de verdad.
@@ -1809,7 +1836,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.selectedAvatar = avatar;
     this.showCharProfile = false;
 
-    this.api.get(`ai/sessions/?avatar_id=${avatar.id}`).subscribe({
+    this.api.get(`ai/sessions/?avatar_id=${avatar.id}`).pipe(takeUntil(this.destroy$)).subscribe({
       next: (session: any) => {
         this.chatSession = session;
         this.loadChatHistory(session.id);
@@ -1823,7 +1850,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   loadChatHistory(sessionId: number) {
-    this.api.get(`ai/sessions/${sessionId}/messages/`).subscribe({
+    this.api.get(`ai/sessions/${sessionId}/messages/`).pipe(takeUntil(this.destroy$)).subscribe({
       next: (msgs: any) => { 
         this.chatMessages = msgs; 
         // Scroll al final después de cargar el historial
@@ -1854,7 +1881,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.api.post('ai/chat/', {
       session_id: this.chatSession.id,
       message: content
-    }).subscribe({
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         this.chatMessages.push({
           role: 'assistant',
@@ -1988,27 +2015,6 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
     this.kokoroVoice.speak(text, this.chatSession?.avatar_id || this.authorAvatar?.id || 1, 0, voiceId);
     
-    // Simular animación visual usando RxJs de kokoroVoice
-    this.kokoroVoice.isSpeaking$.pipe(takeUntil(this.destroy$)).subscribe(speaking => {
-      this.isVideoSpeaking = speaking;
-      if (speaking) {
-        this.activeTalkingFrame = Math.floor(Math.random() * 3) + 1;
-        if (this.avatarVideoElement?.nativeElement) {
-          const video = this.avatarVideoElement.nativeElement;
-          video.currentTime = 1;
-          video.play();
-          video.ontimeupdate = () => {
-            if (video.currentTime >= 6) video.currentTime = 1;
-          };
-        }
-      } else {
-        if (this.avatarVideoElement?.nativeElement) {
-          this.avatarVideoElement.nativeElement.pause();
-          this.avatarVideoElement.nativeElement.currentTime = 0;
-        }
-      }
-      this.cdr.detectChanges();
-    });
   }
 
 

@@ -5,7 +5,7 @@ Read-only audit of catalog maintenance tasks.
 ## Summary
 
 - Books: 1046
-- Authors: 275
+- Authors: 358
 - Author duplicate groups: 0
 - Missing cover assignments: 0
 - Missing cover files: 0

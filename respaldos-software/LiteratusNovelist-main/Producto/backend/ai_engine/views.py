@@ -6,6 +6,9 @@ from rest_framework.response import Response
 from rest_framework import permissions, status
 from django.shortcuts import get_object_or_404
 
+from django.db.models import Count, Q
+
+from catalog.models import Book
 from library.models import UserInventory
 from .models import AIAvatar, ChatSession, ChatMessage
 from .serializers import (
@@ -14,6 +17,7 @@ from .serializers import (
     ChatMessageSerializer,
     ChatInteractionSerializer,
     GlobalHubAvatarSerializer,
+    HubBookSerializer,
 )
 from .services import AIService
 from .tts_service import TTSService
@@ -475,3 +479,150 @@ class TTSGenerateView(APIView):
                     "message": "El servicio de voz está iniciando. Intenta de nuevo en 30 segundos."
                 }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             return Response({"error": err_str}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# --------------------------------------------------------------------------- #
+# Hub de Personajes — vista "Por libro"                                       #
+# --------------------------------------------------------------------------- #
+class HubBookListView(APIView):
+    """
+    GET /api/v1/ai/hub/books/
+
+    Lista los libros publicados del catálogo (los mismos que Explorar) con el
+    número de personajes IA de cada uno, para la vista "Por libro" de la sección
+    Personajes. El usuario pulsa un libro y ve su elenco.
+
+    Se devuelven TODOS los libros publicados, incluidos los que aún no tienen
+    personajes (`character_count = 0`), salvo que se pida lo contrario.
+
+    Query params:
+        q               búsqueda por título, autor o nombre de personaje
+        with_characters 'true' → solo libros que ya tienen elenco
+        sort            'title' (por defecto) | 'characters' | 'featured'
+        page            página, base 1 (por defecto 1)
+        page_size       tamaño de página, 1..120 (por defecto 60)
+
+    Respuesta: {"count": int, "page": int, "page_size": int, "results": [...]}
+    """
+    permission_classes = [permissions.AllowAny]
+
+    DEFAULT_PAGE_SIZE = 60
+    MAX_PAGE_SIZE = 120
+
+    def get(self, request):
+        query = (request.query_params.get('q') or '').strip()
+        with_characters = (request.query_params.get('with_characters') or '').lower() == 'true'
+        sort_by = request.query_params.get('sort', 'title')
+
+        qs = (
+            Book.objects.filter(is_published=True)
+            .prefetch_related('book_authors__author')
+            .annotate(
+                character_count=Count('editions__avatars', distinct=True),
+                major_character_count=Count(
+                    'editions__avatars',
+                    filter=Q(editions__avatars__is_major_character=True),
+                    distinct=True,
+                ),
+            )
+        )
+
+        if query:
+            qs = qs.filter(
+                Q(title__icontains=query)
+                | Q(book_authors__author__full_name__icontains=query)
+                | Q(editions__avatars__name__icontains=query)
+            ).distinct()
+
+        if with_characters:
+            qs = qs.filter(character_count__gt=0)
+
+        if sort_by == 'characters':
+            qs = qs.order_by('-character_count', 'title')
+        elif sort_by == 'featured':
+            qs = qs.order_by('-is_featured', '-character_count', 'title')
+        else:
+            qs = qs.order_by('title')
+
+        # Paginación manual: el catálogo supera el millar de libros y la vista
+        # "Por libro" no debe traerlo entero de una sola vez.
+        try:
+            page = max(1, int(request.query_params.get('page', 1)))
+        except (TypeError, ValueError):
+            page = 1
+        try:
+            page_size = int(request.query_params.get('page_size', self.DEFAULT_PAGE_SIZE))
+        except (TypeError, ValueError):
+            page_size = self.DEFAULT_PAGE_SIZE
+        page_size = max(1, min(page_size, self.MAX_PAGE_SIZE))
+
+        total = qs.count()
+        start = (page - 1) * page_size
+        books = qs[start:start + page_size]
+
+        serializer = HubBookSerializer(books, many=True, context={'request': request})
+        return Response({
+            'count': total,
+            'page': page,
+            'page_size': page_size,
+            'results': serializer.data,
+        })
+
+
+class HubBookAvatarsView(APIView):
+    """
+    GET /api/v1/ai/hub/books/<slug>/avatars/
+
+    Devuelve la ficha mínima del libro y TODOS sus personajes IA, agrupados por
+    tipo. Es lo que se muestra al pulsar un libro en la sección Personajes.
+
+    Respuesta:
+        {
+          "book": {...},
+          "author_avatars": [...],   # is_author=True
+          "main_characters": [...],  # is_major_character=True
+          "secondary_characters": [...],
+          "avatars": [...]           # todo el elenco, plano
+        }
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, slug):
+        book = get_object_or_404(
+            Book.objects.filter(is_published=True).prefetch_related('book_authors__author'),
+            slug=slug,
+        )
+
+        avatars = (
+            AIAvatar.objects
+            .filter(edition__book=book)
+            .select_related('edition__book')
+            .order_by('-is_author', '-is_major_character', 'unlock_at_chapter', 'name')
+        )
+
+        ctx = {'request': request}
+        serialized = GlobalHubAvatarSerializer(avatars, many=True, context=ctx).data
+
+        # Un solo recorrido en Python sobre una lista ya materializada: sin
+        # queries extra respecto al bloque anterior.
+        author_avatars, main_characters, secondary_characters = [], [], []
+        for avatar, data in zip(avatars, serialized):
+            if avatar.is_author:
+                author_avatars.append(data)
+            elif avatar.is_major_character:
+                main_characters.append(data)
+            else:
+                secondary_characters.append(data)
+
+        book_data = HubBookSerializer(book, context=ctx).data
+        book_data['character_count'] = len(serialized)
+        book_data['major_character_count'] = len(main_characters)
+        book_data['has_characters'] = bool(serialized)
+
+        return Response({
+            'book': book_data,
+            'author_avatars': author_avatars,
+            'main_characters': main_characters,
+            'secondary_characters': secondary_characters,
+            'avatars': serialized,
+        })

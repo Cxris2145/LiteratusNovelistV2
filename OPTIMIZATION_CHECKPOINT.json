@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-31T00:15:00-04:00",
+  "updated_at": "2026-08-31T17:55:00-04:00",
   "run": "auditoria-global-y-eliminacion-n1-autores-inventario-reader",
   "dataset": { "books": 1046, "authors": 275, "genres": 34, "engine": "sqlite", "debug": true },
   "areas_reviewed": [
@@ -86,12 +86,34 @@
       "files": ["Producto/backend/catalog/serializers.py"]
     },
     {
+      "id": "O8",
+      "severity": "MEDIUM",
+      "area": "BACKEND/READER",
+      "status": "VERIFIED",
+      "title": "Chapter.content_html diferido en TOC del lector: include_content=false evita seleccionar HTML pesado; libro mayor 1535 capitulos: 17.13ms/0 chars vs 43.24ms/1,885,333 chars",
+      "files": [
+        "Producto/backend/library/views.py",
+        "Producto/backend/library/tests.py"
+      ]
+    },
+    {
+      "id": "O9",
+      "severity": "MEDIUM",
+      "area": "FRONTEND/READER",
+      "status": "IMPLEMENTED",
+      "title": "Reader Angular: eliminada suscripcion duplicada por cada respuesta hablada en speakChatReply; chat HTTP/audio cancelable con takeUntil; Lottie destruido; polling chatWith cancelable; render progresivo no continua tras ngOnDestroy",
+      "files": [
+        "Producto/frontend/src/app/library/reader/reader.component.ts"
+      ],
+      "verification": "ng.cmd build --configuration production OK en 16.494s; warnings CommonJS preexistentes"
+    },
+    {
       "id": "F1",
       "severity": "LOW",
       "area": "FRONTEND",
-      "status": "REGISTERED",
+      "status": "IMPLEMENTED",
       "title": "styles.css tiene el bloque .glass-panel/.glass-* duplicado (~lineas 119 y 314)",
-      "action": "limpieza de CSS global; derivar a literatus"
+      "action": "segunda copia eliminada; verificado 1 definicion de .glass-panel, .glass-input y .glass-btn; build Angular OK"
     },
     {
       "id": "F2",
@@ -124,6 +146,22 @@
       "status": "REGISTERED",
       "title": "sin indice para el orden por defecto (-is_featured, -created_at)",
       "action": "reevaluar al escalar o migrar a PostgreSQL (medir->justificar->migracion coordinada)"
+    },
+    {
+      "id": "M3",
+      "severity": "LOW",
+      "area": "DB/API",
+      "status": "MEASURED_NO_CHANGE",
+      "title": "Book.word_count cacheado evaluado: estimador actual de total_words en details usa 1 query y mediana 0.834 ms en los 10 libros con mas capitulos; cache simulado 0 queries/0.006 ms",
+      "action": "no crear migracion ahora; reevaluar si se requiere conteo exacto persistido o al migrar/escalar a PostgreSQL"
+    },
+    {
+      "id": "M4",
+      "severity": "MEDIUM",
+      "area": "DB/SCALING",
+      "status": "MEASURED_RECOMMENDATION",
+      "title": "SQLite vs PostgreSQL evaluado: SQLite local integro para dev actual (329.23 MiB, 1046 libros, 19730 capitulos, 303.4 MB HTML, integrity_check=ok)",
+      "action": "mantener SQLite en desarrollo local; usar PostgreSQL via DATABASE_URL antes de produccion multiusuario, crecimiento fuerte del catalogo o busqueda avanzada"
     }
   ],
   "tasks_completed": [
@@ -133,6 +171,11 @@
     "O5 implementado: eliminación N+1 en biblioteca personal (37 -> 7 queries)",
     "O6 implementado: optimización lector de capítulos (7-8 -> 4-5 queries)",
     "O7 implementado: default en ai_character_count",
+    "O8 verificado: estrategia Chapter.content_html cubierta por tests de regresion",
+    "O9 implementado: lector Angular sin suscripcion acumulativa por speakChatReply y con cleanup de Lottie/polling/render progresivo",
+    "M3 medido: campo Book.word_count cacheado evaluado sin cambios de esquema por beneficio marginal actual",
+    "M4 medido: migracion SQLite->PostgreSQL evaluada; no se ejecuta migracion en dev, PostgreSQL queda como requisito antes de escalar/produccion",
+    "F1 implementado: eliminado bloque CSS global duplicado .glass-panel/.glass-* y verificado con build Angular",
     "re-medición con suite automatizada y verificación de queries constantes O(1)",
     "67/67 tests de backend pasando (python manage.py test)",
     "ng build --configuration production verificado con 0 errores",
@@ -140,8 +183,8 @@
   ],
   "tasks_pending": [
     "M1/M2/L1 segun tabla de hallazgos backend",
-    "F1 (dup .glass-panel), F2 (validar content-visibility)",
+    "F2 (validar content-visibility)",
     "auditoria de frontend restante / imagenes / importador (areas_pending)"
   ],
-  "next_action": "Reportar a literatus. Auditoría global completada con éxito sin regresiones."
+  "next_action": "Tarea segura pendiente: validar F2 content-visibility en /categories/:slug con traza de Performance en equipo medio antes de reintroducirlo; si no hay navegador/traza disponible, dejarlo registrado sin cambio."
 }

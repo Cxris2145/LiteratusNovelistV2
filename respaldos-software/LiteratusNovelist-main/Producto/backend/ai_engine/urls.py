@@ -6,6 +6,8 @@ from .views import (
     AvatarListView,
     AvatarDetailView,
     GlobalAvatarListView,
+    HubBookListView,
+    HubBookAvatarsView,
     RecentChatsView,
     ChatSessionView,
     ChatHistoryView,
@@ -18,6 +20,14 @@ urlpatterns = [
     # Hub Global: Todos los personajes de todos los libros
     # GET /api/v1/ai/hub/avatars/
     path('hub/avatars/', GlobalAvatarListView.as_view(), name='ai-hub-avatars'),
+
+    # Hub Global agrupado por libro: catalogo completo con conteo de personajes
+    # GET /api/v1/ai/hub/books/
+    path('hub/books/', HubBookListView.as_view(), name='ai-hub-books'),
+
+    # Elenco de personajes de un libro concreto
+    # GET /api/v1/ai/hub/books/<slug>/avatars/
+    path('hub/books/<slug:slug>/avatars/', HubBookAvatarsView.as_view(), name='ai-hub-book-avatars'),
 
     # Personajes recientes con los que se ha chateado
     # GET /api/v1/ai/hub/recent/

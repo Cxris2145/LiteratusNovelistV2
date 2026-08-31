@@ -136,3 +136,54 @@ class GlobalHubAvatarSerializer(serializers.ModelSerializer):
         if obj.is_major_character:
             tags.append("Principal")
         return tags
+
+
+class HubBookSerializer(serializers.Serializer):
+    """
+    Libro del catálogo tal como se muestra en la vista "Por libro" del Hub de
+    Personajes.
+
+    Se listan TODOS los libros publicados (los mismos que aparecen en Explorar),
+    incluso los que todavía no tienen personajes: `character_count = 0` es
+    información válida para el usuario y para `literatus-characters`.
+
+    El queryset debe venir anotado con `character_count` y
+    `major_character_count`; si no lo está, se cae a un conteo por objeto.
+    """
+    id = serializers.IntegerField(read_only=True)
+    title = serializers.CharField(read_only=True)
+    slug = serializers.CharField(read_only=True)
+    author_name = serializers.SerializerMethodField()
+    cover_image_url = serializers.SerializerMethodField()
+    character_count = serializers.SerializerMethodField()
+    major_character_count = serializers.SerializerMethodField()
+    has_characters = serializers.SerializerMethodField()
+
+    def get_author_name(self, obj):
+        # Usa .all() sobre el prefetch para no disparar N+1.
+        book_authors = list(obj.book_authors.all())
+        if not book_authors:
+            return None
+        main = next((ba for ba in book_authors if ba.role == 'author'), book_authors[0])
+        return main.author.full_name if main and main.author else None
+
+    def get_cover_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.cover_image and obj.cover_image.name and request:
+            return request.build_absolute_uri(obj.cover_image.url)
+        return None
+
+    def get_character_count(self, obj):
+        count = getattr(obj, 'character_count', None)
+        if count is None:
+            return AIAvatar.objects.filter(edition__book=obj).count()
+        return count
+
+    def get_major_character_count(self, obj):
+        count = getattr(obj, 'major_character_count', None)
+        if count is None:
+            return AIAvatar.objects.filter(edition__book=obj, is_major_character=True).count()
+        return count
+
+    def get_has_characters(self, obj):
+        return self.get_character_count(obj) > 0

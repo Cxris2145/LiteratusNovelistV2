@@ -22,6 +22,318 @@
 
 ---
 
+## 2026-08-31 16:08 -04:00 — [literatus] Verificación de carga diferida de capítulos del lector
+
+### LAST_COMPLETED
+
+Revisada, medida y cubierta con prueba de regresión la estrategia de carga de
+`Chapter.content_html` en el endpoint del lector.
+
+Estado verificado:
+- El frontend inicia el lector con `include_content=false` y luego pide solo el
+  capítulo actual por `chapter_id` u `order`.
+- El backend ya usa `.only('id', 'book_id', 'title', 'order')` para el TOC sin
+  contenido, evitando seleccionar `content_html`.
+- Medición ORM sobre el libro más pesado (`los-nueve-libros-de-la-historia-herodoto`,
+  1535 capítulos): TOC sin HTML 17.13 ms, 0 caracteres de contenido cargados;
+  fetch completo 43.24 ms, 1,885,333 caracteres de HTML cargados.
+- Endpoint con inventario real: `include_content=false` devuelve 0 campos
+  `content_html`; `include_content=true` conserva el contrato completo.
+
+Se añadió `Producto/backend/library/tests.py` con cobertura para:
+- TOC liviano sin `content_html` ni `audios`, y consulta SQL de capítulos sin la
+  columna `content_html`.
+- Carga puntual de capítulo que sí devuelve `content_html`.
+
+### TESTS_EXECUTED
+
+- `python manage.py test library`: 2/2 OK.
+- `python manage.py test`: 69/69 OK.
+
+### FILES_CHANGED
+
+- `Producto/backend/library/tests.py`
+- `TASKS.md`
+- `OPTIMIZATION_CHECKPOINT.json`
+- `AGENT_LOG.md`
+
+### NEXT_ACTION
+
+COMPLETADO en la entrada 2026-08-31 16:32 de este log.
+Siguiente accion: evaluar el campo `word_count` cacheado en `Book` con medicion previa sobre la BD real.
+No crear migracion ni tocar datos si la medicion no muestra beneficio claro frente al calculo actual.
+
+### BLOCKERS
+
+Ninguno.
+
+### FAILED_ITEMS
+
+Ninguno.
+
+### STATUS
+
+ACTIVE
+
+---
+
+## 2026-08-31 17:55 -04:00 - [literatus] Limpieza de CSS global duplicado
+
+### LAST_COMPLETED
+
+Eliminada la segunda copia global del bloque de estilos de tema y glass controls en `Producto/frontend/src/styles.css`.
+
+Resultado verificado:
+- `.glass-panel`: 1 definicion.
+- `.glass-input`: 1 definicion.
+- `.glass-btn`: 1 definicion.
+- La regla `.container` y los estilos posteriores quedaron intactos.
+- No se cambio la identidad visual: se conservo la primera definicion existente y se retiro solo la copia repetida.
+
+### TESTS_EXECUTED
+
+- Conteo de selectores con `Select-String`: `.glass-panel`, `.glass-input` y `.glass-btn` aparecen una vez cada uno.
+- `.\\node_modules\\.bin\\ng.cmd build --configuration production`: OK en 20.408 s. Bundle inicial 1.63 MB; warnings CommonJS preexistentes (`canvg`, `lottie-web`, `html2canvas`).
+
+### FILES_CHANGED
+
+- `Producto/frontend/src/styles.css`
+- `TASKS.md`
+- `OPTIMIZATION_CHECKPOINT.json`
+- `AGENT_LOG.md`
+
+### NEXT_ACTION
+
+Validar F2: `content-visibility` en `/categories/:slug` con traza de Performance en navegador y CPU throttle antes de reintroducirlo. Si no hay navegador/traza disponible en la proxima ejecucion, dejarlo registrado sin cambio y elegir otra tarea segura.
+
+### BLOCKERS
+
+Ninguno.
+
+### FAILED_ITEMS
+
+Ninguno.
+
+### STATUS
+
+ACTIVE
+
+---
+
+## 2026-08-31 17:44 -04:00 - [literatus] Evaluacion SQLite a PostgreSQL antes de escalar
+
+### LAST_COMPLETED
+
+Evaluada la tarea pendiente de migracion SQLite -> PostgreSQL antes de escalar, sin ejecutar migracion ni modificar datos.
+
+Estado real:
+- `DATABASES` ya depende de `env.db()`, por lo que PostgreSQL se activa por `DATABASE_URL` sin cambiar codigo.
+- SQLite local actual: 345219072 bytes (329.23 MiB).
+- Filas principales: 1046 libros, 358 autores, 1046 ediciones, 19730 capitulos, 20 inventarios, 20 progresos, 1 avatar IA.
+- Contenido pesado: `catalog_chapter.content_html` suma 303389428 bytes; promedio 15377 bytes; maximo 1136685 bytes.
+- `PRAGMA integrity_check=ok`, `page_count=84282`, `page_size=4096`, `freelist_count=0`, `journal_mode=delete`.
+
+Decision: SQLite queda aceptado para desarrollo local con el catalogo actual. PostgreSQL debe usarse antes de produccion multiusuario, crecimiento fuerte del catalogo, busqueda avanzada (`pg_trgm`/full-text), jobs concurrentes de importacion/generacion o despliegue real. No hay motivo seguro para migrar automaticamente en esta ejecucion cron.
+
+### TESTS_EXECUTED
+
+- Medicion Django shell sobre BD real: OK.
+- `PRAGMA integrity_check`: ok.
+- `.\\.venv\\Scripts\\python.exe manage.py check`: OK, 0 issues.
+- `.\\.venv\\Scripts\\python.exe manage.py test catalog.tests.test_api`: 6/6 OK.
+- `OPTIMIZATION_CHECKPOINT.json` parseado con `ConvertFrom-Json`: OK.
+
+### FILES_CHANGED
+
+- `TASKS.md`
+- `MEMORY.md`
+- `OPTIMIZATION_CHECKPOINT.json`
+- `AGENT_LOG.md`
+
+### NEXT_ACTION
+
+Tarea menor segura pendiente: limpiar el bloque duplicado `.glass-panel/.glass-*` en `styles.css` y verificar con build Angular. No tocar BD ni migraciones para esa tarea.
+
+### BLOCKERS
+
+Ninguno.
+
+### FAILED_ITEMS
+
+Ninguno.
+
+### STATUS
+
+ACTIVE
+
+---
+
+## 2026-08-31 17:32 -04:00 - [literatus] Evaluacion de Book.word_count cacheado
+
+### LAST_COMPLETED
+
+Evaluado el `NEXT_ACTION` anterior: posible campo `word_count` cacheado en `Book`.
+
+Medicion sobre la BD real de desarrollo:
+- Dataset: 1046 libros publicados.
+- Muestra: 10 libros con mayor cantidad de capitulos.
+- Ruta actual: `BookDetailFullSerializer.get_total_words()` con `chapter_count` anotado y muestra de 8 capitulos.
+- Resultado actual: mediana 0.834 ms, maximo 3.422 ms, 1 query por libro para estimar `total_words`.
+- Cache simulado en memoria: mediana 0.006 ms, 0 queries.
+- Conteo exacto completo en Python para los 3 libros mas grandes: 60.16 ms, 40.54 ms y 7.66 ms, 1 query cada uno.
+
+Decision: no crear migracion ni campo `Book.word_count` ahora. El ahorro absoluto del cache para el contrato actual es marginal frente al coste de mantener un campo derivado y una migracion. La idea queda registrada para reevaluar si se requiere conteo exacto persistido, si aumenta mucho el catalogo o durante la migracion a PostgreSQL.
+
+No se tocaron modelos, migraciones, BD, EPUBs ni contratos de API.
+
+### TESTS_EXECUTED
+
+- Medicion Django shell sobre BD real: OK.
+- `.\\.venv\\Scripts\\python.exe manage.py check`: OK, 0 issues.
+- `.\\.venv\\Scripts\\python.exe manage.py test catalog.tests.test_api`: 6/6 OK.
+- `OPTIMIZATION_CHECKPOINT.json` parseado con `ConvertFrom-Json`: OK.
+
+### FILES_CHANGED
+
+- `TASKS.md`
+- `OPTIMIZATION_CHECKPOINT.json`
+- `AGENT_LOG.md`
+
+### NEXT_ACTION
+
+Evaluar migracion de SQLite a PostgreSQL antes de escalar, como tarea documental/tecnica sin migracion destructiva; o, si se prefiere una tarea menor de frontend, limpiar el bloque duplicado `.glass-panel/.glass-*` en `styles.css` y verificar con build Angular.
+
+### BLOCKERS
+
+Ninguno.
+
+### FAILED_ITEMS
+
+Ninguno.
+
+### STATUS
+
+ACTIVE
+
+---
+
+## 2026-08-31 16:32 -04:00 - [literatus] Auditoria RxJS y renderizado del lector Angular
+
+### LAST_COMPLETED
+
+Auditado y corregido el flujo del lector Angular en
+`Producto/frontend/src/app/library/reader/reader.component.ts`.
+
+Hallazgos y cambios aplicados:
+- `speakChatReply()` creaba una nueva suscripcion a `kokoroVoice.isSpeaking$` en cada respuesta del chat. Se elimino esa suscripcion acumulativa porque la sincronizacion visual del avatar ya se maneja una sola vez desde `ngOnInit`.
+- Las llamadas HTTP del chat (`startChat`, `loadChatHistory`, `sendMessage`) y las reproducciones grabadas ahora se cancelan con `takeUntil(this.destroy$)`.
+- La animacion Lottie de carga queda almacenada y se destruye en `ngOnDestroy()`.
+- El polling temporal de `chatWith` por query param ahora se guarda, se limpia antes de crear uno nuevo y se cancela al destruir el componente.
+- El render progresivo por chunks corta trabajo pendiente si el lector fue destruido durante la navegacion.
+
+Verificacion concreta:
+- `ng.cmd build --configuration production`: OK en 16.494 s. Bundle inicial 1.63 MB; lazy Kokoro 2.12 MB. Warnings CommonJS preexistentes (`canvg`, `lottie-web`, `html2canvas`).
+- `manage.py check`: OK en 25.1 s, 0 issues.
+- `OPTIMIZATION_CHECKPOINT.json`: JSON valido con `ConvertFrom-Json`.
+
+No se toco la BD, biblioteca, EPUBs, migraciones ni contratos de API.
+
+### TESTS_EXECUTED
+
+- `.\\node_modules\\.bin\\ng.cmd build --configuration production`: OK.
+- `.\\.venv\\Scripts\\python.exe manage.py check`: OK.
+- `Get-Content -Raw .\\OPTIMIZATION_CHECKPOINT.json | ConvertFrom-Json`: OK.
+
+### FILES_CHANGED
+
+- `Producto/frontend/src/app/library/reader/reader.component.ts`
+- `TASKS.md`
+- `OPTIMIZATION_CHECKPOINT.json`
+- `AGENT_LOG.md`
+
+### NEXT_ACTION
+
+Evaluar el campo `word_count` cacheado en `Book` con medicion previa sobre la BD real.
+No crear migracion ni tocar datos si la medicion no muestra beneficio claro frente al calculo actual.
+
+### BLOCKERS
+
+Ninguno.
+
+### FAILED_ITEMS
+
+Ninguno.
+
+### STATUS
+
+ACTIVE
+
+---
+
+## 2026-08-31 16:05 -04:00 — [literatus] Cierre de duplicados de autores
+
+### LAST_COMPLETED
+
+Fusionados y verificados los 3 grupos restantes de autores duplicados detectados por
+`audit_catalog_integrity`:
+
+- `benito-jer-nimo-feij-o:benito-jer-nimo-feijoo`
+- `schiller-friedrich:friedrich-schiller`
+- `pr-spero-merim-e:prospero-m-rim-e`
+
+Resultado aplicado con `merge_duplicate_authors --apply`: 3 alias absorbidos, 3
+relaciones `BookAuthor` movidas, 0 relaciones duplicadas omitidas.
+
+Respaldo SQLite automático:
+`Producto/backend/backups/db_before_author_merge_20260831_200526.sqlite3`
+SHA-256: `602cde27f2c0274eb2dccc52698f761c78a2246a77db6f5b5d36f559a5bda1a4`
+Tamaño: 345219072 bytes.
+
+Auditoría final:
+- Books: 1046
+- Authors: 358
+- Author duplicate groups: 0
+- Missing cover assignments: 0
+- Missing cover files: 0
+- El Principito DB/inventory candidates: 0
+
+### TESTS_EXECUTED
+
+- `python manage.py check`: OK.
+- `python manage.py audit_catalog_integrity`: OK; reportes regenerados.
+- `python manage.py test catalog`: 46/46 OK.
+
+### FILES_CHANGED
+
+- `Producto/backend/db.sqlite3`
+- `Producto/backend/backups/db_before_author_merge_20260831_200526.sqlite3`
+- `AUTHOR_MERGE_REPORT.json`
+- `CATALOG_INTEGRITY_AUDIT.json`
+- `CATALOG_INTEGRITY_AUDIT.md`
+- `TASKS.md`
+- `MEMORY.md`
+- `AGENT_LOG.md`
+
+### NEXT_ACTION
+
+Continuar con una tarea segura pendiente de rendimiento: revisar estrategia de carga de
+`Chapter.content_html` (defer vs fetch completo), midiendo antes y después. No hay
+duplicados de autores pendientes.
+
+### BLOCKERS
+
+Ninguno.
+
+### FAILED_ITEMS
+
+Ninguno.
+
+### STATUS
+
+ACTIVE
+
+---
+
 ## 2026-08-31 01:38 — [READER/FORMATTING] Reconstrucción de Párrafos Fluidos y Desdoblamiento de Actos y Cuadros
 
 - **Problema detectado (como en la captura de *Yerma*):**
@@ -1866,3 +2178,48 @@ Ninguno.
 ### STATUS
 
 ACTIVE
+
+---
+
+## 2026-08-31 — literatus-covers: agente de portadas ilustradas + primera tanda
+
+### LAST_COMPLETED
+
+- Nuevo agente especializado **`literatus-covers`** (`agents/literatus-covers.md`), integrado en
+  `AGENTS.md` (tabla de delegación, pipeline canónico, disparadores explícitos, sección propia).
+  Sin Cron propio: lo invoca `literatus`.
+- Pipeline gratuito operativo:
+  - `ai_engine/cf_covers.py` — Cloudflare Workers AI `@cf/black-forest-labs/flux-1-schnell` (nivel gratuito).
+  - `catalog/covers/scene_prompt.py` — prompt de escena por libro (título/género/sinopsis), sin texto.
+  - `catalog/management/commands/generate_ai_covers.py` — driver por lotes, `COVER_GENERATION_CHECKPOINT.json`,
+    QC, reanudable, backup SQLite. `--steps` por defecto = 4.
+- Piloto de 5 portadas aprobado por el usuario. Primera tanda: **74/1046** portadas generadas, 0 fallidas.
+- Corte por **cuota gratuita de Cloudflare** (429) tras ~69 imágenes de la tanda; se renueva a 00:00 UTC.
+- Fix aplicado a `scene_prompt.py`: el título/autor ya NO se incrustan en el prompt de la imagen
+  (títulos icónicos como "Hamlet" y títulos corruptos hacían que flux escribiera letras en la ilustración).
+
+### NEXT_ACTION
+
+1. `literatus` relanza `python manage.py generate_ai_covers --batch-size 20` una vez al día
+   (cuota a 00:00 UTC) hasta `completed_slugs == 1046`. ~7–9 días.
+2. Regenerar con `--regenerate --book-id` las portadas de la primera tanda con texto de IA
+   incrustado (p. ej. `hamlet-shakespeare-william`) una vez que el fix de prompt esté en efecto.
+
+### BLOCKERS / DEPENDENCIA DE DATOS (para `literatus-synopsis` / `literatus-library`)
+
+~11 libros tienen el campo `title` corrupto (nombre de archivo temporal), lo que produce portada
+y bloque de título basura. Corregir el título antes de regenerar su portada:
+`fantasmagoria-carroll-lewis` ('tmpq t9wh'), `fernando-de-magallanes-zweig-stefan` ('tmplks 79'),
+`la-caza-del-snark-carroll-lewis` ('tmpntqyx9'), `la-esfinge-de-los-hielos-verne-julio` ('tmptdji80'),
+`la-libertad-del-espiritu-valery-paul` ('tmpdzst88'), `la-mujer-negra-zorrilla-jose` ('tmpcflphs'),
+`las-indias-negras-verne-julio` ('tmpam9rq4'), `maria-antonieta-zweig-stefan` ('tmpp 0at4'),
+`rima-del-anciano-marinero-samuel-taylor-coleridge` ('tmpkxcd3k'),
+`las-habichuelas-magicas-hans-christian-andersen` ('1').
+
+### FAILED_ITEMS
+
+Ninguno en la generación de portadas (los ~11 de arriba son dependencia de datos, no fallo del pipeline).
+
+### STATUS
+
+ACTIVE — tanda de portadas en curso por ventanas diarias.
