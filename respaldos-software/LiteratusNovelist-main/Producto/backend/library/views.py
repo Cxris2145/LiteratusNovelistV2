@@ -28,13 +28,17 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """Restringe el queryset estrictamente al dueño de la petición."""
+        qs = UserInventory.objects.filter(user=self.request.user)
+        if self.action == 'chapters':
+            return qs.select_related('edition__book')
         return (
-            UserInventory.objects
-            .filter(user=self.request.user)
+            qs
             .select_related('edition__book', 'progress')
             .prefetch_related(
                 'edition__book__genres',
                 'edition__book__tags',
+                'edition__book__editions',
+                'edition__book__book_authors__author',
                 'edition__avatars',
             )
         )

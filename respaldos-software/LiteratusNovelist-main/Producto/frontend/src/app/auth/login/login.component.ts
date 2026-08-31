@@ -61,14 +61,24 @@ export class LoginComponent implements OnInit {
   }
 
   private resolveLoginError(err: any): string {
-    const detail = err?.error?.detail || err?.error?.error;
+    const detail = err?.error?.detail || err?.error?.error || err?.error?.message;
 
-    if (err?.status === 403 && detail) {
+    if (detail && typeof detail === 'string') {
       return detail;
     }
 
+    const usernameErr = err?.error?.username;
+    if (usernameErr) {
+      return Array.isArray(usernameErr) ? usernameErr[0] : usernameErr;
+    }
+
+    const passwordErr = err?.error?.password;
+    if (passwordErr) {
+      return Array.isArray(passwordErr) ? passwordErr[0] : passwordErr;
+    }
+
     if (err?.status === 0) {
-      return 'No se pudo conectar con el servidor. Inténtalo nuevamente.';
+      return 'No se pudo conectar con el servidor. Verifica tu conexión.';
     }
 
     return 'Correo o contraseña incorrectos.';

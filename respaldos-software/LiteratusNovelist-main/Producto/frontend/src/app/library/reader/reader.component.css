@@ -4260,3 +4260,395 @@ font-family: 'Outfit', sans-serif;
     transform: scale(0.95);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LECTURA ASISTIDA / ASSISTED READING — CSS
+   Sistema de accesibilidad visual para el lector.
+   Controla resaltado, foco, regla de lectura y adaptación visual.
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── FUENTE OPENDYSLEXIC ─────────────────────────────────────────── */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('/assets/fonts/OpenDyslexic-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-opendyslexic .reading-canvas,
+.font-opendyslexic .reading-canvas * {
+  font-family: 'OpenDyslexic', 'Comic Neue', sans-serif !important;
+}
+
+/* ── VARIABLES CSS DE LECTURA ASISTIDA ───────────────────────────── */
+:host {
+  --ar-highlight: rgba(234, 179, 8, 0.25);
+  --ar-highlight-strong: rgba(234, 179, 8, 0.4);
+  --ar-dim-opacity: 0.35;
+  --ar-guide-color: rgba(234, 179, 8, 0.15);
+  --ar-line-spacing: 1.7;
+  --ar-letter-spacing: 0em;
+  --ar-reading-width: 750px;
+  --ar-text-size: 18px;
+}
+
+/* ── BOTÓN LECTURA ASISTIDA EN TOOLBAR ───────────────────────────── */
+.ar-trigger-btn {
+  position: relative;
+}
+
+.ar-trigger-btn .ar-active-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 7px;
+  height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  border: 1.5px solid var(--th-bg-toolbar, #0f172a);
+}
+
+/* ── RESALTADO POR MODO ──────────────────────────────────────────── */
+
+/* Modo: PALABRA activa */
+.ar-word-active {
+  background-color: var(--ar-highlight-strong) !important;
+  border-radius: 3px;
+  transition: background-color 0.1s ease;
+  position: relative;
+}
+
+.ar-word-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--ar-highlight-strong);
+  border-radius: 1px;
+}
+
+/* Modo: ORACIÓN activa */
+.ar-sentence-active {
+  background-color: var(--ar-highlight) !important;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 2px 0;
+}
+
+/* Modo: PÁRRAFO activo */
+.ar-block-active {
+  background-color: var(--ar-highlight) !important;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  display: inline;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Dimming: elementos no activos se atenúan */
+.ar-dimmed {
+  opacity: var(--ar-dim-opacity) !important;
+  transition: opacity 0.4s ease;
+}
+
+/* Mantener la palabra activa siempre visible incluso dentro de dimmed */
+.ar-dimmed .ar-word-active,
+.ar-dimmed .ar-sentence-active {
+  opacity: 1 !important;
+}
+
+/* ── MODO FOCO ───────────────────────────────────────────────────── */
+.assisted-focus .reading-canvas {
+  transition: all 0.3s ease;
+}
+
+.assisted-focus .toolbar {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.assisted-focus .toolbar:hover {
+  opacity: 1;
+}
+
+.assisted-focus .reading-progress-container {
+  opacity: 0.3;
+}
+
+.assisted-focus .next-chapter-container {
+  opacity: 0.5;
+}
+
+/* ── LECTURA LIMPIA ──────────────────────────────────────────────── */
+.assisted-clean .toolbar {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.assisted-clean .reading-progress-container {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.assisted-clean .char-trigger-btn,
+.assisted-clean .reader-settings > *:not(.ar-trigger-btn):not(.ar-clean-exit-btn),
+.assisted-clean .ink-counter,
+.assisted-clean .font-family-selector,
+.assisted-clean .font-controls,
+.assisted-clean .theme-selector-dropdown {
+  display: none !important;
+}
+
+.assisted-clean .next-chapter-container {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.assisted-clean .next-chapter-container:hover,
+.assisted-clean .next-chapter-container.visible:hover {
+  opacity: 1;
+}
+
+/* Botón flotante para salir del modo limpio */
+.ar-clean-exit-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: var(--th-bg-sidebar, #1a1a2e);
+  color: var(--th-text-primary, #e2e8f0);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.ar-clean-exit-fab:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* ── DIVISIÓN VISUAL DE PÁRRAFOS ─────────────────────────────────── */
+.assisted-split .reading-canvas p {
+  position: relative;
+  padding-bottom: 1.2em;
+  margin-bottom: 1.5em;
+}
+
+.assisted-split .reading-canvas p::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 15%;
+  right: 15%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--th-border-main, rgba(255,255,255,0.1)) 20%,
+    var(--th-border-main, rgba(255,255,255,0.1)) 80%,
+    transparent 100%
+  );
+}
+
+/* ── REGLA DE LECTURA HORIZONTAL ─────────────────────────────────── */
+.reading-guide-ruler {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 40px;
+  pointer-events: none;
+  z-index: 50;
+  transition: top 0.15s ease-out;
+  /* Borde superior e inferior translúcido, centro transparente */
+  background: linear-gradient(
+    180deg,
+    var(--ar-guide-color) 0%,
+    transparent 30%,
+    transparent 70%,
+    var(--ar-guide-color) 100%
+  );
+  border-top: 2px solid var(--ar-highlight);
+  border-bottom: 2px solid var(--ar-highlight);
+  opacity: 0.6;
+}
+
+/* ── ESTILOS ADAPTADOS POR VARIABLES CSS ─────────────────────────── */
+.ar-custom-styles .reading-canvas {
+  font-size: var(--ar-text-size) !important;
+  line-height: var(--ar-line-spacing) !important;
+  letter-spacing: var(--ar-letter-spacing) !important;
+  max-width: var(--ar-reading-width) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.ar-custom-styles .reading-canvas .word {
+  line-height: var(--ar-line-spacing);
+  letter-spacing: var(--ar-letter-spacing);
+}
+
+/* ── COLORES POR TEMA ────────────────────────────────────────────── */
+/* Tema claro: Resaltados más visibles sobre fondo blanco */
+.theme-light .ar-sentence-active,
+.theme-light .ar-block-active {
+  background-color: var(--ar-highlight) !important;
+}
+
+.theme-light .ar-word-active {
+  background-color: var(--ar-highlight-strong) !important;
+}
+
+.theme-light .ar-dimmed {
+  opacity: 0.3 !important;
+}
+
+.theme-light .reading-guide-ruler {
+  opacity: 0.4;
+}
+
+/* Tema Sepia */
+.theme-sepia .ar-sentence-active,
+.theme-sepia .ar-block-active {
+  background-color: var(--ar-highlight) !important;
+}
+
+.theme-sepia .ar-dimmed {
+  opacity: 0.3 !important;
+}
+
+/* Tema Nocturno (OLED) */
+.theme-nocturno .ar-dimmed {
+  opacity: 0.2 !important;
+}
+
+.theme-nocturno .reading-guide-ruler {
+  opacity: 0.3;
+}
+
+/* ── ACCESIBILIDAD ───────────────────────────────────────────────── */
+.ar-word-active:focus-visible,
+.ar-sentence-active:focus-visible {
+  outline: 2px solid var(--th-accent, #7e57c2);
+  outline-offset: 2px;
+}
+
+/* Indicador lateral para sentencias (además del color) */
+.ar-sentence-indicator {
+  position: relative;
+}
+
+.ar-sentence-indicator::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  background: var(--ar-highlight-strong);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* ── ANIMACIÓN SUAVE DE TRANSICIÓN ───────────────────────────────── */
+@keyframes arFadeHighlight {
+  from { background-color: transparent; }
+  to { background-color: var(--ar-highlight); }
+}
+
+/* ── RESPONSIVE: MÓVIL ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .ar-custom-styles .reading-canvas {
+    max-width: 100% !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .reading-guide-ruler {
+    height: 36px;
+  }
+
+  .ar-clean-exit-fab {
+    bottom: 16px;
+    right: 16px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .ar-sentence-indicator::before {
+    left: -8px;
+    width: 2.5px;
+  }
+}
+
+/* ── NAVEGACIÓN POR TECLADO ──────────────────────────────────────── */
+.reading-canvas:focus-visible {
+  outline: none;
+}
+
+.reading-canvas[tabindex] {
+  outline: none;
+}
+
+/* Indicador visual de navegación activa en teclado */
+.ar-keyboard-active .ar-word-active {
+  box-shadow: 0 0 0 2px var(--ar-highlight-strong), 0 0 8px var(--ar-highlight);
+}
+
+/* ── FLOATING ASSISTED READING INDICATOR ─────────────────────────── */
+.ar-floating-indicator {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: var(--th-bg-sidebar, #1a1a2e);
+  border: 1px solid var(--th-border-main, rgba(255,255,255,0.1));
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: var(--th-text-secondary, rgba(226,232,240,0.6));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.ar-floating-indicator.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ar-floating-indicator .ar-indicator-dot {
+  width: 6px;
+  height: 6px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: arPulse 2s infinite;
+}
+
+@keyframes arPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

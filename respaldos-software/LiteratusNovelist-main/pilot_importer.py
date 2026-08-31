@@ -45,6 +45,7 @@ INVENTORY    = PROJECT_ROOT / "LIBRARY_INVENTORY.json"
 # ─── Setup Django ─────────────────────────────────────────────────────────────
 sys.path.insert(0, str(BACKEND_DIR))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+os.chdir(BACKEND_DIR)
 import django
 django.setup()
 
@@ -322,6 +323,8 @@ def import_one(slug, dry_run=False, verbose=True):
             titles = book_epub.get_metadata("DC", "title")
             book_title = str(titles[0][0]) if titles and isinstance(titles[0], tuple) else None
         chapters_data = get_structural_chapters(book_epub, slug)
+        if not chapters_data:
+            chapters_data = manual_extract_chapters(str(epub_path), slug)
     except Exception:
         try:
             chapters_data = manual_extract_chapters(str(epub_path), slug)
@@ -397,9 +400,11 @@ def import_one(slug, dry_run=False, verbose=True):
     if chapters_data:
         book_obj.chapters.all().delete()
         chaps_ok = 0
+        skipped_cover_only = []
         for chap in chapters_data:
             # Saltar capitulos que son solo una imagen de portada
             if chap["order"] == 1 and chap["content"].count("<img") == 1 and len(chap["content"]) < 500:
+                skipped_cover_only.append(chap)
                 continue
             try:
                 Chapter.objects.create(
@@ -411,7 +416,23 @@ def import_one(slug, dry_run=False, verbose=True):
                 chaps_ok += 1
             except Exception as e:
                 result["warnings"].append(f"Cap {chap['order']} error: {e}")
+        if chaps_ok == 0 and skipped_cover_only:
+            chap = skipped_cover_only[0]
+            try:
+                Chapter.objects.create(
+                    book=book_obj,
+                    title=chap["title"][:255],
+                    content_html=chap["content"],
+                    order=1
+                )
+                chaps_ok = 1
+                result["warnings"].append("Se conservó el único capítulo extraído para evitar libro sin capítulos")
+            except Exception as e:
+                result["errors"].append(f"No se pudo conservar capitulo unico: {e}")
         result["chapters_created"] = chaps_ok
+        if chaps_ok == 0:
+            result["status"] = "error"
+            result["errors"].append("Importacion sin capitulos creados")
 
     return result
 
@@ -427,16 +448,27 @@ def main():
     ts = datetime.now(timezone.utc).isoformat()
     mode = "DRY-RUN" if args.dry_run else "IMPORTACION REAL"
     print(f"\n{'='*65}")
-    print(f"  Library Content Agent -- Piloto Etapa 2 ({mode})")
+    print(f"  Library Content Agent -- Importador por lotes ({mode})")
     print(f"  {ts}")
     print(f"{'='*65}\n")
 
     # Cargar lista de slugs
+    import_label = "importacion por slugs"
+    stats_key = "last_import_stats"
+    stage_value = "BATCH_IMPORT_COMPLETE"
     if args.slugs:
         slugs_file = Path(args.slugs)
+        if not slugs_file.is_absolute():
+            slugs_file = PROJECT_ROOT / slugs_file
         if not slugs_file.exists():
             print(f"ERROR: no existe {args.slugs}")
             sys.exit(1)
+        batch_match = re.search(r"batch_(\d+)", slugs_file.stem)
+        if batch_match:
+            batch_num = int(batch_match.group(1))
+            import_label = f"lote {batch_num:03d}"
+            stats_key = f"batch_{batch_num:03d}_stats"
+            stage_value = f"BATCH_{batch_num:03d}_COMPLETE"
         slugs = [l.strip() for l in slugs_file.read_text(encoding="utf-8").splitlines() if l.strip()]
     elif args.all:
         chk = load_checkpoint()
@@ -544,11 +576,11 @@ def main():
                     imported.append(r["slug"])
             else:
                 failed[r["slug"]] = "; ".join(r["errors"][:2])
-        # Guardar estadisticas del piloto
-        chk["stage"]    = "PILOT_COMPLETE"
+        # Guardar estadisticas del lote/importacion
+        chk["stage"]    = stage_value if not error_list else stage_value.replace("COMPLETE", "PARTIAL")
         chk["imported"] = imported
         chk["failed"]   = failed
-        chk["pilot_stats"] = {
+        chk[stats_key] = {
             "processed": len(results),
             "ok": len(ok_list) + len(warn_list),
             "errors": len(error_list),
@@ -575,7 +607,7 @@ def main():
 
 ---
 
-## {ts[:10]} -- [LIBRARY] Etapa 2: Importacion Piloto ({len(results)} libros)
+## {ts[:10]} -- [LIBRARY] Importacion {import_label} ({len(results)} libros)
 
 | Dato | Valor |
 |---|---|

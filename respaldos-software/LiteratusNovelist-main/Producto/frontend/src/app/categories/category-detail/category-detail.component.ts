@@ -1,5 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { HttpParams } from '@angular/common/http';
 import { Category } from '../categories.component';
@@ -20,10 +21,12 @@ interface Book {
   templateUrl: './category-detail.component.html',
   styleUrls: ['./category-detail.component.css']
 })
-export class CategoryDetailComponent implements OnInit {
+export class CategoryDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(ApiService);
+
+  private paramsSub?: Subscription;
 
   categorySlug = '';
   category: Category | null = null;
@@ -31,6 +34,7 @@ export class CategoryDetailComponent implements OnInit {
   isLoading = true;
   isLoadingMore = false;
   searchTerm = '';
+  ordering = '-created_at';
   totalCount = 0;
   
   // Pagination
@@ -47,12 +51,22 @@ export class CategoryDetailComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
+    this.paramsSub = this.route.params.subscribe(params => {
       this.categorySlug = params['slug'];
       this.loadCategoryMeta();
       this.resetPagination();
       this.fetchBooks();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.paramsSub?.unsubscribe();
+    clearTimeout(this.searchTimeout);
+  }
+
+  /** Reutiliza el DOM de las tarjetas ya pintadas al hacer "Cargar más". */
+  trackByBook(_index: number, book: Book): string {
+    return book.slug || book.id;
   }
 
   loadCategoryMeta(): void {
@@ -101,7 +115,8 @@ export class CategoryDetailComponent implements OnInit {
 
     let params = new HttpParams()
       .set('page', this.currentPage.toString())
-      .set('page_size', this.pageSize.toString());
+      .set('page_size', this.pageSize.toString())
+      .set('ordering', this.ordering);
       
     // En el backend, el filtro usa el ID o el slug, vamos a pasar genres__slug
     if (this.categorySlug !== 'literatura-y-ficcion') {
@@ -146,6 +161,12 @@ export class CategoryDetailComponent implements OnInit {
 
   clearSearch(): void {
     this.searchTerm = '';
+    this.resetPagination();
+    this.fetchBooks();
+  }
+
+  onOrderingChange(event: any): void {
+    this.ordering = event.target.value;
     this.resetPagination();
     this.fetchBooks();
   }

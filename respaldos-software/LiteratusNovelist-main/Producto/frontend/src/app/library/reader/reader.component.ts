@@ -4,6 +4,7 @@ import { debounceTime, takeUntil } from 'rxjs/operators';
 import { HttpParams } from '@angular/common/http';
 import { ApiService } from '../../core/services/api.service';
 import { AudioService } from '../../core/services/audio.service';
+import { AssistedReadingService } from '../../core/services/assisted-reading.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import lottie from 'lottie-web';
@@ -55,6 +56,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   public speechService = inject(SpeechRecognitionService);
   public wasmVoice = inject(WasmTtsService);
   public nativeTts = inject(NativeTtsService);
+  public assistedReading = inject(AssistedReadingService);
 
   // ── LECTURA ──────────────────────────────────────────────────────
 
@@ -63,6 +65,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   totalPages: number = 1;
   chapters: any[] = [];
   private chapterContentCache = new Map<string, any>();
+  private parsedChapterTokensCache = new Map<string, { parsedBlocks: any[], titleTokens: any[], plainText: string, totalWordCount: number }>();
   private chapterContentLoading = new Set<string>();
   private pendingChapterCallbacks = new Map<string, Array<() => void>>();
   private chapterRequestToken = 0;
@@ -85,6 +88,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
   bionicReadingActive: boolean = false;
   tapToScrollActive: boolean = false;
   showSceneImages: boolean = true;
+  isAssistedPanelOpen: boolean = false;
+  readingGuideTop: number = 300; // Posición Y de la regla de lectura
+  
+  // Caché local para renderizado rápido
+  arEnabled: boolean = false;
+  arMode: string = 'sentence';
+  arWordIndex: number = -1;
+  arSentenceIndex: number = -1;
+  arBlockIndex: number = -1;
 
   // ── PERSONAJES / CHAT ─────────────────────────────────────────────
   isCharPanelOpen: boolean = false;
@@ -435,6 +447,54 @@ export class ReaderComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
 
+    // ── LECTURA ASISTIDA: Sincronizar TTS → Lectura Asistida ──────
+    // Cuando el TTS emite un word index, sincronizamos con el servicio de lectura asistida
+    this.audioService.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
+      if (this.assistedReading.enabled$.value && idx >= 0) {
+        this.assistedReading.syncWithAudio(idx);
+      }
+    });
+    this.kokoroVoice.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
+      if (this.assistedReading.enabled$.value && idx >= 0) {
+        this.assistedReading.syncWithAudio(idx);
+      }
+    });
+    this.nativeTts.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
+      if (this.assistedReading.enabled$.value && idx >= 0) {
+        this.assistedReading.syncWithAudio(idx);
+      }
+    });
+
+    // Lectura Asistida: Auto-scroll cuando cambia la palabra/oración activa
+    this.assistedReading.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
+      this.arWordIndex = idx;
+      if (this.assistedReading.enabled$.value && idx >= 0) {
+        this.scrollWordIntoView(idx);
+        this.updateReadingGuidePosition(idx);
+        this.cdr.detectChanges();
+      }
+    });
+
+    // Caché local de Lectura Asistida para rendimiento en plantilla
+    this.assistedReading.enabled$.pipe(takeUntil(this.destroy$)).subscribe(e => {
+      this.arEnabled = e;
+      this.cdr.detectChanges();
+    });
+    this.assistedReading.mode$.pipe(takeUntil(this.destroy$)).subscribe(m => {
+      this.arMode = m;
+      this.cdr.detectChanges();
+    });
+    this.assistedReading.currentSentenceIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
+      this.arSentenceIndex = idx;
+      // No forzamos detectChanges aquí para evitar loops masivos; currentWordIndex$ ya lo hace
+    });
+    this.assistedReading.currentBlockIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
+      this.arBlockIndex = idx;
+    });
+
+    // Lectura Asistida: Guardar estado del libro al cargar preferencias
+    this.assistedReading.loadBookState(this.inventoryId);
+
 
     // Auto-avance de capítulo cuando termina la narración
     this.audioService.chapterEnd$.pipe(takeUntil(this.destroy$)).subscribe(() => {
@@ -494,6 +554,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.saveAudioPosition();
     this.stopThinkingAnimation();
     this.avatarsRequestSub?.unsubscribe();
+
+    // ── Lectura Asistida: guardar estado y limpiar ──
+    this.assistedReading.saveBookState(this.inventoryId);
+    this.assistedReading.destroy();
 
     // Restaurar las barras del OS al salir del lector
     this.toggleImmersiveMode(false);
@@ -831,21 +895,31 @@ export class ReaderComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 1. Calcular backendUrl y limpiar HTML primero para evitar que el navegador
-    // cargue imágenes relativas erróneas al procesar el texto plano.
-    const backendUrl = environment.apiUrl.split('/api/v1/')[0];
-    const cleanHtml = chapter.content_html.replace(/src=(["'])(\/?)media\//g, `src=$1${backendUrl}/media/`);
+    const cacheKey = this.getChapterCacheKey(chapter, this.currentPage);
+    const cachedTokens = this.parsedChapterTokensCache.get(cacheKey);
 
-    // 2. Actualizar texto plano para SpeechSynthesis (usando HTML ya limpio)
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = cleanHtml;
-    this.currentChapterPlainText = tempDiv.textContent || '';
+    if (cachedTokens) {
+      this.parsedBlocks = cachedTokens.parsedBlocks;
+      this.titleTokens = cachedTokens.titleTokens;
+      this.currentChapterPlainText = cachedTokens.plainText;
+      this.totalWordCount = cachedTokens.totalWordCount;
+      this.assistedReading.setParsedBlocks(this.parsedBlocks);
+    } else {
+      // 1. Calcular backendUrl y limpiar HTML primero para evitar que el navegador
+      // cargue imágenes relativas erróneas al procesar el texto plano.
+      const backendUrl = environment.apiUrl.split('/api/v1/')[0];
+      const cleanHtml = chapter.content_html.replace(/src=(["'])(\/?)media\//g, `src=$1${backendUrl}/media/`);
 
-    // 3. Parsear el HTML limpio preservando la estructura
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(cleanHtml, 'text/html');
-    const blocks: typeof this.parsedBlocks = [];
-    let wordIdx = 0;
+      // 2. Actualizar texto plano para SpeechSynthesis (usando HTML ya limpio)
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = cleanHtml;
+      this.currentChapterPlainText = tempDiv.textContent || '';
+
+      // 3. Parsear el HTML limpio preservando la estructura
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(cleanHtml, 'text/html');
+      const blocks: typeof this.parsedBlocks = [];
+      let wordIdx = 0;
 
     const tokenizeInline = (node: Node): typeof this.parsedBlocks[0]['tokens'] => {
       const tokens: typeof this.parsedBlocks[0]['tokens'] = [];
@@ -961,6 +1035,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     });
 
     this.parsedBlocks = blocks;
+    this.assistedReading.setParsedBlocks(this.parsedBlocks);
     this.titleTokens = [];
 
     // 4. GESTIÓN DEL TÍTULO: Evitar duplicación y permitir sincronización.
@@ -1000,7 +1075,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.totalWordCount = wordIdx;
+      this.totalWordCount = wordIdx;
+      this.parsedChapterTokensCache.set(cacheKey, {
+        parsedBlocks: this.parsedBlocks,
+        titleTokens: this.titleTokens,
+        plainText: this.currentChapterPlainText,
+        totalWordCount: this.totalWordCount
+      });
+    }
+
     this.safeChapterHtml = this.sanitizer.bypassSecurityTrustHtml(''); // vaciar el fallback
 
     // Resetear estado de scroll al cargar nuevo capítulo
@@ -1096,7 +1179,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     
     this.isFullyRendered = false; // Bloquear guardado de scroll
     renderChunks(0);
-    this.preloadChapterContent(this.currentPage + 1);
+
+    // Precarga bidireccional (capítulo siguiente y anterior) en segundo plano
+    if (this.currentPage < this.totalPages) {
+      this.preloadChapterContent(this.currentPage + 1);
+    }
+    if (this.currentPage > 1) {
+      this.preloadChapterContent(this.currentPage - 1);
+    }
   }
 
   private loadChapterContent(page: number, afterRender?: () => void) {
@@ -1585,6 +1675,69 @@ export class ReaderComponent implements OnInit, OnDestroy {
         // Scroll suave si la palabra se sale del viewport
         currentWord.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
       }
+    }
+  }
+
+  // ── LECTURA ASISTIDA: Helpers ─────────────────────────────────────
+  
+  updateReadingGuidePosition(wordIndex: number) {
+    if (!this.assistedReading.readingGuide$.value) return;
+    const el = document.getElementById(`word-${wordIndex}`);
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      // Centrar la regla de 40px de alto respecto a la palabra
+      this.readingGuideTop = rect.top + (rect.height / 2) - 20; 
+    }
+  }
+
+  getArWordClass(tok: any): string {
+    if (!this.arEnabled) return '';
+    let classes = '';
+    if (this.arMode === 'word') {
+      if (tok.idx === this.arWordIndex) classes += 'ar-word-active';
+      else classes += 'ar-dimmed';
+    } else if (this.arMode === 'sentence' || this.arMode === 'line' || this.arMode === 'paragraph') {
+      if (tok.idx === this.arWordIndex) classes += 'ar-word-active';
+    }
+    return classes;
+  }
+
+  getArSentenceClass(sentence: any): string {
+    if (!this.arEnabled) return '';
+    let classes = '';
+    if (this.arMode === 'sentence' || this.arMode === 'line') {
+      if (sentence.idx === this.arSentenceIndex) classes += 'ar-sentence-active';
+      else classes += 'ar-dimmed';
+    }
+    return classes;
+  }
+
+  getArBlockClass(blockIdx: number): string {
+    if (!this.arEnabled) return '';
+    if (this.arMode === 'paragraph') {
+      if (blockIdx === this.arBlockIndex) return 'ar-block-active';
+      else return 'ar-dimmed';
+    }
+    return '';
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onAssistedNavigation(event: KeyboardEvent) {
+    if (!this.assistedReading.enabled$.value) return;
+    
+    // Ignorar si estamos escribiendo en un input
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+    
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      this.assistedReading.advance();
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      this.assistedReading.retreat();
+    } else if (event.key === ' ') {
+      event.preventDefault();
+      this.assistedReading.toggle('autoAdvance');
     }
   }
 

@@ -39,6 +39,15 @@
       <div class="results-count">
         {{ totalCount }} resultados
       </div>
+      <label class="sort-filter">
+        <span>Ordenar</span>
+        <select [value]="ordering" (change)="onOrderingChange($event)">
+          <option value="-created_at">Más recientes</option>
+          <option value="title">Título A-Z</option>
+          <option value="-is_featured">Destacados</option>
+          <option value="?">Aleatorio</option>
+        </select>
+      </label>
     </div>
 
     <!-- Loading -->
@@ -49,10 +58,12 @@
 
     <!-- Grid de Libros -->
     <div class="grid-container" *ngIf="books.length > 0">
-      <div class="glass-panel book-card" *ngFor="let book of books" (click)="goToBook(book.slug)">
+      <div class="glass-panel book-card" *ngFor="let book of books; trackBy: trackByBook" (click)="goToBook(book.slug)">
         
-        <div class="card-image" 
-             [style.backgroundImage]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'">
+        <div class="card-image">
+          <img class="card-cover" loading="lazy" decoding="async"
+               [src]="book.cover_image || 'assets/default_cover.jpg'"
+               [alt]="'Portada de ' + book.title">
           <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
         </div>
         
@@ -63,9 +74,7 @@
             De {{ book.book_authors[0].author?.full_name || book.book_authors[0] }}
           </p>
           
-          <p class="book-synopsis">
-            {{ (book.synopsis && book.synopsis.length > 100) ? (book.synopsis | slice:0:100) + '...' : book.synopsis }}
-          </p>
+          <p class="book-synopsis">{{ book.synopsis }}</p>
           
           <div class="card-actions">
             <span class="read-hint">

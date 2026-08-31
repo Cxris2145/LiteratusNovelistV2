@@ -1,0 +1,103 @@
+{
+  "mode": "apply",
+  "generated_at": "2026-08-31T03:38:22.804654+00:00",
+  "backup": {
+    "path": "C:\\Users\\guerr\\Downloads\\LiteratusNovelist\\respaldos-software\\LiteratusNovelist-main\\Producto\\backend\\backups\\db_before_author_merge_20260831_033822.sqlite3",
+    "sha256": "ff9c3e624e75642ef73716350bc2af098764fba9ca09df0680c02664821e116c",
+    "size_bytes": 297291776
+  },
+  "groups": [
+    {
+      "canonical": {
+        "id": "15f9764b-7833-4e6c-b3f6-8983c463319e",
+        "slug": "concepcion-arenal",
+        "full_name": "Concepcion Arenal",
+        "books_count": 1
+      },
+      "aliases": [
+        {
+          "id": "3fb1700c-a3e9-4d19-a79d-3fd105b409a9",
+          "slug": "concepci-n-arenal",
+          "full_name": "Concepción Arenal",
+          "books_count": 1
+        }
+      ],
+      "relations_moved": 1,
+      "duplicate_relations_skipped": 0,
+      "authors_merged": 1,
+      "moves": [
+        {
+          "book_slug": "la-educacion-de-la-mujer-concepcion-arenal",
+          "book_title": "La educación de la mujer",
+          "from": "concepci-n-arenal",
+          "to": "concepcion-arenal",
+          "role": "primary"
+        }
+      ],
+      "skips": []
+    },
+    {
+      "canonical": {
+        "id": "60adffb3-3896-4f47-ac99-df8fdb26bb96",
+        "slug": "calderon-de-la-barca",
+        "full_name": "Calderon de la Barca",
+        "books_count": 3
+      },
+      "aliases": [
+        {
+          "id": "d5d277df-bf22-459d-81c7-068b4565887a",
+          "slug": "calder-n-de-la-barca",
+          "full_name": "Calderón de la Barca",
+          "books_count": 1
+        }
+      ],
+      "relations_moved": 1,
+      "duplicate_relations_skipped": 0,
+      "authors_merged": 1,
+      "moves": [
+        {
+          "book_slug": "la-vida-es-sueno-calderon-de-la-barca-pedro",
+          "book_title": "La vida es sueño - Calderón de la Barca",
+          "from": "calder-n-de-la-barca",
+          "to": "calderon-de-la-barca",
+          "role": "primary"
+        }
+      ],
+      "skips": []
+    },
+    {
+      "canonical": {
+        "id": "c07367e0-8b48-4534-b396-e0e7f1b22c02",
+        "slug": "vicente-blasco-ib-ez",
+        "full_name": "Vicente Blasco Ibáñez",
+        "books_count": 14
+      },
+      "aliases": [
+        {
+          "id": "f4ed1840-3b0c-4ba6-ac10-b713cba13b69",
+          "slug": "vicente-blasco-iba-ez",
+          "full_name": "Vicente Blasco Ibañez",
+          "books_count": 1
+        }
+      ],
+      "relations_moved": 1,
+      "duplicate_relations_skipped": 0,
+      "authors_merged": 1,
+      "moves": [
+        {
+          "book_slug": "la-horda-vicente-blasco-ibanez",
+          "book_title": "La horda",
+          "from": "vicente-blasco-iba-ez",
+          "to": "vicente-blasco-ib-ez",
+          "role": "primary"
+        }
+      ],
+      "skips": []
+    }
+  ],
+  "totals": {
+    "relations_moved": 3,
+    "duplicate_relations_skipped": 0,
+    "authors_merged": 3
+  }
+}

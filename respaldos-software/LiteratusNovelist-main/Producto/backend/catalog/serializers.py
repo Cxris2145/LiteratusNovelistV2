@@ -13,6 +13,8 @@ class AuthorReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'full_name', 'slug', 'bio', 'nationality', 'photo', 'books_count']
 
     def get_books_count(self, obj):
+        if hasattr(obj, 'author_books_count'):
+            return obj.author_books_count
         return obj.author_books.count()
 
 class AuthorDetailSerializer(serializers.ModelSerializer):
@@ -28,8 +30,8 @@ class AuthorDetailSerializer(serializers.ModelSerializer):
 
     def get_books(self, obj):
         # Obtenemos todos los BookAuthor para este autor, luego extraemos los libros.
-        # Esto previene el problema N+1 si lo optimizamos en la vista.
-        books = [ba.book for ba in obj.author_books.all().select_related('book')]
+        # Al iterar los objetos precargados de author_books evitamos consultas adicionales N+1.
+        books = [ba.book for ba in obj.author_books.all()]
         # Import local para evitar dependencia circular
         from .serializers import BookListSerializer
         return BookListSerializer(books, many=True, context=self.context).data
@@ -88,7 +90,7 @@ class BookListSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
     synopsis = serializers.SerializerMethodField()
-    ai_character_count = serializers.IntegerField(read_only=True)
+    ai_character_count = serializers.IntegerField(read_only=True, default=0)
     
     class Meta:
         model = Book
@@ -120,6 +122,22 @@ class BookListSerializer(serializers.ModelSerializer):
             main_author = book_authors[0]
             
         return main_author.author.full_name
+
+
+class BookCatalogCardSerializer(serializers.ModelSerializer):
+    """Payload mínimo para la grilla pública del catálogo."""
+
+    synopsis = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Book
+        fields = ['id', 'title', 'slug', 'synopsis', 'is_featured', 'cover_image']
+
+    def get_synopsis(self, obj):
+        synopsis = obj.synopsis or ''
+        if len(synopsis) <= 120:
+            return synopsis
+        return synopsis[:120].rstrip() + '...'
 
 
 class BookDetailSerializer(serializers.ModelSerializer):
@@ -211,7 +229,9 @@ class BookDetailFullSerializer(BookDetailSerializer):
 
         sample_size = 8
         chapter_qs = obj.chapters.order_by('order').values_list('content_html', flat=True)
-        chapter_count = chapter_qs.count()
+        chapter_count = getattr(obj, 'chapter_count', None)
+        if chapter_count is None:
+            chapter_count = chapter_qs.count()
         samples = list(chapter_qs[:sample_size])
 
         if not samples:

@@ -42,6 +42,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { VerifyEmailComponent } from './auth/verify-email/verify-email.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
+import { AssistedReadingPanelComponent } from './library/reader/assisted-reading-panel/assisted-reading-panel.component';
 
 @NgModule({
   declarations: [
@@ -79,6 +80,7 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+    AssistedReadingPanelComponent,
     MatMenuModule,
     MatIconModule,
     MatButtonModule,

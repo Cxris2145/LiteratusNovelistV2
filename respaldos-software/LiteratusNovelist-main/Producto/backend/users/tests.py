@@ -80,12 +80,14 @@ class UsersAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertNotIn('access', response.data)
+        self.assertEqual(response.data.get('detail'), 'La contraseña ingresada es incorrecta.')
 
     def test_nonexistent_email_is_rejected(self):
         response = self.login('missing@example.com', 'WrongPassword123!')
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertNotIn('access', response.data)
+        self.assertEqual(response.data.get('detail'), 'No existe ninguna cuenta registrada con este usuario o correo.')
 
     def test_duplicate_email_registration_is_rejected_case_insensitive(self):
         self.create_user('dupe')

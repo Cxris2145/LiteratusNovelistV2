@@ -257,7 +257,9 @@ class Book(TimeStampedModel):
         verbose_name = 'Book'
         verbose_name_plural = 'Books'
         indexes = [
-            models.Index(fields=['slug'])
+            models.Index(fields=['slug']),
+            models.Index(fields=['is_published', 'is_featured']),
+            models.Index(fields=['status']),
         ]
 
     def save(self, *args, **kwargs):
@@ -454,6 +456,9 @@ class Chapter(TimeStampedModel):
         verbose_name = 'Chapter'
         verbose_name_plural = 'Chapters'
         ordering = ['order']
+        indexes = [
+            models.Index(fields=['book', 'order']),
+        ]
         constraints = [
             # Garantiza que un libro no tenga dos capítulos con el mismo número de orden.
             # Sin esta constraint, un error en la importación podría crear dos "Capítulo 1"

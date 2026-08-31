@@ -9,6 +9,9 @@ export interface Category {
   description: string;
   color: string;
   bookCount?: number;
+  /** Estilos precalculados para no concatenar strings en cada ciclo de CD. */
+  wrapBg?: string;
+  gradientOverlay?: string;
 }
 
 @Component({
@@ -51,26 +54,32 @@ export class CategoriesComponent implements OnInit {
         this.categories = genres.map((g: any, index: number) => {
           // Asignar color secuencial
           const color = this.colors[index % this.colors.length];
-          
+          const image = g.cover_image || '/assets/default_cover.jpg';
+
           return {
             name: g.name,
             slug: g.slug,
-            image: g.cover_image || '/assets/default_cover.jpg',
+            image,
             description: `Explora nuestra increíble colección de ${g.name.toLowerCase()}`,
             color: color,
-            bookCount: g.book_count || 0
+            bookCount: g.book_count || 0,
+            wrapBg: image ? 'transparent' : `linear-gradient(135deg, #1e1e2f 0%, ${color}33 100%)`,
+            gradientOverlay: `linear-gradient(to top, ${color}88 0%, rgba(0,0,0,0.6) 50%, transparent 100%)`
           };
         });
         
         // Agregar manualmente "Literatura y Ficción" general (si se desea) u otras personalizadas
         if (!this.categories.find(c => c.slug === 'literatura-y-ficcion')) {
+          const litImg = 'https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/literatura-de-viaje.webp';
           this.categories.unshift({
             name: 'Literatura y Ficción',
             slug: 'literatura-y-ficcion',
-            image: 'https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/literatura-de-viaje.webp',
+            image: litImg,
             description: 'Clásicos inmortales, cuentos y novelas que definieron la historia',
             color: '#a855f7',
-            bookCount: this.categories.reduce((acc, curr) => acc + (curr.bookCount || 0), 0)
+            bookCount: this.categories.reduce((acc, curr) => acc + (curr.bookCount || 0), 0),
+            wrapBg: 'transparent',
+            gradientOverlay: 'linear-gradient(to top, #a855f788 0%, rgba(0,0,0,0.6) 50%, transparent 100%)'
           });
         }
 
@@ -80,6 +89,10 @@ export class CategoriesComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  trackByCat(_index: number, cat: Category): string {
+    return cat.slug;
   }
 
   goToCategory(slug: string): void {

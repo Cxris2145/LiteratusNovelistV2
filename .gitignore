@@ -49,3 +49,35 @@ logs/
 
 # Backups locales temporales
 respaldos-software/LiteratusNovelist-main/Producto/backend/backups/
+
+# ===========================================================================
+# Añadido 2026-08-31 — evitar rechazos de GitHub y no subir el workspace del agente
+# ===========================================================================
+
+# Base de datos (NUNCA al repo; GitHub rechaza >100 MB)
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+
+# Volcados/auditorías pesadas generadas localmente
+chapter_audit_backup*.json
+respaldos-software/LiteratusNovelist-main/Producto/backend/chapter_audit_backup*.json
+
+# Media generada (portadas / capítulos extraídos) — no versionar
+/media/
+respaldos-software/LiteratusNovelist-main/Producto/backend/media/books/
+respaldos-software/LiteratusNovelist-main/Producto/backend/media/book_covers_backup/
+
+# Workspace personal del agente OpenClaw (NO es el proyecto del curso)
+/AGENTS.md
+/MEMORY.md
+/SOUL.md
+/USER.md
+/IDENTITY.md
+/HEARTBEAT.md
+/TOOLS.md
+/openclaw-workspace-state.json
+/agents/
+/memory/
+/_bak/
+.claude/

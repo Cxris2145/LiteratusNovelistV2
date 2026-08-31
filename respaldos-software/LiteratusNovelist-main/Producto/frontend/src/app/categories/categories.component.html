@@ -1,28 +1,41 @@
 <div class="categories-page">
-  <!-- Grid de Categorías -->
   <main class="categories-main">
 
-    <div class="categories-grid">
+    <section class="categories-filter">
+      <div class="search-box">
+        <span class="material-symbols-rounded search-icon">search</span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Filtrar categorías..."
+          [value]="searchTerm"
+          (input)="onSearch($event)">
+        <button class="search-clear" *ngIf="searchTerm" (click)="clearSearch()">Limpiar</button>
+      </div>
+      <span class="filter-count" *ngIf="!isLoading">
+        {{ filteredCategories.length }} categorías
+      </span>
+    </section>
+
+    <div class="categories-grid" *ngIf="filteredCategories.length > 0">
       <div class="category-card"
-           *ngFor="let cat of categories"
+           *ngFor="let cat of filteredCategories; trackBy: trackByCat"
            (click)="goToCategory(cat.slug)"
            [style.--accent]="cat.color">
 
-        <!-- Imagen de fondo -->
-        <div class="card-image-wrap" [style.background]="cat.image ? 'transparent' : 'linear-gradient(135deg, #1e1e2f 0%, ' + cat.color + '33 100%)'">
-          <img *ngIf="cat.image" [src]="cat.image" [alt]="cat.name" class="card-bg-img" loading="lazy">
+        <div class="card-image-wrap" [style.background]="cat.wrapBg">
+          <img *ngIf="cat.image" [src]="cat.image" [alt]="cat.name" class="card-bg-img" loading="lazy" decoding="async">
           <div *ngIf="!cat.image" class="card-icon-fallback" [style.color]="cat.color">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           </div>
-          <div class="card-gradient" [style.background]="'linear-gradient(to top, ' + cat.color + '88 0%, rgba(0,0,0,0.6) 50%, transparent 100%)'"></div>
+          <div class="card-gradient" [style.background]="cat.gradientOverlay"></div>
         </div>
 
-        <!-- Contenido encima de la imagen -->
         <div class="card-content">
           <div class="card-top">
             <div class="card-book-count" *ngIf="cat.bookCount && cat.bookCount > 0">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-              {{ cat.bookCount }}+ libros
+              {{ cat.bookCount }} libros
             </div>
           </div>
 
@@ -30,14 +43,18 @@
             <h2 class="card-title">{{ cat.name }}</h2>
             <p class="card-description">{{ cat.description }}</p>
             <div class="card-cta">
-              <span>Explorar →</span>
+              <span>Explorar</span>
             </div>
           </div>
         </div>
 
-        <!-- Hover Overlay -->
         <div class="card-hover-overlay"></div>
       </div>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && filteredCategories.length === 0">
+      <h3>No encontramos categorías para "{{ searchTerm }}"</h3>
+      <button class="clear-btn" (click)="clearSearch()">Ver todas</button>
     </div>
 
   </main>

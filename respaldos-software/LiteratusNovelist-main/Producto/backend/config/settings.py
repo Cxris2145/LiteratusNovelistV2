@@ -241,6 +241,12 @@ GOOGLE_API_KEY = env('GOOGLE_API_KEY', default=None)
 GOOGLE_API_KEY_2 = env('GOOGLE_API_KEY_2', default=None)
 DEEPSEEK_API_KEY = env('DEEPSEEK_API_KEY', default=None)
 
+# Estandarización de biblioteca (portadas Gemini + sinopsis)
+GEMINI_IMAGE_MODEL = env('GEMINI_IMAGE_MODEL', default='gemini-2.5-flash-image')
+STANDARDIZE_ON_IMPORT = env.bool('STANDARDIZE_ON_IMPORT', default=True)
+# Directorio opcional de fuentes para el compositor de portadas (deja vacío para autodetección).
+LITERATUS_FONT_DIR = env('LITERATUS_FONT_DIR', default=None)
+
 # ---------------------------------------------------------------------------
 # Webpay / Transbank
 # ---------------------------------------------------------------------------

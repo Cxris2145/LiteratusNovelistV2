@@ -11,6 +11,8 @@ from .models import User, Profile
 
 
 LOGIN_ERROR = 'Correo o contraseña incorrectos.'
+USER_NOT_FOUND_ERROR = 'No existe ninguna cuenta registrada con este usuario o correo.'
+PASSWORD_INCORRECT_ERROR = 'La contraseña ingresada es incorrecta.'
 INACTIVE_ERROR = 'La cuenta no está activa. Revisa tu correo para activarla.'
 INVALID_RESET_LINK_ERROR = 'El enlace de recuperación no es válido o ha expirado.'
 
@@ -48,11 +50,19 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 'username': 'Ingresa tu correo o nombre de usuario.'
             })
 
+        if not password:
+            raise serializers.ValidationError({
+                'password': 'Ingresa tu contraseña.'
+            })
+
         identifier = raw_identifier.strip()
         user = self._find_user(identifier)
 
-        if user is None or not user.check_password(password):
-            raise AuthenticationFailed(LOGIN_ERROR, code='authorization')
+        if user is None:
+            raise AuthenticationFailed(USER_NOT_FOUND_ERROR, code='user_not_found')
+
+        if not user.check_password(password):
+            raise AuthenticationFailed(PASSWORD_INCORRECT_ERROR, code='invalid_password')
 
         if not user.is_active:
             raise PermissionDenied(INACTIVE_ERROR)

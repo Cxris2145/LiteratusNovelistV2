@@ -86,6 +86,12 @@
         <span class="material-symbols-rounded" style="font-size:1.3rem;">touch_app</span>
       </button>
 
+      <!-- Botón Lectura Asistida -->
+      <button class="toc-trigger-btn ar-trigger-btn" (click)="isAssistedPanelOpen = !isAssistedPanelOpen" title="Lectura Asistida" [class.active]="isAssistedPanelOpen || (assistedReading.enabled$ | async)">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">visibility</span>
+        <div *ngIf="assistedReading.enabled$ | async" class="ar-active-dot"></div>
+      </button>
+
       <!-- Toggle Modo Inmersivo (Pantalla Completa F11) -->
       <button class="toc-trigger-btn immersive-toggle-btn" (click)="toggleImmersiveButton()" [title]="isFullscreenActive ? 'Salir de pantalla completa' : 'Pantalla completa (Modo Inmersivo)'">
         <span class="material-symbols-rounded" style="font-size:1.3rem;">{{ isFullscreenActive ? 'fullscreen_exit' : 'fullscreen' }}</span>
@@ -540,13 +546,49 @@
     <!-- Mensajes de error ocultos -->
   </div>
 
+  <!-- Panel de Lectura Asistida -->
+  <app-assisted-reading-panel 
+    *ngIf="isAssistedPanelOpen"
+    (closePanel)="isAssistedPanelOpen = false">
+  </app-assisted-reading-panel>
+
+  <!-- Botón flotante para salir de Lectura Limpia (cuando está activa) -->
+  <button class="ar-clean-exit-fab" 
+          *ngIf="(assistedReading.cleanMode$ | async) && (assistedReading.enabled$ | async)"
+          (click)="assistedReading.toggle('cleanMode')"
+          title="Salir de Lectura Limpia">
+    <span class="material-symbols-rounded">close_fullscreen</span>
+  </button>
+
+  <!-- Regla de lectura -->
+  <div class="reading-guide-ruler" 
+       *ngIf="(assistedReading.enabled$ | async) && (assistedReading.readingGuide$ | async)"
+       [style.top.px]="readingGuideTop">
+  </div>
+
+  <!-- Floating indicator when auto-advance is on and panel closed -->
+  <div class="ar-floating-indicator" [class.visible]="(assistedReading.autoAdvance$ | async) && !isAssistedPanelOpen">
+    <div class="ar-indicator-dot"></div>
+    Lectura asistida en curso ({{ assistedReading.autoAdvanceSpeed$ | async }}x)
+  </div>
+
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- LIENZO DE LECTURA PRINCIPAL                                      -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- LIENZO DE LECTURA (renderizado nativo Angular para highlighting) -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <main class="reading-canvas html-reader" [ngClass]="'font-' + currentFontFamily" [class.tap-to-scroll-active]="tapToScrollActive" (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)">
+  <main class="reading-canvas html-reader" 
+        [ngClass]="'font-' + currentFontFamily" 
+        [class.font-opendyslexic]="(assistedReading.fontOverride$ | async) === 'opendyslexic'"
+        [class.tap-to-scroll-active]="tapToScrollActive" 
+        [class.ar-custom-styles]="assistedReading.enabled$ | async"
+        [class.assisted-focus]="(assistedReading.enabled$ | async) && (assistedReading.focusMode$ | async)"
+        [class.assisted-clean]="(assistedReading.enabled$ | async) && (assistedReading.cleanMode$ | async)"
+        [class.assisted-split]="(assistedReading.enabled$ | async) && (assistedReading.textSplitting$ | async)"
+        [ngStyle]="(assistedReading.enabled$ | async) ? assistedReading.getHighlightCssVars() : {}"
+        (scroll)="onCanvasScroll($event)" 
+        (click)="onCanvasClick($event)">
     <!-- Título principal del capítulo -->
     <!-- Título principal del capítulo con soporte para highlighting -->
     <h1 class="chapter-title-main">
@@ -566,21 +608,23 @@
       <ng-container *ngIf="titleTokens.length === 0">{{ chapterTitle }}</ng-container>
     </h1>
 
-    <ng-container *ngFor="let block of renderedBlocks; trackBy: trackByBlock">
+    <ng-container *ngFor="let block of renderedBlocks; let bIdx = index; trackBy: trackByBlock">
 
       <!-- Imagen a nivel raíz (standalone) -->
       <figure *ngIf="block.tag === 'img-block' && showSceneImages" class="chapter-image scene-image-container">
         <img [src]="block.tokens[0].src" [alt]="block.tokens[0].alt || ''" loading="lazy" (click)="openImageModal(block.tokens[0].src)" class="scene-image">
       </figure>
 
-      <h1 *ngIf="block.tag === 'h1'" class="chapter-heading">
+      <h1 *ngIf="block.tag === 'h1'" class="chapter-heading" [ngClass]="getArBlockClass(bIdx)">
         <ng-container *ngFor="let sentence of block.sentences">
-          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+          <span [class.active-paragraph-text]="isActiveSentence(sentence)" [ngClass]="getArSentenceClass(sentence)">
+            <span *ngIf="arEnabled && (arMode === 'sentence' || arMode === 'line') && sentence.idx === arSentenceIndex" class="ar-sentence-indicator"></span>
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
               <span *ngIf="tok.isWord"
                     [id]="'word-' + tok.idx"
                     class="word"
                     [class.active-word]="tok.idx === currentWordIndex"
+                    [ngClass]="getArWordClass(tok)"
                     (click)="onWordClick(tok.idx)">
                 <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
                 <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
@@ -593,14 +637,16 @@
         </ng-container>
       </h1>
 
-      <h2 *ngIf="block.tag === 'h2'" class="chapter-heading">
+      <h2 *ngIf="block.tag === 'h2'" class="chapter-heading" [ngClass]="getArBlockClass(bIdx)">
         <ng-container *ngFor="let sentence of block.sentences">
-          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+          <span [class.active-paragraph-text]="isActiveSentence(sentence)" [ngClass]="getArSentenceClass(sentence)">
+            <span *ngIf="arEnabled && (arMode === 'sentence' || arMode === 'line') && sentence.idx === arSentenceIndex" class="ar-sentence-indicator"></span>
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
               <span *ngIf="tok.isWord"
                     [id]="'word-' + tok.idx"
                     class="word"
                     [class.active-word]="tok.idx === currentWordIndex"
+                    [ngClass]="getArWordClass(tok)"
                     (click)="onWordClick(tok.idx)">
                 <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
                 <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
@@ -613,14 +659,16 @@
         </ng-container>
       </h2>
 
-      <p *ngIf="block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote'">
+      <p *ngIf="block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote'" [ngClass]="getArBlockClass(bIdx)">
         <ng-container *ngFor="let sentence of block.sentences">
-          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+          <span [class.active-paragraph-text]="isActiveSentence(sentence)" [ngClass]="getArSentenceClass(sentence)">
+            <span *ngIf="arEnabled && (arMode === 'sentence' || arMode === 'line') && sentence.idx === arSentenceIndex" class="ar-sentence-indicator"></span>
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
               <span *ngIf="tok.isWord"
                     [id]="'word-' + tok.idx"
                     class="word"
                     [class.active-word]="tok.idx === currentWordIndex"
+                    [ngClass]="getArWordClass(tok)"
                     (click)="onWordClick(tok.idx)">
                 <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
                 <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>

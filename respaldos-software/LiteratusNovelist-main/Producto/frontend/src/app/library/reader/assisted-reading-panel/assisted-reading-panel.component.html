@@ -1,0 +1,182 @@
+<div class="ar-panel glass-panel" role="dialog" aria-label="Opciones de lectura asistida">
+  <!-- Header -->
+  <div class="ar-header">
+    <div class="ar-title-row">
+      <span class="material-symbols-rounded ar-icon">visibility</span>
+      <h3 class="ar-title">Lectura Asistida</h3>
+    </div>
+    <button class="ar-close-btn" (click)="closePanel.emit()" aria-label="Cerrar panel">
+      <span class="material-symbols-rounded">close</span>
+    </button>
+  </div>
+  
+  <p class="ar-subtitle">Herramienta de apoyo visual para adaptar la lectura según tus preferencias.</p>
+
+  <div class="ar-body">
+    <!-- Master Toggle -->
+    <div class="ar-toggle-row">
+      <span>Lectura asistida</span>
+      <label class="ar-switch">
+        <input type="checkbox" [checked]="ar.enabled$ | async" (change)="ar.toggle('enabled')">
+        <span class="ar-slider"></span>
+      </label>
+    </div>
+
+    <!-- Only show rest when enabled -->
+    <ng-container *ngIf="ar.enabled$ | async">
+      
+      <!-- Mode selector -->
+      <div class="ar-section">
+        <label class="ar-label">Modo de resaltado</label>
+        <div class="ar-chip-group" role="radiogroup">
+          <button class="ar-chip" [class.active]="(ar.mode$ | async) === 'word'" (click)="ar.mode$.next('word')" role="radio">Palabra</button>
+          <button class="ar-chip" [class.active]="(ar.mode$ | async) === 'line'" (click)="ar.mode$.next('line')" role="radio">Línea</button>
+          <button class="ar-chip" [class.active]="(ar.mode$ | async) === 'sentence'" (click)="ar.mode$.next('sentence')" role="radio">Oración</button>
+          <button class="ar-chip" [class.active]="(ar.mode$ | async) === 'paragraph'" (click)="ar.mode$.next('paragraph')" role="radio">Párrafo</button>
+        </div>
+      </div>
+
+      <!-- Playback controls -->
+      <div class="ar-section">
+        <label class="ar-label">Navegación</label>
+        <div class="ar-playback-controls">
+          <button class="ar-ctrl-btn" (click)="ar.retreat()" aria-label="Retroceder" title="Retroceder">
+            <span class="material-symbols-rounded">skip_previous</span>
+          </button>
+          <button class="ar-ctrl-btn ar-play-btn" 
+                  (click)="ar.toggle('autoAdvance')" 
+                  [title]="(ar.autoAdvance$ | async) ? 'Pausar avance' : 'Avance automático'">
+            <span class="material-symbols-rounded">{{ (ar.autoAdvance$ | async) ? 'pause' : 'play_arrow' }}</span>
+          </button>
+          <button class="ar-ctrl-btn" (click)="ar.advance()" aria-label="Avanzar" title="Avanzar">
+            <span class="material-symbols-rounded">skip_next</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="ar-section" *ngIf="ar.autoAdvance$ | async">
+        <label class="ar-label">Velocidad: {{ ar.autoAdvanceSpeed$ | async }}x</label>
+        <div class="ar-speed-chips">
+          <button *ngFor="let s of speeds" 
+                  class="ar-speed-chip" 
+                  [class.active]="(ar.autoAdvanceSpeed$ | async) === s"
+                  (click)="ar.autoAdvanceSpeed$.next(s); ar.startAutoAdvance()">{{ s }}x</button>
+        </div>
+      </div>
+
+      <!-- Quick toggles -->
+      <div class="ar-section">
+        <div class="ar-toggle-row">
+          <span>Modo foco</span>
+          <label class="ar-switch">
+            <input type="checkbox" [checked]="ar.focusMode$ | async" (change)="ar.toggle('focusMode')">
+            <span class="ar-slider"></span>
+          </label>
+        </div>
+        <div class="ar-toggle-row">
+          <span>Regla de lectura</span>
+          <label class="ar-switch">
+            <input type="checkbox" [checked]="ar.readingGuide$ | async" (change)="ar.toggle('readingGuide')">
+            <span class="ar-slider"></span>
+          </label>
+        </div>
+        <div class="ar-toggle-row">
+          <span>Lectura limpia</span>
+          <label class="ar-switch">
+            <input type="checkbox" [checked]="ar.cleanMode$ | async" (change)="ar.toggle('cleanMode')">
+            <span class="ar-slider"></span>
+          </label>
+        </div>
+        <div class="ar-toggle-row">
+          <span>Dividir párrafos</span>
+          <label class="ar-switch">
+            <input type="checkbox" [checked]="ar.textSplitting$ | async" (change)="ar.toggle('textSplitting')">
+            <span class="ar-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Highlight color -->
+      <div class="ar-section">
+        <label class="ar-label">Color del resaltado</label>
+        <div class="ar-color-group">
+          <button *ngFor="let c of colors" 
+                  class="ar-color-dot" 
+                  [class.active]="(ar.highlightColor$ | async) === c.id"
+                  [style.backgroundColor]="c.preview"
+                  [title]="c.name"
+                  (click)="ar.highlightColor$.next(c.id)">
+          </button>
+        </div>
+      </div>
+
+      <!-- Intensity -->
+      <div class="ar-section">
+        <label class="ar-label">Intensidad</label>
+        <div class="ar-chip-group">
+          <button class="ar-chip" [class.active]="(ar.highlightIntensity$ | async) === 'soft'" (click)="ar.highlightIntensity$.next('soft')">Suave</button>
+          <button class="ar-chip" [class.active]="(ar.highlightIntensity$ | async) === 'medium'" (click)="ar.highlightIntensity$.next('medium')">Media</button>
+          <button class="ar-chip" [class.active]="(ar.highlightIntensity$ | async) === 'high'" (click)="ar.highlightIntensity$.next('high')">Alta</button>
+        </div>
+      </div>
+
+      <!-- Advanced Options -->
+      <button class="ar-advanced-toggle" (click)="showAdvanced = !showAdvanced">
+        <span class="material-symbols-rounded" style="font-size:1rem;">{{ showAdvanced ? 'expand_less' : 'expand_more' }}</span>
+        {{ showAdvanced ? 'Menos opciones' : 'Más opciones' }}
+      </button>
+
+      <ng-container *ngIf="showAdvanced">
+        <!-- Text Size -->
+        <div class="ar-section">
+          <label class="ar-label">Tamaño del texto</label>
+          <div class="ar-chip-group">
+            <button class="ar-chip" [class.active]="(ar.textSize$ | async) === 'small'" (click)="ar.textSize$.next('small')">Pequeño</button>
+            <button class="ar-chip" [class.active]="(ar.textSize$ | async) === 'normal'" (click)="ar.textSize$.next('normal')">Normal</button>
+            <button class="ar-chip" [class.active]="(ar.textSize$ | async) === 'large'" (click)="ar.textSize$.next('large')">Grande</button>
+            <button class="ar-chip" [class.active]="(ar.textSize$ | async) === 'xlarge'" (click)="ar.textSize$.next('xlarge')">Muy grande</button>
+          </div>
+        </div>
+
+        <!-- Line Spacing -->
+        <div class="ar-section">
+          <label class="ar-label">Espaciado entre líneas</label>
+          <div class="ar-chip-group">
+            <button class="ar-chip" [class.active]="(ar.lineSpacing$ | async) === 'normal'" (click)="ar.lineSpacing$.next('normal')">Normal</button>
+            <button class="ar-chip" [class.active]="(ar.lineSpacing$ | async) === 'wide'" (click)="ar.lineSpacing$.next('wide')">Amplio</button>
+            <button class="ar-chip" [class.active]="(ar.lineSpacing$ | async) === 'xwide'" (click)="ar.lineSpacing$.next('xwide')">Muy amplio</button>
+          </div>
+        </div>
+
+        <!-- Letter Spacing -->
+        <div class="ar-section">
+          <label class="ar-label">Espaciado entre letras</label>
+          <div class="ar-chip-group">
+            <button class="ar-chip" [class.active]="(ar.letterSpacing$ | async) === 'normal'" (click)="ar.letterSpacing$.next('normal')">Normal</button>
+            <button class="ar-chip" [class.active]="(ar.letterSpacing$ | async) === 'wide'" (click)="ar.letterSpacing$.next('wide')">Amplio</button>
+          </div>
+        </div>
+
+        <!-- Reading Width -->
+        <div class="ar-section">
+          <label class="ar-label">Ancho de lectura</label>
+          <div class="ar-chip-group">
+            <button class="ar-chip" [class.active]="(ar.readingWidth$ | async) === 'narrow'" (click)="ar.readingWidth$.next('narrow')">Estrecho</button>
+            <button class="ar-chip" [class.active]="(ar.readingWidth$ | async) === 'normal'" (click)="ar.readingWidth$.next('normal')">Normal</button>
+            <button class="ar-chip" [class.active]="(ar.readingWidth$ | async) === 'wide'" (click)="ar.readingWidth$.next('wide')">Amplio</button>
+          </div>
+        </div>
+
+        <!-- Font Override -->
+        <div class="ar-section">
+          <label class="ar-label">Fuente de lectura</label>
+          <div class="ar-chip-group">
+            <button class="ar-chip" [class.active]="(ar.fontOverride$ | async) === 'default'" (click)="ar.fontOverride$.next('default')">Predeterminada</button>
+            <button class="ar-chip" [class.active]="(ar.fontOverride$ | async) === 'opendyslexic'" (click)="ar.fontOverride$.next('opendyslexic')" style="font-family: 'OpenDyslexic', sans-serif;">OpenDyslexic</button>
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
+</div>

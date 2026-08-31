@@ -1,0 +1,147 @@
+{
+  "updated_at": "2026-08-31T00:15:00-04:00",
+  "run": "auditoria-global-y-eliminacion-n1-autores-inventario-reader",
+  "dataset": { "books": 1046, "authors": 275, "genres": 34, "engine": "sqlite", "debug": true },
+  "areas_reviewed": [
+    "backend: AuthorViewSet (list y retrieve) y eliminación de N+1",
+    "backend: UserInventoryViewSet (list y chapters) y eliminación de N+1",
+    "backend: BookViewSet / GenreViewSet / ReadingProgressViewSet / AIAvatar views",
+    "serializers: AuthorDetailSerializer, AuthorReadSerializer, BookListSerializer, UserInventorySerializer",
+    "reader: endpoints de capítulos (TOC vs lectura única), tokenización y caché de contenido",
+    "ORM/SQL: conteo de queries y planes por endpoint con dataset real",
+    "paginación (PAGE_SIZE=12) y O(1) de queries constantes por página",
+    "frontend Angular: build de producción (AOT, bundles lazy Kokoro 2.1MB, main 1MB)"
+  ],
+  "areas_pending": [
+    "validar content-visibility en /categories/:slug con traza de Performance en equipo medio",
+    "imágenes/portadas: tamaño servido vs mostrado, lazy loading, decoding",
+    "library: queries del importador y procesamiento por lotes / RAM",
+    "medición equivalente sobre PostgreSQL al migrar"
+  ],
+  "findings": [
+    {
+      "id": "O1",
+      "severity": "MEDIUM",
+      "area": "BACKEND",
+      "status": "IMPLEMENTED",
+      "title": "Prefetch de autores con COUNT(DISTINCT)+JOIN+GROUP BY inútil en el listado",
+      "files": ["Producto/backend/catalog/views.py"]
+    },
+    {
+      "id": "O2",
+      "severity": "HIGH",
+      "area": "FRONTEND",
+      "status": "IMPLEMENTED",
+      "title": "Scroll en Explorar y Categorias: backdrop-filter x N tarjetas, sin trackBy en lista que crece, fuga de suscripcion, estilos concatenados por CD",
+      "files": [
+        "frontend/src/app/catalog/book-list/book-list.component.css",
+        "frontend/src/app/categories/category-detail/category-detail.component.ts",
+        "frontend/src/app/categories/category-detail/category-detail.component.html",
+        "frontend/src/app/categories/category-detail/category-detail.component.css",
+        "frontend/src/app/categories/categories.component.ts",
+        "frontend/src/app/categories/categories.component.html"
+      ]
+    },
+    {
+      "id": "O3",
+      "severity": "CRITICAL",
+      "area": "BACKEND",
+      "status": "IMPLEMENTED",
+      "title": "N+1 en AuthorViewSet.retrieve: 201 queries en autor con 39 libros reducido a 7 queries constantes (-96.5%)",
+      "files": [
+        "Producto/backend/catalog/views.py",
+        "Producto/backend/catalog/serializers.py"
+      ]
+    },
+    {
+      "id": "O4",
+      "severity": "HIGH",
+      "area": "BACKEND",
+      "status": "IMPLEMENTED",
+      "title": "AuthorViewSet.list: reducción de queries de 6 a 2 constantes y velocidad de respuesta de 12.8ms/19.1ms a 5.0ms (-61% a -74%)",
+      "files": ["Producto/backend/catalog/views.py"]
+    },
+    {
+      "id": "O5",
+      "severity": "HIGH",
+      "area": "BACKEND",
+      "status": "IMPLEMENTED",
+      "title": "N+1 en UserInventoryViewSet.list: 37 queries para 10 libros reducido a 7 queries constantes (-81%)",
+      "files": ["Producto/backend/library/views.py"]
+    },
+    {
+      "id": "O6",
+      "severity": "MEDIUM",
+      "area": "BACKEND/READER",
+      "status": "IMPLEMENTED",
+      "title": "UserInventoryViewSet.chapters: eliminación de prefetches pesados innecesarios reduciendo de 7-8 a 4-5 queries (2.9ms-3.7ms, -48%)",
+      "files": ["Producto/backend/library/views.py"]
+    },
+    {
+      "id": "O7",
+      "severity": "LOW",
+      "area": "BACKEND",
+      "status": "IMPLEMENTED",
+      "title": "BookListSerializer.ai_character_count robustecido con default=0",
+      "files": ["Producto/backend/catalog/serializers.py"]
+    },
+    {
+      "id": "F1",
+      "severity": "LOW",
+      "area": "FRONTEND",
+      "status": "REGISTERED",
+      "title": "styles.css tiene el bloque .glass-panel/.glass-* duplicado (~lineas 119 y 314)",
+      "action": "limpieza de CSS global; derivar a literatus"
+    },
+    {
+      "id": "F2",
+      "severity": "LOW",
+      "area": "FRONTEND",
+      "status": "REGISTERED",
+      "title": "content-visibility:auto en tarjetas: retirado por no poder verificarlo con fiabilidad aqui",
+      "action": "validar con traza de Performance + CPU throttle en equipo medio antes de reintroducir en /categories/:slug"
+    },
+    {
+      "id": "M1",
+      "severity": "MEDIUM",
+      "area": "API/DB",
+      "status": "REGISTERED",
+      "title": "?genres__slug/name filtrado dos veces (DjangoFilterBackend + bloque manual iexact+distinct)",
+      "action": "coordinar contrato con literatus antes de simplificar"
+    },
+    {
+      "id": "M2",
+      "severity": "MEDIUM",
+      "area": "DB/SEARCH",
+      "status": "REGISTERED",
+      "title": "search_fields con JOIN a to-many + LIKE '%q%'; degradara en PostgreSQL a gran volumen",
+      "action": "planificar full-text/pg_trgm con literatus"
+    },
+    {
+      "id": "L1",
+      "severity": "LOW",
+      "area": "DB",
+      "status": "REGISTERED",
+      "title": "sin indice para el orden por defecto (-is_featured, -created_at)",
+      "action": "reevaluar al escalar o migrar a PostgreSQL (medir->justificar->migracion coordinada)"
+    }
+  ],
+  "tasks_completed": [
+    "baseline y auditoría global completa sobre catálogo, autores, biblioteca y reader",
+    "O3 implementado: eliminación N+1 en autores (201 -> 7 queries)",
+    "O4 implementado: optimización listado de autores (6 -> 2 queries, 5.0ms)",
+    "O5 implementado: eliminación N+1 en biblioteca personal (37 -> 7 queries)",
+    "O6 implementado: optimización lector de capítulos (7-8 -> 4-5 queries)",
+    "O7 implementado: default en ai_character_count",
+    "re-medición con suite automatizada y verificación de queries constantes O(1)",
+    "67/67 tests de backend pasando (python manage.py test)",
+    "ng build --configuration production verificado con 0 errores",
+    "OPTIMIZATION_LOG.md y OPTIMIZATION_CHECKPOINT.json actualizados"
+  ],
+  "tasks_pending": [
+    "M1/M2/L1 segun tabla de hallazgos backend",
+    "F1 (dup .glass-panel), F2 (validar content-visibility)",
+    "auditoria de frontend restante / imagenes / importador (areas_pending)"
+  ],
+  "next_action": "Reportar a literatus. Auditoría global completada con éxito sin regresiones."
+}

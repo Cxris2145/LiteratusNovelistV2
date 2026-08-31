@@ -6,12 +6,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.models import Count, F
+from django.db.models import Count, F, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from library.models import UserInventory
-from .models import Book, Author, Genre, Tag, Review
+from .models import Book, Author, Genre, Tag, Review, BookAuthor
 from .serializers import (
-    BookListSerializer, BookDetailSerializer, BookDetailFullSerializer, 
+    BookListSerializer, BookCatalogCardSerializer, BookDetailSerializer, BookDetailFullSerializer,
     AuthorDetailSerializer, AuthorReadSerializer, GenreSerializer
 )
 from core.pagination import StandardResultsSetPagination
@@ -32,20 +32,35 @@ class GenreViewSet(viewsets.ModelViewSet):
 class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Vista de Lectura del Catálogo de Autores.
-    select_related: ninguna FK directa en Author, pero se deja preparado.
-    prefetch_related: books con sus géneros (evita N+1 al serializar la lista de obras).
+    Optimizado: prefetch profundo para retrieve (evita N+1 en obras del autor)
+    y anotación liviana para listado (2 queries constantes).
     """
-    queryset = (
-        Author.objects
-        .prefetch_related('author_books__book__genres', 'author_books__book__editions')
-        .order_by('full_name')
-    )
+    queryset = Author.objects.all().order_by('full_name')
     pagination_class = StandardResultsSetPagination
     lookup_field = 'slug'
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['full_name', 'bio', 'nationality']
     ordering_fields = ['full_name', 'birth_year']
     ordering = ['full_name']
+
+    def get_queryset(self):
+        if self.action == 'retrieve':
+            return Author.objects.prefetch_related(
+                Prefetch(
+                    'author_books',
+                    queryset=BookAuthor.objects.select_related('book').prefetch_related(
+                        'book__genres',
+                        'book__tags',
+                        'book__editions',
+                        'book__book_authors__author',
+                    )
+                )
+            )
+        return (
+            Author.objects
+            .annotate(author_books_count=Count('author_books', distinct=True))
+            .order_by('full_name')
+        )
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -77,10 +92,36 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     ordering = ['-is_featured', '-created_at'] # Por defecto los destacados y luego más nuevos
 
     def get_queryset(self):
-        qs = Book.objects.prefetch_related('genres', 'book_authors__author', 'editions', 'tags')
-        qs = qs.annotate(ai_character_count=Count('editions__avatars', distinct=True))
-        
+        compact_list = self.action == 'list' and self.request.query_params.get('compact') == 'true'
+        if compact_list:
+            qs = Book.objects.filter(is_published=True)
+        else:
+            # Solo la ficha de detalle serializa AuthorReadSerializer.books_count, que
+            # necesita la anotación author_books_count. En el listado (endpoint más
+            # caliente) se usa el prefetch plano y se evita un COUNT(DISTINCT)+JOIN+
+            # GROUP BY por autor que ningún campo de BookListSerializer consume.
+            if self.action in ('retrieve', 'details'):
+                author_rel = Prefetch(
+                    'book_authors__author',
+                    queryset=Author.objects.annotate(
+                        author_books_count=Count('author_books', distinct=True)
+                    ),
+                )
+            else:
+                author_rel = 'book_authors__author'
+            qs = Book.objects.filter(is_published=True).prefetch_related(
+                'genres',
+                author_rel,
+                'editions',
+                'tags',
+            )
+
         has_ai = self.request.query_params.get('has_ai_avatars', None)
+        ordering = self.request.query_params.get('ordering', '')
+        needs_ai_count = (has_ai and has_ai.lower() == 'true') or 'ai_character_count' in ordering
+        if needs_ai_count:
+            qs = qs.annotate(ai_character_count=Count('editions__avatars', distinct=True))
+
         if has_ai and has_ai.lower() == 'true':
             qs = qs.filter(ai_character_count__gt=0)
         
@@ -98,6 +139,8 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         """Usa el serializador detallado si es GET /books/{id}/, o el ligero en list"""
         if self.action == 'retrieve':
             return BookDetailSerializer
+        if self.action == 'list' and self.request.query_params.get('compact') == 'true':
+            return BookCatalogCardSerializer
         return BookListSerializer
 
     @action(detail=False, methods=['GET'])
@@ -174,7 +217,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.get_queryset().prefetch_related(
             'editions__avatars', 
             'reviews__user__profile'
-        )
+        ).annotate(chapter_count=Count('chapters', distinct=True))
         book = get_object_or_404(queryset, slug=slug)
 
         # Incrementar contador de visitas de forma atómica

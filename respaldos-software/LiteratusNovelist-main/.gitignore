@@ -60,9 +60,10 @@ src/assets/voices/**/*.onnx
 .vercel
 ~$*.docx
 
-# Excepciones: Permitir base de datos de desarrollo y portadas generadas
-!Producto/backend/db.sqlite3
-!Producto/backend/media/
-!Producto/backend/media/**/
-!Producto/backend/media/books/**/cover.webp
-!Producto/backend/media/sample_covers/**
+# Base de datos y volcados pesados
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+chapter_audit_backup*.json
+backend/media/
+media/

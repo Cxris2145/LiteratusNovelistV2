@@ -26,7 +26,8 @@
       </div>
 
       <div class="error-banner" *ngIf="errorMsg">
-        {{ errorMsg }}
+        <span class="error-icon material-symbols-rounded" style="font-size: 1.15rem; flex-shrink: 0;">error</span>
+        <span>{{ errorMsg }}</span>
       </div>
 
       <button type="submit" class="glass-btn" [disabled]="loginForm.invalid || isLoading">

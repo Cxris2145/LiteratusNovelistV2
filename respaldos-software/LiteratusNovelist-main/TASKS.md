@@ -50,58 +50,66 @@ Coordinador: Project Manager Agent
 
 ## [LIBRARY] ETAPA 3 — IMPORTACIÓN POR LOTES
 
-- [ ] [LIBRARY] Importar lote 001 (EPUBs #001-030)
-- [ ] [LIBRARY] Verificar lote 001 en BD
-- [ ] [LIBRARY] Importar lote 002 (EPUBs #031-060)
-- [ ] [LIBRARY] Verificar lote 002 en BD
-- [ ] [LIBRARY] Importar lote 003 (EPUBs #061-090)
-- [ ] [LIBRARY] Verificar lote 003 en BD
-- [ ] [LIBRARY] Importar lote 004 (EPUBs #091-120)
-- [ ] [LIBRARY] Verificar lote 004 en BD
-- [ ] [LIBRARY] Importar lote 005 (EPUBs #121-150)
-- [ ] [LIBRARY] ... (continuar hasta completar los 1046 EPUBs)
-- [ ] [LIBRARY] Revisar todos los libros fallidos en BOOK_IMPORT_ERRORS.md
-- [ ] [LIBRARY] Reintentar importación de libros fallidos (segunda pasada)
+- [x] [LIBRARY] Importar lote 001 (30 EPUBs pendientes; 30/30 exitosos, 2026-08-29)
+- [x] [LIBRARY] Verificar lote 001 en BD (30 Books, 30 Editions, 162 Chapters, 24 portadas, 0 libros sin capítulos)
+- [x] [LIBRARY] Importar lote 002 (30 EPUBs pendientes; 30/30 exitosos, 2026-08-30)
+- [x] [LIBRARY] Verificar lote 002 en BD (30 Books, 30 Editions, 114 Chapters, 22 portadas, 0 libros sin capítulos)
+- [x] [LIBRARY] Importar lote 003 (30 EPUBs pendientes; 30/30 exitosos, 2026-08-30)
+- [x] [LIBRARY] Verificar lote 003 en BD (30 Books, 30 Editions, 399 Chapters, 24 portadas, 0 libros sin capítulos)
+- [x] [LIBRARY] Importar lote 004 (30 EPUBs pendientes; 30/30 exitosos, 2026-08-30)
+- [x] [LIBRARY] Verificar lote 004 en BD (30 Books, 30 Editions, 281 Chapters, 23 portadas, 0 libros sin capítulos)
+- [x] [LIBRARY] Importar lote 005 (30/30 EPUBs importados; completado 2026-08-30)
+- [x] [LIBRARY] Verificar lote 005 en BD (30 Books, 30 Editions, 121 Chapters, 30 portadas, 0 libros sin capítulos)
+- [x] [LIBRARY] Importar lote 006 (30 EPUBs pendientes; 30/30 exitosos, 2026-08-30)
+- [x] [LIBRARY] Verificar lote 006 en BD (30 Books, 30 Editions, 143 Chapters, 22 portadas, 0 libros sin capítulos)
+- [x] [LIBRARY] Importar lote 007 (30 EPUBs pendientes; 30/30 exitosos, 2026-08-30)
+- [x] [LIBRARY] Verificar lote 007 en BD (30 Books, 30 Editions, 257 Chapters, 23 portadas, 0 libros sin capítulos)
+- [x] [LIBRARY] Completar importación masiva (1045 EPUBs únicos importados; 1 duplicado SHA-256 excluido; 2026-08-30)
+- [x] [LIBRARY] Revisar todos los libros fallidos en BOOK_IMPORT_ERRORS.md (0 fallidos)
+- [x] [LIBRARY] Reintentar importación de libros fallidos (no requerido; 0 fallidos)
 
 ---
 
 ## [LIBRARY] ETAPA 4 — PORTADAS
 
-- [ ] [LIBRARY] Extraer portadas de los ~740 EPUBs con imagen interna
-- [ ] [LIBRARY] Optimizar portadas extraídas a WEBP 600x900px
-- [ ] [LIBRARY] Relacionar portadas con Book.cover_image en BD
-- [ ] [LIBRARY] Generar portadas procedurales para los ~306 EPUBs sin portada
-- [ ] [LIBRARY] Verificar todas las portadas visibles en el catálogo frontend
+- [x] [LIBRARY] Extraer todas las portadas disponibles en los EPUBs importados
+- [x] [LIBRARY] Optimizar portadas extraídas a WEBP 600x900px (2026-08-30: 1046/1046 portadas referenciadas en WebP 600x900; 743 convertidas)
+- [x] [LIBRARY] Relacionar portadas con Book.cover_image en BD (1046/1046)
+- [x] [LIBRARY] Generar portadas procedurales para archivos faltantes o inválidos (269 generadas)
+- [x] [LIBRARY] Verificar archivos de portada del catálogo (1046/1046 legibles)
+- [x] [LIBRARY] Incorporar `standardize_library --art-dir <carpeta>` para ilustraciones originales por slug (validación 2:3, unicidad exacta/visual, backup, composición e informe; 2026-08-30)
+- [x] [LIBRARY] Auditar formato y unicidad de las portadas actuales (2026-08-30: 1046/1046 WEBP 600x900; 0 rutas, archivos o hashes visuales repetidos)
+- [x] [LIBRARY] Aplicar la línea editorial Literatus a los 1046 libros (2026-08-30: 1046 portadas procedurales temáticas, WEBP 600x900; 0 fallos, 0 duplicados exactos/visuales; backup SQLite y respaldo individual verificados)
 
 ---
 
 ## [LIBRARY] ETAPA 5 — VERIFICACIÓN CON QA
 
-- [ ] [LIBRARY] Confirmar que todos los libros aparecen en /catalog/books/
-- [ ] [LIBRARY] Verificar paginación correcta con 1000+ libros (12/página)
-- [ ] [LIBRARY] Verificar que libros son accesibles por slug
-- [ ] [LIBRARY] Verificar capítulos legibles en el lector
-- [ ] [QA] Ejecutar pruebas de catálogo con biblioteca completa
-- [ ] [QA] Verificar que Mi Biblioteca (UserInventory) no fue afectada
-- [ ] [QA] Verificar rendimiento de búsqueda con 1000+ libros
+- [x] [LIBRARY] Confirmar que todos los libros aparecen en /catalog/books/ (2026-08-30: API real count=1046)
+- [x] [LIBRARY] Verificar paginación correcta con 1000+ libros (12/página) (2026-08-30: 88 páginas, page_size=12)
+- [x] [LIBRARY] Verificar que libros son accesibles por slug (2026-08-30: 1046/1046 slugs listados recuperables por API)
+- [x] [LIBRARY] Verificar capítulos legibles en el lector (2026-08-30: 10688 capítulos, 0 vacíos, 0 libros sin capítulos)
+- [x] [QA] Ejecutar pruebas de catálogo con biblioteca completa (2026-08-30: `manage.py test` 27/27 OK; catálogo 6/6 OK)
+- [x] [QA] Verificar que Mi Biblioteca (UserInventory) no fue afectada (2026-08-30: verificación de solo lectura, UserInventory count=1)
+- [x] [QA] Verificar rendimiento de búsqueda con 1000+ libros (2026-08-30: búsquedas API locales medianas 8.78-28.85 ms)
 
 ---
 
 ## [LIBRARY] ETAPA 6 — OPTIMIZACIÓN
 
-- [ ] [LIBRARY] Analizar queries lentas con 1000+ libros
-- [ ] [LIBRARY] Identificar N+1 queries en BookDetailFullSerializer (get_total_words)
-- [ ] [LIBRARY] Crear recomendaciones de índices de BD
-- [ ] [LIBRARY → BACKEND] Solicitar: agregar índice en Book.is_published y Book.is_featured
+- [x] [LIBRARY] Analizar queries lentas con 1000+ libros (2026-08-31: catálogo local sano; listado ~14 ms previo, detalle grande constante; sin CRITICAL/HIGH)
+- [x] [LIBRARY] Identificar N+1 queries en BookDetailFullSerializer (get_total_words) (2026-08-30: corregido con `chapter_count` anotado; detalle 12 -> 10 queries)
+- [x] [LIBRARY] Crear recomendaciones de índices de BD (2026-08-31: verificados índices `is_published,is_featured`, `status`, `created_at`; SQLite usa `created_at`/`status`, índice booleano compuesto queda disponible pero sin impacto medible con 1046 publicados y 0 destacados)
+- [x] [LIBRARY → BACKEND] Solicitar: agregar índice en Book.is_published y Book.is_featured (2026-08-31: aplicado en migración `0022_book_catalog_boo_is_publ_5fcf8b_idx_and_more`)
 - [ ] [LIBRARY → BACKEND] Solicitar: evaluar campo word_count cacheado en Book
 - [ ] [LIBRARY → BACKEND] Solicitar: evaluar migración a PostgreSQL antes de escalar
-- [ ] [BACKEND] Revisar y aplicar optimizaciones de consultas
+- [x] [BACKEND] Revisar y aplicar optimizaciones de consultas (2026-08-31: `BookViewSet` y serializers optimizados; `manage.py test` 63/63 OK)
 
 ---
 
 ## [LIBRARY] TAREAS SEPARADAS DE IA (BAJO CONTROL DEL MANAGER)
 
-- [ ] [LIBRARY] Generar sinopsis con Gemini para libros sin synopsis (crear tarea separada)
+- [x] [LIBRARY] Generar y normalizar sinopsis para toda la biblioteca (2026-08-30: 1046/1046 con 55-130 palabras, español, 0 duplicados; 1042 creadas/mejoradas y 4 conservadas mediante capítulos/EPUB locales, sin depender de Gemini)
 - [ ] [LIBRARY] Generar personajes AIAvatar para libros seleccionados (crear tarea separada)
 - [ ] [LIBRARY] Analizar almacenamiento requerido para audiobooks con Kokoro
 - [ ] [LIBRARY] Crear plan de generación de audiolibros por prioridad
@@ -110,33 +118,44 @@ Coordinador: Project Manager Agent
 
 ## [LIBRARY] TAREAS DE MANTENIMIENTO CONTINUO
 
-- [ ] [LIBRARY] Revisar libros con 0 capítulos en BD
-- [ ] [LIBRARY] Revisar libros con capítulos corruptos (max_chapter_len < 600 chars)
-- [ ] [LIBRARY] Detectar autores duplicados por variación de nombre
-- [ ] [LIBRARY] Revisar libros en BD sin portada asignada
-- [ ] [LIBRARY] Analizar duplicados entre el-principito y el-principito-antoine-de-saint-exupery
+- [x] [LIBRARY] Revisar libros con 0 capítulos en BD (2026-08-30: reparado `el-principe-feliz`; global 0 libros sin capítulos)
+- [x] [LIBRARY] Revisar libros con capítulos corruptos (max_chapter_len < 600 chars) (2026-08-30: 0 detectados)
+- [x] [LIBRARY] Detectar autores duplicados por variación de nombre (2026-08-30: `audit_catalog_integrity` detecta 17 grupos potenciales; reporte en `CATALOG_INTEGRITY_AUDIT.md`)
+- [x] [LIBRARY] Revisar libros en BD sin portada asignada (2026-08-30: 0 asignaciones faltantes y 0 archivos de portada faltantes)
+- [x] [LIBRARY] Analizar duplicados entre el-principito y el-principito-antoine-de-saint-exupery (2026-08-30: 0 candidatos activos en BD y 0 en `LIBRARY_INVENTORY.json`; no hay duplicado importado que fusionar)
+- [/] [LIBRARY/BACKEND] Revisar y fusionar manualmente, con backup previo, los 17 grupos potenciales de autores duplicados de `CATALOG_INTEGRITY_AUDIT.md` (2026-08-31: creado `merge_duplicate_authors`; fusionados 6 grupos seguros/11 alias/50 relaciones con backup `db_before_author_merge_20260831_023558.sqlite3`; auditoría baja a 11 grupos pendientes)
 
 ---
 
 
 ## [OPTIMIZATION] RENDIMIENTO Y ESCALABILIDAD (Optimization Agent)
 
-- [ ] [OPTIMIZATION] Medir baseline de tiempos de respuesta en /api/catalog/books/ con carga actual
-- [ ] [OPTIMIZATION] Auditar N+1 queries en BookDetailFullSerializer (get_total_words y get_avatars)
-- [ ] [OPTIMIZATION] Evaluar impacto de índices en Book (is_published, is_featured, created_at)
+- [x] [OPTIMIZATION] Medir y optimizar /api/v1/catalog/books/ para la sección Explorar (2026-08-30: 13.66 ms → 3.10 ms; 7 → 2 queries)
+- [x] [OPTIMIZATION] Activar lazy loading nativo de portadas en la grilla Explorar (2026-08-30)
+- [x] [OPTIMIZATION] Auditar N+1 queries en BookDetailFullSerializer (get_total_words y get_avatars) (2026-08-30: details libro grande 12 -> 10 queries; `get_avatars` ya usa prefetch)
+- [x] [OPTIMIZATION] Evaluar impacto de índices en Book (is_published, is_featured, created_at) (2026-08-31: migración 0022 aplicada; `EXPLAIN` usa `created_at` en listado y `status`; compuesto booleano sin mejora visible por distribución actual)
 - [ ] [OPTIMIZATION] Revisar estrategia de carga de Chapter.content_html (defer vs fetch completo)
 - [ ] [OPTIMIZATION] Auditar suscripciones RxJS y renderizado en reader Angular
+
+---
+
+## [FRONTEND] FILTROS DE EXPLORAR Y CATEGORIAS
+
+- [x] [FRONTEND] Agregar filtro visible en Categorias y usar `filteredCategories` en la grilla (2026-08-30)
+- [x] [FRONTEND] Cargar filtros de Explorar desde `catalog/genres/` y filtrar libros por `genres__slug` (2026-08-30)
+- [x] [FRONTEND] Agregar ordenamiento en Explorar y detalle de categoria (`-created_at`, `title`, `-is_featured`, `?`) (2026-08-30)
+- [x] [QA] Verificar build Angular y endpoints reales de catalogo con filtros (2026-08-30)
 
 ---
 ## [BACKEND] TAREAS SOLICITADAS POR LIBRARY AGENT
 
 - [ ] [BACKEND] Evaluar migración de SQLite a PostgreSQL antes de importación masiva
   - Razón: db.sqlite3 puede alcanzar límites con ~25,000 capítulos HTML (~1-3 GB)
-- [ ] [BACKEND] Agregar índice explícito en Book.is_published y Book.is_featured
+- [x] [BACKEND] Agregar índice explícito en Book.is_published y Book.is_featured (2026-08-31: migración no destructiva `0022` aplicada y verificada)
   - Razón: Filtros frecuentes en catálogo con 1000+ libros
-- [ ] [BACKEND] Optimizar get_total_words() en BookDetailFullSerializer
+- [x] [BACKEND] Optimizar get_total_words() en BookDetailFullSerializer (2026-08-30: usa `chapter_count` anotado en `details` y mantiene muestra de 8 capítulos)
   - Razón: Itera chapters sin prefetch, genera N+1 queries
-- [ ] [BACKEND] Revisar y optimizar get_avatars() en BookDetailFullSerializer
+- [x] [BACKEND] Revisar y optimizar get_avatars() en BookDetailFullSerializer (2026-08-30: verificado con `editions__avatars` prefetcheado; sin query extra por avatar)
   - Razón: Query adicional AIAvatar.objects.filter() no optimizada
 
 ---
@@ -158,6 +177,15 @@ Coordinador: Project Manager Agent
 
 ---
 
+## [MANAGER] ORQUESTACIÓN DEL AGENTE CRON
+
+- [x] [MANAGER] Definir el ciclo autónomo de `literatus` (Cron) en `AGENTS.md`: DETECTAR→PRIORIZAR→IMPLEMENTAR/DELEGAR→PROBAR→CORREGIR→VERIFICAR→DOCUMENTAR→CONTINUAR, con inicio obligatorio (lectura de AGENTS/MEMORY/TASKS/AGENT_LOG + checkpoints) y cierre de ejecución (2026-08-31)
+- [x] [MANAGER] Añadir regla anti-conflicto: no duplicar trabajo si hay otra ejecución sobre los mismos recursos (archivos recién tocados, checkpoint IN_PROGRESS, backup `db_before_*` reciente, entradas nuevas en AGENT_LOG/TASKS) (2026-08-31)
+- [x] [MANAGER] Añadir tabla de delegación y pipeline canónico de libro nuevo (library → categories → standardize_library → optimization sólo con señal → verificar) en `AGENTS.md` y `MEMORY.md` (2026-08-31)
+- [x] [MANAGER] Registrar comandos de gestión disponibles para el líder: `standardize_library` (`--art-dir`, `--offline`, checkpoints), `audit_catalog_integrity`, hook `STANDARDIZE_ON_IMPORT` (2026-08-31)
+
+---
+
 ## LEYENDA DE ESTADOS
 
 - [ ] Pendiente
@@ -175,6 +203,3 @@ Coordinador: Project Manager Agent
 - [FRONTEND] Frontend Agent (Aplicación Angular, UI/UX, Reader, Componentes)
 - [QA] QA Agent (Testing Automatizado, Integridad, Validación)
 - [REVIEWER] Reviewer Agent (Auditoría de Código, Seguridad, Clasificación de Riesgos)
-
-
-
