@@ -43,6 +43,27 @@ export class BookListComponent implements OnInit {
     return Math.ceil(this.totalCount / size);
   }
 
+  /**
+   * Miniatura optimizada. Usa la transformación de imágenes de Supabase
+   * (~1/3 del peso) para las portadas servidas desde Storage; deja igual
+   * las locales (assets/).
+   */
+  thumb(url: string | null | undefined): string {
+    if (!url) return 'assets/default_cover.jpg';
+    if (url.includes('/storage/v1/object/public/')) {
+      return url.replace('/object/public/', '/render/image/public/')
+        + (url.includes('?') ? '&' : '?') + 'width=400&quality=60&resize=cover';
+    }
+    return url;
+  }
+
+  onImgError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (!img.src.endsWith('default_cover.jpg')) {
+      img.src = 'assets/default_cover.jpg';
+    }
+  }
+
   searchTerm = '';
   activeCategory: string | null = null;
   private searchTimeout: any;

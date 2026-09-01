@@ -4,6 +4,8 @@ catalog/views.py — Vistas de listado y consultas para libros.
 from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Count
@@ -321,3 +323,27 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
                 'created_at': review.created_at
             }
         }, status=status.HTTP_201_CREATED)
+
+
+class CatalogStatsView(APIView):
+    """
+    Métricas en vivo del catálogo. Público y sin paginación.
+
+    El frontend usa `total_books` para el contador de la landing, de modo que
+    al agregar (o borrar) un libro el número se actualiza solo. `Book.objects`
+    ya excluye los registros con soft delete.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        total_books = Book.objects.count()
+        books_with_chapters = (
+            Book.objects.annotate(_n=Count('chapters')).filter(_n__gt=0).count()
+        )
+        return Response({
+            'total_books': total_books,
+            'books_with_chapters': books_with_chapters,
+            'books_without_chapters': total_books - books_with_chapters,
+            'total_authors': Author.objects.count(),
+            'total_genres': Genre.objects.count(),
+        })

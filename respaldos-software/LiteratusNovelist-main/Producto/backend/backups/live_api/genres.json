@@ -1,0 +1,233 @@
+[
+ {
+  "id": "118e8719-35f7-48d0-8b58-e14808bb5058",
+  "name": "Cuentos",
+  "slug": "cuentos",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/cuentos.webp",
+  "book_count": 505
+ },
+ {
+  "id": "a7c7d78d-ad3f-42c1-bd52-d1ae1b7b9986",
+  "name": "Novela corta",
+  "slug": "novela-corta",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/novela-corta.webp",
+  "book_count": 190
+ },
+ {
+  "id": "1b2edf39-def5-4fe5-9726-96002ee14c95",
+  "name": "Teatro",
+  "slug": "teatro",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/teatro.webp",
+  "book_count": 163
+ },
+ {
+  "id": "92291d87-7f12-42e9-81ea-a57950d4cdb6",
+  "name": "Ficción clásica",
+  "slug": "ficcion-clasica",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ficcion-clasica.webp",
+  "book_count": 137
+ },
+ {
+  "id": "879510bd-011f-4978-97ce-7c86aefa799a",
+  "name": "Filosofía",
+  "slug": "filosofia",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/filosofia.webp",
+  "book_count": 110
+ },
+ {
+  "id": "d0d17a99-ad4e-46ca-af3b-af28ab3b4848",
+  "name": "Poesía",
+  "slug": "poesia",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/poesia.webp",
+  "book_count": 106
+ },
+ {
+  "id": "5928de7e-3035-429f-8fbc-5712b142996e",
+  "name": "Acción y aventura",
+  "slug": "accion-y-aventura",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/accion-y-aventura.webp",
+  "book_count": 90
+ },
+ {
+  "id": "456c1f51-eb49-42c1-bdfb-135147f4169c",
+  "name": "Terror",
+  "slug": "terror",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/terror.webp",
+  "book_count": 77
+ },
+ {
+  "id": "521fc356-93e8-4500-af3a-abc986c13a85",
+  "name": "Ficción contemporánea",
+  "slug": "ficcion-contemporanea",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ficcion-contemporanea.webp",
+  "book_count": 71
+ },
+ {
+  "id": "068fe78e-1629-44fd-9082-4520770fd88f",
+  "name": "Ficción histórica",
+  "slug": "ficcion-historica",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ficcion-historica.webp",
+  "book_count": 61
+ },
+ {
+  "id": "a590ced1-8734-49be-b67c-9295c3071ada",
+  "name": "Ensayos",
+  "slug": "ensayos",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ensayos.webp",
+  "book_count": 46
+ },
+ {
+  "id": "b37bbcd6-0c58-4cc2-83d3-1ae9e8f24129",
+  "name": "Religión",
+  "slug": "religion",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/religion.webp",
+  "book_count": 41
+ },
+ {
+  "id": "9074f880-568c-45dd-9ac9-95787f234fbf",
+  "name": "Biografías, Diarios Y Hechos Reales",
+  "slug": "biografias-diarios-y-hechos-reales",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/biografias-diarios-y-hechos-reales.webp",
+  "book_count": 28
+ },
+ {
+  "id": "02f44947-c219-42ed-a5c8-d43aca56fa3f",
+  "name": "Ciencia ficción",
+  "slug": "ciencia-ficcion",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ciencia-ficcion.webp",
+  "book_count": 21
+ },
+ {
+  "id": "d5232c1b-d94b-4240-902d-41f04835f598",
+  "name": "Romántica",
+  "slug": "romantica",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/romantica.webp",
+  "book_count": 19
+ },
+ {
+  "id": "2b73d505-e3f8-4cde-8a25-de42f4f899aa",
+  "name": "Fantasía",
+  "slug": "fantasia",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/fantasia.webp",
+  "book_count": 18
+ },
+ {
+  "id": "f216654a-d95d-49b6-ad98-c1cf7f6cd8b4",
+  "name": "Autoayuda Y Superación Personal",
+  "slug": "autoayuda-y-superacion-personal",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/autoayuda-y-superacion-personal.webp",
+  "book_count": 16
+ },
+ {
+  "id": "6278a8f0-5646-453d-98cd-69cbdb8a470b",
+  "name": "Literatura de viaje",
+  "slug": "literatura-de-viaje",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/literatura-de-viaje.webp",
+  "book_count": 16
+ },
+ {
+  "id": "4a9c8af2-907e-49ce-9056-4c967fe2043d",
+  "name": "Sociedad Y Ciencias Sociales",
+  "slug": "sociedad-y-ciencias-sociales",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/sociedad-y-ciencias-sociales.webp",
+  "book_count": 16
+ },
+ {
+  "id": "9d2461b7-de66-42a1-bbb1-7196f4c44c99",
+  "name": "Antologías",
+  "slug": "antologias",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/antologias.webp",
+  "book_count": 12
+ },
+ {
+  "id": "9c3313e0-5b3c-4bd2-8f1c-c7593505f68f",
+  "name": "Política",
+  "slug": "politica",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/politica.webp",
+  "book_count": 11
+ },
+ {
+  "id": "32c5e8c2-37b2-410c-9f69-0c7fe8b476cf",
+  "name": "Policíaca, negra y suspense",
+  "slug": "policiaca-negra-y-suspense",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/policiaca-negra-y-suspense.webp",
+  "book_count": 10
+ },
+ {
+  "id": "e06388b8-0692-44ae-8080-9eb6d5dadc1c",
+  "name": "Historia",
+  "slug": "historia",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/historia.webp",
+  "book_count": 9
+ },
+ {
+  "id": "da7fbec5-4079-4871-a66a-4b12f98c6efa",
+  "name": "Mitos, leyendas y sagas",
+  "slug": "mitos-leyendas-y-sagas",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/mitos-leyendas-y-sagas.webp",
+  "book_count": 8
+ },
+ {
+  "id": "7bd14a6f-6463-41e6-8a52-64785348413b",
+  "name": "Ficción erótica",
+  "slug": "ficcion-erotica",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ficcion-erotica.webp",
+  "book_count": 7
+ },
+ {
+  "id": "b98d3ce8-5b3f-45cf-bec7-8adc8eabe5a0",
+  "name": "Ciencias, Tecnología Y Medicina",
+  "slug": "ciencias-tecnologia-y-medicina",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ciencias-tecnologia-y-medicina.webp",
+  "book_count": 6
+ },
+ {
+  "id": "a50c55bc-b150-417d-8ef5-e8d8d66e9430",
+  "name": "Ficción religiosa y espiritual",
+  "slug": "ficcion-religiosa-y-espiritual",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/ficcion-religiosa-y-espiritual.webp",
+  "book_count": 5
+ },
+ {
+  "id": "296559e3-7af6-4d83-a85e-f6e713a86943",
+  "name": "Psicología",
+  "slug": "psicologia",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/psicologia.webp",
+  "book_count": 5
+ },
+ {
+  "id": "8ca964b0-ea08-4990-a12b-b1d4059504f3",
+  "name": "Arte, Cine Y Fotografía",
+  "slug": "arte-cine-y-fotografia",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/arte-cine-y-fotografia.webp",
+  "book_count": 3
+ },
+ {
+  "id": "0ab685a4-e66a-4565-83ba-e787711d8e28",
+  "name": "Historia, teoría literaria y crítica",
+  "slug": "historia-teoria-literaria-y-critica",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/historia-teoria-literaria-y-critica.webp",
+  "book_count": 3
+ },
+ {
+  "id": "ecea3646-8057-41bb-9866-547327bcf7d8",
+  "name": "Infantil Y Juvenil",
+  "slug": "infantil-y-juvenil",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/infantil-y-juvenil.webp",
+  "book_count": 3
+ },
+ {
+  "id": "f7e41dd6-0b91-4318-8c34-d5fcc55d3ec2",
+  "name": "Humor",
+  "slug": "humor",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/humor.webp",
+  "book_count": 1
+ },
+ {
+  "id": "cd9653d8-2793-4dc1-9e4a-ed887ace5642",
+  "name": "Sátira",
+  "slug": "satira",
+  "cover_image": "https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/satira.webp",
+  "book_count": 1
+ }
+]

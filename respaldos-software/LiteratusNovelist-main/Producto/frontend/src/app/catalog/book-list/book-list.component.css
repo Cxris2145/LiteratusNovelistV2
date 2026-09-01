@@ -175,11 +175,18 @@
 /* Cover section */
 .card-image {
   height: 250px;
-  background-size: cover;
-  background-position: center;
-  background-color: rgba(0, 0, 0, 0.5); /* Placeholder Fallback color */
+  background-color: rgba(0, 0, 0, 0.5); /* Placeholder mientras carga la <img> */
   border-bottom: 1px solid var(--glass-border);
   position: relative;
+  overflow: hidden;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .featured-badge {

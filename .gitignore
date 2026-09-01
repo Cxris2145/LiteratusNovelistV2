@@ -40,6 +40,13 @@ venv.bak/
 *.sqlite3
 *.db
 
+# Media generada en runtime (portadas/imagenes/epubs procesados) — 2+ GB, no versionar
+**/backend/media/
+**/backend/epubs_elejandria/
+**/errores_inyeccion.txt
+# Imagenes extraidas de los EPUB al reconstruir el catalogo (regenerables con import_epubs)
+respaldos-software/books/*/images/
+
 # IDEs and Editors
 .vscode/
 **/.vscode/

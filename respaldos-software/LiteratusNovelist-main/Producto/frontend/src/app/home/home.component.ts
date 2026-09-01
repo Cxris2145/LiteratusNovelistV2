@@ -53,6 +53,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   recommendedBooks: Book[] = [];
   discoveryBooks: Book[] = [];
   randomDiscoveryBooks: Book[] = [];
+  // Valor de reserva; se sobrescribe con el conteo real desde catalog/stats/
   totalBooksCount: number = 1854;
 
   // Avatars showcase (from API)
@@ -114,10 +115,26 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
+      this.loadStats();
       this.loadBooks();
       this.loadAIBooks();
       this.loadShowcaseAvatars();
     }
+  }
+
+  /** Conteo real de libros del catálogo (se conecta a la base de datos). */
+  private loadStats(): void {
+    this.api.get<any>('catalog/stats/').subscribe({
+      next: (res: any) => {
+        if (res && typeof res.total_books === 'number') {
+          this.totalBooksCount = res.total_books;
+          const el = document.getElementById('stat-books');
+          if (el) el.textContent = this.totalBooksCount.toLocaleString('es-CL');
+          this.cdr.detectChanges();
+        }
+      },
+      error: () => { /* se mantiene el valor de reserva */ }
+    });
   }
 
   ngAfterViewInit(): void {

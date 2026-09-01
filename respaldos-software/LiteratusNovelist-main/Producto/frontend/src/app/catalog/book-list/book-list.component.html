@@ -64,9 +64,15 @@
          [routerLink]="['/book', book.slug]"
          [style.animation-delay]="(i * 40) + 'ms'">
       
-      <!-- Se asume imagen default si Django retorna null en la cubierta -->
-      <div class="card-image" 
-           [style.backgroundImage]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'">
+      <!-- Portada: <img> con lazy-load + miniatura de Supabase -->
+      <div class="card-image">
+        <img class="cover-img"
+             [src]="thumb(book.cover_image)"
+             [alt]="book.title"
+             loading="lazy"
+             decoding="async"
+             width="400" height="250"
+             (error)="onImgError($event)">
         <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
       </div>
       

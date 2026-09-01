@@ -70,11 +70,24 @@ export class CategoriesComponent implements OnInit {
             image: 'https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/literatura-de-viaje.webp',
             description: 'Clásicos inmortales, cuentos y novelas que definieron la historia',
             color: '#a855f7',
+            // Reserva: suma de contadores (cuenta de más si un libro tiene
+            // varios géneros). Se reemplaza abajo por el conteo real DISTINCT.
             bookCount: this.categories.reduce((acc, curr) => acc + (curr.bookCount || 0), 0)
           });
         }
 
         this.isLoading = false;
+
+        // Conteo real de libros distintos (evita el doble conteo por multi-género)
+        this.api.get<any>('catalog/stats/').subscribe({
+          next: (stats: any) => {
+            const card = this.categories.find(c => c.slug === 'literatura-y-ficcion');
+            if (card && typeof stats?.total_books === 'number') {
+              card.bookCount = stats.total_books;
+            }
+          },
+          error: () => { /* se mantiene el valor de reserva */ }
+        });
       },
       error: () => {
         this.isLoading = false;
