@@ -1,0 +1,80 @@
+<div class="auth-wrapper">
+  <div class="glass-panel login-box">
+    <h2>Únete a Literatus</h2>
+    <p class="subtitle">Crea tu cuenta y comienza a disfrutar de Literatus.</p>
+    
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label>Nombre de Usuario</label>
+        <input type="text" 
+               class="glass-input" 
+               [ngClass]="{'is-invalid': f['username'].touched && f['username'].invalid}"
+               formControlName="username" 
+               placeholder="Elige un alias único">
+        <div class="validation-error" *ngIf="f['username'].touched && f['username'].errors?.['required']">El usuario es requerido.</div>
+        <div class="validation-error" *ngIf="f['username'].touched && f['username'].errors?.['minlength']">Mínimo 3 caracteres.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Tu Correo Electrónico</label>
+        <input type="email" 
+               class="glass-input" 
+               [ngClass]="{'is-invalid': f['email'].touched && f['email'].invalid}"
+               formControlName="email" 
+               placeholder="ejemplo@correo.com">
+        <div class="validation-error" *ngIf="f['email'].touched && f['email'].invalid">Introduce un correo electrónico válido.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <div style="position: relative;">
+          <input [type]="showPassword ? 'text' : 'password'" 
+                 class="glass-input" 
+                 [ngClass]="{'is-invalid': f['password'].touched && f['password'].invalid}"
+                 formControlName="password" 
+                 placeholder="Mínimo 8 caracteres">
+          <button type="button" (click)="togglePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;">
+            <svg lucideEyeOff *ngIf="showPassword" style="width: 20px; height: 20px;"></svg>
+            <svg lucideEye *ngIf="!showPassword" style="width: 20px; height: 20px;"></svg>
+          </button>
+        </div>
+        <div class="validation-error" *ngIf="f['password'].touched && f['password'].errors?.['required']">La contraseña es requerida.</div>
+        <div class="validation-error" *ngIf="f['password'].touched && f['password'].errors?.['minlength']">Mínimo 8 caracteres de seguridad.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Confirmar Contraseña</label>
+        <div style="position: relative;">
+          <input [type]="showConfirmPassword ? 'text' : 'password'" 
+                 class="glass-input" 
+                 [ngClass]="{'is-invalid': f['confirmPassword'].touched && f['confirmPassword'].invalid}"
+                 formControlName="confirmPassword" 
+                 placeholder="Repite la contraseña">
+          <button type="button" (click)="toggleConfirmPassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;">
+            <svg lucideEyeOff *ngIf="showConfirmPassword" style="width: 20px; height: 20px;"></svg>
+            <svg lucideEye *ngIf="!showConfirmPassword" style="width: 20px; height: 20px;"></svg>
+          </button>
+        </div>
+        <div class="validation-error" *ngIf="f['confirmPassword'].touched && f['confirmPassword'].errors?.['passwordMismatch']">Las contraseñas no coinciden.</div>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMsg">
+        {{ errorMsg }}
+      </div>
+
+      <div class="success-banner" *ngIf="successMsg">
+        {{ successMsg }}
+      </div>
+
+      <button type="submit" class="glass-btn" [disabled]="isLoading">
+        {{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}
+      </button>
+
+    </form>
+
+    <div class="footer-link">
+      <span>¿Ya eres miembro? <a routerLink="/login">Inicia Sesión</a></span>
+    </div>
+  </div>
+</div>

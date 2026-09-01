@@ -1,0 +1,17 @@
+<div class="result-page failure-page">
+  <div class="result-container">
+    <div class="result-icon failure-icon"><svg lucideXCircle [size]="64" class="lucide-icon"></svg></div>
+    <h1>Pago No Completado</h1>
+    <p class="result-message">{{ reason }}</p>
+    <div class="error-detail">
+      <p>No se realizó ningún cargo a tu cuenta. Puedes intentarlo nuevamente.</p>
+    </div>
+    <div class="result-actions">
+      <button class="btn-retry" (click)="tryAgain()"><svg lucideRefreshCcw [size]="18" class="lucide-icon inline-icon"></svg> Intentar nuevamente</button>
+      <button class="btn-catalog" (click)="goToCatalog()">Volver al Catálogo</button>
+    </div>
+  </div>
+  <div class="particles">
+    <span *ngFor="let i of [1,2,3,4,5,6,7,8]" class="particle failure-particle" [style.animationDelay]="(i * 0.4) + 's'"></span>
+  </div>
+</div>

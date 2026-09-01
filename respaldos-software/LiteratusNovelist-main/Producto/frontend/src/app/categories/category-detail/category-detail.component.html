@@ -1,0 +1,100 @@
+<div class="cat-detail-page">
+
+  <!-- Hero Header de la Categoría -->
+  <header class="cat-hero" *ngIf="category" [style.--cat-color]="category.color">
+    <div class="cat-hero-bg">
+      <img [src]="category.image" [alt]="category.name" class="cat-hero-img">
+      <div class="cat-hero-overlay"></div>
+    </div>
+    <div class="cat-hero-content">
+      <button class="back-btn" (click)="goBack()">
+        ← Categorías
+      </button>
+      <div class="cat-badge" [style.background]="category.color + '22'" [style.border-color]="category.color + '55'" [style.color]="category.color">
+        {{ category.name }}
+      </div>
+      <h1 class="cat-hero-title">{{ category.name }}</h1>
+      <p class="cat-hero-desc">{{ category.description }}</p>
+      <span class="cat-total" *ngIf="!isLoading">{{ totalCount }} libros disponibles</span>
+    </div>
+  </header>
+
+  <!-- Buscador + Resultados -->
+  <main class="cat-main">
+
+    <!-- Search -->
+    <div class="category-meta-bar">
+      <div class="search-box">
+        <svg class="search-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar en {{ category?.name }}..."
+          [value]="searchTerm"
+          (input)="onSearch($event)">
+        <button class="search-clear" *ngIf="searchTerm" (click)="clearSearch()">✕</button>
+      </div>
+      <div class="results-count">
+        {{ totalCount }} resultados
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="isLoading && books.length === 0">
+      <div class="spinner"></div>
+      <p>Cargando libros...</p>
+    </div>
+
+    <!-- Grid de Libros -->
+    <div class="grid-container" *ngIf="books.length > 0">
+      <div class="glass-panel book-card" *ngFor="let book of books" (click)="goToBook(book.slug)">
+        
+        <div class="card-image" 
+             [style.backgroundImage]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'">
+          <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
+        </div>
+        
+        <div class="card-content">
+          <h3 class="book-title">{{ book.title }}</h3>
+          
+          <p class="book-author" *ngIf="book.book_authors && book.book_authors.length > 0">
+            De {{ book.book_authors[0].author?.full_name || book.book_authors[0] }}
+          </p>
+          
+          <p class="book-synopsis">
+            {{ (book.synopsis && book.synopsis.length > 100) ? (book.synopsis | slice:0:100) + '...' : book.synopsis }}
+          </p>
+          
+          <div class="card-actions">
+            <span class="read-hint">
+              Ver Detalles
+              <svg xmlns="http://www.w3.org/svg/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+
+    <!-- Botón Cargar Más -->
+    <div class="load-more-container" *ngIf="hasMore && books.length > 0">
+      <button class="load-more-btn" (click)="loadMore()" [disabled]="isLoadingMore">
+        <span *ngIf="!isLoadingMore">Cargar más libros</span>
+        <span *ngIf="isLoadingMore">Cargando...</span>
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && books.length === 0">
+      <div class="empty-icon">📚</div>
+      <h3>Sin resultados para "{{ searchTerm }}"</h3>
+      <p>Prueba con otro término</p>
+      <button (click)="clearSearch()" class="clear-btn">Ver todos</button>
+    </div>
+
+  </main>
+</div>

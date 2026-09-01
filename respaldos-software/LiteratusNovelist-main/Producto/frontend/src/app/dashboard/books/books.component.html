@@ -1,0 +1,78 @@
+<div class="books-list-container">
+  <header class="list-header">
+    <div class="header-text">
+      <h2>Gestión de Biblioteca</h2>
+      <p>Administra, edita y publica los libros de la plataforma.</p>
+    </div>
+    <a routerLink="new" class="add-btn">
+      <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom; margin-right: 4px;">add</span>
+      Nuevo Libro
+    </a>
+  </header>
+
+  <!-- FILTROS Y BÚSQUEDA -->
+  <div class="list-controls card">
+    <div class="search-box" style="display: flex; align-items: center; gap: 8px;">
+      <span class="material-symbols-outlined" style="color: #64748b; font-size: 20px;">search</span>
+      <input type="text" placeholder="Buscar por título o autor..." (input)="filterBooks($event)" style="border: none; background: transparent; outline: none; color: white; width: 100%;">
+    </div>
+    <div class="filter-badges">
+      <span class="badge active">Todos ({{ books.length }})</span>
+      <span class="badge">Publicados</span>
+      <span class="badge">Borradores</span>
+    </div>
+  </div>
+
+  <!-- GRID DE LIBROS -->
+  <div class="books-grid" *ngIf="!loading; else loadingState">
+    <div class="book-card card clickable" *ngFor="let book of filteredBooks" [routerLink]="[book.id, 'edit']">
+      <div class="book-cover">
+        <img [src]="book.cover || 'assets/no-cover.jpg'" alt="Cover" onerror="this.onerror=null;this.src='assets/no-cover.jpg'">
+        <div class="status-badge" [class.published]="book.is_published">
+          <span class="status-dot"></span>
+          {{ book.is_published ? 'Publicado' : 'Borrador' }}
+        </div>
+      </div>
+      <div class="book-info">
+        <h3 class="book-title">{{ book.title }}</h3>
+        <p class="book-author" style="display: flex; align-items: center; gap: 4px;">
+          <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
+          {{ book.authors.join(', ') }}
+        </p>
+        <div class="book-stats">
+          <div class="stat" style="display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 14px;">description</span>
+            <span class="label">Caps.</span>
+            <span class="value">{{ book.chapters_count }}</span>
+          </div>
+          <div class="stat" style="display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 14px;">visibility</span>
+            <span class="label">Vistas</span>
+            <span class="value">{{ book.view_count }}</span>
+          </div>
+        </div>
+        <div class="edit-hint" style="display: flex; align-items: center; gap: 4px;">
+          <span class="material-symbols-outlined" style="font-size: 14px;">edit</span>
+          Click para editar
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" *ngIf="filteredBooks.length === 0">
+      <span class="material-symbols-outlined" style="font-size: 52px; opacity: 0.2;">library_books</span>
+      <p>No se encontraron libros. ¡Sube el primero!</p>
+      <a routerLink="new" class="add-btn" style="font-size:12px;padding:8px 18px">
+        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: text-bottom; margin-right: 4px;">add</span>
+        Añadir libro
+      </a>
+    </div>
+  </div>
+
+  <ng-template #loadingState>
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Consultando biblioteca...</p>
+    </div>
+  </ng-template>
+</div>

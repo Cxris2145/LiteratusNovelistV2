@@ -1,0 +1,2150 @@
+[
+    {
+        "name": "Arthur Conan Doyle",
+        "is_author": true,
+        "filename": "arthur-conan-doyle.webp",
+        "prompt": "portrait of Arthur Conan Doyle, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Benito Pérez Galdós",
+        "is_author": true,
+        "filename": "benito-perez-galdos.webp",
+        "prompt": "portrait of Benito Pérez Galdós, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "William Shakespeare",
+        "is_author": true,
+        "filename": "william-shakespeare.webp",
+        "prompt": "portrait of William Shakespeare, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Zorrilla",
+        "is_author": true,
+        "filename": "jose-zorrilla.webp",
+        "prompt": "portrait of José Zorrilla, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Miguel de Unamuno",
+        "is_author": true,
+        "filename": "miguel-de-unamuno.webp",
+        "prompt": "portrait of Miguel de Unamuno, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "F. Scott Fitzgerald",
+        "is_author": true,
+        "filename": "f-scott-fitzgerald.webp",
+        "prompt": "portrait of F. Scott Fitzgerald, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Antonio de Hoyos y Vinent",
+        "is_author": true,
+        "filename": "antonio-de-hoyos-y-vinent.webp",
+        "prompt": "portrait of Antonio de Hoyos y Vinent, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Horacio Quiroga",
+        "is_author": true,
+        "filename": "horacio-quiroga.webp",
+        "prompt": "portrait of Horacio Quiroga, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Marcel Proust",
+        "is_author": true,
+        "filename": "marcel-proust.webp",
+        "prompt": "portrait of Marcel Proust, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Vicente Blasco Ibáñez",
+        "is_author": true,
+        "filename": "vicente-blasco-ibanez.webp",
+        "prompt": "portrait of Vicente Blasco Ibáñez, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Autor Desconocido",
+        "is_author": true,
+        "filename": "autor-desconocido.webp",
+        "prompt": "portrait of Autor Desconocido, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rosalía de Castro",
+        "is_author": true,
+        "filename": "rosalia-de-castro.webp",
+        "prompt": "portrait of Rosalía de Castro, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Pedro Calderón de la Barca",
+        "is_author": true,
+        "filename": "pedro-calderon-de-la-barca.webp",
+        "prompt": "portrait of Pedro Calderón de la Barca, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Armand Guerra",
+        "is_author": true,
+        "filename": "armand-guerra.webp",
+        "prompt": "portrait of Armand Guerra, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Elizabeth von Arnim",
+        "is_author": true,
+        "filename": "elizabeth-von-arnim.webp",
+        "prompt": "portrait of Elizabeth von Arnim, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rubén Darío",
+        "is_author": true,
+        "filename": "ruben-dario.webp",
+        "prompt": "portrait of Rubén Darío, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Hans Christian Andersen",
+        "is_author": true,
+        "filename": "hans-christian-andersen.webp",
+        "prompt": "portrait of Hans Christian Andersen, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Charles Spurgeon",
+        "is_author": true,
+        "filename": "charles-spurgeon.webp",
+        "prompt": "portrait of Charles Spurgeon, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Aristóteles",
+        "is_author": true,
+        "filename": "aristoteles.webp",
+        "prompt": "portrait of Aristóteles, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Henry James",
+        "is_author": true,
+        "filename": "henry-james.webp",
+        "prompt": "portrait of Henry James, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Leopoldo Alas Clarín",
+        "is_author": true,
+        "filename": "leopoldo-alas-clarin.webp",
+        "prompt": "portrait of Leopoldo Alas Clarín, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Esquilo",
+        "is_author": true,
+        "filename": "esquilo.webp",
+        "prompt": "portrait of Esquilo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Julio Verne",
+        "is_author": true,
+        "filename": "julio-verne.webp",
+        "prompt": "portrait of Julio Verne, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Anne Brontë",
+        "is_author": true,
+        "filename": "anne-bronte.webp",
+        "prompt": "portrait of Anne Brontë, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Roberto Arlt",
+        "is_author": true,
+        "filename": "roberto-arlt.webp",
+        "prompt": "portrait of Roberto Arlt, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ramón del Valle-Inclán",
+        "is_author": true,
+        "filename": "ramon-del-valle-inclan.webp",
+        "prompt": "portrait of Ramón del Valle-Inclán, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Emilio Salgari",
+        "is_author": true,
+        "filename": "emilio-salgari.webp",
+        "prompt": "portrait of Emilio Salgari, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "H. P. Lovecraft",
+        "is_author": true,
+        "filename": "h-p-lovecraft.webp",
+        "prompt": "portrait of H. P. Lovecraft, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Teodoro Guerrero",
+        "is_author": true,
+        "filename": "teodoro-guerrero.webp",
+        "prompt": "portrait of Teodoro Guerrero, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Emilia Pardo Bazán",
+        "is_author": true,
+        "filename": "emilia-pardo-bazan.webp",
+        "prompt": "portrait of Emilia Pardo Bazán, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Anónimo",
+        "is_author": true,
+        "filename": "anonimo.webp",
+        "prompt": "portrait of Anónimo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Khalil Gibran",
+        "is_author": true,
+        "filename": "khalil-gibran.webp",
+        "prompt": "portrait of Khalil Gibran, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Euripides",
+        "is_author": true,
+        "filename": "euripides.webp",
+        "prompt": "portrait of Euripides, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ambrose Bierce",
+        "is_author": true,
+        "filename": "ambrose-bierce.webp",
+        "prompt": "portrait of Ambrose Bierce, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Lewis Carroll",
+        "is_author": true,
+        "filename": "lewis-carroll.webp",
+        "prompt": "portrait of Lewis Carroll, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ricardo J. Catarineu",
+        "is_author": true,
+        "filename": "ricardo-j-catarineu.webp",
+        "prompt": "portrait of Ricardo J. Catarineu, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Robert Ervin Howard",
+        "is_author": true,
+        "filename": "robert-ervin-howard.webp",
+        "prompt": "portrait of Robert Ervin Howard, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jack London",
+        "is_author": true,
+        "filename": "jack-london.webp",
+        "prompt": "portrait of Jack London, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Carmen de Burgos",
+        "is_author": true,
+        "filename": "carmen-de-burgos.webp",
+        "prompt": "portrait of Carmen de Burgos, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Garci Rodríguez de Montalvo",
+        "is_author": true,
+        "filename": "garci-rodriguez-de-montalvo.webp",
+        "prompt": "portrait of Garci Rodríguez de Montalvo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Alejandro Dumas",
+        "is_author": true,
+        "filename": "alejandro-dumas.webp",
+        "prompt": "portrait of Alejandro Dumas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Martí",
+        "is_author": true,
+        "filename": "jose-marti.webp",
+        "prompt": "portrait of José Martí, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ralph Waldo Emerson",
+        "is_author": true,
+        "filename": "ralph-waldo-emerson.webp",
+        "prompt": "portrait of Ralph Waldo Emerson, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Amado Nervo",
+        "is_author": true,
+        "filename": "amado-nervo.webp",
+        "prompt": "portrait of Amado Nervo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "León Tolstói",
+        "is_author": true,
+        "filename": "leon-tolstoi.webp",
+        "prompt": "portrait of León Tolstói, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Stefan Zweig",
+        "is_author": true,
+        "filename": "stefan-zweig.webp",
+        "prompt": "portrait of Stefan Zweig, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rosario de Acuña",
+        "is_author": true,
+        "filename": "rosario-de-acuna.webp",
+        "prompt": "portrait of Rosario de Acuña, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Federico García Lorca",
+        "is_author": true,
+        "filename": "federico-garcia-lorca.webp",
+        "prompt": "portrait of Federico García Lorca, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jane Austen",
+        "is_author": true,
+        "filename": "jane-austen.webp",
+        "prompt": "portrait of Jane Austen, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ovidio",
+        "is_author": true,
+        "filename": "ovidio.webp",
+        "prompt": "portrait of Ovidio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Joseph Conrad",
+        "is_author": true,
+        "filename": "joseph-conrad.webp",
+        "prompt": "portrait of Joseph Conrad, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Lucy Maud Montgomery",
+        "is_author": true,
+        "filename": "lucy-maud-montgomery.webp",
+        "prompt": "portrait of Lucy Maud Montgomery, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Confucio",
+        "is_author": true,
+        "filename": "confucio.webp",
+        "prompt": "portrait of Confucio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Antón Chéjov",
+        "is_author": true,
+        "filename": "anton-chejov.webp",
+        "prompt": "portrait of Antón Chéjov, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Arnold Bennett",
+        "is_author": true,
+        "filename": "arnold-bennett.webp",
+        "prompt": "portrait of Arnold Bennett, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Franz Kafka",
+        "is_author": true,
+        "filename": "franz-kafka.webp",
+        "prompt": "portrait of Franz Kafka, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ignacio Manuel Altamirano",
+        "is_author": true,
+        "filename": "ignacio-manuel-altamirano.webp",
+        "prompt": "portrait of Ignacio Manuel Altamirano, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Guy de Maupassant",
+        "is_author": true,
+        "filename": "guy-de-maupassant.webp",
+        "prompt": "portrait of Guy de Maupassant, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Platón",
+        "is_author": true,
+        "filename": "platon.webp",
+        "prompt": "portrait of Platón, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Esteban Echeverría",
+        "is_author": true,
+        "filename": "esteban-echeverria.webp",
+        "prompt": "portrait of Esteban Echeverría, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Robert Louis Stevenson",
+        "is_author": true,
+        "filename": "robert-louis-stevenson.webp",
+        "prompt": "portrait of Robert Louis Stevenson, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Maurice Leblanc",
+        "is_author": true,
+        "filename": "maurice-leblanc.webp",
+        "prompt": "portrait of Maurice Leblanc, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Arthur Schopenhauer",
+        "is_author": true,
+        "filename": "arthur-schopenhauer.webp",
+        "prompt": "portrait of Arthur Schopenhauer, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Horacio",
+        "is_author": true,
+        "filename": "horacio.webp",
+        "prompt": "portrait of Horacio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Mariano José de Larra",
+        "is_author": true,
+        "filename": "mariano-jose-de-larra.webp",
+        "prompt": "portrait of Mariano José de Larra, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gustavo Adolfo Bécquer",
+        "is_author": true,
+        "filename": "gustavo-adolfo-becquer.webp",
+        "prompt": "portrait of Gustavo Adolfo Bécquer, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Friedrich Nietzsche",
+        "is_author": true,
+        "filename": "friedrich-nietzsche.webp",
+        "prompt": "portrait of Friedrich Nietzsche, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José María Vargas Vila",
+        "is_author": true,
+        "filename": "jose-maria-vargas-vila.webp",
+        "prompt": "portrait of José María Vargas Vila, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "San Juan de la Cruz",
+        "is_author": true,
+        "filename": "san-juan-de-la-cruz.webp",
+        "prompt": "portrait of San Juan de la Cruz, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Sófocles",
+        "is_author": true,
+        "filename": "sofocles.webp",
+        "prompt": "portrait of Sófocles, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José de la Cuadra",
+        "is_author": true,
+        "filename": "jose-de-la-cuadra.webp",
+        "prompt": "portrait of José de la Cuadra, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Charles Perrault",
+        "is_author": true,
+        "filename": "charles-perrault.webp",
+        "prompt": "portrait of Charles Perrault, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Charles Dickens",
+        "is_author": true,
+        "filename": "charles-dickens.webp",
+        "prompt": "portrait of Charles Dickens, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Herman Melville",
+        "is_author": true,
+        "filename": "herman-melville.webp",
+        "prompt": "portrait of Herman Melville, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ramón María del Valle-Inclán",
+        "is_author": true,
+        "filename": "ramon-maria-del-valle-inclan.webp",
+        "prompt": "portrait of Ramón María del Valle-Inclán, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Edgar Allan Poe",
+        "is_author": true,
+        "filename": "edgar-allan-poe.webp",
+        "prompt": "portrait of Edgar Allan Poe, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Viasa",
+        "is_author": true,
+        "filename": "viasa.webp",
+        "prompt": "portrait of Viasa, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Reina y Valera",
+        "is_author": true,
+        "filename": "reina-y-valera.webp",
+        "prompt": "portrait of Reina y Valera, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Hermanos Grimm",
+        "is_author": true,
+        "filename": "hermanos-grimm.webp",
+        "prompt": "portrait of Hermanos Grimm, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Eduardo Acevedo Díaz",
+        "is_author": true,
+        "filename": "eduardo-acevedo-diaz.webp",
+        "prompt": "portrait of Eduardo Acevedo Díaz, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Victor Hugo",
+        "is_author": true,
+        "filename": "victor-hugo.webp",
+        "prompt": "portrait of Victor Hugo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Santa Teresa de Jesús",
+        "is_author": true,
+        "filename": "santa-teresa-de-jesus.webp",
+        "prompt": "portrait of Santa Teresa de Jesús, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Antonio Machado",
+        "is_author": true,
+        "filename": "antonio-machado.webp",
+        "prompt": "portrait of Antonio Machado, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José de Espronceda",
+        "is_author": true,
+        "filename": "jose-de-espronceda.webp",
+        "prompt": "portrait of José de Espronceda, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Voltaire",
+        "is_author": true,
+        "filename": "voltaire.webp",
+        "prompt": "portrait of Voltaire, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Fray Luis de León",
+        "is_author": true,
+        "filename": "fray-luis-de-leon.webp",
+        "prompt": "portrait of Fray Luis de León, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Novalis",
+        "is_author": true,
+        "filename": "novalis.webp",
+        "prompt": "portrait of Novalis, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Alfonso X el sabio",
+        "is_author": true,
+        "filename": "alfonso-x-el-sabio.webp",
+        "prompt": "portrait of Alfonso X el sabio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rudyard Kipling",
+        "is_author": true,
+        "filename": "rudyard-kipling.webp",
+        "prompt": "portrait of Rudyard Kipling, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Diego de San Pedro",
+        "is_author": true,
+        "filename": "diego-de-san-pedro.webp",
+        "prompt": "portrait of Diego de San Pedro, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "John Locke",
+        "is_author": true,
+        "filename": "john-locke.webp",
+        "prompt": "portrait of John Locke, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Alphonse Daudet",
+        "is_author": true,
+        "filename": "alphonse-daudet.webp",
+        "prompt": "portrait of Alphonse Daudet, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Mark Twain",
+        "is_author": true,
+        "filename": "mark-twain.webp",
+        "prompt": "portrait of Mark Twain, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Cadalso",
+        "is_author": true,
+        "filename": "jose-cadalso.webp",
+        "prompt": "portrait of José Cadalso, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Henrik Ibsen",
+        "is_author": true,
+        "filename": "henrik-ibsen.webp",
+        "prompt": "portrait of Henrik Ibsen, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Unknown",
+        "is_author": true,
+        "filename": "unknown.webp",
+        "prompt": "portrait of Unknown, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "William Makepeace Thackeray",
+        "is_author": true,
+        "filename": "william-makepeace-thackeray.webp",
+        "prompt": "portrait of William Makepeace Thackeray, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Elinor Glyn",
+        "is_author": true,
+        "filename": "elinor-glyn.webp",
+        "prompt": "portrait of Elinor Glyn, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Grazia Deledda",
+        "is_author": true,
+        "filename": "grazia-deledda.webp",
+        "prompt": "portrait of Grazia Deledda, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Goethe",
+        "is_author": true,
+        "filename": "goethe.webp",
+        "prompt": "portrait of Goethe, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Hammurabi",
+        "is_author": true,
+        "filename": "hammurabi.webp",
+        "prompt": "portrait of Hammurabi, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Luis de Gongora y Argote",
+        "is_author": true,
+        "filename": "luis-de-gongora-y-argote.webp",
+        "prompt": "portrait of Luis de Gongora y Argote, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Aristófanes",
+        "is_author": true,
+        "filename": "aristofanes.webp",
+        "prompt": "portrait of Aristófanes, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "James Allen",
+        "is_author": true,
+        "filename": "james-allen.webp",
+        "prompt": "portrait of James Allen, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "T. H. Pardo de Tavera",
+        "is_author": true,
+        "filename": "t-h-pardo-de-tavera.webp",
+        "prompt": "portrait of T. H. Pardo de Tavera, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Séneca",
+        "is_author": true,
+        "filename": "seneca.webp",
+        "prompt": "portrait of Séneca, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Karl Marx",
+        "is_author": true,
+        "filename": "karl-marx.webp",
+        "prompt": "portrait of Karl Marx, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jorge Manrique",
+        "is_author": true,
+        "filename": "jorge-manrique.webp",
+        "prompt": "portrait of Jorge Manrique, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Edmondo De Amicis",
+        "is_author": true,
+        "filename": "edmondo-de-amicis.webp",
+        "prompt": "portrait of Edmondo De Amicis, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Fiódor Dostoyevski",
+        "is_author": true,
+        "filename": "fiodor-dostoyevski.webp",
+        "prompt": "portrait of Fiódor Dostoyevski, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Saki",
+        "is_author": true,
+        "filename": "saki.webp",
+        "prompt": "portrait of Saki, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Nathaniel Hawthorne",
+        "is_author": true,
+        "filename": "nathaniel-hawthorne.webp",
+        "prompt": "portrait of Nathaniel Hawthorne, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "emil",
+        "is_author": true,
+        "filename": "emil.webp",
+        "prompt": "portrait of emil, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Fernán Caballero",
+        "is_author": true,
+        "filename": "fernan-caballero.webp",
+        "prompt": "portrait of Fernán Caballero, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Fray Mocho",
+        "is_author": true,
+        "filename": "fray-mocho.webp",
+        "prompt": "portrait of Fray Mocho, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Santiago Ramón y Cajal",
+        "is_author": true,
+        "filename": "santiago-ramon-y-cajal.webp",
+        "prompt": "portrait of Santiago Ramón y Cajal, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "E. T. A. Hoffmann",
+        "is_author": true,
+        "filename": "e-t-a-hoffmann.webp",
+        "prompt": "portrait of E. T. A. Hoffmann, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Marqués de Sade",
+        "is_author": true,
+        "filename": "marques-de-sade.webp",
+        "prompt": "portrait of Marqués de Sade, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Cristóbal Schmid",
+        "is_author": true,
+        "filename": "cristobal-schmid.webp",
+        "prompt": "portrait of Cristóbal Schmid, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Teresa Wilms Montt",
+        "is_author": true,
+        "filename": "teresa-wilms-montt.webp",
+        "prompt": "portrait of Teresa Wilms Montt, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ángela Grassi",
+        "is_author": true,
+        "filename": "angela-grassi.webp",
+        "prompt": "portrait of Ángela Grassi, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Aleksandr Afanásiev",
+        "is_author": true,
+        "filename": "aleksandr-afanasiev.webp",
+        "prompt": "portrait of Aleksandr Afanásiev, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Emily Brontë",
+        "is_author": true,
+        "filename": "emily-bronte.webp",
+        "prompt": "portrait of Emily Brontë, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Juan Valera",
+        "is_author": true,
+        "filename": "juan-valera.webp",
+        "prompt": "portrait of Juan Valera, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Francisco Acebal",
+        "is_author": true,
+        "filename": "francisco-acebal.webp",
+        "prompt": "portrait of Francisco Acebal, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Lucrecio",
+        "is_author": true,
+        "filename": "lucrecio.webp",
+        "prompt": "portrait of Lucrecio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Echegaray",
+        "is_author": true,
+        "filename": "jose-echegaray.webp",
+        "prompt": "portrait of José Echegaray, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Oscar Wilde",
+        "is_author": true,
+        "filename": "oscar-wilde.webp",
+        "prompt": "portrait of Oscar Wilde, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Benito Jerónimo Feijóo",
+        "is_author": true,
+        "filename": "benito-jeronimo-feijoo.webp",
+        "prompt": "portrait of Benito Jerónimo Feijóo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Stendhal",
+        "is_author": true,
+        "filename": "stendhal.webp",
+        "prompt": "portrait of Stendhal, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Francisco de Quevedo",
+        "is_author": true,
+        "filename": "francisco-de-quevedo.webp",
+        "prompt": "portrait of Francisco de Quevedo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Friedrich Engels",
+        "is_author": true,
+        "filename": "friedrich-engels.webp",
+        "prompt": "portrait of Friedrich Engels, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Washington Irving",
+        "is_author": true,
+        "filename": "washington-irving.webp",
+        "prompt": "portrait of Washington Irving, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Pedro de Angelis",
+        "is_author": true,
+        "filename": "pedro-de-angelis.webp",
+        "prompt": "portrait of Pedro de Angelis, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Henry David Thoreau",
+        "is_author": true,
+        "filename": "henry-david-thoreau.webp",
+        "prompt": "portrait of Henry David Thoreau, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "James Joyce",
+        "is_author": true,
+        "filename": "james-joyce.webp",
+        "prompt": "portrait of James Joyce, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "O. Henry",
+        "is_author": true,
+        "filename": "o-henry.webp",
+        "prompt": "portrait of O. Henry, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Juan de Valdés",
+        "is_author": true,
+        "filename": "juan-de-valdes.webp",
+        "prompt": "portrait of Juan de Valdés, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Alfonso de Valdés",
+        "is_author": true,
+        "filename": "alfonso-de-valdes.webp",
+        "prompt": "portrait of Alfonso de Valdés, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Tácito",
+        "is_author": true,
+        "filename": "tacito.webp",
+        "prompt": "portrait of Tácito, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Nikolai Gogol",
+        "is_author": true,
+        "filename": "nikolai-gogol.webp",
+        "prompt": "portrait of Nikolai Gogol, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Pedro Antonio de Alarcón",
+        "is_author": true,
+        "filename": "pedro-antonio-de-alarcon.webp",
+        "prompt": "portrait of Pedro Antonio de Alarcón, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Leonid Andréiev",
+        "is_author": true,
+        "filename": "leonid-andreiev.webp",
+        "prompt": "portrait of Leonid Andréiev, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Mijail Bakunin",
+        "is_author": true,
+        "filename": "mijail-bakunin.webp",
+        "prompt": "portrait of Mijail Bakunin, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "René Descartes",
+        "is_author": true,
+        "filename": "rene-descartes.webp",
+        "prompt": "portrait of René Descartes, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Auguste Comte",
+        "is_author": true,
+        "filename": "auguste-comte.webp",
+        "prompt": "portrait of Auguste Comte, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Prospero Mérimée",
+        "is_author": true,
+        "filename": "prospero-merimee.webp",
+        "prompt": "portrait of Prospero Mérimée, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Solomon Northup",
+        "is_author": true,
+        "filename": "solomon-northup.webp",
+        "prompt": "portrait of Solomon Northup, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Duque de Rivas",
+        "is_author": true,
+        "filename": "duque-de-rivas.webp",
+        "prompt": "portrait of Duque de Rivas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Lord Byron",
+        "is_author": true,
+        "filename": "lord-byron.webp",
+        "prompt": "portrait of Lord Byron, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Miguel de Cervantes",
+        "is_author": true,
+        "filename": "miguel-de-cervantes.webp",
+        "prompt": "portrait of Miguel de Cervantes, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ricardo Güiraldes",
+        "is_author": true,
+        "filename": "ricardo-guiraldes.webp",
+        "prompt": "portrait of Ricardo Güiraldes, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "L. Frank Baum",
+        "is_author": true,
+        "filename": "l-frank-baum.webp",
+        "prompt": "portrait of L. Frank Baum, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Bram Stoker",
+        "is_author": true,
+        "filename": "bram-stoker.webp",
+        "prompt": "portrait of Bram Stoker, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gabriel Miró",
+        "is_author": true,
+        "filename": "gabriel-miro.webp",
+        "prompt": "portrait of Gabriel Miró, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Anton Pavlovich Chejov",
+        "is_author": true,
+        "filename": "anton-pavlovich-chejov.webp",
+        "prompt": "portrait of Anton Pavlovich Chejov, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "D. H. Lawrence",
+        "is_author": true,
+        "filename": "d-h-lawrence.webp",
+        "prompt": "portrait of D. H. Lawrence, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "josanmartinezsantiago@gmail.com",
+        "is_author": true,
+        "filename": "josanmartinezsantiagogmailcom.webp",
+        "prompt": "portrait of josanmartinezsantiago@gmail.com, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rafael Pombo",
+        "is_author": true,
+        "filename": "rafael-pombo.webp",
+        "prompt": "portrait of Rafael Pombo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Honoré de Balzac",
+        "is_author": true,
+        "filename": "honore-de-balzac.webp",
+        "prompt": "portrait of Honoré de Balzac, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Elizabeth Gaskell",
+        "is_author": true,
+        "filename": "elizabeth-gaskell.webp",
+        "prompt": "portrait of Elizabeth Gaskell, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gibran Khalil Gibran",
+        "is_author": true,
+        "filename": "gibran-khalil-gibran.webp",
+        "prompt": "portrait of Gibran Khalil Gibran, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gustavo A. Bécquer",
+        "is_author": true,
+        "filename": "gustavo-a-becquer.webp",
+        "prompt": "portrait of Gustavo A. Bécquer, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Florence Scovel Shinn",
+        "is_author": true,
+        "filename": "florence-scovel-shinn.webp",
+        "prompt": "portrait of Florence Scovel Shinn, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "condesa de Emilia Pardo Bazán",
+        "is_author": true,
+        "filename": "condesa-de-emilia-pardo-bazan.webp",
+        "prompt": "portrait of condesa de Emilia Pardo Bazán, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Enrique Gaspar",
+        "is_author": true,
+        "filename": "enrique-gaspar.webp",
+        "prompt": "portrait of Enrique Gaspar, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Sigmund Freud",
+        "is_author": true,
+        "filename": "sigmund-freud.webp",
+        "prompt": "portrait of Sigmund Freud, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Leopoldo Lugones",
+        "is_author": true,
+        "filename": "leopoldo-lugones.webp",
+        "prompt": "portrait of Leopoldo Lugones, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Sun Tzu",
+        "is_author": true,
+        "filename": "sun-tzu.webp",
+        "prompt": "portrait of Sun Tzu, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Epicteto",
+        "is_author": true,
+        "filename": "epicteto.webp",
+        "prompt": "portrait of Epicteto, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Apuleyo",
+        "is_author": true,
+        "filename": "apuleyo.webp",
+        "prompt": "portrait of Apuleyo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Émile Zola",
+        "is_author": true,
+        "filename": "emile-zola.webp",
+        "prompt": "portrait of Émile Zola, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Fernando Pessoa",
+        "is_author": true,
+        "filename": "fernando-pessoa.webp",
+        "prompt": "portrait of Fernando Pessoa, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Stephen Crane",
+        "is_author": true,
+        "filename": "stephen-crane.webp",
+        "prompt": "portrait of Stephen Crane, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Thomas Hardy",
+        "is_author": true,
+        "filename": "thomas-hardy.webp",
+        "prompt": "portrait of Thomas Hardy, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Tirso de Molina",
+        "is_author": true,
+        "filename": "tirso-de-molina.webp",
+        "prompt": "portrait of Tirso de Molina, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rafael Ruiz López",
+        "is_author": true,
+        "filename": "rafael-ruiz-lopez.webp",
+        "prompt": "portrait of Rafael Ruiz López, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Abraham Valdelomar",
+        "is_author": true,
+        "filename": "abraham-valdelomar.webp",
+        "prompt": "portrait of Abraham Valdelomar, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Lope de Vega",
+        "is_author": true,
+        "filename": "lope-de-vega.webp",
+        "prompt": "portrait of Lope de Vega, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Baldomero Lillo",
+        "is_author": true,
+        "filename": "baldomero-lillo.webp",
+        "prompt": "portrait of Baldomero Lillo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Manuel González Zeledón",
+        "is_author": true,
+        "filename": "manuel-gonzalez-zeledon.webp",
+        "prompt": "portrait of Manuel González Zeledón, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Manuel Fernández y González",
+        "is_author": true,
+        "filename": "manuel-fernandez-y-gonzalez.webp",
+        "prompt": "portrait of Manuel Fernández y González, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Infante Don Juan Manuel",
+        "is_author": true,
+        "filename": "infante-don-juan-manuel.webp",
+        "prompt": "portrait of Infante Don Juan Manuel, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Rizal",
+        "is_author": true,
+        "filename": "jose-rizal.webp",
+        "prompt": "portrait of José Rizal, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Conan Doyle",
+        "is_author": true,
+        "filename": "conan-doyle.webp",
+        "prompt": "portrait of Conan Doyle, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jean-Jacques Rousseau",
+        "is_author": true,
+        "filename": "jean-jacques-rousseau.webp",
+        "prompt": "portrait of Jean-Jacques Rousseau, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Calderon de la Barca",
+        "is_author": true,
+        "filename": "calderon-de-la-barca.webp",
+        "prompt": "portrait of Calderon de la Barca, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Friedrich Schiller",
+        "is_author": true,
+        "filename": "friedrich-schiller.webp",
+        "prompt": "portrait of Friedrich Schiller, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Baltasar Gracián",
+        "is_author": true,
+        "filename": "baltasar-gracian.webp",
+        "prompt": "portrait of Baltasar Gracián, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Virginia Woolf",
+        "is_author": true,
+        "filename": "virginia-woolf.webp",
+        "prompt": "portrait of Virginia Woolf, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Beatrix Potter",
+        "is_author": true,
+        "filename": "beatrix-potter.webp",
+        "prompt": "portrait of Beatrix Potter, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Anthony Trollope",
+        "is_author": true,
+        "filename": "anthony-trollope.webp",
+        "prompt": "portrait of Anthony Trollope, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Giovanni Boccaccio",
+        "is_author": true,
+        "filename": "giovanni-boccaccio.webp",
+        "prompt": "portrait of Giovanni Boccaccio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jovellanos",
+        "is_author": true,
+        "filename": "jovellanos.webp",
+        "prompt": "portrait of Jovellanos, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Agustín Moreto",
+        "is_author": true,
+        "filename": "agustin-moreto.webp",
+        "prompt": "portrait of Agustín Moreto, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Daniel Defoe",
+        "is_author": true,
+        "filename": "daniel-defoe.webp",
+        "prompt": "portrait of Daniel Defoe, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Kenneth Grahame",
+        "is_author": true,
+        "filename": "kenneth-grahame.webp",
+        "prompt": "portrait of Kenneth Grahame, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Manuel José Quintana",
+        "is_author": true,
+        "filename": "manuel-jose-quintana.webp",
+        "prompt": "portrait of Manuel José Quintana, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Aleksandr Pushkin",
+        "is_author": true,
+        "filename": "aleksandr-pushkin.webp",
+        "prompt": "portrait of Aleksandr Pushkin, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "W. W. Jacobs",
+        "is_author": true,
+        "filename": "w-w-jacobs.webp",
+        "prompt": "portrait of W. W. Jacobs, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gastón Leroux",
+        "is_author": true,
+        "filename": "gaston-leroux.webp",
+        "prompt": "portrait of Gastón Leroux, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Manuel Payno",
+        "is_author": true,
+        "filename": "manuel-payno.webp",
+        "prompt": "portrait of Manuel Payno, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Hernández",
+        "is_author": true,
+        "filename": "jose-hernandez.webp",
+        "prompt": "portrait of José Hernández, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Manuel Antonio Alonso",
+        "is_author": true,
+        "filename": "manuel-antonio-alonso.webp",
+        "prompt": "portrait of Manuel Antonio Alonso, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Frank R. Stockton",
+        "is_author": true,
+        "filename": "frank-r-stockton.webp",
+        "prompt": "portrait of Frank R. Stockton, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Kate Chopin",
+        "is_author": true,
+        "filename": "kate-chopin.webp",
+        "prompt": "portrait of Kate Chopin, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ryūnosuke Akutagawa",
+        "is_author": true,
+        "filename": "ryunosuke-akutagawa.webp",
+        "prompt": "portrait of Ryūnosuke Akutagawa, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Miguel Hernández",
+        "is_author": true,
+        "filename": "miguel-hernandez.webp",
+        "prompt": "portrait of Miguel Hernández, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "G. K. Chesterton",
+        "is_author": true,
+        "filename": "g-k-chesterton.webp",
+        "prompt": "portrait of G. K. Chesterton, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Edward Everett Hale",
+        "is_author": true,
+        "filename": "edward-everett-hale.webp",
+        "prompt": "portrait of Edward Everett Hale, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Máximo Gorki",
+        "is_author": true,
+        "filename": "maximo-gorki.webp",
+        "prompt": "portrait of Máximo Gorki, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Tres iniciados",
+        "is_author": true,
+        "filename": "tres-iniciados.webp",
+        "prompt": "portrait of Tres iniciados, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Allan Kardec",
+        "is_author": true,
+        "filename": "allan-kardec.webp",
+        "prompt": "portrait of Allan Kardec, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rafael Barrett",
+        "is_author": true,
+        "filename": "rafael-barrett.webp",
+        "prompt": "portrait of Rafael Barrett, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "M. R. James",
+        "is_author": true,
+        "filename": "m-r-james.webp",
+        "prompt": "portrait of M. R. James, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Louisa May Alcott",
+        "is_author": true,
+        "filename": "louisa-may-alcott.webp",
+        "prompt": "portrait of Louisa May Alcott, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Baum, Lyman Frank",
+        "is_author": true,
+        "filename": "baum-lyman-frank.webp",
+        "prompt": "portrait of Baum, Lyman Frank, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Molière",
+        "is_author": true,
+        "filename": "moliere.webp",
+        "prompt": "portrait of Molière, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Felipe Trigo",
+        "is_author": true,
+        "filename": "felipe-trigo.webp",
+        "prompt": "portrait of Felipe Trigo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Bécquer",
+        "is_author": true,
+        "filename": "becquer.webp",
+        "prompt": "portrait of Bécquer, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Mary Shelley",
+        "is_author": true,
+        "filename": "mary-shelley.webp",
+        "prompt": "portrait of Mary Shelley, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Virgilio",
+        "is_author": true,
+        "filename": "virgilio.webp",
+        "prompt": "portrait of Virgilio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Charles Darwin",
+        "is_author": true,
+        "filename": "charles-darwin.webp",
+        "prompt": "portrait of Charles Darwin, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Armando Palacio Valdés",
+        "is_author": true,
+        "filename": "armando-palacio-valdes.webp",
+        "prompt": "portrait of Armando Palacio Valdés, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "F.Engels",
+        "is_author": true,
+        "filename": "fengels.webp",
+        "prompt": "portrait of F.Engels, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Charlotte Perkins Gilman",
+        "is_author": true,
+        "filename": "charlotte-perkins-gilman.webp",
+        "prompt": "portrait of Charlotte Perkins Gilman, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "John Milton",
+        "is_author": true,
+        "filename": "john-milton.webp",
+        "prompt": "portrait of John Milton, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Joaquín Fernández de Lizardi",
+        "is_author": true,
+        "filename": "jose-joaquin-fernandez-de-lizardi.webp",
+        "prompt": "portrait of José Joaquín Fernández de Lizardi, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Walter Scott",
+        "is_author": true,
+        "filename": "walter-scott.webp",
+        "prompt": "portrait of Walter Scott, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Annie Besant",
+        "is_author": true,
+        "filename": "annie-besant.webp",
+        "prompt": "portrait of Annie Besant, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Nicolás Maquiavelo",
+        "is_author": true,
+        "filename": "nicolas-maquiavelo.webp",
+        "prompt": "portrait of Nicolás Maquiavelo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Antoine de Saint-Exupéry",
+        "is_author": true,
+        "filename": "antoine-de-saint-exupery.webp",
+        "prompt": "portrait of Antoine de Saint-Exupéry, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Robert W. Chambers",
+        "is_author": true,
+        "filename": "robert-w-chambers.webp",
+        "prompt": "portrait of Robert W. Chambers, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Enrique Gil y Carrasco",
+        "is_author": true,
+        "filename": "enrique-gil-y-carrasco.webp",
+        "prompt": "portrait of Enrique Gil y Carrasco, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Leopoldo Alas",
+        "is_author": true,
+        "filename": "leopoldo-alas.webp",
+        "prompt": "portrait of Leopoldo Alas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Leandro Fernández de Moratín",
+        "is_author": true,
+        "filename": "leandro-fernandez-de-moratin.webp",
+        "prompt": "portrait of Leandro Fernández de Moratín, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Charles Baudelaire",
+        "is_author": true,
+        "filename": "charles-baudelaire.webp",
+        "prompt": "portrait of Charles Baudelaire, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "César Vallejo",
+        "is_author": true,
+        "filename": "cesar-vallejo.webp",
+        "prompt": "portrait of César Vallejo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Pedro Muñoz Seca",
+        "is_author": true,
+        "filename": "pedro-munoz-seca.webp",
+        "prompt": "portrait of Pedro Muñoz Seca, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "George Eliot",
+        "is_author": true,
+        "filename": "george-eliot.webp",
+        "prompt": "portrait of George Eliot, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rafael Comenge",
+        "is_author": true,
+        "filename": "rafael-comenge.webp",
+        "prompt": "portrait of Rafael Comenge, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "María Lorenza de los Ríos y Loyo Fuerte-Híjar",
+        "is_author": true,
+        "filename": "maria-lorenza-de-los-rios-y-loyo-fuerte-hijar.webp",
+        "prompt": "portrait of María Lorenza de los Ríos y Loyo Fuerte-Híjar, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Dimitrios Vikelas",
+        "is_author": true,
+        "filename": "dimitrios-vikelas.webp",
+        "prompt": "portrait of Dimitrios Vikelas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Katherine Mansfield",
+        "is_author": true,
+        "filename": "katherine-mansfield.webp",
+        "prompt": "portrait of Katherine Mansfield, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Tomás Carrasquilla Naranjo",
+        "is_author": true,
+        "filename": "tomas-carrasquilla-naranjo.webp",
+        "prompt": "portrait of Tomás Carrasquilla Naranjo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Marcelino Menéndez y Pelayo",
+        "is_author": true,
+        "filename": "marcelino-menendez-y-pelayo.webp",
+        "prompt": "portrait of Marcelino Menéndez y Pelayo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Michel de Montaigne",
+        "is_author": true,
+        "filename": "michel-de-montaigne.webp",
+        "prompt": "portrait of Michel de Montaigne, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Carlos Arniches y Barrera",
+        "is_author": true,
+        "filename": "carlos-arniches-y-barrera.webp",
+        "prompt": "portrait of Carlos Arniches y Barrera, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Santa Teresa",
+        "is_author": true,
+        "filename": "santa-teresa.webp",
+        "prompt": "portrait of Santa Teresa, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Luis de Góngora",
+        "is_author": true,
+        "filename": "luis-de-gongora.webp",
+        "prompt": "portrait of Luis de Góngora, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Godofredo Daireaux",
+        "is_author": true,
+        "filename": "godofredo-daireaux.webp",
+        "prompt": "portrait of Godofredo Daireaux, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Esopo",
+        "is_author": true,
+        "filename": "esopo.webp",
+        "prompt": "portrait of Esopo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Félix María Samaniego",
+        "is_author": true,
+        "filename": "felix-maria-samaniego.webp",
+        "prompt": "portrait of Félix María Samaniego, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "tomás de iriarte",
+        "is_author": true,
+        "filename": "tomas-de-iriarte.webp",
+        "prompt": "portrait of tomás de iriarte, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Johann Wolfgang von Goethe",
+        "is_author": true,
+        "filename": "johann-wolfgang-von-goethe.webp",
+        "prompt": "portrait of Johann Wolfgang von Goethe, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Christoph von Schmid",
+        "is_author": true,
+        "filename": "christoph-von-schmid.webp",
+        "prompt": "portrait of Christoph von Schmid, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Immanuel Kant",
+        "is_author": true,
+        "filename": "immanuel-kant.webp",
+        "prompt": "portrait of Immanuel Kant, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Edmond About",
+        "is_author": true,
+        "filename": "edmond-about.webp",
+        "prompt": "portrait of Edmond About, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Cornelio Tácito",
+        "is_author": true,
+        "filename": "cornelio-tacito.webp",
+        "prompt": "portrait of Cornelio Tácito, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Francisco de Quevedo y Villegas",
+        "is_author": true,
+        "filename": "francisco-de-quevedo-y-villegas.webp",
+        "prompt": "portrait of Francisco de Quevedo y Villegas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Antonio de Nebrija",
+        "is_author": true,
+        "filename": "antonio-de-nebrija.webp",
+        "prompt": "portrait of Antonio de Nebrija, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gertrudis Gómez de Avellaneda",
+        "is_author": true,
+        "filename": "gertrudis-gomez-de-avellaneda.webp",
+        "prompt": "portrait of Gertrudis Gómez de Avellaneda, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Mateo Alemán",
+        "is_author": true,
+        "filename": "mateo-aleman.webp",
+        "prompt": "portrait of Mateo Alemán, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Iván Turguénev",
+        "is_author": true,
+        "filename": "ivan-turguenev.webp",
+        "prompt": "portrait of Iván Turguénev, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Johanna Spyri",
+        "is_author": true,
+        "filename": "johanna-spyri.webp",
+        "prompt": "portrait of Johanna Spyri, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Cyrano de Bergerac",
+        "is_author": true,
+        "filename": "cyrano-de-bergerac.webp",
+        "prompt": "portrait of Cyrano de Bergerac, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Antonio de Villegas",
+        "is_author": true,
+        "filename": "antonio-de-villegas.webp",
+        "prompt": "portrait of Antonio de Villegas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Karl Krause",
+        "is_author": true,
+        "filename": "karl-krause.webp",
+        "prompt": "portrait of Karl Krause, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Edward Bellamy",
+        "is_author": true,
+        "filename": "edward-bellamy.webp",
+        "prompt": "portrait of Edward Bellamy, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Tomás de Kempis",
+        "is_author": true,
+        "filename": "tomas-de-kempis.webp",
+        "prompt": "portrait of Tomás de Kempis, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Charlotte Brontë",
+        "is_author": true,
+        "filename": "charlotte-bronte.webp",
+        "prompt": "portrait of Charlotte Brontë, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Manuel Chaves Nogales",
+        "is_author": true,
+        "filename": "manuel-chaves-nogales.webp",
+        "prompt": "portrait of Manuel Chaves Nogales, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Donatien Alphonse François, Marqués de Sade",
+        "is_author": true,
+        "filename": "donatien-alphonse-francois-marques-de-sade.webp",
+        "prompt": "portrait of Donatien Alphonse François, Marqués de Sade, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Terencio",
+        "is_author": true,
+        "filename": "terencio.webp",
+        "prompt": "portrait of Terencio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Alonso de Ercilla",
+        "is_author": true,
+        "filename": "alonso-de-ercilla.webp",
+        "prompt": "portrait of Alonso de Ercilla, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Homero",
+        "is_author": true,
+        "filename": "homero.webp",
+        "prompt": "portrait of Homero, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jeanne-Marie Leprince de Beaumont",
+        "is_author": true,
+        "filename": "jeanne-marie-leprince-de-beaumont.webp",
+        "prompt": "portrait of Jeanne-Marie Leprince de Beaumont, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Javier de Viana",
+        "is_author": true,
+        "filename": "javier-de-viana.webp",
+        "prompt": "portrait of Javier de Viana, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Eduardo Ladislao Holmberg",
+        "is_author": true,
+        "filename": "eduardo-ladislao-holmberg.webp",
+        "prompt": "portrait of Eduardo Ladislao Holmberg, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Harriet Beecher Stowe",
+        "is_author": true,
+        "filename": "harriet-beecher-stowe.webp",
+        "prompt": "portrait of Harriet Beecher Stowe, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Fernando de Rojas",
+        "is_author": true,
+        "filename": "fernando-de-rojas.webp",
+        "prompt": "portrait of Fernando de Rojas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Wallace Wattles",
+        "is_author": true,
+        "filename": "wallace-wattles.webp",
+        "prompt": "portrait of Wallace Wattles, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Agustín de Hipona",
+        "is_author": true,
+        "filename": "agustin-de-hipona.webp",
+        "prompt": "portrait of Agustín de Hipona, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Alexandre Dumas",
+        "is_author": true,
+        "filename": "alexandre-dumas.webp",
+        "prompt": "portrait of Alexandre Dumas, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Dante Alighieri",
+        "is_author": true,
+        "filename": "dante-alighieri.webp",
+        "prompt": "portrait of Dante Alighieri, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Edith Wharton",
+        "is_author": true,
+        "filename": "edith-wharton.webp",
+        "prompt": "portrait of Edith Wharton, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Concepción Arenal",
+        "is_author": true,
+        "filename": "concepcion-arenal.webp",
+        "prompt": "portrait of Concepción Arenal, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Soren Kierkegaard",
+        "is_author": true,
+        "filename": "soren-kierkegaard.webp",
+        "prompt": "portrait of Soren Kierkegaard, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ludwing Feuerbach",
+        "is_author": true,
+        "filename": "ludwing-feuerbach.webp",
+        "prompt": "portrait of Ludwing Feuerbach, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "La fuga de Arsenio Lupin",
+        "is_author": true,
+        "filename": "la-fuga-de-arsenio-lupin.webp",
+        "prompt": "portrait of La fuga de Arsenio Lupin, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Flavio Josefo",
+        "is_author": true,
+        "filename": "flavio-josefo.webp",
+        "prompt": "portrait of Flavio Josefo, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Sade, Marqués de",
+        "is_author": true,
+        "filename": "sade-marques-de.webp",
+        "prompt": "portrait of Sade, Marqués de, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "George Sand",
+        "is_author": true,
+        "filename": "george-sand.webp",
+        "prompt": "portrait of George Sand, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Doctor Thebussem",
+        "is_author": true,
+        "filename": "doctor-thebussem.webp",
+        "prompt": "portrait of Doctor Thebussem, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Soledad Acosta de Samper",
+        "is_author": true,
+        "filename": "soledad-acosta-de-samper.webp",
+        "prompt": "portrait of Soledad Acosta de Samper, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "María del Pilar Sinués",
+        "is_author": true,
+        "filename": "maria-del-pilar-sinues.webp",
+        "prompt": "portrait of María del Pilar Sinués, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Luis de León",
+        "is_author": true,
+        "filename": "luis-de-leon.webp",
+        "prompt": "portrait of Luis de León, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Adam Smith",
+        "is_author": true,
+        "filename": "adam-smith.webp",
+        "prompt": "portrait of Adam Smith, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Carlos Arniches",
+        "is_author": true,
+        "filename": "carlos-arniches.webp",
+        "prompt": "portrait of Carlos Arniches, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Publio Papinio Estacio",
+        "is_author": true,
+        "filename": "publio-papinio-estacio.webp",
+        "prompt": "portrait of Publio Papinio Estacio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Juan Ruiz de Alarcón",
+        "is_author": true,
+        "filename": "juan-ruiz-de-alarcon.webp",
+        "prompt": "portrait of Juan Ruiz de Alarcón, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José Eustasio Rivera",
+        "is_author": true,
+        "filename": "jose-eustasio-rivera.webp",
+        "prompt": "portrait of José Eustasio Rivera, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "C. Collodi",
+        "is_author": true,
+        "filename": "c-collodi.webp",
+        "prompt": "portrait of C. Collodi, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "San Agustín",
+        "is_author": true,
+        "filename": "san-agustin.webp",
+        "prompt": "portrait of San Agustín, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Roque Gálvez y Encinar",
+        "is_author": true,
+        "filename": "roque-galvez-y-encinar.webp",
+        "prompt": "portrait of Roque Gálvez y Encinar, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ricardo Palma",
+        "is_author": true,
+        "filename": "ricardo-palma.webp",
+        "prompt": "portrait of Ricardo Palma, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Nostradamus",
+        "is_author": true,
+        "filename": "nostradamus.webp",
+        "prompt": "portrait of Nostradamus, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "José  Ortega Munilla",
+        "is_author": true,
+        "filename": "jose-ortega-munilla.webp",
+        "prompt": "portrait of José  Ortega Munilla, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Thomas Hobbes",
+        "is_author": true,
+        "filename": "thomas-hobbes.webp",
+        "prompt": "portrait of Thomas Hobbes, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Juan Ruiz",
+        "is_author": true,
+        "filename": "juan-ruiz.webp",
+        "prompt": "portrait of Juan Ruiz, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Varios autores",
+        "is_author": true,
+        "filename": "varios-autores.webp",
+        "prompt": "portrait of Varios autores, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ramón de Campoamor",
+        "is_author": true,
+        "filename": "ramon-de-campoamor.webp",
+        "prompt": "portrait of Ramón de Campoamor, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Ernest Renan",
+        "is_author": true,
+        "filename": "ernest-renan.webp",
+        "prompt": "portrait of Ernest Renan, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Aureliano Abenza y Rodríguez",
+        "is_author": true,
+        "filename": "aureliano-abenza-y-rodriguez.webp",
+        "prompt": "portrait of Aureliano Abenza y Rodríguez, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Geoffrey Chaucer",
+        "is_author": true,
+        "filename": "geoffrey-chaucer.webp",
+        "prompt": "portrait of Geoffrey Chaucer, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Sor Juana Inés de la Cruz",
+        "is_author": true,
+        "filename": "sor-juana-ines-de-la-cruz.webp",
+        "prompt": "portrait of Sor Juana Inés de la Cruz, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Luis de Camóes",
+        "is_author": true,
+        "filename": "luis-de-camoes.webp",
+        "prompt": "portrait of Luis de Camóes, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gustave Aimard",
+        "is_author": true,
+        "filename": "gustave-aimard.webp",
+        "prompt": "portrait of Gustave Aimard, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Sergei Nilus",
+        "is_author": true,
+        "filename": "sergei-nilus.webp",
+        "prompt": "portrait of Sergei Nilus, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Joseph Jacobs",
+        "is_author": true,
+        "filename": "joseph-jacobs.webp",
+        "prompt": "portrait of Joseph Jacobs, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jonathan Swift",
+        "is_author": true,
+        "filename": "jonathan-swift.webp",
+        "prompt": "portrait of Jonathan Swift, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Rosa  Guerra",
+        "is_author": true,
+        "filename": "rosa-guerra.webp",
+        "prompt": "portrait of Rosa  Guerra, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Gustave Flaubert",
+        "is_author": true,
+        "filename": "gustave-flaubert.webp",
+        "prompt": "portrait of Gustave Flaubert, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Karl Marx y Friedrich Engels",
+        "is_author": true,
+        "filename": "karl-marx-y-friedrich-engels.webp",
+        "prompt": "portrait of Karl Marx y Friedrich Engels, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Abate Prévost",
+        "is_author": true,
+        "filename": "abate-prevost.webp",
+        "prompt": "portrait of Abate Prévost, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Jorge Isaacs",
+        "is_author": true,
+        "filename": "jorge-isaacs.webp",
+        "prompt": "portrait of Jorge Isaacs, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Adolf Hitler",
+        "is_author": true,
+        "filename": "adolf-hitler.webp",
+        "prompt": "portrait of Adolf Hitler, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Vicente Riva Palacio",
+        "is_author": true,
+        "filename": "vicente-riva-palacio.webp",
+        "prompt": "portrait of Vicente Riva Palacio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Eugenio María de Hostos",
+        "is_author": true,
+        "filename": "eugenio-maria-de-hostos.webp",
+        "prompt": "portrait of Eugenio María de Hostos, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Simone Weil",
+        "is_author": true,
+        "filename": "simone-weil.webp",
+        "prompt": "portrait of Simone Weil, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Roberto Payró",
+        "is_author": true,
+        "filename": "roberto-payro.webp",
+        "prompt": "portrait of Roberto Payró, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Garcilaso de la Vega",
+        "is_author": true,
+        "filename": "garcilaso-de-la-vega.webp",
+        "prompt": "portrait of Garcilaso de la Vega, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Lyman Frank Baum",
+        "is_author": true,
+        "filename": "lyman-frank-baum.webp",
+        "prompt": "portrait of Lyman Frank Baum, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Juan Bautista Alberdi",
+        "is_author": true,
+        "filename": "juan-bautista-alberdi.webp",
+        "prompt": "portrait of Juan Bautista Alberdi, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "J.M. Barrie",
+        "is_author": true,
+        "filename": "jm-barrie.webp",
+        "prompt": "portrait of J.M. Barrie, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Eugène Sue",
+        "is_author": true,
+        "filename": "eugene-sue.webp",
+        "prompt": "portrait of Eugène Sue, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Emily Dickinson",
+        "is_author": true,
+        "filename": "emily-dickinson.webp",
+        "prompt": "portrait of Emily Dickinson, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Nieves Xenes",
+        "is_author": true,
+        "filename": "nieves-xenes.webp",
+        "prompt": "portrait of Nieves Xenes, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Francisco Calcagno",
+        "is_author": true,
+        "filename": "francisco-calcagno.webp",
+        "prompt": "portrait of Francisco Calcagno, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Luis Coloma",
+        "is_author": true,
+        "filename": "luis-coloma.webp",
+        "prompt": "portrait of Luis Coloma, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Fyodor Dostoevsky",
+        "is_author": true,
+        "filename": "fyodor-dostoevsky.webp",
+        "prompt": "portrait of Fyodor Dostoevsky, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Francisco Sosa Escalante",
+        "is_author": true,
+        "filename": "francisco-sosa-escalante.webp",
+        "prompt": "portrait of Francisco Sosa Escalante, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Mary Wollstonecraft",
+        "is_author": true,
+        "filename": "mary-wollstonecraft.webp",
+        "prompt": "portrait of Mary Wollstonecraft, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Paul Groussac",
+        "is_author": true,
+        "filename": "paul-groussac.webp",
+        "prompt": "portrait of Paul Groussac, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Salvador Rueda",
+        "is_author": true,
+        "filename": "salvador-rueda.webp",
+        "prompt": "portrait of Salvador Rueda, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "W. W. Denslow",
+        "is_author": true,
+        "filename": "w-w-denslow.webp",
+        "prompt": "portrait of W. W. Denslow, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Julia  de Asensi",
+        "is_author": true,
+        "filename": "julia-de-asensi.webp",
+        "prompt": "portrait of Julia  de Asensi, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Thomas Paine",
+        "is_author": true,
+        "filename": "thomas-paine.webp",
+        "prompt": "portrait of Thomas Paine, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Enrico Ferri",
+        "is_author": true,
+        "filename": "enrico-ferri.webp",
+        "prompt": "portrait of Enrico Ferri, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Lao Tsé",
+        "is_author": true,
+        "filename": "lao-tse.webp",
+        "prompt": "portrait of Lao Tsé, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Joanot Martorell",
+        "is_author": true,
+        "filename": "joanot-martorell.webp",
+        "prompt": "portrait of Joanot Martorell, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Leon Battista Alberti",
+        "is_author": true,
+        "filename": "leon-battista-alberti.webp",
+        "prompt": "portrait of Leon Battista Alberti, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "San Francisco de Sales",
+        "is_author": true,
+        "filename": "san-francisco-de-sales.webp",
+        "prompt": "portrait of San Francisco de Sales, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Pitágoras",
+        "is_author": true,
+        "filename": "pitagoras.webp",
+        "prompt": "portrait of Pitágoras, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "María de Jesús de Ágreda",
+        "is_author": true,
+        "filename": "maria-de-jesus-de-agreda.webp",
+        "prompt": "portrait of María de Jesús de Ágreda, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Diógenes Laercio",
+        "is_author": true,
+        "filename": "diogenes-laercio.webp",
+        "prompt": "portrait of Diógenes Laercio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Suetonio",
+        "is_author": true,
+        "filename": "suetonio.webp",
+        "prompt": "portrait of Suetonio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    },
+    {
+        "name": "Marco Aurelio",
+        "is_author": true,
+        "filename": "marco-aurelio.webp",
+        "prompt": "portrait of Marco Aurelio, highly detailed, elegant, classic writer, distinguished author, historical figure, anime style illustration, studio ghibli inspired, masterpiece, 8k resolution, vibrant colors"
+    }
+]

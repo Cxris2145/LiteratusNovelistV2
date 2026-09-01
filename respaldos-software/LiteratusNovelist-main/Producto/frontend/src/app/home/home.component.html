@@ -1,0 +1,412 @@
+<div class="home-wrapper">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       1. HERO SECTION
+  ═══════════════════════════════════════════════════════════ -->
+  <header class="hero-section">
+    <div class="hero-bg-particles">
+      <span *ngFor="let p of [1,2,3,4,5,6,7,8]" class="particle"></span>
+    </div>
+    <div class="hero-content">
+      <h1 class="hero-headline">
+        No solo leas la historia.<br>
+        <span class="glow-span">Vívela.</span>
+      </h1>
+      <p class="hero-subheadline">
+        Explora los grandes clásicos de la literatura universal y conversa con sus personajes mediante inteligencia artificial en tiempo real.
+      </p>
+      <div class="hero-ctas">
+        <a routerLink="/catalog" class="cta-primary" id="hero-cta-explore">
+          Explorar Historias
+          <span class="material-symbols-rounded" style="font-size:20px;">arrow_forward</span>
+        </a>
+        <a routerLink="/characters" class="cta-ghost cta-ghost--ai" id="hero-cta-characters">
+          <span class="cta-ai-dot"></span>
+          Hablar con Personajes
+        </a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-lottie-container" #readingContainer></div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       2. EJEMPLOS DE CHAT EN CARRUSEL
+  ═══════════════════════════════════════════════════════════ -->
+
+  <section class="chat-examples-section reveal-section" aria-label="Ejemplos de chat con personajes IA">
+    <div class="chat-examples-inner">
+      <h2 class="chat-demo-title">Conversa con los grandes personajes</h2>
+
+      <div class="chat-examples-carousel">
+        <div class="chat-examples-track">
+          <!-- Ejemplo 1 -->
+          <div class="chat-example-card">
+            <div class="chat-example-header">
+              <span class="material-symbols-rounded example-icon" style="color: #f97316;">swords</span>
+              <div class="example-meta">
+                <h4>Don Quijote</h4>
+                <span>El Ingenioso Hidalgo</span>
+              </div>
+            </div>
+            <div class="chat-example-body">
+              <div class="example-msg user">¿Por qué luchas contra molinos?</div>
+              <div class="example-msg char">Porque donde otros ven molinos, yo veo gigantes. El valor no reside en la victoria, sino en no bajar la espada.</div>
+            </div>
+          </div>
+
+          <!-- Ejemplo 2 -->
+          <div class="chat-example-card">
+            <div class="chat-example-header">
+              <span class="material-symbols-rounded example-icon" style="color: #10b981;">science</span>
+              <div class="example-meta">
+                <h4>El Monstruo</h4>
+                <span>Frankenstein</span>
+              </div>
+            </div>
+            <div class="chat-example-body">
+              <div class="example-msg user">¿Por qué odias a tu creador?</div>
+              <div class="example-msg char">Me dio la vida, pero me negó el afecto. Soy un ser solitario en un mundo que me rechaza por mi aspecto.</div>
+            </div>
+          </div>
+
+          <!-- Ejemplo 3 -->
+          <div class="chat-example-card">
+            <div class="chat-example-header">
+              <span class="material-symbols-rounded example-icon" style="color: #8b5cf6;">pets</span>
+              <div class="example-meta">
+                <h4>Plutón (El Gato)</h4>
+                <span>El Gato Negro</span>
+              </div>
+            </div>
+            <div class="chat-example-body">
+              <div class="example-msg user">¿Por qué huyes de tu amo?</div>
+              <div class="example-msg char">El alcohol ha envenenado su alma. Las manos que solían acariciarme ahora me inspiran un terror indescriptible.</div>
+            </div>
+          </div>
+          
+          <!-- Ejemplo 4 -->
+          <div class="chat-example-card">
+            <div class="chat-example-header">
+              <span class="material-symbols-rounded example-icon" style="color: #3b82f6;">water_drop</span>
+              <div class="example-meta">
+                <h4>El Principito</h4>
+                <span>Antoine de Saint-Exupéry</span>
+              </div>
+            </div>
+            <div class="chat-example-body">
+              <div class="example-msg user">¿Qué significa domesticar?</div>
+              <div class="example-msg char">Significa crear lazos. Si me domesticas, nos necesitaremos el uno al otro. Serás para mí único en el mundo.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       2b. GALERÍA DE PERSONAJES (CARRUSEL SLIDABLE COMPACTO)
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="avatars-showcase-section reveal-section" aria-label="Personajes disponibles">
+    <div class="avatars-showcase-inner">
+
+      <!-- Header: solo título + Ver todos -->
+      <div class="avatars-showcase-header">
+        <h2 class="avatars-title">Conoce a los personajes</h2>
+        <a routerLink="/characters" class="avatars-see-all" id="avatars-see-all-btn">Ver todos →</a>
+      </div>
+
+      <!-- Carousel wrapper -->
+      <div class="avatars-carousel-container">
+
+        <!-- Loading skeleton -->
+        <div class="avatars-carousel-track" *ngIf="avatarsLoading">
+          <div class="avatar-card avatar-card--skeleton" *ngFor="let s of [1,2,3,4,5,6]"></div>
+        </div>
+
+        <!-- Avatars carousel -->
+        <div class="avatars-carousel-track" #avatarsCarousel *ngIf="!avatarsLoading && showcaseAvatars.length > 0">
+          <div class="avatar-card"
+               *ngFor="let avatar of showcaseAvatars; trackBy: trackById"
+               (click)="goToCharacterChat(avatar)"
+               [attr.id]="'avatar-card-' + avatar.id">
+            <div class="avatar-img-wrap">
+              <img
+                [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+                [alt]="avatar.name"
+                class="avatar-img"
+                loading="lazy"
+                onerror="this.src='assets/default_cover.jpg'"
+              />
+              <div class="avatar-overlay">
+                <span class="avatar-chat-badge">
+                  <span class="material-symbols-rounded" style="font-size:16px;">chat</span>
+                  Chatear
+                </span>
+              </div>
+            </div>
+            <div class="avatar-meta">
+              <h3 class="avatar-name">{{ avatar.name }}</h3>
+              <p class="avatar-book" *ngIf="avatar.book_title">{{ avatar.book_title }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="avatars-empty" *ngIf="!avatarsLoading && showcaseAvatars.length === 0">
+          <span class="material-symbols-rounded" style="font-size:3rem; color: var(--glow-gold);">person_search</span>
+          <p>Los personajes están siendo configurados. ¡Vuelve pronto!</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div class="loading-skeleton" *ngIf="isLoading">
+    <div class="skeleton-trending">
+      <div class="skeleton-card" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         3. SECCIÓN IA – PERSONAJES (movida al tope)
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="characters-feature-section reveal-section">
+      <div class="section-header characters-header">
+        <div class="char-header-left">
+          <div class="char-label-pill">
+            <span class="pulse-dot"></span>
+            IA Activa
+          </div>
+          <h2 class="section-title">Libros integrados con IA</h2>
+          <p class="char-subtitle">Explora las historias que tienen inteligencia artificial activa. Lee y chatea con sus personajes en tiempo real.</p>
+        </div>
+        <a routerLink="/characters" class="char-see-all">Ver todos los personajes →</a>
+      </div>
+
+      <div class="char-carousel-track">
+        <div class="char-book-card" *ngFor="let book of featuredWithCharacters; let i = index"
+             (click)="goToCharBook(book.slug)">
+          <div class="char-cover-wrap">
+            <div class="border-glow-wrapper"></div>
+            <img [src]="book.cover" [alt]="book.title" class="char-cover-img" loading="lazy"
+                 onerror="this.src='assets/default_cover.jpg'">
+            <div class="char-cover-overlay">
+              <button class="char-cta-btn">Abrir libro →</button>
+            </div>
+            <div class="ia-badge">
+              <span class="ia-dot"></span>
+              <span>IA Activa</span>
+            </div>
+          </div>
+          <div class="char-book-meta">
+            <h3 class="char-book-title">{{ book.title }}</h3>
+            <p class="char-book-author">{{ book.author }}</p>
+            <span class="char-genre-tag">{{ book.genre }}</span>
+            <div class="char-count-chip">
+              <span class="material-symbols-rounded" style="font-size:14px;">person</span>
+              {{ book.characterCount }} personajes IA
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         4. ¿CÓMO FUNCIONA?
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="how-it-works-section reveal-section" aria-label="¿Cómo funciona Literatus?">
+      <div class="section-header" style="text-align:center; justify-content:center;">
+        <h2 class="section-title">¿Cómo funciona?</h2>
+      </div>
+      <div class="how-steps">
+        <div class="how-step" id="step-1">
+          <div class="how-step-num">01</div>
+          <div class="how-step-icon"><span class="material-symbols-rounded" style="font-size: 36px; color: var(--glow-gold);">menu_book</span></div>
+          <h3 class="how-step-title">Escoge un libro</h3>
+          <p class="how-step-desc">Explora nuestra biblioteca de clásicos universales y elige tu próxima aventura.</p>
+        </div>
+        <div class="how-connector" aria-hidden="true"></div>
+        <div class="how-step" id="step-2">
+          <div class="how-step-num">02</div>
+          <div class="how-step-icon"><span class="material-symbols-rounded" style="font-size: 36px; color: var(--glow-gold);">auto_awesome</span></div>
+          <h3 class="how-step-title">Comienza a leer</h3>
+          <p class="how-step-desc">Sumérgete en la historia con una experiencia de lectura inmersiva y fluida.</p>
+        </div>
+        <div class="how-connector" aria-hidden="true"></div>
+        <div class="how-step" id="step-3">
+          <div class="how-step-num">03</div>
+          <div class="how-step-icon"><span class="material-symbols-rounded" style="font-size: 36px; color: var(--glow-gold);">chat</span></div>
+          <h3 class="how-step-title">Habla con los personajes</h3>
+          <p class="how-step-desc">Activa la IA y conversa directamente con los protagonistas de la historia.</p>
+        </div>
+        <div class="how-connector" aria-hidden="true"></div>
+        <div class="how-step" id="step-4">
+          <div class="how-step-num">04</div>
+          <div class="how-step-icon"><span class="material-symbols-rounded" style="font-size: 36px; color: var(--glow-gold);">tips_and_updates</span></div>
+          <h3 class="how-step-title">Descubre perspectivas</h3>
+          <p class="how-step-desc">Cada conversación revela secretos, rutas alternativas y finales inesperados.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         5. TENDENCIAS
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="trending-section reveal-section" *ngIf="trendingBooks.length > 0">
+      <div class="section-header">
+        <h2 class="section-title"><span class="material-symbols-rounded" style="color: #f97316; font-size: 28px; margin-right: 8px; vertical-align: middle;">local_fire_department</span> Tendencias</h2>
+      </div>
+      <div class="trending-track">
+        <div class="trending-card" *ngFor="let book of trendingBooks; trackBy: trackBySlug"
+          (click)="goToBook(book.slug)">
+          <div class="trending-cover-wrap">
+            <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" class="trending-cover">
+            <div class="trending-overlay">
+              <button class="overlay-cta">Ver Libro →</button>
+            </div>
+            <div class="neon-border"></div>
+          </div>
+          <div class="trending-info">
+            <h3 class="trending-title">{{ book.title }}</h3>
+            <p class="trending-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+            <div class="trending-tags" *ngIf="book.tags && book.tags.length">
+              <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2)">{{ tag.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         6. RECOMENDADOS
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="recommended-section reveal-section" *ngIf="recommendedBooks.length > 0">
+      <div class="section-header">
+        <h2 class="section-title"><span class="material-symbols-rounded" style="color: #eab308; font-size: 28px; margin-right: 8px; vertical-align: middle;">star</span> Recomendados</h2>
+      </div>
+      <div class="recommended-track">
+        <div class="recommended-card" *ngFor="let book of recommendedBooks; trackBy: trackBySlug"
+          (click)="goToBook(book.slug)">
+          <div class="recommended-cover-box">
+            <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title">
+          </div>
+          <div class="recommended-info">
+            <h4 class="recommended-book-title">{{ book.title }}</h4>
+            <p class="recommended-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+            <div class="recommended-tags">
+              <span class="rec-tag" *ngFor="let tag of book.tags?.slice(0,1)">#{{ tag.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         7. ESTADÍSTICAS / PRUEBA SOCIAL
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="stats-section reveal-section" aria-label="Estadísticas de la plataforma">
+      <div class="stats-grid">
+        <div class="stat-item" data-target="20">
+          <span class="stat-number" id="stat-books">0</span>
+          <span class="stat-plus">+</span>
+          <span class="stat-label">Libros</span>
+        </div>
+        <div class="stat-item" data-target="25">
+          <span class="stat-number" id="stat-chars">0</span>
+          <span class="stat-plus">+</span>
+          <span class="stat-label">Personajes</span>
+        </div>
+        <div class="stat-item" data-target="150">
+          <span class="stat-number" id="stat-convs">0</span>
+          <span class="stat-plus">+</span>
+          <span class="stat-label">Conversaciones</span>
+        </div>
+        <div class="stat-item" data-target="10">
+          <span class="stat-number" id="stat-authors">0</span>
+          <span class="stat-plus">+</span>
+          <span class="stat-label">Autores</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         8. HISTORIAS QUE COBRAN VIDA (banner inspiracional)
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="inspirational-banner reveal-section">
+      <div class="saludo-container" #saludoContainer></div>
+      <div class="banner-text">
+        <blockquote class="banner-quote">
+          "No solo leas lo que ocurrió.<br>
+          <span class="quote-sub">Pregunta a los protagonistas por qué ocurrió."</span>
+        </blockquote>
+        <p class="banner-desc">
+          En <strong>Literatus Novelist</strong> cada libro es un portal. Lee, escucha y conversa
+          con los personajes que dieron forma a la literatura universal.
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         9. DESCUBRIMIENTO
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="discovery-section reveal-section">
+      <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 2rem;">
+        <div style="display: flex; flex-direction: column;">
+          <h2 class="section-title" style="margin-bottom: 5px;"><span class="material-symbols-rounded" style="color: #3b82f6; font-size: 32px; margin-right: 8px; vertical-align: middle;">explore</span> Descubrimiento</h2>
+          <span class="explore-hint" style="color: var(--text-muted); font-size: 0.95rem; font-style: italic; margin-left: 40px;">Explora todo aquí ➔</span>
+        </div>
+        <div class="explore-action-container">
+          <a routerLink="/catalog" class="cta-primary" style="margin: 0;">Explorar Tienda</a>
+        </div>
+      </div>
+      <div class="trending-track" *ngIf="randomDiscoveryBooks.length > 0">
+        <div class="trending-card" *ngFor="let book of randomDiscoveryBooks; trackBy: trackBySlug"
+          (click)="goToBook(book.slug)">
+          <div class="trending-cover-wrap">
+            <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" class="trending-cover" loading="lazy">
+            <div class="trending-overlay">
+              <button class="overlay-cta">Ver Libro →</button>
+            </div>
+            <div class="neon-border"></div>
+          </div>
+          <div class="trending-info">
+            <h3 class="trending-title">{{ book.title }}</h3>
+            <p class="trending-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+            <div class="trending-tags" *ngIf="book.tags && book.tags.length">
+              <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2)">{{ tag.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         10. CTA TABERNA – Puente hacia compra de tinta
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="ink-cta-section reveal-section" aria-label="Consigue más tinta">
+      <div class="ink-cta-inner">
+        <div class="ink-cta-glow" aria-hidden="true"></div>
+        <p class="ink-cta-eyebrow">
+          <span class="ink-cta-dot"></span>
+          Taberna de Tinta
+        </p>
+        <h2 class="ink-cta-title">¿Necesitas más Tinta?</h2>
+        <p class="ink-cta-sub">
+          Obtén recursos para seguir conversando con tus personajes favoritos<br>y continuar tu aventura literaria.
+        </p>
+        <a routerLink="/tavern" class="cta-primary ink-cta-btn" id="home-tavern-cta">
+          Visitar la Taberna
+          <span class="material-symbols-rounded" style="font-size:18px;">arrow_forward</span>
+        </a>
+      </div>
+    </section>
+
+  </ng-container>
+
+</div>

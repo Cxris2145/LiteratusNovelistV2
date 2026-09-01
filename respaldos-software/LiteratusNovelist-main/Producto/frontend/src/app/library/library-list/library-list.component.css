@@ -1,0 +1,208 @@
+.library-wrapper {
+  padding: 30px 20px;
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
+.library-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.glow-text {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--text-main), var(--glow-purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+}
+
+.book-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  cursor: pointer;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--glow-purple, #8b5cf6);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.2);
+}
+
+.book-card:hover .read-btn {
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4) !important;
+  color: white !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5) !important;
+  border-color: transparent !important;
+}
+
+.card-image {
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid var(--glass-border);
+  position: relative;
+}
+
+.progress-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+  color: var(--glow-cyan);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.card-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.book-title {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.edition-info {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+}
+
+.progress-section {
+  margin-bottom: 20px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.progress-bar-container {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-actions {
+  margin-top: auto;
+}
+
+.read-btn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  text-decoration: none;
+}
+
+.catalog-link-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: var(--glow-purple);
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.catalog-link-btn:hover {
+  filter: brightness(1.2);
+  transform: translateY(-2px);
+}
+
+/* Lottie Loading State */
+.library-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  gap: 1.5rem;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  margin: 2rem auto;
+  max-width: 600px;
+}
+
+.librito-lottie {
+  width: 180px;
+  height: 180px;
+  filter: drop-shadow(0 8px 24px rgba(168,85,247,.4));
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 75%);
+  border-radius: 50%;
+  animation: floatLottie 6s ease-in-out infinite;
+}
+
+.loading-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  color: #e2e8f0;
+  opacity: 0.8;
+  letter-spacing: 1px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes floatLottie {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Banners */
+.message-banner {
+  padding: 40px 20px;
+  border-radius: 16px;
+  text-align: center;
+}
+.message-banner.info {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--text-main);
+}

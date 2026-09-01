@@ -1,0 +1,575 @@
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* ──────────────────────────────────────────────────────────────────────────
+   SISTEMA TIPOGRÁFICO — LiteratusNovelist
+   Las fuentes se cargan vía <link> en index.html (más rápido que @import CSS).
+   ──────────────────────────────────────────────────────────────────────────
+   Jerarquía:
+   --font-display  : Cormorant Garamond  → Títulos épicos / Hero
+   --font-ui       : Plus Jakarta Sans   → Navegación / UI / Labels
+   --font-body     : Plus Jakarta Sans   → Cuerpo de texto
+   --font-brand    : Cinzel              → Logo de marca
+   --font-literary : EB Garamond         → Citas y blockquotes literarios
+   ──────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Paleta de color — Classic Literature Artisanal (Default) */
+  --bg-color:        #0A1914;  /* Deep Emerald Dark */
+  --bg-surface:      #11261d;  /* Darker surface */
+  --text-main:       #fcfaf2;  /* Parchment white */
+  --text-muted:      #bbaea0;  /* Aged paper gray */
+  --text-subtle:     #8a7f72;
+  --glass-bg:        rgba(10, 25, 20, 0.4);
+  --glass-border:    rgba(212, 175, 55, 0.15); /* Old Gold */
+  --glow-accent:     #D4AF37;  /* Old Gold */
+  --glow-purple:     #8B0000;  /* Deep Burgundy */
+  --glow-gold:       #D4AF37;  /* Old Gold */
+
+  /* Sistema tipográfico Default */
+  --font-display:    'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  --font-ui:         'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
+  --font-body:       'EB Garamond', Georgia, serif;
+  --font-brand:      'Cinzel', 'Trajan Pro', Georgia, serif;
+  --font-literary:   'EB Garamond', Georgia, serif;
+}
+
+/* Tema Clásico Original (Neón) para demo al cliente */
+[data-theme="neon"] {
+  --bg-color:        #0b0f1a;
+  --bg-surface:      #0f172a;
+  --text-main:       #f1f5f9;
+  --text-muted:      #94a3b8;
+  --text-subtle:     #475569;
+  --glass-bg:        rgba(255, 255, 255, 0.03);
+  --glass-border:    rgba(255, 255, 255, 0.08);
+  --glow-accent:     #3b82f6;
+  --glow-purple:     #8b5cf6;
+  --glow-gold:       #a855f7; /* Override para que los bordes gold sean morados */
+  
+  --font-body:       'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif;
+}
+
+/* Tema Light Gallery (Minimalista, Estilo Galería de Arte) */
+[data-theme="light-gallery"] {
+  --bg-color:        #FAFAFA;
+  --bg-surface:      #FFFFFF;
+  --text-main:       #111111;
+  --text-muted:      #555555;
+  --text-subtle:     #888888;
+  --glass-bg:        rgba(255, 255, 255, 0.85);
+  --glass-border:    rgba(0, 0, 0, 0.08);
+  --glow-accent:     #000000;
+  --glow-purple:     #333333;
+  --glow-gold:       #000000;
+  
+  --font-body:       'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display:    'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: clip; /* Evita desbordamiento horizontal sin causar doble scrollbar */
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100vh;
+  margin: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  overflow-x: clip; /* Usar clip en vez de hidden impide la creación de un contexto de scroll en Windows */
+  overflow-y: visible !important;
+  /*
+   * FONDO ARTESANAL — Tres capas:
+   */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(212, 175, 55, 0.08), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(139, 0, 0, 0.06), transparent),
+    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(212, 175, 55, 0.03), transparent);
+  background-attachment: fixed;
+  background-size: 300px 300px, 100% 100%, 100% 100%, 100% 100%;
+}
+
+[data-theme="neon"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(59, 130, 246, 0.12), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(139, 92, 246, 0.14), transparent),
+    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(245, 158, 11, 0.04), transparent);
+}
+
+[data-theme="light-gallery"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(0, 0, 0, 0.02), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(0, 0, 0, 0.01), transparent);
+}
+
+/* Base Glass Container */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Native Inputs & Forms */
+.glass-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.glass-input:focus {
+  border-color: var(--glow-accent);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Premium Buttons: Artesanal */
+.glass-btn {
+  background: var(--bg-surface);
+  color: var(--glow-gold);
+  border: 1px solid var(--glass-border);
+  padding: 12px 24px;
+  border-radius: 4px; /* Menos redondeado, más clásico */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-family: var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 0 var(--glow-gold);
+}
+
+[data-theme="neon"] .glass-btn {
+  background: linear-gradient(135deg, var(--glow-accent), var(--glow-purple));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  box-shadow: none;
+}
+
+.glass-btn:hover {
+  background: var(--glow-gold);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+[data-theme="neon"] .glass-btn:hover {
+  background: linear-gradient(135deg, var(--glow-accent), var(--glow-purple));
+  color: white;
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="light-gallery"] .glass-btn {
+  background: #FFFFFF;
+  color: #000000;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+[data-theme="light-gallery"] .glass-btn:hover {
+  background: #000000;
+  color: #FFFFFF;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.glass-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Mobile Tweak - Full width layout for nativeness */
+.container {
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* ── DASHBOARD MODE: Immersive (no navbar, no outer scroll) ── */
+.container.dashboard-mode {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* When in dashboard, prevent body from creating its own scrollbar */
+body:has(.container.dashboard-mode) {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── PREMIUM MINIMALIST LUCIDE ICONS ── */
+.lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  stroke: currentColor;
+  stroke-width: 2px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.4));
+}
+
+.lucide-icon:hover {
+  transform: scale(1.15) translateY(-2px);
+  filter: drop-shadow(0 0 12px var(--glow-accent));
+  color: var(--glow-accent);
+}
+
+.checkout-icon .lucide-icon, .ink-icon .lucide-icon {
+  color: var(--glow-purple);
+  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.6));
+}
+
+/* ── LIGHT THEME COMPONENT OVERRIDES ── */
+[data-theme="light-gallery"] .search-input {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  color: #111 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light-gallery"] .search-input::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="light-gallery"] .search-input:focus {
+  background: #ffffff !important;
+  border-color: #111 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light-gallery"] .category-pill {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light-gallery"] .category-pill:hover {
+  background: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+}
+
+[data-theme="light-gallery"] .category-pill.active {
+  margin: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  overflow-x: clip; /* Usar clip en vez de hidden impide la creación de un contexto de scroll en Windows */
+  overflow-y: visible !important;
+  /*
+   * FONDO ARTESANAL — Tres capas:
+   */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(212, 175, 55, 0.08), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(139, 0, 0, 0.06), transparent),
+    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(212, 175, 55, 0.03), transparent);
+  background-attachment: fixed;
+  background-size: 300px 300px, 100% 100%, 100% 100%, 100% 100%;
+}
+
+[data-theme="neon"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(59, 130, 246, 0.12), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(139, 92, 246, 0.14), transparent),
+    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(245, 158, 11, 0.04), transparent);
+}
+
+[data-theme="light-gallery"] body {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(0, 0, 0, 0.02), transparent),
+    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(0, 0, 0, 0.01), transparent);
+}
+
+/* Base Glass Container */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Native Inputs & Forms */
+.glass-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.glass-input:focus {
+  border-color: var(--glow-accent);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Premium Buttons: Artesanal */
+.glass-btn {
+  background: var(--bg-surface);
+  color: var(--glow-gold);
+  border: 1px solid var(--glass-border);
+  padding: 12px 24px;
+  border-radius: 4px; /* Menos redondeado, más clásico */
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-family: var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 0 0 var(--glow-gold);
+}
+
+[data-theme="neon"] .glass-btn {
+  background: linear-gradient(135deg, var(--glow-accent), var(--glow-purple));
+  color: white;
+  border: none;
+  border-radius: 8px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  box-shadow: none;
+}
+
+.glass-btn:hover {
+  background: var(--glow-gold);
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+[data-theme="neon"] .glass-btn:hover {
+  background: linear-gradient(135deg, var(--glow-accent), var(--glow-purple));
+  color: white;
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="light-gallery"] .glass-btn {
+  background: #FFFFFF;
+  color: #000000;
+  border: 1px solid rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+[data-theme="light-gallery"] .glass-btn:hover {
+  background: #000000;
+  color: #FFFFFF;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+.glass-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Mobile Tweak - Full width layout for nativeness */
+.container {
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* ── DASHBOARD MODE: Immersive (no navbar, no outer scroll) ── */
+.container.dashboard-mode {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* When in dashboard, prevent body from creating its own scrollbar */
+body:has(.container.dashboard-mode) {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── PREMIUM MINIMALIST LUCIDE ICONS ── */
+.lucide-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  stroke: currentColor;
+  stroke-width: 2px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.4));
+}
+
+.lucide-icon:hover {
+  transform: scale(1.15) translateY(-2px);
+  filter: drop-shadow(0 0 12px var(--glow-accent));
+  color: var(--glow-accent);
+}
+
+.checkout-icon .lucide-icon, .ink-icon .lucide-icon {
+  color: var(--glow-purple);
+  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.6));
+}
+
+/* ── LIGHT THEME COMPONENT OVERRIDES ── */
+[data-theme="light-gallery"] .search-input {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  color: #111 !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light-gallery"] .search-input::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="light-gallery"] .search-input:focus {
+  background: #ffffff !important;
+  border-color: #111 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light-gallery"] .category-pill {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light-gallery"] .category-pill:hover {
+  background: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+}
+
+[data-theme="light-gallery"] .category-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+}
+
+[data-theme="light-gallery"] .progress-badge {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light-gallery"] .title-font {
+  background: linear-gradient(to right, #111, #333) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: none !important;
+}
+
+[data-theme="light-gallery"] .glass-select-mini {
+  background: #ffffff !important;
+  color: #111 !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="light-gallery"] .filter-box-mini::after {
+  color: #111 !important;
+}
+
+[data-theme="light-gallery"] .search-box .search-icon {
+  color: #475569 !important;
+}
+
+/* ── THE ECONOMIST & CHECKOUT LIGHT THEME OVERRIDES ── */
+[data-theme="light-gallery"] .hero-backdrop { opacity: 0.05 !important; filter: blur(20px) grayscale(100%) !important; }
+[data-theme="light-gallery"] .hero-overlay { background: linear-gradient(to bottom, rgba(255,255,255,0.8), #fff 80%) !important; }
+[data-theme="light-gallery"] .book-title {
+  background: none !important;
+  -webkit-text-fill-color: #000 !important;
+  color: #000 !important;
+  text-shadow: none !important;
+  font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif !important;
+}
+[data-theme="light-gallery"] .book-authors { color: #d32f2f !important; font-weight: 600 !important; }
+[data-theme="light-gallery"] .action-bar { background: #fff !important; border-color: #e5e7eb !important; box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important; }
+[data-theme="light-gallery"] .price-val { color: #000 !important; }
+[data-theme="light-gallery"] .ink-text { color: #d32f2f !important; }
+[data-theme="light-gallery"] .buy-btn { background: #d32f2f !important; color: #fff !important; box-shadow: none !important; border-radius: 4px !important; }
+[data-theme="light-gallery"] .buy-btn:hover { background: #b71c1c !important; }
+[data-theme="light-gallery"] .badge { background: #f8f9fa !important; border-color: #dee2e6 !important; color: #333 !important; }
+[data-theme="light-gallery"] .synopsis-section h3 { color: #000 !important; border-bottom: 2px solid #d32f2f !important; display: inline-block !important; padding-bottom: 0.5rem !important; margin-bottom: 1rem !important; }
+
+/* The Economist Typography for Synopsis */
+[data-theme="light-gallery"] .synopsis-text { 
+  color: #000 !important; 
+  font-family: 'EB Garamond', 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 1.15rem !important;
+  line-height: 1.8 !important;
+  text-align: justify !important;
+}
+[data-theme="light-gallery"] .synopsis-text::first-letter {
+  font-size: 3.5rem !important;
+  float: left !important;
+  line-height: 0.8 !important;
+  padding-right: 0.5rem !important;
+  padding-top: 0.2rem !important;
+  font-weight: 700 !important;
+  color: #000 !important;
+}
+
+[data-theme="light-gallery"] .tag-chip { background: #f1f5f9 !important; color: #334155 !important; border-color: #e2e8f0 !important; }
+[data-theme="light-gallery"] .author-card-container, [data-theme="light-gallery"] .reviews-container { background: #fff !important; border: 1px solid #e5e7eb !important; box-shadow: 0 10px 25px rgba(0,0,0,0.02) !important; }
+[data-theme="light-gallery"] .author-card-info h3, [data-theme="light-gallery"] .reviews-header h3 { color: #000 !important; }
+[data-theme="light-gallery"] .author-card-bio, [data-theme="light-gallery"] .comment-text { color: #555 !important; }
+[data-theme="light-gallery"] .comment-card { background: #f8f9fa !important; border-color: #dee2e6 !important; color: #111 !important; }
+[data-theme="light-gallery"] .comment-user { color: #000 !important; }
+
+/* Checkout Light Theme */
+[data-theme="light-gallery"] .checkout-page { color: #111 !important; }
+[data-theme="light-gallery"] .checkout-header h1 { background: none !important; -webkit-text-fill-color: #000 !important; color: #000 !important; }
+[data-theme="light-gallery"] .checkout-header p { color: #555 !important; }
+[data-theme="light-gallery"] .checkout-icon { color: #000 !important; }
+[data-theme="light-gallery"] .glass-panel { background: #fff !important; border-color: #e5e7eb !important; box-shadow: 0 8px 30px rgba(0,0,0,0.05) !important; }
+[data-theme="light-gallery"] .product-title { color: #000 !important; }
+[data-theme="light-gallery"] .product-synopsis, [data-theme="light-gallery"] .price-label { color: #555 !important; }
+[data-theme="light-gallery"] .price-value { color: #d32f2f !important; }
+[data-theme="light-gallery"] .security-badge { background: #f8f9fa !important; border-color: #dee2e6 !important; color: #333 !important; }
+
+/* Adicionales faltantes para Book Detail Light Theme */
+[data-theme="light-gallery"] .guest-btn { background: #fff !important; color: #000 !important; border: 1px solid #000 !important; box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important; }
+[data-theme="light-gallery"] .guest-btn:hover { background: #000 !important; color: #fff !important; }
+[data-theme="light-gallery"] .avatars-container h3, [data-theme="light-gallery"] .legal-header h3 { color: #000 !important; }
+[data-theme="light-gallery"] .avatar-name { color: #333 !important; }
+[data-theme="light-gallery"] .legal-text { color: #555 !important; }
+[data-theme="light-gallery"] .tts-btn { color: #000 !important; border-color: #000 !important; }
+[data-theme="light-gallery"] .tts-btn:hover { background: rgba(0,0,0,0.1) !important; }
+

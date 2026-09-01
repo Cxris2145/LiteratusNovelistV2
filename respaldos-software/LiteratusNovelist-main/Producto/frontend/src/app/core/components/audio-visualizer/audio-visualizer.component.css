@@ -1,0 +1,23 @@
+.visualizer-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 10px;
+  background: rgba(124, 58, 237, 0.1);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.visualizer-container.listening {
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.4);
+}
+
+.wave {
+  width: 4px;
+  background-color: #a78bfa;
+  border-radius: 2px;
+  transition: height 0.05s ease;
+  min-height: 4px;
+}

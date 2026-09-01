@@ -1,0 +1,59 @@
+<div class="library-wrapper">
+  <div class="library-header">
+    <h1 class="glow-text">Mi Biblioteca</h1>
+    <p class="subtitle">Tus obras adquiridas y progreso de lectura.</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="library-loading-container" *ngIf="isLoading && !errorMsg">
+    <div class="librito-lottie" #libritoContainer></div>
+    <p class="loading-text">Cargando biblioteca...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="message-banner error" *ngIf="errorMsg">
+    {{ errorMsg }}
+  </div>
+
+  <!-- Empty State -->
+  <div class="message-banner info" *ngIf="!isLoading && inventoryItems.length === 0 && !errorMsg">
+    Aún no has adquirido ningún libro. ¡Explora el catálogo para empezar!
+    <br><br>
+    <a routerLink="/catalog" class="catalog-link-btn">Ir al Catálogo</a>
+  </div>
+
+  <!-- Grid de Inventario -->
+  <div class="grid-container" *ngIf="!isLoading && inventoryItems.length > 0">
+    <div class="glass-panel book-card" *ngFor="let item of inventoryItems" [routerLink]="['/reader', item.id]">
+      
+      <div class="card-image" 
+           [style.backgroundImage]="'url(' + (item.book_cover || item.edition?.book?.cover_image || 'assets/default_cover.jpg') + ')'">
+        <div class="progress-badge">{{ (item.progress?.completion_percentage || 0) | number:'1.0-0' }}% leído</div>
+      </div>
+      
+      <div class="card-content">
+        <h3 class="book-title">{{ item.book_title || item.edition?.book?.title || 'Sin Título' }}</h3>
+        <p class="edition-info">{{ item.edition?.book?.author_name || 'Autor Desconocido' }}</p>
+        
+        <div class="progress-section">
+          <div class="progress-label">
+            <span>Progreso</span>
+            <span>{{ (item.progress?.completion_percentage || 0) | number:'1.0-0' }}%</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" [style.width]="(item.progress?.completion_percentage || 0) + '%'"></div>
+          </div>
+        </div>
+        
+        <div class="card-actions">
+          <div class="glass-btn read-btn">
+            <span>Continuar Lectura</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

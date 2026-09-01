@@ -1,0 +1,153 @@
+<div class="authors-container">
+  <header class="list-header">
+    <div class="header-text">
+      <h2>Gestión de Autores</h2>
+      <p>Crea y administra los perfiles de los escritores de tu biblioteca.</p>
+    </div>
+  </header>
+
+  <div class="authors-grid">
+    <!-- FORMULARIO DE CREACIÓN/EDICIÓN -->
+    <div class="author-form card">
+      <h3 class="section-title">{{ editingId ? 'Editar Autor' : 'Nuevo Autor' }}</h3>
+      <div class="nexus-form">
+        <div class="form-row">
+          <div class="form-group" style="flex: 0 0 120px;">
+            <label>Foto</label>
+            <div class="photo-uploader" (click)="photoInput.click()">
+              <img *ngIf="photoPreview" [src]="photoPreview" class="photo-preview">
+              <div *ngIf="!photoPreview" class="photo-placeholder"><span class="material-symbols-outlined">add_a_photo</span></div>
+              <input type="file" #photoInput (change)="onPhotoSelected($event)" accept="image/*" style="display:none">
+            </div>
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label>Nombre Completo</label>
+            <input type="text" [(ngModel)]="newAuthor.full_name" placeholder="Ej: Mary Shelley">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Año Nacimiento</label>
+            <input type="number" [(ngModel)]="newAuthor.birth_year" placeholder="1797">
+          </div>
+          <div class="form-group">
+            <label>Año Defunción</label>
+            <input type="number" [(ngModel)]="newAuthor.death_year" placeholder="1851">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nacionalidad</label>
+          <input type="text" [(ngModel)]="newAuthor.nationality" placeholder="Reino Unido">
+        </div>
+
+        <div class="form-group">
+          <label>Temas / Estilo (separados por coma)</label>
+          <input type="text" [(ngModel)]="newAuthor.themes" placeholder="Romanticismo, Gótico, Ciencia Ficción">
+        </div>
+
+        <div class="form-group">
+          <label>Wikipedia URL</label>
+          <input type="url" [(ngModel)]="newAuthor.wikipedia_url" placeholder="https://es.wikipedia.org/wiki/Mary_Shelley">
+        </div>
+
+        <div class="form-group">
+          <label>Biografía</label>
+          <textarea [(ngModel)]="newAuthor.bio" rows="4" placeholder="Vida y obra..."></textarea>
+        </div>
+    
+        <div class="form-actions">
+          <button class="cancel-btn" *ngIf="editingId" (click)="resetForm()">Cancelar</button>
+          <button class="save-btn" [disabled]="!newAuthor.full_name" (click)="saveAuthor()" style="display: flex; align-items: center; gap: 6px; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">save</span>
+            {{ editingId ? 'Actualizar' : 'Crear Autor' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTADO DE AUTORES -->
+    <div class="authors-list card">
+      <h3 class="section-title">Autores Registrados</h3>
+      
+      <div class="search-box" style="margin-bottom: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--nexus-border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px;">
+        <span class="material-symbols-outlined" style="color: #64748b; font-size: 20px;">search</span>
+        <input type="text" placeholder="Buscar autor por nombre..." (input)="filterAuthors($event)" style="background: transparent; border: none; outline: none; color: white; width: 100%;">
+      </div>
+
+      <div class="list-scroll">
+        <div class="author-item" *ngFor="let author of filteredAuthors">
+          <div class="author-info" (click)="openPreview(author.id)">
+            <img *ngIf="author.photo" [src]="author.photo" class="author-avatar-img">
+            <span *ngIf="!author.photo" class="author-avatar">{{ author.full_name[0] }}</span>
+            <div class="author-details">
+              <span class="author-name">{{ author.full_name }}</span>
+              <span class="author-count">{{ author.books_count }} libros</span>
+            </div>
+          </div>
+          <div class="author-actions" style="display: flex; gap: 4px;">
+            <button class="preview-btn" (click)="openPreview(author.id)" title="Ver Perfil" style="background: transparent; border: none; cursor: pointer; color: #a5b4fc; display: flex; align-items: center; justify-content: center; padding: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 18px;">visibility</span>
+            </button>
+            <button class="edit-icon" (click)="editAuthor(author)" style="background: transparent; border: none; cursor: pointer; color: #fbbf24; display: flex; align-items: center; justify-content: center; padding: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+            </button>
+            <button class="delete-icon" (click)="deleteAuthor(author.id)" style="background: transparent; border: none; cursor: pointer; color: #ef4444; display: flex; align-items: center; justify-content: center; padding: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- MODAL DE PREVIEW (ESTILO ELEJANDRIA) -->
+<div class="preview-overlay" *ngIf="previewAuthor" (click)="previewAuthor = null">
+  <div class="preview-modal" (click)="$event.stopPropagation()">
+    <button class="close-preview" (click)="previewAuthor = null">×</button>
+    
+    <div class="elejandria-profile" *ngIf="previewAuthor">
+      <div class="profile-sidebar">
+        <img [src]="previewAuthor.photo || 'assets/placeholder-author.png'" class="author-photo-big">
+        <div class="author-meta-box">
+          <span class="meta-label">Siglo</span>
+          <span class="meta-value" *ngIf="previewAuthor.birth_year">{{ (previewAuthor.birth_year / 100 + 1).toFixed(0) }}</span>
+          <span class="meta-dates" *ngIf="previewAuthor.birth_year">{{ previewAuthor.birth_year }} – {{ previewAuthor.death_year || 'Presente' }}</span>
+        </div>
+        <a *ngIf="previewAuthor.wikipedia_url" [href]="previewAuthor.wikipedia_url" target="_blank" class="wiki-link">
+          W Perfil en Wikipedia
+        </a>
+      </div>
+
+      <div class="profile-main">
+        <h1>Libros de {{ previewAuthor.full_name }}</h1>
+        <p class="author-bio-text">{{ previewAuthor.bio }}</p>
+
+        <div class="author-themes" *ngIf="previewAuthor.themes">
+          <h3>Temática de su obra</h3>
+          <div class="theme-tags">
+            <span class="theme-tag" *ngFor="let theme of previewAuthor.themes.split(',')">{{ theme.trim() }}</span>
+          </div>
+        </div>
+
+        <div class="author-books-section">
+          <h3>¿Por dónde empezar?</h3>
+          <div class="books-grid-mini">
+            <div class="mini-book-card" *ngFor="let book of previewAuthor.books">
+              <img [src]="book.cover || 'assets/placeholder-cover.png'">
+              <div class="mini-book-info">
+                <h4>{{ book.title }}</h4>
+                <p>{{ book.synopsis }}</p>
+                <button class="view-book-btn">Ver libro</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

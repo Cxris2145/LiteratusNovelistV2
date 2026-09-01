@@ -1,0 +1,65 @@
+<div class="profile-container fade-in">
+  <div class="glass-panel profile-card">
+    <div class="profile-header">
+      <div class="avatar-section">
+        <div class="avatar-wrapper">
+          <div class="initials-avatar-large" [style.background-color]="avatarColor">{{ userInitials }}</div>
+        </div>
+      </div>
+      <h2>Tu Perfil</h2>
+      <p class="subtitle">Gestiona tu identidad en Literatus Novelist</p>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+      <div class="form-group">
+        <label>Nombre de Usuario</label>
+        <input type="text" formControlName="username" class="glass-input" placeholder="Tu alias de escritor">
+      </div>
+
+      <div class="form-group">
+        <label>Correo Electrónico (No modificable)</label>
+        <input type="email" formControlName="email" class="glass-input locked-input">
+        <mat-icon class="lock-icon">lock</mat-icon>
+      </div>
+
+      <div class="form-group color-picker-group">
+        <label>Color de Avatar</label>
+        <div class="color-options">
+          <button type="button" *ngFor="let color of availableColors"
+                  class="color-circle" 
+                  [style.background-color]="color"
+                  [class.selected]="color === avatarColor"
+                  (click)="avatarColor = color"
+                  [attr.aria-label]="'Seleccionar color ' + color"></button>
+        </div>
+      </div>
+
+      <div class="form-group theme-picker-group">
+        <label>Tema Visual de la Aplicación</label>
+        <div class="theme-options">
+          <button type="button" *ngFor="let theme of availableThemes"
+                  class="theme-btn" 
+                  [class.selected]="theme.id === selectedTheme"
+                  (click)="previewTheme(theme.id)">
+            {{ theme.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Biografía Breve</label>
+        <textarea formControlName="bio" class="glass-input textarea" rows="4"
+          placeholder="Cuéntanos un poco sobre ti..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="glass-btn save-btn" [disabled]="profileForm.invalid || loading">
+          <mat-icon *ngIf="!loading">save</mat-icon>
+          <span *ngIf="!loading">Guardar Cambios</span>
+          <span *ngIf="loading" class="spinner"></span>
+          <span *ngIf="loading">Guardando...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

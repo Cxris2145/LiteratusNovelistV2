@@ -1,0 +1,264 @@
+<div class="avatar-editor-page">
+
+  <!-- HEADER CON NAVEGACIÓN -->
+  <header class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      ← Volver al Libro
+    </button>
+    <div class="header-info">
+      <h1>
+        <span class="material-symbols-outlined" style="vertical-align: text-bottom;">{{ isNew ? 'star' : 'edit' }}</span>
+        {{ isNew ? 'Nuevo Personaje' : 'Editar Personaje' }}
+      </h1>
+      <p class="subtitle">Configura la personalidad y comportamiento de la IA</p>
+    </div>
+    <div class="header-stats" *ngIf="!isNew && avatar.chat_count !== undefined">
+      <span class="stat-badge"><span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 4px;">chat</span> {{ avatar.chat_count }} conversaciones</span>
+    </div>
+  </header>
+
+  <!-- ESTADO DE CARGA -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando personaje...</p>
+  </div>
+
+  <!-- ALERTAS -->
+  <div class="alert alert-error" *ngIf="errorMsg">
+    <span class="material-symbols-outlined" style="vertical-align: middle;">warning</span> {{ errorMsg }}
+  </div>
+  <div class="alert alert-success" *ngIf="successMsg">
+    <span class="material-symbols-outlined" style="vertical-align: middle;">check_circle</span> {{ successMsg }}
+  </div>
+
+  <!-- FORMULARIO PRINCIPAL -->
+  <div class="editor-grid" *ngIf="!loading">
+
+    <!-- COLUMNA IZQUIERDA: IDENTIDAD VISUAL -->
+    <div class="card section-card">
+      <h2 class="section-title"><span class="material-symbols-outlined" style="vertical-align: text-bottom;">image</span> Identidad Visual</h2>
+
+      <!-- Imagen Neutral -->
+      <div class="avatar-image-wrapper">
+        <label style="text-align: center; display: block; margin-bottom: 2px;">Estado Neutral (Idle)</label>
+        <p style="text-align: center; font-size: 11px; color: #64748b; margin-bottom: 8px;">Recomendado: 500x500px (1:1)</p>
+        <div class="avatar-img-preview" *ngIf="avatarPreview">
+          <img [src]="avatarPreview" alt="Avatar Neutral" onerror="this.onerror=null;this.src='assets/placeholder-avatar.png'">
+          <button class="remove-img-btn" (click)="removeImage('avatar')" title="Quitar imagen">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="file-upload" *ngIf="!avatarPreview">
+          <input type="file" (change)="onImageSelected($event, 'avatar')" accept="image/*" id="avatar-img-input">
+          <label for="avatar-img-input">
+            <span class="upload-icon material-symbols-outlined">image</span>
+            <span>Subir Imagen Neutral</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Imágenes Hablando -->
+      <div class="avatar-image-wrapper" style="margin-top: 20px;">
+        <label style="text-align: center; display: block; margin-bottom: 2px;">Estado Hablando (Animación)</label>
+        <p style="text-align: center; font-size: 11px; color: #64748b; margin-bottom: 8px;">Recomendado: 500x500px (1:1). El sistema intercalará estas 3 imágenes.</p>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%;">
+          <!-- Frame 1 -->
+          <div style="flex: 1 1 100px; min-width: 100px; max-width: 150px; display: flex; flex-direction: column; align-items: center;">
+            <div class="avatar-img-preview" *ngIf="speakingPreview1" style="height: 100px; padding: 4px;">
+              <img [src]="speakingPreview1" alt="Hablando 1" onerror="this.onerror=null;this.src='assets/placeholder-avatar.png'" style="height: 100%; object-fit: contain;">
+              <button class="remove-img-btn" (click)="removeImage('speaking1')" title="Quitar imagen" style="width: 20px; height: 20px; top: -5px; right: -5px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+              </button>
+            </div>
+            <div class="file-upload" *ngIf="!speakingPreview1" style="min-height: 100px; width: 100%;">
+              <input type="file" (change)="onImageSelected($event, 'speaking1')" accept="image/*" id="speaking-img-input-1">
+              <label for="speaking-img-input-1" style="gap: 4px; padding: 10px; width: 100%;">
+                <span class="upload-icon material-symbols-outlined" style="font-size: 20px; margin-bottom: 0;">looks_one</span>
+                <span style="font-size: 11px;">Frame 1</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Frame 2 -->
+          <div style="flex: 1 1 100px; min-width: 100px; max-width: 150px; display: flex; flex-direction: column; align-items: center;">
+            <div class="avatar-img-preview" *ngIf="speakingPreview2" style="height: 100px; padding: 4px;">
+              <img [src]="speakingPreview2" alt="Hablando 2" onerror="this.onerror=null;this.src='assets/placeholder-avatar.png'" style="height: 100%; object-fit: contain;">
+              <button class="remove-img-btn" (click)="removeImage('speaking2')" title="Quitar imagen" style="width: 20px; height: 20px; top: -5px; right: -5px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+              </button>
+            </div>
+            <div class="file-upload" *ngIf="!speakingPreview2" style="min-height: 100px; width: 100%;">
+              <input type="file" (change)="onImageSelected($event, 'speaking2')" accept="image/*" id="speaking-img-input-2">
+              <label for="speaking-img-input-2" style="gap: 4px; padding: 10px; width: 100%;">
+                <span class="upload-icon material-symbols-outlined" style="font-size: 20px; margin-bottom: 0;">looks_two</span>
+                <span style="font-size: 11px;">Frame 2</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Frame 3 -->
+          <div style="flex: 1 1 100px; min-width: 100px; max-width: 150px; display: flex; flex-direction: column; align-items: center;">
+            <div class="avatar-img-preview" *ngIf="speakingPreview3" style="height: 100px; padding: 4px;">
+              <img [src]="speakingPreview3" alt="Hablando 3" onerror="this.onerror=null;this.src='assets/placeholder-avatar.png'" style="height: 100%; object-fit: contain;">
+              <button class="remove-img-btn" (click)="removeImage('speaking3')" title="Quitar imagen" style="width: 20px; height: 20px; top: -5px; right: -5px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+              </button>
+            </div>
+            <div class="file-upload" *ngIf="!speakingPreview3" style="min-height: 100px; width: 100%;">
+              <input type="file" (change)="onImageSelected($event, 'speaking3')" accept="image/*" id="speaking-img-input-3">
+              <label for="speaking-img-input-3" style="gap: 4px; padding: 10px; width: 100%;">
+                <span class="upload-icon material-symbols-outlined" style="font-size: 20px; margin-bottom: 0;">looks_3</span>
+                <span style="font-size: 11px;">Frame 3</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Imagen Pensando -->
+      <div class="avatar-image-wrapper" style="margin-top: 20px; margin-bottom: 20px;">
+        <label style="text-align: center; display: block; margin-bottom: 2px;">Estado Pensando</label>
+        <p style="text-align: center; font-size: 11px; color: #64748b; margin-bottom: 8px;">Recomendado: 500x500px (1:1)</p>
+        <div class="avatar-img-preview" *ngIf="thinkingPreview">
+          <img [src]="thinkingPreview" alt="Avatar Pensando" onerror="this.onerror=null;this.src='assets/placeholder-avatar.png'">
+          <button class="remove-img-btn" (click)="removeImage('thinking')" title="Quitar imagen">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="file-upload" *ngIf="!thinkingPreview">
+          <input type="file" (change)="onImageSelected($event, 'thinking')" accept="image/*" id="thinking-img-input">
+          <label for="thinking-img-input">
+            <span class="upload-icon material-symbols-outlined">psychology</span>
+            <span>Subir Imagen Pensando</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Nombre -->
+      <div class="form-group">
+        <label>Nombre del Personaje <span class="required">*</span></label>
+        <input type="text" [(ngModel)]="avatar.name" placeholder="Ej: Drácula, Sherlock Holmes...">
+      </div>
+
+      <!-- Descripción -->
+      <div class="form-group">
+        <label>Descripción Pública</label>
+        <p class="field-hint">Lo que el lector verá al elegir este personaje</p>
+        <textarea [(ngModel)]="avatar.description" rows="3" placeholder="Apariencia, rol en la historia, habilidades..."></textarea>
+      </div>
+
+      <!-- Flags de identidad -->
+      <div class="flags-group">
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="avatar.is_author">
+          <span class="toggle-slider"></span>
+          <div class="toggle-text">
+            <strong>¿Es el Autor / Narrador?</strong>
+            <small>Aparece en una sección propia del panel</small>
+          </div>
+        </label>
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="avatar.is_major_character">
+          <span class="toggle-slider"></span>
+          <div class="toggle-text">
+            <strong>¿Es Personaje Principal?</strong>
+            <small>Aparece destacado sobre los secundarios</small>
+          </div>
+        </label>
+      </div>
+
+      <!-- Capítulo de desbloqueo -->
+      <div class="form-group">
+        <label>Capítulo de Desbloqueo</label>
+        <p class="field-hint">El personaje se activa cuando el lector alcanza este capítulo (0 = disponible desde el inicio)</p>
+        <input type="number" [(ngModel)]="avatar.unlock_at_chapter" min="0" placeholder="0">
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: CONFIGURACIÓN DE IA -->
+    <div class="card section-card">
+      <h2 class="section-title"><span class="material-symbols-outlined" style="vertical-align: text-bottom;">smart_toy</span> Configuración de IA</h2>
+
+      <!-- Mensaje de saludo -->
+      <div class="form-group">
+        <label>Mensaje de Saludo</label>
+        <p class="field-hint">Primer mensaje que el personaje envía al iniciar un chat nuevo</p>
+        <textarea [(ngModel)]="avatar.greeting_message" rows="2" placeholder="Ej: Bienvenido a mi castillo, viajero..."></textarea>
+      </div>
+
+      <!-- System Prompt -->
+      <div class="form-group highlight-group">
+        <label>System Prompt <span class="badge-ia">IA</span></label>
+        <p class="field-hint">Instrucciones base que definen quién es y cómo habla este personaje. Es el campo más importante.</p>
+        <textarea [(ngModel)]="avatar.system_prompt" rows="6" placeholder="Eres [Nombre], un personaje de [Obra]. Tu voz es [descripción]. Tu vocabulario es [descripción]. Siempre hablas en primera persona y..."></textarea>
+      </div>
+
+      <!-- Contexto emocional -->
+      <div class="form-group">
+        <label>Contexto Emocional / Motivaciones <span class="badge-ia">IA</span></label>
+        <p class="field-hint">Información "secreta" que la IA conoce pero el personaje no revela directamente. Define su estado interno.</p>
+        <textarea [(ngModel)]="avatar.behavioral_context" rows="3" placeholder="Ej: Está atormentado por la culpa de haber abandonado a su familia. Bajo su apariencia fría, desea ser comprendido."></textarea>
+      </div>
+
+      <!-- Diálogos de ejemplo -->
+      <div class="form-group">
+        <label>Diálogos de Ejemplo <span class="badge-ia">IA</span></label>
+        <p class="field-hint">Fragmentos reales de la obra para que la IA imite el estilo literario del personaje con precisión.</p>
+        <textarea [(ngModel)]="avatar.sample_dialogues" rows="3" placeholder="Ej: &quot;¡Por todos los santos!&quot;, exclamó. &quot;El tiempo no espera a nadie, mucho menos a los cobardes.&quot;"></textarea>
+      </div>
+
+      <!-- Configuración técnica del modelo -->
+      <div class="model-config">
+        <h3 class="subsection-title"><span class="material-symbols-outlined" style="vertical-align: text-bottom;">settings</span> Parámetros del Modelo</h3>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Modelo LLM</label>
+            <p class="field-hint">Motor de IA a usar para este personaje</p>
+            <select [(ngModel)]="avatar.model_name">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash (recomendado)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+              <option value="gemini-flash-latest">Gemini Flash Latest</option>
+              <option value="deepseek-chat">DeepSeek Chat (backup)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Temperatura: <strong>{{ avatar.temperature }}</strong></label>
+            <p class="field-hint">0.0 = preciso / 1.0 = creativo</p>
+            <input type="range" [(ngModel)]="avatar.temperature" min="0" max="1" step="0.05" class="range-slider">
+            <div class="range-labels">
+              <span>Preciso</span>
+              <span>Creativo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER DE ACCIONES -->
+  <footer class="page-footer" *ngIf="!loading">
+    <button class="btn-secondary" (click)="goBack()">Cancelar</button>
+    <button class="btn-primary" [disabled]="saving" (click)="save()">
+      <span *ngIf="!saving"><span class="material-symbols-outlined" style="vertical-align: text-bottom;">save</span> Guardar Personaje</span>
+      <span *ngIf="saving">Guardando...</span>
+    </button>
+  </footer>
+
+  <!-- ZONA DE PELIGRO -->
+  <div class="danger-zone card" *ngIf="!isNew">
+    <div class="danger-header">
+      <span class="icon material-symbols-outlined" style="font-size: 32px; color: #f87171;">warning</span>
+      <div class="text">
+        <h4>Zona de Peligro</h4>
+        <p>Esta acción eliminará permanentemente a este personaje y todo su historial de conversaciones.</p>
+      </div>
+    </div>
+    <div class="danger-actions">
+      <button class="delete-btn-danger" (click)="deleteAvatar()">
+        <span class="material-symbols-outlined" style="vertical-align: text-bottom;">delete</span> Eliminar permanentemente a {{ avatar.name }}
+      </button>
+    </div>
+  </div>
+
+</div>

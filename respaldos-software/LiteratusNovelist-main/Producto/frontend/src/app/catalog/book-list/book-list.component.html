@@ -1,0 +1,109 @@
+<div class="catalog-wrapper">
+  
+  <div class="catalog-header" *ngIf="!isHome">
+    <h1 class="glow-text">Explora el Catálogo</h1>
+    <p class="subtitle">Descubre tu próxima aventura inmersiva.</p>
+  </div>
+
+  <div class="home-grid-header" *ngIf="isHome">
+    <h2>Títulos destacados para tu próxima aventura</h2>
+  </div>
+
+  <!-- Buscador y Filtros (Solo si no es Home) -->
+  <ng-container *ngIf="!isHome">
+    <div class="search-section">
+      <div class="search-box">
+        <span class="material-symbols-rounded search-icon">search</span>
+        <input type="text" placeholder="Encuentra tu próximo libro..." (keyup)="onSearch($event)" class="glass-input search-input">
+      </div>
+    </div>
+
+    <!-- Píldoras de Categorías -->
+    <div class="categories-section">
+      <div class="categories-scroll">
+        <button 
+          *ngFor="let cat of allSubcategories" 
+          class="category-pill"
+          [class.active]="activeCategory === cat"
+          (click)="setCategory(cat)">
+          {{ cat }}
+        </button>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Loading State (Skeleton) -->
+  <div class="grid-container" *ngIf="isLoading && !errorMsg">
+    <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6]">
+      <div class="skeleton-img"></div>
+      <div class="skeleton-text title"></div>
+      <div class="skeleton-text description"></div>
+      <div class="skeleton-button"></div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="message-banner error" *ngIf="errorMsg">
+    {{ errorMsg }}
+  </div>
+
+  <!-- Empty State -->
+  <!-- Contador de resultados -->
+  <div class="results-count" *ngIf="!isLoading && (activeCategory || searchTerm) && books.length > 0">
+    <span>{{ totalCount }} libros encontrados{{ activeCategory ? ' en "' + activeCategory + '"' : '' }}</span>
+  </div>
+
+  <div class="message-banner info" *ngIf="!isLoading && books.length === 0 && !errorMsg">
+    No se encontraron libros.
+  </div>
+
+  <!-- Grid Principal de Tarjetas -->
+  <div class="grid-container" *ngIf="!isLoading && books.length > 0">
+    
+    <div class="glass-panel book-card" *ngFor="let book of books; let i = index"
+         [routerLink]="['/book', book.slug]"
+         [style.animation-delay]="(i * 40) + 'ms'">
+      
+      <!-- Se asume imagen default si Django retorna null en la cubierta -->
+      <div class="card-image" 
+           [style.backgroundImage]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'">
+        <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
+      </div>
+      
+      <div class="card-content">
+        <h3 class="book-title">{{ book.title }}</h3>
+        
+        <!-- Synopsis recortada a 120 chars -->
+        <p class="book-synopsis">
+          {{ (book.synopsis && book.synopsis.length > 100) ? (book.synopsis | slice:0:100) + '...' : book.synopsis }}
+        </p>
+        
+        <div class="card-actions">
+          <span class="read-hint">
+            Ver Detalles
+            <svg xmlns="http://www.w3.org/svg/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+    
+    </div>
+
+  </div>
+
+  <!-- Paginación -->
+  <div *ngIf="!isLoading && totalPages > 1" class="pagination-bar">
+    <span class="results-count">{{ totalCount }} libros encontrados</span>
+    <div class="pagination-controls">
+      <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        ← Anterior
+      </button>
+      <span class="page-indicator">pág. {{ currentPage }} / {{ totalPages }}</span>
+      <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+</div>

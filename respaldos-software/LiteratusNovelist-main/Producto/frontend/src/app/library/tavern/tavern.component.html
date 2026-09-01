@@ -1,0 +1,188 @@
+<div class="tavern-wrapper">
+
+
+  <!-- PARTÍCULAS MÁGICAS -->
+  <div class="particles-field" aria-hidden="true">
+    <span class="particle p1"></span>
+    <span class="particle p2"></span>
+    <span class="particle p3"></span>
+    <span class="particle p4"></span>
+    <span class="particle p5"></span>
+    <span class="particle p6"></span>
+    <span class="particle p7"></span>
+    <span class="particle p8"></span>
+  </div>
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <header class="hero-section reveal">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-dot"></span>
+      <span>Bienvenido a la taberna</span>
+      <span class="eyebrow-dot"></span>
+    </div>
+    <div class="hero-title-row">
+      <div class="ink-factory-sprite" aria-hidden="true"></div>
+      <h1 class="hero-title">La Taberna de Tinta</h1>
+      <div class="ink-factory-sprite ink-factory-sprite--mirror" aria-hidden="true"></div>
+    </div>
+    <p class="hero-subtitle">
+      Cada conversación escribe una historia distinta.<br>
+      Obtén tinta y continúa tu aventura junto a personajes inolvidables.
+    </p>
+  </header>
+
+  <!-- ═══════════ CARRUSEL NARRATIVO ═══════════ -->
+  <section class="carousel-section reveal" aria-label="¿Qué puedes hacer con la tinta?">
+    <p class="carousel-label">¿Qué puedes hacer con la tinta?</p>
+    <div class="carousel-track">
+      <div class="carousel-slide slide-1">
+        <div class="carousel-icon">✦</div>
+        <h3>Conversa con personajes únicos</h3>
+        <p>Interactúa con figuras literarias que recuerdan tu historia y evolucionan contigo.</p>
+      </div>
+      <div class="carousel-slide slide-2">
+        <div class="carousel-icon">⟡</div>
+        <h3>Descubre rutas alternativas</h3>
+        <p>Cada decisión abre un camino diferente. La tinta te permite explorarlos todos.</p>
+      </div>
+      <div class="carousel-slide slide-3">
+        <div class="carousel-icon">◈</div>
+        <h3>Desbloquea secretos narrativos</h3>
+        <p>Algunos personajes guardan secretos que solo comparten cuando los conoces de verdad.</p>
+      </div>
+      <div class="carousel-slide slide-4">
+        <div class="carousel-icon">❋</div>
+        <h3>Crea historias irrepetibles</h3>
+        <p>Tu aventura nunca será idéntica a la de otro lector. Cada gota de tinta es única.</p>
+      </div>
+    </div>
+    <div class="carousel-dots">
+      <span class="cdot cdot-1"></span>
+      <span class="cdot cdot-2"></span>
+      <span class="cdot cdot-3"></span>
+      <span class="cdot cdot-4"></span>
+    </div>
+  </section>
+
+  <!-- ═══════════ BALANCE + ANUNCIO ═══════════ -->
+  <section class="top-row reveal">
+
+    <!-- BALANCE CARD -->
+    <div class="balance-card glass-panel">
+      <div class="balance-inner">
+        <span class="balance-label">Tu Reserva de Tinta</span>
+        <div class="balance-counter">
+          <span class="ink-glyph" aria-hidden="true">🖋</span>
+          <span class="balance-number">{{ displayBalance }}</span>
+          <span class="balance-unit">tinta</span>
+        </div>
+        <p class="balance-hint" *ngIf="isLoggedIn()">
+          Utiliza tinta para conversar con personajes y desbloquear nuevas historias.
+        </p>
+        <p class="balance-hint hint-login" *ngIf="!isLoggedIn()">
+          <a routerLink="/login">Inicia sesión</a> para ver tu reserva de tinta.
+        </p>
+      </div>
+    </div>
+
+    <!-- AD CARD -->
+    <div class="ad-card glass-panel" [class.is-loading]="adLoading">
+      <div class="ad-inner">
+        <div class="ad-icon-wrap" aria-hidden="true">📜</div>
+        <h3 class="ad-title">Pergamino de Recompensa</h3>
+        <p class="ad-text">Observa un anuncio breve y recibe tinta adicional para continuar tu aventura.</p>
+
+        <button class="btn-premium" (click)="watchAd()" [disabled]="adLoading" id="watch-ad-btn">
+          <span class="btn-glow"></span>
+          <span *ngIf="!adLoading">✦ Ver Anuncio <em>(+10 Tinta)</em></span>
+          <span *ngIf="adLoading">Visualizando... ({{ adTimer }}s)</span>
+        </button>
+
+        <div class="progress-track" *ngIf="adLoading" role="progressbar">
+          <div class="progress-fill" [style.width.%]="(5 - adTimer) * 20"></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════ COFRES ═══════════ -->
+  <section class="chests-section reveal">
+    <h2 class="section-title">Escoge tu cofre de tinta</h2>
+
+    <div class="chests-grid">
+      <div
+        *ngFor="let chest of chests; let i = index"
+        class="chest-card glass-panel"
+        [class.chest-featured]="i === 1"
+        [class.chest-master]="i === 2"
+        [attr.id]="'chest-' + i">
+
+        <!-- Badge -->
+        <span class="chest-badge" *ngIf="i === 1">✦ Más popular</span>
+        <span class="chest-badge chest-badge--value" *ngIf="i === 2">Mejor valor</span>
+
+        <!-- Icono -->
+        <div class="chest-icon-wrap" [ngSwitch]="chest.icon">
+          <svg *ngSwitchCase="'package'" lucidePackage [size]="i === 1 ? 56 : 44" class="lucide-icon" [style.color]="chest.color"></svg>
+          <svg *ngSwitchCase="'landmark'" lucideLandmark [size]="i === 1 ? 56 : 44" class="lucide-icon" [style.color]="chest.color"></svg>
+          <svg *ngSwitchCase="'crown'" lucideCrown [size]="i === 1 ? 56 : 44" class="lucide-icon" [style.color]="chest.color"></svg>
+        </div>
+
+        <!-- Info -->
+        <div class="chest-body">
+          <h3 class="chest-name">{{ chest.title }}</h3>
+          <div class="chest-amount-row">
+            <span class="chest-amount">{{ chest.amount }}</span>
+            <span class="chest-amount-label">Tinta</span>
+          </div>
+          <p class="chest-tagline" [ngSwitch]="i">
+            <span *ngSwitchCase="0">Ideal para comenzar una nueva aventura.</span>
+            <span *ngSwitchCase="1">La elección favorita de los lectores.</span>
+            <span *ngSwitchCase="2">La mejor relación entre valor y contenido.</span>
+          </p>
+        </div>
+
+        <!-- Botón compra -->
+        <button
+          class="btn-buy"
+          [class.btn-buy--featured]="i === 1"
+          (click)="buyChest(chest)"
+          [attr.id]="'buy-chest-' + i">
+          <span class="btn-glow"></span>
+          Obtener por {{ chest.price }}
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ PERCEPCIÓN DE VALOR ═══════════ -->
+  <section class="value-section reveal">
+    <h2 class="section-title">Con tu tinta podrás:</h2>
+    <ul class="value-list">
+      <li class="value-item vi-1">
+        <svg lucideMessageCircle [size]="20" class="lucide-icon value-icon"></svg>
+        <span>Conversar con personajes que recuerdan tu historia.</span>
+      </li>
+      <li class="value-item vi-2">
+        <svg lucideBookOpen [size]="20" class="lucide-icon value-icon"></svg>
+        <span>Continuar historias donde el tiempo se detuvo.</span>
+      </li>
+      <li class="value-item vi-3">
+        <svg lucideSearch [size]="20" class="lucide-icon value-icon"></svg>
+        <span>Explorar nuevas decisiones y rutas narrativas.</span>
+      </li>
+      <li class="value-item vi-4">
+        <svg lucideStar [size]="20" class="lucide-icon value-icon"></svg>
+        <span>Descubrir finales alternativos que cambian todo.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="tavern-footer">
+    <button class="btn-secondary" routerLink="/catalog">← Volver al Catálogo</button>
+  </footer>
+
+</div>

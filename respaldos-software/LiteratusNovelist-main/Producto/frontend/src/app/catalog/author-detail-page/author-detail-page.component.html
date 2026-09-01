@@ -1,0 +1,77 @@
+<div class="page-wrapper">
+  
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando información del autor...</p>
+  </div>
+
+  <div *ngIf="errorMsg" class="error-state glass-panel">
+    <h2>Ha ocurrido un error</h2>
+    <p>{{ errorMsg }}</p>
+    <button class="glass-btn" routerLink="/catalog">Volver al catálogo</button>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMsg && author" class="author-content fade-in">
+    
+    <!-- AUTHOR HERO SECTION -->
+    <div class="author-hero glass-panel">
+      <div class="author-image-container">
+        <img [src]="author.photo || 'assets/default_avatar.png'" alt="{{ author.full_name }}" class="author-image">
+      </div>
+      
+      <div class="author-info">
+        <div class="author-header">
+          <h1>{{ author.full_name }}</h1>
+          <span class="nationality-badge" *ngIf="author.nationality">📍 {{ author.nationality }}</span>
+        </div>
+        
+        <div class="bio-section">
+          <h3>Biografía</h3>
+          <p class="author-bio">{{ author.bio }}</p>
+        </div>
+
+        <div class="themes-section" *ngIf="author.themes">
+          <h3>Temas Recurrentes</h3>
+          <p class="author-themes">✨ {{ author.themes }}</p>
+        </div>
+
+        <div class="recommended-section" *ngIf="author.recommended_book">
+          <div class="recommended-badge">🏆 Obra Recomendada para Iniciar</div>
+          <button class="glass-btn primary recommended-btn" (click)="goToBook(author.recommended_book_slug)">
+            Leer {{ author.recommended_book.title || 'su obra principal' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTHOR BOOKS GRID -->
+    <div class="author-books-section">
+      <div class="section-header">
+        <h2>Obras en nuestra Biblioteca</h2>
+        <span class="books-count">{{ author.books?.length || 0 }} títulos disponibles</span>
+      </div>
+
+      <div class="books-grid">
+        <div class="book-card glass-panel" *ngFor="let book of $any(author.books)" (click)="goToBook(book.slug)">
+          <div class="book-cover-container">
+            <img [src]="book.cover_image || 'assets/default_cover.png'" alt="{{ book.title }}" class="book-cover">
+            <div class="book-overlay">
+              <span>Leer Obra</span>
+            </div>
+          </div>
+          <div class="book-details">
+            <h3 class="book-title">{{ book.title }}</h3>
+            <div class="book-genres">
+              <span class="genre-tag" *ngFor="let genre of $any(book.genres)">{{ $any(genre).name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div *ngIf="!author.books || author.books.length === 0" class="no-books glass-panel">
+        <p>Próximamente añadiremos más obras de este autor.</p>
+      </div>
+    </div>
+
+  </div>
+</div>

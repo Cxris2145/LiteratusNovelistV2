@@ -1,0 +1,285 @@
+<div class="discover-wrapper">
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- 1. HERO DEL DÍA  —  El libro más impactante, con drama visual -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="discover-hero" *ngIf="heroBook">
+    <div class="hero-backdrop"
+         [style.background-image]="'url(' + (heroBook.cover_image || 'assets/default_cover.jpg') + ')'">
+    </div>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot-sm"></span>
+        <span>Recomendación del día</span>
+      </div>
+
+      <div class="hero-grid">
+        <div class="hero-cover-col">
+          <div class="hero-cover-wrap">
+            <img [src]="heroBook.cover_image || 'assets/default_cover.jpg'"
+                 [alt]="heroBook.title"
+                 class="hero-cover"
+                 (click)="goToBook(heroBook)">
+            <div class="hero-cover-shine"></div>
+          </div>
+        </div>
+
+        <div class="hero-info">
+          <div class="hero-tags" *ngIf="heroBook.tags && heroBook.tags.length > 0">
+            <span class="hero-tag" *ngFor="let tag of heroBook.tags | slice:0:3">{{ $any(tag).name }}</span>
+          </div>
+
+          <h1 class="hero-title">{{ heroBook.title }}</h1>
+
+          <p class="hero-author" *ngIf="heroBook.book_authors && heroBook.book_authors.length > 0">
+            <span class="material-symbols-rounded">edit</span>
+            {{ heroBook.book_authors[0].author?.full_name || heroBook.book_authors[0] }}
+          </p>
+
+          <!-- VISTAZO a la sinopsis -->
+          <blockquote class="hero-quote" *ngIf="heroBook.synopsis">
+            "{{ getSynopsisSnippet(heroBook) }}"
+          </blockquote>
+
+          <div class="hero-stats">
+            <span class="hero-stat" *ngIf="heroBook.estimated_reading_time">
+              <span class="material-symbols-rounded">schedule</span>
+              {{ heroBook.estimated_reading_time }}
+            </span>
+            <span class="hero-stat now-reading">
+              <span class="live-pulse"></span>
+              {{ getNowReadingCount(heroBook) }} leyendo ahora
+            </span>
+            <span class="hero-stat difficulty" *ngIf="heroBook.difficulty_level">
+              <span class="material-symbols-rounded">auto_awesome</span>
+              {{ heroBook.difficulty_level | titlecase }}
+            </span>
+          </div>
+
+          <div class="hero-actions">
+            <button class="cta-hero-primary" (click)="goToBook(heroBook)">
+              <span class="material-symbols-rounded">menu_book</span>
+              Explorar historia
+            </button>
+            <button class="cta-hero-audio" (click)="toggleAudio(heroBook)" [class.active]="isPlaying && currentAudioBook === heroBook">
+              <span class="material-symbols-rounded">{{ isPlaying && currentAudioBook === heroBook ? 'stop_circle' : 'record_voice_over' }}</span>
+              {{ isPlaying && currentAudioBook === heroBook ? 'Detener' : 'Escuchar sinopsis' }}
+            </button>
+            <button class="cta-hero-save" (click)="saveForLater(heroBook)" [class.saved]="isSaved(heroBook)">
+              <span class="material-symbols-rounded">{{ isSaved(heroBook) ? 'bookmark' : 'bookmark_add' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- 2. MOOD PICKER  —  "¿Qué buscas?" interactivo                  -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="discover-moods" *ngIf="!isLoading">
+    <div class="moods-header">
+      <h2 class="section-title">
+        <span class="material-symbols-rounded" style="color: var(--glow-gold); font-size: 1.3rem; vertical-align: middle; margin-right: 8px;">mood</span>
+        ¿Qué buscas hoy?
+      </h2>
+    </div>
+    <div class="moods-grid">
+      <button class="mood-pill"
+              *ngFor="let mood of moods"
+              [class.active]="activeMood === mood.id"
+              (click)="setMood(mood.id)">
+        <span class="material-symbols-rounded mood-icon">{{ mood.icon }}</span>
+        <span class="mood-label">{{ mood.label }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Empty State if Mood Filter Returns 0 Books -->
+  <section class="discover-empty-state" *ngIf="activeMood && trendingBooks.length === 0 && !isLoading">
+    <div class="empty-state-content">
+      <span class="material-symbols-rounded empty-icon">auto_stories</span>
+      <h3>Aún no tenemos historias para este ambiente</h3>
+      <p>Estamos trabajando para traer más libros de esta temática. ¡Intenta con otro estado de ánimo!</p>
+      <button class="cta-hero-primary" style="margin: 1.5rem auto 0; max-width: 200px;" (click)="setMood('all')">
+        Ver todo el catálogo
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- 3. TEASERS  —  Vistazos rápidos a las historias                 -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="discover-quotes" *ngIf="quoteBooks.length > 0 && !isLoading">
+    <div class="quotes-header">
+      <h2 class="section-title">
+        <span class="material-symbols-rounded" style="color: #ef4444; font-size: 1.3rem; vertical-align: middle; margin-right: 8px;">auto_stories</span>
+        Un vistazo a la historia
+      </h2>
+      <p class="section-subtitle">Un pequeño fragmento de la sinopsis para despertar tu curiosidad.</p>
+    </div>
+
+    <div class="quotes-grid">
+      <div class="quote-card" *ngFor="let book of quoteBooks; let i = index"
+           (click)="goToBook(book)"
+           [style.animation-delay]="i * 0.1 + 's'">
+        <div class="quote-card-backdrop"
+             [style.background-image]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'">
+        </div>
+        <div class="quote-card-overlay"></div>
+        <div class="quote-card-content">
+          <p class="quote-text">"{{ getSynopsisSnippet(book) }}"</p>
+          <div class="quote-card-meta">
+            <span class="quote-book">{{ book.title }}</span>
+            <span class="quote-author">{{ book.book_authors?.[0]?.author?.full_name || 'Autor desconocido' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- 4. CARRUSELES HORIZONTALES  —  Netflix-style discovery rows    -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Tendencias -->
+  <section class="discover-row" *ngIf="trendingBooks.length > 0 && !isLoading">
+    <div class="row-header">
+      <h3 class="row-title">
+        <span class="material-symbols-rounded" style="color: #f97316; font-size: 1.2rem; margin-right: 6px;">local_fire_department</span>
+        En tendencia
+      </h3>
+      <a routerLink="/catalog" class="row-see-all">Ver todo →</a>
+    </div>
+    <div class="row-track" #trendingTrack>
+      <div class="row-card" *ngFor="let book of trendingBooks"
+           (click)="goToBook(book)"
+           (mouseenter)="hoverBook = book"
+           (mouseleave)="hoverBook = null">
+        <div class="row-card-img">
+          <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
+          <div class="row-card-hover" *ngIf="hoverBook === book">
+            <button class="row-hover-btn" (click)="saveForLater(book); $event.stopPropagation()">
+              <span class="material-symbols-rounded">{{ isSaved(book) ? 'bookmark' : 'bookmark_add' }}</span>
+            </button>
+            <button class="row-hover-btn play" (click)="toggleAudio(book); $event.stopPropagation()">
+              <span class="material-symbols-rounded">{{ isPlaying && currentAudioBook === book ? 'stop_circle' : 'play_arrow' }}</span>
+            </button>
+          </div>
+        </div>
+        <div class="row-card-info">
+          <h4 class="row-card-title">{{ book.title }}</h4>
+          <p class="row-card-author">{{ book.book_authors?.[0]?.author?.full_name || 'Autor desconocido' }}</p>
+          <div class="row-card-tags" *ngIf="book.tags && book.tags.length > 0">
+            <span class="row-card-tag">{{ $any(book.tags[0]).name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Con personajes IA -->
+  <section class="discover-row" *ngIf="iaBooks.length > 0 && !isLoading">
+    <div class="row-header">
+      <h3 class="row-title">
+        <span class="pulse-dot-sm" style="margin-right: 6px;"></span>
+        Con personajes IA activos
+      </h3>
+      <a routerLink="/characters" class="row-see-all">Ver todos →</a>
+    </div>
+    <div class="row-track" #iaTrack>
+      <div class="row-card ia-card" *ngFor="let book of iaBooks"
+           (click)="goToBook(book)">
+        <div class="row-card-img">
+          <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
+          <div class="ia-badge-discover">
+            <span class="ia-dot"></span>
+            <span>IA</span>
+          </div>
+        </div>
+        <div class="row-card-info">
+          <h4 class="row-card-title">{{ book.title }}</h4>
+          <p class="row-card-author">{{ book.book_authors?.[0]?.author?.full_name || 'Autor desconocido' }}</p>
+          <p class="row-card-hint">Chatea con sus personajes</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lecturas rápidas -->
+  <section class="discover-row" *ngIf="quickBooks.length > 0 && !isLoading">
+    <div class="row-header">
+      <h3 class="row-title">
+        <span class="material-symbols-rounded" style="color: #22c55e; font-size: 1.2rem; margin-right: 6px;">timer</span>
+        Lecturas rápidas
+      </h3>
+      <a routerLink="/catalog" class="row-see-all">Ver todo →</a>
+    </div>
+    <div class="row-track" #quickTrack>
+      <div class="row-card quick-card" *ngFor="let book of quickBooks"
+           (click)="goToBook(book)">
+        <div class="row-card-img">
+          <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
+          <div class="quick-badge" *ngIf="book.estimated_reading_time">
+            <span class="material-symbols-rounded">timer</span>
+            {{ book.estimated_reading_time }}
+          </div>
+        </div>
+        <div class="row-card-info">
+          <h4 class="row-card-title">{{ book.title }}</h4>
+          <p class="row-card-author">{{ book.book_authors?.[0]?.author?.full_name || 'Autor desconocido' }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- 5. MATCHMAKER  —  "Si te gustó X, lee Y"                       -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <section class="discover-matchmaker" *ngIf="matchPairs.length > 0 && !isLoading">
+    <div class="matchmaker-header">
+      <h2 class="section-title">
+        <span class="material-symbols-rounded" style="color: #ec4899; font-size: 1.3rem; vertical-align: middle; margin-right: 8px;">auto_awesome</span>
+        Si te gustó... te encantará
+      </h2>
+    </div>
+
+    <div class="matchmaker-grid">
+      <div class="match-pair" *ngFor="let pair of matchPairs">
+        <div class="match-from" (click)="goToBook(pair.from)">
+          <img [src]="pair.from.cover_image || 'assets/default_cover.jpg'" [alt]="pair.from.title">
+          <span class="match-label">Si te gustó</span>
+          <span class="match-title">{{ pair.from.title }}</span>
+        </div>
+
+        <div class="match-arrow">
+          <span class="material-symbols-rounded">arrow_forward</span>
+        </div>
+
+        <div class="match-to" (click)="goToBook(pair.to)">
+          <img [src]="pair.to.cover_image || 'assets/default_cover.jpg'" [alt]="pair.to.title">
+          <span class="match-label">Prueba</span>
+          <span class="match-title">{{ pair.to.title }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Loading / Empty States -->
+  <div *ngIf="isLoading" class="discover-loading">
+    <span class="material-symbols-rounded loading-icon">auto_stories</span>
+    <p>Cargando historias...</p>
+  </div>
+
+  <div *ngIf="!isLoading && allBooks.length === 0" class="discover-empty">
+    <span class="material-symbols-rounded">search_off</span>
+    <p>No hay historias disponibles por el momento.</p>
+  </div>
+
+</div>

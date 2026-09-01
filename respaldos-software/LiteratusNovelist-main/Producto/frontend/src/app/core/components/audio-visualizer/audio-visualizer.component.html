@@ -1,0 +1,7 @@
+<div class="visualizer-container" *ngIf="isActive" [class.listening]="isActive">
+  <div class="wave" [style.height.px]="10 + (level * 0.4)"></div>
+  <div class="wave" [style.height.px]="15 + (level * 0.7)"></div>
+  <div class="wave" [style.height.px]="20 + (level * 1.0)"></div>
+  <div class="wave" [style.height.px]="15 + (level * 0.7)"></div>
+  <div class="wave" [style.height.px]="10 + (level * 0.4)"></div>
+</div>

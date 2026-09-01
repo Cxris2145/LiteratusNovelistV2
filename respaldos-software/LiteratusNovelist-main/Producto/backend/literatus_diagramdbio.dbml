@@ -1,0 +1,264 @@
+// LiteratusNovelist Database Schema (DBML)
+// Copy this into https://dbdiagram.io/
+
+// --- USERS MODULE ---
+Table users_user {
+  id uuid [pk]
+  username varchar
+  email varchar [unique]
+  password varchar
+  role varchar // reader, author, admin
+  is_active boolean [default: true]
+  is_staff boolean [default: false]
+  is_superuser boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table users_profile {
+  id uuid [pk]
+  user_id uuid [unique]
+  ink_balance integer [default: 50]
+  bio text
+  avatar image
+  country varchar
+  preferred_language varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+// --- CATALOG MODULE ---
+Table catalog_author {
+  id uuid [pk]
+  full_name varchar
+  slug varchar [unique]
+  bio text
+  nationality varchar
+  photo varchar
+  themes text
+  recommended_book_id uuid
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_genre {
+  id uuid [pk]
+  name varchar
+  slug varchar [unique]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_tag {
+  id uuid [pk]
+  name varchar [unique]
+  slug varchar [unique]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_book {
+  id uuid [pk]
+  title varchar
+  slug varchar [unique]
+  synopsis text
+  difficulty_level varchar // beginner, intermediate, advanced, master
+  status varchar // draft, published, archived
+  is_featured boolean [default: false]
+  is_published boolean [default: true]
+  copyright_notice text
+  pdf_file varchar
+  cover_image image
+  view_count integer [default: 0]
+  download_count integer [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_book_genres {
+  id integer [pk]
+  book_id uuid
+  genre_id uuid
+}
+
+Table catalog_book_tags {
+  id integer [pk]
+  book_id uuid
+  tag_id uuid
+}
+
+Table catalog_bookauthor {
+  id uuid [pk]
+  book_id uuid
+  author_id uuid
+  role varchar // primary, translator, editor
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_edition {
+  id uuid [pk]
+  book_id uuid
+  language varchar
+  isbn varchar [unique]
+  format varchar // epub, pdf, audio
+  price decimal
+  file varchar
+  published_date date
+  publisher varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_chapter {
+  id uuid [pk]
+  book_id uuid
+  title varchar
+  order integer
+  content_html text
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_chapteraudio {
+  id uuid [pk]
+  chapter_id uuid
+  voice_name varchar
+  audio_file varchar
+  sync_file varchar
+  alignment_data json
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table catalog_review {
+  id uuid [pk]
+  book_id uuid
+  user_id uuid
+  rating integer
+  comment text
+  created_at timestamp
+  updated_at timestamp
+}
+
+// --- LIBRARY MODULE (Inventory & Economy) ---
+Table library_userinventory {
+  id uuid [pk]
+  user_id uuid
+  edition_id uuid
+  acquired_at timestamp
+  has_premium_narration boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table library_readingprogress {
+  id uuid [pk]
+  inventory_id uuid [unique]
+  current_cfi varchar
+  current_page integer
+  completion_percentage decimal
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table library_userbookmark {
+  id uuid [pk]
+  inventory_id uuid
+  position_cfi varchar
+  note text
+  color varchar [default: '#FFFF00']
+  created_at timestamp
+  updated_at timestamp
+}
+
+// --- AI ENGINE MODULE ---
+Table ai_engine_aiavatar {
+  id uuid [pk]
+  edition_id uuid
+  name varchar
+  description text
+  system_prompt text
+  temperature decimal [default: 0.70]
+  model_name varchar [default: 'gemini-2.0-flash']
+  avatar_image image
+  video_avatar varchar
+  unlock_at_chapter integer [default: 0]
+  is_major_character boolean [default: true]
+  is_author boolean [default: false]
+  greeting_message text
+  behavioral_context text
+  sample_dialogues text
+  chat_count integer [default: 0]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table ai_engine_chatsession {
+  id uuid [pk]
+  user_id uuid
+  avatar_id uuid
+  title varchar
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table ai_engine_chatmessage {
+  id uuid [pk]
+  session_id uuid
+  role varchar // user, assistant, system
+  content text
+  created_at timestamp
+  updated_at timestamp
+}
+
+// --- FINANCE MODULE ---
+Table finance_transaction {
+  id uuid [pk]
+  user_id uuid
+  buy_order varchar [unique]
+  session_id varchar
+  token varchar [unique]
+  amount decimal
+  status varchar // iniciada, exitosa, fallida, reversada
+  response_code varchar
+  item_type varchar // book, ink
+  item_reference varchar
+  metadata json
+  created_at timestamp
+  updated_at timestamp
+}
+
+// --- RELATIONSHIPS ---
+
+// Users
+Ref: users_profile.user_id > users_user.id
+
+// Catalog
+Ref: catalog_author.recommended_book_id > catalog_book.id
+Ref: catalog_bookauthor.book_id > catalog_book.id
+Ref: catalog_bookauthor.author_id > catalog_author.id
+Ref: catalog_book_genres.book_id > catalog_book.id
+Ref: catalog_book_genres.genre_id > catalog_genre.id
+Ref: catalog_book_tags.book_id > catalog_book.id
+Ref: catalog_book_tags.tag_id > catalog_tag.id
+Ref: catalog_edition.book_id > catalog_book.id
+Ref: catalog_chapter.book_id > catalog_book.id
+Ref: catalog_chapteraudio.chapter_id > catalog_chapter.id
+Ref: catalog_review.book_id > catalog_book.id
+Ref: catalog_review.user_id > users_user.id
+
+// Library
+Ref: library_userinventory.user_id > users_user.id
+Ref: library_userinventory.edition_id > catalog_edition.id
+Ref: library_readingprogress.inventory_id - library_userinventory.id // 1-to-1
+Ref: library_userbookmark.inventory_id > library_userinventory.id
+
+// AI Engine
+Ref: ai_engine_aiavatar.edition_id > catalog_edition.id
+Ref: ai_engine_chatsession.user_id > users_user.id
+Ref: ai_engine_chatsession.avatar_id > ai_engine_aiavatar.id
+Ref: ai_engine_chatmessage.session_id > ai_engine_chatsession.id
+
+// Finance
+Ref: finance_transaction.user_id > users_user.id

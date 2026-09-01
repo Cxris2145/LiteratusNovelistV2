@@ -1,0 +1,23 @@
+<div class="auth-wrapper">
+  <div class="glass-panel auth-card" style="text-align: center; max-width: 400px; padding: 2rem;">
+    <h2 class="auth-title">Verificación de Cuenta</h2>
+    
+    <div *ngIf="isLoading" style="margin: 2rem 0;">
+      <p style="color: var(--text-muted);">Verificando tu enlace de verificación...</p>
+    </div>
+
+    <div *ngIf="!isLoading">
+      <div *ngIf="successMessage">
+        <span class="material-symbols-rounded" style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;">check_circle</span>
+        <p style="color: var(--text-main); margin-bottom: 2rem;">{{ successMessage }}</p>
+        <button class="glass-btn" routerLink="/login">Ir a Iniciar Sesión</button>
+      </div>
+      
+      <div *ngIf="errorMessage">
+        <span class="material-symbols-rounded" style="font-size: 4rem; color: #ef4444; margin-bottom: 1rem;">error</span>
+        <p style="color: #ef4444; margin-bottom: 2rem;">{{ errorMessage }}</p>
+        <button class="glass-btn" routerLink="/register">Volver a Registro</button>
+      </div>
+    </div>
+  </div>
+</div>

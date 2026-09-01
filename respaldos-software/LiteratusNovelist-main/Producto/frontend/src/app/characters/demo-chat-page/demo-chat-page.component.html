@@ -1,0 +1,212 @@
+<div class="dchat-wrapper">
+
+  <!-- Loading state -->
+  <div class="dchat-loading" *ngIf="avatarLoading">
+    <div class="dchat-spinner"></div>
+    <p>Despertando al personaje...</p>
+  </div>
+
+  <!-- Main layout -->
+  <div class="dchat-layout" *ngIf="!avatarLoading && avatar">
+
+    <!-- ── SIDEBAR: Perfil del personaje (Solo Desktop) ── -->
+    <aside class="dchat-sidebar hide-on-mobile">
+      <button class="dchat-back-btn" (click)="goBack()" id="dchat-back-btn">
+        <span class="material-symbols-rounded">arrow_back</span>
+        Personajes
+      </button>
+
+      <div class="dchat-avatar-card">
+        <div class="dchat-avatar-img-wrap">
+          <img
+            [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+            [alt]="avatar.name"
+            class="dchat-avatar-img"
+            onerror="this.src='assets/default_cover.jpg'"
+          />
+        </div>
+
+        <h1 class="dchat-char-name">{{ avatar.name }}</h1>
+        <p class="dchat-char-book" *ngIf="avatar.book_title">{{ avatar.book_title }}</p>
+
+        <div class="dchat-tags" *ngIf="avatar.tags?.length">
+          <span class="dchat-tag" *ngFor="let tag of avatar.tags">{{ tag }}</span>
+        </div>
+
+        <p class="dchat-char-desc">{{ avatar.description }}</p>
+
+        <!-- Contador -->
+        <div class="dchat-counter" *ngIf="!auth.isLoggedIn()">
+          <span class="material-symbols-rounded" style="font-size:16px;">bolt</span>
+          {{ remainingMessages }} / {{ avatar.limit }} mensajes de prueba
+          <div class="dchat-counter-bar">
+            <div class="dchat-counter-fill"
+                 [style.width.%]="(remainingMessages / (avatar.limit || 3)) * 100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Register CTA en sidebar -->
+      <div class="dchat-sidebar-cta" *ngIf="!auth.isLoggedIn()">
+        <p>¿Te gustó la experiencia?</p>
+        <button class="dchat-register-btn" (click)="goToRegister()" id="dchat-sidebar-register">
+          Regístrate gratis — chatea sin límites
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── CHAT AREA ── -->
+    <main class="dchat-main" [class.immersive-mode]="isCallMode">
+
+      <!-- Header (Unificado para móvil, compacto en PC) -->
+      <header class="dchat-header">
+        <button class="dchat-back-btn-mobile show-on-mobile" (click)="goBack()">
+          <span class="material-symbols-rounded">arrow_back</span>
+        </button>
+        <div class="dchat-header-avatar">
+          <img
+            [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+            [alt]="avatar.name"
+            onerror="this.src='assets/default_cover.jpg'"
+          />
+          <div class="dchat-header-status">
+            <span class="dchat-pulse-sm"></span>
+            En línea
+          </div>
+        </div>
+        <div class="dchat-header-info">
+          <h2>{{ avatar.name }}</h2>
+          <span *ngIf="avatar.book_title" class="show-on-mobile">{{ avatar.book_title }}</span>
+        </div>
+        
+        <div class="dchat-header-actions">
+          <button class="dchat-icon-btn" (click)="toggleCallMode()" [class.active]="isCallMode" title="Modo Llamada">
+            <span class="material-symbols-rounded">call</span>
+          </button>
+          <button class="dchat-icon-btn" *ngIf="isCallMode" (click)="toggleMute()" title="Silenciar">
+            <span class="material-symbols-rounded">{{ isMuted ? 'volume_off' : 'volume_up' }}</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Panel Manga (Solo en Call Mode) -->
+      <div class="chat-manga-panel" *ngIf="isCallMode" [class.immersive-manga]="isCallMode">
+        <div class="manga-portrait-container">
+          <img [src]="getMangaFrameUrl()" 
+               [alt]="avatar?.name"
+               class="chat-manga-img"
+               [class.speaking]="isVideoSpeaking"
+               [class.thinking]="isSending">
+          <div class="manga-glow-effect"></div>
+        </div>
+        <div class="manga-status-tag" *ngIf="isSending || isVideoSpeaking">
+          <span class="status-label" *ngIf="isSending">🧠 Pensando...</span>
+          <span class="status-label" *ngIf="isVideoSpeaking">🗣️ Hablando...</span>
+        </div>
+        
+        <!-- VISUALIZADOR DE ONDAS Y TRANSCRIPT -->
+        <div class="voice-controls">
+          <app-audio-visualizer 
+            [isActive]="(speechService.isListening$ | async) ?? false" 
+            [level]="audioLevel">
+          </app-audio-visualizer>
+          <p class="partial-transcript" *ngIf="partialTranscript">
+            <i>{{ partialTranscript }}</i>
+          </p>
+          <p class="listening-status" *ngIf="!(speechService.isListening$ | async)">
+            <span *ngIf="isVideoSpeaking">Personaje hablando...</span>
+            <span *ngIf="!isVideoSpeaking && !isSending">Micrófono pausado</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Messages (Oculto en Call Mode o visible debajo) -->
+      <div class="dchat-messages" id="dchat-messages-feed" *ngIf="!isCallMode">
+
+        <div *ngFor="let msg of messages"
+             [class]="'dchat-msg ' + (msg.role === 'user' ? 'dchat-msg--user' : 'dchat-msg--char')">
+
+          <!-- Character message -->
+          <ng-container *ngIf="msg.role === 'assistant'">
+            <img
+              class="dchat-msg-avatar"
+              [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+              [alt]="avatar.name"
+              onerror="this.src='assets/default_cover.jpg'"
+            />
+            <div class="dchat-msg-bubble dchat-msg-bubble--char">
+              <span class="dchat-msg-name">{{ avatar.name }}</span>
+              {{ msg.content }}
+            </div>
+          </ng-container>
+
+          <!-- User message -->
+          <ng-container *ngIf="msg.role === 'user'">
+            <div class="dchat-msg-bubble dchat-msg-bubble--user">{{ msg.content }}</div>
+          </ng-container>
+
+        </div>
+
+        <!-- Typing indicator -->
+        <div class="dchat-msg dchat-msg--char" *ngIf="isSending">
+          <img
+            class="dchat-msg-avatar"
+            [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+            [alt]="avatar.name"
+            onerror="this.src='assets/default_cover.jpg'"
+          />
+          <div class="dchat-msg-bubble dchat-msg-bubble--char dchat-typing">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Limit reached banner -->
+      <div class="dchat-limit-banner" *ngIf="limitReached">
+        <span class="material-symbols-rounded">lock</span>
+        <div>
+          <strong>Has usado tus {{ avatar.limit }} mensajes de prueba</strong>
+          <p>Regístrate gratis para continuar hablando con {{ avatar.name }} y todos los personajes.</p>
+        </div>
+        <button class="dchat-cta-btn" (click)="goToRegister()" id="dchat-limit-register">
+          Crear cuenta gratis →
+        </button>
+      </div>
+
+      <!-- Input -->
+      <footer class="dchat-input-wrap" *ngIf="!limitReached" [class.call-mode-footer]="isCallMode">
+        <div class="dchat-input-inner">
+          <button class="dchat-mic-btn" (click)="speechService.toggleListening()" [class.recording]="speechService.isListening$ | async" title="Hablar">
+            <span class="material-symbols-rounded">mic</span>
+          </button>
+          <textarea
+            class="dchat-input"
+            [(ngModel)]="inputText"
+            (keydown)="onKeydown($event)"
+            [placeholder]="isCallMode ? 'Escribe o habla por el micrófono...' : ('Escribe algo a ' + avatar.name + '...')"
+            [disabled]="isSending"
+            rows="1"
+            maxlength="500"
+            id="dchat-input"
+          ></textarea>
+          <button
+            class="dchat-send-btn"
+            (click)="sendMessage()"
+            [disabled]="isSending || !inputText.trim()"
+            id="dchat-send-btn"
+            aria-label="Enviar"
+          >
+            <span class="material-symbols-rounded">send</span>
+          </button>
+        </div>
+        <p class="dchat-hint" *ngIf="!auth.isLoggedIn()">
+          <span class="material-symbols-rounded" style="font-size:13px; color:var(--glow-gold);">info</span>
+          {{ remainingMessages }} mensaje{{ remainingMessages !== 1 ? 's' : '' }} restante{{ remainingMessages !== 1 ? 's' : '' }} ·
+          <a (click)="goToRegister()" style="color: #a855f7; cursor: pointer; text-decoration: underline;">Regístrate gratis</a> para chatear sin límites
+        </p>
+      </footer>
+
+    </main>
+  </div>
+</div>

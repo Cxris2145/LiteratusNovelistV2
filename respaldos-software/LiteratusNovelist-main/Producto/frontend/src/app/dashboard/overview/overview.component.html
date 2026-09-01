@@ -1,0 +1,191 @@
+<div class="overview-container">
+
+  <!-- LOADING STATE -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando datos...</p>
+  </div>
+
+  <ng-container *ngIf="!loading && stats">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-heading">Visión General</h1>
+        <p class="page-subheading">Resumen de actividad y métricas clave de la plataforma</p>
+      </div>
+      <div class="header-actions" style="display: flex; gap: 1rem;">
+        <button (click)="exportPdf()" class="secondary-action-btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: background 0.2s;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
+          Exportar a PDF
+        </button>
+        <a routerLink="/dashboard/books/new" class="primary-action-btn" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+          Nuevo Libro
+        </a>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+
+      <div class="stat-card revenue">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrap revenue-icon">
+            <span class="material-symbols-outlined" style="font-size: 24px;">attach_money</span>
+          </div>
+          <div class="stat-data">
+            <span class="stat-label">Ingresos Totales</span>
+            <span class="stat-value">${{ stats.revenue.total | number:'1.0-0' }}</span>
+            <div class="stat-trend up" style="display: flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">trending_up</span>
+              ${{ stats.revenue.last_30_days | number:'1.0-0' }} últimos 30 días
+            </div>
+          </div>
+        </div>
+        <div class="stat-bar"></div>
+      </div>
+
+      <div class="stat-card users">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrap users-icon">
+            <span class="material-symbols-outlined" style="font-size: 24px;">group</span>
+          </div>
+          <div class="stat-data">
+            <span class="stat-label">Usuarios Activos</span>
+            <span class="stat-value">{{ stats.users.total | number }}</span>
+            <div class="stat-trend up" style="display: flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">trending_up</span>
+              +{{ stats.users.new_last_30_days }} nuevos este mes
+            </div>
+          </div>
+        </div>
+        <div class="stat-bar"></div>
+      </div>
+
+      <div class="stat-card books">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrap books-icon">
+            <span class="material-symbols-outlined" style="font-size: 24px;">library_books</span>
+          </div>
+          <div class="stat-data">
+            <span class="stat-label">Libros Publicados</span>
+            <span class="stat-value">{{ stats.content.total_books }}</span>
+            <div class="stat-trend neutral" style="display: flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">shopping_cart</span>
+              {{ stats.content.total_purchases }} compras totales
+            </div>
+          </div>
+        </div>
+        <div class="stat-bar"></div>
+      </div>
+
+      <div class="stat-card revenue-7d">
+        <div class="stat-card-inner">
+          <div class="stat-icon-wrap revenue7d-icon">
+            <span class="material-symbols-outlined" style="font-size: 24px;">bar_chart</span>
+          </div>
+          <div class="stat-data">
+            <span class="stat-label">Ingresos (7 días)</span>
+            <span class="stat-value">${{ stats.revenue.last_7_days | number:'1.0-0' }}</span>
+            <div class="stat-trend neutral" style="display: flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">calendar_month</span>
+              última semana
+            </div>
+          </div>
+        </div>
+        <div class="stat-bar"></div>
+      </div>
+
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-row">
+
+      <!-- Gráfico de Ventas -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <h3 class="chart-title">Ventas de la semana</h3>
+            <p class="chart-subtitle">Ingresos diarios — últimos 7 días</p>
+          </div>
+        </div>
+        <div class="bar-chart">
+          <div
+            class="bar-item"
+            *ngFor="let day of stats.sales_chart"
+            [style.height.%]="getBarHeight(day.amount)"
+            [title]="day.date + ': $' + day.amount">
+            <div class="bar-fill">
+              <div class="bar-glow"></div>
+            </div>
+            <span class="bar-label">{{ day.date | slice:5:10 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Libros -->
+      <div class="chart-card top-books-card">
+        <div class="chart-header">
+          <div>
+            <h3 class="chart-title">Top Libros</h3>
+            <p class="chart-subtitle">Más comprados de la plataforma</p>
+          </div>
+        </div>
+        <div class="book-list">
+          <div class="book-item" *ngFor="let book of stats.top_books; let i = index">
+            <span class="rank" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">{{ i + 1 }}</span>
+            <div class="book-item-info">
+              <span class="book-title">{{ book['edition__book__title'] }}</span>
+            </div>
+            <div class="book-count-pill" style="display: flex; align-items: center; gap: 4px;">
+              <span class="material-symbols-outlined" style="font-size: 14px;">shopping_cart</span>
+              {{ book.purchases }}
+            </div>
+          </div>
+          <div class="empty-state" *ngIf="!stats.top_books?.length">
+            <span class="material-symbols-outlined" style="font-size: 32px; opacity: 0.2;">library_books</span>
+            <p>Sin datos de ventas aún</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="quick-actions">
+      <h3 class="section-title">Acciones Rápidas</h3>
+      <div class="actions-grid">
+        <a routerLink="/dashboard/books/new" class="action-card action-upload">
+          <div class="action-icon-wrap">
+            <span class="material-symbols-outlined" style="font-size: 24px;">add_box</span>
+          </div>
+          <div class="action-text">
+            <span class="action-label">Subir Libro</span>
+            <span class="action-desc">Agregar nuevo título</span>
+          </div>
+        </a>
+        <a routerLink="/dashboard/authors" class="action-card action-authors">
+          <div class="action-icon-wrap">
+            <span class="material-symbols-outlined" style="font-size: 24px;">group</span>
+          </div>
+          <div class="action-text">
+            <span class="action-label">Gestionar Autores</span>
+            <span class="action-desc">Crear y editar perfiles</span>
+          </div>
+        </a>
+        <a routerLink="/dashboard/books" class="action-card action-edit">
+          <div class="action-icon-wrap">
+            <span class="material-symbols-outlined" style="font-size: 24px;">library_books</span>
+          </div>
+          <div class="action-text">
+            <span class="action-label">Editar Biblioteca</span>
+            <span class="action-desc">Administrar libros existentes</span>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </ng-container>
+
+</div>

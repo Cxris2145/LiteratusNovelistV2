@@ -1,0 +1,305 @@
+<div class="editor-container">
+  <header class="editor-header">
+    <button class="back-btn" routerLink="/dashboard/books" style="display: flex; align-items: center; gap: 4px;">
+      <span class="material-symbols-outlined" style="font-size: 16px;">arrow_back</span> Volver
+    </button>
+    <h2>{{ isEditing ? 'Editar Libro' : 'Añadir Nuevo Libro' }}</h2>
+  </header>
+
+  <div class="editor-grid">
+    <!-- COLUMNA IZQUIERDA: METADATOS -->
+    <div class="metadata-section card">
+      <h3 class="section-title">Metadatos del Libro</h3>
+      
+      <form [formGroup]="bookForm" class="nexus-form">
+        <div class="form-group">
+          <label>Archivo EPUB</label>
+          <div class="file-upload" [class.has-file]="epubFile">
+            <input type="file" (change)="onEpubSelected($event)" accept=".epub" id="epub-input">
+            <label for="epub-input">
+              <span class="icon material-symbols-outlined">{{ epubFile ? 'check_circle' : 'file_download' }}</span>
+              <span class="text">{{ epubFile ? epubFile.name : 'Seleccionar EPUB' }}</span>
+            </label>
+          </div>
+          <p class="help-text" *ngIf="!epubFile">Sube un archivo para auto-completar los datos.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Portada (Opcional)</label>
+          <div class="cover-preview" *ngIf="coverPreview">
+            <img [src]="coverPreview" alt="Preview">
+            <button class="remove-cover" (click)="removeCover()">×</button>
+          </div>
+          <div class="file-upload mini" *ngIf="!coverPreview">
+            <input type="file" (change)="onCoverSelected($event)" accept="image/jpeg, image/png, image/webp" id="cover-input">
+            <label for="cover-input">Subir Imagen</label>
+          </div>
+          <p class="help-text" *ngIf="!coverPreview">Resolución recomendada: 1600x2400px (proporción 2:3). Formatos: JPG, PNG o WebP. Máx 5MB.</p>
+        </div>
+
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" formControlName="title" placeholder="Ej: Frankenstein">
+        </div>
+
+        <div class="form-group">
+          <label>Autor Asociado</label>
+          <div style="display: flex; gap: 8px;">
+            <select formControlName="author_id" style="flex: 1;">
+              <option value="">-- Seleccionar Autor --</option>
+              <option *ngFor="let author of authorsList" [value]="author.id">{{ author.full_name }}</option>
+            </select>
+            <button type="button" class="add-btn" style="padding: 4px 12px; display: flex; align-items: center;" (click)="router.navigate(['/dashboard/authors'])" title="Gestionar Autores">
+              <span class="material-symbols-outlined" style="font-size: 18px;">settings</span>
+            </button>
+          </div>
+          <p class="error-text" *ngIf="bookForm.get('author_id')?.touched && bookForm.get('author_id')?.errors?.['required']">
+            Debes seleccionar un autor.
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label>Géneros / Categorías (Ctrl + Click para varios)</label>
+          <select formControlName="genres" multiple style="height: 120px; background: #1e293b;">
+            <option *ngFor="let genre of genresList" [value]="genre.id">
+              {{ genre.name }}
+            </option>
+          </select>
+          <p class="help-text">Selecciona los géneros que definen este libro.</p>
+        </div>
+    
+
+        <div class="form-group">
+          <label>Sinopsis</label>
+          <textarea formControlName="synopsis" rows="5" placeholder="De qué trata el libro..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Precio (Inks)</label>
+            <input type="number" formControlName="price">
+          </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nivel de Dificultad</label>
+            <select formControlName="difficulty_level">
+              <option value="beginner">Principiante (Lectura ligera)</option>
+              <option value="intermediate">Intermedio (Estándar)</option>
+              <option value="advanced">Avanzado (Complejo)</option>
+              <option value="master">Maestro (Académico/Filosófico)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Idioma</label>
+            <input type="text" formControlName="language" placeholder="Ej: es">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Aviso Legal / Copyright</label>
+          <textarea formControlName="copyright_notice" rows="3" placeholder="Información sobre derechos de autor..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Descarga PDF (Opcional)</label>
+          <div class="file-upload mini" [class.has-file]="pdfFile">
+            <input type="file" (change)="onPdfSelected($event)" accept=".pdf" id="pdf-input">
+            <label for="pdf-input">
+              <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">{{ pdfFile ? 'description' : 'upload_file' }}</span>
+              {{ pdfFile ? pdfFile.name : 'Subir PDF de descarga' }}
+            </label>
+          </div>
+          <p class="help-text">Permite a los usuarios descargar la obra si tienen acceso.</p>
+        </div>
+    
+        </div>
+
+        <div class="form-group">
+          <label>Tags (separados por coma)</label>
+          <input type="text" formControlName="tags" placeholder="Ej: Terror, Clásico, Gótico">
+        </div>
+
+        <div class="checkbox-group">
+          <label class="switch">
+            <input type="checkbox" formControlName="is_published">
+            <span class="slider"></span>
+            Publicado
+          </label>
+          <label class="switch">
+            <input type="checkbox" formControlName="is_featured">
+            <span class="slider"></span>
+            Destacado
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- COLUMNA DERECHA: CAPÍTULOS -->
+    <div class="chapters-section card">
+      <div class="section-header">
+        <h3 class="section-title">Estructura de Capítulos</h3>
+        <span class="badge" *ngIf="chapters.length">{{ chapters.length }} detectados</span>
+      </div>
+
+      <div class="chapters-list" *ngIf="chapters.length > 0; else noChapters">
+        <div class="chapter-item" *ngFor="let chap of chapters; let i = index">
+          <div class="chap-info">
+            <span class="chap-order">{{ chap.order }}</span>
+            <input type="text" [(ngModel)]="chap.title" class="chap-title-input">
+            <span class="chap-words">{{ chap.word_count }} palabras</span>
+          </div>
+          <div class="chap-actions">
+            <button class="edit-btn" style="display: flex; align-items: center; gap: 4px;" (click)="openChapterEditor(i)">
+              <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span> Ver
+            </button>
+            <button class="delete-btn" style="display: flex; align-items: center; justify-content: center;" (click)="removeChapter(i)">
+              <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noChapters>
+        <div class="empty-chapters">
+          <div class="empty-icon material-symbols-outlined">menu_book</div>
+          <p>Los capítulos aparecerán aquí tras procesar el EPUB.</p>
+        </div>
+      </ng-template>
+
+      <div class="editor-footer">
+        <div style="display: flex; gap: 12px; width: 100%;">
+          <button type="button" class="back-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;" (click)="saveDraft()">
+            <span class="material-symbols-outlined" style="font-size: 18px;">save</span> Borrador Local
+          </button>
+          <button class="save-btn" style="flex: 2; display: flex; align-items: center; justify-content: center; gap: 6px;" [disabled]="saving || bookForm.invalid || (!isEditing && !epubFile)" (click)="saveBook()">
+            <span class="material-symbols-outlined" style="font-size: 20px;">{{ isEditing ? 'check_circle' : 'rocket_launch' }}</span>
+            {{ saving ? 'Guardando...' : (isEditing ? 'Actualizar Libro' : 'Guardar Libro Completo') }}
+          </button>
+        </div>
+      </div>
+    
+    </div>
+
+    <!-- TERCERA COLUMNA / ABAJO: PERSONAJES -->
+    <div class="avatars-section card" *ngIf="isEditing">
+      <div class="section-header">
+        <h3 class="section-title">Personajes (Avatares)</h3>
+        <button class="add-btn" (click)="router.navigate(['/dashboard/books', bookId, 'avatars', 'new'])" style="display: flex; align-items: center; gap: 4px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">add</span> Nuevo
+        </button>
+      </div>
+
+      <div class="avatars-list" *ngIf="avatars.length > 0; else noAvatars">
+        <div class="avatar-item clickable" *ngFor="let avatar of avatars" 
+             (click)="router.navigate(['/dashboard/books', bookId, 'avatars', avatar.id])">
+          <img [src]="avatar.avatar_image || 'assets/placeholder-avatar.png'" alt="{{ avatar.name }}" class="avatar-thumb" onerror="this.onerror=null;this.src='assets/placeholder-avatar.png'">
+          <div class="avatar-info">
+            <strong>{{ avatar.name }}</strong>
+            <div class="avatar-meta">
+              <span class="badge" *ngIf="avatar.is_author">Autor</span>
+              <span class="badge badge-secondary" *ngIf="!avatar.is_major_character">Secundario</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noAvatars>
+        <div class="empty-avatars">
+          <p>No hay personajes configurados.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- MODAL DE EDICIÓN DE CAPÍTULO (SPLIT-PANE PREVIEW) -->
+  <div class="modal-overlay chapter-editor-overlay" *ngIf="editingChapter !== null">
+    <div class="chapter-editor-modal card">
+      <!-- Header -->
+      <header class="modal-header">
+        <div class="chapter-editor-title">
+          <span class="chapter-editor-icon material-symbols-outlined">edit_document</span>
+          <h3>Editando: {{ chapters[editingChapter].title }}</h3>
+        </div>
+        <div class="chapter-editor-actions">
+          <span class="word-count-badge">{{ chapters[editingChapter].content_html?.split(' ')?.length || 0 }} palabras</span>
+          <button class="close-modal-btn" (click)="editingChapter = null">×</button>
+        </div>
+      </header>
+
+      <!-- Split Pane Body -->
+      <div class="split-pane-body">
+        <!-- Panel Izquierdo: Código HTML -->
+        <div class="pane pane-code">
+          <div class="pane-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="pane-label code-label">
+              <span class="pane-dot dot-red"></span>
+              <span class="pane-dot dot-yellow"></span>
+              <span class="pane-dot dot-green"></span>
+              &nbsp; HTML Fuente
+            </span>
+            <div class="header-actions">
+              <input type="file" #sceneImageInput hidden accept="image/*" (change)="onSceneImageSelected($event)">
+              <button class="add-btn mini-btn" (click)="sceneImageInput.click()" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 12px;" title="Insertar imagen en la posición actual">
+                <span class="material-symbols-outlined" style="font-size: 14px;">add_photo_alternate</span>
+                Insertar Escena
+              </button>
+            </div>
+          </div>
+          <textarea
+            class="code-editor"
+            [(ngModel)]="chapters[editingChapter].content_html"
+            spellcheck="false"
+            placeholder="Escribe o pega el HTML del capítulo aquí..."
+          ></textarea>
+        </div>
+
+        <!-- Divisor -->
+        <div class="pane-divider">
+          <div class="divider-line"></div>
+          <span class="divider-icon">⟷</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Panel Derecho: Preview renderizado -->
+        <div class="pane pane-preview">
+          <div class="pane-header">
+            <span class="pane-label preview-label">
+              <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">visibility</span> Preview en tiempo real
+            </span>
+          </div>
+          <div
+            class="preview-content"
+            [innerHTML]="getSafePreviewHtml()"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="modal-footer">
+        <span class="footer-hint" style="display: flex; align-items: center; gap: 4px;">
+          <span class="material-symbols-outlined" style="font-size: 16px;">lightbulb</span> Los cambios del HTML se reflejan en tiempo real en el preview.
+        </span>
+        <button class="save-btn" style="display: flex; align-items: center; justify-content: center; gap: 6px;" (click)="editingChapter = null">
+          <span class="material-symbols-outlined">check_circle</span> Cerrar y Guardar Cambios
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ZONA DE PELIGRO (Super Abajo) -->
+  <div class="danger-zone card" *ngIf="isEditing">
+    <div class="danger-header">
+      <span class="icon material-symbols-outlined" style="font-size: 32px; color: #EF4444;">warning</span>
+      <div class="text">
+        <h4>Zona de Peligro</h4>
+        <p>Acciones irreversibles que afectan permanentemente a este libro.</p>
+      </div>
+    </div>
+    <div class="danger-actions">
+      <button class="delete-book-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;" (click)="deleteBook()">
+        <span class="material-symbols-outlined">delete_forever</span> Eliminar permanentemente este libro
+      </button>
+    </div>
+  </div>
+
+</div>
