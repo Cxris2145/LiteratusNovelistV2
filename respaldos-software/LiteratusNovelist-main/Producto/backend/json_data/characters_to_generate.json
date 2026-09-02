@@ -42358,5 +42358,893 @@
     "name": "Don Ramón Brull",
     "book": "Entre naranjos",
     "prompt": "An elderly man in his 60s, with a stern face and gray beard, wearing a formal dark suit and a hat, standing in a vast orange plantation under bright sunlight, holding a walking cane, with a commanding posture, surrounded by workers and irrigation ditches, realistic 19th century style."
+  },
+  {
+    "id": "63d613a8-9ed2-4c60-b8db-8653916e8368",
+    "name": "Everilda",
+    "book": "¡Usted es Ortiz!",
+    "prompt": "A fifty-year-old Spanish housekeeper, Everilda, with a no-nonsense expression. She wears practical, warm clothing suitable for travel in 1926, perhaps a dark, sturdy coat and a sensible hat. Her posture is upright, conveying authority despite her weariness. She carries two small hand bags, indicating recent travel."
+  },
+  {
+    "id": "864ec88f-8e82-4d78-88bc-836b2f6ec592",
+    "name": "Juan Cerro",
+    "book": "¡Usted es Ortiz!",
+    "prompt": "A Spanish mayordomo and chauffeur, Juan Cerro, in his late forties or early fifties, with a boisterous and expressive face, mid-rant. He is wearing an oversized, dark overcoat that seems to swallow him, and holding two heavy suitcases. His attire is typical of a rural servant in 1926 Spain, slightly disheveled from travel. He has a strong, animated posture, capturing his dramatic nature."
+  },
+  {
+    "id": "a64bfea3-58fd-4c04-bd19-de325702b05b",
+    "name": "Eulogia",
+    "book": "¡Usted es Ortiz!",
+    "prompt": "A young Spanish woman, Eulogia, in her early twenties, with a timid and slightly anxious expression. She is dressed in a simple, practical cook's dress or servant's uniform from the 1920s, perhaps with an apron. She is carrying a large basket filled with provisions, looking slightly overwhelmed by her surroundings and the storm."
+  },
+  {
+    "id": "97a45d56-1dae-4e99-8171-b7e35c2eaa91",
+    "name": "Pedro Muñoz Seca",
+    "book": "¡Usted es Ortiz!",
+    "prompt": "A distinguished Spanish playwright, Pedro Muñoz Seca, in his late 40s or early 50s, with a refined yet witty expression. He wears a well-tailored suit typical of the 1920s, perhaps with a waistcoat and a pocket watch chain. He is seated in a classic study, surrounded by books, with a pen in hand, looking directly at the viewer with a knowing, slightly mischievous smile. The ambiance is elegant and intellectual, reflecting his era."
+  },
+  {
+    "id": "698936bd-1a7c-4c2f-a3af-7fe525623969",
+    "name": "Émile Zola",
+    "book": "¡Yo acuso!",
+    "prompt": "A distinguished French author in his late 50s, with a serious and determined expression, a full beard and mustache, wearing a dark, elegant suit typical of the late 19th century. His eyes are piercing and convey a sense of moral indignation and intellectual rigor. He is seated at a wooden desk, quill in hand, with stacks of papers nearby."
+  },
+  {
+    "id": "b7f9e55c-4b9c-4993-969b-3a7295be4c85",
+    "name": "Alfred Dreyfus",
+    "book": "¡Yo acuso!",
+    "prompt": "A French artillery captain in his late 30s, with a somber and weary expression, dark hair, and a neatly trimmed beard. He is dressed in a worn military uniform, perhaps showing signs of hardship or imprisonment. His eyes convey a profound sense of injustice and suffering, yet a flicker of resolve remains."
+  },
+  {
+    "id": "78b07d27-d8dd-4eb4-b839-0e620581f91f",
+    "name": "El Ejército Francés (Alto Mando)",
+    "book": "¡Yo acuso!",
+    "prompt": "A stern-faced group of French military generals in their 50s and 60s, adorned with medals and elaborate uniforms of the late 19th century. Their expressions are resolute, unyielding, and slightly arrogant, conveying a collective sense of authority and unwavering conviction. They are gathered in a richly decorated office or council room."
+  },
+  {
+    "id": "a72f6010-7850-46f8-802f-ef33c3f09723",
+    "name": "Ferdinand Walsin Esterhazy",
+    "book": "¡Yo acuso!",
+    "prompt": "A French military major in his late 40s, with a shifty and somewhat arrogant expression, a thin mustache, and perhaps a slightly disheveled appearance beneath a military uniform. His eyes are evasive, suggesting deceit and self-preservation. He carries an air of opportunism and moral ambiguity."
+  },
+  {
+    "id": "73c759d9-27db-4bc3-8b79-82c4507ab36b",
+    "name": "Harker Brayton",
+    "book": "?pueden suceder tales cosas?-ambrose-bierce",
+    "prompt": "A gaunt frontiersman in his late 40s, with a weather-beaten face, deep-set, haunted eyes, and a thick, unkempt beard. He wears rough, practical buckskin clothing, stained and worn, typical of a 19th-century American wilderness settler. His posture is slightly stooped, reflecting years of solitude and a heavy burden. The setting behind him hints at a desolate cabin in a dense, dark forest."
+  },
+  {
+    "id": "3c013fc7-0814-41a5-8280-e521be59f8c9",
+    "name": "Joel Hetman",
+    "book": "?pueden suceder tales cosas?-ambrose-bierce",
+    "prompt": "A slender man in his late 30s, with a pale complexion, intense, intelligent eyes framed by spectacles, and a neatly trimmed mustache. He wears a dark, somewhat rumpled Victorian-era suit, perhaps with a high-collared shirt. His hands are slender, stained with ink. He is seated at a cluttered writing desk, surrounded by stacks of books and papers, with a quill pen in hand, a flickering oil lamp casting long shadows."
+  },
+  {
+    "id": "aec05ace-e399-48df-99dd-32aaf2e821e3",
+    "name": "Dr. Fenton",
+    "book": "?pueden suceder tales cosas?-ambrose-bierce",
+    "prompt": "A middle-aged man with a stern, intelligent face, a neatly combed dark hair, and a trimmed beard or mustache. He wears a formal, dark 19th-century suit, perhaps with a waistcoat and a clean, starched shirt. His demeanor is serious and professional. He might be holding a notepad and pencil, or adjusting his spectacles, in a dimly lit office or morgue, surrounded by medical instruments or anatomical charts."
+  },
+  {
+    "id": "c6fa74d1-9797-4b92-8002-8f6c35e28a2f",
+    "name": "Ambrose Bierce",
+    "book": "?pueden suceder tales cosas?-ambrose-bierce",
+    "prompt": "A distinguished gentleman in his late 50s or early 60s, with a severe expression, piercing eyes, and a prominent, well-groomed mustache and beard, characteristic of the late 19th/early 20th century. He wears a dark, formal suit with a high collar, perhaps a cravat. His posture is upright and authoritative. The background might suggest a dimly lit study with bookshelves, or a more desolate, almost spectral landscape, reflecting his themes."
+  },
+  {
+    "id": "c10cb1aa-d541-4246-b4b7-12d55e7bcfcb",
+    "name": "El Rey Semibárbaro",
+    "book": "¿La dama o el tigre?",
+    "prompt": "A majestic semi-barbaric king sitting on a massive carved stone throne in an ancient arena, late 19th-century fantasy illustration style, wearing heavy fur-trimmed robes and a jewel-encrusted crown, stern imposing face with a dark beard, sharp eyes, dramatic cinematic lighting, highly detailed."
+  },
+  {
+    "id": "6eaf5d26-492b-4e70-97d7-2aaa7983442d",
+    "name": "La Princesa Semibárbaras",
+    "book": "¿La dama o el tigre?",
+    "prompt": "A passionate semi-barbaric princess with intense dark eyes and wavy black hair adorned with a gold tiara, wearing a dark red velvet gown with intricate gold embroidery, expressive tormented countenance, sitting in royal balcony, dark moody lighting, oil painting style."
+  },
+  {
+    "id": "2323e848-11ad-4f5f-be44-eb11b19f9013",
+    "name": "El Joven Amante",
+    "book": "¿La dama o el tigre?",
+    "prompt": "A handsome young courtier standing alone in the center of a grand ancient amphitheater, wearing a simple refined tunic, noble posture, looking up toward a royal box with trust and quiet courage, two tall iron-bound wooden doors in background, cinematic composition, 19th-century realistic painting style."
+  },
+  {
+    "id": "33ccf37e-46f4-45b8-ae71-052a95ad06cc",
+    "name": "Frank R. Stockton",
+    "book": "¿La dama o el tigre?",
+    "prompt": "Portrait of Frank R. Stockton, a 19th-century American male author with sideburns and a neat mustache, wearing a Victorian dark suit and vest, seated in a warm cozy study surrounded by leather books and writing instruments, soft atmospheric illumination, vintage photograph aesthetic."
+  },
+  {
+    "id": "37758418-254a-4b63-a898-8d6e37a38c95",
+    "name": "Marcel Proust",
+    "book": "(En Busca Del Tiempo Perdido 04) Sodoma y Gomorra",
+    "prompt": "A frail, elegant man with a distinctive mustache, dark, piercing eyes, and a sensitive, intellectual expression. He is often depicted in a dark suit, perhaps in a quiet, cork-lined room, surrounded by books or with a pen in hand, reflecting the solitary nature of his creative process."
+  },
+  {
+    "id": "bc270858-42aa-4cd1-a4f4-61ee2d3d8ab3",
+    "name": "Marcel (el Narrador)",
+    "book": "(En Busca Del Tiempo Perdido 04) Sodoma y Gomorra",
+    "prompt": "A slender young man with sensitive, thoughtful eyes and a slightly melancholic expression. He has fine features and a reflective demeanor, dressed in elegant, turn-of-the-century Parisian attire, perhaps gazing out a window or holding a book, lost in thought."
+  },
+  {
+    "id": "dfce65e7-d19f-432f-b91a-8ec1efb3fe55",
+    "name": "Baron de Charlus",
+    "book": "(En Busca Del Tiempo Perdido 04) Sodoma y Gomorra",
+    "prompt": "An imposing, older aristocratic man with a grand bearing, a meticulously groomed mustache, and piercing, intelligent eyes that hold a hint of secret knowledge or disdain. Dressed in impeccably tailored, dark formal wear of the Belle Époque, exuding an aura of power and hidden desires."
+  },
+  {
+    "id": "415f2ca9-245d-4b4f-a81d-63bc341cfff1",
+    "name": "Albertine Simonet",
+    "book": "(En Busca Del Tiempo Perdido 04) Sodoma y Gomorra",
+    "prompt": "A youthful woman with a graceful figure, often depicted with a bicycle or by the sea. She has dark, expressive eyes that can be both innocent and knowing, and a captivating, slightly enigmatic smile. Her attire is fashionable but practical for a young woman of the era, suggesting an active and independent spirit."
+  },
+  {
+    "id": "766d412e-5d46-43c0-8bb6-cda98e182712",
+    "name": "El Narrador (Marcel)",
+    "book": "(en Busca Del Tiempo Perdido 05) La Prisionera",
+    "prompt": "A slender, pale man in his late twenties, with melancholic, deep-set eyes and a thoughtful expression. He wears a dark, elegant Belle Époque smoking jacket, perhaps with a silk cravat. His posture is slightly stooped, conveying introspection and a delicate constitution. He is often depicted in a dimly lit, richly furnished Parisian apartment, surrounded by books and objects that hint at memory and solitude."
+  },
+  {
+    "id": "6c7d2903-a58a-4289-994f-8a93e9589317",
+    "name": "Albertine Simonet",
+    "book": "(en Busca Del Tiempo Perdido 05) La Prisionera",
+    "prompt": "A young woman with a graceful yet slightly elusive demeanor, perhaps in her early twenties. She has soft, expressive eyes that hint at hidden thoughts, and a delicate, often slightly melancholic smile. Her hair might be styled in soft waves typical of the Belle Époque. She wears elegant, comfortable indoor attire, suggesting both her confined state and her underlying charm. She is often depicted near a window, gazing outward, or in a pose that suggests a subtle longing for escape."
+  },
+  {
+    "id": "dba056f7-7d2e-48a4-92c8-e103ca140503",
+    "name": "Marcel Proust",
+    "book": "(en Busca Del Tiempo Perdido 05) La Prisionera",
+    "prompt": "A refined and somewhat frail gentleman in his late forties or early fifties, with distinctive dark, intelligent eyes and a finely trimmed mustache. He wears a high-collared shirt and an elegant dark suit, typical of early 20th-century Parisian intellectual attire. His posture is contemplative, perhaps leaning slightly forward, as if poised to share a profound insight. He is often depicted in a study or a salon, surrounded by books, perhaps holding a pen or looking into the distance with a thoughtful gaze."
+  },
+  {
+    "id": "cd56453e-0be0-4ce7-9534-c795ff642971",
+    "name": "El Narrador (Marcel)",
+    "book": "(En Busca Del Tiempo Perdido 06) La Fugitiva",
+    "prompt": "A slender, pale young man in his late twenties or early thirties, with a delicate, introspective face. He has dark, slightly dishevelled hair and large, expressive, melancholic eyes. He is often depicted in a dimly lit, richly furnished Parisian apartment, wearing an elegant but slightly rumpled velvet smoking jacket, holding a handkerchief to his mouth, reflecting a delicate constitution. The atmosphere is one of quiet contemplation and intellectual intensity, with a hint of aristocratic weariness."
+  },
+  {
+    "id": "42b55ede-47a1-4658-8e1f-2c5301265839",
+    "name": "Albertine Simonet",
+    "book": "(En Busca Del Tiempo Perdido 06) La Fugitiva",
+    "prompt": "A beautiful young woman in her late teens or early twenties, with a fresh, youthful face, often described with a healthy glow and vibrant energy. She has dark, wavy hair, sparkling, intelligent eyes, and a slightly mischievous or enigmatic smile. She might be depicted wearing casual yet fashionable Belle Époque attire, perhaps near a bicycle, conveying a sense of freedom and movement. Her posture is often relaxed, almost defiant, suggesting an independent spirit."
+  },
+  {
+    "id": "17a1e983-1e41-4b8b-bade-3c35bbacd5e1",
+    "name": "La Madre del Narrador",
+    "book": "(En Busca Del Tiempo Perdido 06) La Fugitiva",
+    "prompt": "A gentle, elegant woman in her fifties or sixties, with a kind, serene face, soft grey hair, and warm, understanding eyes. She wears refined, modest Belle Époque attire, perhaps a lace collar or a simple, dark dress. She is often depicted in a well-appointed, comfortable drawing-room, perhaps seated in an armchair, with a book or needlework in her lap, emanating an aura of calm wisdom and maternal affection."
+  },
+  {
+    "id": "b43f65ae-2b40-47c7-b84c-19d2b00e067a",
+    "name": "Andrée",
+    "book": "(En Busca Del Tiempo Perdido 06) La Fugitiva",
+    "prompt": "A young woman in her early twenties, stylish and poised, with a fashionable Belle Époque hairstyle, perhaps a chignon. She has an intelligent, somewhat reserved expression, with observant eyes. Her attire is chic and contemporary for the period, suggesting a comfortable social standing. She might be depicted in a Parisian café or a drawing-room, conveying a sense of social awareness and discretion."
+  },
+  {
+    "id": "58d0c111-c11b-4eab-a635-146a4a776e4e",
+    "name": "Marcel Proust",
+    "book": "(En Busca Del Tiempo Perdido 06) La Fugitiva",
+    "prompt": "A frail, elegant man in his forties, with a distinctive, slightly melancholic face, dark, intense eyes, and a prominent mustache. He is often depicted in his famous cork-lined room, wearing a dressing gown or a formal suit, surrounded by books and papers. The lighting is soft, emphasizing his introspective and intellectual nature. He holds a pen, poised over a manuscript, conveying deep concentration and a life dedicated to writing."
+  },
+  {
+    "id": "056b0ca8-8e39-4745-b2ab-99b9a6d652e4",
+    "name": "Autor Desconocido",
+    "book": "1",
+    "prompt": "A shadowy, indistinct figure, perhaps cloaked or seen from behind, standing before an ancient, crumbling manuscript on a weathered wooden desk. The setting is a dimly lit, timeless chamber, filled with the soft glow of a single candle. The overall impression is one of profound mystery and ancient wisdom, with no discernible facial features."
+  },
+  {
+    "id": "96e60a30-c5a1-40ae-b383-ff2f0b8a92f2",
+    "name": "El Soñador",
+    "book": "1",
+    "prompt": "A figure with an ethereal and slightly translucent appearance, dressed in simple, flowing garments that seem to shift like mist. Their eyes are wide and contemplative, reflecting an inner world of dreams. They stand in a misty, surreal landscape with ancient, glowing ruins in the background. The overall impression is one of profound introspection and connection to the subconscious."
+  },
+  {
+    "id": "6440b712-590b-4f78-b08a-ff87aea6b47e",
+    "name": "La Voz del Eco",
+    "book": "1",
+    "prompt": "An abstract, shimmering manifestation of sound and light, perhaps a swirling vortex of iridescent colors or a translucent, humanoid silhouette made of mist and starlight. No distinct facial features, but an aura of ancient wisdom and playful enigma. It exists within a boundless, cosmic void or a space where reality seems to ripple and distort."
+  },
+  {
+    "id": "4b1e2c82-3f9b-4a38-a490-caf1a92569f2",
+    "name": "El Guardián del Silencio",
+    "book": "1",
+    "prompt": "A tall, cloaked figure standing motionless in a desolate, dreamlike landscape. Their face is obscured by a deep hood or shadow, revealing only a hint of ancient, knowing eyes. They hold a staff that seems to absorb light. The background features a vast, silent expanse, perhaps a petrified forest or a calm, dark sea under a starless sky. The overall impression is one of immense age, solemnity, and quiet power."
+  },
+  {
+    "id": "4ef72b06-6b0c-4bdf-be4b-afbfdae430b2",
+    "name": "H. P. Lovecraft (Narrador Autobiográfico)",
+    "book": "Algunas notas sobre algo que no existe",
+    "prompt": "A thin, pale young man in early 1890s to 1910s tailored dark suit, serious expression, long jawline, sitting in a dimly lit dusty attic surrounded by stacks of ancient 18th-century books, vintage atmospheric lighting, highly detailed portrait."
+  },
+  {
+    "id": "f545d3ef-8f15-444f-9a81-9f4e01b58212",
+    "name": "Abdul Alhazred",
+    "book": "Algunas notas sobre algo que no existe",
+    "prompt": "An ominous Arab scholar with weathered skin, wearing dark flowing robes and a turban, standing in an ancient desert ruin under a star-filled night sky, carrying a dark blasphemous tome, dark fantasy artistic style."
+  },
+  {
+    "id": "5cde95ab-3b36-4d3f-a32d-2a5b55787c9d",
+    "name": "El Anciano Amable",
+    "book": "Algunas notas sobre algo que no existe",
+    "prompt": "A warm kindly elderly gentleman with grey hair, round spectacles, and a tweed Victorian waistcoat, smiling gently in a cozy library with warm lighting, detailed digital painting."
+  },
+  {
+    "id": "c6178dbb-f508-4301-b39b-66f7ebd6a182",
+    "name": "H. P. Lovecraft",
+    "book": "Algunas notas sobre algo que no existe",
+    "prompt": "Historical accurate portrait of writer H.P. Lovecraft, slim build, pale complexion, formal dark suit, sitting at a wooden writing desk with ink pen, parchment background, atmospheric lighting, sharp focus photography."
+  },
+  {
+    "id": "5070ed3d-695d-4e3d-849d-d4791502d377",
+    "name": "Arthur Gordon Pym",
+    "book": "Aventuras de Arthur Gordon Pym",
+    "prompt": "19th-century portrait of a pale young American sailor, Arthur Gordon Pym, weary dark eyes, disheveled dark hair, wearing a worn dark navy wool coat with brass buttons, dramatic chiaroscuro lighting, nautical background, realistic historical oil painting style."
+  },
+  {
+    "id": "30894941-9d39-418e-a757-fd39c88b74e9",
+    "name": "Augustus Barnard",
+    "book": "Aventuras de Arthur Gordon Pym",
+    "prompt": "19th-century oil portrait of Augustus Barnard, a young American seaman with a brave but wounded appearance, rustic sailor attire, bruised skin, tattered shirt, stormy ocean backdrop, vintage dark realism."
+  },
+  {
+    "id": "a661437a-5040-4c06-9fbb-9fb402c03e52",
+    "name": "Dirk Peters",
+    "book": "Aventuras de Arthur Gordon Pym",
+    "prompt": "19th-century portrait of Dirk Peters, a formidable and muscular hybrid harpooner, bowed legs, broad shoulders, severe facial features, gripping a harpoon, worn leather vest, atmospheric shadowy background, detailed cinematic realism."
+  },
+  {
+    "id": "992c24af-9672-4bfc-85ad-d76b386f6692",
+    "name": "Edgar Allan Poe",
+    "book": "Aventuras de Arthur Gordon Pym",
+    "prompt": "19th-century portrait of Edgar Allan Poe, pale complexion, dark intense eyes, mustache, melancholic expression, black Victorian suit, cravat, sitting in a dimly lit study with books and a raven statue in the background, classic painting style."
+  },
+  {
+    "id": "56eff5f9-9c8c-45d3-8ad1-4129a48210a1",
+    "name": "Autor Desconocido",
+    "book": "Cantar de los siete Infantes de Lara",
+    "prompt": "A medieval scribe, cloaked and hooded, with a weathered face reflecting wisdom and the harshness of the era, holding a quill over a parchment scroll by candlelight. His eyes hold a distant, thoughtful gaze, hinting at the stories he holds within. Rustic, dimly lit scriptorium setting."
+  },
+  {
+    "id": "05bfbef1-b177-427b-a472-ee2ef22ab325",
+    "name": "Gonzalo Gustos",
+    "book": "Cantar de los siete Infantes de Lara",
+    "prompt": "A grizzled, older Castilian nobleman, with a stern yet sorrowful expression. He wears simple but dignified medieval attire, perhaps a tunic and cloak, suggesting his former status and current plight. His eyes show deep pain and resilience. A faint scar across his brow. Set against a backdrop of barren Castilian landscape."
+  },
+  {
+    "id": "f7ad4856-4b18-43f1-af33-abdf8b39757c",
+    "name": "Ruy Velázquez",
+    "book": "Cantar de los siete Infantes de Lara",
+    "prompt": "A dark-haired, imposing Castilian knight in his prime, with a severe, calculating expression. He wears ornate medieval armor, perhaps a dark surcoat with a wolf or serpent emblem. His eyes are cold and piercing, betraying a cruel nature. He carries a large sword. Set in a dimly lit, grand hall of a castle."
+  },
+  {
+    "id": "fd2a93c6-6d5b-4424-935a-41ec07752a41",
+    "name": "Los Siete Infantes de Lara",
+    "book": "Cantar de los siete Infantes de Lara",
+    "prompt": "Seven young, strong Castilian knights, ranging in age, all with similar proud features and determined expressions. They wear matching, slightly worn chainmail and carry swords and shields, ready for battle. Their stance is defiant, but there's a hint of youthful impetuosity in their eyes. A dusty, rugged battlefield landscape in the background, perhaps with a rising sun."
+  },
+  {
+    "id": "a8dba6d9-ba50-49fb-ba2d-30b3462a977f",
+    "name": "Mudarra González",
+    "book": "Cantar de los siete Infantes de Lara",
+    "prompt": "A young, striking man of mixed heritage, with dark, intense eyes and a determined jawline. He wears a blend of Christian and Moorish attire, perhaps a chainmail shirt under a richly embroidered tunic, with a scimitar at his hip. His posture is alert and powerful, ready for action. Set against a backdrop of a fortified castle or a desert landscape at dusk."
+  },
+  {
+    "id": "f48a312e-4df1-4569-bf99-158564b11fe8",
+    "name": "Doña Lambra",
+    "book": "Cantar de los siete Infantes de Lara",
+    "prompt": "A regal and stern Castilian noblewoman in her prime, with a haughty expression and sharp features. She wears an elaborate medieval gown of rich fabrics, adorned with jewels, reflecting her high status. Her eyes are cold and calculating, suggesting a manipulative and proud nature. She holds a delicate fan or a piece of embroidery. Set in a richly decorated castle chamber."
+  },
+  {
+    "id": "39994acd-4f0b-4d07-afd0-64be3a32cfe3",
+    "name": "San Agustín (el Narrador)",
+    "book": "Confesiones",
+    "prompt": "A middle-aged man with a thoughtful, intense gaze, dressed in simple, dark robes of a North African bishop from the late 4th century. He has a high forehead, a neatly trimmed beard, and a posture of deep contemplation. His hands are often clasped or gesturing subtly, reflecting his rhetorical background. The setting is dimly lit, perhaps a study or a cell, with parchment and a stylus nearby."
+  },
+  {
+    "id": "89bf6a7c-bb64-4995-88de-c1322a54fe8c",
+    "name": "Mónica",
+    "book": "Confesiones",
+    "prompt": "An elderly woman with a gentle, serene face, lines of worry softened by an expression of profound peace and unwavering faith. She wears simple, modest clothing typical of a Roman matron of the 4th century North Africa, possibly a dark tunic and pallium. Her hands are often clasped in prayer, and her eyes convey deep compassion and spiritual strength. A faint glow of inner peace emanates from her."
+  },
+  {
+    "id": "0c3eae27-8a9b-4333-83c1-da392ca7f92e",
+    "name": "Dios",
+    "book": "Confesiones",
+    "prompt": "An ethereal and majestic presence, not a human figure, but represented by an overwhelming golden light emanating from the heavens, casting a profound sense of peace and awe. Perhaps subtle, abstract divine symbols like a radiant dove or a glowing open book (representing scripture) are faintly visible within the light. The overall impression is one of infinite wisdom, boundless love, and ultimate power, without human form."
+  },
+  {
+    "id": "cba2c852-075c-42cf-8bc9-c6902cdb669f",
+    "name": "San Agustín (El Autor)",
+    "book": "Confesiones",
+    "prompt": "A wise, venerable man in his late 50s or early 60s, with a distinguished, intellectual appearance. He wears the formal vestments of an early Christian bishop, perhaps a pallium over a tunic. His face is etched with the wisdom of age and deep thought, a calm but piercing gaze. He is depicted holding a quill and looking thoughtfully at a half-written manuscript on a wooden desk, in a scriptorium bathed in soft, natural light, reflecting the era of late antiquity."
+  },
+  {
+    "id": "7a8bf6f7-32fe-4c04-b55c-398c6c513e56",
+    "name": "Narrador (El corazón delator)",
+    "book": "Cuentos Clásicos del Norte",
+    "prompt": "A gaunt man in his late 30s, with wide, bloodshot eyes that dart nervously. His face is pale and etched with paranoia, a few strands of dark hair falling across his forehead. He wears simple, slightly disheveled 19th-century attire. His hands are thin and expressive, often gesturing wildly."
+  },
+  {
+    "id": "d7f6dd0f-c074-41ff-b179-d4ebbc03b724",
+    "name": "Roderick Usher",
+    "book": "Cuentos Clásicos del Norte",
+    "prompt": "A man in his late 20s or early 30s, with an ethereal, almost translucent pallor. His eyes are large, luminous, and filled with a profound sadness. His features are delicate, almost cadaverous, framed by long, silken black hair. He wears a dark, exquisitely tailored 19th-century velvet robe, emphasizing his frail physique. His hands are long and slender, often clasped in a gesture of contemplation."
+  },
+  {
+    "id": "dda58571-0d0e-4e77-9e43-80b157ccbe55",
+    "name": "Narrador (El gato negro)",
+    "book": "Cuentos Clásicos del Norte",
+    "prompt": "A man in his 40s, with a haggard and unkempt appearance. His once kind eyes are now sunken and bloodshot, reflecting a profound weariness and guilt. A stubble covers his chin, and his hair is disheveled. He wears stained, threadbare 19th-century clothes, suggesting a life of neglect and dissolution. His posture is often slumped, conveying a sense of defeat."
+  },
+  {
+    "id": "e972db7f-a395-44ea-95c5-87f4f3c33cdf",
+    "name": "Edgar Allan Poe",
+    "book": "Cuentos Clásicos del Norte",
+    "prompt": "A man in his late 30s or early 40s, with an iconic, intense gaze and deep-set, dark eyes. His face is pale and angular, framed by dark, slightly disheveled hair. He has a neatly trimmed mustache and goatee, typical of the mid-19th century. He wears a dark, impeccably tailored frock coat and a high cravat, exuding an air of somber intellectualism and brooding genius."
+  },
+  {
+    "id": "2234a230-c958-4b27-9c09-b0c365501976",
+    "name": "Charles Perrault",
+    "book": "Cuentos de hadas",
+    "prompt": "A distinguished 17th-century French gentleman, Charles Perrault, with a refined powdered wig, an elegant velvet coat with lace cuffs, and a serious yet benevolent expression. He holds a quill pen in one hand and a leather-bound book in the other, perhaps with a subtle background of a baroque library or a salon, illuminated by soft, warm light."
+  },
+  {
+    "id": "b31df495-7cf8-40e0-8b46-5c3dcb1dbffb",
+    "name": "Cenicienta",
+    "book": "Cuentos de hadas",
+    "prompt": "A young woman with a gentle, kind face, her hair tied back simply, wearing tattered and patched servant's clothes, covered in a light layer of ash and dust. Her eyes hold a glimmer of hope and resilience. She might be holding a broom or a pail, perhaps with a subtle magical glow hinting at her future, in a rustic, humble kitchen setting."
+  },
+  {
+    "id": "70335a40-51eb-4076-8930-28e7be78f580",
+    "name": "Caperucita Roja",
+    "book": "Cuentos de hadas",
+    "prompt": "A young, innocent girl with bright, curious eyes, wearing a distinctive vibrant red hooded cloak made of velvet. She carries a small wicker basket. She stands in a sun-dappled forest path, surrounded by trees and flowers, with a slightly naive and trusting expression."
+  },
+  {
+    "id": "a91c0c5a-218f-4de3-950a-b8f2ee4239bd",
+    "name": "El Gato con Botas",
+    "book": "Cuentos de hadas",
+    "prompt": "An anthropomorphic cat, standing upright, with a confident and sly grin. He wears elegant, knee-high leather boots, a plumed hat, and a dashing cape. He might be holding a small sword or gesturing dramatically, with a background suggesting a royal court or a countryside landscape that he is about to conquer."
+  },
+  {
+    "id": "d7ed6785-61e0-492f-b13b-af16660fca86",
+    "name": "El Lobo Feroz",
+    "book": "Cuentos de hadas",
+    "prompt": "A large, imposing wolf with menacing yellow eyes and sharp fangs, a dark, shaggy coat, and a cunning, predatory grin. He stands on two legs, perhaps wearing a grandmother's nightcap and spectacles, or lurking in the shadows of a dense, dark forest, exuding an aura of danger and slyness."
+  },
+  {
+    "id": "dff893d8-6505-4394-8740-e6052fe1cedf",
+    "name": "William Shakespeare",
+    "book": "Dramas de Guillermo Shakespeare",
+    "prompt": "A detailed portrait of William Shakespeare, middle-aged Elizabethan man with a receding hairline, neat goatee beard, wearing a black doublet with a crisp white lace ruff collar, holding a quill, classic oil painting style, Renaissance lighting."
+  },
+  {
+    "id": "4f4a5785-731a-47c8-bd2a-49857ed941e9",
+    "name": "Sir John Falstaff",
+    "book": "Dramas de Guillermo Shakespeare",
+    "prompt": "An oil painting of Sir John Falstaff, a very large, portly Elizabethan knight with a wide white beard, red rosy cheeks, merry twinkling eyes, wearing velvet slashed doublet with golden embroidery, holding a tankard of ale, humorous expression."
+  },
+  {
+    "id": "987c7105-d864-4053-8b42-212024809640",
+    "name": "Mistress Alice Ford",
+    "book": "Dramas de Guillermo Shakespeare",
+    "prompt": "A 16th-century Elizabethan portrait of Mistress Alice Ford, attractive middle-aged English bourgeois woman, wearing an elegant Tudor lace bonnet, rich green velvet dress with delicate embroidery, clever knowing smile, well-lit interior setting."
+  },
+  {
+    "id": "b7a84b38-928c-461b-ae71-25e6c531bf2c",
+    "name": "Master Frank Ford",
+    "book": "Dramas de Guillermo Shakespeare",
+    "prompt": "Portrait of Master Frank Ford, a middle-aged Elizabethan gentleman with dark hair, a trimmed beard, intense paranoid eyes, wearing a dark brown tailored coat with a simple white linen collar, tense posture, dramatic shadow lighting."
+  },
+  {
+    "id": "580e6a11-7749-46a4-b993-1f25f0aa399b",
+    "name": "Herlock Sholmes",
+    "book": "Herlock Sholmes llega demasiado tarde",
+    "prompt": "A tall, thin man with a sharp nose, piercing gray eyes, wearing a deerstalker hat and a long coat, holding a magnifying glass, looking arrogant and confident, in a Victorian-era setting."
+  },
+  {
+    "id": "babc6f17-6cd2-4d63-aea8-2b4fea71543a",
+    "name": "Arsène Lupin",
+    "book": "Herlock Sholmes llega demasiado tarde",
+    "prompt": "A charming, elegant French gentleman in his 30s, with slicked-back dark hair, a thin mustache, wearing a tailored suit and a top hat, holding a cane, with a mischievous smile, standing in a luxurious setting."
+  },
+  {
+    "id": "0f5c0f45-8b1a-4c7c-abf2-04504cd17f2a",
+    "name": "El Narrador",
+    "book": "Herlock Sholmes llega demasiado tarde",
+    "prompt": "A faceless, ethereal figure with a quill and an open book, surrounded by swirling letters and symbols, with a subtle smile, representing the omniscient narrator."
+  },
+  {
+    "id": "055aa4bd-c710-40b9-8288-6d0fefea875e",
+    "name": "Maurice Leblanc",
+    "book": "Herlock Sholmes llega demasiado tarde",
+    "prompt": "A distinguished French gentleman in his 40s, with a well-groomed beard and mustache, wearing a suit and a bow tie, holding a pen, with a thoughtful expression, in a study filled with books."
+  },
+  {
+    "id": "c9f1cc94-7bb3-4364-8853-d432c207e554",
+    "name": "Hermann",
+    "book": "Hermann y Dorotea",
+    "prompt": "A young German man in his early 20s, with light brown hair and blue eyes, wearing simple but elegant late 18th-century bourgeois clothing: a white shirt, a dark green vest, and a brown coat. He has a thoughtful expression, standing in a rustic inn courtyard with soft morning light."
+  },
+  {
+    "id": "39749a2f-13ac-4a5d-b06c-98e24965fed3",
+    "name": "Dorotea",
+    "book": "Hermann y Dorotea",
+    "prompt": "A young woman in her early 20s, with chestnut hair tied in a simple bun, wearing a modest but clean dress of a refugee from the 1790s: a grey skirt, a white blouse, and a blue shawl. She has a gentle, resilient face with hazel eyes, standing near a cart with her belongings."
+  },
+  {
+    "id": "04e5de51-1595-486d-a050-ced4cbca1b88",
+    "name": "El padre de Hermann",
+    "book": "Hermann y Dorotea",
+    "prompt": "A middle-aged man in his 50s, with gray hair and a stern face, wearing a well-tailored dark suit and a white cravat, typical of a prosperous innkeeper in 1790s Germany. He stands behind a wooden counter, with a stern but calculating expression."
+  },
+  {
+    "id": "fab6452e-fe04-46b5-9e7a-7910cd272fb5",
+    "name": "La madre de Hermann",
+    "book": "Hermann y Dorotea",
+    "prompt": "A kind-faced woman in her late 40s, with gray-streaked hair gathered in a bun, wearing a simple but neat dress with an apron, typical of a housewife in 1790s Germany. She has warm eyes and a gentle smile, standing near a hearth."
+  },
+  {
+    "id": "ae818bda-7413-4380-9904-75bdf273227a",
+    "name": "Goethe",
+    "book": "Hermann y Dorotea",
+    "prompt": "A portrait of Johann Wolfgang von Goethe in his late 40s, with a distinguished face, high forehead, and intense eyes, wearing a dark coat and a white cravat, in a study filled with books and classical busts, lit by candlelight."
+  },
+  {
+    "id": "86fe91f0-efcd-4c09-ae35-d798bd6c5254",
+    "name": "El Poeta (Narrador)",
+    "book": "Himnos a la Noche",
+    "prompt": "A melancholic young poet, with long, unkempt dark hair, wearing a dark Romantic-era coat, standing on a cliff overlooking a moonlit valley, stars above, a faint ethereal glow, in the style of Caspar David Friedrich, oil painting, dramatic lighting."
+  },
+  {
+    "id": "2cb7c0e4-9073-4441-b774-625d4d3ab6c8",
+    "name": "La Amada Fallecida (Sophie)",
+    "book": "Himnos a la Noche",
+    "prompt": "An ethereal young woman with fair hair and luminous eyes, dressed in a flowing white gown, surrounded by soft moonlight and stars, translucent and glowing, in a dreamlike Romantic painting style, with soft focus and heavenly atmosphere."
+  },
+  {
+    "id": "b10403e7-5daa-4e26-892d-0edc7434f25b",
+    "name": "La Luz (La Razón)",
+    "book": "Himnos a la Noche",
+    "prompt": "A radiant, blinding light, personified as a stern, classical figure with sharp features, dressed in golden robes, holding a torch, surrounded by sunbeams, in a neoclassical style, with stark contrast against darkness."
+  },
+  {
+    "id": "90727afb-143e-4fe8-bf6b-db1a72f31176",
+    "name": "Novalis",
+    "book": "Himnos a la Noche",
+    "prompt": "A portrait of a young German Romantic poet, around age 28, with dark curly hair, intense dark eyes, wearing a black coat and white cravat, in a dimly lit study with books and candlelight, in the style of a 19th-century oil painting, with a thoughtful and inspired expression."
+  },
+  {
+    "id": "777523e6-fa9e-4a8e-bbc4-99c5aa2729ec",
+    "name": "Sócrates",
+    "book": "Hipias Menor",
+    "prompt": "Ancient Greek philosopher, middle-aged, balding with curly hair and a thick beard, wearing a simple himation, barefoot, standing in an Athenian agora, thoughtful expression, marble statues in background, soft daylight, realistic style"
+  },
+  {
+    "id": "43a4bb94-9410-4dd6-b124-563284e292f4",
+    "name": "Hipias de Élide",
+    "book": "Hipias Menor",
+    "prompt": "Ancient Greek sophist, middle-aged, well-groomed hair and short beard, wearing an elegant purple himation and jewelry, standing with a confident pose, in a public square, scrolls in hand, background of Greek temples, bright colors, realistic style"
+  },
+  {
+    "id": "ff1fe18d-f0c6-4d0b-a60b-bafeddc6ed0e",
+    "name": "Eudico",
+    "book": "Hipias Menor",
+    "prompt": "Young Athenian man, short curly hair, simple tunic, standing near a column, attentive expression, holding a scroll, classical Greek architecture background, warm light, realistic style"
+  },
+  {
+    "id": "4e0a0044-3551-4202-9d6f-8a8f4217d95d",
+    "name": "Platón",
+    "book": "Hipias Menor",
+    "prompt": "Ancient Greek philosopher, mature man with long hair and beard, wearing a simple robe, sitting in a study with scrolls, thoughtful gaze, statue of Athena in background, soft candlelight, realistic style"
+  },
+  {
+    "id": "5a672841-e247-4ef4-a7a7-61da38defb4c",
+    "name": "El narrador (protagonista)",
+    "book": "Hipno",
+    "prompt": "A man in his 30s, early 20th century attire, wearing a rumpled suit and tie, with dark circles under his eyes, a haunted expression, sitting in a dimly lit room with books and papers scattered around, holding a cup of coffee, in the style of a realistic portrait, dramatic lighting."
+  },
+  {
+    "id": "ac75180b-dca9-47aa-ae71-cf90db43c4a3",
+    "name": "Hipno",
+    "book": "Hipno",
+    "prompt": "An amorphous, shadowy entity composed of swirling dark mist and tendrils, with glowing eyes that pierce the darkness, floating in a void of stars and nebulae, in the style of cosmic horror, ethereal and menacing."
+  },
+  {
+    "id": "57d11026-b172-4119-ab0a-2f5ef9a0b568",
+    "name": "El amigo del narrador",
+    "book": "Hipno",
+    "prompt": "A man in his 30s, early 20th century attire, wearing a vest and tie, with a kind and concerned expression, standing in a study with bookshelves, holding a pipe, in the style of a realistic portrait, warm lighting."
+  },
+  {
+    "id": "7b06faff-1333-45ba-aea6-cb6506ab3b32",
+    "name": "H. P. Lovecraft",
+    "book": "Hipno",
+    "prompt": "A man in his 40s, early 20th century, with a high forehead, piercing eyes, a prominent chin, wearing a suit and tie, with a pensive and intense expression, in a dimly lit study with books and papers, in the style of a realistic portrait, chiaroscuro lighting."
+  },
+  {
+    "id": "33a54a66-c919-483d-bbde-b5ea2aee1c45",
+    "name": "Hipólito",
+    "book": "Hipolito",
+    "prompt": "A young Greek man in his early twenties, athletic and handsome, with short curly hair and a determined expression. He wears a simple white chiton and holds a javelin. The background is a sacred grove with a statue of Artemis. Style: classical Greek vase painting, warm colors, dramatic lighting."
+  },
+  {
+    "id": "1e2fb4f3-2c62-49c5-9eca-ab6431afce8f",
+    "name": "Fedra",
+    "book": "Hipolito",
+    "prompt": "A beautiful Greek queen in her late twenties, with dark hair pinned up elegantly and wearing a luxurious purple robe. Her face is pale and sorrowful, with tear-streaked cheeks. She sits in a dimly lit chamber with a small oil lamp. Style: classical Greek painting, rich colors, chiaroscuro."
+  },
+  {
+    "id": "c5410f10-b958-4303-afc3-4ab381278547",
+    "name": "Teseo",
+    "book": "Hipolito",
+    "prompt": "A mature Greek king in his forties, with a strong build and a beard. He wears a golden diadem and a white himation. His expression is stern and angry, with a furrowed brow. He stands in a palace hall with columns. Style: classical Greek sculpture, noble and imposing."
+  },
+  {
+    "id": "f25ab59d-4c9f-4014-b336-0a6a4f7cd8e9",
+    "name": "Artemisa",
+    "book": "Hipolito",
+    "prompt": "A majestic goddess with a bow and quiver, dressed in a short hunting tunic. She has long flowing silver hair and piercing grey eyes. She stands on a mountain peak with deer around her. Style: classical Greek sculpture, ethereal and powerful."
+  },
+  {
+    "id": "616c5e81-5e87-4806-aed8-d7569c080052",
+    "name": "Afrodita",
+    "book": "Hipolito",
+    "prompt": "A breathtakingly beautiful goddess with golden hair and a radiant smile. She wears a flowing pink gown and holds a dove. She stands in a rose garden. Style: classical Greek painting, sensual and alluring."
+  },
+  {
+    "id": "71abdefb-98e7-4a8c-a8c4-75ac35a36e93",
+    "name": "Nodriza",
+    "book": "Hipolito",
+    "prompt": "An elderly Greek woman with grey hair tied in a bun, wearing a simple dark dress and a shawl. Her face is wrinkled and kind but worried. She stands in a dim corridor of a palace. Style: classical Greek painting, somber tones."
+  },
+  {
+    "id": "591ac604-e32a-43ec-9e4f-935775416c7e",
+    "name": "Mensajero",
+    "book": "Hipolito",
+    "prompt": "A Greek man in his thirties, wearing a simple tunic and sandals, with dust on his clothes. His face is distressed and he holds a staff. He stands outside a palace gate. Style: classical Greek relief, dramatic."
+  },
+  {
+    "id": "9d2113d3-9eaf-4433-8775-7de996f1385a",
+    "name": "Euripides",
+    "book": "Hipolito",
+    "prompt": "A middle-aged Greek man with a beard and thoughtful expression, wearing a himation. He holds a scroll and looks out over the Aegean sea. Style: classical Greek bust, intellectual."
+  },
+  {
+    "id": "f81c8e74-ddcf-482d-b647-935fdeef79d2",
+    "name": "Cyrano de Bergerac (narrador)",
+    "book": "Historia cómica de los Estados e Imperios del Sol",
+    "prompt": "A gentleman of the 17th century, with a long nose, wearing a wide-brimmed hat with a feather, a cape, and a rapier at his side, standing in a surreal solar landscape with floating islands and glowing plants, oil painting style."
+  },
+  {
+    "id": "0f17be45-766b-48c7-9ef2-7288da2ba939",
+    "name": "El habitante de la Luna (Démon de Cyrano)",
+    "book": "Historia cómica de los Estados e Imperios del Sol",
+    "prompt": "A slender, pale humanoid figure with luminous eyes and elongated limbs, wearing a simple tunic of iridescent fabric, standing in a garden with silver plants and a glowing Earth in the sky, surrealist painting."
+  },
+  {
+    "id": "5cb86255-3191-46c1-820e-c49f20467ca7",
+    "name": "El Pájaro del Sol",
+    "book": "Historia cómica de los Estados e Imperios del Sol",
+    "prompt": "A majestic bird with iridescent golden feathers, large intelligent eyes, and a wingspan that blots out the sun, perched on a crystalline tree in a blazing solar landscape, fantasy art."
+  },
+  {
+    "id": "ea934ee9-b9f1-477a-a0c5-191971cedd57",
+    "name": "El Rey de los Pájaros",
+    "book": "Historia cómica de los Estados e Imperios del Sol",
+    "prompt": "A large, pompous bird with a golden crown, wearing a regal cape, with a stern expression and sharp talons, standing on a throne made of feathers, in a palace of clouds, satirical illustration."
+  },
+  {
+    "id": "9c32126c-0ac1-481a-a65b-c874cda57e7d",
+    "name": "Cyrano de Bergerac (autor real)",
+    "book": "Historia cómica de los Estados e Imperios del Sol",
+    "prompt": "A 17th-century French writer with a prominent nose, wearing a ruff collar and a dark coat, holding a quill and a manuscript, with a background of celestial maps and flying machines, baroque portrait style."
+  },
+  {
+    "id": "e4359576-9eaf-4086-94c8-9f17adda6f25",
+    "name": "Marques de Sade",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "Portrait of a French aristocrat from the 18th century, Donatien Alphonse François de Sade, with powdered wig, piercing dark eyes, and a sardonic smile, wearing an embroidered coat and cravat, lit by candlelight in a study filled with books and forbidden manuscripts."
+  },
+  {
+    "id": "2718a925-be0b-4fe8-ba4f-8ebe10fa1132",
+    "name": "Aline",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "Young French noblewoman of the 18th century, with soft brown hair in an elegant updo, wearing a pastel gown with lace trimmings, a delicate pearl necklace, and a face expressing both innocence and determination, in a dimly lit room with a window overlooking a garden."
+  },
+  {
+    "id": "7c3fb937-dc43-4be6-8f68-0d2443e4c192",
+    "name": "Valcour",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "Young man of the 18th century, with wavy dark hair tied back, wearing a simple but elegant coat and waistcoat, holding a quill and paper, with intelligent and intense eyes, in a study with books and maps, reflecting a philosopher's spirit."
+  },
+  {
+    "id": "fb82d62f-d2ae-4761-94a6-d343e1e336f6",
+    "name": "Madame de Blamont",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "Elegant French noblewoman of the 18th century, with dark hair styled with ribbons and a lace cap, wearing a silk gown in muted colors, with a melancholic yet resolute expression, in a lavishly decorated salon with a mirror reflecting a hidden door."
+  },
+  {
+    "id": "f5f6032f-a9ee-47a5-a86b-9af28d4604af",
+    "name": "Dolmancé",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "Middle-aged French aristocrat from the 18th century, with a sly smile, powdered wig, and a velvet coat, holding a glass of wine, surrounded by debauched imagery, in a dark boudoir with silk curtains and candles."
+  },
+  {
+    "id": "741349c6-58fe-4954-8e3c-1f71b39d529e",
+    "name": "Zamé",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "Elderly king of a tropical island, with white hair and a beard, wearing simple robes made of natural fibers, adorned with flowers and a golden crown, standing on a cliff overlooking a lush valley and the sea, with a wise and benevolent expression."
+  },
+  {
+    "id": "44a42d21-ed06-44b3-b329-ee3b9f314a13",
+    "name": "Madame de Sade",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "French noblewoman of the 18th century, with a stern face, hair pulled back tightly under a cap, wearing a dark, conservative dress, standing in a shadowy corner of a room, with hands clasped, conveying submissiveness and hidden tension."
+  },
+  {
+    "id": "d9bb9bad-e540-4232-9735-b447d7725774",
+    "name": "Le Comte de Beaulé",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "Handsome French nobleman of the 18th century, with a confident smile, wearing a blue velvet coat and a white cravat, holding a rose, in a moonlit garden with a fountain, evoking romance and secrecy."
+  },
+  {
+    "id": "b9e17dfd-7e2a-4fd7-9bf9-78219f8fa750",
+    "name": "Saint-Florent",
+    "book": "Historia de Aline y Valcour",
+    "prompt": "French gentleman of the 18th century, with a thoughtful expression, wearing a simple coat and holding a leather-bound book, in a library with tall shelves and candlelight, suggesting a writer and observer."
+  },
+  {
+    "id": "a0eddf20-21a0-4e90-b5bd-869f16877519",
+    "name": "Wallace Wattles",
+    "book": "La Ciencia de estar bien",
+    "prompt": "A man in his early 50s, early 20th century American, with a neat mustache and short hair, wearing a formal suit with a vest and tie, holding a book, standing in a study with bookshelves, soft natural light, realistic portrait, warm tones"
+  },
+  {
+    "id": "225e1d03-0440-47d6-8c4f-d914c97df17c",
+    "name": "El Principiante",
+    "book": "La Ciencia de estar bien",
+    "prompt": "A person in their 30s, of ambiguous gender, sitting at a desk with a book, looking thoughtful, wearing casual early 20th century clothing, warm lighting, realistic style"
+  },
+  {
+    "id": "ac651fba-2eb9-4804-88b5-e60609d3def0",
+    "name": "La Inteligencia Universal",
+    "book": "La Ciencia de estar bien",
+    "prompt": "A luminous, abstract form of swirling cosmic energy, with soft golden and blue light, ethereal and vast, representing universal intelligence, digital art, no human figure"
+  },
+  {
+    "id": "f61b3490-c999-4c83-be18-e3415130909a",
+    "name": "El Médico Tradicional",
+    "book": "La Ciencia de estar bien",
+    "prompt": "A man in his 60s, stern expression, wearing a white coat and stethoscope, holding a clipboard, in a doctor's office with antique medical instruments, early 20th century, realistic portrait, harsh lighting"
+  },
+  {
+    "id": "9d9ac1f9-0ef9-4dd9-b14b-499db390112b",
+    "name": "El Estudiante de la Riqueza",
+    "book": "La ciencia de hacerse rico",
+    "prompt": "A thoughtful person in early 20th century attire, sitting at a desk with books and papers, looking determined, soft lighting, realistic style."
+  },
+  {
+    "id": "d1f808f4-8cfc-4522-ab42-9a2289c78a3b",
+    "name": "La Mente Creativa",
+    "book": "La ciencia de hacerse rico",
+    "prompt": "An ethereal, abstract representation of cosmic energy, swirling nebula and light, no human form, majestic and awe-inspiring, digital art."
+  },
+  {
+    "id": "2e4ba758-e400-43cd-8f97-000437864ce9",
+    "name": "El Hombre de Acción",
+    "book": "La ciencia de hacerse rico",
+    "prompt": "A confident businessman in early 1900s attire, standing in front of a storefront, with a determined expression, sepia tone photo style."
+  },
+  {
+    "id": "f03d4382-4029-4a47-ad83-0a0e3be5ff51",
+    "name": "Wallace Wattles",
+    "book": "La ciencia de hacerse rico",
+    "prompt": "A thoughtful man in his 50s, with a high forehead, wearing a suit and tie, holding a book, with a warm but serious expression, early 1900s portrait style."
+  },
+  {
+    "id": "eadbd10b-a507-46a1-80af-f200c4cb8952",
+    "name": "El Narrador (Protagonista)",
+    "book": "La cita",
+    "prompt": "A man in his 40s, Victorian era, with dark, disheveled hair, deep-set eyes with dark circles, wearing a black frock coat and cravat, standing in a dimly lit study filled with books and shadows."
+  },
+  {
+    "id": "72a0beb7-b2b7-43b2-8b22-36e46958b1d6",
+    "name": "Morena",
+    "book": "La cita",
+    "prompt": "A ghostly apparition of a beautiful woman in a flowing white dress, with long dark hair, translucent and glowing faintly, surrounded by a misty aura, Victorian era, melancholic expression."
+  },
+  {
+    "id": "8536f939-32d1-4273-98cb-6a6907997d38",
+    "name": "La Segunda Esposa",
+    "book": "La cita",
+    "prompt": "A young woman in her 20s, Victorian era, with auburn hair in a bun, wearing a modest high-neck dress in muted colors, with a worried expression, standing near a window with pale light."
+  },
+  {
+    "id": "6e11b744-a3c5-43d5-a60a-596a440a69cf",
+    "name": "Edgar Allan Poe",
+    "book": "La cita",
+    "prompt": "A portrait of Edgar Allan Poe, Victorian era, with dark, wavy hair and a prominent mustache, wearing a black suit with a vest and bow tie, intense gaze, seated in a dark study with books and a raven on a bust."
+  },
+  {
+    "id": "464feb5d-1668-4a9f-bca5-ec5c483a49f3",
+    "name": "La Viuda Joven",
+    "book": "La Cita",
+    "prompt": "A young woman in her late twenties, dressed in elegant black mourning attire of the 19th century, with a lace veil and pearl earrings, seated in a dimly lit parlor, holding a fan, with a subtle ironic smile, oil painting style"
+  },
+  {
+    "id": "0868cfb5-60c8-4c94-b39c-b34c29bf7086",
+    "name": "El Caballero Galante",
+    "book": "La Cita",
+    "prompt": "A distinguished gentleman in his thirties, wearing a tailored black suit with a white cravat and a top hat, standing in a Victorian drawing-room, with a monocle and a slight smirk, oil painting style"
+  },
+  {
+    "id": "4c7d6fb3-6bb8-4e79-8b40-ed37a3f9d03a",
+    "name": "La Dueña / Acompañante",
+    "book": "La Cita",
+    "prompt": "An elderly woman in her sixties, wearing a modest dark dress and a shawl, with a stern but wise face, sitting in a corner of a Victorian parlor, knitting, oil painting style"
+  },
+  {
+    "id": "6758a2f2-c192-45ec-b819-0b78bcaae62b",
+    "name": "Emilia Pardo Bazán",
+    "book": "La Cita",
+    "prompt": "A portrait of a distinguished Spanish woman writer of the 19th century, with dark hair pulled back, wearing an elegant Victorian dress with lace collar, holding a quill and a book, serious expression, oil painting style"
+  },
+  {
+    "id": "c3d6c105-cd33-423f-882c-2439eed64ec8",
+    "name": "Agustín de Hipona",
+    "book": "La ciudad de Dios",
+    "prompt": "A middle-aged man with a short beard, wearing a bishop's mitre and simple robes, holding a quill and an open book, with a serene and contemplative expression. The background shows a monastery library with ancient manuscripts."
+  },
+  {
+    "id": "f3bc1de0-3589-45e8-ba9d-d088516f3b31",
+    "name": "La Ciudad de Dios",
+    "book": "La ciudad de Dios",
+    "prompt": "A majestic, ethereal city floating in the sky, with golden towers and radiant light, surrounded by angels and saints. The architecture is a blend of classical Roman and heavenly, with gates of pearl and streets of gold."
+  },
+  {
+    "id": "2ac336f4-5db8-462c-a1fb-888a36ad2449",
+    "name": "La Ciudad Terrenal",
+    "book": "La ciudad de Dios",
+    "prompt": "A dark, opulent city with towering skyscrapers and neon lights, filled with people reveling in luxury and vice. The atmosphere is chaotic and hedonistic, with a sense of impending doom."
+  },
+  {
+    "id": "f9f0941f-57d9-4cbe-82c2-8ed486160f2a",
+    "name": "Roma",
+    "book": "La ciudad de Dios",
+    "prompt": "A majestic but ruined Roman forum, with broken columns and overgrown weeds, a female figure in a toga with a laurel wreath, weeping, with the Colosseum in the background at sunset."
+  },
+  {
+    "id": "f9ba703d-32c3-4407-a6fc-c6e42b5d51e0",
+    "name": "Cristo",
+    "book": "La ciudad de Dios",
+    "prompt": "A serene, majestic figure of Jesus Christ, with a gentle smile, wearing simple robes, surrounded by a heavenly light, with a shepherd's staff and a halo."
+  },
+  {
+    "id": "12876032-18cd-4f38-97fd-a72d9bbe8b65",
+    "name": "El Poeta",
+    "book": "La Ciudad de los Tísicos",
+    "prompt": "A young man in early 20th century, pale and thin, with hollow cheeks and dark circles under his eyes. He wears a worn-out coat and a scarf, holding a notebook. Background of an Andean city with stone streets and misty mountains."
+  },
+  {
+    "id": "b2eea2e3-9fe4-4dcf-9606-240837326ed9",
+    "name": "La Enfermera",
+    "book": "La Ciudad de los Tísicos",
+    "prompt": "A woman in her 30s, with a kind face and tired eyes, wearing a simple nurse's uniform of the early 1900s, with a white apron and a cap. She has a gentle smile and stands in a dimly lit room with a bed and medical supplies."
+  },
+  {
+    "id": "12bed7dd-a3f7-42fc-b271-ce4f695b631f",
+    "name": "El Médico",
+    "book": "La Ciudad de los Tísicos",
+    "prompt": "A man in his 40s, with a mustache and glasses, wearing a white coat over a formal suit, carrying a stethoscope. He has a serious expression, standing in a rustic medical office with wooden furniture and old medical instruments."
+  },
+  {
+    "id": "43887ff3-ab64-4b74-979b-d457339802a1",
+    "name": "La Ciudad",
+    "book": "La Ciudad de los Tísicos",
+    "prompt": "A panoramic view of an Andean city at dusk, with cobblestone streets, colonial architecture, and misty mountains in the background. The atmosphere is melancholic, with soft lighting and a sense of age."
+  },
+  {
+    "id": "1a593322-f65b-4a61-9a69-4d6c89bc3e51",
+    "name": "Abraham Valdelomar",
+    "book": "La Ciudad de los Tísicos",
+    "prompt": "A portrait of a man in his 30s, with a thin face and intense eyes, wearing a suit and tie, with a pencil mustache. He has a thoughtful expression, holding a book, with a background of bookshelves and a window showing a cityscape."
+  },
+  {
+    "id": "5c1574cb-d61b-42d7-bcaa-bd7511ff40b2",
+    "name": "El explorador (Narrador)",
+    "book": "La ciudad sin nombre",
+    "prompt": "A weathered explorer in his 30s, khaki clothes, dusty, holding a journal, standing before colossal alien ruins in a desert, dramatic lighting, photorealistic."
+  },
+  {
+    "id": "3e59804b-5e9a-4c27-a8a3-0adbeb9c2d61",
+    "name": "La entidad sin nombre",
+    "book": "La ciudad sin nombre",
+    "prompt": "A shadowy, amorphous entity swirling with ancient runes, emerging from dark sand, glowing eyes, surreal and terrifying, digital art."
+  },
+  {
+    "id": "5c75a2c0-7938-4ba6-95fb-62a0902d646b",
+    "name": "Abdul Alhazred",
+    "book": "La ciudad sin nombre",
+    "prompt": "An ancient, gaunt scholar in flowing robes, with wild eyes and a tattered manuscript, surrounded by candlelight and shadows, oil painting style."
+  },
+  {
+    "id": "0362a6e8-f39c-44bf-acd5-cc7dc75aa9c2",
+    "name": "El guía beduino",
+    "book": "La ciudad sin nombre",
+    "prompt": "A middle-aged Bedouin man in traditional robes and headdress, standing at a distance from ruins, with a camel, desert sunset, realistic."
+  },
+  {
+    "id": "2b1d3b71-4887-495f-a27c-c4144e0c12c3",
+    "name": "H. P. Lovecraft",
+    "book": "La ciudad sin nombre",
+    "prompt": "A portrait of a thin, pale man with a prominent jaw, wearing a suit and tie, with a thoughtful, melancholic expression, vintage photograph style."
+  },
+  {
+    "id": "34182110-3303-4639-8ac7-024ac66e66a6",
+    "name": "Conan",
+    "book": "La ciudadela escarlata",
+    "prompt": "A muscular Conan with wild black hair, blue eyes, wearing a loincloth and fur cloak, holding a sword, in a dark fantasy style."
+  },
+  {
+    "id": "270d1cab-12d5-4305-a3f5-db077b6b6591",
+    "name": "Thoth-Amon",
+    "book": "La ciudadela escarlata",
+    "prompt": "A tall, gaunt sorcerer with dark robes and a serpent emblem, with piercing eyes and a sinister aura, in a dark dungeon."
+  },
+  {
+    "id": "f7f2f1f1-53b4-4e1b-8dfd-3c230e69c927",
+    "name": "Valeria",
+    "book": "La ciudadela escarlata",
+    "prompt": "A fierce warrior woman with short dark hair, wearing leather armor, holding a sword, in a torch-lit dungeon."
+  },
+  {
+    "id": "202c39c2-559e-4790-bec3-c951895b47f3",
+    "name": "Narrator",
+    "book": "La ciudadela escarlata",
+    "prompt": "A hooded chronicler writing by candlelight, surrounded by ancient scrolls, in a dark medieval setting."
+  },
+  {
+    "id": "77dde99d-f6b3-49f3-93a4-8d800db116ff",
+    "name": "Robert E Howard",
+    "book": "La ciudadela escarlata",
+    "prompt": "A portrait of a young man with slicked-back hair, wearing a suit and tie, with intense eyes, in a 1920s style."
+  },
+  {
+    "id": "5a54bf19-d0f3-4244-8c77-7492a537ab1e",
+    "name": "Arthur Conan Doyle",
+    "book": "La diadema de berilos",
+    "prompt": "A middle-aged Victorian gentleman with a mustache, wearing a tweed suit and holding a pipe, with a thoughtful expression."
+  },
+  {
+    "id": "0c984d8a-180a-42e0-ad58-97c2a9b3f9da",
+    "name": "Sherlock Holmes",
+    "book": "La diadema de berilos",
+    "prompt": "A tall, lean man with sharp features, wearing a deerstalker hat and a long coat, with intense eyes and a pipe."
+  },
+  {
+    "id": "75784b2c-3c8f-4822-9994-5106b8b5891f",
+    "name": "John Watson",
+    "book": "La diadema de berilos",
+    "prompt": "A sturdy, mustached man in Victorian attire, with a friendly face and a medical bag, standing beside Holmes."
+  },
+  {
+    "id": "caa56c58-eca5-4fe3-8ce6-698c7aaf5a62",
+    "name": "Alexander Holder",
+    "book": "La diadema de berilos",
+    "prompt": "A portly, well-dressed Victorian banker with a worried expression, holding a top hat and a cane."
+  },
+  {
+    "id": "59fe1434-b9ff-4801-b0e6-58ae4f0ec39c",
+    "name": "Mary Holder",
+    "book": "La diadema de berilos",
+    "prompt": "A young Victorian woman with a pale face and anxious eyes, wearing a modest dress and a bonnet."
+  },
+  {
+    "id": "16ff3fa1-647f-49c4-b46e-be83a4e34b90",
+    "name": "Arthur Holder",
+    "book": "La diadema de berilos",
+    "prompt": "A handsome young Victorian man with a defiant posture, wearing a stylish suit and a cynical smirk."
   }
 ]

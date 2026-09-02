@@ -1,0 +1,69 @@
+# ---------------------------------------------------------------------------
+# Blueprint de Render para el backend de Literatus Novelist.
+#
+# Con este archivo, Render arma el servicio casi solo:
+#   1. En Render:  New  ->  Blueprint
+#   2. Conecta este repositorio
+#   3. Render lee este archivo y te PIDE los valores marcados como "sync: false"
+#
+# Los valores "sync: false" NO se guardan en el repo: los pegas a mano en
+# el panel de Render (son claves o URLs que dependen de tu cuenta).
+# ---------------------------------------------------------------------------
+
+services:
+  - type: web
+    name: literatus-novelist-backend      # <- si el nombre esta ocupado, cambialo (ej. -cxris)
+    runtime: python
+    rootDir: Producto/backend
+    plan: free
+    branch: main
+    buildCommand: "pip install -r requirements.txt && python manage.py migrate"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      # --- Django ---
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: SECRET_KEY
+        generateValue: true               # Render genera una clave segura solo
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        sync: false                       # ej: literatus-novelist-backend.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false                       # ej: https://tu-frontend.vercel.app
+
+      # --- Base de datos (TU Supabase) ---
+      - key: DATABASE_URL
+        sync: false                       # Supabase -> Project Settings -> Database -> URI (pooler)
+
+      # --- Storage de portadas (TU Supabase) ---
+      - key: SUPABASE_URL
+        sync: false                       # ej: https://xxxxxxxx.supabase.co
+
+      # --- Inteligencia Artificial (tus propias claves) ---
+      - key: GOOGLE_API_KEY
+        sync: false                       # https://aistudio.google.com/apikey
+      - key: GOOGLE_API_KEY_2
+        sync: false                       # opcional (failover)
+      - key: DEEPSEEK_API_KEY
+        sync: false                       # opcional (respaldo)
+
+      # --- Webpay / Transbank (ambiente de PRUEBA, se pueden dejar asi) ---
+      - key: WEBPAY_COMMERCE_CODE
+        value: "597055555532"
+      - key: WEBPAY_API_KEY
+        value: "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C"
+      - key: WEBPAY_ENVIRONMENT
+        value: "INTEGRACION"
+      - key: WEBPAY_RETURN_URL
+        sync: false                       # https://TU-BACKEND.onrender.com/api/v1/finance/confirm/
+      - key: FRONTEND_URL
+        sync: false                       # https://tu-frontend.vercel.app
+
+      # --- Voz / correo (opcionales, la app funciona sin esto) ---
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: KOKORO_API_URL
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false

@@ -1,0 +1,5149 @@
+{
+ "la-esmeralda-hugo-victor": {
+  "title": "Dramas:  La Esmeralda, Victor Hugo",
+  "author": "Victor Hugo",
+  "characters": [
+   {
+    "name": "Esmeralda",
+    "role": "Joven gitana cuyo atractivo desencadena pasiones y desdichas en París",
+    "is_major": true
+   },
+   {
+    "name": "Quasimodo",
+    "role": "Jorobado campanero de Notre Dame de corazón noble y leal a Esmeralda",
+    "is_major": true
+   },
+   {
+    "name": "Claude Frollo",
+    "role": "Archidiácono obsesionado enfermizamente con Esmeralda",
+    "is_major": true
+   },
+   {
+    "name": "Phoebus de Châteaupers",
+    "role": "Apuesto capitán de la guardia por quien Esmeralda se siente atraída",
+    "is_major": false
+   }
+  ]
+ },
+ "lucrecia-borgia-hugo-victor": {
+  "title": "Dramas: Lucrecia Borgia",
+  "author": "Victor Hugo",
+  "characters": [
+   {
+    "name": "Lucrecia Borgia",
+    "role": "Duquesa de Ferrara, mujer despiadada que busca proteger en secreto a su hijo",
+    "is_major": true
+   },
+   {
+    "name": "Gennaro",
+    "role": "Joven soldado valiente que ignora ser el hijo secreto de Lucrecia",
+    "is_major": true
+   },
+   {
+    "name": "Alfonso d'Este",
+    "role": "Duque de Ferrara y celoso esposo de Lucrecia Borgia",
+    "is_major": true
+   },
+   {
+    "name": "Maffio Orsini",
+    "role": "Amigo cercano de Gennaro que desconfía profundamente de Lucrecia",
+    "is_major": false
+   }
+  ]
+ },
+ "un-duelo-anton-chejov": {
+  "title": "El duelo",
+  "author": "Antón Chéjov",
+  "characters": [
+   {
+    "name": "Ivan Laevski",
+    "role": "Funcionario hedonista e indolente desencantado con su vida y amante de Nadezhda",
+    "is_major": true
+   },
+   {
+    "name": "Nikolai Von Koren",
+    "role": "Zoólogo pragmático de convicciones darwinistas que desprecia la flaqueza de Laevski",
+    "is_major": true
+   },
+   {
+    "name": "Nadezhda Fiódorovna",
+    "role": "Amante de Laevski que enfrenta sus propios conflictos morales y financieros",
+    "is_major": true
+   },
+   {
+    "name": "Alexander Samoilenko",
+    "role": "Médico militar bonachón que intenta mediar entre Laevski y Von Koren",
+    "is_major": false
+   }
+  ]
+ },
+ "rumpelstiltskin-el-enano-saltarin-hermanos-grimm": {
+  "title": "El Enano Saltarín",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Rumpelstiltskin",
+    "role": "Duende mágico capaz de hilar paja en oro a cambio del primer hijo de la protagonista",
+    "is_major": true
+   },
+   {
+    "name": "La hija del molinero",
+    "role": "Joven obligada a hilar oro para salvar su vida que debe adivinar el nombre del enano",
+    "is_major": true
+   },
+   {
+    "name": "El Rey",
+    "role": "Monarca codicioso que exige la conversión de paja en oro bajo amenaza de muerte",
+    "is_major": true
+   },
+   {
+    "name": "El molinero",
+    "role": "Padre que fanfarronea sobre las supuestas habilidades de su hija ante el rey",
+    "is_major": false
+   }
+  ]
+ },
+ "las-mil-y-una-noches-vol-i-anonimo": {
+  "title": "El libro de las mil noches y una noche I",
+  "author": "Anónimo",
+  "characters": [
+   {
+    "name": "Sherezada",
+    "role": "Astuta e ingeniosa hija del visir que narra cuentos cada noche para salvar su vida",
+    "is_major": true
+   },
+   {
+    "name": "Sultán Shahriar",
+    "role": "Gobernante desconfiado y cruel que ejecuta a sus esposas tras la noche de bodas",
+    "is_major": true
+   },
+   {
+    "name": "Dinarzada",
+    "role": "Hermana de Sherezada que la ayuda pidiéndole que comience las historias",
+    "is_major": false
+   },
+   {
+    "name": "Simbad el Marino",
+    "role": "Legendario navegante y aventurero cuyas travesías se narran en este volumen",
+    "is_major": true
+   }
+  ]
+ },
+ "las-mil-y-una-noches-vol-ii-anonimo": {
+  "title": "El libro de las mil noches y una noche II",
+  "author": "Anónimo",
+  "characters": [
+   {
+    "name": "Sherezada",
+    "role": "Narradora principal que continúa cautivando al sultán con sus sabios relatos",
+    "is_major": true
+   },
+   {
+    "name": "Sultán Shahriar",
+    "role": "Monarca cuyo corazón se ablanda a medida que escucha las fascinantes historias",
+    "is_major": true
+   },
+   {
+    "name": "Aladino",
+    "role": "Joven humilde que encuentra una lámpara maravillosa con un genio concededor de deseos",
+    "is_major": true
+   },
+   {
+    "name": "Alí Babá",
+    "role": "Leñador pobre que descubre el escondite secreto de los cuarenta ladrones",
+    "is_major": true
+   },
+   {
+    "name": "Morgiana",
+    "role": "Astuta esclava de Alí Babá que logra vencer a los cuarenta ladrones y salvar a su amo",
+    "is_major": false
+   }
+  ]
+ },
+ "las-mil-y-una-noches-vol-iii-anonimo": {
+  "title": "El libro de las mil noches y una noche III",
+  "author": "Anónimo",
+  "characters": [
+   {
+    "name": "Scheherezade",
+    "role": "Narradora principal y esposa del rey que relata cuentos cada noche para evitar su ejecución.",
+    "is_major": true
+   },
+   {
+    "name": "Schahriar",
+    "role": "Rey de Persia que escucha deslumbrado los relatos de Scheherezade.",
+    "is_major": true
+   },
+   {
+    "name": "Dinarzada",
+    "role": "Hermana menor de Scheherezade que la ayuda a iniciar los relatos cada noche.",
+    "is_major": false
+   }
+  ]
+ },
+ "primer-alcibiades-platon": {
+  "title": "El primer Alcibíades (o de la naturaleza humana)",
+  "author": "Platón",
+  "characters": [
+   {
+    "name": "Sócrates",
+    "role": "Filósofo que guía el diálogo mediante preguntas para cuestionar la madurez de su interlocutor.",
+    "is_major": true
+   },
+   {
+    "name": "Alcibíades",
+    "role": "Joven político y militar ambicioso que busca gobernar Atenas sin conocerse a sí mismo.",
+    "is_major": true
+   }
+  ]
+ },
+ "el-talento-anton-chejov": {
+  "title": "El Talento",
+  "author": "Anton Pavlovich Chejov",
+  "characters": [
+   {
+    "name": "Yegor Zabelin",
+    "role": "Pintor mendigo con talento genial pero sumido en la indolencia y la miseria.",
+    "is_major": true
+   },
+   {
+    "name": "Katya",
+    "role": "Joven enamorada del pintor que sueña con un futuro glorioso para él.",
+    "is_major": true
+   },
+   {
+    "name": "Yegor Savich",
+    "role": "Padre de Katya que observa con escepticismo y fascinación la vida bohemia del artista.",
+    "is_major": false
+   }
+  ]
+ },
+ "el-tragico-anton-chejov": {
+  "title": "El Tragico",
+  "author": "Anton Pavlovich Chejov",
+  "characters": [
+   {
+    "name": "Fenogenov",
+    "role": "Actor trágico provinciano que seduce a una joven con su aura melodramática.",
+    "is_major": true
+   },
+   {
+    "name": "Masha",
+    "role": "Joven impresionable que se enamora del actor trágico y abandona a su familia.",
+    "is_major": true
+   },
+   {
+    "name": "El Padre de Masha",
+    "role": "Oficial de policía que rechaza rotundamente la relación de su hija con el comediante.",
+    "is_major": false
+   }
+  ]
+ },
+ "pleito-matrimonial-del-cuerpo-y-alma-calderon-de-la-barca-pedro": {
+  "title": "el-pleito-matrimonial-del-cuerpo-y-el-alma-pedro-calderon-de-la-barca",
+  "author": "Pedro Calderón de la Barca",
+  "characters": [
+   {
+    "name": "El Alma",
+    "role": "Esposa alegórica que anhela la virtud espiritual y el juicio divino.",
+    "is_major": true
+   },
+   {
+    "name": "El Cuerpo",
+    "role": "Esposo alegórico inclinado a las tentaciones terrenales y a los placeres carnales.",
+    "is_major": true
+   },
+   {
+    "name": "El Demonio",
+    "role": "Antagonista alegórico que incita la discordia y busca la perdición del alma.",
+    "is_major": false
+   },
+   {
+    "name": "La Razón",
+    "role": "Entidad alegórica que actúa como mediadora y jueza en la disputa matrimonial.",
+    "is_major": false
+   }
+  ]
+ },
+ "protoevangelio-de-santiago-anonimo": {
+  "title": "Evangelio de Santiago",
+  "author": "Anónimo",
+  "characters": [
+   {
+    "name": "María",
+    "role": "Figura central cuya milagrosa concepción e infancia pura son relatadas.",
+    "is_major": true
+   },
+   {
+    "name": "José",
+    "role": "Esposo y custodio de María, elegido por una señal divina.",
+    "is_major": true
+   },
+   {
+    "name": "Joaquín",
+    "role": "Padre de María que ruega a Dios por descendencia tras ser rechazado por estéril.",
+    "is_major": false
+   },
+   {
+    "name": "Ana",
+    "role": "Madre de María que concibe tras recibir la promesa de un ángel.",
+    "is_major": false
+   },
+   {
+    "name": "Santiago",
+    "role": "Supuesto autor apócrifo y testigo narrador de las revelaciones.",
+    "is_major": false
+   }
+  ]
+ },
+ "fabula-de-polifemo-y-galatea-luis-de-gongora": {
+  "title": "Fábula de Polifemo y Galatea",
+  "author": "Luis de Góngora",
+  "characters": [
+   {
+    "name": "Polifemo",
+    "role": "Gigante cíclope enamorado obsesivamente de Galatea",
+    "is_major": true
+   },
+   {
+    "name": "Galatea",
+    "role": "Hermosa ninfa marina que rechaza a Polifemo y ama a Acis",
+    "is_major": true
+   },
+   {
+    "name": "Acis",
+    "role": "Joven pastor enamorado de Galatea y víctima de la furia de Polifemo",
+    "is_major": true
+   }
+  ]
+ },
+ "fabulas-esopo": {
+  "title": "Fábulas",
+  "author": "Esopo",
+  "characters": [
+   {
+    "name": "La Tortuga",
+    "role": "Símbolo de perseverancia y constancia en la carrera contra la liebre",
+    "is_major": true
+   },
+   {
+    "name": "La Liebre",
+    "role": "Símbolo de la arrogancia y el exceso de confianza que lleva al fracaso",
+    "is_major": true
+   },
+   {
+    "name": "El Zorro",
+    "role": "Personaje astuto que suele representar la agudeza y el engaño",
+    "is_major": true
+   },
+   {
+    "name": "El Lobo",
+    "role": "Símbolo de la fuerza bruta y la malicia implacable",
+    "is_major": false
+   }
+  ]
+ },
+ "fabulas-literarias-tomas-de-iriarte": {
+  "title": "fabulas-literarias-tomas-de-iriarte",
+  "author": "tomás de iriarte",
+  "characters": [
+   {
+    "name": "El Oso",
+    "role": "Representación del mal poeta o creador que busca el aplauso fácil",
+    "is_major": true
+   },
+   {
+    "name": "El Burro",
+    "role": "Símbolo del ignorante que acierta por mera casualidad",
+    "is_major": true
+   },
+   {
+    "name": "El Mono",
+    "role": "Crítico irreflexivo que alaba sin criterio objetivo",
+    "is_major": true
+   }
+  ]
+ },
+ "fatum-e-historia-friedrich-nietzsche": {
+  "title": "Fatum e historia",
+  "author": "Friedrich Nietzsche",
+  "characters": [
+   {
+    "name": "El Filósofo",
+    "role": "Voz narrativa que analiza el libre albedrío y el determinismo histórico",
+    "is_major": true
+   },
+   {
+    "name": "El Hombre",
+    "role": "Sujeto conceptual moldeado por el destino y constructor de la historia",
+    "is_major": true
+   }
+  ]
+ },
+ "feathertop-nathaniel-hawthorne": {
+  "title": "Feathertop",
+  "author": "Autor Desconocido",
+  "characters": [
+   {
+    "name": "Feathertop",
+    "role": "Espantapájaros transformado mágicamente en un aristócrata vanidoso",
+    "is_major": true
+   },
+   {
+    "name": "Mother Rigby",
+    "role": "Poderosa bruja que cobra vida a Feathertop con su magia",
+    "is_major": true
+   },
+   {
+    "name": "Polly Gookin",
+    "role": "Joven dama superficial que se enamora de la apariencia de Feathertop",
+    "is_major": false
+   },
+   {
+    "name": "Justice Gookin",
+    "role": "Padre de Polly y figura influyente en la sociedad local",
+    "is_major": false
+   }
+  ]
+ },
+ "fedon-platon": {
+  "title": "Fedón, o sobre el alma",
+  "author": "Platón",
+  "characters": [
+   {
+    "name": "Sócrates",
+    "role": "Filósofo que debate sobre la inmortalidad del alma antes de ser ejecutado",
+    "is_major": true
+   },
+   {
+    "name": "Fedón",
+    "role": "Discípulo de Sócrates y narrador del diálogo sobre sus últimos momentos",
+    "is_major": true
+   },
+   {
+    "name": "Cebes",
+    "role": "Discípulo tebano que cuestiona racionalmente la eternidad del alma",
+    "is_major": false
+   },
+   {
+    "name": "Simmias",
+    "role": "Discípulo tebano que presenta objeciones filosóficas al pensamiento socrático",
+    "is_major": false
+   },
+   {
+    "name": "Critón",
+    "role": "Amigo leal de Sócrates encargado de velar por sus necesidades finales",
+    "is_major": false
+   }
+  ]
+ },
+ "felicidad-katherine-mansfield": {
+  "title": "Felicidad",
+  "author": "Katherine Mansfield",
+  "characters": [
+   {
+    "name": "Bertha Young",
+    "role": "Protagonista de 30 años que experimenta una euforia irracional y reveladora",
+    "is_major": true
+   },
+   {
+    "name": "Harry Young",
+    "role": "Esposo prágmático de Bertha que oculta una doble vida",
+    "is_major": true
+   },
+   {
+    "name": "Pearl Fulton",
+    "role": "Misteriosa invitada por quien Bertha siente una intensa fascinación",
+    "is_major": true
+   }
+  ]
+ },
+ "fiesta-en-el-jardin-katherine-mansfield": {
+  "title": "Fiesta en el jardín",
+  "author": "Katherine Mansfield",
+  "characters": [
+   {
+    "name": "Laura Sheridan",
+    "role": "Joven de clase alta cuya empatía la hace cuestionar las diferencias sociales",
+    "is_major": true
+   },
+   {
+    "name": "Sra. Sheridan",
+    "role": "Madre de Laura, obsesionada con las apariencias y las convenciones elitistas",
+    "is_major": true
+   },
+   {
+    "name": "Jose Sheridan",
+    "role": "Hermana de Laura, conformista con el estilo de vida privilegiado de su familia",
+    "is_major": false
+   },
+   {
+    "name": "Laurie Sheridan",
+    "role": "Hermano cercano a Laura que le brinda comprensión y apoyo afectivo",
+    "is_major": false
+   }
+  ]
+ },
+ "filosoficula-leopoldo-lugones": {
+  "title": "Filosofícula",
+  "author": "Leopoldo Lugones",
+  "characters": [
+   {
+    "name": "El Narrador",
+    "role": "Voz reflexiva que plantea paradojas filosóficas a través de relatos breves",
+    "is_major": true
+   },
+   {
+    "name": "El Pensador",
+    "role": "Figura alegórica que encarna la constante búsqueda del saber y la verdad",
+    "is_major": false
+   }
+  ]
+ },
+ "filoctetes-sofocles": {
+  "title": "Filotectes",
+  "author": "Sófocles",
+  "characters": [
+   {
+    "name": "Filoctetes",
+    "role": "Héroe herido y abandonado en Lemnos, dueño del legendario arco de Heracles",
+    "is_major": true
+   },
+   {
+    "name": "Odiseo",
+    "role": "Astuto rey de Ítaca que busca obtener el arco sagrado a través de la astucia",
+    "is_major": true
+   },
+   {
+    "name": "Neoptólemo",
+    "role": "Joven hijo de Aquiles, en conflicto moral entre el engaño y el honor",
+    "is_major": true
+   },
+   {
+    "name": "Heracles",
+    "role": "Semidiós que interviene como deus ex machina para resolver el conflicto final",
+    "is_major": false
+   }
+  ]
+ },
+ "flavio-rosalia-de-castro": {
+  "title": "Flavio",
+  "author": "Rosalía de Castro",
+  "characters": [
+   {
+    "name": "Flavio",
+    "role": "Joven artista tormentoso e idealista atrapado en sus pasiones amorosas",
+    "is_major": true
+   },
+   {
+    "name": "Mara",
+    "role": "Mujer inconstante que despierta el amor inalcanzable y desolador de Flavio",
+    "is_major": true
+   }
+  ]
+ },
+ "flores-de-almendro-ramon-maria-del-valle-inclan": {
+  "title": "Flores de almendro",
+  "author": "Ramón del Valle Inclán",
+  "characters": [
+   {
+    "name": "Yo Poético",
+    "role": "Voz subjetiva que contempla e idealiza la belleza efímera del paisaje gallego",
+    "is_major": true
+   },
+   {
+    "name": "La Dama Evocada",
+    "role": "Figura simbólica y melancólica presente en los versos amorosos del autor",
+    "is_major": false
+   }
+  ]
+ },
+ "follas-novas-rosalia-de-castro": {
+  "title": "follas-novas-rosalia-de-castro",
+  "author": "Rosalía de Castro",
+  "characters": [
+   {
+    "name": "Voz Poética",
+    "role": "Voz dolorosa y combativa que expresa la morriña y el sufrimiento del pueblo gallego",
+    "is_major": true
+   },
+   {
+    "name": "El Emigrante",
+    "role": "Figura simbólica que encarna la tragedia del abandono de la tierra natal",
+    "is_major": false
+   }
+  ]
+ },
+ "fortunata-y-jacinta-benito-perez-galdos": {
+  "title": "Fortunata y Jacinta",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Fortunata",
+    "role": "Joven humilde y apasionada que encarna al pueblo llano de Madrid",
+    "is_major": true
+   },
+   {
+    "name": "Jacinta",
+    "role": "Esposa burguesa de Juanito, virtuosa pero obsesionada por no poder tener hijos",
+    "is_major": true
+   },
+   {
+    "name": "Juanito Santa Cruz",
+    "role": "Señorito burgués caprichoso e inconstante que destruye la vida de Fortunata",
+    "is_major": true
+   },
+   {
+    "name": "Maximino Rubín",
+    "role": "Joven enfermizo e inestable que se casa con Fortunata intentando redimirla",
+    "is_major": true
+   },
+   {
+    "name": "Doña Lupe",
+    "role": "Tía calculadora y autoritaria de Maximino que administra la vida familiar",
+    "is_major": false
+   }
+  ]
+ },
+ "frankenstein-mary-shelley": {
+  "title": "Frankenstein",
+  "author": "Mary Shelley",
+  "characters": [
+   {
+    "name": "Victor Frankenstein",
+    "role": "Científico obsesionado con el origen de la vida que crea a un ser artificial",
+    "is_major": true
+   },
+   {
+    "name": "El Monstruo",
+    "role": "Criatura rechazada por su creador y la sociedad que busca compañía y venganza",
+    "is_major": true
+   },
+   {
+    "name": "Robert Walton",
+    "role": "Explorador que rescata a Victor y transmite toda la historia mediante sus cartas",
+    "is_major": true
+   },
+   {
+    "name": "Elizabeth Lavenza",
+    "role": "Prometida amada de Victor y principal víctima de la furia de la criatura",
+    "is_major": false
+   }
+  ]
+ },
+ "fraternidad-pardo-bazan-emilia": {
+  "title": "Fraternidad",
+  "author": "Emilia Pardo Bazán",
+  "characters": [
+   {
+    "name": "Narrador Omnisciente",
+    "role": "Voz crítica que examina las desigualdades sociales de finales del siglo XIX",
+    "is_major": true
+   },
+   {
+    "name": "El Reformista",
+    "role": "Protagonista impulsado por el deseo idealista de justicia social e igualdad",
+    "is_major": true
+   },
+   {
+    "name": "El Patricio",
+    "role": "Antagonista de mentalidad conservadora opuesto a la fraternidad entre clases",
+    "is_major": false
+   }
+  ]
+ },
+ "fuente-ovejuna-lope-de-vega": {
+  "title": "Fuente Ovejuna",
+  "author": "Lope de Vega",
+  "characters": [
+   {
+    "name": "Laurencia",
+    "role": "Labradora de Fuente Ovejuna que incita al pueblo a rebelarse contra los abusos del Comendador",
+    "is_major": true
+   },
+   {
+    "name": "Fernán Gómez de Guzmán",
+    "role": "Comendador de la Orden de Calatrava y tiránico antagonista de la historia",
+    "is_major": true
+   },
+   {
+    "name": "Frondoso",
+    "role": "Labrador enamorado de Laurencia que desafía abiertamente al Comendador",
+    "is_major": true
+   },
+   {
+    "name": "Esteban",
+    "role": "Alcalde del pueblo y padre de Laurencia, símbolo del honor campesino",
+    "is_major": false
+   },
+   {
+    "name": "Mengo",
+    "role": "Labrador gracioso del pueblo que sufre la tortura por defender a las mujeres",
+    "is_major": false
+   },
+   {
+    "name": "Reyes Católicos",
+    "role": "Monarcas de España que intervienen para juzgar y absolver al pueblo sublevado",
+    "is_major": false
+   }
+  ]
+ },
+ "fundamentacion-de-la-metafisica-de-las-costumbres-immanuel-kant": {
+  "title": "Fundamentación de la metafísica de las costumbres",
+  "author": "Immanuel Kant",
+  "characters": [
+   {
+    "name": "El Narrador / Immanuel Kant",
+    "role": "Voz filosófica que expone la ética del deber y formula el imperativo categórico",
+    "is_major": true
+   },
+   {
+    "name": "El Agente Moral",
+    "role": "Entidad hipotética racional que actúa guiada por la buena voluntad y el deber",
+    "is_major": true
+   }
+  ]
+ },
+ "gato-con-botas-hermanos-grimm": {
+  "title": "Gato con botas",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "El Gato con Botas",
+    "role": "Felino astuto y persuasivo que usa su ingenio para favorecer a su dueño",
+    "is_major": true
+   },
+   {
+    "name": "Marqués de Carabás",
+    "role": "Joven hijo de un molinero que asciende socialmente gracias al gato",
+    "is_major": true
+   },
+   {
+    "name": "El Rey",
+    "role": "Monarca crédulo que cae deslumbrado ante las riquezas del supuesto Marqués",
+    "is_major": false
+   },
+   {
+    "name": "La Princesa",
+    "role": "Hija del rey que se enamora del deslumbrante Marqués de Carabás",
+    "is_major": false
+   },
+   {
+    "name": "El Ogro",
+    "role": "Poderoso ser metamórfico burlado y devorado por el gato",
+    "is_major": false
+   }
+  ]
+ },
+ "georgicas-virgilio": {
+  "title": "Geórgicas",
+  "author": "Autor Desconocido",
+  "characters": [
+   {
+    "name": "El Poeta / Narrador",
+    "role": "Voz instructiva que canta a la labor agrícola y al trabajo de la tierra",
+    "is_major": true
+   },
+   {
+    "name": "Aristeo",
+    "role": "Pastor y apicultor mítico cuya culpa origina la pérdida de sus abejas",
+    "is_major": true
+   },
+   {
+    "name": "Orfeo",
+    "role": "Músico legendario que desciende al Inframundo para rescatar a su amada",
+    "is_major": true
+   },
+   {
+    "name": "Eurídice",
+    "role": "Esposa de Orfeo cuya trágica muerte desencadena el mito relatado",
+    "is_major": false
+   },
+   {
+    "name": "Mecenas",
+    "role": "Patrón del poeta a quien se dedica formalmente la obra didáctica",
+    "is_major": false
+   }
+  ]
+ },
+ "germania-cornelio-tacito": {
+  "title": "Germania",
+  "author": "Cornelio Tácito",
+  "characters": [
+   {
+    "name": "El Narrador / Cornelio Tácito",
+    "role": "Historiador romano que contrasta la virtud germana con la decadencia de Roma",
+    "is_major": true
+   },
+   {
+    "name": "El Pueblo Germánico",
+    "role": "Colectivo idealizado como encarnación de la libertad, austeridad y valor",
+    "is_major": true
+   },
+   {
+    "name": "Los Jefes Germánicos",
+    "role": "Líderes tribales que encarnan la ferocidad en la batalla y la lealtad",
+    "is_major": false
+   }
+  ]
+ },
+ "gerona-benito-perez-galdos": {
+  "title": "Gerona",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Gabriel de Araceli",
+    "role": "Joven militar y narrador testigo de la heroica resistencia de Gerona",
+    "is_major": true
+   },
+   {
+    "name": "Mariano Álvarez de Castro",
+    "role": "Gobernador militar que lidera la encarnizada defensa contra las tropas francesas",
+    "is_major": true
+   },
+   {
+    "name": "Josefina Santorcaz",
+    "role": "Joven enamorada inmersa en las miserias y calamidades del sitio imperial",
+    "is_major": false
+   },
+   {
+    "name": "Andrés Marijuán",
+    "role": "Soldado y leal compañero de armas del protagonista durante el asedio",
+    "is_major": false
+   }
+  ]
+ },
+ "gil-braltar-verne-julio": {
+  "title": "Gil Braltar",
+  "author": "Julio Verne",
+  "characters": [
+   {
+    "name": "Gil Braltar",
+    "role": "Español disfrazado de simio que lidera una invasión de monos en Gibraltar",
+    "is_major": true
+   },
+   {
+    "name": "General MacKinnon",
+    "role": "Gobernador británico de Gibraltar que contrarrestrarresta la incursión disfrazándose también",
+    "is_major": true
+   },
+   {
+    "name": "Los Monos de Gibraltar",
+    "role": "Comunidad de primates manipulada para apoderarse de la peñuela estratégica",
+    "is_major": false
+   }
+  ]
+ },
+ "gloria-benito-perez-galdos": {
+  "title": "Gloria",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Gloria Lantigua",
+    "role": "Joven apasionada e idealista atrapada entre sus sentimientos y el dogma religioso",
+    "is_major": true
+   },
+   {
+    "name": "Daniel Morton",
+    "role": "Joven judío inglés cuyo romance con Gloria desencadena una profunda tragedia moral",
+    "is_major": true
+   },
+   {
+    "name": "Don Juan de Lantigua",
+    "role": "Padre de Gloria, hombre fervientemente católico e intransigente",
+    "is_major": false
+   },
+   {
+    "name": "Don Buenaventura Lantigua",
+    "role": "Tío de Gloria, de mentalidad más tolerante y proclive al diálogo",
+    "is_major": false
+   }
+  ]
+ },
+ "gobseck-balzac-honore-de": {
+  "title": "Gobseck",
+  "author": "Honoré de Balzac",
+  "characters": [
+   {
+    "name": "Jean-Esther van Gobseck",
+    "role": "Usurero despiadado que personifica la avaricia y el poder absoluto del dinero.",
+    "is_major": true
+   },
+   {
+    "name": "Maître Derville",
+    "role": "Joven abogado probo que actúa como testigo y narrador de la vida de Gobseck.",
+    "is_major": true
+   },
+   {
+    "name": "Comtesse Anastasie de Restaud",
+    "role": "Aristócrata arruinada por sus amantes que recurre deseperadamente a los préstamos de Gobseck.",
+    "is_major": false
+   },
+   {
+    "name": "Maxime de Trailles",
+    "role": "Lover aristócrata y libertino de Anastasie que la arrastra a la ruina financiera.",
+    "is_major": false
+   }
+  ]
+ },
+ "gorgias-platon": {
+  "title": "Gorgias",
+  "author": "Platón",
+  "characters": [
+   {
+    "name": "Sócrates",
+    "role": "Filósofo principal que cuestiona la naturaleza, moralidad y justicia de la retórica.",
+    "is_major": true
+   },
+   {
+    "name": "Gorgias",
+    "role": "Famoso maestro sofista que defiende la retórica como el arte supremo de la persuasión.",
+    "is_major": true
+   },
+   {
+    "name": "Calicles",
+    "role": "Político y sofista radical que sostiene que el más fuerte debe dominar por ley natural.",
+    "is_major": true
+   },
+   {
+    "name": "Polo",
+    "role": "Impulsivo discípulo de Gorgias que afirma que la retórica otorga poder impune.",
+    "is_major": false
+   }
+  ]
+ },
+ "gracias-y-desgracias-del-ojo-del-culo-de-quevedo-francisco": {
+  "title": "Gracias y Desgracias del Ojo del Culo",
+  "author": "Francisco de Quevedo y Villegas",
+  "characters": [
+   {
+    "name": "El Ojo del Culo",
+    "role": "Parte anatómica personificada y objeto de la alabanza satírica del texto.",
+    "is_major": true
+   },
+   {
+    "name": "El Narrador (Quevedo)",
+    "role": "Voz poética e ingeniosa que defiende burlescamente la importancia de esta parte del cuerpo.",
+    "is_major": true
+   }
+  ]
+ },
+ "gramatica-castellana-antonio-de-nebrija": {
+  "title": "Gramática  Castellana",
+  "author": "Antonio de Nebrija",
+  "characters": [
+   {
+    "name": "Antonio de Nebrija",
+    "role": "Humanista y autor que fija y sistematiza por primera vez las reglas de la lengua española.",
+    "is_major": true
+   },
+   {
+    "name": "Isabel I de Castilla",
+    "role": "Reina de España a quien se dedica la obra como herramienta de cohesión del imperio.",
+    "is_major": true
+   }
+  ]
+ },
+ "griselida-charles-perrault": {
+  "title": "Grisélida",
+  "author": "Charles Perrault",
+  "characters": [
+   {
+    "name": "Grisélida",
+    "role": "Pastora humilde de inquebrantable paciencia y virtud sometida a crueles pruebas por su esposo.",
+    "is_major": true
+   },
+   {
+    "name": "El Príncipe de Saluces",
+    "role": "Gobernante que se casa con Grisélida y pone a prueba su fidelidad de forma extrema.",
+    "is_major": true
+   }
+  ]
+ },
+ "grito-de-gloria-eduardo-acevedo-diaz": {
+  "title": "Grito de gloria",
+  "author": "Eduardo Acevedo Díaz",
+  "characters": [
+   {
+    "name": "Ismael",
+    "role": "Gaucho y valiente patriota que lucha en las batallas por la independencia uruguaya.",
+    "is_major": true
+   },
+   {
+    "name": "Natalia",
+    "role": "Mestiza enamorada de Ismael que encarna el espíritu y heroísmo del pueblo oriental.",
+    "is_major": true
+   },
+   {
+    "name": "Fructuoso Rivera",
+    "role": "Líder militar histórico que guía a las tropas orientales en la contienda emancipadora.",
+    "is_major": false
+   }
+  ]
+ },
+ "guardate-del-agua-mansa-calderon-de-la-barca-pedro": {
+  "title": "Guárdate del agua mansa",
+  "author": "Pedro Calderón de la Barca",
+  "characters": [
+   {
+    "name": "Doña Clara",
+    "role": "Dama ingeniosa que finge ser tímida y devota para tramar en secreto sus asuntos de amor.",
+    "is_major": true
+   },
+   {
+    "name": "Doña Eugenia",
+    "role": "Hermana extrovertida y coqueta de Clara que busca novio abiertamente.",
+    "is_major": true
+   },
+   {
+    "name": "Don Félix",
+    "role": "Galán enamorado que detona los enredos y desentendidos entre las dos hermanas.",
+    "is_major": false
+   },
+   {
+    "name": "Don Alonso",
+    "role": "Padre protector de las jóvenes que busca organizar el matrimonio de sus hijas.",
+    "is_major": false
+   }
+  ]
+ },
+ "guatimozin-ultimo-emperador-de-mejico-gertrudis-gomez-de-avellaneda": {
+  "title": "Guatimozin ultimo emperador de Mejico",
+  "author": "Gertrudis Gómez de Avellaneda",
+  "characters": [
+   {
+    "name": "Guatimozín (Cuauhtémoc)",
+    "role": "Último emperador mexica y héroe trágico que resiste el asedio invasor de Tenochtitlan.",
+    "is_major": true
+   },
+   {
+    "name": "Hernán Cortés",
+    "role": "Capitán y conquistador español que lidera la toma del Imperio azteca.",
+    "is_major": true
+   },
+   {
+    "name": "Tecuichpo",
+    "role": "Princesa azteca y esposa de Guatimozín que vive de cerca el colapso de su pueblo.",
+    "is_major": false
+   }
+  ]
+ },
+ "guillermo-tell-schiller-friedrich": {
+  "title": "Guillermo Tell",
+  "author": "Autor Desconocido",
+  "characters": [
+   {
+    "name": "Guillermo Tell",
+    "role": "Héroe suizo y hábil ballestero que lucha contra la opresión austriaca",
+    "is_major": true
+   },
+   {
+    "name": "Hermann Gessler",
+    "role": "Gobernador tiránico austriaco que obliga a Tell a disparar a la manzana",
+    "is_major": true
+   },
+   {
+    "name": "Walter Tell",
+    "role": "Hijo de Guillermo Tell sobre cuya cabeza se coloca la manzana",
+    "is_major": false
+   },
+   {
+    "name": "Hedwige",
+    "role": "Esposa de Guillermo Tell que teme por la vida de su familia",
+    "is_major": false
+   }
+  ]
+ },
+ "hacia-el-reino-de-los-sciris-cesar-vallejo": {
+  "title": "Hacia el reino de los Sciris",
+  "author": "César Vallejo",
+  "characters": [
+   {
+    "name": "Sciris",
+    "role": "Joven príncipe e heredero al trono chimú que reflexiona sobre el poder y la guerra",
+    "is_major": true
+   },
+   {
+    "name": "Chimo Cápac",
+    "role": "Gran soberano del reino chimú que lidera a su pueblo frente a amenazas externas",
+    "is_major": true
+   },
+   {
+    "name": "Tashco",
+    "role": "Noble y consejero militar del imperio chimú",
+    "is_major": false
+   },
+   {
+    "name": "Shimpu",
+    "role": "Sacerdote que interpreta la cosmovisión y los presagios sagrados",
+    "is_major": false
+   }
+  ]
+ },
+ "hadji-murat-tolstoi-leon": {
+  "title": "Hadji Murad",
+  "author": "Leon Tolstoi",
+  "characters": [
+   {
+    "name": "Hadji Murad",
+    "role": "Caudillo checheno que se alía con los rusos para salvar a su familia",
+    "is_major": true
+   },
+   {
+    "name": "Imán Shamil",
+    "role": "Líder implacable de la resistencia musulmana y enemigo de Hadji Murad",
+    "is_major": true
+   },
+   {
+    "name": "Zar Nicolás I",
+    "role": "Monarca ruso que decide la estrategia militar y política en el Cáucaso",
+    "is_major": true
+   },
+   {
+    "name": "Mijaíl Vorontsov",
+    "role": "Comandante ruso que acoge a Hadji Murad al rendirse este ante el imperio",
+    "is_major": false
+   }
+  ]
+ },
+ "halma-benito-perez-galdos": {
+  "title": "Halma",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "María Penela (Condesa de Halma)",
+    "role": "Joven viuda piadosa que funda una institución caritativa en Pedralba",
+    "is_major": true
+   },
+   {
+    "name": "Manuel Flórez",
+    "role": "Sacerdote mundano y refinado que aconseja a Halma en su empresa",
+    "is_major": true
+   },
+   {
+    "name": "José Antonio Urrea",
+    "role": "Primo rebelde de Halma que encuentra la regeneración moral a su lado",
+    "is_major": true
+   },
+   {
+    "name": "Nazarín",
+    "role": "Sacerdote místico cuyas enseñanzas de pobreza e idealismo influyen en Halma",
+    "is_major": false
+   }
+  ]
+ },
+ "hamlet-shakespeare-william": {
+  "title": "Hamlet",
+  "author": "William Shakespeare",
+  "characters": [
+   {
+    "name": "Hamlet",
+    "role": "Príncipe de Dinamarca obsesionado con vengar la muerte de su padre",
+    "is_major": true
+   },
+   {
+    "name": "Claudio",
+    "role": "Rey de Dinamarca, tío y asesino del padre de Hamlet",
+    "is_major": true
+   },
+   {
+    "name": "Gertrudis",
+    "role": "Reina de Dinamarca y madre de Hamlet, casada con Claudio",
+    "is_major": true
+   },
+   {
+    "name": "Ofelia",
+    "role": "Joven noble enamorada de Hamlet que cae en la locura tras la muerte de su padre",
+    "is_major": true
+   },
+   {
+    "name": "Polonio",
+    "role": "Chambelán de la corte y padre metiche de Ofelia y Laertes",
+    "is_major": false
+   },
+   {
+    "name": "Horacio",
+    "role": "Amigo leal de Hamlet y narrador del trágico final ante el reino",
+    "is_major": false
+   }
+  ]
+ },
+ "hamlet-y-don-quijote-ivan-turguenev": {
+  "title": "Hamlet y Don Quijote",
+  "author": "Iván Turguénev",
+  "characters": [
+   {
+    "name": "Hamlet",
+    "role": "Arquetipo ensayístico del intelecto crítico, la duda paralizante y el egoísmo",
+    "is_major": true
+   },
+   {
+    "name": "Don Quijote",
+    "role": "Arquetipo ensayístico del idealismo puro, la fe ciega y la acción desinteresada",
+    "is_major": true
+   },
+   {
+    "name": "El Ensajista",
+    "role": "Voz analítica que contrapone ambas figuras universales de la literatura",
+    "is_major": false
+   }
+  ]
+ },
+ "hans-el-tonto-hermanos-grimm": {
+  "title": "Hans el tonto",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Hans",
+    "role": "Joven considerado ingenuo que logra triunfar gracias a su bondad y astucia inesperada",
+    "is_major": true
+   },
+   {
+    "name": "La Princesa",
+    "role": "Hija del rey cuyo afecto y risa son conquistados por las disparatadas acciones de Hans",
+    "is_major": true
+   },
+   {
+    "name": "El Rey",
+    "role": "Monarca que ofrece la mano de su hija a quien supere el desafío propuesto",
+    "is_major": false
+   },
+   {
+    "name": "Los Hermanos Mayores",
+    "role": "Hermanos arrogantes de Hans que lo menosprecian y fracasan en sus intentos",
+    "is_major": false
+   }
+  ]
+ },
+ "la-incomparable-aventura-de-un-tal-hans-pfaall-allan-poe-edgar": {
+  "title": "Hans Pfaall",
+  "author": "Edgar Allan Poe",
+  "characters": [
+   {
+    "name": "Hans Pfaall",
+    "role": "Remendador de fuelles que realiza un audaz viaje en globo hacia la Luna",
+    "is_major": true
+   },
+   {
+    "name": "Burgomaestre Superbus Von Underduk",
+    "role": "Autoridad de Rotterdam que recibe la carta que detalla la travesía espacial",
+    "is_major": false
+   },
+   {
+    "name": "El Mensajero Lunar",
+    "role": "Ser diminuto y exótico que entrega el escrito de Pfaall a los habitantes de la Tierra",
+    "is_major": false
+   },
+   {
+    "name": "Mynheer Von Muffle",
+    "role": "Profesor y astrónomo que atestigua la veracidad del insólito informe",
+    "is_major": false
+   }
+  ]
+ },
+ "hansel-y-gretel-hermanos-grimm": {
+  "title": "Hansel y Gretel",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Hansel",
+    "role": "Protagonista, niño astuto que busca la manera de salvar a su hermana.",
+    "is_major": true
+   },
+   {
+    "name": "Gretel",
+    "role": "Protagonista, niña ingeniosa que logra vencer a la bruja para liberar a su hermano.",
+    "is_major": true
+   },
+   {
+    "name": "La Bruja",
+    "role": "Antagonista, malvada anciana que atrae a los niños a su casa de dulces para engordarlos y devorarlos.",
+    "is_major": true
+   },
+   {
+    "name": "El Padre",
+    "role": "Leñador pobre y débil de carácter que se ve manipulado para abandonar a sus hijos.",
+    "is_major": false
+   },
+   {
+    "name": "La Madrastra",
+    "role": "Antagonista secundaria, cruel mujer que insiste en abandonar a los niños en el bosque.",
+    "is_major": false
+   }
+  ]
+ },
+ "hechos-tocantes-al-difunto-arthur-jermyn-y-su-familia-h-p-lovecraft": {
+  "title": "Hechos tocantes al difunto Arthur Jermyn y su familia",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "Arthur Jermyn",
+    "role": "Protagonista, erudito obsesionado con investigar el perturbador linaje de su familia.",
+    "is_major": true
+   },
+   {
+    "name": "Sir Wade Jermyn",
+    "role": "Antepasado de Arthur, explorador que inició la oscura maldición familiar tras sus viajes a África.",
+    "is_major": false
+   },
+   {
+    "name": "Sir Robert Jermyn",
+    "role": "Abuelo de Arthur, etnólogo que enloqueció tras descubrir secretos sangrientos de sus antepasados.",
+    "is_major": false
+   }
+  ]
+ },
+ "hector-servadac-verne-julio": {
+  "title": "Héctor Servadac",
+  "author": "Julio Verne",
+  "characters": [
+   {
+    "name": "Héctor Servadac",
+    "role": "Protagonista, capitán francés que lidera a los sobrevivientes a bordo del cometa Gallia.",
+    "is_major": true
+   },
+   {
+    "name": "Ben-Zof",
+    "role": "Asistente y fiel ordenanza de Servadac, dotado de gran lealtad y sentido del humor.",
+    "is_major": true
+   },
+   {
+    "name": "Palmyrin Rosette",
+    "role": "Astrónomo excéntrico que descubre la verdadera naturaleza del cometa y la trayectoria de la colisión.",
+    "is_major": false
+   },
+   {
+    "name": "Isaac Hakhabut",
+    "role": "Antagonista secundario, comerciante codicioso que se niega a compartir sus suministros.",
+    "is_major": false
+   }
+  ]
+ },
+ "hecuba-euripides": {
+  "title": "Hécuba",
+  "author": "Euripides",
+  "characters": [
+   {
+    "name": "Hécuba",
+    "role": "Protagonista, antigua reina de Troya convertida en esclava que busca vengar el asesinato de sus hijos.",
+    "is_major": true
+   },
+   {
+    "name": "Políxena",
+    "role": "Hija de Hécuba, una joven valiente sacrificada trágicamente en honor al héroe Aquiles.",
+    "is_major": true
+   },
+   {
+    "name": "Poliméstor",
+    "role": "Antagonista, rey de Tracia que traiciona a Hécuba al asesinar a su hijo Polidoro por avaricia.",
+    "is_major": true
+   },
+   {
+    "name": "Agamenón",
+    "role": "Líder del ejército griego que actúa como juez en el trágico conflicto entre Hécuba y Poliméstor.",
+    "is_major": false
+   },
+   {
+    "name": "Polidoro",
+    "role": "Sombra e hijo menor de Hécuba, cuyo asesinato desencadena la sed de venganza de su madre.",
+    "is_major": false
+   }
+  ]
+ },
+ "hedda-gabler-henrik-ibsen": {
+  "title": "Hedda Gabler",
+  "author": "Henrik Ibsen",
+  "characters": [
+   {
+    "name": "Hedda Gabler",
+    "role": "Protagonista, mujer manipuladora y aburrida que busca controlar el destino de quienes la rodean.",
+    "is_major": true
+   },
+   {
+    "name": "George Tesman",
+    "role": "Esposo de Hedda, un dedicado pero ingenuo académico enfocado en sus estudios.",
+    "is_major": true
+   },
+   {
+    "name": "Eilert Lövborg",
+    "role": "Brillante escritor, antiguo amor de Hedda y rival académico de Tesman.",
+    "is_major": true
+   },
+   {
+    "name": "Juez Brack",
+    "role": "Antagonista secundario, astuto amigo de la familia que intenta chantajear a Hedda.",
+    "is_major": false
+   },
+   {
+    "name": "Thea Elvsted",
+    "role": "Amiga devota de Lövborg que intenta salvarlo de su autodestrucción.",
+    "is_major": false
+   }
+  ]
+ },
+ "heidi-johanna-spyri": {
+  "title": "Heidi",
+  "author": "Johanna Spyri",
+  "characters": [
+   {
+    "name": "Heidi",
+    "role": "Protagonista, alegre niña huérfana que ablanda los corazones de todos a su alrededor.",
+    "is_major": true
+   },
+   {
+    "name": "El Abuelo (El Viejo de los Alpes)",
+    "role": "Anciano ermitaño y huraño que recupera el amor y la fe gracias a su nieta.",
+    "is_major": true
+   },
+   {
+    "name": "Pedro",
+    "role": "Joven pastor de cabras y el fiel amigo de aventuras de Heidi en la montaña.",
+    "is_major": true
+   },
+   {
+    "name": "Clara Sesemann",
+    "role": "Niña rica e inválida en Fráncfort que entabla una profunda amistad con Heidi.",
+    "is_major": true
+   },
+   {
+    "name": "Señorita Rottenmeier",
+    "role": "Antagonista secundaria, estricta y rígida gobernanta de la casa de la familia Sesemann.",
+    "is_major": false
+   }
+  ]
+ },
+ "herbert-west-reanimador-h-p-lovecraft": {
+  "title": "Herbert West reanimador",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "Herbert West",
+    "role": "Protagonista, brillante y amoral científico obsesionado con vencer a la muerte reanimando cadáveres.",
+    "is_major": true
+   },
+   {
+    "name": "El Narrador",
+    "role": "Amigo y ayudante de West con voz propia, constante testigo y cómplice de sus macabros experimentos.",
+    "is_major": true
+   },
+   {
+    "name": "Dr. Allan Halsey",
+    "role": "Decano de la facultad de medicina que se convierte en una de las trágicas víctimas de los experimentos.",
+    "is_major": false
+   }
+  ]
+ },
+ "herland-charlotte-perkins-gilman": {
+  "title": "Herland",
+  "author": "Charlotte Perkins Gilman",
+  "characters": [
+   {
+    "name": "Van Jennings",
+    "role": "Narrador y explorador sociólogo que analiza con fascinación la estructura utópica de Herland.",
+    "is_major": true
+   },
+   {
+    "name": "Terry O'Nicholson",
+    "role": "Explorador impulsivo y machista que entra en constante conflicto con las mujeres de Herland.",
+    "is_major": true
+   },
+   {
+    "name": "Jeff Margrave",
+    "role": "Explorador idealista y romántico que se adapta e idolatra rápidamente la sociedad femenina.",
+    "is_major": true
+   },
+   {
+    "name": "Ellador",
+    "role": "Habitante nativa de Herland que entabla un vínculo romántico e intelectual con Van.",
+    "is_major": false
+   },
+   {
+    "name": "Alima",
+    "role": "Mujer independiente de Herland que desafía abiertamente las actitudes dominantes de Terry.",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-dos-cachorros-de-coati-y-de-dos-cachorros-de-hombre-horacio-quiroga": {
+  "title": "Historia de dos cachorros de coatí y de dos cachorros de hombre",
+  "author": "Horacio Quiroga",
+  "characters": [
+   {
+    "name": "El coatí cachorro",
+    "role": "Protagonista animal que es capturado por los humanos al caer en una trampa",
+    "is_major": true
+   },
+   {
+    "name": "El segundo coatí",
+    "role": "Hermano del protagonista que ocupa su lugar tras la tragedia para mantener la ilusión",
+    "is_major": true
+   },
+   {
+    "name": "La madre coatí",
+    "role": "Madre de las crías que advierte desesperadamente sobre los peligros del hombre",
+    "is_major": false
+   },
+   {
+    "name": "Los niños humanos",
+    "role": "Cachorros de hombre que adoptan con cariño al coatí sin medir las consecuencias",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-dos-ciudades-charles-dickens": {
+  "title": "Historia de dos ciudades",
+  "author": "Charles Dickens",
+  "characters": [
+   {
+    "name": "Sydney Carton",
+    "role": "Abogado cínico y brillante que encuentra la redención a través de un sacrificio supremo",
+    "is_major": true
+   },
+   {
+    "name": "Charles Darnay",
+    "role": "Aristócrata francés exiliado que renuncia a sus títulos por principios morales",
+    "is_major": true
+   },
+   {
+    "name": "Lucie Manette",
+    "role": "Joven virtuosa cuyo amor une y transforma la vida de los protagonistas",
+    "is_major": true
+   },
+   {
+    "name": "Madame Defarge",
+    "role": "Antagonista implacable y líder revolucionaria movida por un deseo obsesivo de venganza",
+    "is_major": true
+   },
+   {
+    "name": "Alexandre Manette",
+    "role": "Médico traumatizado tras pasar años injustamente encarcelado en la Bastilla",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-espana-marcelino-menendez-pelayo": {
+  "title": "Historia de España",
+  "author": "Marcelino Menéndez y Pelayo",
+  "characters": [
+   {
+    "name": "Marcelino Menéndez y Pelayo",
+    "role": "Narrador y erudito que guía el análisis histórico con una marcada perspectiva cultural e ideológica",
+    "is_major": true
+   },
+   {
+    "name": "Don Pelayo",
+    "role": "Figura histórica resaltada como símbolo primordial del inicio de la Reconquista",
+    "is_major": false
+   },
+   {
+    "name": "Los Reyes Católicos",
+    "role": "Monarcas clave en el relato para la unificación territorial y religiosa de España",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-la-revolucion-rusa-leon-trotski": {
+  "title": "Historia De La Revolucion Rusa Leon Trotski",
+  "author": "Autor Desconocido",
+  "characters": [
+   {
+    "name": "León Trotski",
+    "role": "Narrador omnisciente y cronista que analiza la revolución desde su vivencia como líder clave",
+    "is_major": true
+   },
+   {
+    "name": "Vladimir Lenin",
+    "role": "Líder estratégico e ideólogo principal del partido bolchevique durante el proceso revolucionario",
+    "is_major": true
+   },
+   {
+    "name": "Nicolás II",
+    "role": "Último zar de Rusia, cuya incapacidad política precipitated el colapso de la monarquía",
+    "is_major": false
+   },
+   {
+    "name": "Alexander Kérenski",
+    "role": "Líder del Gobierno Provisional derrocado por los bolcheviques en la Revolución de Octubre",
+    "is_major": false
+   }
+  ]
+ },
+ "la-vida-del-buscon-de-quevedo-francisco": {
+  "title": "Historia de la vida del Buscón, llamado Don Pablos, ejemplo de vagabundos y espejo de tacaños",
+  "author": "Francisco de Quevedo",
+  "characters": [
+   {
+    "name": "Pablos de Segovia",
+    "role": "Protagonista y narrador pícaro que intenta infructuosamente ascender de escala social",
+    "is_major": true
+   },
+   {
+    "name": "Dómine Cabra",
+    "role": "Clérigo extremadamente tacaño que mata de hambre a los estudiantes de su pupilaje",
+    "is_major": false
+   },
+   {
+    "name": "Don Diego Coronel",
+    "role": "Joven de noble cuna a quien Pablos sirve como criado y acompañante de estudios",
+    "is_major": true
+   },
+   {
+    "name": "Clemente Pablo",
+    "role": "Padre del Buscón, barbero y ladrón ajusticiado en la horca",
+    "is_major": false
+   },
+   {
+    "name": "Aldonza de San Pedro",
+    "role": "Madre del protagonista, acusada de hechicería y de dudosa moralidad",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-los-demonios-y-de-las-brujas-walter-scott": {
+  "title": "Historia de los demonios y de las brujas",
+  "author": "Walter Scott",
+  "characters": [
+   {
+    "name": "Walter Scott",
+    "role": "Narrador erudito que analiza críticamente la historia de las supersticiones y la brujería",
+    "is_major": true
+   },
+   {
+    "name": "J. G. Lockhart",
+    "role": "Destinatario epistolar de las reflexiones e investigaciones del autor sobre lo sobrenatural",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-los-grandes-viajes-y-los-grandes-viajeros-verne-julio": {
+  "title": "Historia de los grandes viajes y de los grandes viajeros",
+  "author": "Julio Verne",
+  "characters": [
+   {
+    "name": "Julio Verne",
+    "role": "Narrador entusiasta que documenta y divulga los grandes descubrimientos geográficos",
+    "is_major": true
+   },
+   {
+    "name": "Cristóbal Colón",
+    "role": "Navegante genovés cuya travesía atlántica marca un hito central en la cronología del libro",
+    "is_major": true
+   },
+   {
+    "name": "Fernando de Magallanes",
+    "role": "Explorador que lidera la primera expedición en dar la vuelta al mundo",
+    "is_major": true
+   },
+   {
+    "name": "Marco Polo",
+    "role": "Viajero veneciano pionero en explorar y relatar las maravillas del continente asiático",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-los-viajes-de-escarmentado-voltaire": {
+  "title": "Historia de los Viajes de Escarmentado",
+  "author": "Voltaire",
+  "characters": [
+   {
+    "name": "Escarmentado",
+    "role": "Protagonista viajero e ingenuo que sufre constantes desgracias e injusticias por el mundo",
+    "is_major": true
+   },
+   {
+    "name": "El Inquisidor de Lisboa",
+    "role": "Antagonista que personifica el fanatismo y la intolerancia religiosa en las travesías del protagonista",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-mi-vida-anton-chejov": {
+  "title": "Historia de mi vida",
+  "author": "Antón Chéjov",
+  "characters": [
+   {
+    "name": "Misail Poloznev",
+    "role": "Protagonista, un joven noble que rechaza su estatus para trabajar como obrero manual.",
+    "is_major": true
+   },
+   {
+    "name": "Viktor Poloznev",
+    "role": "Padre autoritario de Misail, arquitecto obsesionado con las apariencias y el estatus social.",
+    "is_major": false
+   },
+   {
+    "name": "Kleopatra Polozneva",
+    "role": "Hermana de Misail, una mujer reprimida que busca su independencia afectiva.",
+    "is_major": false
+   },
+   {
+    "name": "Masha Chélisheva",
+    "role": "Esposa de Misail, una mujer culta y caprichosa que intenta adaptarse a la vida humilde.",
+    "is_major": true
+   }
+  ]
+ },
+ "historia-de-un-amor-turbio-horacio-quiroga": {
+  "title": "Historia de un amor turbio",
+  "author": "Horacio Quiroga",
+  "characters": [
+   {
+    "name": "Rohan",
+    "role": "Protagonista, un hombre atormentado por sus ambiguos sentimientos hacia dos hermanas.",
+    "is_major": true
+   },
+   {
+    "name": "Eglé",
+    "role": "Primera enamorada de Rohan, una joven de carácter complejo y pasión inestable.",
+    "is_major": true
+   },
+   {
+    "name": "Dora",
+    "role": "Hermana menor de Eglé, quien años después despierta un dilema pasional en Rohan.",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-un-buen-brahmin-voltaire": {
+  "title": "Historia de un Buen Brahmín",
+  "author": "Voltaire",
+  "characters": [
+   {
+    "name": "El Brahmán",
+    "role": "Protagonista, sabio filósofo desdichado debido a su insaciable búsqueda de respuestas existenciales.",
+    "is_major": true
+   },
+   {
+    "name": "La anciana india",
+    "role": "Vecina del brahmán, una mujer pobre e ignorante que vive en completa felicidad.",
+    "is_major": true
+   },
+   {
+    "name": "El Narrador",
+    "role": "Viajero curioso que escucha los dilemas del brahmán y reflexiona sobre la razón frente a la felicidad.",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-una-anguila-y-otras-historias-anton-chejov": {
+  "title": "Historia de una anguila y otras historias",
+  "author": "Antón Chéjov",
+  "characters": [
+   {
+    "name": "Liubim",
+    "role": "Carpintero obstinado que lidera el accidentado intento de atrapar al pez oculto en el agua.",
+    "is_major": true
+   },
+   {
+    "name": "Yefim",
+    "role": "Carpintero compañero de Liubim que ayuda torpemente en la caza del animal submarino.",
+    "is_major": true
+   },
+   {
+    "name": "Andrey Andreich",
+    "role": "Terrateniente exigente que termina involucrándose personalmente en la captura del escurridizo pez.",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-de-uno-que-hizo-un-viaje-para-saber-lo-que-era-miedo-hermanos-grimm": {
+  "title": "Historia de uno que hizo un viaje para saber lo que era miedo",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Juan Sin Miedo",
+    "role": "Protagonista ingenuo e intrépido que recorre el mundo intentando comprender la sensación del temor.",
+    "is_major": true
+   },
+   {
+    "name": "El Rey",
+    "role": "Monarca que promete la mano de su hija y su reino a quien descifre el enigma del castillo encantado.",
+    "is_major": false
+   },
+   {
+    "name": "La Princesa",
+    "role": "Esposa de Juan, quien logra hacerle experimentar el miedo mediante una ingeniosa broma nocturna.",
+    "is_major": true
+   },
+   {
+    "name": "El Padre",
+    "role": "Padre del protagonista, frustrado por la aparente torpeza e insensatez de su hijo menor.",
+    "is_major": false
+   }
+  ]
+ },
+ "historia-del-abencerraje-y-la-hermosa-jarifa-antonio-de-villegas": {
+  "title": "Historia del Abencerraje y la hermosa Jarifa",
+  "author": "Antonio de Villegas",
+  "characters": [
+   {
+    "name": "Abindarráez",
+    "role": "Protagonista moro, caballero noble de la estirpe Abencerraje, apasionado y leal a su palabra.",
+    "is_major": true
+   },
+   {
+    "name": "Rodrigo de Narváez",
+    "role": "Alcaide cristiano de Álora, modelo de virtud y generosidad caballeresca hacia su prisionero.",
+    "is_major": true
+   },
+   {
+    "name": "Jarifa",
+    "role": "Dama mora de gran belleza, leal amada y esposa de Abindarráez.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-historia-secreta-de-isabel-de-baviera-marques-de-sade": {
+  "title": "Historia Secreta de Isabel de Baviera",
+  "author": "Sade, Marqués de",
+  "characters": [
+   {
+    "name": "Isabel de Baviera",
+    "role": "Protagonista y reina consorte de Francia, retratada como una mujer manipuladora y depravada.",
+    "is_major": true
+   },
+   {
+    "name": "Carlos VI",
+    "role": "Rey de Francia, debilitado por brotes de locura y víctima de las conspiraciones de su corte.",
+    "is_major": true
+   },
+   {
+    "name": "Luis de Orleans",
+    "role": "Duque y cuñado de la reina, aliado político y amante de Isabel en sus ambiciones de poder.",
+    "is_major": false
+   },
+   {
+    "name": "Carlos VII",
+    "role": "Hijo de Isabel y heredero al trono, enfrentado a las intrigas y traiciones de su propia madre.",
+    "is_major": false
+   }
+  ]
+ },
+ "historias-de-fantasmas-de-un-anticuario-m-r-james": {
+  "title": "Historias de fantasmas de un anticuario",
+  "author": "M. R. James",
+  "characters": [
+   {
+    "name": "Profesor Parkins",
+    "role": "Académico escéptico que desata un horror sobrenatural al invocar una entidad mediante un silbato antiguo.",
+    "is_major": true
+   },
+   {
+    "name": "Mr. Dennistoun",
+    "role": "Erudito anticuario que adquiere un libro litúrgico medieval custodiado por un ser demoníaco.",
+    "is_major": true
+   },
+   {
+    "name": "Mr. Somerton",
+    "role": "Investigador que descifra un enigma en una catedral para hallar un tesoro protegido por una criatura aborrecible.",
+    "is_major": false
+   },
+   {
+    "name": "El Conde Magnus",
+    "role": "Aristócrata sueco del siglo XVII cuya sombra maligna castiga a los inquisitivos del presente.",
+    "is_major": false
+   }
+  ]
+ },
+ "hombrecitos-alcott-louisa-may": {
+  "title": "Hombrecitos",
+  "author": "Louisa May Alcott",
+  "characters": [
+   {
+    "name": "Jo March (Sra. Bhaer)",
+    "role": "Directora de la escuela Plumfield y figura materna para los alumnos",
+    "is_major": true
+   },
+   {
+    "name": "Profesor Friedrich Bhaer",
+    "role": "Copropietario de Plumfield y maestro educador de los jóvenes",
+    "is_major": true
+   },
+   {
+    "name": "Nat Blake",
+    "role": "Niño huérfano y tímido violinista que busca un nuevo hogar",
+    "is_major": true
+   },
+   {
+    "name": "Dan Kean",
+    "role": "Joven rebelde y conflictivo que pone a prueba la paciencia de la escuela",
+    "is_major": true
+   },
+   {
+    "name": "Emil Bhaer",
+    "role": "Sobrino apasionado por el mar que sueña con ser marinero",
+    "is_major": false
+   },
+   {
+    "name": "Franz Bhaer",
+    "role": "Sobrino mayor que ayuda en la enseñanza de los alumnos más pequeños",
+    "is_major": false
+   }
+  ]
+ },
+ "homero-y-la-filologia-clasica-friedrich-nietzsche": {
+  "title": "Homero y la filología clásica",
+  "author": "Friedrich Nietzsche",
+  "characters": [
+   {
+    "name": "Friedrich Nietzsche",
+    "role": "Narrador y filólogo que cuestiona las ideas tradicionales sobre la autoría épica",
+    "is_major": true
+   },
+   {
+    "name": "Homero",
+    "role": "Figura mítica y poética central analizada a lo largo del ensayo",
+    "is_major": true
+   },
+   {
+    "name": "Friedrich August Wolf",
+    "role": "Filólogo clásico cuya hipótesis homérica es examinada críticamente",
+    "is_major": false
+   }
+  ]
+ },
+ "honorata-de-wan-guld-emilio-salgari": {
+  "title": "Honorata de Wan Guld",
+  "author": "Emilio Salgari",
+  "characters": [
+   {
+    "name": "Honorata de Wan Guld",
+    "role": "Protagonista, hija del duque dividida entre el deber filial y el amor",
+    "is_major": true
+   },
+   {
+    "name": "El Corsario Negro (Emilio di Roccabruna)",
+    "role": "Pirata noble obsesionado con vengar a sus hermanos pero enamorado de Honorata",
+    "is_major": true
+   },
+   {
+    "name": "Duque de Wan Guld",
+    "role": "Antagonista, cruel gobernador de Maracaibo y padre de Honorata",
+    "is_major": true
+   },
+   {
+    "name": "Carmaux",
+    "role": "Fiel pirata y compañero de aventuras del Corsario Negro",
+    "is_major": false
+   },
+   {
+    "name": "Wan Stiller",
+    "role": "Pirata flamenco de confianza que acompaña a la tripulación",
+    "is_major": false
+   }
+  ]
+ },
+ "honorina-balzac-honore-de": {
+  "title": "Honorina",
+  "author": "Honoré de Balzac",
+  "characters": [
+   {
+    "name": "Honorine de Bauvan",
+    "role": "Protagonista, joven aristócrata que vive escondida tras abandonar a su esposo",
+    "is_major": true
+   },
+   {
+    "name": "Conde Octave de Bauvan",
+    "role": "Esposo paciente que intenta conseguir el perdón de Honorine en secreto",
+    "is_major": true
+   },
+   {
+    "name": "Maurice de l'Hostal",
+    "role": "Narrador de la historia y secretario del conde Octave",
+    "is_major": true
+   },
+   {
+    "name": "Onésime Bargiole",
+    "role": "Cónsul y amigo a quien Maurice relata los sucesos",
+    "is_major": false
+   }
+  ]
+ },
+ "hop-frog-allan-poe-edgar": {
+  "title": "Hop-Frog",
+  "author": "Edgar Allan Poe",
+  "characters": [
+   {
+    "name": "Hop-Frog",
+    "role": "Protagonista, bufón enano lisiado que orquesta una macabra venganza",
+    "is_major": true
+   },
+   {
+    "name": "Tripetta",
+    "role": "Enana bailarina, amiga y protectora de Hop-Frog en la corte",
+    "is_major": true
+   },
+   {
+    "name": "El Rey",
+    "role": "Antagonista, monarca cruel y tiránico dedicado a humillar a sus sirvientes",
+    "is_major": true
+   },
+   {
+    "name": "Los siete ministros",
+    "role": "Antagonistas secundarios, consejeros del rey complacientes con sus abusos",
+    "is_major": false
+   }
+  ]
+ },
+ "huella-de-almas-francisco-acebal": {
+  "title": "Huella de almas",
+  "author": "Francisco Acebal",
+  "characters": [
+   {
+    "name": "Gabriel Miranda",
+    "role": "Protagonista, joven idealista enfrentado a dilemas morales y existenciales",
+    "is_major": true
+   },
+   {
+    "name": "Mari-Pepa",
+    "role": "Interés amoroso que influye profundamente en el rumbo vital del protagonista",
+    "is_major": true
+   },
+   {
+    "name": "Don Prudencio",
+    "role": "Figura de autoridad tradicional que representa las costumbres de la época",
+    "is_major": false
+   }
+  ]
+ },
+ "ib-y-cristinita-hans-christian-andersen": {
+  "title": "Ib y Cristinita",
+  "author": "Hans Christian Andersen",
+  "characters": [
+   {
+    "name": "Ib",
+    "role": "Protagonista, humilde y noble muchacho de campo con un amor desinteresado",
+    "is_major": true
+   },
+   {
+    "name": "Cristinita",
+    "role": "Compañera de infancia de Ib que busca fortuna en la ciudad alejándose de él",
+    "is_major": true
+   },
+   {
+    "name": "El padre de Ib",
+    "role": "Pescador y artesano que enseña a su hijo la bondad y la paciencia",
+    "is_major": false
+   },
+   {
+    "name": "La hija de Cristinita",
+    "role": "Hija de Cristinita que termina al cuidado del noble Ib tras trágicos eventos",
+    "is_major": false
+   }
+  ]
+ },
+ "ibid-h-p-lovecraft": {
+  "title": "Ibid",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "Ibidus (Ibid)",
+    "role": "Erudito romano ficticio cuya supuesta biografía es parodiada en la obra",
+    "is_major": true
+   },
+   {
+    "name": "El Narrador",
+    "role": "Voz narrativa de corte académico que satiriza la pedantería historiográfica",
+    "is_major": true
+   },
+   {
+    "name": "Cayo Lelio",
+    "role": "Personaje histórico citado de forma absurda como contemporáneo de Ibid",
+    "is_major": false
+   }
+  ]
+ },
+ "ibis-jose-maria-vargas-vila": {
+  "title": "Ibis",
+  "author": "José María Vargas Vila",
+  "characters": [
+   {
+    "name": "Teófano",
+    "role": "Protagonista consumido por una pasión trágica y la misoginia",
+    "is_major": true
+   },
+   {
+    "name": "Berta",
+    "role": "Antagonista y amante cuya traición destruye a Teófano",
+    "is_major": true
+   },
+   {
+    "name": "El Maestro",
+    "role": "Mentor filosófico que incita el odio hacia las mujeres",
+    "is_major": false
+   }
+  ]
+ },
+ "ideal-de-la-humanidad-para-la-vida-karl-krause": {
+  "title": "Ideal de la humanidad para la vida",
+  "author": "Karl Krause",
+  "characters": [
+   {
+    "name": "El Filósofo",
+    "role": "Voz narrativa que expone los principios armónicos del krausismo",
+    "is_major": true
+   },
+   {
+    "name": "El Hombre Ideal",
+    "role": "Representación alegórica de la humanidad en armonía moral y divina",
+    "is_major": true
+   }
+  ]
+ },
+ "idilio-en-calle-plumet-y-epopeya-en-calle-saint-denis-hugo-victor": {
+  "title": "Idilio en calle Plumet y epopeya en calle Saint-Denis",
+  "author": "Victor Hugo",
+  "characters": [
+   {
+    "name": "Marius Pontmercy",
+    "role": "Protagonista y joven revolucionario enamorado de Cosette",
+    "is_major": true
+   },
+   {
+    "name": "Cosette",
+    "role": "Protagonista que vive su romance con Marius en la calle Plumet",
+    "is_major": true
+   },
+   {
+    "name": "Jean Valjean",
+    "role": "Protector abnegado de Cosette que intenta mantenerla a salvo",
+    "is_major": true
+   },
+   {
+    "name": "Éponine Thénardier",
+    "role": "Joven enamorada de Marius que se sacrifica en las barricadas",
+    "is_major": false
+   },
+   {
+    "name": "Enjolras",
+    "role": "Líder apasionado de la insurrección estudiantil en Saint-Denis",
+    "is_major": false
+   },
+   {
+    "name": "Gavroche",
+    "role": "Niño huérfano y valiente de las calles de París",
+    "is_major": false
+   }
+  ]
+ },
+ "igualdad-edward-bellamy": {
+  "title": "Igualdad",
+  "author": "Edward Bellamy",
+  "characters": [
+   {
+    "name": "Julian West",
+    "role": "Protagonista del siglo XIX que despierta en una utopía igualitaria",
+    "is_major": true
+   },
+   {
+    "name": "Dr. Leete",
+    "role": "Guía y mentor que explica el funcionamiento de la sociedad futura",
+    "is_major": true
+   },
+   {
+    "name": "Edith Leete",
+    "role": "Interés amoroso de Julian e hija del Dr. Leete",
+    "is_major": false
+   }
+  ]
+ },
+ "imitacion-de-cristo-tomas-de-kempis": {
+  "title": "Imitación de Cristo",
+  "author": "Tomás de Kempis",
+  "characters": [
+   {
+    "name": "Jesucristo",
+    "role": "Guía divino que instruye al creyente en la renuncia y la humildad",
+    "is_major": true
+   },
+   {
+    "name": "El Discípulo",
+    "role": "Voz narrativa que busca la perfección espiritual y la devoción",
+    "is_major": true
+   }
+  ]
+ },
+ "impresiones-y-paisajes-garcia-lorca-federico": {
+  "title": "Impresiones y paisajes",
+  "author": "Autor Desconocido",
+  "characters": [
+   {
+    "name": "El Viajero Narrador",
+    "role": "Voz contemplativa que describe los paisajes y transmite sus emociones",
+    "is_major": true
+   },
+   {
+    "name": "El Paisaje",
+    "role": "Entidad contemplada personificada a través de la prosa poética",
+    "is_major": false
+   }
+  ]
+ },
+ "incidente-en-el-lago-leman-zweig-stefan": {
+  "title": "Incidente en el lago Leman",
+  "author": "Stefan Zweig",
+  "characters": [
+   {
+    "name": "Boris",
+    "role": "Protagonista y soldado ruso desertor que busca refugio y libertad",
+    "is_major": true
+   },
+   {
+    "name": "El Juez de Paz",
+    "role": "Autoridad local que intenta comprender la trágica situación del desertor",
+    "is_major": true
+   }
+  ]
+ },
+ "informe-para-una-academia-kafka-franz": {
+  "title": "Informe para una academia",
+  "author": "Franz Kafka",
+  "characters": [
+   {
+    "name": "Pedro el Rojo",
+    "role": "Protagonista, un simio que relata su proceso de humanización",
+    "is_major": true
+   },
+   {
+    "name": "Los Académicos",
+    "role": "Audiencia e interlocutores a quienes va dirigido el informe",
+    "is_major": false
+   },
+   {
+    "name": "Hagenbeck",
+    "role": "Cazador responsable de la captura de Pedro en África",
+    "is_major": false
+   }
+  ]
+ },
+ "inquietudes-sentimentales-teresa-wilms-montt": {
+  "title": "Inquietudes sentimentales",
+  "author": "Teresa Wilms Montt",
+  "characters": [
+   {
+    "name": "Teresa",
+    "role": "Narradora y voz poética de la obra, refleja sus sufrimientos y pasiones de manera íntima",
+    "is_major": true
+   },
+   {
+    "name": "Anuarí",
+    "role": "Espíritu e idealización del amante trágico invocado por la autora",
+    "is_major": false
+   }
+  ]
+ },
+ "insolacion-pardo-bazan-emilia": {
+  "title": "Insolación",
+  "author": "Emilia Pardo Bazán",
+  "characters": [
+   {
+    "name": "Francisca \"Asís\" Taboada",
+    "role": "Marquesa de Andrade, viuda joven y aristócrata que rompe moldes sociales al entregarse a la pasión",
+    "is_major": true
+   },
+   {
+    "name": "Diego Pacheco",
+    "role": "Seductor andaluz, atractivo e impulsivo, que enamora apasionadamente a Asís",
+    "is_major": true
+   },
+   {
+    "name": "Gabriel Pardo de la Lage",
+    "role": "Amigo respetable de Asís, pretendiente galante y representante de la moral ilustrada",
+    "is_major": false
+   }
+  ]
+ },
+ "intenciones-wilde-oscar": {
+  "title": "Intenciones",
+  "author": "Oscar Wilde",
+  "characters": [
+   {
+    "name": "Vivian",
+    "role": "Interlocutor en 'El decaimiento de la mentira' que defiende la superioridad del arte sobre la naturaleza",
+    "is_major": true
+   },
+   {
+    "name": "Cyril",
+    "role": "Escuchante y polemista en el diálogo sobre la mentira artística",
+    "is_major": false
+   },
+   {
+    "name": "Gilbert",
+    "role": "Voz principal en 'El crítico como artista', sostiene que la crítica es la forma suprema de creación",
+    "is_major": true
+   },
+   {
+    "name": "Ernest",
+    "role": "Interlocutor en 'El crítico como artista' que formula las objeciones y preguntas clave",
+    "is_major": false
+   }
+  ]
+ },
+ "introduccion-al-yoga-annie-besant": {
+  "title": "Introducción al yoga",
+  "author": "Annie Besant",
+  "characters": [
+   {
+    "name": "Annie Besant (Voz instructora)",
+    "role": "Narradora y teósofa que expone con claridad los métodos y filosofía del yoga",
+    "is_major": true
+   },
+   {
+    "name": "El Jiva (El Alma individual)",
+    "role": "Entidad y buscador espiritual que aspira a la purificación y trascendencia",
+    "is_major": true
+   },
+   {
+    "name": "Ishvara (El Yo Supremo)",
+    "role": "Principio divino y meta última a la que tiende la práctica yogui",
+    "is_major": false
+   }
+  ]
+ },
+ "introduccion-del-narcisismo-sigmund-freud": {
+  "title": "Introducción del narcisismo",
+  "author": "Sigmund Freud",
+  "characters": [
+   {
+    "name": "Sigmund Freud (Voz teórica)",
+    "role": "Narrador y pensador que conceptualiza la teoría de la libido y el narcisismo",
+    "is_major": true
+   },
+   {
+    "name": "El Yo",
+    "role": "Instancia psíquica que se toma a sí misma como objeto de investidura libidinal",
+    "is_major": true
+   },
+   {
+    "name": "El Ideal del Yo",
+    "role": "Modelo interno de perfección frente al cual el sujeto evalúa su propia conducta",
+    "is_major": false
+   }
+  ]
+ },
+ "investigaciones-de-un-perro-kafka-franz": {
+  "title": "Investigaciones de un perro",
+  "author": "Franz Kafka",
+  "characters": [
+   {
+    "name": "El perro investigador",
+    "role": "Protagonista y narrador, can de mentalidad filosófica que cuestiona la existencia y tradiciones de su especie",
+    "is_major": true
+   },
+   {
+    "name": "Los perros músicos",
+    "role": "Grupo de canes ejecutantes cuya misteriosa arte genera desconcierto y fascinación en el protagonista",
+    "is_major": false
+   },
+   {
+    "name": "El perro cazador",
+    "role": "Can hermoso y cantor que se aparece al protagonista durante su ayuno trascendental",
+    "is_major": false
+   }
+  ]
+ },
+ "ion-platon": {
+  "title": "Ión o de la Poesía",
+  "author": "Platón",
+  "characters": [
+   {
+    "name": "Sócrates",
+    "role": "Filósofo que cuestiona al rapsoda para demostrar que la poesía surge del entusiasmo divino y no del arte técnico",
+    "is_major": true
+   },
+   {
+    "name": "Ión de Éfeso",
+    "role": "Famoso rapsoda especialista en Homero que defiende el carácter técnico y sabio de su oficio",
+    "is_major": true
+   }
+  ]
+ },
+ "ismael-eduardo-acevedo-diaz": {
+  "title": "Ismael",
+  "author": "Eduardo Acevedo Díaz",
+  "characters": [
+   {
+    "name": "Ismael Velarde",
+    "role": "Protagonista, joven gaucho rebelde y valiente que se suma a la causa revolucionaria de Artigas",
+    "is_major": true
+   },
+   {
+    "name": "Felisa",
+    "role": "Joven criolla, interés amoroso de Ismael y detonante del conflicto de la historia",
+    "is_major": true
+   },
+   {
+    "name": "Jorge \"El Toro\"",
+    "role": "Antagonista, capataz despótico y rival de Ismael en el plano personal y político",
+    "is_major": false
+   }
+  ]
+ },
+ "ivanhoe-walter-scott": {
+  "title": "Ivanhoe",
+  "author": "Walter Scott",
+  "characters": [
+   {
+    "name": "Wilfredo de Ivanhoe",
+    "role": "Caballero sajón que regresa de las Cruzadas para recuperar su herencia y su honor.",
+    "is_major": true
+   },
+   {
+    "name": "Lady Rowena",
+    "role": "Noble sajona amada por Ivanhoe y pupila de Cedric.",
+    "is_major": true
+   },
+   {
+    "name": "Rebecca",
+    "role": "Joven judía experta en medicina que rescata a Ivanhoe y sufre persecución.",
+    "is_major": true
+   },
+   {
+    "name": "Brian de Bois-Guilbert",
+    "role": "Caballero templario normando y principal antagonista de la historia.",
+    "is_major": true
+   },
+   {
+    "name": "Cedric el Sajón",
+    "role": "Padre orgullo e inflexible de Ivanhoe, obsesionado con la restauración sajona.",
+    "is_major": false
+   },
+   {
+    "name": "Príncipe Juan",
+    "role": "Ambicioso regente normando que busca usurpar el trono de su hermano Ricardo.",
+    "is_major": false
+   }
+  ]
+ },
+ "jane-eyre-bronte-charlotte": {
+  "title": "Jane Eyre",
+  "author": "Charlotte Brontë",
+  "characters": [
+   {
+    "name": "Jane Eyre",
+    "role": "Protagonista huérfana e institutriz de carácter firme e independiente.",
+    "is_major": true
+   },
+   {
+    "name": "Edward Rochester",
+    "role": "Atormentado y misterioso dueño de Thornfield Hall.",
+    "is_major": true
+   },
+   {
+    "name": "Bertha Mason",
+    "role": "Esposa demente de Rochester oculta en el ático.",
+    "is_major": true
+   },
+   {
+    "name": "St. John Rivers",
+    "role": "Clérigo austero y ambicioso que propone matrimonio a Jane.",
+    "is_major": false
+   },
+   {
+    "name": "Mrs. Reed",
+    "role": "Tía cruel de Jane que la maltrata durante su infancia.",
+    "is_major": false
+   }
+  ]
+ },
+ "jarrapellejos-felipe-trigo": {
+  "title": "Jarrapellejos",
+  "author": "Felipe Trigo",
+  "characters": [
+   {
+    "name": "Don Pedro Jarrapellejos",
+    "role": "Cacique despiadado y corrupto que domina el pueblo de La Lapa.",
+    "is_major": true
+   },
+   {
+    "name": "Isabel",
+    "role": "Joven víctima de la lujuria y persecución del cacique.",
+    "is_major": true
+   },
+   {
+    "name": "Gregorio",
+    "role": "Campesino inocente falsamente acusado por las intrigas del poder local.",
+    "is_major": true
+   },
+   {
+    "name": "Octavio",
+    "role": "Intelectual idealista que observa la degradación moral del entorno.",
+    "is_major": false
+   }
+  ]
+ },
+ "jean-valjean-hugo-victor": {
+  "title": "Jean Valjean",
+  "author": "Victor Hugo",
+  "characters": [
+   {
+    "name": "Jean Valjean",
+    "role": "Exconvicto redimido que busca la bondad tras sufrir injusticia social.",
+    "is_major": true
+   },
+   {
+    "name": "Inspector Javert",
+    "role": "Policía obsesionado con la ley que persigue implacablemente a Valjean.",
+    "is_major": true
+   },
+   {
+    "name": "Obispo Myriel",
+    "role": "Religioso compasivo cuyo acto de fe transforma el destino de Valjean.",
+    "is_major": true
+   },
+   {
+    "name": "Cosette",
+    "role": "Huérfana rescatada y protegida con amor paternal por Valjean.",
+    "is_major": true
+   },
+   {
+    "name": "Fantine",
+    "role": "Madre abnegada de Cosette reducida a la miseria y prostitución.",
+    "is_major": false
+   }
+  ]
+ },
+ "jorinde-y-joringel-hermanos-grimm": {
+  "title": "Jorinde y Joringel",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Joringel",
+    "role": "Fiel joven enamorado que busca desesperadamente salvar a su prometida.",
+    "is_major": true
+   },
+   {
+    "name": "Jorinde",
+    "role": "Joven capturada y transformada en ruiseñor por una malvada hechicera.",
+    "is_major": true
+   },
+   {
+    "name": "La Bruja",
+    "role": "Malvada anciana que hechiza a los transeúntes que se acercan a su castillo.",
+    "is_major": true
+   }
+  ]
+ },
+ "juan-belmonte-matador-de-toros-manuel-chaves-nogales": {
+  "title": "Juan Belmonte, matador de toros",
+  "author": "Manuel Chaves Nogales",
+  "characters": [
+   {
+    "name": "Juan Belmonte",
+    "role": "Diestro revolucionario que transforma el arte de la tauromaquia.",
+    "is_major": true
+   },
+   {
+    "name": "Manuel Chaves Nogales",
+    "role": "Periodista y narrador que recoge la autobiografía de Belmonte.",
+    "is_major": true
+   },
+   {
+    "name": "Joselito el Gallo",
+    "role": "Gran rival generacional y amigo cercano de Belmonte en los ruedos.",
+    "is_major": false
+   }
+  ]
+ },
+ "juan-darien-horacio-quiroga": {
+  "title": "Juan Darién",
+  "author": "Horacio Quiroga",
+  "characters": [
+   {
+    "name": "Juan Darién",
+    "role": "Cachorro de tigre transformado en humano que sufre la crueldad social.",
+    "is_major": true
+   },
+   {
+    "name": "La Madre",
+    "role": "Mujer piadosa que crió al felino con amor maternal dándole forma humana.",
+    "is_major": true
+   },
+   {
+    "name": "El Inspector de Enseñanza",
+    "role": "Sujeto desconfiado que sospecha de la verdadera naturaleza salvaje de Juan.",
+    "is_major": true
+   },
+   {
+    "name": "El Domador",
+    "role": "Hombre cruel que tortura a Juan Darién tras descubrir su forma animal.",
+    "is_major": false
+   }
+  ]
+ },
+ "juan-de-mairena-machado-antonio": {
+  "title": "Juan de Mairena",
+  "author": "Antonio Machado",
+  "characters": [
+   {
+    "name": "Juan de Mairena",
+    "role": "Profesor ficticio, poético y filosófico, alter ego del autor.",
+    "is_major": true
+   },
+   {
+    "name": "Abel Martín",
+    "role": "Maestro metafísico imaginado por Mairena para estructurar sus doctrinas.",
+    "is_major": true
+   },
+   {
+    "name": "Antonio Machado",
+    "role": "Autor real y narrador que presenta los textos filosóficos de su heterónimo.",
+    "is_major": false
+   }
+  ]
+ },
+ "juan-erizo-hermanos-grimm": {
+  "title": "Juan Erizo",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Juan Erizo",
+    "role": "Protagonista nacido como mitad niño y mitad erizo que busca su lugar en el mundo",
+    "is_major": true
+   },
+   {
+    "name": "El Padre",
+    "role": "Campesino que rechaza y maldice a su hijo por su extraña apariencia",
+    "is_major": false
+   },
+   {
+    "name": "La Princesa",
+    "role": "Joven real que rompe el encantamiento de Juan Erizo al casarse con él",
+    "is_major": true
+   }
+  ]
+ },
+ "juan-martin-el-empecinado-benito-perez-galdos": {
+  "title": "Juan Martín el Empecinado",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Juan Martín 'El Empecinado'",
+    "role": "Héroe popular y líder guerrillero que combate a las tropas napoleónicas",
+    "is_major": true
+   },
+   {
+    "name": "Gabriel de Araceli",
+    "role": "Narrador y soldado que presenia los acontecimientos históricos del conflicto",
+    "is_major": true
+   },
+   {
+    "name": "Santorcaz",
+    "role": "Sacerdote fanático y combatiente cruento de convicciones extremas",
+    "is_major": false
+   }
+  ]
+ },
+ "juanico-y-perico-voltaire": {
+  "title": "Juanico y Perico",
+  "author": "Voltaire",
+  "characters": [
+   {
+    "name": "Juanico",
+    "role": "Hermano optimista e ingenuo que confía ciegamente en la bondad del destino",
+    "is_major": true
+   },
+   {
+    "name": "Perico",
+    "role": "Hermano pesimista y pragmático que prevé la desgracia en cada situación",
+    "is_major": true
+   }
+  ]
+ },
+ "juanita-la-larga-juan-valera": {
+  "title": "Juanita la Larga",
+  "author": "Juan Valera",
+  "characters": [
+   {
+    "name": "Juanita",
+    "role": "Joven bella, inteligente y resuelta que desafía los prejuicios sociales de su pueblo",
+    "is_major": true
+   },
+   {
+    "name": "Don Paco",
+    "role": "Hidalgo viudo, rico y maduro enamorado de Juanita",
+    "is_major": true
+   },
+   {
+    "name": "Juana la Larga",
+    "role": "Madre humilde de Juanita, trabajadora y protectora de su hija",
+    "is_major": false
+   },
+   {
+    "name": "Doña Inés",
+    "role": "Hija de don Paco que opone resistencia al nuevo matrimonio de su padre",
+    "is_major": false
+   }
+  ]
+ },
+ "juego-y-teoria-del-duende-garcia-lorca-federico": {
+  "title": "Juego y teoría del duende",
+  "author": "Federico García Lorca",
+  "characters": [
+   {
+    "name": "El Duende",
+    "role": "Espíritu telúrico, misterioso e irracional que inspira el auténtico arte apasionado",
+    "is_major": true
+   },
+   {
+    "name": "El Ángel",
+    "role": "Entidad alegórica que representa la técnica y la gracia artística sin dolor ni pasión",
+    "is_major": false
+   },
+   {
+    "name": "Federico García Lorca",
+    "role": "Conferenciante y voz poética que teoriza sobre la inspiración y el misterio creativo",
+    "is_major": true
+   }
+  ]
+ },
+ "juguetes-de-la-ninez-y-travesuras-del-ingenio-de-quevedo-francisco": {
+  "title": "Juguetes de la niñez y travesuras del ingenio",
+  "author": "Francisco de Quevedo",
+  "characters": [
+   {
+    "name": "Francisco de Quevedo",
+    "role": "Voz satírica y autor que critica mordazmente las costumbres de su época",
+    "is_major": true
+   },
+   {
+    "name": "El Dómine Cabra",
+    "role": "Caricatura del dómine tacaño y famélico representada en sus burlas",
+    "is_major": false
+   },
+   {
+    "name": "La Vieja Alcahueta",
+    "role": "Arquetipo satírico de la mujer celestinesca e hipócrita",
+    "is_major": false
+   }
+  ]
+ },
+ "juliette-o-las-prosperidades-del-vicio-marques-de-sade": {
+  "title": "Juliette o las prosperidades del vicio",
+  "author": "Marques de Sade",
+  "characters": [
+   {
+    "name": "Juliette",
+    "role": "Protagonista amoral que abraza el vicio y la corrupción para triunfar en la sociedad",
+    "is_major": true
+   },
+   {
+    "name": "Justine",
+    "role": "Hermana piadosa y virtuosa cuyo sufrimiento contrasta con el éxito de Juliette",
+    "is_major": true
+   },
+   {
+    "name": "Madame Delbène",
+    "role": "Abadesa libertina que inicia a Juliette en la filosofía del vicio",
+    "is_major": false
+   },
+   {
+    "name": "Clairwil",
+    "role": "Cómplice y amiga libertina de Juliette en sus orgías y crímenes",
+    "is_major": false
+   }
+  ]
+ },
+ "julio-cesar-shakespeare-william": {
+  "title": "Julio César",
+  "author": "William Shakespeare",
+  "characters": [
+   {
+    "name": "Julio César",
+    "role": "Dictador romano cuya ambición y asesinato desencadenan la guerra civil",
+    "is_major": true
+   },
+   {
+    "name": "Marco Bruto",
+    "role": "Noble senador romano que participa en la conspiración por amor a la República",
+    "is_major": true
+   },
+   {
+    "name": "Marco Antonio",
+    "role": "Leal general de César que moviliza al pueblo contra los conspiradores",
+    "is_major": true
+   },
+   {
+    "name": "Cayo Casio",
+    "role": "Instigador manipulador de la conspiración contra César",
+    "is_major": true
+   }
+  ]
+ },
+ "junto-al-pasig-jose-rizal": {
+  "title": "Junto Al Pásig",
+  "author": "José Rizal",
+  "characters": [
+   {
+    "name": "Leonido",
+    "role": "Protagonista, un joven filipino devoto que defiende su fe cristiana.",
+    "is_major": true
+   },
+   {
+    "name": "El Demonio",
+    "role": "Antagonista, espíritu maligno que intenta pervertir la fe de Leonido.",
+    "is_major": true
+   },
+   {
+    "name": "Cándido",
+    "role": "Secundario, amigo de Leonido y compañero de convicciones.",
+    "is_major": false
+   },
+   {
+    "name": "El Ángel",
+    "role": "Secundario, ser celestial que interviene para rescatar a Leonido.",
+    "is_major": false
+   }
+  ]
+ },
+ "justine-o-los-infortunios-de-la-virtud-marques-de-sade": {
+  "title": "Justine, o los infortunios de la virtud",
+  "author": "Donatien Alphonse François, Marqués de Sade",
+  "characters": [
+   {
+    "name": "Justine",
+    "role": "Protagonista, joven virtuosa sufriente que padece constantes desgracias.",
+    "is_major": true
+   },
+   {
+    "name": "Juliette",
+    "role": "Secundaria, hermana de Justine que elige una vida viciosa y próspera.",
+    "is_major": true
+   },
+   {
+    "name": "Madame de Dubois",
+    "role": "Antagonista, ladrona que intenta corromper a Justine.",
+    "is_major": false
+   },
+   {
+    "name": "Conde de Bressac",
+    "role": "Antagonista, libertino cruel que tormenta a Justine.",
+    "is_major": false
+   }
+  ]
+ },
+ "kappa-ryunosuke-akutagawa": {
+  "title": "Kappa",
+  "author": "Ryūnosuke Akutagawa",
+  "characters": [
+   {
+    "name": "Paciente No. 23",
+    "role": "Narrador y protagonista humano que relata su experiencia en el país de los Kappa.",
+    "is_major": true
+   },
+   {
+    "name": "Mag",
+    "role": "Protagonista secundario, filósofo y poeta del mundo Kappa.",
+    "is_major": true
+   },
+   {
+    "name": "Gael",
+    "role": "Secundario, un Kappa capitalista y banquero materialista.",
+    "is_major": false
+   },
+   {
+    "name": "Tokk",
+    "role": "Secundario, poeta Kappa de ideas nihilistas.",
+    "is_major": false
+   }
+  ]
+ },
+ "kashtanka-anton-chejov": {
+  "title": "Kashtanka",
+  "author": "Anton Pavlovich Chejov",
+  "characters": [
+   {
+    "name": "Kashtanka",
+    "role": "Protagonista, una perrita mestiza que se pierde de su amo.",
+    "is_major": true
+   },
+   {
+    "name": "Mister Georges",
+    "role": "Protagonista, amable payaso de circo que rescata a Kashtanka.",
+    "is_major": true
+   },
+   {
+    "name": "Luka Alexandrych",
+    "role": "Antagonista, carpintero borracho y antiguo dueño de Kashtanka.",
+    "is_major": false
+   },
+   {
+    "name": "Fédor Timoféyich",
+    "role": "Secundario, un gato perezoso con quien convivencia en el circo.",
+    "is_major": false
+   }
+  ]
+ },
+ "kidd-el-pirata-washington-irving": {
+  "title": "Kidd el Pirata",
+  "author": "Washington Irving",
+  "characters": [
+   {
+    "name": "Capitán William Kidd",
+    "role": "Protagonista, legendario corsario inglés convertido en temido pirata.",
+    "is_major": true
+   },
+   {
+    "name": "Tom Walker",
+    "role": "Protagonista, hombre codicioso que busca el tesoro oculto de Kidd.",
+    "is_major": true
+   },
+   {
+    "name": "El Diablo (Old Scratch)",
+    "role": "Antagonista, ser demoníaco custodia del tesoro pirata.",
+    "is_major": true
+   }
+  ]
+ },
+ "kim-rudyard-kipling": {
+  "title": "Kim",
+  "author": "Rudyard Kipling",
+  "characters": [
+   {
+    "name": "Kimball 'Kim' O'Hara",
+    "role": "Protagonista, joven huérfano que se convierte en agente del servicio secreto.",
+    "is_major": true
+   },
+   {
+    "name": "Teshoo Lama",
+    "role": "Protagonista, anciano monje tibetano guía espiritual de Kim.",
+    "is_major": true
+   },
+   {
+    "name": "Mahbub Ali",
+    "role": "Secundario, tratante de caballos afgano y espía británico.",
+    "is_major": false
+   },
+   {
+    "name": "Coronel Creighton",
+    "role": "Secundario, oficial del gobierno británico que recluta a Kim.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-abadia-de-northanger-jane-austen": {
+  "title": "La abadía de Northanger",
+  "author": "Jane Austen",
+  "characters": [
+   {
+    "name": "Catherine Morland",
+    "role": "Protagonista, joven ingenua aficionada a las novelas góticas.",
+    "is_major": true
+   },
+   {
+    "name": "Henry Tilney",
+    "role": "Protagonista, ingenioso clérigo que se enamora de Catherine.",
+    "is_major": true
+   },
+   {
+    "name": "General Tilney",
+    "role": "Antagonista, padre autoritario y mercenario de Henry.",
+    "is_major": true
+   },
+   {
+    "name": "Isabella Thorpe",
+    "role": "Antagonista, amiga manipuladora y falsa de Catherine.",
+    "is_major": false
+   },
+   {
+    "name": "John Thorpe",
+    "role": "Antagonista, hombre arrogante que intenta pretender a Catherine.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-abeja-haragana-horacio-quiroga": {
+  "title": "La abeja haragana",
+  "author": "Horacio Quiroga",
+  "characters": [
+   {
+    "name": "La Abeja Haragana",
+    "role": "Protagonista, abeja perezosa que aprende la importancia del trabajo.",
+    "is_major": true
+   },
+   {
+    "name": "La Culebra",
+    "role": "Antagonista, serpiente astuta que pone a prueba a la abeja para no comérsela.",
+    "is_major": true
+   },
+   {
+    "name": "Las Abejas Guardias",
+    "role": "Secundarias, abejas veteranas que impiden el paso a las holgazanas.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-abeja-reina-hermanos-grimm": {
+  "title": "La abeja reina",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Simplón (El hermano menor)",
+    "role": "Protagonista bondadoso que respeta a la naturaleza y a las criaturas.",
+    "is_major": true
+   },
+   {
+    "name": "La abeja reina",
+    "role": "Criatura mágica que ayuda a Simplón a resolver la prueba final en gratitud.",
+    "is_major": true
+   },
+   {
+    "name": "Los dos hermanos mayores",
+    "role": "Antagonistas egoístas e insensibles que intentan dañar a los animales.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-agonia-del-cristianismo-unamuno-miguel": {
+  "title": "La agonía del cristianismo",
+  "author": "Miguel de Unamuno",
+  "characters": [
+   {
+    "name": "Miguel de Unamuno",
+    "role": "Narrador y ensayista que reflexiona sobre la agonía existencial y la fe cristiana.",
+    "is_major": true
+   },
+   {
+    "name": "Jesucristo",
+    "role": "Figura central analizada como símbolo de la lucha y la agonía espiritual eterna.",
+    "is_major": true
+   },
+   {
+    "name": "San Pablo",
+    "role": "Referencia teológica clave analizada en la obra sobre los orígenes del fe cristiana.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-ajorca-de-oro-gustavo-adolfo-becquer": {
+  "title": "La Ajorca de oro",
+  "author": "Gustavo Adolfo Bécquer",
+  "characters": [
+   {
+    "name": "Pedro Alfonso",
+    "role": "Protagonista noble y enamorado que comete sacrilegio impulsado por una obsesión.",
+    "is_major": true
+   },
+   {
+    "name": "María",
+    "role": "Protagonista hermosa y caprichosa que desea la joya sagrada de la Virgen.",
+    "is_major": true
+   },
+   {
+    "name": "La Virgen del Sagrario",
+    "role": "Figura religiosa venerada cuya valiosa ajorca provoca el desenlace trágico.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-aldea-perdida-armando-palacio-valdes": {
+  "title": "La Aldea Perdida",
+  "author": "Armando Palacio Valdés",
+  "characters": [
+   {
+    "name": "Nelo",
+    "role": "Protagonista, joven pastor asturiano noble e idílico enamorado de Demetria.",
+    "is_major": true
+   },
+   {
+    "name": "Demetria",
+    "role": "Protagonista femenina, virtuosa joven de la aldea cuyo amor marca la historia.",
+    "is_major": true
+   },
+   {
+    "name": "Plutón",
+    "role": "Antagonista rudo que encarna la irrupción de la minería e industria destructora.",
+    "is_major": true
+   },
+   {
+    "name": "Tío Cienfuegos",
+    "role": "Personaje secundario importante, anciano respetado que representa la tradición rural.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-alegria-del-capitan-ribot-armando-palacio-valdes": {
+  "title": "La alegría del capitán Ribot",
+  "author": "Armando Palacio Valdés",
+  "characters": [
+   {
+    "name": "Capitán Ribot",
+    "role": "Protagonista, noble marino de carácter alegre que vive un amor platónico e idealizado.",
+    "is_major": true
+   },
+   {
+    "name": "Cristina",
+    "role": "Protagonista femenina, mujer ejemplar, virtuosa y leal a su matrimonio.",
+    "is_major": true
+   },
+   {
+    "name": "Don Martí",
+    "role": "Esposo de Cristina y leal amigo del capitán Ribot.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-alondra-cantarina-y-saltarina-hermanos-grimm": {
+  "title": "La alondra cantarina y saltarina",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "La hija menor",
+    "role": "Protagonista valiente que emprende una larga búsqueda para liberar a su prometido.",
+    "is_major": true
+   },
+   {
+    "name": "El príncipe (El león)",
+    "role": "Protagonista encantado bajo la forma de león durante el día y hombre de noche.",
+    "is_major": true
+   },
+   {
+    "name": "La princesa dragón",
+    "role": "Antagonista que retiene al príncipe e intenta casarse con él.",
+    "is_major": false
+   },
+   {
+    "name": "El Sol",
+    "role": "Fuerza mística que ayuda a la protagonista regalándole un don para su viaje.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-alpujarra-de-alarcon-pedro-antonio": {
+  "title": "La Alpujarra",
+  "author": "Pedro Antonio de Alarcón",
+  "characters": [
+   {
+    "name": "Pedro Antonio de Alarcón",
+    "role": "Narrador y viajero que relata en primera persona sus vivencias e impresiones en la región.",
+    "is_major": true
+   },
+   {
+    "name": "Abén Humeya",
+    "role": "Líder histórico de la rebelión de los moriscos, evocado en la narración del lugar.",
+    "is_major": true
+   },
+   {
+    "name": "Don Juan de Austria",
+    "role": "Militar histórico citado como la figura clave que sofocó la sublevación morisca.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-amada-inmovil-amado-nervo": {
+  "title": "La amada inmóvil",
+  "author": "Amado Nervo",
+  "characters": [
+   {
+    "name": "El Poeta (Amado Nervo)",
+    "role": "Narrador y voz lírica que expresa el duelo y amor místico tras la pérdida.",
+    "is_major": true
+   },
+   {
+    "name": "Ana Cecilia Luisa Dailliez",
+    "role": "La amada inmóvil, musa difunta inspiradora de la obra elegíaca.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-andriana-terencio": {
+  "title": "La Andriana",
+  "author": "Terencio",
+  "characters": [
+   {
+    "name": "Pánfilo",
+    "role": "Joven ateniense dividido entre el deber filial y su amor por Gliceria.",
+    "is_major": true
+   },
+   {
+    "name": "Davo",
+    "role": "Esclavo astuto de Pánfilo que urde estratagemas para ayudar a su amo.",
+    "is_major": true
+   },
+   {
+    "name": "Gliceria",
+    "role": "Cortesana originaria de Andros, enamorada de Pánfilo.",
+    "is_major": true
+   },
+   {
+    "name": "Simón",
+    "role": "Padre de Pánfilo, quien intenta forzar el matrimonio de su hijo por conveniencia.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-araucana-alonso-de-ercilla": {
+  "title": "La Araucana",
+  "author": "Alonso de Ercilla",
+  "characters": [
+   {
+    "name": "Caupolicán",
+    "role": "Gran toqui mapuche y formidable líder militar de la resistencia indígena.",
+    "is_major": true
+   },
+   {
+    "name": "Lautaro",
+    "role": "Estratega y caudillo mapuche que lidera brillantes victorias contra los españoles.",
+    "is_major": true
+   },
+   {
+    "name": "Alonso de Ercilla",
+    "role": "Narrador testigo y soldado español que relata la valentía de ambos bandos.",
+    "is_major": true
+   },
+   {
+    "name": "Colocolo",
+    "role": "Anciano sabio cacique mapuche que promueve la unión de las tribus.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-aventura-de-peter-el-negro-conan-doyle-arthur": {
+  "title": "La aventura de Peter el Negro",
+  "author": "Arthur Conan Doyle",
+  "characters": [
+   {
+    "name": "Sherlock Holmes",
+    "role": "Detective consultor que investiga el brutal asesinato del capitán ballenero.",
+    "is_major": true
+   },
+   {
+    "name": "Dr. John H. Watson",
+    "role": "Compañero, confidente y cronista de los casos de Holmes.",
+    "is_major": true
+   },
+   {
+    "name": "Peter Carey",
+    "role": "Antiguo capitán ballenero violento y tiránico, hallado empalado con un arpón.",
+    "is_major": true
+   },
+   {
+    "name": "Patrick Cairns",
+    "role": "Arponero y verdadero asesino de Peter Carey tras una disputa de chantaje.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-aventura-del-jorobado-conan-doyle-arthur": {
+  "title": "La aventura del jorobado",
+  "author": "Arthur Conan Doyle",
+  "characters": [
+   {
+    "name": "Sherlock Holmes",
+    "role": "Detective encargado de desentrañar el misterio de la muerte del coronel Barclay.",
+    "is_major": true
+   },
+   {
+    "name": "Dr. John H. Watson",
+    "role": "Amigo y ayudante de Holmes en la resolución de la investigación.",
+    "is_major": true
+   },
+   {
+    "name": "Henry Wood",
+    "role": "El jorobado, antiguo soldado traicionado que regresa del pasado como testigo clave.",
+    "is_major": true
+   },
+   {
+    "name": "Coronel James Barclay",
+    "role": "Oficial militar cuya misteriosa muerte repentina desata el caso.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-aventura-del-negro-pescador-washington-irving": {
+  "title": "La aventura del negro pescador",
+  "author": "Washington Irving",
+  "characters": [
+   {
+    "name": "Black Sam",
+    "role": "Pescador solitario conocedor de historias del folclore y secretos del río.",
+    "is_major": true
+   },
+   {
+    "name": "Wolfert Webber",
+    "role": "Campesino holandés obsesionado con desenterrar tesoros piratas ocultos.",
+    "is_major": true
+   },
+   {
+    "name": "Capitán Kidd",
+    "role": "Pirata legendario cuyo tesoro perdido motiva la búsqueda en la trama.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-banda-de-lunares-conan-doyle-arthur": {
+  "title": "La banda de lunares",
+  "author": "Arthur Conan Doyle",
+  "characters": [
+   {
+    "name": "Sherlock Holmes",
+    "role": "Brillante detective que deduce el letal método usado para aterrorizar a Helen.",
+    "is_major": true
+   },
+   {
+    "name": "Dr. John H. Watson",
+    "role": "Fiel acompañante de Holmes en la peligrosa guardia nocturna.",
+    "is_major": true
+   },
+   {
+    "name": "Helen Stoner",
+    "role": "Joven atemorizada que recurre a Holmes al sospechar que intentan matarla.",
+    "is_major": true
+   },
+   {
+    "name": "Dr. Grimesby Roylott",
+    "role": "Padrastro violento y peligroso antagonista motivado por la codicia de la herencia.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-barraca-vicente-blasco-ibanez": {
+  "title": "La Barraca",
+  "author": "Vicente Blasco Ibáñez",
+  "characters": [
+   {
+    "name": "Batiste Borrull",
+    "role": "Laborioso campesino que se instala en la barraca maldita para alimentar a su familia.",
+    "is_major": true
+   },
+   {
+    "name": "Pimentó",
+    "role": "Matón local y líder de los huertanos que encabeza el acoso contra Batiste.",
+    "is_major": true
+   },
+   {
+    "name": "Teresa",
+    "role": "Esposa de Batiste, abnegada y firme ante la hostilidad de la comunidad.",
+    "is_major": false
+   },
+   {
+    "name": "Tío Barret",
+    "role": "Antiguo dueño de las tierras, cuya ruina y crimen originaron la maldición de la finca.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-batalla-de-los-arapiles-benito-perez-galdos": {
+  "title": "La batalla de los Arapiles",
+  "author": "B. Pérez Galdós",
+  "characters": [
+   {
+    "name": "Gabriel de Araceli",
+    "role": "Protagonista y narrador que participa activamente en la célebre batalla militar.",
+    "is_major": true
+   },
+   {
+    "name": "Miss Gray",
+    "role": "Intrigante dama inglesa involucrada en tramas diplomáticas y amorosas.",
+    "is_major": true
+   },
+   {
+    "name": "Lord Wellington",
+    "role": "Comandante general de las tropas aliadas hispano-británicas en el combate.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-batracomiomaquia-homero": {
+  "title": "La Batracomiomaquia",
+  "author": "Homero",
+  "characters": [
+   {
+    "name": "Psicharpax (Migaja)",
+    "role": "Príncipe de los ratones cuyo ahogamiento desata la guerra entre especies.",
+    "is_major": true
+   },
+   {
+    "name": "Physignathos (Hinchacarrillos)",
+    "role": "Rey de las ranas causante accidental de la muerte de Psicharpax.",
+    "is_major": true
+   },
+   {
+    "name": "Troxartes (Roepán)",
+    "role": "Rey de los ratones y padre de Psicharpax que lidera al ejército de roedores.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-bella-durmiente-hermanos-grimm": {
+  "title": "La Bella Durmiente",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Princesa Rosa Silvestre",
+    "role": "Joven condenada a caer en un sueño de cien años tras pincharse con un huso.",
+    "is_major": true
+   },
+   {
+    "name": "El Hada Malvada",
+    "role": "Decimotercera hada que lanza la maldición mortal sobre la recién nacida.",
+    "is_major": true
+   },
+   {
+    "name": "El Príncipe",
+    "role": "Joven valiente que atraviesa el espino de rosales para despertar a la princesa.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-bella-y-la-bestia-jeanne-marie-leprince-de-beaumont": {
+  "title": "La bella y la bestia",
+  "author": "Jeanne-Marie Leprince de Beaumont",
+  "characters": [
+   {
+    "name": "Bella",
+    "role": "Joven virtuosa y compasiva que se entrega a la Bestia para salvar a su padre.",
+    "is_major": true
+   },
+   {
+    "name": "La Bestia",
+    "role": "Príncipe bajo una maldición monstruosa que necesita encontrar el amor verdadero.",
+    "is_major": true
+   },
+   {
+    "name": "El Mercader",
+    "role": "Padre de Bella cuyo despiste al cortar una rosa desencadena el conflicto.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-bestia-en-la-cueva-h-p-lovecraft": {
+  "title": "La bestia en la cueva",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "El Narrador",
+    "role": "Explorador que se pierde en una cueva y enfrenta el terror en la oscuridad.",
+    "is_major": true
+   },
+   {
+    "name": "La Bestia de la Cueva",
+    "role": "Criatura monstruosa e involucionada que acecha al narrador en la penumbra.",
+    "is_major": true
+   },
+   {
+    "name": "El Guía",
+    "role": "Acompañante de la excursión que busca y rescata al narrador extraviado.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-biblia-gaucha-javier-de-viana": {
+  "title": "La Biblia Gaucha",
+  "author": "Javier de Viana",
+  "characters": [
+   {
+    "name": "El Gaucho",
+    "role": "Figura arquetípica de la pampa que lucha por mantener su libertad y costumbres.",
+    "is_major": true
+   },
+   {
+    "name": "El Narrador",
+    "role": "Voz observadora que retrata las tradiciones, supersticiones y dilemas del ámbito rural.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-bodega-vicente-blasco-ibanez": {
+  "title": "La bodega",
+  "author": "Vicente Blasco Ibáñez",
+  "characters": [
+   {
+    "name": "Fermín Salvatierra",
+    "role": "Líder idealista y apóstol del anarquismo entre los campesinos de Jerez.",
+    "is_major": true
+   },
+   {
+    "name": "Rafael",
+    "role": "Joven jornalero impulsivo que encabeza las protestas contra la opresión señorial.",
+    "is_major": true
+   },
+   {
+    "name": "Luis Dupont",
+    "role": "Rico y desalmado propietario de bodegas que explota a sus trabajadores.",
+    "is_major": true
+   },
+   {
+    "name": "María Luz",
+    "role": "Joven campesina virtuosa que sufre las consecuencias de la tiranía del cacique.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-bola-de-cristal-hermanos-grimm": {
+  "title": "La bola de cristal",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "El Joven Aprendiz",
+    "role": "Hijo menor que utiliza la bola de cristal para liberar a sus hermanos y vencer el mal.",
+    "is_major": true
+   },
+   {
+    "name": "La Princesa",
+    "role": "Joven cautiva en el Castillo del Sol Naciente a la espera de ser rescatada.",
+    "is_major": true
+   },
+   {
+    "name": "El Hechicero",
+    "role": "Antagonista malvado que posee la bola de cristal y transforma a los hermanos en animales.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-bola-de-nieve-alejandro-dumas-padre": {
+  "title": "La bola de nieve",
+  "author": "Alejandro Dumas",
+  "characters": [
+   {
+    "name": "María de Mancini",
+    "role": "Joven bella y ambiciosa, sobrina de Mazarino, que cautiva al rey de Francia.",
+    "is_major": true
+   },
+   {
+    "name": "Luis XIV",
+    "role": "Monarca francés atrapado entre su amor apasionado por María y el deber de Estado.",
+    "is_major": true
+   },
+   {
+    "name": "Cardenal Mazarino",
+    "role": "Político astuto que manipula los asuntos amorosos para consolidar su poder regio.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-bolsa-de-huesos-eduardo-ladislao-holmberg": {
+  "title": "La bolsa de huesos",
+  "author": "Eduardo Ladislao Holmberg",
+  "characters": [
+   {
+    "name": "Eduardo",
+    "role": "Protagonista y estudiante de medicina que adquiere la misteriosa bolsa de huesos.",
+    "is_major": true
+   },
+   {
+    "name": "Mister James",
+    "role": "Misterioso personaje envuelto en el enigma central de la obra.",
+    "is_major": true
+   },
+   {
+    "name": "Don Cipriano",
+    "role": "Profesor y médico que ayuda a analizar las evidencias.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-botellita-de-cristal-h-p-lovecraft": {
+  "title": "La botellita de cristal",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "El Anticuario",
+    "role": "Protagonista que adquiere la botella de cristal e inicia las visiones terroríficas.",
+    "is_major": true
+   },
+   {
+    "name": "El Entidad Cósmica",
+    "role": "Ser atrapado en la botella que atormenta la mente del protagonista.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-brizna-de-paja-la-brasa-y-la-judia-verde-se-van-de-viaje-hermanos-grimm": {
+  "title": "La brizna de paja, la brasa y la judía verde se van de viaje",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "La brizna de paja",
+    "role": "Viajera que intenta servir de puente para cruzar el arroyo.",
+    "is_major": true
+   },
+   {
+    "name": "La brasa",
+    "role": "Viajera impulsiva que quema a la paja por miedo al agua.",
+    "is_major": true
+   },
+   {
+    "name": "La judía verde",
+    "role": "Viajera que ríe tanto de la desgracia ajena que termina reventando.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-bruja-baba-yaga-aleksandr-afanasiev": {
+  "title": "La bruja Baba Yaga",
+  "author": "Aleksandr Afanásiev",
+  "characters": [
+   {
+    "name": "La niña (Vasilisa)",
+    "role": "Protagonista inteligente que es enviada al bosque a buscar fuego.",
+    "is_major": true
+   },
+   {
+    "name": "Baba Yaga",
+    "role": "Temible bruja antagonista que vive en una choza sobre patas de gallina.",
+    "is_major": true
+   },
+   {
+    "name": "La madrastra",
+    "role": "Antagonista cruenta que envía a la niña con la bruja para deshacerse de ella.",
+    "is_major": false
+   },
+   {
+    "name": "El gato sirviente",
+    "role": "Animal mágico de la bruja que ayuda a la niña a escapar a cambio de comida.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-busqueda-de-iranon-h-p-lovecraft": {
+  "title": "La búsqueda de Iranon",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "Iranon",
+    "role": "Joven trovador de belleza etérea que busca la legendaria ciudad de Aira.",
+    "is_major": true
+   },
+   {
+    "name": "Romnod",
+    "role": "Compañero de viaje de Iranon que abandona la fe en los sueños al envejecer.",
+    "is_major": true
+   },
+   {
+    "name": "El anciano de Otho",
+    "role": "Personaje que revela a Iranon la triste verdad sobre su origen y su ciudad.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-busca-del-absoluto-balzac-honore-de": {
+  "title": "La Búsqueda del Absoluto",
+  "author": "Honoré de Balzac",
+  "characters": [
+   {
+    "name": "Balthazar Claës",
+    "role": "Alquimista obsesionado con la piedra filosofal que arruina a su familia.",
+    "is_major": true
+   },
+   {
+    "name": "Marguerite Claës",
+    "role": "Hija abnegada de Balthazar que lucha por mantener la integridad familiar.",
+    "is_major": true
+   },
+   {
+    "name": "Joséphine Claës",
+    "role": "Esposa abnegada de Balthazar que sufre por la obsesión destructiva de su marido.",
+    "is_major": true
+   },
+   {
+    "name": "Lemulquinier",
+    "role": "Sirviente devoto que alimenta la locura alquímica de su amo.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-busqueda-en-suenos-de-la-ignota-kadath-h-p-lovecraft": {
+  "title": "La búsqueda en sueños de la ignota Kadath",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "Randolph Carter",
+    "role": "Soñador que emprende un viaje épico a través de los Reinos del Sueño.",
+    "is_major": true
+   },
+   {
+    "name": "Nyarlathotep",
+    "role": "El Caos Reptante, dios exterior que ejerce como principal antagonista.",
+    "is_major": true
+   },
+   {
+    "name": "Richard Pickman",
+    "role": "Antiguo pintor convertido en ghoul que presta su ayuda a Carter.",
+    "is_major": false
+   },
+   {
+    "name": "Kuranes",
+    "role": "Rey de Celephaïs y soñador poderoso que aconseja a Carter.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-cabana-del-tio-tom-harriet-beecher-stowe": {
+  "title": "La cabaña del Tio Tom",
+  "author": "Harriet Beecher Stowe",
+  "characters": [
+   {
+    "name": "Tío Tom",
+    "role": "Esclavo bondadoso y profundamente religioso cuya fe es puesta a prueba.",
+    "is_major": true
+   },
+   {
+    "name": "Simon Legree",
+    "role": "Cruel e impiadoso dueño de la plantación, antagonista principal de Tom.",
+    "is_major": true
+   },
+   {
+    "name": "Evangeline St. Clare",
+    "role": "Niña pura y bondadosa que entabla una emotiva amistad con Tom.",
+    "is_major": true
+   },
+   {
+    "name": "Eliza Harris",
+    "role": "Esclava valiente que huye con su hijo para evitar que se lo arrebataren.",
+    "is_major": true
+   },
+   {
+    "name": "Augustine St. Clare",
+    "role": "Amo benevolente de Tom y padre de Eva, de carácter indolente.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-caja-de-carton-conan-doyle-arthur": {
+  "title": "La caja de cartón",
+  "author": "Arthur Conan Doyle",
+  "characters": [
+   {
+    "name": "Sherlock Holmes",
+    "role": "Detective privado consultor que resuelve el enigma del macabro envío",
+    "is_major": true
+   },
+   {
+    "name": "Dr. John H. Watson",
+    "role": "Compañero, biógrafo de Holmes y narrador del relato",
+    "is_major": true
+   },
+   {
+    "name": "Susan Cushing",
+    "role": "Anciana solterona que recibe la caja de cartón con las orejas cortadas",
+    "is_major": false
+   },
+   {
+    "name": "Jim Browner",
+    "role": "Marinero y autor del crimen pasional impulsado por los celos",
+    "is_major": true
+   },
+   {
+    "name": "Sarah Cushing",
+    "role": "Hermana manipuladora cuya despechada intriga desencadena la tragedia",
+    "is_major": false
+   }
+  ]
+ },
+ "la-caja-equivocada-robert-louis-stevenson": {
+  "title": "La caja equivocada",
+  "author": "Robert Louis Stevenson",
+  "characters": [
+   {
+    "name": "Morris Finsbury",
+    "role": "Sobrino codicioso obsesionado con cobrar la herencia de la tontina",
+    "is_major": true
+   },
+   {
+    "name": "Joseph Finsbury",
+    "role": "Anciano superviviente de la tontina que es confundido con un cadáver",
+    "is_major": true
+   },
+   {
+    "name": "Michael Finsbury",
+    "role": "Sobrino extravagante y abogado que complica la búsqueda del ataúd",
+    "is_major": true
+   },
+   {
+    "name": "Masterman Finsbury",
+    "role": "Hermano de Joseph y el otro anciano competidor por la tontina",
+    "is_major": false
+   },
+   {
+    "name": "Julia Hazeltine",
+    "role": "Joven pupila que se ve envuelta involuntariamente en la enredada trama",
+    "is_major": false
+   }
+  ]
+ },
+ "la-caja-fuerte-de-la-senora-imbert-maurice-leblanc": {
+  "title": "La caja fuerte de la señora Imbert",
+  "author": "Maurice Leblanc",
+  "characters": [
+   {
+    "name": "Arsène Lupin",
+    "role": "Famoso ladrón de guante blanco que busca apoderarse de la fortuna Imbert",
+    "is_major": true
+   },
+   {
+    "name": "Ludovica Imbert",
+    "role": "Supuesta dama adinerada que resulta ser una hábil estafadora",
+    "is_major": true
+   },
+   {
+    "name": "Señor Imbert",
+    "role": "Esposo y cómplice de Ludovica en el engaño de la caja fuerte vacía",
+    "is_major": false
+   }
+  ]
+ },
+ "la-caja-oblonga-allan-poe-edgar": {
+  "title": "La caja oblonga",
+  "author": "Edgar Allan Poe",
+  "characters": [
+   {
+    "name": "Narrador",
+    "role": "Pasajero curioso que observa e intenta descifrar el secreto de su amigo",
+    "is_major": true
+   },
+   {
+    "name": "Cornelius Wyatt",
+    "role": "Pintor melancólico que transporta en secreto el cadáver de su esposa",
+    "is_major": true
+   },
+   {
+    "name": "Falsa Señora Wyatt",
+    "role": "Sirvienta contratada para hacerse pasar por la difunta esposa durante el viaje",
+    "is_major": false
+   },
+   {
+    "name": "Capitán Hardy",
+    "role": "Comandante del barco que conoce el trágico contenido de la caja",
+    "is_major": false
+   }
+  ]
+ },
+ "la-calle-h-p-lovecraft": {
+  "title": "La calle",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "La Calle",
+    "role": "Entidad urbana personificada que atestigua el paso de los siglos y la historia",
+    "is_major": true
+   },
+   {
+    "name": "El Narrador",
+    "role": "Voz omnisciente que relata la evolución y profanación del emblemático lugar",
+    "is_major": true
+   },
+   {
+    "name": "Los Conspiradores",
+    "role": "Grupo de inmigrantes radicales que planean destruir la comunidad desde la calle",
+    "is_major": false
+   }
+  ]
+ },
+ "la-cancion-de-oro-ruben-dario": {
+  "title": "La canción de oro",
+  "author": "Rubén Darío",
+  "characters": [
+   {
+    "name": "El Poeta mendigo",
+    "role": "Protagonista y narrador que entona un himno lírico e irónico a la riqueza",
+    "is_major": true
+   },
+   {
+    "name": "Los Ricos",
+    "role": "Antagonistas colectivos que representan la opulencia indiferente al sufrimiento ajeno",
+    "is_major": false
+   }
+  ]
+ },
+ "la-carrera-de-catalina-elinor-glyn": {
+  "title": "La carrera de Catalina",
+  "author": "Elinor Glyn",
+  "characters": [
+   {
+    "name": "Katherine Bush (Catalina)",
+    "role": "Joven de clase humilde pero calculadora que busca ascender en la alta sociedad",
+    "is_major": true
+   },
+   {
+    "name": "Lord Algy",
+    "role": "Aristócrata atraído por Catalina que facilita su integración en la élite",
+    "is_major": true
+   },
+   {
+    "name": "Lady Gwen",
+    "role": "Dama de la aristocracia para la cual Catalina trabaja como secretaria",
+    "is_major": false
+   }
+  ]
+ },
+ "la-carta-robada-allan-poe-edgar": {
+  "title": "La carta robada",
+  "author": "Edgar Allan Poe",
+  "characters": [
+   {
+    "name": "C. Auguste Dupin",
+    "role": "Analista y detective analítico que resuelve el caso usando psicología",
+    "is_major": true
+   },
+   {
+    "name": "Narrador",
+    "role": "Amigo y confidente de Dupin que registra los hechos del caso",
+    "is_major": true
+   },
+   {
+    "name": "Ministro D---",
+    "role": "Astuto político y chantajista que robó la carta comprometedora",
+    "is_major": true
+   },
+   {
+    "name": "Prefecto G---",
+    "role": "Jefe de la policía de París cuya búsqueda metódica resulta ineficaz",
+    "is_major": false
+   }
+  ]
+ },
+ "la-cartera-rafael-barrett": {
+  "title": "La Cartera",
+  "author": "Rafael Barrett",
+  "characters": [
+   {
+    "name": "El desempleado",
+    "role": "Protagonista humilde que lucha brutalmente contra la miseria diaria",
+    "is_major": true
+   },
+   {
+    "name": "El dueño de la cartera",
+    "role": "Representante de la clase acomodada e indiferente a la pobreza ajena",
+    "is_major": false
+   },
+   {
+    "name": "El narrador",
+    "role": "Voz crítica que expone la injusticia social y la desesperación humana",
+    "is_major": true
+   }
+  ]
+ },
+ "la-casa-de-bernarda-alba-garcia-lorca-federico": {
+  "title": "La casa de Bernarda Alba",
+  "author": "Autor Desconocido",
+  "characters": [
+   {
+    "name": "Bernarda Alba",
+    "role": "Matriarca autoritaria que impone un luto asfixiante a sus hijas",
+    "is_major": true
+   },
+   {
+    "name": "Adela",
+    "role": "Hija menor, rebelde y apasionada, que desafía el yugo materno",
+    "is_major": true
+   },
+   {
+    "name": "La Poncia",
+    "role": "Criada principal que advierte las tensiones y tragedias inminentes",
+    "is_major": true
+   },
+   {
+    "name": "Martirio",
+    "role": "Hija resentida y celosa que oculta su amor por Pepe el Romano",
+    "is_major": true
+   },
+   {
+    "name": "Angustias",
+    "role": "Hija mayor y heredera, comprometida con Pepe el Romano por su dinero",
+    "is_major": false
+   },
+   {
+    "name": "María Josefa",
+    "role": "Madre de Bernarda, anciana marginada que clama por libertad y amor",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-de-huespedes-james-joyce": {
+  "title": "La casa de huéspedes",
+  "author": "James Joyce",
+  "characters": [
+   {
+    "name": "Señora Mooney",
+    "role": "Dueña pragmática y calculadora de la casa de huéspedes",
+    "is_major": true
+   },
+   {
+    "name": "Polly Mooney",
+    "role": "Hija joven de la dueña, cuya relación impulsa el conflicto principal",
+    "is_major": true
+   },
+   {
+    "name": "Señor Doran",
+    "role": "Inquilino serio y acorralado por la presión social del matrimonio",
+    "is_major": true
+   },
+   {
+    "name": "Jack Mooney",
+    "role": "Hermano protector y violento que defiende la honra familiar",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-de-los-celos-cervantes-miguel": {
+  "title": "La casa de los celos",
+  "author": "Miguel de Cervantes",
+  "characters": [
+   {
+    "name": "Rugero",
+    "role": "Caballero valeroso envuelto en disputas amorosas y caballerescas",
+    "is_major": true
+   },
+   {
+    "name": "Reynaldos",
+    "role": "Caballero rival atrapado por la ilusión y los celos",
+    "is_major": true
+   },
+   {
+    "name": "Angélica",
+    "role": "Princesa codiciada que desencadena la rivalidad entre caballeros",
+    "is_major": true
+   },
+   {
+    "name": "La Encantadora",
+    "role": "Entidad mágica que teje las ilusiones y celos en el relato",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-de-mapuhi-jack-london": {
+  "title": "La casa de Mapuhi",
+  "author": "Jack London",
+  "characters": [
+   {
+    "name": "Mapuhi",
+    "role": "Nativo impulsado por el sueño de construir una casa de hierro para su familia",
+    "is_major": true
+   },
+   {
+    "name": "Raoul",
+    "role": "Comerciante codicioso que busca explotar el hallazgo de la gran perla",
+    "is_major": true
+   },
+   {
+    "name": "Tefara",
+    "role": "Esposa de Mapuhi que comparte y apoya sus aspiraciones",
+    "is_major": false
+   },
+   {
+    "name": "Narii Salambo",
+    "role": "Comprador de perlas astuto que busca beneficiarse de los nativos",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-de-munecas-rosario-de-acuna": {
+  "title": "La casa de muñecas",
+  "author": "Rosario de Acuña",
+  "characters": [
+   {
+    "name": "La Protagonista",
+    "role": "Mujer oprimida en un matrimonio sofocante que busca su emancipación",
+    "is_major": true
+   },
+   {
+    "name": "El Marido",
+    "role": "Esposo patriarcal que trata a su mujer como un objeto decorativo",
+    "is_major": true
+   },
+   {
+    "name": "La Amiga confidente",
+    "role": "Secundaria que contrasta y apoya la toma de conciencia de la protagonista",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-de-peaje-w-w-jacobs": {
+  "title": "La casa de peaje",
+  "author": "W. W. Jacobs",
+  "characters": [
+   {
+    "name": "Jack Barnes",
+    "role": "Joven escéptico que desafía la leyenda de la casa encantada",
+    "is_major": true
+   },
+   {
+    "name": "Meaking",
+    "role": "Amigo de Jack que acepta pasar la noche en el lugar maldito",
+    "is_major": true
+   },
+   {
+    "name": "White",
+    "role": "Compañero que atestigua las aterradorasen situaciones sobrenaturales",
+    "is_major": false
+   },
+   {
+    "name": "La Presencia",
+    "role": "Entidad espectral maligna que habita la vieja casa de peaje",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-de-shakespeare-benito-perez-galdos": {
+  "title": "La casa de Shakespeare",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "El Narrador Joven",
+    "role": "Protagonista curioso que investiga el enigma de la antigua casona madrileña",
+    "is_major": true
+   },
+   {
+    "name": "El Erudito",
+    "role": "Anciano conocedor de los secretos y vinculaciones con el gran dramaturgo",
+    "is_major": true
+   },
+   {
+    "name": "La Dama Misteriosa",
+    "role": "Enigmática figura ligada a la casa que evoca el universo de Shakespeare",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-del-juez-stoker-bram": {
+  "title": "La casa del Juez",
+  "author": "Bram Stoker",
+  "characters": [
+   {
+    "name": "Malcolm Malcolmson",
+    "role": "Estudiante de matemáticas que busca soledad para preparar sus exámenes",
+    "is_major": true
+   },
+   {
+    "name": "El fantasma del Juez",
+    "role": "Espíritu maligno de un antiguo juez despiadado que aterroriza la casa",
+    "is_major": true
+   },
+   {
+    "name": "Sra. Witham",
+    "role": "Posadera local que advierte a Malcolm sobre la maldición de la mansión",
+    "is_major": false
+   },
+   {
+    "name": "Sra. Dempster",
+    "role": "Sirvienta encargada de limpiar la casa del juez",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-del-paramo-elisabeth-gaskell": {
+  "title": "La casa del páramo",
+  "author": "Elizabeth Gaskell",
+  "characters": [
+   {
+    "name": "Maggie Browne",
+    "role": "Joven abnegada y bondadosa que enfrenta constantes desdichas familiares",
+    "is_major": true
+   },
+   {
+    "name": "Edward Browne",
+    "role": "Hermano egoísta y consentido de Maggie que la manipula constantemente",
+    "is_major": true
+   },
+   {
+    "name": "Frank Buxton",
+    "role": "Joven adinerado de nobles sentimientos enamorado de Maggie",
+    "is_major": true
+   },
+   {
+    "name": "Squire Buxton",
+    "role": "Terrateniente orgulloso y autoritario, padre de Frank",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-deshabitada-conan-doyle-arthur": {
+  "title": "La casa deshabitada",
+  "author": "Conan Doyle",
+  "characters": [
+   {
+    "name": "Sherlock Holmes",
+    "role": "Mítico detective consultor que reaparece en Londres tras su supuesta muerte",
+    "is_major": true
+   },
+   {
+    "name": "Dr. John Watson",
+    "role": "Médico, amigo fiel de Holmes y narrador del caso",
+    "is_major": true
+   },
+   {
+    "name": "Coronel Sebastian Moran",
+    "role": "Peligroso cazador y francotirador, antiguo aliado del profesor Moriarty",
+    "is_major": true
+   },
+   {
+    "name": "Ronald Adair",
+    "role": "Joven aristócrata cuyo extraño asesinato impulsa el misterio",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-encantada-charles-dickens": {
+  "title": "La casa encantada",
+  "author": "Charles Dickens",
+  "characters": [
+   {
+    "name": "John",
+    "role": "Narrador y protagonista que decide alquilar la mansión supuestamente encantada",
+    "is_major": true
+   },
+   {
+    "name": "Patty",
+    "role": "Hermana del narrador que lo acompaña a vivir en la misteriosa residencia",
+    "is_major": true
+   },
+   {
+    "name": "Master B.",
+    "role": "Espectro de un niño que habita una de las estancias de la vivienda",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-encantada-y-otros-cuentos-woolf-virginia": {
+  "title": "La casa encantada y otros cuentos",
+  "author": "Virginia Woolf",
+  "characters": [
+   {
+    "name": "La pareja fantasmal",
+    "role": "Espectros que deambulan por la casa buscando el tesoro de su amor pasado",
+    "is_major": true
+   },
+   {
+    "name": "La pareja viva",
+    "role": "Habitantes actuales de la casa que perciben el deambular de los espíritus",
+    "is_major": true
+   }
+  ]
+ },
+ "la-casa-nucingen-balzac-honore-de": {
+  "title": "La casa Nucingen",
+  "author": "Honoré de Balzac",
+  "characters": [
+   {
+    "name": "Barón de Nucingen",
+    "role": "Astuto y desalmado banquero parisino que domina las altas finanzas",
+    "is_major": true
+   },
+   {
+    "name": "Eugène de Rastignac",
+    "role": "Joven ambicioso asociado con Nucingen en especulaciones financieras",
+    "is_major": true
+   },
+   {
+    "name": "Godefroid de Beaudenord",
+    "role": "Dandy arruinado tras ser víctima de los esquemas financieros de Nucingen",
+    "is_major": true
+   },
+   {
+    "name": "Jean-Jacques Bixiou",
+    "role": "Periodista e intrigante narrador que revela los secretos del banquero",
+    "is_major": false
+   }
+  ]
+ },
+ "la-casa-tellier-guy-de-maupassant": {
+  "title": "La casa Tellier",
+  "author": "Guy de Maupassant",
+  "characters": [
+   {
+    "name": "Madame Tellier",
+    "role": "Matrona y dueña de un afamado prostíbulo de provincia",
+    "is_major": true
+   },
+   {
+    "name": "Rosa 'La Roze'",
+    "role": "Pupila principal del establecimiento, de carácter emotivo y alegre",
+    "is_major": true
+   },
+   {
+    "name": "Joseph Rivet",
+    "role": "Hermano de Madame Tellier, carpintero que invita a las mujeres a la comunión de su hija",
+    "is_major": true
+   },
+   {
+    "name": "Fernande",
+    "role": "Una de las pupilas que acompañan a Madame Tellier en su viaje",
+    "is_major": false
+   }
+  ]
+ },
+ "la-catacumba-nueva-conan-doyle-arthur": {
+  "title": "La catacumbra nueva",
+  "author": "Arthur Conan Doyle",
+  "characters": [
+   {
+    "name": "Sir Robert Burger",
+    "role": "Erudito y celoso arqueólogo obsesionado con las catacumbas de Roma",
+    "is_major": true
+   },
+   {
+    "name": "Julius Kennedy",
+    "role": "Joven médico atraído engañosamente al subterráneo por una venganza",
+    "is_major": true
+   },
+   {
+    "name": "Mary Kennedy",
+    "role": "Hermana de Julius cuya relación pasada origina el desquite mortal",
+    "is_major": false
+   }
+  ]
+ },
+ "la-catedral-vicente-blasco-ibanez": {
+  "title": "La catedral",
+  "author": "Autor Desconocido",
+  "characters": [
+   {
+    "name": "Gabriel Luna",
+    "role": "Protagonista idealista y pensador rebelde que regresa a la catedral.",
+    "is_major": true
+   },
+   {
+    "name": "Esteban Luna",
+    "role": "Hermano de Gabriel y ferviente campanero de la catedral.",
+    "is_major": true
+   },
+   {
+    "name": "Sagrario",
+    "role": "Sobrina de Gabriel que enfrenta el desprecio social tras su deshonra.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-cautiva-esteban-echeverria": {
+  "title": "La cautiva",
+  "author": "Estevan echeverria",
+  "characters": [
+   {
+    "name": "María",
+    "role": "Heroína valiente que arriesga su vida para salvar a su esposo del cautiverio.",
+    "is_major": true
+   },
+   {
+    "name": "Brian",
+    "role": "Esposo de María, un capitán herido y prisionero de las tribus locales.",
+    "is_major": true
+   },
+   {
+    "name": "El Cacique",
+    "role": "Líder de la tribu indígena que retiene a los cautivos en la pampa.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-caza-del-meteoro-verne-julio": {
+  "title": "La caza del meteoro",
+  "author": "Julio Verne",
+  "characters": [
+   {
+    "name": "Dean Forsyth",
+    "role": "Astrónomo aficionado que reclama el descubrimiento del meteoro de oro.",
+    "is_major": true
+   },
+   {
+    "name": "Sydney Hudelson",
+    "role": "Astrónomo rival que disputa la prioridad del hallazgo del bólido espacial.",
+    "is_major": true
+   },
+   {
+    "name": "Zéphyrin Xirdal",
+    "role": "Genial e inventivo científico que logra desviar la órbita del meteoro.",
+    "is_major": true
+   },
+   {
+    "name": "Seth Stanforth",
+    "role": "Alcalde que intenta gestionar la disputa diplomática y legal sobre el objeto.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-celebre-rana-saltarina-del-distrito-de-calaveras-mark-twain": {
+  "title": "La célebre rana saltarina del distrito de Calaveras",
+  "author": "Mark Twain",
+  "characters": [
+   {
+    "name": "Jim Smiley",
+    "role": "Apostador compulsivo obsesionado con entrenar animales para competir.",
+    "is_major": true
+   },
+   {
+    "name": "Dan'l Webster",
+    "role": "Rana adiestrada por Smiley para realizar extraordinarios saltos.",
+    "is_major": true
+   },
+   {
+    "name": "El Forastero",
+    "role": "Antagonista astuto que hace trampa llenando a la rana de perdigones.",
+    "is_major": true
+   },
+   {
+    "name": "Simon Wheeler",
+    "role": "Narrador local parlanchín que relata la historia con estilo coloquial.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-celestina-fernando-de-rojas": {
+  "title": "La celestina",
+  "author": "Fernando de Rojas",
+  "characters": [
+   {
+    "name": "Celestina",
+    "role": "Alcahueta astuta y codiciosa que facilita los encuentros amorosos mediante engaños.",
+    "is_major": true
+   },
+   {
+    "name": "Calisto",
+    "role": "Joven noble apasionado y obsesionado con conseguir el amor de Melibea.",
+    "is_major": true
+   },
+   {
+    "name": "Melibea",
+    "role": "Joven aristócrata que cede a las artes de Celestina y se enamora de Calisto.",
+    "is_major": true
+   },
+   {
+    "name": "Sempronio",
+    "role": "Criado avaricioso de Calisto que se alía con Celestina para lucrarse.",
+    "is_major": false
+   },
+   {
+    "name": "Pármeno",
+    "role": "Criado inicialmente leal que termina siendo corrompido por la alcahueta.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-cenicienta-hermanos-grimm": {
+  "title": "La cenicienta",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "Cenicienta",
+    "role": "Joven bondadosa y humillada que sirve a su familia tras la muerte de su padre.",
+    "is_major": true
+   },
+   {
+    "name": "El Príncipe",
+    "role": "Heredero al trono que busca por todo el reino a la dueña del zapato abandonado.",
+    "is_major": true
+   },
+   {
+    "name": "La Madrastra",
+    "role": "Mujer egoísta y cruel que favorece a sus hijas y maltrata a Cenicienta.",
+    "is_major": true
+   },
+   {
+    "name": "Las Hermanastras",
+    "role": "Hijas vanidosas y envidiosas de la madrastra que compiten por la atención del príncipe.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-chica-invisible-mary-shelley": {
+  "title": "La chica invisible",
+  "author": "Mary Shelley",
+  "characters": [
+   {
+    "name": "Rosina",
+    "role": "Joven huérfana injustamente acusada que huye refugiándose bajo una falsa identidad.",
+    "is_major": true
+   },
+   {
+    "name": "Henry Vernon",
+    "role": "Aristócrata enamorado de Rosina que la busca incansablemente.",
+    "is_major": true
+   },
+   {
+    "name": "Sir Peter Vernon",
+    "role": "Tutor severo y padre de Henry que se opone a la unión de los jóvenes.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-chusma-hermanos-grimm": {
+  "title": "La chusma",
+  "author": "Hermanos Grimm",
+  "characters": [
+   {
+    "name": "El Gallo",
+    "role": "Líder astuto del grupo de animales que emprende un viaje lleno de travesuras.",
+    "is_major": true
+   },
+   {
+    "name": "La Gallina",
+    "role": "Compañera del gallo que participa en los abusos cometidos durante el viaje.",
+    "is_major": true
+   },
+   {
+    "name": "El Pato",
+    "role": "Animal enganchado al carro para transportar al gallo y a la gallina.",
+    "is_major": false
+   },
+   {
+    "name": "El Posadero",
+    "role": "Huésped desprevenido que acaba sufriendo las pesadas bromas de la pandilla.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-comedia-de-las-equivocaciones-shakespeare-william": {
+  "title": "La Comedia de las Equivocaciones",
+  "author": "William Shakespeare",
+  "characters": [
+   {
+    "name": "Antífolo de Siracusa",
+    "role": "Hermano gemelo viajero que llega a Éfeso buscando a su familia perdida.",
+    "is_major": true
+   },
+   {
+    "name": "Antífolo de Éfeso",
+    "role": "Hermano gemelo residente en Éfeso, desconcertado por las confusiones con su doble.",
+    "is_major": true
+   },
+   {
+    "name": "Dromio de Siracusa",
+    "role": "Leal y cómico sirviente de Antífolo de Siracusa.",
+    "is_major": false
+   },
+   {
+    "name": "Dromio de Éfeso",
+    "role": "Sirviente de Antífolo de Éfeso que sufre los castigos por los malentendidos.",
+    "is_major": false
+   },
+   {
+    "name": "Adriana",
+    "role": "Esposa celosa y posesiva de Antífolo de Éfeso.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-comedia-nueva-leandro-fernandez-de-moratin": {
+  "title": "La comedia nueva",
+  "author": "Leandro Fernández de Moratín",
+  "characters": [
+   {
+    "name": "Don Eleuterio Crispín de Andorra",
+    "role": "Dramaturgo pretencioso e iluso que escribe una absurda obra pedante.",
+    "is_major": true
+   },
+   {
+    "name": "Don Pedro",
+    "role": "Caballero sensato que encarna la razón neoclásica y critica el mal teatro.",
+    "is_major": true
+   },
+   {
+    "name": "Don Hermógenes",
+    "role": "Pedante adulador que alimenta las ilusiones dramáticas de Don Eleuterio.",
+    "is_major": false
+   },
+   {
+    "name": "Doña Agustina",
+    "role": "Esposa de Don Eleuterio, entusiasmada con el inminente estreno.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-condena-kafka-franz": {
+  "title": "La condena",
+  "author": "Franz Kafka",
+  "characters": [
+   {
+    "name": "Georg Bendemann",
+    "role": "Joven comerciante sumiso atrapado entre el deber filial y su futuro matrimonio.",
+    "is_major": true
+   },
+   {
+    "name": "El Padre (Señor Bendemann)",
+    "role": "Anciano autoritario que juzga e impone un castigo fatal a su hijo.",
+    "is_major": true
+   },
+   {
+    "name": "Frieda Brandenfeld",
+    "role": "Prometida de Georg, cuya boda desencadena el conflicto familiar.",
+    "is_major": false
+   },
+   {
+    "name": "El amigo de San Petersburgo",
+    "role": "Amigo distante con el que Georg mantiene correspondencia epistolar.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-condenada-vicente-blasco-ibanez": {
+  "title": "La condenada",
+  "author": "Vicente Blasco Ibáñez",
+  "characters": [
+   {
+    "name": "La condenada",
+    "role": "Mujer acusada de adulterio que sufre la marginación y la violencia moral del pueblo.",
+    "is_major": true
+   },
+   {
+    "name": "El marido",
+    "role": "Hombre despechado que actúa como instigador del rechazo social.",
+    "is_major": true
+   },
+   {
+    "name": "El vecindario",
+    "role": "Colectivo rural hipócrita que juzga y condena implacablemente a la protagonista.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-corbeta-gloria-scott-conan-doyle-arthur": {
+  "title": "La corbeta \"Gloria Scott\" - Arthur Conan Doyle",
+  "author": "Arthur Conan Doyle",
+  "characters": [
+   {
+    "name": "Sherlock Holmes",
+    "role": "Joven detective narrador que desentraña el primer misterio de su carrera.",
+    "is_major": true
+   },
+   {
+    "name": "Victor Trevor",
+    "role": "Amigo universitario de Holmes que lo invita a la casa de su padre.",
+    "is_major": true
+   },
+   {
+    "name": "Señor Trevor (James Armitage)",
+    "role": "Padre de Victor, un hombre rico atormentado por su oscuro pasado criminal.",
+    "is_major": true
+   },
+   {
+    "name": "Hudson",
+    "role": "Antiguo marinero chantajista que amenaza con revelar la verdadera identidad de Trevor.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-corte-de-carlos-iv-benito-perez-galdos": {
+  "title": "La corte de Carlos IV",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Gabriel Araceli",
+    "role": "Joven paje protagonista y narrador testigo de la decadencia en la corte de Madrid.",
+    "is_major": true
+   },
+   {
+    "name": "Inés de Santorcaz",
+    "role": "Joven de quien Gabriel está enamorado, víctima de conspiraciones familiares.",
+    "is_major": true
+   },
+   {
+    "name": "Manuel Godoy",
+    "role": "Poderoso valido del rey que gobierna de facto la política española.",
+    "is_major": false
+   },
+   {
+    "name": "Carlos IV",
+    "role": "Monarca español de carácter débil que ignora las intrigas a su alrededor.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-corza-blanca-gustavo-adolfo-becquer": {
+  "title": "La corza blanca",
+  "author": "Gustavo Adolfo Bécquer",
+  "characters": [
+   {
+    "name": "Constanza",
+    "role": "Joven hermosa y caprichosa que esconde una misteriosa naturaleza mítica.",
+    "is_major": true
+   },
+   {
+    "name": "Garcés",
+    "role": "Joven montero enamorado de Constanza que intenta dar caza a la legendaria corza.",
+    "is_major": true
+   },
+   {
+    "name": "Don Dionís",
+    "role": "Noble aragonés y padre de Constanza, aficionado a la cacería.",
+    "is_major": false
+   },
+   {
+    "name": "Esteban",
+    "role": "Anciano pastor que relata historias sobre las transformaciones sobrenaturales del bosque.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-cosa-en-el-umbral-h-p-lovecraft": {
+  "title": "La cosa en el umbral",
+  "author": "H. P. Lovecraft",
+  "characters": [
+   {
+    "name": "Daniel Upton",
+    "role": "Narrador y leal amigo que se ve obligado a cometer un acto extremo para salvar a Derby.",
+    "is_major": true
+   },
+   {
+    "name": "Edward Derby",
+    "role": "Poeta de voluntad débil cuya mente y cuerpo son usurpados mediante hechicería.",
+    "is_major": true
+   },
+   {
+    "name": "Asenath Waite",
+    "role": "Esposa de Edward, practicante de ocultismo que busca habitar cuerpos ajenos.",
+    "is_major": true
+   },
+   {
+    "name": "Ephraim Waite",
+    "role": "Padre difunto de Asenath y verdadera mente hechicera tras los intercambios de cuerpo.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-cruz-azul-g-k-chesterton": {
+  "title": "La cruz azul",
+  "author": "G.  K.  Chesterton",
+  "characters": [
+   {
+    "name": "Padre Brown",
+    "role": "Protagonista, sacerdote detective con aguda intuición.",
+    "is_major": true
+   },
+   {
+    "name": "Flambeau",
+    "role": "Antagonista inicial, luego aliado del Padre Brown y ladrón de guante blanco.",
+    "is_major": true
+   },
+   {
+    "name": "Aristide Valentin",
+    "role": "Inspector jefe de la policía francesa, persigue a Flambeau.",
+    "is_major": true
+   },
+   {
+    "name": "Narrador",
+    "role": "Voz que presenta los misterios y las reflexiones del Padre Brown.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-cruz-del-diablo-gustavo-adolfo-becquer": {
+  "title": "La cruz del Diablo",
+  "author": "Gustavo Adolfo Bécquer",
+  "characters": [
+   {
+    "name": "El Barón de Alcántara",
+    "role": "Protagonista, caballero valiente que desafía las leyendas.",
+    "is_major": true
+   },
+   {
+    "name": "El Caballero de la Cruz",
+    "role": "Antagonista, espíritu maligno asociado a la cruz del Diablo.",
+    "is_major": true
+   },
+   {
+    "name": "El Prior",
+    "role": "Personaje secundario, narrador de la leyenda de la cruz.",
+    "is_major": true
+   },
+   {
+    "name": "Narrador",
+    "role": "Voz que introduce y contextualiza la leyenda y sus personajes.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-cuestion-palpitante-pardo-bazan-emilia": {
+  "title": "La cuestión palpitante",
+  "author": "Emilia Pardo Bazán",
+  "characters": [
+   {
+    "name": "Emilia Pardo Bazán",
+    "role": "Narradora principal, voz ensayística y crítica que expone sus ideas literarias.",
+    "is_major": true
+   },
+   {
+    "name": "El Lector",
+    "role": "Receptor implícito de las ideas expuestas, interpelado por la autora.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-cueva-de-salamanca-cervantes-miguel": {
+  "title": "La cueva de Salamanca",
+  "author": "Miguel de Cervantes",
+  "characters": [
+   {
+    "name": "Pancracio",
+    "role": "Protagonista, estudiante salmantino y marido ingenioso.",
+    "is_major": true
+   },
+   {
+    "name": "Leonarda",
+    "role": "Esposa de Pancracio, que busca la libertad y el disfrute.",
+    "is_major": true
+   },
+   {
+    "name": "Lorenzo",
+    "role": "Amigo de Pancracio y amante de Leonarda, cómplice de las intrigas.",
+    "is_major": true
+   },
+   {
+    "name": "Cristina",
+    "role": "Criada de Leonarda, astuta y partícipe de los engaños.",
+    "is_major": true
+   },
+   {
+    "name": "El Diablo (disfrazado de sacristán)",
+    "role": "Antagonista, figura engañosa que ofrece un pacto a Pancracio.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-dama-boba-lope-de-vega": {
+  "title": "La dama boba",
+  "author": "Lope de Vega",
+  "characters": [
+   {
+    "name": "Finea",
+    "role": "Protagonista, la 'dama boba' que se transforma por amor.",
+    "is_major": true
+   },
+   {
+    "name": "Nise",
+    "role": "Hermana de Finea, inteligente y rival en el amor.",
+    "is_major": true
+   },
+   {
+    "name": "Laurencio",
+    "role": "Amado de Finea, impulsor clave de su cambio y astucia.",
+    "is_major": true
+   },
+   {
+    "name": "Liseo",
+    "role": "Pretendiente de Finea, inicialmente atraído por su dote.",
+    "is_major": true
+   },
+   {
+    "name": "Miseno",
+    "role": "Padre de Finea y Nise, preocupado por el futuro de sus hijas.",
+    "is_major": true
+   },
+   {
+    "name": "Pedra",
+    "role": "Criada de Finea, confidente y cómplice de sus planes.",
+    "is_major": false
+   }
+  ]
+ },
+ "la-dama-de-las-camelias-alejandro-dumas-hijo": {
+  "title": "La dama de las camelias",
+  "author": "Alexandre Dumas",
+  "characters": [
+   {
+    "name": "Margarita Gautier",
+    "role": "Protagonista, cortesana conocida como 'la dama de las camelias'.",
+    "is_major": true
+   },
+   {
+    "name": "Armando Duval",
+    "role": "Protagonista, joven burgués perdidamente enamorado de Margarita.",
+    "is_major": true
+   },
+   {
+    "name": "Monsieur Duval (padre)",
+    "role": "Antagonista, padre de Armando que se opone a su relación con Margarita.",
+    "is_major": true
+   },
+   {
+    "name": "Narrador",
+    "role": "Voz que relata la trágica historia de amor, a menudo desde la perspectiva de Armando.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-dama-de-monsoreau-alejandro-dumas-padre": {
+  "title": "La dama de Monsoreau",
+  "author": "Alejandro Dumas",
+  "characters": [
+   {
+    "name": "Diana de Méridor (Dama de Monsoreau)",
+    "role": "Protagonista, joven noble atrapada en un matrimonio forzado.",
+    "is_major": true
+   },
+   {
+    "name": "Bussy d'Amboise",
+    "role": "Protagonista, noble valiente enamorado de Diana.",
+    "is_major": true
+   },
+   {
+    "name": "Conde de Monsoreau",
+    "role": "Antagonista, esposo cruel y celoso de Diana.",
+    "is_major": true
+   },
+   {
+    "name": "Enrique III",
+    "role": "Rey de Francia, personaje histórico envuelto en intrigas cortesanas.",
+    "is_major": true
+   },
+   {
+    "name": "Duque de Anjou (François)",
+    "role": "Hermano del rey, rival político y enamorado de Diana.",
+    "is_major": true
+   },
+   {
+    "name": "Chicot",
+    "role": "Bufón del rey, personaje astuto y observador clave en la trama.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-dama-de-picas-aleksandr-pushkin": {
+  "title": "La dama de picas",
+  "author": "Aleksandr Pushkin",
+  "characters": [
+   {
+    "name": "Hermann",
+    "role": "Protagonista, oficial obsesionado con el secreto de las cartas.",
+    "is_major": true
+   },
+   {
+    "name": "Condesa Anna Fedotovna",
+    "role": "Antagonista, anciana poseedora del secreto de las tres cartas ganadoras.",
+    "is_major": true
+   },
+   {
+    "name": "Lizaveta Ivanovna",
+    "role": "Dama de compañía de la Condesa, objeto del engaño de Hermann.",
+    "is_major": true
+   },
+   {
+    "name": "Tomsky",
+    "role": "Oficial, nieto de la Condesa, quien cuenta la leyenda del secreto.",
+    "is_major": true
+   },
+   {
+    "name": "Narrador",
+    "role": "Voz que presenta la historia con un tono irónico y fatalista.",
+    "is_major": true
+   }
+  ]
+ },
+ "la-dama-duende-calderon-de-la-barca-pedro": {
+  "title": "La dama duende",
+  "author": "Pedro Calderón de la Barca",
+  "characters": [
+   {
+    "name": "Doña Ángela",
+    "role": "Protagonista, viuda ingeniosa que usa un pasadizo secreto para cortejar en secreto",
+    "is_major": true
+   },
+   {
+    "name": "Don Manuel",
+    "role": "Galán, caballero huésped de la casa fascinado por la misteriosa dama",
+    "is_major": true
+   },
+   {
+    "name": "Don Luis",
+    "role": "Hermano celoso y sobreprotector de Doña Ángela",
+    "is_major": false
+   },
+   {
+    "name": "Don Juan",
+    "role": "Hermano mayor de Doña Ángela y amigo de Don Manuel",
+    "is_major": false
+   },
+   {
+    "name": "Cosme Catana",
+    "role": "Criado miedoso y gracioso de Don Manuel que cree en duendes",
+    "is_major": false
+   },
+   {
+    "name": "Isabel",
+    "role": "Criada y cómplice leal de Doña Ángela en sus enredos",
+    "is_major": false
+   }
+  ]
+ },
+ "la-dama-joven-pardo-bazan-emilia": {
+  "title": "La dama joven",
+  "author": "condesa de Emilia Pardo Bazán",
+  "characters": [
+   {
+    "name": "Concha",
+    "role": "Protagonista, joven humilde dividida entre el deber familiar y sus deseos de independencia",
+    "is_major": true
+   },
+   {
+    "name": "Dolores",
+    "role": "Hermana mayor de Concha, estricta y protectora que busca asegurar el futuro familiar",
+    "is_major": true
+   },
+   {
+    "name": "René",
+    "role": "Director de compañía teatral que tienta a las hermanas con el mundo del espectáculo",
+    "is_major": false
+   },
+   {
+    "name": "Ignacio",
+    "role": "Pretendiente acomodado que representa la seguridad tradicional para Concha",
+    "is_major": false
+   }
+  ]
+ },
+ "la-dama-palida-alejandro-dumas-padre": {
+  "title": "La dama pálida",
+  "author": "Alejandro Dumas",
+  "characters": [
+   {
+    "name": "Hedwige",
+    "role": "Protagonista, dama polaca víctima de una aterradora maldición familiar",
+    "is_major": true
+   },
+   {
+    "name": "Kostaki",
+    "role": "Hermano sangriento y feroz, dominado por la naturaleza vampírica",
+    "is_major": true
+   },
+   {
+    "name": "Gregorska",
+    "role": "Hermano noble y protector que lucha contra la oscuridad de su familia para salvar a Hedwige",
+    "is_major": true
+   },
+   {
+    "name": "Conde de Poland",
+    "role": "Padre de Hedwige, cuya residencia es escenario del conflicto gótico",
+    "is_major": false
+   }
+  ]
+ },
+ "la-de-bringas-benito-perez-galdos": {
+  "title": "La de Bringas",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Rosalía Pipaón de Bringas",
+    "role": "Protagonista, mujer obsesionada por el lujo y las apariencias que se arruina por la moda",
+    "is_major": true
+   },
+   {
+    "name": "Francisco de Bringas",
+    "role": "Esposo de Rosalía, funcionario tacaño y metódico que sufre de ceguera temporal",
+    "is_major": true
+   },
+   {
+    "name": "Manuel Pez",
+    "role": "Político influyente y seductor con quien Rosalía busca escalar socialmente",
+    "is_major": true
+   },
+   {
+    "name": "Milagros, marquesa de Tellería",
+    "role": "Amiga aristócrata de Rosalía que la arrastra al consumismo desenfrenado",
+    "is_major": false
+   },
+   {
+    "name": "Refugio Sánchez",
+    "role": "Costurera humilde que acaba chantajeando a Rosalía debido a sus deudas",
+    "is_major": false
+   }
+  ]
+ },
+ "la-de-los-tristes-destinos-benito-perez-galdos": {
+  "title": "La de los tristes destinos",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Santiago Ibero",
+    "role": "Protagonista, joven militar liberal involucrado en las conspiraciones contra la corona",
+    "is_major": true
+   },
+   {
+    "name": "Teresa Villaescusa",
+    "role": "Amante apasionada de Santiago Ibero que comparte los altibajos de su vida revolucionaria",
+    "is_major": true
+   },
+   {
+    "name": "Isabel II",
+    "role": "Reina de España cuyos últimos días de reinado y posterior exilio marcan el desenlace histórico",
+    "is_major": true
+   },
+   {
+    "name": "General Prim",
+    "role": "Líder militar determinante en el derrocamiento de la monarquía borbónica",
+    "is_major": false
+   }
+  ]
+ },
+ "la-derrota-de-los-pedantes-leandro-fernandez-de-moratin": {
+  "title": "La derrota de los pedantes",
+  "author": "Leandro Fernández de Moratín",
+  "characters": [
+   {
+    "name": "Apolo",
+    "role": "Dios de la poesía y la sabiduría que lidera el ataque contra los malos escritores",
+    "is_major": true
+   },
+   {
+    "name": "El Pedante",
+    "role": "Alegoría de los falsos eruditos e intelectuales pretenciosos criticados en la obra",
+    "is_major": true
+   },
+   {
+    "name": "Las Musas",
+    "role": "Deidades inspiradoras que ayudan a restaurar el buen gusto literario neoclásico",
+    "is_major": false
+   },
+   {
+    "name": "El Poeta Verdadero",
+    "role": "Personaje alegórico que defiende los verdaderos principios del arte y las letras",
+    "is_major": false
+   }
+  ]
+ },
+ "la-desheredada-benito-perez-galdos": {
+  "title": "La desheredada",
+  "author": "Benito Pérez Galdós",
+  "characters": [
+   {
+    "name": "Isidora Rufete",
+    "role": "Protagonista, joven perturbada que vive en la ilusión de ser de origen aristocrático",
+    "is_major": true
+   },
+   {
+    "name": "Mariano Rufete 'Pecado'",
+    "role": "Hermano de Isidora, joven marginal y violento abocado al crimen",
+    "is_major": true
+   },
+   {
+    "name": "Augusto Miquis",
+    "role": "Estudiante de medicina, voz de la razón y amigo fiel de Isidora",
+    "is_major": true
+   },
+   {
+    "name": "Joaquín Pez",
+    "role": "Señorito arruinado que se aprovecha de la fascinación de Isidora por la alta sociedad",
+    "is_major": false
+   },
+   {
+    "name": "Tomás Rufete",
+    "role": "Padre de Isidora, cuya locura en el manicomio transmite los delirios de grandeza a su hija",
+    "is_major": false
+   }
+  ]
+ },
+ "la-detencion-de-arsenio-lupin-maurice-leblanc": {
+  "title": "La detención de Arsenio Lupin",
+  "author": "Maurice Leblanc",
+  "characters": [
+   {
+    "name": "Arsène Lupin",
+    "role": "Protagonista, astuto ladrón de guante blanco que opera encubierto en un trasatlántico",
+    "is_major": true
+   },
+   {
+    "name": "Bernard d'Andrézy",
+    "role": "Identidad falsa asumida por Lupin para camuflarse entre los pasajeros",
+    "is_major": true
+   },
+   {
+    "name": "Miss Nelly Underdown",
+    "role": "Joven aristócrata por la que Lupin siente una atracción sincera",
+    "is_major": true
+   },
+   {
+    "name": "Inspector Ganimard",
+    "role": "Político e investigador policial encargado de desenmascarar y arrestar a Lupin al llegar a puerto",
+    "is_major": false
+   }
+  ]
+ }
+}
