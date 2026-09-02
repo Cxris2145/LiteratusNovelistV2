@@ -31,6 +31,15 @@ import sys
 import time
 from pathlib import Path
 
+# Windows: si la salida va a un archivo, Python usa cp1252 y `print()` de un
+# nombre/titulo con caracteres raros (macrones, cirilico, griego...) revienta
+# con UnicodeEncodeError. Forzamos UTF-8 tolerante.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
@@ -54,8 +63,24 @@ except ImportError:
     BeautifulSoup = None
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
-PROGRESS_FILE = BACKEND_DIR / "json_data" / "characters_to_generate.json"
-FAILED_FILE = BACKEND_DIR / "json_data" / "characters_failed_gemini.json"
+_JSON_DIR = BACKEND_DIR / "json_data"
+# OneDrive rechaza escrituras frecuentes en esta carpeta (OSError 22 Invalid
+# argument) y tumba el run. El progreso se escribe en una carpeta LOCAL y se
+# sincroniza a json_data/ con una sola escritura al terminar.
+_LOCAL_DIR = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "literatus_progress"
+_LOCAL_DIR.mkdir(parents=True, exist_ok=True)
+PROGRESS_FILE = _LOCAL_DIR / "characters_to_generate.json"
+FAILED_FILE = _LOCAL_DIR / "characters_failed_gemini.json"
+_SYNC_BACK = {
+    PROGRESS_FILE: _JSON_DIR / "characters_to_generate.json",
+    FAILED_FILE: _JSON_DIR / "characters_failed_gemini.json",
+}
+for _local, _remote in _SYNC_BACK.items():
+    if _remote.exists() and not _local.exists():
+        try:
+            _local.write_text(_remote.read_text(encoding="utf-8"), encoding="utf-8")
+        except OSError:
+            pass
 
 FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-3.6-flash", "gemini-flash-latest"]
 
@@ -180,8 +205,8 @@ class DeepSeekCaller:
                 {"role": "system", "content": "Eres un experto literario y psicologo de personajes. Responde SOLO con JSON valido."},
                 {"role": "user", "content": prompt_text},
             ],
-            "temperature": 0.7,
-            "max_tokens": 3500,
+            "temperature": 0.4,
+            "max_tokens": 1600,
             "response_format": {"type": "json_object"},
         }
         for attempt in range(1, max_retries + 1):
@@ -262,12 +287,12 @@ def build_prompt(book, want_author, min_syn, excerpt_chars):
     return f"""Experto literario. Obra: "{book.title}" de {author_name(book)}.
 {context}
 
-Da los 4-6 personajes MAS importantes (protagonista, antagonista, y secundarios clave; narrador si tiene voz propia).{author_block}
+Da los 3-4 personajes MAS importantes (protagonista, antagonista, secundario clave; narrador si tiene voz propia).{author_block}
 
-Cada objeto con estas claves, BREVE:
+Cada objeto con estas claves, MUY BREVE:
 - "name": nombre.
 - "description": rol en la historia, 1 frase.
-- "system_prompt": personalidad en 1ra persona (tono, epoca, actitud). 2-3 frases.
+- "system_prompt": personalidad en 1ra persona (tono, epoca, actitud). 1-2 frases.
 - "behavioral_context": deseo o miedo principal. 1 frase.
 - "sample_dialogues": 1-2 frases en su voz.
 - "greeting_message": su saludo al lector, 1 frase.
@@ -300,7 +325,16 @@ def load_json(path, default):
 
 def save_json(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    blob = json.dumps(data, indent=2, ensure_ascii=False)
+    for _attempt in range(4):
+        try:
+            path.write_text(blob, encoding="utf-8")
+            return
+        except OSError as e:  # OneDrive / lock transitorio: reintenta, no cortes
+            if _attempt == 3:
+                print(f"  [warn] no se pudo guardar {path.name} ({e}); continuo.")
+                return
+            time.sleep(1.5)
 
 
 # --------------------------------------------------------------------------- #
@@ -347,75 +381,94 @@ def main():
 
     for i, book in enumerate(pending, 1):
         print(f"[{i}/{total}] {book.title}")
-        edition = book.editions.first()
-        if not edition:
-            print("  [skip] sin edicion asociada")
-            ko_books += 1
-            continue
+        try:
+            edition = book.editions.first()
+            if not edition:
+                print("  [skip] sin edicion asociada")
+                ko_books += 1
+                continue
 
-        payload, status = caller.generate_json(
-            build_prompt(book, not args.no_author, args.min_synopsis, args.excerpt_chars)
-        )
+            payload, status = caller.generate_json(
+                build_prompt(book, not args.no_author, args.min_synopsis, args.excerpt_chars)
+            )
 
-        if status == "quota":
-            print("\n[STOP] Cuota diaria de Gemini agotada. Progreso guardado.")
-            print("       Vuelve a lanzar el mismo comando manana; retoma donde quedo.")
-            break
+            if status == "quota":
+                print("\n[STOP] Sin saldo / cuota agotada. Progreso guardado.")
+                print("       Vuelve a lanzar el mismo comando; retoma donde quedo.")
+                break
 
-        chars = parse_characters(payload)
-        if not chars:
-            print("  [fail] la IA no devolvio personajes")
-            ko_books += 1
-            if book.slug not in known_failed:
-                failed.append({"slug": book.slug, "title": book.title})
-                save_json(FAILED_FILE, failed)
-            time.sleep(args.sleep)
-            continue
+            chars = parse_characters(payload)
+            if not chars:
+                print("  [fail] la IA no devolvio personajes")
+                ko_books += 1
+                if book.slug not in known_failed:
+                    failed.append({"slug": book.slug, "title": book.title})
+                    save_json(FAILED_FILE, failed)
+                time.sleep(args.sleep)
+                continue
 
-        created_here = 0
-        with transaction.atomic():
-            for ch in chars:
-                name = (ch.get("name") or "").strip()[:250]
-                if not name:
-                    continue
-                if AIAvatar.objects.filter(edition=edition, name=name).exists():
-                    continue
-                if args.dry_run:
-                    print(f"    (dry) {name}  is_author={bool(ch.get('is_author'))}")
+            created_here = 0
+            with transaction.atomic():
+                for ch in chars:
+                    name = (ch.get("name") or "").strip()[:250]
+                    if not name:
+                        continue
+                    if AIAvatar.objects.filter(edition=edition, name=name).exists():
+                        continue
+                    if args.dry_run:
+                        print(f"    (dry) {name}  is_author={bool(ch.get('is_author'))}")
+                        created_here += 1
+                        continue
+                    avatar = AIAvatar.objects.create(
+                        edition=edition,
+                        name=name,
+                        description=ch.get("description", "")[:5000],
+                        system_prompt=ch.get("system_prompt") or f"Eres {name}.",
+                        behavioral_context=ch.get("behavioral_context", ""),
+                        sample_dialogues=ch.get("sample_dialogues", ""),
+                        greeting_message=ch.get("greeting_message") or "Hola, viajero.",
+                        is_major_character=bool(ch.get("is_major", True)),
+                        is_author=bool(ch.get("is_author", False)),
+                        unlock_at_chapter=0,
+                    )
+                    visual_tasks.append(
+                        {
+                            "id": str(avatar.id),
+                            "name": avatar.name,
+                            "book": book.title,
+                            "prompt": ch.get("visual_prompt") or f"Portrait of {avatar.name}, literary character",
+                        }
+                    )
                     created_here += 1
-                    continue
-                avatar = AIAvatar.objects.create(
-                    edition=edition,
-                    name=name,
-                    description=ch.get("description", "")[:5000],
-                    system_prompt=ch.get("system_prompt") or f"Eres {name}.",
-                    behavioral_context=ch.get("behavioral_context", ""),
-                    sample_dialogues=ch.get("sample_dialogues", ""),
-                    greeting_message=ch.get("greeting_message") or "Hola, viajero.",
-                    is_major_character=bool(ch.get("is_major", True)),
-                    is_author=bool(ch.get("is_author", False)),
-                    unlock_at_chapter=0,
-                )
-                visual_tasks.append(
-                    {
-                        "id": str(avatar.id),
-                        "name": avatar.name,
-                        "book": book.title,
-                        "prompt": ch.get("visual_prompt") or f"Portrait of {avatar.name}, literary character",
-                    }
-                )
-                created_here += 1
-                print(f"    + {name}{'  [autor]' if avatar.is_author else ''}")
+                    print(f"    + {name}{'  [autor]' if avatar.is_author else ''}")
 
-        if created_here:
-            ok_books += 1
-            n_chars += created_here
-            if not args.dry_run:
-                save_json(PROGRESS_FILE, visual_tasks)
-        else:
+            if created_here:
+                ok_books += 1
+                n_chars += created_here
+                if not args.dry_run:
+                    save_json(PROGRESS_FILE, visual_tasks)
+            else:
+                ko_books += 1
+
+            time.sleep(args.sleep)
+        except Exception as e:
+            print(f"  [warn] error inesperado, salto el libro: {repr(e)[:160]}")
             ko_books += 1
+            try:
+                if book.slug not in known_failed:
+                    failed.append({"slug": book.slug, "title": book.title})
+                    save_json(FAILED_FILE, failed)
+            except Exception:
+                pass
+            continue
 
-        time.sleep(args.sleep)
+    # Sincroniza el progreso local -> json_data/ (una sola escritura).
+    for _local, _remote in _SYNC_BACK.items():
+        if _local.exists():
+            try:
+                _remote.write_text(_local.read_text(encoding="utf-8"), encoding="utf-8")
+            except OSError as e:
+                print(f"  [warn] no se pudo sincronizar {_remote.name} ({e}); queda en {_local}")
 
     mins = (time.time() - t0) / 60
     print("\n" + "=" * 48)
