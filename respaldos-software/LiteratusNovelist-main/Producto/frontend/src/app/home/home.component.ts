@@ -428,4 +428,12 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   trackById(_: number, avatar: DemoAvatar): number {
     return avatar.id;
   }
+
+  trackByIndex(index: number, _item: any): number {
+    return index;
+  }
+
+  trackByTagSlug(_: number, tag: { name: string; slug: string }): string {
+    return tag.slug;
+  }
 }

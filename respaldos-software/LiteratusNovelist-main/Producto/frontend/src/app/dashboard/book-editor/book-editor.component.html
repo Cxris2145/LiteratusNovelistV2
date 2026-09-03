@@ -142,7 +142,7 @@
       </div>
 
       <div class="chapters-list" *ngIf="chapters.length > 0; else noChapters">
-        <div class="chapter-item" *ngFor="let chap of chapters; let i = index">
+        <div class="chapter-item" *ngFor="let chap of chapters; let i = index; trackBy: trackByIndex">
           <div class="chap-info">
             <span class="chap-order">{{ chap.order }}</span>
             <input type="text" [(ngModel)]="chap.title" class="chap-title-input">

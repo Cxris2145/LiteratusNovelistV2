@@ -5,7 +5,7 @@
   ═══════════════════════════════════════════════════════════ -->
   <header class="hero-section">
     <div class="hero-bg-particles">
-      <span *ngFor="let p of [1,2,3,4,5,6,7,8]" class="particle"></span>
+      <span *ngFor="let p of [1,2,3,4,5,6,7,8]; trackBy: trackByIndex" class="particle"></span>
     </div>
     <div class="hero-content">
       <h1 class="hero-headline">
@@ -123,7 +123,7 @@
 
         <!-- Loading skeleton -->
         <div class="avatars-carousel-track" *ngIf="avatarsLoading">
-          <div class="avatar-card avatar-card--skeleton" *ngFor="let s of [1,2,3,4,5,6]"></div>
+          <div class="avatar-card avatar-card--skeleton" *ngFor="let s of [1,2,3,4,5,6]; trackBy: trackByIndex"></div>
         </div>
 
         <!-- Avatars carousel -->
@@ -167,7 +167,7 @@
   <!-- Loading State -->
   <div class="loading-skeleton" *ngIf="isLoading">
     <div class="skeleton-trending">
-      <div class="skeleton-card" *ngFor="let i of [1,2,3,4]"></div>
+      <div class="skeleton-card" *ngFor="let i of [1,2,3,4]; trackBy: trackByIndex"></div>
     </div>
   </div>
 
@@ -190,7 +190,7 @@
       </div>
 
       <div class="char-carousel-track">
-        <div class="char-book-card" *ngFor="let book of featuredWithCharacters; let i = index"
+        <div class="char-book-card" *ngFor="let book of featuredWithCharacters; let i = index; trackBy: trackBySlug"
              (click)="goToCharBook(book.slug)">
           <div class="char-cover-wrap">
             <div class="border-glow-wrapper"></div>
@@ -276,7 +276,7 @@
             <h3 class="trending-title">{{ book.title }}</h3>
             <p class="trending-author" *ngIf="book.author_name">{{ book.author_name }}</p>
             <div class="trending-tags" *ngIf="book.tags && book.tags.length">
-              <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2)">{{ tag.name }}</span>
+              <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2); trackBy: trackByTagSlug">{{ tag.name }}</span>
             </div>
           </div>
         </div>
@@ -300,7 +300,7 @@
             <h4 class="recommended-book-title">{{ book.title }}</h4>
             <p class="recommended-author" *ngIf="book.author_name">{{ book.author_name }}</p>
             <div class="recommended-tags">
-              <span class="rec-tag" *ngFor="let tag of book.tags?.slice(0,1)">#{{ tag.name }}</span>
+              <span class="rec-tag" *ngFor="let tag of book.tags?.slice(0,1); trackBy: trackByTagSlug">#{{ tag.name }}</span>
             </div>
           </div>
         </div>
@@ -379,7 +379,7 @@
             <h3 class="trending-title">{{ book.title }}</h3>
             <p class="trending-author" *ngIf="book.author_name">{{ book.author_name }}</p>
             <div class="trending-tags" *ngIf="book.tags && book.tags.length">
-              <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2)">{{ tag.name }}</span>
+              <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2); trackBy: trackByTagSlug">{{ tag.name }}</span>
             </div>
           </div>
         </div>

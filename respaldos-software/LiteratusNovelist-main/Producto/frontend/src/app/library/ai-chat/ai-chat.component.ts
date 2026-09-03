@@ -160,6 +160,10 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
     return tag;
   }
 
+  trackByMsgIndex(index: number, msg: any): any {
+    return index;
+  }
+
   formatMessage(text: string): string {
     if (!text) return '';
     // Reemplaza **texto** por <strong>texto</strong>

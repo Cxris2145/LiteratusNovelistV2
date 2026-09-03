@@ -363,6 +363,10 @@ export class BookEditorComponent implements OnInit {
     return avatar.id;
   }
 
+  trackByIndex(index: number, item: any): any {
+    return index;
+  }
+
   removeAvatar(avatarId: string): void {
     if (confirm('¿Eliminar este personaje?')) {
       this.loading = true;

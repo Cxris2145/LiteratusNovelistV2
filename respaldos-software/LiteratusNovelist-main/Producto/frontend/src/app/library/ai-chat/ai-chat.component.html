@@ -64,7 +64,7 @@
     <div class="messages-container" #scrollMe>
       <!-- Mostrar mensajes solo si hay sesión -->
       <ng-container *ngIf="session; else loadingChat">
-        <div *ngFor="let msg of messages"
+        <div *ngFor="let msg of messages; trackBy: trackByMsgIndex"
           [ngClass]="{'msg-user': msg.role === 'user', 'msg-ai': msg.role === 'assistant'}" class="message-wrapper">
           <div class="message-bubble" [innerHTML]="formatMessage(msg.content)"></div>
         </div>
