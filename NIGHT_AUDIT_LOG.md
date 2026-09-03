@@ -184,3 +184,20 @@
 - **Bundle**: Initial 1.34 MB raw / 274.79 kB transferencia (antes, corrida #8: 274.87 kB; leve baja, sin regresión, muy por debajo del budget 1.6mb/2.5mb).
 - **Commit**: ver hash en el commit siguiente en el historial de git (incluye `NIGHT_AUDIT_STATE.json`, `NIGHT_AUDIT_LOG.md`, `reader.component.ts` y `reader.component.html`).
 - **Push confirmado en origin**: ver verificación con `git ls-remote` registrada en el informe final de esta corrida.
+
+## 2026-09-03T11:59:53Z — corrida horaria #10
+
+- **Entorno**: repo OK (`git rev-parse --show-toplevel` termina en `LiteratusNovelistV2`; `git remote -v` -> `github.com/Cxris2145/LiteratusNovelistV2`). `git status` limpio al iniciar. Rama de trabajo `agent/nightly-optimization-chris` ya existía en origin y local. Commit base de Chris: `3786d288` (sin cambios desde la corrida #9; confirmado con `git merge-base agent/nightly-optimization-chris origin/Chris` == `git rev-parse origin/Chris`). Guarda de solapamiento: `heartbeat_utc` de la corrida #9 tenía ~54 min de antigüedad y `run_in_progress` ya era `false` -> se continuó sin conflicto.
+- **Push verificado**: OK (`git push --dry-run origin HEAD:refs/heads/agent/nightly-optimization-chris` -> "Everything up-to-date", exit 0).
+- **Smoke check**: backend — venv Python 3.12 temporal (no versionado) + `.env` temporal (SQLite local, no versionado, borrado al terminar). `manage.py check` -> 0 issues. Sin cambios de código backend esta corrida.
+- **Fase y lote trabajados**: `I_frontend`, cursor -> se tomó el candidato dejado por la corrida #9 (modal de diccionario integrado en `library/reader.component.html`, líneas 739 y 742).
+- **Cambios aplicados** (2 archivos):
+  1. `reader.component.ts` — se agregó el método `trackByDictIndex(index)` (retorna `index`), junto a los `trackBy*` ya existentes.
+  2. `reader.component.html` líneas 739 y 742 — `*ngFor="let meaning of dictionaryResult.meanings"` y `*ngFor="let def of $any(meaning).definitions | slice:0:2"` -> se agregó `trackBy: trackByDictIndex` a ambos. Verificado en el `.ts`: `dictionaryResult` se pone en `null` al abrir el modal y luego se reemplaza por completo con `data[0]` (respuesta de la API) o con un objeto `{error}` nuevo — nunca se muta in-place — por lo que `trackBy` por índice es seguro, consistente con el patrón ya usado en `trackByChatMsgIndex`.
+  - NO se tocó ningún DOM/clase/estilo/texto visible; solo se agregó 1 método `trackBy` y su uso en 2 `*ngFor` ya existentes.
+  - NO se tocó `block.sentences` (sigue sin `trackBy` propio) ni se evaluó `ChangeDetectionStrategy.OnPush` esta corrida; quedan como candidatos para la próxima.
+- **NEEDS MANUAL REVIEW nuevos**: ninguno. MR-0002 y MR-0003 siguen abiertas sin cambios.
+- **Pruebas**: backend — `manage.py check` OK (sin cambios de código backend, no se corrió la suite completa). Frontend — `npm install` OK (1105 paquetes). `ng build --configuration production` OK, 0 errores, mismos warnings preexistentes de CommonJS (canvg/lottie-web), sin warnings de budget. `ng test --watch=false` con `karma.conf.local.js` temporal DENTRO de `frontend/` (`CHROME_BIN=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`, launcher custom `--no-sandbox --disable-gpu --disable-dev-shm-usage`) -> **8 de 8 tests OK**. El archivo `karma.conf.local.js` se borró antes del commit; no quedó nada nuevo sin versionar.
+- **Bundle**: Initial 1.34 MB raw / 274.95 kB transferencia (antes, corrida #9: 274.79 kB; variación de +0.16 kB por el código agregado, sin regresión, muy por debajo del budget 1.6mb/2.5mb).
+- **Commit**: ver hash en el commit siguiente en el historial de git (incluye `NIGHT_AUDIT_STATE.json`, `NIGHT_AUDIT_LOG.md`, `reader.component.ts` y `reader.component.html`).
+- **Push confirmado en origin**: ver verificación con `git ls-remote` registrada en el informe final de esta corrida.

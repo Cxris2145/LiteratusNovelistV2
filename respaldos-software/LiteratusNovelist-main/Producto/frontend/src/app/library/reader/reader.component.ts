@@ -2042,6 +2042,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     return index;
   }
 
+  trackByDictIndex(index: number): number {
+    return index;
+  }
+
   // ── MENU DE ACCIÓN DE PALABRA Y DICCIONARIO ───────────────────────
   showWordMenu: boolean = false;
   wordMenuX: number = 0;

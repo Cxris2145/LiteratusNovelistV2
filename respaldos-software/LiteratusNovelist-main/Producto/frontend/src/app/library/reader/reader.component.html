@@ -736,10 +736,10 @@
         <h5 class="dict-word">{{ dictionaryResult.word }}</h5>
         <p class="dict-phonetic" *ngIf="dictionaryResult.phonetic">{{ dictionaryResult.phonetic }}</p>
         <div class="dict-meanings">
-          <div *ngFor="let meaning of dictionaryResult.meanings" class="dict-meaning">
+          <div *ngFor="let meaning of dictionaryResult.meanings; trackBy: trackByDictIndex" class="dict-meaning">
             <span class="dict-pos">{{ $any(meaning).partOfSpeech }}</span>
             <ul>
-              <li *ngFor="let def of $any(meaning).definitions | slice:0:2">
+              <li *ngFor="let def of $any(meaning).definitions | slice:0:2; trackBy: trackByDictIndex">
                 {{ $any(def).definition }}
                 <em class="dict-example" *ngIf="$any(def).example">"{{ $any(def).example }}"</em>
               </li>
