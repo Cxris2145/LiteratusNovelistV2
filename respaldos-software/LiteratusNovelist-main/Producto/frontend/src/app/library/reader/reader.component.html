@@ -616,7 +616,7 @@
       </figure>
 
       <h1 *ngIf="block.tag === 'h1'" class="chapter-heading" [ngClass]="getArBlockClass(bIdx)">
-        <ng-container *ngFor="let sentence of block.sentences">
+        <ng-container *ngFor="let sentence of block.sentences; trackBy: trackBySentence">
           <span [class.active-paragraph-text]="isActiveSentence(sentence)" [ngClass]="getArSentenceClass(sentence)">
             <span *ngIf="arEnabled && (arMode === 'sentence' || arMode === 'line') && sentence.idx === arSentenceIndex" class="ar-sentence-indicator"></span>
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
@@ -638,7 +638,7 @@
       </h1>
 
       <h2 *ngIf="block.tag === 'h2'" class="chapter-heading" [ngClass]="getArBlockClass(bIdx)">
-        <ng-container *ngFor="let sentence of block.sentences">
+        <ng-container *ngFor="let sentence of block.sentences; trackBy: trackBySentence">
           <span [class.active-paragraph-text]="isActiveSentence(sentence)" [ngClass]="getArSentenceClass(sentence)">
             <span *ngIf="arEnabled && (arMode === 'sentence' || arMode === 'line') && sentence.idx === arSentenceIndex" class="ar-sentence-indicator"></span>
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
@@ -660,7 +660,7 @@
       </h2>
 
       <p *ngIf="block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote'" [ngClass]="getArBlockClass(bIdx)">
-        <ng-container *ngFor="let sentence of block.sentences">
+        <ng-container *ngFor="let sentence of block.sentences; trackBy: trackBySentence">
           <span [class.active-paragraph-text]="isActiveSentence(sentence)" [ngClass]="getArSentenceClass(sentence)">
             <span *ngIf="arEnabled && (arMode === 'sentence' || arMode === 'line') && sentence.idx === arSentenceIndex" class="ar-sentence-indicator"></span>
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">

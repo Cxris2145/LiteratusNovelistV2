@@ -2030,6 +2030,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     return token.idx >= 0 ? token.idx : -(index + 1);
   }
 
+  trackBySentence(index: number, sentence: any): number {
+    return sentence?.idx ?? index;
+  }
+
   trackByChapter(index: number, chapter: any): string | number {
     return chapter?.id || chapter?.order || index;
   }
