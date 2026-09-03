@@ -1,19 +1,22 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-payment-failure',
   templateUrl: './payment-failure.component.html',
-  styleUrls: ['./payment-failure.component.css']
+  styleUrls: ['./payment-failure.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PaymentFailureComponent implements OnInit {
   reason = '';
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
       this.reason = params.get('reason') || 'El pago fue cancelado o rechazado.';
+      this.cdr.markForCheck();
     });
   }
 

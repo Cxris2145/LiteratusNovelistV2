@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-authors',
   templateUrl: './authors.component.html',
-  styleUrls: ['./authors.component.css']
+  styleUrls: ['./authors.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuthorsComponent implements OnInit {
   authors: any[] = [];
@@ -28,7 +29,8 @@ export class AuthorsComponent implements OnInit {
 
   constructor(
     private bookService: DashboardBooksService,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -42,8 +44,12 @@ export class AuthorsComponent implements OnInit {
         this.authors = data;
         this.filteredAuthors = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: () => this.loading = false
+      error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -60,7 +66,10 @@ export class AuthorsComponent implements OnInit {
     if (file) {
       this.authorPhoto = file;
       const reader = new FileReader();
-      reader.onload = () => this.photoPreview = reader.result as string;
+      reader.onload = () => {
+        this.photoPreview = reader.result as string;
+        this.cdr.markForCheck();
+      };
       reader.readAsDataURL(file);
     }
   }
@@ -80,6 +89,7 @@ export class AuthorsComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
+        this.cdr.markForCheck();
         alert('Error al guardar: ' + (err.error?.error || 'Desconocido'));
       }
     });
@@ -91,8 +101,12 @@ export class AuthorsComponent implements OnInit {
       next: (data) => {
         this.previewAuthor = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: () => this.loading = false
+      error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
     });
   }
     
