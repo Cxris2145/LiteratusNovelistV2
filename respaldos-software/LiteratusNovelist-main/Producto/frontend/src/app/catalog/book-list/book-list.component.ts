@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, Input, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { HttpParams } from '@angular/common/http';
 import { Subscription } from 'rxjs';
@@ -29,10 +29,12 @@ interface GenreFilter {
 @Component({
   selector: 'app-book-list',
   templateUrl: './book-list.component.html',
-  styleUrl: './book-list.component.css'
+  styleUrl: './book-list.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BookListComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() isHome: boolean = false;
 
@@ -80,6 +82,7 @@ export class BookListComponent implements OnInit, OnDestroy {
             slug: genre.slug,
             book_count: genre.book_count || 0,
           }));
+        this.cdr.markForCheck();
       },
       error: (err) => console.error('Error loading category filters', err)
     });
@@ -110,11 +113,13 @@ export class BookListComponent implements OnInit, OnDestroy {
         this.books = response.results;
         this.totalCount = response.count;
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error(err);
         this.errorMsg = 'No pudimos cargar la biblioteca. Por favor, revisa tu conexión.';
         this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }

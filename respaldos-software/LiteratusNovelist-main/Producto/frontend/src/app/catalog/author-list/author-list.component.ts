@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { HttpParams } from '@angular/common/http';
 
@@ -12,13 +12,15 @@ interface PaginatedResponse<T> {
 @Component({
   selector: 'app-author-list',
   templateUrl: './author-list.component.html',
-  styleUrls: ['./author-list.component.css']
+  styleUrls: ['./author-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuthorListComponent implements OnInit {
   authors: any[] = [];
   filteredAuthors: any[] = [];
   loading = true;
   api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Paginación
   totalCount = 0;
@@ -72,10 +74,12 @@ export class AuthorListComponent implements OnInit {
           ? data.results.filter((a: any) => a.photo)
           : data.results;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading authors', err);
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
