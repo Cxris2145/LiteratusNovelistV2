@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ChatService } from '../../core/services/chat.service';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
@@ -8,13 +8,15 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-character-hub',
   templateUrl: './character-hub.component.html',
-  styleUrls: ['./character-hub.component.css']
+  styleUrls: ['./character-hub.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CharacterHubComponent implements OnInit, OnDestroy {
   chatService = inject(ChatService);
   api = inject(ApiService);
   router = inject(Router);
   auth = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Datos para las secciones
   allCharacters: any[] = [];
@@ -54,13 +56,20 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
         // Seleccionar 5 aleatorios para el Hero Carousel
         this.heroCharacters = [...data].sort(() => 0.5 - Math.random()).slice(0, 5);
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
-      error: () => this.isLoading = false
+      error: () => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }
     });
 
     // 2. Cargar Recientes (Backend nuevo endpoint)
     this.chatService.getRecentAvatars().subscribe({
-      next: (data) => this.recentCharacters = data,
+      next: (data) => {
+        this.recentCharacters = data;
+        this.cdr.markForCheck();
+      },
       error: (err) => console.warn("No se pudieron cargar recientes", err)
     });
   }
@@ -69,6 +78,7 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.carouselSub = interval(5000).subscribe(() => {
       if (this.heroCharacters.length > 0) {
         this.currentHeroIndex = (this.currentHeroIndex + 1) % this.heroCharacters.length;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -95,8 +105,12 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.filteredCharacters = data;
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
-      error: () => this.isLoading = false
+      error: () => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      }
     });
   }
 
