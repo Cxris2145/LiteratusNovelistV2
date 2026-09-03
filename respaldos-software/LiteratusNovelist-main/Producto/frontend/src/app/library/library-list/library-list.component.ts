@@ -1,13 +1,15 @@
-import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, ElementRef, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-library-list',
   templateUrl: './library-list.component.html',
-  styleUrls: ['./library-list.component.css']
+  styleUrls: ['./library-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LibraryListComponent implements OnInit {
   private api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
 
   inventoryItems: any[] = [];
   isLoading = true;
@@ -40,11 +42,13 @@ export class LibraryListComponent implements OnInit {
         // Asegurarnos de que asigne el arreglo correcto ya sea de paginación o directo
         this.inventoryItems = Array.isArray(res) ? res : (res.results || []);
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error(err);
         this.errorMsg = 'No pudimos cargar tu biblioteca. Intenta de nuevo más tarde.';
         this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }

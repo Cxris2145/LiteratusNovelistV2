@@ -1,8 +1,8 @@
 {
   "schema_version": 3,
   "run_in_progress": false,
-  "heartbeat_utc": "2026-09-03T11:59:53Z",
-  "last_run_utc": "2026-09-03T11:59:53Z",
+  "heartbeat_utc": "2026-09-03T13:02:36Z",
+  "last_run_utc": "2026-09-03T13:02:36Z",
   "last_commit": "",
   "last_push_ok": true,
   "last_push_error": null,
@@ -11,17 +11,17 @@
   "base_branch": "origin/Chris",
   "base_commit": "3786d288fd23e4228b6c0390ac00ee9cf6533940",
   "batch_size": 40,
-  "run_count_today": 10,
+  "run_count_today": 11,
   "current_phase": "I_frontend",
   "phase_cursor": {
     "A_errores_criticos": "check_y_makemigrations_ok_sin_bd_real_de_produccion",
     "B_libros_capitulos": "bloqueado_sin_bd_real_ver_MR-0002",
-    "I_frontend": "corrida #10: se tomo el candidato sugerido por el cursor de la corrida #9 (modal de diccionario en library/reader.component.html, lineas 739 y 742) y se agrego trackBy: trackByDictIndex a los dos *ngFor (dictionaryResult.meanings y $any(meaning).definitions | slice:0:2). Verificado por lectura de reader.component.ts (linea ~2186 y ~2199-2203): dictionaryResult SIEMPRE se reemplaza por completo (this.dictionaryResult = null al abrir, luego this.dictionaryResult = data[0] o un objeto {error} nuevo al responder la API) -- nunca se muta in-place -- por lo que trackBy por indice es seguro y consistente con trackByChatMsgIndex ya usado en el mismo archivo. NO se toco 'block.sentences' (sigue sin trackBy propio; sus hijos 'sentence.tokens' ya tienen trackByToken) por ser un cambio de mayor analisis que excede el lote de esta corrida. NO se aplico ChangeDetectionStrategy.OnPush a ningun componente esta corrida (sigue pendiente, ver nota de la corrida #9). Candidato sugerido para la proxima corrida: retomar la evaluacion de OnPush en los componentes que ya tienen trackBy aplicado en las corridas #7-#10 (reader.component, library-list, discover, character-hub, dashboard books/avatars/authors, author-list, users, book-editor, overview, author-detail-page, ai-chat, demo-chat-page), confirmando primero que ninguno mute arrays/objetos in-place sin reasignar la referencia de nivel superior; si queda tiempo, evaluar 'block.sentences' de reader.component (bajo riesgo, mayor lectura de codigo necesaria por HostListener de seleccion de texto sobre el DOM). Fase J se mantiene explorada en lo de bajo riesgo disponible sin BD real; MR-0002 y MR-0003 siguen abiertas sin cambios."
+    "I_frontend": "corrida #11: se tomo el candidato dejado por la corrida #10 (evaluar OnPush en componentes que ya tienen trackBy). Se eligio LibraryListComponent (library/library-list/library-list.component.ts, el mas pequeno y simple de la lista, 55 lineas, sin @Input(), sin eventos de template salvo routerLink) como primer caso. Hallazgo importante antes de aplicar: el componente carga datos via this.api.get(...).subscribe({next, error}) en fetchInventory() y asigna this.inventoryItems / this.isLoading / this.errorMsg dentro de esos callbacks -- son reasignaciones completas (nunca mutacion in-place), pero con OnPush puro Angular NO vuelve a chequear el componente tras un subscribe() manual (a diferencia del pipe async), asi que activar OnPush sin mas se habria visto identico en la demo pero habria dejado de refrescar la vista en produccion (loading/errorMsg/grid nunca habrian cambiado tras la respuesta real del API). Por eso el cambio real fue: (1) changeDetection: ChangeDetectionStrategy.OnPush en el @Component, (2) inject(ChangeDetectorRef) como this.cdr, (3) this.cdr.markForCheck() al final de los callbacks next y error de fetchInventory(). Con esto el comportamiento visible es identico (misma secuencia de estados loading/error/grid) pero el componente ya no se re-chequea en cada tick global de la zona, solo cuando realmente cambia algo. NO se toco el HTML ni ningun estilo. Los otros candidatos (discover.component.ts 328 lineas, character-hub.component.ts 140 lineas, reader.component.ts 2291 lineas) NO se tocaron esta corrida por exceder el lote: requieren el mismo analisis linea por linea de todas las asignaciones a campos leidos en el template (y en el caso de reader.component, tambien revisar 'block.sentences' y HostListeners de seleccion de texto) antes de poder aplicar OnPush con seguridad. Candidato sugerido para la proxima corrida: repetir este mismo analisis (buscar subscribe()/setTimeout/otros callbacks async que asignen campos leidos en el template y anadir markForCheck() donde falte) en character-hub.component.ts (el mas chico de los que quedan, 140 lineas) antes de aplicar cambios; si alcanza el tiempo, seguir con discover.component.ts."
   },
   "completed_phases": [],
   "counters": {
-    "revisados": 130,
-    "corregidos": 23,
+    "revisados": 131,
+    "corregidos": 24,
     "needs_manual_review": 2
   },
   "pending_manual_review": [
