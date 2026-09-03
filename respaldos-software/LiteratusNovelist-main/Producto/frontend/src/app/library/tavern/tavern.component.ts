@@ -121,4 +121,8 @@ export class TavernComponent implements OnInit, AfterViewInit {
     }
     alert(`Redirigiendo a pasarela de pago para el ${chest.title}...`);
   }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

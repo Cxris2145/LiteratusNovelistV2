@@ -26,4 +26,12 @@ export class AssistedReadingPanelComponent {
     { id: 'orange', name: 'Naranja suave', preview: 'rgba(249, 115, 22, 0.35)' },
     { id: 'gray', name: 'Gris', preview: 'rgba(156, 163, 175, 0.35)' },
   ];
+
+  trackByIndex(index: number): number {
+    return index;
+  }
+
+  trackByColorId(index: number, color: { id: string; name: string; preview: string }): string {
+    return color.id;
+  }
 }

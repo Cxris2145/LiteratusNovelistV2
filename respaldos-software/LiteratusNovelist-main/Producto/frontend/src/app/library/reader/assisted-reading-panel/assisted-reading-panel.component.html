@@ -58,7 +58,7 @@
       <div class="ar-section" *ngIf="ar.autoAdvance$ | async">
         <label class="ar-label">Velocidad: {{ ar.autoAdvanceSpeed$ | async }}x</label>
         <div class="ar-speed-chips">
-          <button *ngFor="let s of speeds" 
+          <button *ngFor="let s of speeds; trackBy: trackByIndex"
                   class="ar-speed-chip" 
                   [class.active]="(ar.autoAdvanceSpeed$ | async) === s"
                   (click)="ar.autoAdvanceSpeed$.next(s); ar.startAutoAdvance()">{{ s }}x</button>
@@ -101,7 +101,7 @@
       <div class="ar-section">
         <label class="ar-label">Color del resaltado</label>
         <div class="ar-color-group">
-          <button *ngFor="let c of colors" 
+          <button *ngFor="let c of colors; trackBy: trackByColorId"
                   class="ar-color-dot" 
                   [class.active]="(ar.highlightColor$ | async) === c.id"
                   [style.backgroundColor]="c.preview"

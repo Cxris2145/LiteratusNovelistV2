@@ -51,7 +51,7 @@
   </ng-container>
 
   <div class="grid-container" *ngIf="isLoading && !errorMsg">
-    <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6]">
+    <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6]; trackBy: trackByIndex">
       <div class="skeleton-img"></div>
       <div class="skeleton-text title"></div>
       <div class="skeleton-text description"></div>

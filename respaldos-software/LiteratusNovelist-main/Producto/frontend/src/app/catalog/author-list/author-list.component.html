@@ -47,7 +47,7 @@
 
   <!-- Loader -->
   <div *ngIf="loading" class="loader-container">
-    <div class="shimmer-card" *ngFor="let i of [1,2,3,4]"></div>
+    <div class="shimmer-card" *ngFor="let i of [1,2,3,4]; trackBy: trackByIndex"></div>
   </div>
 
   <!-- Grid de Autores -->

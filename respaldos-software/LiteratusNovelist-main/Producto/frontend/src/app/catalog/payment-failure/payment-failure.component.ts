@@ -19,4 +19,8 @@ export class PaymentFailureComponent implements OnInit {
 
   tryAgain(): void { window.history.back(); }
   goToCatalog(): void { this.router.navigate(['/catalog']); }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

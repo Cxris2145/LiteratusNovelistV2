@@ -160,4 +160,8 @@ export class BookListComponent implements OnInit, OnDestroy {
   trackByCategory(index: number, category: GenreFilter): string {
     return category.slug || String(index);
   }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

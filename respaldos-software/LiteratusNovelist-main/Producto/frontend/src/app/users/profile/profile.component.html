@@ -25,7 +25,7 @@
       <div class="form-group color-picker-group">
         <label>Color de Avatar</label>
         <div class="color-options">
-          <button type="button" *ngFor="let color of availableColors"
+          <button type="button" *ngFor="let color of availableColors; trackBy: trackByColor"
                   class="color-circle" 
                   [style.background-color]="color"
                   [class.selected]="color === avatarColor"
@@ -37,7 +37,7 @@
       <div class="form-group theme-picker-group">
         <label>Tema Visual de la Aplicación</label>
         <div class="theme-options">
-          <button type="button" *ngFor="let theme of availableThemes"
+          <button type="button" *ngFor="let theme of availableThemes; trackBy: trackByThemeId"
                   class="theme-btn" 
                   [class.selected]="theme.id === selectedTheme"
                   (click)="previewTheme(theme.id)">

@@ -110,4 +110,12 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
+
+  trackByColor(index: number, color: string): string {
+    return color;
+  }
+
+  trackByThemeId(index: number, theme: { id: string; label: string }): string {
+    return theme.id;
+  }
 }

@@ -110,4 +110,8 @@ export class AuthorListComponent implements OnInit {
   trackByAuthor(index: number, author: any): string {
     return author?.slug || String(author?.id ?? index);
   }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

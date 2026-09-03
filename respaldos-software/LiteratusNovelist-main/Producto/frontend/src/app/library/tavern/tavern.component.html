@@ -112,7 +112,7 @@
 
     <div class="chests-grid">
       <div
-        *ngFor="let chest of chests; let i = index"
+        *ngFor="let chest of chests; let i = index; trackBy: trackByIndex"
         class="chest-card glass-panel"
         [class.chest-featured]="i === 1"
         [class.chest-master]="i === 2"

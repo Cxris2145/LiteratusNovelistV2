@@ -22,4 +22,8 @@ export class PaymentSuccessComponent implements OnInit {
 
   goToCatalog(): void { this.router.navigate(['/catalog']); }
   goToLibrary(): void { this.router.navigate(['/library']); }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }
