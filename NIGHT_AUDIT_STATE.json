@@ -1,0 +1,34 @@
+{
+  "schema_version": 3,
+  "run_in_progress": false,
+  "heartbeat_utc": "2026-09-03T04:35:09Z",
+  "last_run_utc": "2026-09-03T04:35:09Z",
+  "last_commit": "",
+  "last_push_ok": true,
+  "last_push_error": null,
+  "last_full_verification_utc": "",
+  "branch": "agent/nightly-optimization-chris",
+  "base_branch": "origin/Chris",
+  "base_commit": "3786d288fd23e4228b6c0390ac00ee9cf6533940",
+  "batch_size": 40,
+  "run_count_today": 1,
+  "current_phase": "A_errores_criticos",
+  "phase_cursor": {
+    "A_errores_criticos": "entorno_sin_bd_ni_python312_pruebas_no_disponibles"
+  },
+  "completed_phases": [],
+  "counters": {
+    "revisados": 90,
+    "corregidos": 1,
+    "needs_manual_review": 1
+  },
+  "pending_manual_review": [
+    {
+      "id": "MR-0001",
+      "phase": "A_errores_criticos",
+      "entity": "backend/requirements.txt (Django==6.0.4)",
+      "issue": "El entorno de ejecución de esta rutina trae Python 3.11.15, pero Django==6.0.4 (pineado en requirements.txt) exige Python >=3.12, y no hay servidor PostgreSQL disponible. No se pudo instalar Django ni correr manage.py check / makemigrations --check / manage.py test en esta corrida. Se necesita un entorno con Python 3.12+ y una base de datos PostgreSQL accesible (o las credenciales DATABASE_URL) para que la rutina pueda ejecutar la Fase A y todas las fases que dependen de la base de datos (B a H)."
+    }
+  ],
+  "notes": "Primera corrida real tras habilitarse el acceso de push (antes fallaba con 403 GitHub App no instalada). Bootstrap de la rama agent/nightly-optimization-chris hecho desde origin/Chris (3786d288). Sin BD ni Python 3.12 en este entorno: todas las fases que requieren Django/DB (B-H) quedan bloqueadas hasta que se provea un entorno con esas dependencias. Este lote se limitó a una corrección de codificación verificable sin BD."
+}
