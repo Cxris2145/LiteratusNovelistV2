@@ -155,7 +155,7 @@
         <div *ngIf="authorAvatar && characterAvatars.length > 0" class="sidebar-divider"></div>
 
         <!-- Personajes -->
-        <div *ngFor="let avatar of characterAvatars"
+        <div *ngFor="let avatar of characterAvatars; trackBy: trackByAvatarId"
              class="char-list-item"
              [class.locked-item]="!avatar.is_unlocked"
              (click)="openCharProfile(avatar)">
@@ -291,7 +291,7 @@
 
       <!-- Mensajes (Se ocultan en Modo Llamada) -->
       <div class="chat-messages-area" #chatBody *ngIf="!isCallMode">
-        <div *ngFor="let msg of chatMessages" 
+        <div *ngFor="let msg of chatMessages; trackBy: trackByChatMsgIndex"
              class="chat-msg-row"
              [class.user-msg]="msg.role === 'user'"
              [class.ai-msg]="msg.role !== 'user'">

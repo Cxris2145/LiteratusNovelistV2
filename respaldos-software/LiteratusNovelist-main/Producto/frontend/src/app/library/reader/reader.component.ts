@@ -2034,6 +2034,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     return chapter?.id || chapter?.order || index;
   }
 
+  trackByAvatarId(index: number, avatar: any): string | number {
+    return avatar?.id ?? index;
+  }
+
+  trackByChatMsgIndex(index: number): number {
+    return index;
+  }
+
   // ── MENU DE ACCIÓN DE PALABRA Y DICCIONARIO ───────────────────────
   showWordMenu: boolean = false;
   wordMenuX: number = 0;
