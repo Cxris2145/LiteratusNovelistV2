@@ -426,7 +426,7 @@
       <select class="voice-dropdown"
               [value]="audioService.selectedVoiceIndex"
               (change)="audioService.setVoiceByIndex(+$any($event.target).value)">
-        <option *ngFor="let v of audioService.voices; let i = index" [value]="i">
+        <option *ngFor="let v of audioService.voices; let i = index; trackBy: trackByNativeVoice" [value]="i">
           {{ v.name }} ({{ v.lang }})
         </option>
       </select>
@@ -441,7 +441,7 @@
       <select class="voice-dropdown"
               [(ngModel)]="kokoroVoice.selectedVoiceId"
               (change)="kokoroVoice.setVoice($any($event.target).value); stopAudio(true); playAudio()">
-        <option *ngFor="let v of kokoroVoice.kokoroVoices" [value]="v.id">
+        <option *ngFor="let v of kokoroVoice.kokoroVoices; trackBy: trackByVoiceId" [value]="v.id">
           {{ v.name }}
         </option>
       </select>
@@ -471,7 +471,7 @@
               [disabled]="(wasmVoice.isDownloading$ | async)"
               [value]="wasmVoice.selectedVoiceModel"
               (change)="wasmVoice.setVoice($any($event.target).value); stopAudio(true); playAudio()">
-        <option *ngFor="let v of wasmVoices" [value]="v.id">
+        <option *ngFor="let v of wasmVoices; trackBy: trackByVoiceId" [value]="v.id">
           {{ v.name }}
         </option>
       </select>

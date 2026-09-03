@@ -2050,6 +2050,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     return index;
   }
 
+  trackByNativeVoice(index: number, voice: any): string {
+    return voice ? `${voice.name}|${voice.lang}` : String(index);
+  }
+
+  trackByVoiceId(index: number, voice: any): string | number {
+    return voice?.id ?? index;
+  }
+
   // ── MENU DE ACCIÓN DE PALABRA Y DICCIONARIO ───────────────────────
   showWordMenu: boolean = false;
   wordMenuX: number = 0;
