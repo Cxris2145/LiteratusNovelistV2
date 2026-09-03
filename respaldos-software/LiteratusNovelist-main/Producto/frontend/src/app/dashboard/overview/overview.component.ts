@@ -1,7 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 @Component({
   selector: 'app-overview',
@@ -36,8 +34,13 @@ export class OverviewComponent implements OnInit {
     return Math.max((amount / this.maxSale) * 100, 4);
   }
 
-  exportPdf() {
+  async exportPdf() {
     if (!this.stats) return;
+
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
 
     const doc = new jsPDF();
     const dateStr = new Date().toLocaleDateString('es-ES');
