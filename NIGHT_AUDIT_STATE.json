@@ -1,8 +1,8 @@
 {
   "schema_version": 3,
   "run_in_progress": false,
-  "heartbeat_utc": "2026-09-03T04:35:09Z",
-  "last_run_utc": "2026-09-03T04:35:09Z",
+  "heartbeat_utc": "2026-09-03T04:46:00Z",
+  "last_run_utc": "2026-09-03T04:46:00Z",
   "last_commit": "",
   "last_push_ok": true,
   "last_push_error": null,
@@ -11,24 +11,25 @@
   "base_branch": "origin/Chris",
   "base_commit": "3786d288fd23e4228b6c0390ac00ee9cf6533940",
   "batch_size": 40,
-  "run_count_today": 1,
-  "current_phase": "A_errores_criticos",
+  "run_count_today": 2,
+  "current_phase": "B_libros_capitulos",
   "phase_cursor": {
-    "A_errores_criticos": "entorno_sin_bd_ni_python312_pruebas_no_disponibles"
+    "A_errores_criticos": "check_y_makemigrations_ok_sin_bd_real_de_produccion",
+    "B_libros_capitulos": "bloqueado_sin_bd_real_ver_MR-0002"
   },
   "completed_phases": [],
   "counters": {
-    "revisados": 90,
-    "corregidos": 1,
+    "revisados": 92,
+    "corregidos": 2,
     "needs_manual_review": 1
   },
   "pending_manual_review": [
     {
-      "id": "MR-0001",
+      "id": "MR-0002",
       "phase": "A_errores_criticos",
-      "entity": "backend/requirements.txt (Django==6.0.4)",
-      "issue": "El entorno de ejecución de esta rutina trae Python 3.11.15, pero Django==6.0.4 (pineado en requirements.txt) exige Python >=3.12, y no hay servidor PostgreSQL disponible. No se pudo instalar Django ni correr manage.py check / makemigrations --check / manage.py test en esta corrida. Se necesita un entorno con Python 3.12+ y una base de datos PostgreSQL accesible (o las credenciales DATABASE_URL) para que la rutina pueda ejecutar la Fase A y todas las fases que dependen de la base de datos (B a H)."
+      "entity": "entorno de ejecución de la rutina (sin dump/acceso a la BD real de producción)",
+      "issue": "Esta corrida confirmó que el entorno SÍ trae Python 3.12.3 (/usr/bin/python3.12) y binarios de PostgreSQL (psql, pg_isready), pero no hay un servidor PostgreSQL corriendo ni un dump/backup de la base de datos real de producción, ni archivo .env con credenciales reales. Se creó un venv con python3.12, se instalaron las 90 dependencias de requirements.txt (backend/requirements.txt) sin problemas, y se ejecutó manage.py check, makemigrations --check --dry-run y manage.py test (67 tests) contra una BD sqlite local temporal (solo para la corrida, no versionada) creada a partir de las migraciones: todo pasó OK (0 issues, 'No changes detected', 67 tests OK). Esto resuelve la parte de MR-0001 relativa a la versión de Python. Pero como la BD es una sqlite vacía (sin libros/autores/avatares reales), las Fases B-H (auditoría de contenido real: libros, capítulos, personajes IA, autores, sinopsis, portadas, duplicados de imágenes) siguen bloqueadas: no hay datos reales que auditar en este entorno. Se necesita: (a) un dump/backup restaurable de la BD PostgreSQL de producción (o acceso a DATABASE_URL real), y (b) acceso al árbol de imágenes de respaldos-software/books//images/ para poder ejecutar las Fases B-H sobre datos reales. Sin eso, cada corrida seguirá limitada a Fase A (schema/código) e ítems de Fase I/J que no requieren BD."
     }
   ],
-  "notes": "Primera corrida real tras habilitarse el acceso de push (antes fallaba con 403 GitHub App no instalada). Bootstrap de la rama agent/nightly-optimization-chris hecho desde origin/Chris (3786d288). Sin BD ni Python 3.12 en este entorno: todas las fases que requieren Django/DB (B-H) quedan bloqueadas hasta que se provea un entorno con esas dependencias. Este lote se limitó a una corrección de codificación verificable sin BD."
+  "notes": "Corrida #2. Se creó un venv local con python3.12 (disponible en /usr/bin/python3.12, no detectado en la corrida anterior) y se instalaron las dependencias de backend/requirements.txt sin tocar contenido. manage.py check, makemigrations --check --dry-run y manage.py test (67/67 OK) corrieron limpio contra una sqlite local de prueba (no committeada, solo para validar el entorno). No se generó ni tocó .env real (gitignored). En frontend se eliminó la dependencia duplicada 'lucide-angular' (Fase I) de package.json/package-lock.json: no se usaba en ningún import del código fuente (solo '@lucide/angular' está en uso), y npm install + npm run build terminaron OK tras el cambio, sin impacto visual (0 imports afectados). Sigue faltando un dump real de la BD de producción para poder ejecutar las Fases B-H (contenido de libros/autores/personajes/portadas)."
 }
