@@ -48,4 +48,8 @@ export class LibraryListComponent implements OnInit {
       }
     });
   }
+
+  trackByItem(index: number, item: any): string {
+    return String(item?.id ?? index);
+  }
 }

@@ -132,6 +132,9 @@ export class AuthorsComponent implements OnInit {
     this.authorPhoto = null;
     this.photoPreview = null;
   }
-    
+
+  trackByAuthor(index: number, author: any): string {
+    return String(author?.id ?? index);
+  }
 
 }

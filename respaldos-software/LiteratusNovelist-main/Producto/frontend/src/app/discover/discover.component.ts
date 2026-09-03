@@ -317,4 +317,12 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       return name.includes(tagName.toLowerCase());
     });
   }
+
+  trackByBook(index: number, book: any): string {
+    return book?.slug || String(book?.id ?? index);
+  }
+
+  trackByMatchPair(index: number, pair: MatchPair): string {
+    return `${pair?.from?.slug || index}-${pair?.to?.slug || index}`;
+  }
 }

@@ -48,4 +48,8 @@ export class BooksComponent implements OnInit {
       });
     }
   }
+
+  trackByBook(index: number, book: any): string {
+    return String(book?.id ?? index);
+  }
 }

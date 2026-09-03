@@ -24,7 +24,7 @@
 
   <!-- Grid de Inventario -->
   <div class="grid-container" *ngIf="!isLoading && inventoryItems.length > 0">
-    <div class="glass-panel book-card" *ngFor="let item of inventoryItems" [routerLink]="['/reader', item.id]">
+    <div class="glass-panel book-card" *ngFor="let item of inventoryItems; trackBy: trackByItem" [routerLink]="['/reader', item.id]">
       
       <div class="card-image" 
            [style.backgroundImage]="'url(' + (item.book_cover || item.edition?.book?.cover_image || 'assets/default_cover.jpg') + ')'">

@@ -52,7 +52,7 @@
 
   <!-- Grid de Autores -->
   <div *ngIf="!loading" class="authors-grid">
-    <div class="author-card glass-panel" *ngFor="let author of filteredAuthors" [routerLink]="['/author', author.slug]">
+    <div class="author-card glass-panel" *ngFor="let author of filteredAuthors; trackBy: trackByAuthor" [routerLink]="['/author', author.slug]">
       <div class="card-inner">
         <!-- Imagen / Avatar del Autor -->
         <div class="author-image-wrapper">

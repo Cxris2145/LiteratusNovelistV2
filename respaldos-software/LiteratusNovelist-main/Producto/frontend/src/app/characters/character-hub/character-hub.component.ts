@@ -133,4 +133,8 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  trackByChar(index: number, char: any): string {
+    return String(char?.id ?? index);
+  }
 }

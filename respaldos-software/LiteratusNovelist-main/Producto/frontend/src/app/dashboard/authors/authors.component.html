@@ -77,7 +77,7 @@
       </div>
 
       <div class="list-scroll">
-        <div class="author-item" *ngFor="let author of filteredAuthors">
+        <div class="author-item" *ngFor="let author of filteredAuthors; trackBy: trackByAuthor">
           <div class="author-info" (click)="openPreview(author.id)">
             <img *ngIf="author.photo" [src]="author.photo" class="author-avatar-img">
             <span *ngIf="!author.photo" class="author-avatar">{{ author.full_name[0] }}</span>

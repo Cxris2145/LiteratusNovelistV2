@@ -39,4 +39,8 @@ export class AvatarsComponent implements OnInit {
       a.book_title.toLowerCase().includes(query)
     );
   }
+
+  trackByAvatar(index: number, avatar: any): string {
+    return String(avatar?.id ?? index);
+  }
 }

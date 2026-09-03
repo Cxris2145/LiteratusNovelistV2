@@ -106,4 +106,8 @@ export class AuthorListComponent implements OnInit {
     if (page < 1 || page > this.totalPages) return;
     this.fetchAuthors(page);
   }
+
+  trackByAuthor(index: number, author: any): string {
+    return author?.slug || String(author?.id ?? index);
+  }
 }

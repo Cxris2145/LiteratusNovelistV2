@@ -25,7 +25,7 @@
 
   <!-- GRID DE LIBROS -->
   <div class="books-grid" *ngIf="!loading; else loadingState">
-    <div class="book-card card clickable" *ngFor="let book of filteredBooks" [routerLink]="[book.id, 'edit']">
+    <div class="book-card card clickable" *ngFor="let book of filteredBooks; trackBy: trackByBook" [routerLink]="[book.id, 'edit']">
       <div class="book-cover">
         <img [src]="book.cover || 'assets/no-cover.jpg'" alt="Cover" onerror="this.onerror=null;this.src='assets/no-cover.jpg'">
         <div class="status-badge" [class.published]="book.is_published">

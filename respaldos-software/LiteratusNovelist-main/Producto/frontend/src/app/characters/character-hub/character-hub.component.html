@@ -58,7 +58,7 @@
   <section class="results-section" *ngIf="isSearching">
     <h2 class="section-title">Resultados de "{{ searchQuery }}"</h2>
     <div class="character-grid">
-      <div class="char-card premium-card" *ngFor="let char of filteredCharacters" (click)="openChat(char)">
+      <div class="char-card premium-card" *ngFor="let char of filteredCharacters; trackBy: trackByChar" (click)="openChat(char)">
         <div class="card-img-wrapper">
           <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
             onerror="this.src='assets/images/default-avatar.png'">
@@ -84,7 +84,7 @@
         <h2 class="section-title"><span class="icon"><svg lucideClock [size]="20" class="lucide-icon"></svg></span> Continuar conversación</h2>
       </div>
       <div class="horizontal-scroll">
-        <div class="char-card mini-card" *ngFor="let char of recentCharacters" (click)="openChat(char)">
+        <div class="char-card mini-card" *ngFor="let char of recentCharacters; trackBy: trackByChar" (click)="openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
               onerror="this.src='assets/images/default-avatar.png'">
@@ -105,7 +105,7 @@
       </div>
 
       <div class="horizontal-scroll" *ngIf="!isLoading">
-        <div class="char-card premium-card" *ngFor="let char of featuredCharacters" (click)="openChat(char)">
+        <div class="char-card premium-card" *ngFor="let char of featuredCharacters; trackBy: trackByChar" (click)="openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
               onerror="this.src='assets/images/default-avatar.png'">
@@ -142,7 +142,7 @@
         <h2 class="section-title"><span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Todos los Personajes</h2>
       </div>
       <div class="character-grid">
-        <div class="char-card premium-card" *ngFor="let char of allCharacters" (click)="openChat(char)">
+        <div class="char-card premium-card" *ngFor="let char of allCharacters; trackBy: trackByChar" (click)="openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
               onerror="this.src='assets/images/default-avatar.png'">

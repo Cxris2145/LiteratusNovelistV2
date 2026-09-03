@@ -123,7 +123,7 @@
     </div>
 
     <div class="quotes-grid">
-      <div class="quote-card" *ngFor="let book of quoteBooks; let i = index"
+      <div class="quote-card" *ngFor="let book of quoteBooks; let i = index; trackBy: trackByBook"
            (click)="goToBook(book)"
            [style.animation-delay]="i * 0.1 + 's'">
         <div class="quote-card-backdrop"
@@ -156,7 +156,7 @@
       <a routerLink="/catalog" class="row-see-all">Ver todo →</a>
     </div>
     <div class="row-track" #trendingTrack>
-      <div class="row-card" *ngFor="let book of trendingBooks"
+      <div class="row-card" *ngFor="let book of trendingBooks; trackBy: trackByBook"
            (click)="goToBook(book)"
            (mouseenter)="hoverBook = book"
            (mouseleave)="hoverBook = null">
@@ -192,7 +192,7 @@
       <a routerLink="/characters" class="row-see-all">Ver todos →</a>
     </div>
     <div class="row-track" #iaTrack>
-      <div class="row-card ia-card" *ngFor="let book of iaBooks"
+      <div class="row-card ia-card" *ngFor="let book of iaBooks; trackBy: trackByBook"
            (click)="goToBook(book)">
         <div class="row-card-img">
           <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
@@ -220,7 +220,7 @@
       <a routerLink="/catalog" class="row-see-all">Ver todo →</a>
     </div>
     <div class="row-track" #quickTrack>
-      <div class="row-card quick-card" *ngFor="let book of quickBooks"
+      <div class="row-card quick-card" *ngFor="let book of quickBooks; trackBy: trackByBook"
            (click)="goToBook(book)">
         <div class="row-card-img">
           <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
@@ -250,7 +250,7 @@
     </div>
 
     <div class="matchmaker-grid">
-      <div class="match-pair" *ngFor="let pair of matchPairs">
+      <div class="match-pair" *ngFor="let pair of matchPairs; trackBy: trackByMatchPair">
         <div class="match-from" (click)="goToBook(pair.from)">
           <img [src]="pair.from.cover_image || 'assets/default_cover.jpg'" [alt]="pair.from.title">
           <span class="match-label">Si te gustó</span>

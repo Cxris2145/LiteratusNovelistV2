@@ -18,7 +18,7 @@
 
   <div class="books-grid" *ngIf="!loading; else loadingState">
     <!-- Re-using book card styles for avatars -->
-    <div class="book-card card clickable" *ngFor="let avatar of filteredAvatars" 
+    <div class="book-card card clickable" *ngFor="let avatar of filteredAvatars; trackBy: trackByAvatar"
          [routerLink]="avatar.book_id ? ['../books', avatar.book_id, 'avatars', avatar.id] : null">
       <div class="book-cover">
         <img [src]="avatar.avatar_image || 'assets/no-cover.jpg'" alt="Avatar" style="object-fit: cover;" onerror="this.onerror=null;this.src='assets/no-cover.jpg'">
