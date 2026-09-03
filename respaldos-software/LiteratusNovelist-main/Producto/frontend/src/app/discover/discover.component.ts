@@ -333,4 +333,12 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   trackByMatchPair(index: number, pair: MatchPair): string {
     return `${pair?.from?.slug || index}-${pair?.to?.slug || index}`;
   }
+
+  trackByMoodId(index: number, mood: Mood): string {
+    return mood?.id ?? String(index);
+  }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

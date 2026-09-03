@@ -3,7 +3,7 @@
   <!-- 1. HERO CAROUSEL (Personajes al azar destacados) -->
   <section class="hero-section" *ngIf="!isLoading || heroCharacters.length > 0">
     <div class="hero-carousel">
-      <div class="hero-slide" *ngFor="let char of heroCharacters; let i = index"
+      <div class="hero-slide" *ngFor="let char of heroCharacters; trackBy: trackByChar; let i = index"
         [class.active]="i === currentHeroIndex">
         
         <!-- Fondo desenfocado -->
@@ -36,7 +36,7 @@
 
       <!-- Indicadores -->
       <div class="carousel-indicators">
-        <span *ngFor="let dot of heroCharacters; let i = index" [class.active]="i === currentHeroIndex"
+        <span *ngFor="let dot of heroCharacters; trackBy: trackByIndex; let i = index" [class.active]="i === currentHeroIndex"
           (click)="setHeroIndex(i)"></span>
       </div>
     </div>
@@ -118,7 +118,7 @@
             <h3 class="char-name">{{ char.name }}</h3>
             <p class="book-origin">{{ char.book_title }}</p>
             <div class="badges-container">
-              <span class="badge" *ngFor="let tag of char.tags">{{ tag }}</span>
+              <span class="badge" *ngFor="let tag of char.tags; trackBy: trackByIndex">{{ tag }}</span>
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@
 
       <!-- Skeleton Loading -->
       <div class="horizontal-scroll" *ngIf="isLoading">
-        <div class="char-card skeleton-card" *ngFor="let s of skeletonArray">
+        <div class="char-card skeleton-card" *ngFor="let s of skeletonArray; trackBy: trackByIndex">
           <div class="shimmer-img"></div>
           <div class="shimmer-content">
             <div class="shimmer-line title"></div>

@@ -28,7 +28,7 @@
 
         <div class="hero-info">
           <div class="hero-tags" *ngIf="heroBook.tags && heroBook.tags.length > 0">
-            <span class="hero-tag" *ngFor="let tag of heroBook.tags | slice:0:3">{{ $any(tag).name }}</span>
+            <span class="hero-tag" *ngFor="let tag of heroBook.tags | slice:0:3; trackBy: trackByIndex">{{ $any(tag).name }}</span>
           </div>
 
           <h1 class="hero-title">{{ heroBook.title }}</h1>
@@ -89,7 +89,7 @@
     </div>
     <div class="moods-grid">
       <button class="mood-pill"
-              *ngFor="let mood of moods"
+              *ngFor="let mood of moods; trackBy: trackByMoodId"
               [class.active]="activeMood === mood.id"
               (click)="setMood(mood.id)">
         <span class="material-symbols-rounded mood-icon">{{ mood.icon }}</span>

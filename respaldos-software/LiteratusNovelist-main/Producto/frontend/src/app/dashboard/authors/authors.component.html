@@ -129,14 +129,14 @@
         <div class="author-themes" *ngIf="previewAuthor.themes">
           <h3>Temática de su obra</h3>
           <div class="theme-tags">
-            <span class="theme-tag" *ngFor="let theme of previewAuthor.themes.split(',')">{{ theme.trim() }}</span>
+            <span class="theme-tag" *ngFor="let theme of previewAuthor.themes.split(','); trackBy: trackByIndex">{{ theme.trim() }}</span>
           </div>
         </div>
 
         <div class="author-books-section">
           <h3>¿Por dónde empezar?</h3>
           <div class="books-grid-mini">
-            <div class="mini-book-card" *ngFor="let book of previewAuthor.books">
+            <div class="mini-book-card" *ngFor="let book of previewAuthor.books; trackBy: trackByIndex">
               <img [src]="book.cover || 'assets/placeholder-cover.png'">
               <div class="mini-book-info">
                 <h4>{{ book.title }}</h4>

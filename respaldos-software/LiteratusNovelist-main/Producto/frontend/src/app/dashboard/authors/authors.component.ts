@@ -137,4 +137,8 @@ export class AuthorsComponent implements OnInit {
     return String(author?.id ?? index);
   }
 
+  trackByIndex(index: number): number {
+    return index;
+  }
+
 }
