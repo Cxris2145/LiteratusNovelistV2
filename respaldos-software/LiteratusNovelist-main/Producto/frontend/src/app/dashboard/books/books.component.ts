@@ -1,17 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 
 @Component({
   selector: 'app-books',
   templateUrl: './books.component.html',
-  styleUrls: ['./books.component.css']
+  styleUrls: ['./books.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BooksComponent implements OnInit {
   books: any[] = [];
   filteredBooks: any[] = [];
   loading = true;
 
-  constructor(private bookService: DashboardBooksService) {}
+  constructor(private bookService: DashboardBooksService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadBooks();
@@ -24,15 +25,19 @@ export class BooksComponent implements OnInit {
         this.books = data;
         this.filteredBooks = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: () => this.loading = false
+      error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
     });
   }
 
   filterBooks(event: any): void {
     const query = event.target.value.toLowerCase();
-    this.filteredBooks = this.books.filter(b => 
-      b.title.toLowerCase().includes(query) || 
+    this.filteredBooks = this.books.filter(b =>
+      b.title.toLowerCase().includes(query) ||
       b.authors.some((a: string) => a.toLowerCase().includes(query))
     );
   }
@@ -43,6 +48,7 @@ export class BooksComponent implements OnInit {
         next: () => {
           this.books = this.books.filter(b => b.id !== book.id);
           this.filteredBooks = this.filteredBooks.filter(b => b.id !== book.id);
+          this.cdr.markForCheck();
         },
         error: () => alert('No se pudo eliminar el libro.')
       });

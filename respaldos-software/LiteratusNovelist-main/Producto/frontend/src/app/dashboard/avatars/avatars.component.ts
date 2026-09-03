@@ -1,17 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 
 @Component({
   selector: 'app-avatars',
   templateUrl: './avatars.component.html',
-  styleUrls: ['./avatars.component.css']
+  styleUrls: ['./avatars.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AvatarsComponent implements OnInit {
   avatars: any[] = [];
   filteredAvatars: any[] = [];
   loading = true;
 
-  constructor(private dashboardService: DashboardBooksService) {}
+  constructor(private dashboardService: DashboardBooksService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadAvatars();
@@ -24,10 +25,12 @@ export class AvatarsComponent implements OnInit {
         this.avatars = data;
         this.filteredAvatars = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading avatars', err);
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }

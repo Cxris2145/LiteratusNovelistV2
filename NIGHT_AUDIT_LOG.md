@@ -353,3 +353,22 @@
 - **Bundle**: Initial 1.34 MB raw / 275.05 kB transferencia (corrida #17: 275.02 kB; variación de +0.03 kB por el código `trackBy` agregado, sin regresión, muy por debajo del budget 1.6mb/2.5mb).
 - **Commit**: ver hash en el commit siguiente en el historial de git (incluye `NIGHT_AUDIT_STATE.json`, `NIGHT_AUDIT_LOG.md` y los 6 archivos de componentes listados arriba).
 - **Push confirmado en origin**: ver verificación con `git ls-remote` registrada en el informe final de esta corrida.
+
+## 2026-09-03T21:05:00Z — corrida horaria #19
+
+- **Entorno**: `git rev-parse --show-toplevel` = `/home/user/LiteratusNovelistV2`, `git remote -v` = `github.com/Cxris2145/LiteratusNovelistV2` (coincide). `git status` limpio al iniciar. `git fetch origin` OK (Chris, Felipe, eithan, agent/nightly-optimization, agent/nightly-optimization-chris, main). Guarda de solapamiento: `run_in_progress` era `false` y `heartbeat_utc` de la corrida #18 tenía ~52 min de antigüedad -> sin corrida viva, se continuó normal. Rama de trabajo `agent/nightly-optimization-chris` ya existía en origin; `git checkout` + `git pull --ff-only` -> already up to date.
+- **Commit base**: `3786d288fd23e4228b6c0390ac00ee9cf6533940`, confirmado ancestro común con `origin/Chris` (mismo commit base que corridas anteriores, sin cambios nuevos en `Chris`).
+- **Push verificado (sección 2.9)**: `git push --dry-run origin HEAD:refs/heads/agent/nightly-optimization-chris` -> `Everything up-to-date` -> **push verificado OK**.
+- **Smoke check (Fase A)**: venv Python 3.12.3 temporal (scratchpad de la sesión, no versionado) + `pip install -r requirements.txt` OK + variables de entorno temporales (`SECRET_KEY`, `DEBUG`, `DATABASE_URL` sqlite temporal) -> `python -X utf8 manage.py check` -> `System check identified no issues (0 silenced)`. `manage.py makemigrations --check --dry-run` -> `No changes detected`. Venv y sqlite temporales borrados al terminar.
+- **Fase y lote trabajados**: Fase I (frontend) — cursor: "trackBy cerrado (corrida #18)" -> "OnPush en 3 componentes pequeños de dashboard (users, avatars, books)".
+- **Cambios aplicados**:
+  - `dashboard/users/users.component.ts` — agregado `ChangeDetectionStrategy.OnPush` + `ChangeDetectorRef` inyectado + `markForCheck()` en los callbacks `next`/`error` de `loadUsers()` (única mutación de estado fuera de un evento de template).
+  - `dashboard/avatars/avatars.component.ts` — mismo patrón en `loadAvatars()`.
+  - `dashboard/books/books.component.ts` — mismo patrón en `loadBooks()` (next/error) y además en el `next` de `deleteBook()` (la respuesta HTTP de borrado llega en una tarea async separada del click que la originó).
+  - Se revisaron los 3 templates `.html` antes de tocar el `.ts`: sin async pipe, sin `@Input()` de un padre, mutaciones de estado solo dentro de `subscribe()` (ahora con `markForCheck`) o dentro de handlers `(input)`/`(click)` del propio template (que ya disparan CD por sí solos bajo OnPush). Ningún binding, clase, estilo o texto visible fue modificado.
+- **Tabla de duplicados de imágenes**: no aplica esta corrida (Fase F sigue bloqueada por falta de BD real, ver MR-0002).
+- **NEEDS MANUAL REVIEW nuevos**: ninguno. MR-0002 y MR-0003 siguen abiertas sin cambios.
+- **Pruebas**: backend — `manage.py check` OK, `makemigrations --check --dry-run` OK. Frontend — `npm install` OK (`node_modules` no estaba presente al iniciar la corrida; 1105 paquetes). `npx ng build --configuration production` -> exit 0, 0 errores, mismos warnings preexistentes de CommonJS (canvg/lottie-web). `npx ng test --watch=false --browsers=ChromeHeadlessNoSandbox` con `CHROME_BIN=/opt/pw-browsers/chromium-1194/chrome-linux/chrome` -> **8 de 8 tests OK**. No quedó nada temporal sin versionar (solo los 3 componentes + STATE + LOG modificados).
+- **Bundle**: Initial 1.34 MB raw / 274.96 kB transferencia (corrida #18: 275.05 kB; sin regresión, dentro del budget 1.6mb/2.5mb).
+- **Commit**: ver hash en el commit siguiente en el historial de git (incluye `NIGHT_AUDIT_STATE.json`, `NIGHT_AUDIT_LOG.md` y los 3 componentes listados arriba).
+- **Push confirmado en origin**: ver verificación con `git ls-remote` registrada en el informe final de esta corrida.

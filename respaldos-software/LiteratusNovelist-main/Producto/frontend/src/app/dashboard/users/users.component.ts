@@ -1,17 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 
 @Component({
   selector: 'app-users',
   templateUrl: './users.component.html',
-  styleUrls: ['./users.component.css']
+  styleUrls: ['./users.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UsersComponent implements OnInit {
   users: any[] = [];
   filteredUsers: any[] = [];
   loading = true;
 
-  constructor(private dashboardService: DashboardBooksService) {}
+  constructor(private dashboardService: DashboardBooksService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -24,10 +25,12 @@ export class UsersComponent implements OnInit {
         this.users = data;
         this.filteredUsers = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading users', err);
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
