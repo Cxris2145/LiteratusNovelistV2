@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
 import { AuthService } from '../core/services/auth.service';
@@ -22,12 +22,14 @@ interface MatchPair {
 @Component({
   selector: 'app-discover',
   templateUrl: './discover.component.html',
-  styleUrl: './discover.component.css'
+  styleUrl: './discover.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DiscoverComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
   allBooks: any[] = [];
   isLoading = true;
@@ -105,10 +107,12 @@ export class DiscoverComponent implements OnInit, OnDestroy {
         this.buildRows();
 
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error al cargar descubrir:', err);
         this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -117,6 +121,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
     if (this.allBooks.length === 0) return;
     const idx = Math.floor(Math.random() * Math.min(12, this.allBooks.length));
     this.heroBook = this.allBooks[idx];
+    this.cdr.markForCheck();
   }
 
   private buildRows(pool: any[] = this.allBooks): void {
@@ -271,16 +276,19 @@ export class DiscoverComponent implements OnInit, OnDestroy {
       this.ttsUtterance.onstart = () => {
         this.isPlaying = true;
         this.currentAudioBook = book;
+        this.cdr.markForCheck();
       };
 
       this.ttsUtterance.onend = () => {
         this.isPlaying = false;
         this.currentAudioBook = null;
+        this.cdr.markForCheck();
       };
 
       this.ttsUtterance.onerror = () => {
         this.isPlaying = false;
         this.currentAudioBook = null;
+        this.cdr.markForCheck();
       };
 
       if (window.speechSynthesis) {
