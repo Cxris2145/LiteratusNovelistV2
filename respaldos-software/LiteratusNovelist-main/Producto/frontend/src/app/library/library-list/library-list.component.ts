@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
-import lottie from 'lottie-web';
 
 @Component({
   selector: 'app-library-list',
@@ -18,12 +17,14 @@ export class LibraryListComponent implements OnInit {
   @ViewChild('libritoContainer') set libritoContainer(el: ElementRef) {
     if (el && !this._libritoContainer) {
       this._libritoContainer = el;
-      lottie.loadAnimation({
-        container: el.nativeElement,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'assets/lottie/librito.json'
+      import('lottie-web').then(({ default: lottie }) => {
+        lottie.loadAnimation({
+          container: el.nativeElement,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: 'assets/lottie/librito.json'
+        });
       });
     }
   }

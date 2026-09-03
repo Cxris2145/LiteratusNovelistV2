@@ -7,7 +7,6 @@ import { AudioService } from '../../core/services/audio.service';
 import { AssistedReadingService } from '../../core/services/assisted-reading.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import lottie from 'lottie-web';
 import { environment } from '../../../environments/environment';
 import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
 import { ChatService } from '../../core/services/chat.service';
@@ -244,12 +243,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
   @ViewChild('loadingLottie') set loadingLottie(el: ElementRef) {
     if (el && !this._loadingLottieContainer) {
       this._loadingLottieContainer = el;
-      lottie.loadAnimation({
-        container: el.nativeElement,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'assets/lottie/right left.json'
+      import('lottie-web').then(({ default: lottie }) => {
+        lottie.loadAnimation({
+          container: el.nativeElement,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: 'assets/lottie/right left.json'
+        });
       });
     }
   }

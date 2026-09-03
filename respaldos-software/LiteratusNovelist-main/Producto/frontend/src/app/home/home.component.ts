@@ -4,7 +4,6 @@ import { isPlatformBrowser } from '@angular/common';
 import { ApiService } from '../core/services/api.service';
 import { AuthService } from '../core/services/auth.service';
 import { Router } from '@angular/router';
-import lottie from 'lottie-web';
 
 export interface Book {
   id: string;
@@ -83,12 +82,14 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('readingContainer') set readingContainer(el: ElementRef) {
     if (el && !this._readingContainer) {
       this._readingContainer = el;
-      lottie.loadAnimation({
-        container: el.nativeElement,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'assets/lottie/magic.json'
+      import('lottie-web').then(({ default: lottie }) => {
+        lottie.loadAnimation({
+          container: el.nativeElement,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: 'assets/lottie/magic.json'
+        });
       });
     }
   }
@@ -97,12 +98,14 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('saludoContainer') set saludoContainer(el: ElementRef) {
     if (el && !this._saludoContainer) {
       this._saludoContainer = el;
-      lottie.loadAnimation({
-        container: el.nativeElement,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'assets/lottie/saludo.json'
+      import('lottie-web').then(({ default: lottie }) => {
+        lottie.loadAnimation({
+          container: el.nativeElement,
+          renderer: 'svg',
+          loop: true,
+          autoplay: true,
+          path: 'assets/lottie/saludo.json'
+        });
       });
     }
   }
