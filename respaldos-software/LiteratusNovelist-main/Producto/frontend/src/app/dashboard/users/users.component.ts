@@ -34,9 +34,13 @@ export class UsersComponent implements OnInit {
 
   filterUsers(event: Event) {
     const query = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredUsers = this.users.filter(u => 
-      u.username.toLowerCase().includes(query) || 
+    this.filteredUsers = this.users.filter(u =>
+      u.username.toLowerCase().includes(query) ||
       u.email.toLowerCase().includes(query)
     );
+  }
+
+  trackByUser(index: number, user: any): any {
+    return user.id ?? user.username;
   }
 }

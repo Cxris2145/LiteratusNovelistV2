@@ -30,7 +30,7 @@
         <p class="dchat-char-book" *ngIf="avatar.book_title">{{ avatar.book_title }}</p>
 
         <div class="dchat-tags" *ngIf="avatar.tags?.length">
-          <span class="dchat-tag" *ngFor="let tag of avatar.tags">{{ tag }}</span>
+          <span class="dchat-tag" *ngFor="let tag of avatar.tags; trackBy: trackByTag">{{ tag }}</span>
         </div>
 
         <p class="dchat-char-desc">{{ avatar.description }}</p>
@@ -124,7 +124,7 @@
       <!-- Messages (Oculto en Call Mode o visible debajo) -->
       <div class="dchat-messages" id="dchat-messages-feed" *ngIf="!isCallMode">
 
-        <div *ngFor="let msg of messages"
+        <div *ngFor="let msg of messages; trackBy: trackByMsgIndex"
              [class]="'dchat-msg ' + (msg.role === 'user' ? 'dchat-msg--user' : 'dchat-msg--char')">
 
           <!-- Character message -->

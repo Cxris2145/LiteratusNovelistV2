@@ -351,6 +351,18 @@ export class BookEditorComponent implements OnInit {
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
+  trackByAuthorId(index: number, author: any): any {
+    return author.id;
+  }
+
+  trackByGenreId(index: number, genre: any): any {
+    return genre.id;
+  }
+
+  trackByAvatarId(index: number, avatar: any): any {
+    return avatar.id;
+  }
+
   removeAvatar(avatarId: string): void {
     if (confirm('¿Eliminar este personaje?')) {
       this.loading = true;

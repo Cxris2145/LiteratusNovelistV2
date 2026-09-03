@@ -152,6 +152,14 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
     this.router.navigate(['/characters']);
   }
 
+  trackByCharId(index: number, char: any): any {
+    return char.id;
+  }
+
+  trackByTag(index: number, tag: any): any {
+    return tag;
+  }
+
   formatMessage(text: string): string {
     if (!text) return '';
     // Reemplaza **texto** por <strong>texto</strong>

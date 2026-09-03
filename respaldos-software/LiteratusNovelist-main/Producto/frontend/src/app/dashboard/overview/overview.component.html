@@ -113,7 +113,7 @@
         <div class="bar-chart">
           <div
             class="bar-item"
-            *ngFor="let day of stats.sales_chart"
+            *ngFor="let day of stats.sales_chart; trackBy: trackByDate"
             [style.height.%]="getBarHeight(day.amount)"
             [title]="day.date + ': $' + day.amount">
             <div class="bar-fill">
@@ -133,7 +133,7 @@
           </div>
         </div>
         <div class="book-list">
-          <div class="book-item" *ngFor="let book of stats.top_books; let i = index">
+          <div class="book-item" *ngFor="let book of stats.top_books; let i = index; trackBy: trackByBookTitle">
             <span class="rank" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">{{ i + 1 }}</span>
             <div class="book-item-info">
               <span class="book-title">{{ book['edition__book__title'] }}</span>

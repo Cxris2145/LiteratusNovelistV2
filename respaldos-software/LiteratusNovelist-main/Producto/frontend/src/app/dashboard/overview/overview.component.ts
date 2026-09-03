@@ -34,6 +34,14 @@ export class OverviewComponent implements OnInit {
     return Math.max((amount / this.maxSale) * 100, 4);
   }
 
+  trackByDate(index: number, day: any): any {
+    return day.date;
+  }
+
+  trackByBookTitle(index: number, book: any): any {
+    return book['edition__book__title'] ?? index;
+  }
+
   async exportPdf() {
     if (!this.stats) return;
 

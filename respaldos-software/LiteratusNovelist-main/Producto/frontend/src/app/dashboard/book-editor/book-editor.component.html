@@ -47,7 +47,7 @@
           <div style="display: flex; gap: 8px;">
             <select formControlName="author_id" style="flex: 1;">
               <option value="">-- Seleccionar Autor --</option>
-              <option *ngFor="let author of authorsList" [value]="author.id">{{ author.full_name }}</option>
+              <option *ngFor="let author of authorsList; trackBy: trackByAuthorId" [value]="author.id">{{ author.full_name }}</option>
             </select>
             <button type="button" class="add-btn" style="padding: 4px 12px; display: flex; align-items: center;" (click)="router.navigate(['/dashboard/authors'])" title="Gestionar Autores">
               <span class="material-symbols-outlined" style="font-size: 18px;">settings</span>
@@ -61,7 +61,7 @@
         <div class="form-group">
           <label>Géneros / Categorías (Ctrl + Click para varios)</label>
           <select formControlName="genres" multiple style="height: 120px; background: #1e293b;">
-            <option *ngFor="let genre of genresList" [value]="genre.id">
+            <option *ngFor="let genre of genresList; trackBy: trackByGenreId" [value]="genre.id">
               {{ genre.name }}
             </option>
           </select>
@@ -190,7 +190,7 @@
       </div>
 
       <div class="avatars-list" *ngIf="avatars.length > 0; else noAvatars">
-        <div class="avatar-item clickable" *ngFor="let avatar of avatars" 
+        <div class="avatar-item clickable" *ngFor="let avatar of avatars; trackBy: trackByAvatarId"
              (click)="router.navigate(['/dashboard/books', bookId, 'avatars', avatar.id])">
           <img [src]="avatar.avatar_image || 'assets/placeholder-avatar.png'" alt="{{ avatar.name }}" class="avatar-thumb" onerror="this.onerror=null;this.src='assets/placeholder-avatar.png'">
           <div class="avatar-info">

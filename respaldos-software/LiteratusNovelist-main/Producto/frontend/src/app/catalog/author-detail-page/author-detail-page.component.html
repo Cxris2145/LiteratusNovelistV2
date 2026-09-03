@@ -52,7 +52,7 @@
       </div>
 
       <div class="books-grid">
-        <div class="book-card glass-panel" *ngFor="let book of $any(author.books)" (click)="goToBook(book.slug)">
+        <div class="book-card glass-panel" *ngFor="let book of $any(author.books); trackBy: trackByBookSlug" (click)="goToBook(book.slug)">
           <div class="book-cover-container">
             <img [src]="book.cover_image || 'assets/default_cover.png'" alt="{{ book.title }}" class="book-cover">
             <div class="book-overlay">
@@ -62,7 +62,7 @@
           <div class="book-details">
             <h3 class="book-title">{{ book.title }}</h3>
             <div class="book-genres">
-              <span class="genre-tag" *ngFor="let genre of $any(book.genres)">{{ $any(genre).name }}</span>
+              <span class="genre-tag" *ngFor="let genre of $any(book.genres); trackBy: trackByGenreName">{{ $any(genre).name }}</span>
             </div>
           </div>
         </div>

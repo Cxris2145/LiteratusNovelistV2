@@ -215,4 +215,12 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  trackByMsgIndex(index: number, msg: DemoMessage): number {
+    return index;
+  }
+
+  trackByTag(index: number, tag: any): any {
+    return tag;
+  }
 }

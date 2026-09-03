@@ -10,7 +10,7 @@
     </div>
 
     <div class="recent-list">
-      <div class="recent-item" *ngFor="let char of recentCharacters" [class.active]="char.id === avatarId"
+      <div class="recent-item" *ngFor="let char of recentCharacters; trackBy: trackByCharId" [class.active]="char.id === avatarId"
         (click)="selectCharacter(char.id)">
         <img [src]="char.avatar_image_url || 'assets/liyumi_avatar.png'" class="mini-avatar"
           onerror="this.src='assets/liyumi_avatar.png'">
@@ -110,7 +110,7 @@
         <p class="profile-book">{{ avatar.book_title }}</p>
 
         <div class="profile-badges">
-          <span class="badge" *ngFor="let tag of avatar.tags">{{ tag }}</span>
+          <span class="badge" *ngFor="let tag of avatar.tags; trackBy: trackByTag">{{ tag }}</span>
         </div>
 
         <div class="profile-description">

@@ -29,7 +29,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of filteredUsers">
+        <tr *ngFor="let user of filteredUsers; trackBy: trackByUser">
           <td style="font-weight: 500; color: var(--glow-accent);">{{ user.username }}</td>
           <td>{{ user.email }}</td>
           <td>

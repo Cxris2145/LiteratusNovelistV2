@@ -43,4 +43,12 @@ export class AuthorDetailPageComponent implements OnInit {
   goToBook(slug: string): void {
     this.router.navigate(['/book', slug]);
   }
+
+  trackByBookSlug(index: number, book: any): any {
+    return book.slug ?? book.id ?? index;
+  }
+
+  trackByGenreName(index: number, genre: any): any {
+    return genre.id ?? genre.slug ?? genre.name ?? index;
+  }
 }
