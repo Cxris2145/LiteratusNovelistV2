@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -6,7 +6,8 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
-  styleUrl: './register.component.css'
+  styleUrl: './register.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RegisterComponent {
   registerForm: FormGroup;
@@ -27,6 +28,7 @@ export class RegisterComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {
     this.registerForm = this.fb.group({
@@ -79,6 +81,7 @@ export class RegisterComponent {
     this.auth.register(payload).subscribe({
       next: (res: any) => {
         this.successMsg = res?.message || '¡Cuenta creada con éxito! Redirigiendo al login...';
+        this.cdr.markForCheck();
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 2000);
@@ -92,6 +95,7 @@ export class RegisterComponent {
         } else {
           this.errorMsg = 'Ha ocurrido un error durante el registro. Inténtalo de nuevo.';
         }
+        this.cdr.markForCheck();
       }
     });
   }
