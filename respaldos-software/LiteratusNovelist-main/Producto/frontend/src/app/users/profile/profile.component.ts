@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
@@ -9,7 +9,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.css']
+  styleUrls: ['./profile.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProfileComponent implements OnInit {
   profileForm: FormGroup;
@@ -18,6 +19,7 @@ export class ProfileComponent implements OnInit {
   chatService = inject(ChatService);
   fb = inject(FormBuilder);
   snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
 
   loading = false;
   userInitials = 'V';
@@ -62,6 +64,7 @@ export class ProfileComponent implements OnInit {
             this.chatService.updateInkBalance(profile.ink_balance);
           }
           this.settingsService.setThemeDirectly(this.selectedTheme);
+          this.cdr.markForCheck();
         }
       }
     });
@@ -102,11 +105,13 @@ export class ProfileComponent implements OnInit {
         // Actualizar el estado global
         this.chatService.notifyProfileUpdate();
         this.loadProfile();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.loading = false;
         console.error("Error actualizando perfil", err);
         this.snackBar.open('Error al guardar los cambios', 'Cerrar', { duration: 3000 });
+        this.cdr.markForCheck();
       }
     });
   }

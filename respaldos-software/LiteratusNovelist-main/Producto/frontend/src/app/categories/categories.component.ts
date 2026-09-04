@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
 
@@ -17,11 +17,13 @@ export interface Category {
 @Component({
   selector: 'app-categories',
   templateUrl: './categories.component.html',
-  styleUrls: ['./categories.component.css']
+  styleUrls: ['./categories.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CategoriesComponent implements OnInit {
   private router = inject(Router);
   private api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
 
   searchTerm = '';
   isLoading = false;
@@ -84,9 +86,11 @@ export class CategoriesComponent implements OnInit {
         }
 
         this.isLoading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }
