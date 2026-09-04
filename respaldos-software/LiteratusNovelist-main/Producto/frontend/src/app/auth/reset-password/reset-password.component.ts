@@ -1,18 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
-  styleUrls: ['./reset-password.component.css']
+  styleUrls: ['./reset-password.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ResetPasswordComponent implements OnInit {
   uid = '';
   token = '';
   newPassword = '';
   confirmPassword = '';
-  
+
   isLoading = false;
   isValidating = false;
   message = '';
@@ -22,7 +23,8 @@ export class ResetPasswordComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -33,6 +35,7 @@ export class ResetPasswordComponent implements OnInit {
       if (!this.uid || !this.token) {
         this.isInvalidLink = true;
         this.error = 'El enlace de recuperación es inválido o está incompleto.';
+        this.cdr.markForCheck();
         return;
       }
 
@@ -42,11 +45,13 @@ export class ResetPasswordComponent implements OnInit {
           this.isValidating = false;
           this.isInvalidLink = false;
           this.error = '';
+          this.cdr.markForCheck();
         },
         error: (err: any) => {
           this.isValidating = false;
           this.isInvalidLink = true;
           this.error = err.error?.token?.[0] || err.error?.non_field_errors?.[0] || 'El enlace de recuperación no es válido o ha expirado.';
+          this.cdr.markForCheck();
         }
       });
     });
@@ -73,6 +78,7 @@ export class ResetPasswordComponent implements OnInit {
       next: (res: any) => {
         this.isLoading = false;
         this.message = res.message || 'Contraseña actualizada con éxito.';
+        this.cdr.markForCheck();
       },
       error: (err: any) => {
         this.isLoading = false;
@@ -82,6 +88,7 @@ export class ResetPasswordComponent implements OnInit {
           err.error?.confirm_password?.[0] ||
           err.error?.non_field_errors?.[0] ||
           'Ha ocurrido un error al actualizar la contraseña.';
+        this.cdr.markForCheck();
       }
     });
   }

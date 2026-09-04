@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -6,7 +6,8 @@ import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
@@ -23,6 +24,7 @@ export class LoginComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {
     this.loginForm = this.fb.group({
@@ -56,6 +58,7 @@ export class LoginComponent implements OnInit {
         error: (err) => {
           this.errorMsg = this.resolveLoginError(err);
           this.isLoading = false;
+          this.cdr.markForCheck();
         }
       });
   }
