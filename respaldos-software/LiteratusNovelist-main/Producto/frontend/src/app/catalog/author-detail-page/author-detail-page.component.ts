@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
@@ -8,7 +9,7 @@ import { ApiService } from '../../core/services/api.service';
   styleUrls: ['./author-detail-page.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuthorDetailPageComponent implements OnInit {
+export class AuthorDetailPageComponent implements OnInit, OnDestroy {
   author: any = null;
   isLoading = true;
   errorMsg = '';
@@ -17,14 +18,21 @@ export class AuthorDetailPageComponent implements OnInit {
   private router = inject(Router);
   private api = inject(ApiService);
   private cdr = inject(ChangeDetectorRef);
+  private subscriptions = new Subscription();
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const slug = params.get('slug');
-      if (slug) {
-        this.loadAuthorDetails(slug);
-      }
-    });
+    this.subscriptions.add(
+      this.route.paramMap.subscribe(params => {
+        const slug = params.get('slug');
+        if (slug) {
+          this.loadAuthorDetails(slug);
+        }
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   loadAuthorDetails(slug: string): void {

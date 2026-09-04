@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs/operators';
 import { ChatService } from '../../core/services/chat.service';
 
 @Component({
@@ -17,7 +18,7 @@ export class PaymentSuccessComponent implements OnInit {
 
   ngOnInit(): void {
     this.chatService.loadInitialInk();
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap.pipe(take(1)).subscribe(params => {
       this.buyOrder = params.get('buy_order') || '';
       this.cdr.markForCheck();
     });

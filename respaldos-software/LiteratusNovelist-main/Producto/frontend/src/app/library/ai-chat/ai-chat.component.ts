@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ChatService, ChatMessage } from '../../core/services/chat.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-ai-chat',
@@ -9,7 +10,7 @@ import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
   styleUrl: './ai-chat.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AiChatComponent implements OnInit, AfterViewChecked {
+export class AiChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -17,6 +18,8 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
   public kokoroVoice = inject(KokoroTtsService);
   
   @ViewChild('scrollMe') private myScrollContainer!: ElementRef;
+
+  private subscriptions = new Subscription();
 
   // Datos del Personaje Actual
   avatarId?: number;
@@ -47,22 +50,30 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
   }
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      const id = params.get('session_id');
-      if (id) {
-        this.avatarId = +id;
-        console.log("Cargando chat para Avatar ID:", this.avatarId);
-        this.loadChatSession();
-      }
-      this.cdr.markForCheck();
-    });
+    this.subscriptions.add(
+      this.route.paramMap.subscribe(params => {
+        const id = params.get('session_id');
+        if (id) {
+          this.avatarId = +id;
+          console.log("Cargando chat para Avatar ID:", this.avatarId);
+          this.loadChatSession();
+        }
+        this.cdr.markForCheck();
+      })
+    );
     this.loadRecentCharacters();
 
     // Suscribirse a mensajes globales del servicio
-    this.chatService.messages$.subscribe(msgs => {
-      this.messages = msgs;
-      this.cdr.markForCheck();
-    });
+    this.subscriptions.add(
+      this.chatService.messages$.subscribe(msgs => {
+        this.messages = msgs;
+        this.cdr.markForCheck();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   ngAfterViewChecked() {

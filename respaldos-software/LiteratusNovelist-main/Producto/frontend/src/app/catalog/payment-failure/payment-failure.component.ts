@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-payment-failure',
@@ -14,7 +15,7 @@ export class PaymentFailureComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap.pipe(take(1)).subscribe(params => {
       this.reason = params.get('reason') || 'El pago fue cancelado o rechazado.';
       this.cdr.markForCheck();
     });
