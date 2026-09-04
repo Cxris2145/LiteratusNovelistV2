@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, AfterViewInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { ChatService } from '../../core/services/chat.service';
@@ -6,11 +6,13 @@ import { ChatService } from '../../core/services/chat.service';
 @Component({
   selector: 'app-tavern',
   templateUrl: './tavern.component.html',
-  styleUrls: ['./tavern.component.css']
+  styleUrls: ['./tavern.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TavernComponent implements OnInit, AfterViewInit {
   private api = inject(ApiService);
   private chatService = inject(ChatService);
+  private cdr = inject(ChangeDetectorRef);
 
   inkBalance: number = 0;
   displayBalance: number = 0;
@@ -71,6 +73,7 @@ export class TavernComponent implements OnInit, AfterViewInit {
       const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
 
       this.displayBalance = Math.floor(start + (end - start) * ease);
+      this.cdr.markForCheck();
 
       if (progress < 1) {
         requestAnimationFrame(update);
@@ -97,6 +100,7 @@ export class TavernComponent implements OnInit, AfterViewInit {
         clearInterval(interval);
         this.claimAdReward();
       }
+      this.cdr.markForCheck();
     }, 1000);
   }
 
@@ -107,9 +111,11 @@ export class TavernComponent implements OnInit, AfterViewInit {
         this.chatService.updateInkBalance(this.inkBalance);
         this.animateOdometer();
         this.adLoading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.adLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }
