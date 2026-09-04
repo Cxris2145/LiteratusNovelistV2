@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -15,13 +15,15 @@ export interface DemoMessage {
 @Component({
   selector: 'app-demo-chat-page',
   templateUrl: './demo-chat-page.component.html',
-  styleUrls: ['./demo-chat-page.component.css']
+  styleUrls: ['./demo-chat-page.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DemoChatPageComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(ApiService);
   public auth = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
   public kokoroVoice = inject(KokoroTtsService);
   public speechService = inject(SpeechRecognitionService);
@@ -53,14 +55,17 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
         this.inputText = text;
         this.sendMessage();
       }
+      this.cdr.markForCheck();
     });
 
     this.speechService.partialTranscript$.pipe(takeUntil(this.destroy$)).subscribe(text => {
       this.partialTranscript = text;
+      this.cdr.markForCheck();
     });
 
     this.speechService.audioLevel$.pipe(takeUntil(this.destroy$)).subscribe(level => {
       this.audioLevel = level;
+      this.cdr.markForCheck();
     });
   }
 
@@ -79,10 +84,12 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
           this.messages = [{ role: 'assistant', content: data.greeting_message }];
         }
         this.avatarLoading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.avatarLoading = false;
         this.router.navigate(['/characters']);
+        this.cdr.markForCheck();
       }
     });
   }
@@ -109,6 +116,7 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
         if (this.isCallMode && !this.isMuted) {
           this.speakChatReply(res.reply);
         }
+        this.cdr.markForCheck();
       },
       error: (err) => {
         const errData = err?.error;
@@ -124,6 +132,7 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
         }
         this.isSending = false;
         setTimeout(() => this.scrollToBottom(), 60);
+        this.cdr.markForCheck();
       }
     });
   }
@@ -206,6 +215,7 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
       if (speaking) {
         this.activeTalkingFrame = Math.floor(Math.random() * 3) + 1;
       }
+      this.cdr.markForCheck();
     });
   }
 
