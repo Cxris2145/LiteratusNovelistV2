@@ -71,7 +71,9 @@ class AvatarDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
-        avatar = get_object_or_404(AIAvatar, pk=pk)
+        avatar = get_object_or_404(
+            AIAvatar.objects.select_related('edition__book'), pk=pk
+        )
         serializer = GlobalHubAvatarSerializer(
             avatar,
             context={'request': request}
