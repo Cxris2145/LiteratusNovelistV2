@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, NgZone, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +10,8 @@ import { takeUntil } from 'rxjs/operators';
 @Component({
   selector: 'app-book-detail-page',
   templateUrl: './book-detail-page.component.html',
-  styleUrls: ['./book-detail-page.component.css']
+  styleUrls: ['./book-detail-page.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BookDetailPageComponent implements OnInit, OnDestroy {
   private _avatarCarousel!: ElementRef;
@@ -27,6 +28,7 @@ export class BookDetailPageComponent implements OnInit, OnDestroy {
   private zone = inject(NgZone);
   private liyumi = inject(LiyumiService);
   private chatService = inject(ChatService);
+  private cdr = inject(ChangeDetectorRef);
   public auth = inject(AuthService);
 
   slug: string | null = null;
@@ -62,6 +64,7 @@ export class BookDetailPageComponent implements OnInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: 'instant' });
     this.auth.isLoggedIn$.pipe(takeUntil(this.destroy$)).subscribe(isLoggedIn => {
       this.isLoggedIn = !!isLoggedIn;
+      this.cdr.markForCheck();
     });
 
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -146,11 +149,13 @@ export class BookDetailPageComponent implements OnInit, OnDestroy {
             duration: 5000
           });
         }, 800);
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading book details:', err);
         this.errorMsg = 'No se pudo cargar la información del libro.';
         this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -175,16 +180,19 @@ export class BookDetailPageComponent implements OnInit, OnDestroy {
       this.ttsUtterance.onstart = () => {
         this.isTalking = true;
         this.liyumi.speak({ text: '🎙️ Leyendo la sinopsis...', duration: 0 });
+        this.cdr.markForCheck();
       };
 
       this.ttsUtterance.onend = () => {
         this.isTalking = false;
         this.liyumi.speak({ text: '✨ ¿Qué te pareció? ¡Es fascinante!', duration: 3000 });
+        this.cdr.markForCheck();
       };
 
       this.ttsUtterance.onerror = () => {
         this.isTalking = false;
         this.liyumi.stopSpeaking();
+        this.cdr.markForCheck();
       };
 
       window.speechSynthesis.speak(this.ttsUtterance);
@@ -241,11 +249,13 @@ export class BookDetailPageComponent implements OnInit, OnDestroy {
           document.body.style.overflow = '';
           // Liyumi celebra la compra
           this.liyumi.wave('¡Excelente elección! 🎉 Tu libro está listo. ¡A leer!');
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Error purchasing book:', err);
           alert(err.error?.error || 'Hubo un error al procesar la compra.');
           this.purchaseLoading = false;
+          this.cdr.markForCheck();
         }
       });
     }
@@ -330,11 +340,13 @@ export class BookDetailPageComponent implements OnInit, OnDestroy {
         this.reviewComment = '';
         this.reviewRating = 5;
         this.liyumi.wave('¡Gracias por tu reseña! A la comunidad le encantará.');
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.isSubmittingReview = false;
         this.reviewErrorMsg = err.error?.error || 'No se pudo publicar la reseña.';
         console.error('Error submitting review:', err);
+        this.cdr.markForCheck();
       }
     });
   }
