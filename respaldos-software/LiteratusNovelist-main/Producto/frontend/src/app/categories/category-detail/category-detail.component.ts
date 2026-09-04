@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
@@ -19,12 +19,14 @@ interface Book {
 @Component({
   selector: 'app-category-detail',
   templateUrl: './category-detail.component.html',
-  styleUrls: ['./category-detail.component.css']
+  styleUrls: ['./category-detail.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CategoryDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
 
   private paramsSub?: Subscription;
 
@@ -56,6 +58,7 @@ export class CategoryDetailComponent implements OnInit, OnDestroy {
       this.loadCategoryMeta();
       this.resetPagination();
       this.fetchBooks();
+      this.cdr.markForCheck();
     });
   }
 
@@ -93,6 +96,7 @@ export class CategoryDetailComponent implements OnInit, OnDestroy {
           description: `Explora nuestra colección de ${(res.name || nameStr).toLowerCase()}`,
           color: color,
         };
+        this.cdr.markForCheck();
       },
       error: (err) => console.error('Error fetching category', err)
     });
@@ -142,10 +146,12 @@ export class CategoryDetailComponent implements OnInit, OnDestroy {
         
         this.isLoading = false;
         this.isLoadingMore = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.isLoading = false;
         this.isLoadingMore = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -156,6 +162,7 @@ export class CategoryDetailComponent implements OnInit, OnDestroy {
     this.searchTimeout = setTimeout(() => {
       this.resetPagination();
       this.fetchBooks();
+      this.cdr.markForCheck();
     }, 500);
   }
 

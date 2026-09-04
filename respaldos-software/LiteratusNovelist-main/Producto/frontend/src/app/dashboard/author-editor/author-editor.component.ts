@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 
 @Component({
   selector: 'app-author-editor',
   templateUrl: './author-editor.component.html',
-  styleUrls: ['./author-editor.component.css']
+  styleUrls: ['./author-editor.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuthorEditorComponent implements OnInit {
   authorId: string | null = null;
@@ -25,7 +26,8 @@ export class AuthorEditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private bookService: DashboardBooksService
+    private bookService: DashboardBooksService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -39,8 +41,8 @@ export class AuthorEditorComponent implements OnInit {
     this.loading = true;
     this.bookService.getAuthorDetail(this.authorId!).subscribe({
       next: (data) => {
-        this.newAuthor = { 
-          full_name: data.full_name, 
+        this.newAuthor = {
+          full_name: data.full_name,
           bio: data.bio || '',
           nationality: data.nationality || '',
           birth_year: data.birth_year,
@@ -50,11 +52,13 @@ export class AuthorEditorComponent implements OnInit {
         };
         this.photoPreview = data.photo;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
         alert('Error al cargar autor');
         this.router.navigate(['/dashboard/authors']);
+        this.cdr.markForCheck();
       }
     });
   }
@@ -64,7 +68,10 @@ export class AuthorEditorComponent implements OnInit {
     if (file) {
       this.authorPhoto = file;
       const reader = new FileReader();
-      reader.onload = () => this.photoPreview = reader.result as string;
+      reader.onload = () => {
+        this.photoPreview = reader.result as string;
+        this.cdr.markForCheck();
+      };
       reader.readAsDataURL(file);
     }
   }
@@ -80,10 +87,12 @@ export class AuthorEditorComponent implements OnInit {
       next: () => {
         this.loading = false;
         this.router.navigate(['/dashboard/authors']);
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.loading = false;
         alert('Error al guardar: ' + (err.error?.error || 'Desconocido'));
+        this.cdr.markForCheck();
       }
     });
   }

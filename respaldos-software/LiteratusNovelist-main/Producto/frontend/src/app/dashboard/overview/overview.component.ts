@@ -1,10 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 
 @Component({
   selector: 'app-overview',
   templateUrl: './overview.component.html',
-  styleUrls: ['./overview.component.css']
+  styleUrls: ['./overview.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OverviewComponent implements OnInit {
   stats: any = null;
@@ -12,6 +13,7 @@ export class OverviewComponent implements OnInit {
   maxSale = 1;
 
   private api = inject(ApiService);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor() {}
 
@@ -22,9 +24,11 @@ export class OverviewComponent implements OnInit {
         // Calcular el máximo para normalizar el gráfico de barras
         this.maxSale = Math.max(...data.sales_chart.map((d: any) => d.amount), 1);
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }

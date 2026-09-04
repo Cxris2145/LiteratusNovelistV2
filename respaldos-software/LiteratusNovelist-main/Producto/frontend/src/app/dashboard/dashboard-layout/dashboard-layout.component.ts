@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
@@ -7,7 +7,8 @@ import { SettingsService } from '../../core/services/settings.service';
 @Component({
   selector: 'app-dashboard-layout',
   templateUrl: './dashboard-layout.component.html',
-  styleUrls: ['./dashboard-layout.component.css']
+  styleUrls: ['./dashboard-layout.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardLayoutComponent implements OnInit {
   sidebarCollapsed = false;
@@ -25,7 +26,12 @@ export class DashboardLayoutComponent implements OnInit {
   themes = ['default', 'neon', 'light-gallery'];
   currentTheme = 'default';
 
-  constructor(private router: Router, private auth: AuthService, private settingsService: SettingsService) {}
+  constructor(
+    private router: Router,
+    private auth: AuthService,
+    private settingsService: SettingsService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.router.events.pipe(
@@ -33,10 +39,12 @@ export class DashboardLayoutComponent implements OnInit {
     ).subscribe((e: any) => {
       this.pageTitle = this.pageTitles[e.urlAfterRedirects] || 'Dashboard';
       this.mobileSidebarOpen = false; // Close sidebar on navigation
+      this.cdr.markForCheck();
     });
 
     this.settingsService.currentTheme$.subscribe(theme => {
       this.currentTheme = theme;
+      this.cdr.markForCheck();
     });
   }
 
