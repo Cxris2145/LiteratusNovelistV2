@@ -75,7 +75,11 @@ class Author(TimeStampedModel):
         verbose_name = 'Author'
         verbose_name_plural = 'Authors'
         indexes = [
-            models.Index(fields=['slug'])
+            models.Index(fields=['slug']),
+            # AuthorViewSet ordena por full_name por defecto (list y retrieve
+            # comparten el mismo order_by); sin este índice, el ORDER BY +
+            # paginación LIMIT/OFFSET requiere un sort completo en memoria.
+            models.Index(fields=['full_name']),
         ]
 
     def save(self, *args, **kwargs):
