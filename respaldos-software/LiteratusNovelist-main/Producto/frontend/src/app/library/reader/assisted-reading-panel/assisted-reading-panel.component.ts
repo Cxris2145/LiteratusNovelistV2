@@ -1,4 +1,4 @@
-import { Component, inject, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AssistedReadingService } from '../../../core/services/assisted-reading.service';
@@ -8,7 +8,8 @@ import { AssistedReadingService } from '../../../core/services/assisted-reading.
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './assisted-reading-panel.component.html',
-  styleUrls: ['./assisted-reading-panel.component.css']
+  styleUrls: ['./assisted-reading-panel.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AssistedReadingPanelComponent {
   ar = inject(AssistedReadingService);
