@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, inject, ViewChild, ElementRef, AfterViewChecked, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ChatService, ChatMessage } from '../../core/services/chat.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
@@ -6,11 +6,13 @@ import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
 @Component({
   selector: 'app-ai-chat',
   templateUrl: './ai-chat.component.html',
-  styleUrl: './ai-chat.component.css'
+  styleUrl: './ai-chat.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AiChatComponent implements OnInit, AfterViewChecked {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
   public chatService = inject(ChatService);
   public kokoroVoice = inject(KokoroTtsService);
   
@@ -52,12 +54,14 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
         console.log("Cargando chat para Avatar ID:", this.avatarId);
         this.loadChatSession();
       }
+      this.cdr.markForCheck();
     });
     this.loadRecentCharacters();
-    
+
     // Suscribirse a mensajes globales del servicio
     this.chatService.messages$.subscribe(msgs => {
       this.messages = msgs;
+      this.cdr.markForCheck();
     });
   }
 
@@ -80,6 +84,7 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
       if (!this.session) {
         this.session = { id: 'timeout' };
       }
+      this.cdr.markForCheck();
     }, 6000);
 
     // 1. Obtener detalles del avatar
@@ -87,11 +92,13 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
       next: (data) => {
         clearTimeout(safetyTimer);
         this.avatar = data;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         clearTimeout(safetyTimer);
         console.error("Error cargando avatar", err);
         this.avatar = { name: 'No disponible', description: 'No se pudo conectar con el servidor.' };
+        this.cdr.markForCheck();
       }
     });
 
@@ -100,10 +107,12 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
       next: (session) => {
         this.session = session;
         this.chatService.loadSessionMessages(session.id).subscribe();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error("Error cargando sesión", err);
         this.session = { id: 'error' };
+        this.cdr.markForCheck();
       }
     });
   }
@@ -111,6 +120,7 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
   loadRecentCharacters() {
     this.chatService.getRecentAvatars().subscribe(data => {
       this.recentCharacters = data;
+      this.cdr.markForCheck();
     });
   }
 
@@ -137,9 +147,11 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
         if (this.realTimeVoiceActive) {
           this.kokoroVoice.speak(res.reply, this.avatarId || 1);
         }
+        this.cdr.markForCheck();
       },
       error: () => {
         this.isWriting = false;
+        this.cdr.markForCheck();
       }
     });
   }
