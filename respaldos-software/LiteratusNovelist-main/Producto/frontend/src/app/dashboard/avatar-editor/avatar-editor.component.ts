@@ -1,11 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 
 @Component({
   selector: 'app-avatar-editor',
   templateUrl: './avatar-editor.component.html',
-  styleUrls: ['./avatar-editor.component.css']
+  styleUrls: ['./avatar-editor.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AvatarEditorComponent implements OnInit {
   // IDs de contexto
@@ -55,7 +56,8 @@ export class AvatarEditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     public router: Router,
-    private bookService: DashboardBooksService
+    private bookService: DashboardBooksService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -77,6 +79,7 @@ export class AvatarEditorComponent implements OnInit {
     this.bookService.getBookDetail(this.bookId).subscribe({
       next: (book) => {
         this.editionId = book.edition?.id || null;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -113,10 +116,12 @@ export class AvatarEditorComponent implements OnInit {
         this.thinkingPreview = av.image_thinking || null;
         this.editionId = av.edition_id || null;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.errorMsg = 'No se pudo cargar el personaje. Error: ' + (err.status || 'desconocido');
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -127,19 +132,19 @@ export class AvatarEditorComponent implements OnInit {
       const reader = new FileReader();
       if (type === 'avatar') {
         this.avatarFile = file;
-        reader.onload = () => this.avatarPreview = reader.result as string;
+        reader.onload = () => { this.avatarPreview = reader.result as string; this.cdr.markForCheck(); };
       } else if (type === 'speaking1') {
         this.speakingFile1 = file;
-        reader.onload = () => this.speakingPreview1 = reader.result as string;
+        reader.onload = () => { this.speakingPreview1 = reader.result as string; this.cdr.markForCheck(); };
       } else if (type === 'speaking2') {
         this.speakingFile2 = file;
-        reader.onload = () => this.speakingPreview2 = reader.result as string;
+        reader.onload = () => { this.speakingPreview2 = reader.result as string; this.cdr.markForCheck(); };
       } else if (type === 'speaking3') {
         this.speakingFile3 = file;
-        reader.onload = () => this.speakingPreview3 = reader.result as string;
+        reader.onload = () => { this.speakingPreview3 = reader.result as string; this.cdr.markForCheck(); };
       } else if (type === 'thinking') {
         this.thinkingFile = file;
-        reader.onload = () => this.thinkingPreview = reader.result as string;
+        reader.onload = () => { this.thinkingPreview = reader.result as string; this.cdr.markForCheck(); };
       }
       reader.readAsDataURL(file);
     }
@@ -192,11 +197,13 @@ export class AvatarEditorComponent implements OnInit {
       next: () => {
         this.saving = false;
         this.successMsg = '¡Personaje guardado correctamente!';
+        this.cdr.markForCheck();
         setTimeout(() => this.router.navigate(['/dashboard/books', this.bookId, 'edit']), 1500);
       },
       error: (err) => {
         this.saving = false;
         this.errorMsg = 'Error al guardar: ' + (err.error?.error || 'Desconocido');
+        this.cdr.markForCheck();
       }
     });
   }
@@ -208,12 +215,14 @@ export class AvatarEditorComponent implements OnInit {
       this.bookService.deleteAvatar(this.avatarId).subscribe({
         next: () => {
           this.saving = false;
+          this.cdr.markForCheck();
           alert('Personaje eliminado correctamente.');
           this.goBack();
         },
         error: (err) => {
           this.saving = false;
           alert('Error al eliminar: ' + (err.error?.error || 'Desconocido'));
+          this.cdr.markForCheck();
         }
       });
     }
