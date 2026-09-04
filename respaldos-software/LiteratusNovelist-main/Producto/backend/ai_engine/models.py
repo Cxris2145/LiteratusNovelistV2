@@ -168,8 +168,12 @@ class ChatSession(TimeStampedModel):
         verbose_name_plural = 'Chat Sessions'
         indexes = [
             # Permite recuperar eficientemente "las sesiones del usuario X"
-            # ordenadas por actividad más reciente.
-            models.Index(fields=['user', 'created_at'])
+            # ordenadas por fecha de creación.
+            models.Index(fields=['user', 'created_at']),
+            # RecentChatsView (GET /api/v1/ai/hub/recent/) filtra por user y
+            # ordena por '-updated_at' (actividad más reciente, no creación);
+            # sin este índice esa consulta no puede usar el índice de arriba.
+            models.Index(fields=['user', '-updated_at'], name='ai_engine_ch_user_updated_idx'),
         ]
 
     def __str__(self):
