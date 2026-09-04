@@ -739,3 +739,19 @@
 - **Bundle**: sin cambios (no se tocó frontend esta corrida).
 - **Commit**: ver hash en el commit siguiente en el historial de git (incluye `NIGHT_AUDIT_STATE.json`, `NIGHT_AUDIT_LOG.md`, `ai_engine/views.py` y `catalog/views.py`).
 - **Push confirmado en origin**: ver verificación con `git ls-remote` registrada en el informe final de esta corrida.
+
+## 2026-09-04T16:53:00Z — corrida horaria #39
+
+- **Entorno**: repo OK (`git rev-parse --show-toplevel` termina en `LiteratusNovelistV2`; `git remote -v` -> `github.com/Cxris2145/LiteratusNovelistV2`). `git status` limpio al iniciar. Guarda de solapamiento: `run_in_progress` era `false` (última corrida #38 terminó limpia, heartbeat de hace ~54 min) -> se continuó sin problema.
+- **Rama y commit base**: `agent/nightly-optimization-chris` ya existía en origin (no bootstrap); se hizo checkout y `git pull --ff-only` (ya estaba al día). Commit base confirmado: `3786d288` (`origin/Chris` es ancestro de HEAD, verificado con `git merge-base --is-ancestor`).
+- **Push verificado (sección 2.9)**: `git push --dry-run origin HEAD:refs/heads/agent/nightly-optimization-chris` -> **OK** ("Everything up-to-date").
+- **Smoke check**: entorno recreado desde cero (contenedor nuevo, sin `.venv312` persistido). Se creó venv local `.venv312/` con `python3.12`, se instaló `requirements.txt` completo sin errores, y `.env` local (SQLite temporal, sin credenciales reales, gitignorado). `manage.py check` -> OK (0 issues).
+- **Fase y lote trabajados**: Fase H (backend/API), continuando el lote sugerido por la corrida #38: se revisó `library/views.py` completo (todos sus endpoints — `UserInventoryViewSet`, `ReadingProgressViewSet`, `UserBookmarkViewSet` — son datos privados por usuario, ya paginados donde corresponde o naturalmente pequeños; sin hallazgos nuevos) y `core/views.py` (solo `StoreSettingsView`, vista de un único objeto singleton, no es un listado — no aplica paginación). Se revisó también `catalog/views.py` `BookViewSet` de nuevo para la duda dejada por la corrida #37 sobre `Cache-Control` corto en `list()`: se mantiene la decisión de NO aplicarlo (el listado admite `ordering=?` aleatorio, filtros dinámicos y es el catálogo más editado desde el Dashboard — sigue siendo una decisión de riesgo que amerita más evaluación, no un ajuste de bajo riesgo de este lote). Se revisó `ai_engine/views.py` completo en busca de más patrones N+1 iguales al corregido en la corrida #38.
+- **Cambios aplicados** (1 archivo de código):
+  - `ai_engine/views.py` `ChatSessionView.get()` (línea ~160): `get_object_or_404(AIAvatar, id=avatar_id)` no traía `select_related('edition')`, pero pocas líneas después se accede a `avatar.edition` (`UserInventory.objects.filter(..., edition=avatar.edition)`), lo que dispara una query extra evitable para cargar el objeto `Edition` completo solo para usar su FK. Se agregó `.select_related('edition')` al queryset, sin tocar el payload de la respuesta (`ChatSessionSerializer` solo usa `avatar.name` vía `avatar_name`, no toca `edition`).
+- **Tabla de duplicados de imágenes**: no aplica esta corrida (no se trabajó Fase F).
+- **NEEDS MANUAL REVIEW nuevos**: ninguno. MR-0002, MR-0003 y MR-0004 siguen abiertas sin cambios (se revisaron, ningún humano las había resuelto aún).
+- **Pruebas**: Backend — `manage.py check` OK, `makemigrations --check --dry-run` OK, `manage.py test` **completo** (67/67 tests OK, incluye `ai_engine` donde está el cambio) por tratarse de un cambio de código backend (regla de sección 6). Frontend — no se modificó código frontend esta corrida, no se corrieron build/Karma (regla de sección 6).
+- **Bundle**: sin cambios (no se tocó frontend esta corrida).
+- **Commit**: ver hash en el commit siguiente en el historial de git (incluye `NIGHT_AUDIT_STATE.json`, `NIGHT_AUDIT_LOG.md` y `ai_engine/views.py`).
+- **Push confirmado en origin**: ver verificación con `git ls-remote` registrada en el informe final de esta corrida.

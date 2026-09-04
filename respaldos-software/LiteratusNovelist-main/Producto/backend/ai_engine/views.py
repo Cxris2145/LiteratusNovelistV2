@@ -157,7 +157,7 @@ class ChatSessionView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        avatar = get_object_or_404(AIAvatar, id=avatar_id)
+        avatar = get_object_or_404(AIAvatar.objects.select_related('edition'), id=avatar_id)
 
         # Si es un personaje principal o autor, permitir chat aunque no esté en inventario
         # (Para permitir exploración desde el Hub Global)
