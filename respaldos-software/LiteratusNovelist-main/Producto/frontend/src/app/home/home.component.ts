@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, Inject, inject, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, Inject, inject, ChangeDetectorRef, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { ApiService } from '../core/services/api.service';
@@ -36,7 +36,8 @@ export interface DemoChatMessage {
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
+  styleUrls: ['./home.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   private api = inject(ApiService);
@@ -136,9 +137,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         const avatars = Array.isArray(response) ? response : (response.results || []);
         this.showcaseAvatars = avatars.slice(0, 8);
         this.avatarsLoading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.avatarsLoading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -323,6 +326,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         this.allBooks = response.results || response;
         this.buildSections();
         this.isLoading = false;
+        this.cdr.markForCheck();
         setTimeout(() => {
           if (this.destroy$.isStopped) return;
           this.initAutoScroll();
@@ -333,12 +337,14 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.destroy$.isStopped) return;
         console.error('Error cargando libros', error);
         this.isLoading = false;
+        this.cdr.markForCheck();
       }
     });
 
     this.api.get<any>('catalog/books/recommendations/').subscribe({
       next: (response) => {
         this.recommendedBooks = response.results || response;
+        this.cdr.markForCheck();
         setTimeout(() => {
           if (!this.destroy$.isStopped) {
             this.initRevealObserver();
@@ -349,6 +355,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       error: () => {
         // Fallback silently if recommendations fail
         this.recommendedBooks = [];
+        this.cdr.markForCheck();
       }
     });
   }

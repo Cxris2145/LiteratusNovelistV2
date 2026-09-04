@@ -1,9 +1,9 @@
 {
   "schema_version": 3,
   "run_in_progress": false,
-  "heartbeat_utc": "2026-09-04T10:58:12Z",
-  "last_run_utc": "2026-09-04T10:58:12Z",
-  "last_commit": "5966df5df41ab241de2b2229e924d162f376a870",
+  "heartbeat_utc": "2026-09-04T12:05:00Z",
+  "last_run_utc": "2026-09-04T12:05:00Z",
+  "last_commit": "edff72266012a877a2152208fbb3e08b30a6aeb7",
   "last_push_ok": true,
   "last_push_error": null,
   "last_full_verification_utc": "2026-09-04T00:58:00Z",
@@ -11,17 +11,17 @@
   "base_branch": "origin/Chris",
   "base_commit": "3786d288fd23e4228b6c0390ac00ee9cf6533940",
   "batch_size": 40,
-  "run_count_today": 33,
+  "run_count_today": 34,
   "current_phase": "I_frontend",
   "phase_cursor": {
     "A_errores_criticos": "check_ok_sin_bd_real_de_produccion",
     "B_libros_capitulos": "bloqueado_sin_bd_real_ver_MR-0002",
-    "I_frontend": "corrida #33: se completo catalog/book-detail-page/book-detail-page.component.ts (361 lineas). OnPush + ChangeDetectorRef + markForCheck() en: (a) ngOnInit() auth.isLoggedIn$ subscribe -- muta isLoggedIn (bindeado en [class.guest-btn]/*ngIf isLoggedIn/review-form-container); (b) loadBookDetails() next()/error() de api.get -- mutan book/isOwned/userInkBalance/avgRating/displayAvatars/isLoading/errorMsg (bindeados en casi todo el template: hero, avatares, reviews); (c) speakSynopsis() ttsUtterance.onstart/onend/onerror -- mutan isTalking (bindeado en boton 'Escuchar Sinopsis', eventos de SpeechSynthesisUtterance no garantizados dentro de la zona de Angular); (d) confirmPurchase() next()/error() de api.post -- mutan isOwned/book.inventory_id/userInkBalance/purchaseLoading/showPurchaseModal; (e) submitReview() next()/error() de api.post -- mutan isSubmittingReview/book.reviews/avgRating/reviewComment/reviewRating/reviewErrorMsg. route.paramMap subscribe no necesito markForCheck propio (solo fija slug, no bindeado en template, y dispara loadBookDetails que ya tiene su propio markForCheck). startAutoScroll()/scrollCarousel() no necesitaron cambios (solo manipulan scrollLeft del DOM directamente via ViewChild, zone.runOutsideAngular, no mutan estado bindeado por Angular). selectAvatar/closeAvatarModal/cancelPurchase/setRating no necesitaron markForCheck (se llaman desde (click) del propio template, OnPush ya corre CD tras eventos de vista). downloadPDF() no necesito markForCheck (solo dispara descarga de blob y alert en error, sin mutar estado bindeado). Pendientes en fase I sin OnPush: home/home.component (439 lineas), library/reader/reader.component (2303 lineas, alto riesgo -- revisar con cuidado en corridas futuras, muchas suscripciones audio/websocket). catalog/checkout NO se toca (finance/Webpay, prohibido por reglas)."
+    "I_frontend": "corrida #34: se completo home/home.component.ts (439 lineas). OnPush + ChangeDetectorRef (ya estaba inyectado) + markForCheck() en: (a) loadShowcaseAvatars() next()/error() de api.get -- mutan avatarsLoading/showcaseAvatars (bindeados en la galeria de personajes: skeleton, carrusel, empty state); (b) loadBooks() primer api.get (catalog/books) next()/error() -- mutan allBooks/isLoading y disparan buildSections() que fija trendingBooks/discoveryBooks/randomDiscoveryBooks (bindeados en tendencias, descubrimiento y skeleton de carga); (c) loadBooks() segundo api.get (recommendations) next()/error() -- mutan recommendedBooks (bindeado en seccion Recomendados). loadAIBooks() ya tenia this.cdr.detectChanges() propio en next() (funciona igual bajo OnPush, no se toco; su error() solo hace console.error, sin mutar estado bindeado, no necesito markForCheck). demoMessages/demoInput/demoSending/demoRemainingMessages/demoChatLimitReached/demoAvatarName/demoAvatarImage/activeCharacterIndex/totalBooksCount confirmados por grep como NO bindeados en home.component.html (codigo muerto preexistente, no se toco por no ser parte del alcance de Fase I -- no se borra, no se investiga mas). trackBy ya estaba completo en todos los *ngFor del template desde una corrida anterior, sin cambios ahi. Verificacion por grep (ChangeDetectionStrategy.OnPush en *.component.ts bajo frontend/src/app): 35 de 37 componentes ya tienen OnPush (antes 34/37). Quedan 2 excluidos: catalog/checkout/checkout.component.ts (97 lineas, EXCLUIDO PERMANENTE por Webpay/finance) y library/reader/reader.component.ts (2303 lineas, alto riesgo -- unico pendiente real de Fase I, dejar para el final con revision cuidadosa por muchas suscripciones audio/websocket)."
   },
   "completed_phases": [],
   "counters": {
-    "revisados": 186,
-    "corregidos": 79,
+    "revisados": 187,
+    "corregidos": 80,
     "needs_manual_review": 2
   },
   "pending_manual_review": [
@@ -40,5 +40,5 @@
       "status": "abierta"
     }
   ],
-  "notes": "Corrida #33 finalizada. Ver NIGHT_AUDIT_LOG.md para el detalle completo. Cambios: OnPush + markForCheck (auth.isLoggedIn$ subscribe, loadBookDetails next/error, ttsUtterance onstart/onend/onerror, confirmPurchase next/error, submitReview next/error) en catalog/book-detail-page/book-detail-page.component.ts (Fase I frontend). npm ci OK (node_modules no estaba presente al iniciar, 1105 paquetes instalados desde package-lock.json, sin agregar dependencias nuevas) + npx ng build --configuration production -> exit 0, 0 errores, bundle initial 275.10 kB (vs 275.00 kB corrida #32, +0.10 kB dentro del ruido normal, sin regresion real) + npx ng test --watch=false con karma.conf.ci.js temporal creado desde cero (borrado al terminar junto con coverage/ y dist/) -> 8/8 OK. Backend PRUEBAS NO DISPONIBLES esta corrida (sin Django instalado, no se toco backend, ver MR-0002). Queda 2 componentes sin OnPush: home, reader (alto riesgo, dejar para el final)."
+  "notes": "Corrida #34 finalizada. Ver NIGHT_AUDIT_LOG.md para el detalle completo. Cambios: OnPush + markForCheck (loadShowcaseAvatars next/error, loadBooks next/error x2 series de api.get) en home/home.component.ts (Fase I frontend). npm ci OK (node_modules no estaba presente al iniciar, 1105 paquetes instalados desde package-lock.json, sin agregar dependencias nuevas) + npx ng build --configuration production -> exit 0, 0 errores, bundle initial 275.09 kB (vs 275.10 kB corrida #33, -0.01 kB, sin regresion) + npx ng test --watch=false con karma.conf.ci.js temporal creado desde cero (borrado al terminar junto con coverage/ y dist/) -> 8/8 OK. Backend: Python 3.11.15 SI disponible este contenedor pero Django NO instalado (ModuleNotFoundError); no se instalo (requeriria requirements.txt completo, fuera del lote acotado de esta corrida centrada en frontend); no se toco backend, MR-0002 sigue abierta. Queda 1 componente real sin OnPush: reader (alto riesgo, dejar para el final); checkout excluido permanente."
 }
