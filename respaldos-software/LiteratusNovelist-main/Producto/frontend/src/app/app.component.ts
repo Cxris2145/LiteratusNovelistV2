@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
@@ -13,7 +13,8 @@ import { SettingsService } from './core/services/settings.service';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  animations: [routeTransitionAnimations, shakeAnimation]
+  animations: [routeTransitionAnimations, shakeAnimation],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit {
   title = 'frontend';
@@ -30,6 +31,7 @@ export class AppComponent implements OnInit {
   
   private lastBackPressTime = 0;
   private location = inject(Location);
+  private cdr = inject(ChangeDetectorRef);
   
   // Profile data
   get userName(): string {
@@ -55,6 +57,7 @@ export class AppComponent implements OnInit {
       .subscribe((e: any) => {
         const url = e.urlAfterRedirects as string;
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
+        this.cdr.markForCheck();
       });
   }
 
@@ -68,6 +71,7 @@ export class AppComponent implements OnInit {
         this.chatService.loadInitialInk();
         this.loadUserProfile();
       }
+      this.cdr.markForCheck();
     });
 
     // Suscribirse a cambios de tinta para animar
@@ -83,9 +87,11 @@ export class AppComponent implements OnInit {
     // Añadir listener global de errores
     window.addEventListener('error', (event) => {
       this.globalError = `Error: ${event.message} en ${event.filename}:${event.lineno}`;
+      this.cdr.markForCheck();
     });
     window.addEventListener('unhandledrejection', (event) => {
       this.globalError = `Promesa rechazada: ${event.reason}`;
+      this.cdr.markForCheck();
     });
 
     // Control del botón 'Atrás' en hardware (Android)
@@ -119,6 +125,7 @@ export class AppComponent implements OnInit {
           this.userAvatarColor = profile.avatar_color;
           localStorage.setItem('user_avatar_color', profile.avatar_color);
         }
+        this.cdr.markForCheck();
       }
     });
   }
@@ -147,8 +154,10 @@ export class AppComponent implements OnInit {
 
   triggerShake() {
     this.shakeState = 'trigger';
+    this.cdr.markForCheck();
     setTimeout(() => {
       this.shakeState = 'default';
+      this.cdr.markForCheck();
     }, 400); // Duración de la animación
   }
 
