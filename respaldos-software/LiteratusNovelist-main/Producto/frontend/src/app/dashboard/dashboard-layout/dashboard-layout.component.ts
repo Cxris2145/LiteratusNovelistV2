@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { SettingsService } from '../../core/services/settings.service';
@@ -10,7 +11,7 @@ import { SettingsService } from '../../core/services/settings.service';
   styleUrls: ['./dashboard-layout.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardLayoutComponent implements OnInit {
+export class DashboardLayoutComponent implements OnInit, OnDestroy {
   sidebarCollapsed = false;
   mobileSidebarOpen = false;
   pageTitle = 'Visión General';
@@ -26,6 +27,8 @@ export class DashboardLayoutComponent implements OnInit {
   themes = ['default', 'neon', 'light-gallery'];
   currentTheme = 'default';
 
+  private subscriptions = new Subscription();
+
   constructor(
     private router: Router,
     private auth: AuthService,
@@ -34,18 +37,26 @@ export class DashboardLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.router.events.pipe(
-      filter(e => e instanceof NavigationEnd)
-    ).subscribe((e: any) => {
-      this.pageTitle = this.pageTitles[e.urlAfterRedirects] || 'Dashboard';
-      this.mobileSidebarOpen = false; // Close sidebar on navigation
-      this.cdr.markForCheck();
-    });
+    this.subscriptions.add(
+      this.router.events.pipe(
+        filter(e => e instanceof NavigationEnd)
+      ).subscribe((e: any) => {
+        this.pageTitle = this.pageTitles[e.urlAfterRedirects] || 'Dashboard';
+        this.mobileSidebarOpen = false; // Close sidebar on navigation
+        this.cdr.markForCheck();
+      })
+    );
 
-    this.settingsService.currentTheme$.subscribe(theme => {
-      this.currentTheme = theme;
-      this.cdr.markForCheck();
-    });
+    this.subscriptions.add(
+      this.settingsService.currentTheme$.subscribe(theme => {
+        this.currentTheme = theme;
+        this.cdr.markForCheck();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   toggleSidebar(): void {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, AfterViewInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, AfterViewInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { ChatService } from '../../core/services/chat.service';
@@ -9,7 +9,7 @@ import { ChatService } from '../../core/services/chat.service';
   styleUrls: ['./tavern.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TavernComponent implements OnInit, AfterViewInit {
+export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
   private chatService = inject(ChatService);
   private cdr = inject(ChangeDetectorRef);
@@ -27,10 +27,18 @@ export class TavernComponent implements OnInit, AfterViewInit {
   ];
 
   private router = inject(Router);
+  private adIntervalId: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
     if (this.isLoggedIn()) {
       this.fetchBalance();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.adIntervalId !== null) {
+      clearInterval(this.adIntervalId);
+      this.adIntervalId = null;
     }
   }
 
@@ -94,10 +102,13 @@ export class TavernComponent implements OnInit, AfterViewInit {
     this.adLoading = true;
     this.adTimer = 5;
 
-    const interval = setInterval(() => {
+    this.adIntervalId = setInterval(() => {
       this.adTimer--;
       if (this.adTimer <= 0) {
-        clearInterval(interval);
+        if (this.adIntervalId !== null) {
+          clearInterval(this.adIntervalId);
+          this.adIntervalId = null;
+        }
         this.claimAdReward();
       }
       this.cdr.markForCheck();
