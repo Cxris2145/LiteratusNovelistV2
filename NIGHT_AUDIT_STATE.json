@@ -1,8 +1,8 @@
 {
   "schema_version": 3,
   "run_in_progress": false,
-  "heartbeat_utc": "2026-09-04T01:00:30Z",
-  "last_run_utc": "2026-09-04T01:00:30Z",
+  "heartbeat_utc": "2026-09-04T01:56:00Z",
+  "last_run_utc": "2026-09-04T01:56:00Z",
   "last_commit": "",
   "last_push_ok": true,
   "last_push_error": null,
@@ -11,17 +11,17 @@
   "base_branch": "origin/Chris",
   "base_commit": "3786d288fd23e4228b6c0390ac00ee9cf6533940",
   "batch_size": 40,
-  "run_count_today": 23,
+  "run_count_today": 24,
   "current_phase": "I_frontend",
   "phase_cursor": {
     "A_errores_criticos": "check_ok_sin_bd_real_de_produccion",
     "B_libros_capitulos": "bloqueado_sin_bd_real_ver_MR-0002",
-    "I_frontend": "corrida #23: se aplico ChangeDetectionStrategy.OnPush + ChangeDetectorRef + markForCheck() a dashboard/avatar-editor/avatar-editor.component.ts (loadEditionId next, loadAvatarData next/error, los 5 callbacks reader.onload de onImageSelected -avatar/speaking1/speaking2/speaking3/thinking-, save next/error, deleteAvatar next/error). Template revisado, sin async pipe, sin bindings/estilos/textos visibles modificados. Siguiente corrida: dashboard/book-editor.component.ts (385 lineas) sigue pendiente explicitamente -- tiene ~8 subscribe async (loadAuthors, loadGenres, loadBookData, parseEpub, onSceneImageSelected con manipulacion directa de document.querySelector('.code-editor') + setTimeout para mover el cursor del textarea, saveBook, saveAvatar, removeAvatar) y dos [(ngModel)] sobre chapters[editingChapter] -- evaluar con cuidado el orden de markForCheck vs manipulacion directa del DOM del textarea antes de tocarlo, no forzar en un lote parcial. reader.component.ts (2291 lineas) sigue pendiente como candidato grande/riesgoso aparte. lucide-angular vs @lucide/angular resuelto desde la corrida #2."
+    "I_frontend": "corrida #24: se completo dashboard/book-editor/book-editor.component.ts (385 lineas, pendiente explicito desde la corrida #23) con ChangeDetectionStrategy.OnPush + ChangeDetectorRef + markForCheck() en: loadAuthors(), loadGenres(), loadBookData() (solo next: chapters/coverPreview/avatars son bindings de template; error solo muta 'loading', que NO esta referenciado en el html, no requirio markForCheck), parseEpub() (solo next, mismo motivo), el callback reader.onload de onCoverSelected(), onSceneImageSelected() (solo next: content_html ligado via [(ngModel)] al textarea .code-editor + al preview getSafePreviewHtml(); markForCheck se agrego junto a la mutacion sincronica, antes de que dispare el setTimeout(50ms) que mueve el cursor, por lo que el ciclo de CD de Angular corre antes de ese timer y no hay carrera), y saveBook() (solo error: 'saving' SI esta bindeado en el boton [disabled] e interpolacion; next() navega fuera de la vista, no requirio). openAvatarEditor/onAvatarImageSelected/saveAvatar/removeAvatar NO se tocaron mas alla de lo que ya cubre loadBookData(): se confirmo por grep en el .html que editingAvatar/avatarPreview/avatarFile/loading no estan referenciados en el template (codigo muerto preexistente, la edicion de avatares real ocurre en una ruta aparte hacia avatar-editor.component.ts, ya con OnPush desde la corrida #23) -- no se modifico ese codigo muerto por quedar fuera del alcance puntual de esta correccion. Template revisado por grep exhaustivo de cada propiedad citada; no usa '| async'; ningun binding/clase/estilo/texto visible fue modificado. Inventario de componentes sin OnPush restantes en src/app (17 de 37 ya tenian OnPush antes de esta corrida, ahora 18/37): reader.component.ts (2303 lineas, candidato grande/riesgoso aparte, sigue pendiente), home.component.ts (439), catalog/book-detail-page.component.ts (361), characters/demo-chat-page.component.ts (226), library/ai-chat.component.ts (172), app.component.ts (158, componente raiz, evaluar con cuidado especial), library/tavern.component.ts (128), users/profile.component.ts (121), categories/categories.component.ts (109), core/components/liyumi-widget.component.ts (101), auth/register.component.ts (98), catalog/checkout.component.ts (97), auth/reset-password.component.ts (88), auth/login.component.ts (86), catalog/author-detail-page.component.ts (54), auth/verify-email.component.ts (47), library/reader/assisted-reading-panel.component.ts (37), auth/forgot-password.component.ts (36), core/components/audio-visualizer.component.ts (11), core/components/footer.component.ts (10). Siguiente corrida: empezar por los triviales/pequenos (footer, audio-visualizer, forgot-password, verify-email, assisted-reading-panel, author-detail-page) antes de abordar los grandes (reader.component.ts, home.component.ts, book-detail-page.component.ts). lucide-angular vs @lucide/angular resuelto desde la corrida #2."
   },
   "completed_phases": [],
   "counters": {
-    "revisados": 168,
-    "corregidos": 61,
+    "revisados": 169,
+    "corregidos": 62,
     "needs_manual_review": 2
   },
   "pending_manual_review": [
@@ -40,5 +40,5 @@
       "status": "abierta"
     }
   ],
-  "notes": "Corrida #23 finalizada. Ver NIGHT_AUDIT_LOG.md para el detalle completo. Cambios: OnPush+markForCheck en avatar-editor.component.ts. Verificacion diaria completa ejecutada (manage.py test 67/67 OK). last_commit se completa en el commit de esta misma corrida."
+  "notes": "Corrida #24 finalizada. Ver NIGHT_AUDIT_LOG.md para el detalle completo. Cambios: OnPush+markForCheck en book-editor.component.ts (7 markForCheck agregados). Sin cambios de backend esta corrida (solo smoke check, no se repitio la suite completa ni la verificacion diaria porque ya se hizo en la corrida #23 dentro de la ventana 00:00-01:00 UTC). last_commit se completa en el commit de esta misma corrida."
 }

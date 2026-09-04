@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -7,7 +7,8 @@ import { DashboardBooksService } from '../services/dashboard-books.service';
 @Component({
   selector: 'app-book-editor',
   templateUrl: './book-editor.component.html',
-  styleUrls: ['./book-editor.component.css']
+  styleUrls: ['./book-editor.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BookEditorComponent implements OnInit {
   bookForm: FormGroup;
@@ -39,7 +40,8 @@ export class BookEditorComponent implements OnInit {
     private bookService: DashboardBooksService,
     private route: ActivatedRoute,
     public router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private cdr: ChangeDetectorRef
   ) {
     this.bookForm = this.fb.group({
       title: ['', Validators.required],
@@ -74,6 +76,7 @@ export class BookEditorComponent implements OnInit {
   loadAuthors(): void {
     this.bookService.getAuthors().subscribe(list => {
       this.authorsList = list;
+      this.cdr.markForCheck();
     });
   }
 
@@ -81,6 +84,7 @@ export class BookEditorComponent implements OnInit {
     this.bookService.getGenres().subscribe(list => {
       // Si la respuesta es paginada (DRF standard) o array plano
       this.genresList = (list as any).results || list;
+      this.cdr.markForCheck();
     });
   }
     
@@ -109,6 +113,7 @@ export class BookEditorComponent implements OnInit {
         this.avatars = book.avatars || [];
         this.editionId = book.edition?.id || null;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => this.loading = false
     });
@@ -132,6 +137,7 @@ export class BookEditorComponent implements OnInit {
         });
         this.chapters = res.chapters;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
@@ -145,7 +151,10 @@ export class BookEditorComponent implements OnInit {
     if (file) {
       this.coverFile = file;
       const reader = new FileReader();
-      reader.onload = () => this.coverPreview = reader.result as string;
+      reader.onload = () => {
+        this.coverPreview = reader.result as string;
+        this.cdr.markForCheck();
+      };
       reader.readAsDataURL(file);
     }
   }
@@ -223,6 +232,7 @@ export class BookEditorComponent implements OnInit {
         this.loading = false;
         // Limpiar el input file para permitir subir la misma imagen de nuevo
         event.target.value = '';
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
@@ -262,6 +272,7 @@ export class BookEditorComponent implements OnInit {
       error: (err) => {
         this.saving = false;
         alert('Error al guardar: ' + (err.error?.error || 'Desconocido'));
+        this.cdr.markForCheck();
       }
     });
   }
