@@ -28,6 +28,19 @@ class GenreViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
+    def list(self, request, *args, **kwargs):
+        # Catálogo de géneros: cambia solo cuando el Dashboard crea/edita uno
+        # (poco frecuente). Cache-Control público habilita el dataGroup de
+        # cache HTTP del navegador/Service Worker sin tocar el payload.
+        response = super().list(request, *args, **kwargs)
+        response['Cache-Control'] = 'public, max-age=300'
+        return response
+
+    def retrieve(self, request, *args, **kwargs):
+        response = super().retrieve(request, *args, **kwargs)
+        response['Cache-Control'] = 'public, max-age=300'
+        return response
+
 
 class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
     """
