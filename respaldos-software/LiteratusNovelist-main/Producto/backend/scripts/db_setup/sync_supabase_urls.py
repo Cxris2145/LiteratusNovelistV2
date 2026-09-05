@@ -1,18 +1,11 @@
 import os
 import sys
 import django
-from pathlib import Path
-import json
 
 # Setup Django Environment
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
-
-from supabase import create_client
-from django.conf import settings
-from catalog.models import Book, Author
-from ai_engine.models import AIAvatar
 
 # Supabase direct settings (we construct the keys or upload using python client)
 # Since we don't have the anon/service_role key in settings.py or .env, let's ask the user 
