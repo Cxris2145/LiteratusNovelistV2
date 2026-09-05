@@ -1113,6 +1113,22 @@
 - **Commit**: solo `NIGHT_AUDIT_STATE.json` + `NIGHT_AUDIT_LOG.md` (housekeeping de estado/registro; ningún archivo de código o datos del producto). Se commitea pese a ser una corrida no-op a nivel de auditoría porque el hook de fin de sesión del entorno exige un working tree limpio antes de terminar.
 - **Push confirmado en origin**: sí, ver hash en el informe final de la corrida.
 
+## 2026-09-05T12:15:00Z — corrida horaria #13
+
+- **Entorno**: repo OK (`git rev-parse --show-toplevel` termina en `LiteratusNovelistV2`; `git remote -v` -> `github.com/Cxris2145/LiteratusNovelistV2`). `git status` limpio al iniciar. Guarda de solapamiento: `run_in_progress` era `false`, heartbeat de la corrida #12 (`11:05:00Z`) con ~49 min de antigüedad al iniciar (<90 min, ya en `false`) -> sin corrida viva.
+- **Rama y commit base**: `agent/nightly-optimization-chris` (HEAD `d659cf0` al iniciar), `merge-base` con `origin/Chris` = `3786d288fd23e4228b6c0390ac00ee9cf6533940` -> confirmado que la base sigue siendo `origin/Chris`, sin desviación.
+- **Push verificado (2.9)**: `git push --dry-run origin HEAD:refs/heads/agent/nightly-optimization-chris` -> `Everything up-to-date` -> **OK**.
+- **Entorno en frío**: se recreó `.venv312` (`python3.12 -m venv` + `pip install -r requirements.txt`, 79 paquetes, sin errores) y `.env` local desde `.env.example` (`DATABASE_URL=sqlite:///./db_local_check.sqlite3`, `SECRET_KEY` local; ambos gitignorados, sin credenciales reales).
+- **Smoke check (Fase A)**: `manage.py check` -> 0 issues. `makemigrations --check --dry-run` -> sin cambios. Sin regresión.
+- **Fase y lote trabajados**: `H_backend_api` — cursor "re-confirmar drift desde la corrida #10" -> re-confirmado con evidencia (no solo inspección): `git diff --stat 907f86a..HEAD` (907f86a = commit de la corrida #10, última auditoría a fondo de Fase H) muestra que **solo** `NIGHT_AUDIT_STATE.json`/`NIGHT_AUDIT_LOG.md` cambiaron en las corridas #11 y #12 — cero bytes de código o datos de producto se movieron desde entonces. El análisis de la corrida #10 (17 imports `os` duplicados + 7 imports muertos limpiados, bug real de UUID vs `int()` corregido en `sync_character_portraits.py`) sigue vigente sin necesidad de releer los 24 scripts de nuevo. Ver detalle completo en `NIGHT_AUDIT_STATE.json -> phase_cursor.H_backend_api`.
+- **Cambios aplicados**: ninguno (sin hallazgos nuevos corregibles de forma inequívoca; todo lo pendiente de Fase H sigue bloqueado por MR-0004/MR-0013/MR-0014, todas ya registradas y sin resolución del dueño).
+- **Tabla de duplicados de imágenes**: no aplica esta corrida (fuera de Fase F).
+- **NEEDS MANUAL REVIEW nuevos**: ninguno. MR-0002 a MR-0014 revisadas: siguen abiertas, sin resolución del dueño.
+- **Pruebas**: `manage.py check` + `makemigrations --check --dry-run` (corrida no-op a nivel de auditoría, sin más pruebas según sección 6).
+- **Bundle**: no aplica (no se tocó frontend).
+- **Commit**: solo `NIGHT_AUDIT_STATE.json` + `NIGHT_AUDIT_LOG.md` (housekeeping de estado/registro; ningún archivo de código o datos del producto). `current_phase` avanza a `F_duplicados_imagenes` para la próxima corrida (última reconfirmación de drift en la corrida #11).
+- **Push confirmado en origin**: sí, ver hash en el informe final de la corrida.
+
 ## 2026-09-05T11:05:00Z — corrida horaria #12
 
 - **Entorno**: repo OK (`git rev-parse --show-toplevel` termina en `LiteratusNovelistV2`; `git remote -v` -> `github.com/Cxris2145/LiteratusNovelistV2`). `git status` limpio al iniciar. Guarda de solapamiento: `run_in_progress` era `false`, sin corrida viva.
