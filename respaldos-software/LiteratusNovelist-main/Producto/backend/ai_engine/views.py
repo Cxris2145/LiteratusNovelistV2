@@ -16,10 +16,7 @@ from .serializers import (
     GlobalHubAvatarSerializer,
 )
 from .services import AIService
-from .tts_service import TTSService
 from .kokoro_service import KokoroTTSService
-from core.decorators import consume_ink
-from django.utils.decorators import method_decorator
 
 
 class AvatarListView(APIView):
