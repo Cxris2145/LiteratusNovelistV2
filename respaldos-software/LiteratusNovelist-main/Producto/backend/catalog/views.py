@@ -8,10 +8,11 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Subquery, OuterRef, Sum
+from django.db.models.functions import Length
 from django_filters.rest_framework import DjangoFilterBackend
 from library.models import UserInventory
-from .models import Book, Author, Genre, Tag, Review
+from .models import Book, Author, Genre, Tag, Review, Chapter
 from .serializers import (
     BookListSerializer, BookDetailSerializer, BookDetailFullSerializer, 
     AuthorDetailSerializer, AuthorReadSerializer, GenreSerializer
@@ -76,11 +77,20 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     
     # Ordenamiento DRF: ?ordering=-created_at
     ordering_fields = ['title', 'created_at', 'is_featured', 'ai_character_count', '?']
-    ordering = ['-is_featured', '-created_at'] # Por defecto los destacados y luego más nuevos
+    ordering = ['title'] # Por defecto orden alfabetico A-Z
 
     def get_queryset(self):
+        chapter_subquery = Subquery(
+            Chapter.objects.filter(book=OuterRef('pk'))
+            .values('book')
+            .annotate(total=Sum(Length('content_html')))
+            .values('total')[:1]
+        )
         qs = Book.objects.prefetch_related('genres', 'book_authors__author', 'editions', 'tags')
-        qs = qs.annotate(ai_character_count=Count('editions__avatars', distinct=True))
+        qs = qs.annotate(
+            ai_character_count=Count('editions__avatars', distinct=True),
+            anno_total_len=chapter_subquery
+        )
         
         has_ai = self.request.query_params.get('has_ai_avatars', None)
         if has_ai and has_ai.lower() == 'true':

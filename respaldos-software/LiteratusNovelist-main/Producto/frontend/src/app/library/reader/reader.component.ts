@@ -68,9 +68,38 @@ export class ReaderComponent implements OnInit, OnDestroy {
   hasPremiumNarration: boolean = false;
   progressId: number | null = null;
 
+  // ── LIBRO ABIERTO (PAGINACIÓN A 2 PÁGINAS) ───────────────────────
+  @ViewChild('columnsViewport') columnsViewport!: ElementRef<HTMLDivElement>;
+  @ViewChild('columnsStream') columnsStream!: ElementRef<HTMLDivElement>;
+  currentSpread: number = 0;
+  totalSpreads: number = 1;
+  isMobileView: boolean = false;
+
+  getLeftPageNum(): number {
+    if (this.isMobileView) return this.currentSpread + 1;
+    return this.currentSpread * 2 + 1;
+  }
+
+  getRightPageNum(): number {
+    if (this.isMobileView) return this.currentSpread + 1;
+    return Math.min(this.currentSpread * 2 + 2, this.totalChapterPages);
+  }
+
+  get totalChapterPages(): number {
+    return this.isMobileView ? this.totalSpreads : this.totalSpreads * 2;
+  }
+
+  isFirstPage(): boolean {
+    return this.currentSpread === 0 && this.currentPage === 1;
+  }
+
+  isLastPage(): boolean {
+    return this.currentSpread >= this.totalSpreads - 1 && this.currentPage >= this.totalPages;
+  }
+
   // ── UX ───────────────────────────────────────────────────────────
-  fontSize: number = 18;
-  currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' = 'dark';
+  fontSize: number = 15;
+  currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' | 'papel' = 'dark';
   currentFontFamily: 'sans' | 'serif' | 'dyslexic' | 'medieval' | 'garamond' | 'georgia' | 'palatino' | 'opensans' | 'helvetica' = 'serif';
   isTocOpen: boolean = false;
   lastScrollTop: number = 0;
@@ -259,7 +288,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
 
     const savedTheme = localStorage.getItem('reader-theme');
-    const validThemes = ['dark', 'light', 'sepia', 'nocturno'];
+    const validThemes = ['dark', 'light', 'sepia', 'nocturno', 'papel'];
     if (savedTheme && validThemes.includes(savedTheme)) {
       this.currentTheme = savedTheme as any;
     }
@@ -267,9 +296,17 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const savedFontSize = localStorage.getItem('reader-font-size');
     if (savedFontSize) {
       const parsedSize = parseInt(savedFontSize, 10);
-      if (!isNaN(parsedSize) && parsedSize >= 12 && parsedSize <= 32) {
-        this.fontSize = parsedSize;
+      if (!isNaN(parsedSize) && parsedSize >= 12 && parsedSize <= 28) {
+        if (parsedSize === 18 && !localStorage.getItem('reader-font-size-customized')) {
+          this.fontSize = 15;
+        } else {
+          this.fontSize = parsedSize;
+        }
+      } else {
+        this.fontSize = 15;
       }
+    } else {
+      this.fontSize = 15;
     }
 
     // Aplicar las variables CSS ahora que cargamos de localStorage
@@ -588,8 +625,23 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   onCanvasClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    // Ignorar si el usuario clickeó en un elemento interactivo (palabra, imagen, botón)
-    if (target.closest('.word') || target.closest('img') || target.closest('button')) {
+
+    // Si el menú de palabra o el diccionario estaban abiertos y se hizo clic fuera, cerrarlos
+    if (this.showWordMenu || this.showDictionaryModal) {
+      if (!target.closest('.word-action-menu') && !target.closest('.dictionary-modal') && !target.closest('.word')) {
+        this.showWordMenu = false;
+        this.closeDictionary();
+        this.cdr.detectChanges();
+        return; // No realizar scroll si el clic fue solo para cerrar menús
+      }
+    }
+
+    // Cerrar menú de palabra si se clickea fuera
+    if (!target.closest('.word-action-menu') && !target.closest('.word')) {
+      this.showWordMenu = false;
+    }
+    // Ignorar si el usuario clickeó en un elemento interactivo (palabra, imagen, botón, diccionario)
+    if (target.closest('.word') || target.closest('img') || target.closest('button') || target.closest('.word-action-menu') || target.closest('.dictionary-modal')) {
       return; 
     }
 
@@ -657,9 +709,12 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   // ── TEMA Y FUENTE ─────────────────────────────────────────────────
   changeFontSize(delta: number) {
-    this.fontSize = Math.min(Math.max(this.fontSize + delta, 12), 32);
+    this.fontSize = Math.min(Math.max(this.fontSize + delta, 12), 26);
     this.applyFontSize();
     localStorage.setItem('reader-font-size', this.fontSize.toString());
+    localStorage.setItem('reader-font-size-customized', 'true');
+    setTimeout(() => this.recalculateSpreads(), 100);
+    this.cdr.detectChanges();
   }
 
   setFontFamily(font: 'sans' | 'serif' | 'dyslexic' | 'medieval' | 'garamond' | 'georgia' | 'palatino' | 'opensans' | 'helvetica') {
@@ -667,7 +722,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     localStorage.setItem('reader-font-family', font);
   }
 
-  setTheme(theme: 'dark' | 'light' | 'sepia' | 'nocturno') {
+  setTheme(theme: 'dark' | 'light' | 'sepia' | 'nocturno' | 'papel') {
     this.currentTheme = theme;
     this.applyTheme();
     localStorage.setItem('reader-theme', theme);
@@ -734,7 +789,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   private applyTheme() {
-    document.body.classList.remove('theme-dark', 'theme-light', 'theme-sepia', 'theme-nocturno');
+    document.body.classList.remove('theme-dark', 'theme-light', 'theme-sepia', 'theme-nocturno', 'theme-papel');
     document.body.classList.add(`theme-${this.currentTheme}`);
   }
 
@@ -746,6 +801,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   goToChapter(index: number) {
     this.currentPage = index + 1;
+    this.currentSpread = 0;
     this.renderCurrentChapter();
     this.saveProgressSubject.next(index);
     this.isTocOpen = false;
@@ -1039,6 +1095,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
             }
             
             this.isOverlayActive = false;
+            this.recalculateSpreads();
             this.checkIfNearEnd();
             this.cdr.detectChanges();
           }, 50);
@@ -1050,6 +1107,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
         } else {
           // Finalizado el renderizado total
           this.isFullyRendered = true;
+          setTimeout(() => this.recalculateSpreads(), 150);
+          setTimeout(() => this.recalculateSpreads(), 500);
         }
       } else {
         if (!lottieDismissed) {
@@ -1313,15 +1372,42 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  onWordClick(wordIdx: number) {
-    // Si el Toque Fluido está activo, ignorar el click en palabras para evitar
-    // el highlight accidental del audio al hacer scroll táctil
+  onWordClick(wordIdx: number, event?: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     if (this.tapToScrollActive) return;
 
     if (this.currentAudioMode === 'pro') {
       this.audioService.seekToWord(wordIdx, this.currentChapterPlainText);
     }
     this.currentWordIndex = wordIdx;
+
+    // Si el modal de diccionario estaba abierto, cerrarlo al cambiar de palabra
+    if (this.showDictionaryModal) {
+      this.closeDictionary();
+    }
+
+    // Mostrar menú de acciones al hacer 1 solo click sobre la palabra
+    const targetEl = (event?.currentTarget as HTMLElement) || document.getElementById(`word-${wordIdx}`);
+    if (targetEl) {
+      const rawText = targetEl.textContent || '';
+      const cleanWord = rawText.trim().replace(/^[^\wáéíóúÁÉÍÓÚñÑüÜ]+|[^\wáéíóúÁÉÍÓÚñÑüÜ]+$/g, '');
+      if (cleanWord) {
+        this.selectedText = cleanWord;
+        const rect = targetEl.getBoundingClientRect();
+        this.wordMenuX = rect.left + (rect.width / 2);
+        if (rect.top < 90) {
+          this.wordMenuY = rect.bottom + 12;
+          this.isMenuBelow = true;
+        } else {
+          this.wordMenuY = rect.top - 12;
+          this.isMenuBelow = false;
+        }
+        this.showWordMenu = true;
+        this.cdr.detectChanges();
+      }
+    }
   }
 
   getSavedAudioWordIndex(): number {
@@ -1404,15 +1490,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   private scrollWordIntoView(idx: number, highlightBookmark: boolean = false) {
     const el = document.getElementById(`word-${idx}`);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const safeTop = window.innerHeight * 0.2;
-      const safeBottom = window.innerHeight * 0.8;
-      
-      // Solo hacer auto-scroll si la palabra sale de los límites seguros
-      // Esto evita el molesto efecto "sube y baja" constante en cada palabra
-      if (rect.top < safeTop || rect.bottom > safeBottom) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    if (el && this.columnsViewport?.nativeElement) {
+      const vp = this.columnsViewport.nativeElement;
+      const width = vp.clientWidth;
+      const gap = this.isMobileView ? 0 : 60;
+      const wordLeft = el.offsetLeft;
+      const spreadIdx = Math.floor(wordLeft / (width + gap));
+      if (spreadIdx >= 0 && spreadIdx < this.totalSpreads && spreadIdx !== this.currentSpread) {
+        this.currentSpread = spreadIdx;
+        this.updateSpreadScroll();
       }
     }
   }
@@ -1433,28 +1519,99 @@ export class ReaderComponent implements OnInit, OnDestroy {
         } else {
           currentWord.classList.add('active-word');
         }
-        // Scroll suave si la palabra se sale del viewport
-        currentWord.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        this.scrollWordIntoView(index);
       }
     }
   }
 
-  nextPage() {
-    if (this.currentPage < this.totalPages) {
+  nextSpread() {
+    if (this.currentSpread < this.totalSpreads - 1) {
+      this.currentSpread++;
+      this.updateSpreadScroll();
+    } else if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.currentSpread = 0;
       this.renderCurrentChapter();
       this.saveProgressSubject.next(this.currentPage - 1);
       this.loadAvatars();
     }
   }
 
-  previousPage() {
-    if (this.currentPage > 1) {
+  prevSpread() {
+    if (this.currentSpread > 0) {
+      this.currentSpread--;
+      this.updateSpreadScroll();
+    } else if (this.currentPage > 1) {
       this.currentPage--;
       this.renderCurrentChapter();
+      setTimeout(() => {
+        this.currentSpread = Math.max(0, this.totalSpreads - 1);
+        this.updateSpreadScroll();
+      }, 300);
       this.saveProgressSubject.next(this.currentPage - 1);
       this.loadAvatars();
     }
+  }
+
+  nextPage() {
+    this.nextSpread();
+  }
+
+  previousPage() {
+    this.prevSpread();
+  }
+
+  recalculateSpreads() {
+    if (!this.columnsViewport?.nativeElement || !this.columnsStream?.nativeElement) return;
+    const vp = this.columnsViewport.nativeElement;
+    const stream = this.columnsStream.nativeElement;
+    const width = vp.clientWidth;
+    if (width <= 0) return;
+    this.isMobileView = window.innerWidth < 800;
+    const gap = this.isMobileView ? 0 : 60;
+    const step = width + gap;
+    const scrollW = stream.scrollWidth;
+    this.totalSpreads = Math.max(1, Math.ceil((scrollW + gap) / step));
+    if (this.currentSpread >= this.totalSpreads) {
+      this.currentSpread = Math.max(0, this.totalSpreads - 1);
+    }
+    this.updateSpreadScroll();
+    this.cdr.detectChanges();
+  }
+
+  updateSpreadScroll() {
+    if (!this.columnsViewport?.nativeElement) return;
+    const vp = this.columnsViewport.nativeElement;
+    const width = vp.clientWidth;
+    const gap = this.isMobileView ? 0 : 60;
+    const targetLeft = this.currentSpread * (width + gap);
+    vp.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    this.updateReadingProgress();
+  }
+
+  private updateReadingProgress() {
+    const chapterPercent = this.totalSpreads > 0 ? ((this.currentSpread + 1) / this.totalSpreads) : 0;
+    this.chapterScrollPercent = Math.min(100, Math.round(chapterPercent * 100));
+    const exactPage = (this.currentPage - 1) + (chapterPercent / Math.max(1, this.totalPages));
+    this.saveProgressSubject.next(exactPage);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardNav(event: KeyboardEvent) {
+    const tag = (event.target as HTMLElement)?.tagName?.toLowerCase();
+    if (['input', 'textarea', 'select'].includes(tag)) return;
+    if (event.key === 'ArrowRight' || event.key === 'PageDown' || (event.key === ' ' && !event.shiftKey)) {
+      event.preventDefault();
+      this.nextSpread();
+    } else if (event.key === 'ArrowLeft' || event.key === 'PageUp' || (event.key === ' ' && event.shiftKey)) {
+      event.preventDefault();
+      this.prevSpread();
+    }
+  }
+
+  @HostListener('window:resize')
+  handleWindowResize() {
+    this.recalculateSpreads();
   }
 
   // ── PERSONAJES ────────────────────────────────────────────────────
@@ -1741,40 +1898,80 @@ export class ReaderComponent implements OnInit, OnDestroy {
   @HostListener('document:selectionchange', ['$event'])
   onSelectionChange() {
     const selection = window.getSelection();
-    if (selection && selection.toString().trim().length > 0) {
-      
-      // VERIFICAR QUE LA SELECCIÓN ESTÉ DENTRO DEL CONTENIDO DEL LIBRO (.reading-canvas)
-      const anchorNode = selection.anchorNode;
-      const readingCanvas = document.querySelector('.reading-canvas');
-      if (anchorNode && readingCanvas && !readingCanvas.contains(anchorNode)) {
-         this.showWordMenu = false;
-         return;
-      }
+    // Ignorar si no hay selección real arrastrada (un simple clic deja isCollapsed = true)
+    if (!selection || selection.isCollapsed) {
+      return;
+    }
+    const selectedStr = selection.toString().trim();
+    if (selectedStr.length <= 1) {
+      return;
+    }
 
-      // Usar setTimeout para dejar que el DOM se asiente
-      setTimeout(() => {
-        if (selection.rangeCount === 0) return;
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        this.selectedText = selection.toString().trim();
-        
-        // Coordenadas base
-        this.wordMenuX = rect.left + (rect.width / 2);
-        
-        // Control de bordes (si está muy arriba, mostrar abajo)
-        if (rect.top < 80) {
-          this.wordMenuY = rect.bottom + 15;
-          this.isMenuBelow = true;
-        } else {
-          this.wordMenuY = rect.top - 15;
-          this.isMenuBelow = false;
-        }
-        
-        this.showWordMenu = true;
-      }, 50);
-    } else {
+    // VERIFICAR QUE LA SELECCIÓN ESTÉ DENTRO DEL CONTENIDO DEL LIBRO
+    const anchorNode = selection.anchorNode;
+    const readingCanvas = document.querySelector('.book-columns-viewport') || document.querySelector('.reading-canvas');
+    if (anchorNode && readingCanvas && !readingCanvas.contains(anchorNode)) {
+       return;
+    }
+
+    // Usar setTimeout para dejar que el DOM se asiente
+    setTimeout(() => {
+      if (selection.rangeCount === 0 || selection.isCollapsed) return;
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      this.selectedText = selection.toString().trim();
+      
+      // Coordenadas base
+      this.wordMenuX = rect.left + (rect.width / 2);
+      
+      // Control de bordes (si está muy arriba, mostrar abajo)
+      if (rect.top < 80) {
+        this.wordMenuY = rect.bottom + 15;
+        this.isMenuBelow = true;
+      } else {
+        this.wordMenuY = rect.top - 15;
+        this.isMenuBelow = false;
+      }
+      
+      this.showWordMenu = true;
+      this.cdr.detectChanges();
+    }, 50);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target) return;
+
+    // Si el clic fue dentro del menú de acción o dentro del modal de diccionario, mantenerlos
+    if (target.closest('.word-action-menu') || target.closest('.dictionary-modal')) {
+      return;
+    }
+
+    // Si el clic fue directamente en una palabra, onWordClick se encarga
+    if (target.closest('.word')) {
+      return;
+    }
+
+    // Si se hizo clic en los costados que no tienen letras, en el libro vacío, fondo o márgenes:
+    let changed = false;
+    if (this.showWordMenu) {
       this.showWordMenu = false;
-      this.selectedText = '';
+      changed = true;
+    }
+    if (this.showDictionaryModal) {
+      this.closeDictionary();
+      changed = true;
+    }
+
+    // Limpiar cualquier rango de selección residual en pantalla
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) {
+      sel.removeAllRanges();
+    }
+
+    if (changed) {
+      this.cdr.detectChanges();
     }
   }
 
@@ -1870,28 +2067,119 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.dictionaryResult = null;
 
     // Obtener primera palabra limpia
-    const wordToSearch = this.selectedText.split(/\s+/)[0].replace(/[^\w\sáéíóúÁÉÍÓÚñÑ]/g, '');
+    const wordToSearch = this.selectedText.split(/\s+/)[0].replace(/^[^\wáéíóúÁÉÍÓÚñÑüÜ]+|[^\wáéíóúÁÉÍÓÚñÑüÜ]+$/g, '');
+    if (!wordToSearch) {
+      this.isDictionaryLoading = false;
+      this.dictionaryResult = { error: 'Selecciona una palabra válida.' };
+      return;
+    }
 
-    // Llamada a API de diccionario abierta (Wiktionary / Google / Diccionario abierto)
-    // Usamos la API pública de Free Dictionary API (español soportado de forma limitada, pero sirve de mockup/demo funcional)
-    fetch(`https://api.dictionaryapi.dev/api/v2/entries/es/${encodeURIComponent(wordToSearch.toLowerCase())}`)
-      .then(res => {
-        if (!res.ok) throw new Error('No encontrado');
-        return res.json();
-      })
-      .then(data => {
-        this.dictionaryResult = data[0];
+    // 1. Consultar endpoint optimizado del backend de Literatus (Wiktionary + Wikipedia + Cache)
+    this.api.get<any>(`library/dictionary/?word=${encodeURIComponent(wordToSearch)}`).subscribe({
+      next: (res) => {
+        if (res && res.meanings && res.meanings.length > 0) {
+          this.dictionaryResult = res;
+        } else {
+          this.dictionaryResult = { error: `No se encontró una definición para «${wordToSearch}».` };
+        }
         this.isDictionaryLoading = false;
-      })
-      .catch(err => {
-        this.dictionaryResult = { error: 'No se encontró una definición exacta para esta palabra.' };
-        this.isDictionaryLoading = false;
-      });
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Fallback directo en el cliente si el backend estuviese desconectado
+        const wiktionaryUrl = `https://es.wiktionary.org/w/api.php?action=query&prop=extracts&explaintext=1&redirects=1&origin=*&titles=${encodeURIComponent(wordToSearch.toLowerCase())}|${encodeURIComponent(wordToSearch)}&format=json`;
+        fetch(wiktionaryUrl)
+          .then(r => r.json())
+          .then(data => {
+            const pages = data?.query?.pages;
+            if (pages) {
+              for (const pid of Object.keys(pages)) {
+                if (pid !== '-1' && pages[pid].extract) {
+                  const extract: string = pages[pid].extract;
+                  const lines = extract.split('\n').map((l: string) => l.trim()).filter((l: string) => l.length > 0);
+                  const defs: string[] = [];
+                  let pos = 'Definición';
+
+                  for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if ((line.includes('sustantivo') || line.includes('verbo') || line.includes('adjetivo')) && (line.includes('=') || line.startsWith('forma'))) {
+                      pos = line.replace(/=/g, '').trim();
+                    }
+                    const numMatch = line.match(/^(\d+)\s*(.*)$/);
+                    if (numMatch && numMatch[2].length > 10 && !numMatch[2].startsWith('Sinónimo')) {
+                      defs.push(numMatch[2]);
+                    } else if (numMatch && i + 1 < lines.length && !lines[i + 1].startsWith('=')) {
+                      defs.push(lines[i + 1]);
+                    }
+                  }
+
+                  if (defs.length === 0) {
+                    for (const line of lines) {
+                      if (!line.startsWith('=') && line.length > 15 && !line.startsWith('Sinónimo') && !line.startsWith('Ejemplo')) {
+                        defs.push(line);
+                        if (defs.length >= 3) break;
+                      }
+                    }
+                  }
+
+                  if (defs.length > 0) {
+                    this.dictionaryResult = {
+                      word: pages[pid].title || wordToSearch,
+                      phonetic: '',
+                      meanings: [
+                        {
+                          partOfSpeech: pos,
+                          definitions: defs.slice(0, 3).map(d => ({ definition: d }))
+                        }
+                      ]
+                    };
+                    this.isDictionaryLoading = false;
+                    this.cdr.detectChanges();
+                    return;
+                  }
+                }
+              }
+            }
+
+            // Fallback a Wikipedia Summary API
+            return fetch(`https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wordToSearch)}`)
+              .then(res => {
+                if (!res.ok) throw new Error('No encontrado');
+                return res.json();
+              })
+              .then(wikiData => {
+                if (wikiData && wikiData.extract) {
+                  this.dictionaryResult = {
+                    word: wikiData.title || wordToSearch,
+                    phonetic: wikiData.description || '',
+                    meanings: [
+                      {
+                        partOfSpeech: wikiData.description || 'Enciclopedia',
+                        definitions: [{ definition: wikiData.extract }]
+                      }
+                    ]
+                  };
+                } else {
+                  throw new Error('Sin extracto');
+                }
+                this.isDictionaryLoading = false;
+                this.cdr.detectChanges();
+              });
+          })
+          .catch(() => {
+            this.dictionaryResult = { error: `No se encontró una definición exacta para «${wordToSearch}».` };
+            this.isDictionaryLoading = false;
+            this.cdr.detectChanges();
+          });
+      }
+    });
   }
 
   closeDictionary() {
     this.showDictionaryModal = false;
     this.dictionaryResult = null;
+    this.isDictionaryLoading = false;
+    this.cdr.detectChanges();
   }
 
   private syncProgressToBackend(exactPage: number, wordId: string = '') {

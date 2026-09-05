@@ -3,7 +3,7 @@ library/urls.py — Enrutador DRF para Biblioteca Personal
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserInventoryViewSet, ReadingProgressViewSet, UserBookmarkViewSet
+from .views import UserInventoryViewSet, ReadingProgressViewSet, UserBookmarkViewSet, DictionaryView
 
 router = DefaultRouter()
 # /api/v1/library/inventory/
@@ -14,5 +14,6 @@ router.register(r'progress', ReadingProgressViewSet, basename='progress')
 router.register(r'bookmarks', UserBookmarkViewSet, basename='bookmark')
 
 urlpatterns = [
+    path('dictionary/', DictionaryView.as_view(), name='dictionary-lookup'),
     path('', include(router.urls)),
 ]

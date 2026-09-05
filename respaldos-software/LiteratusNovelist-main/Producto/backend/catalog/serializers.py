@@ -88,10 +88,11 @@ class BookListSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
     ai_character_count = serializers.IntegerField(read_only=True)
+    estimated_pages = serializers.SerializerMethodField()
     
     class Meta:
         model = Book
-        fields = ['id', 'title', 'slug', 'synopsis', 'is_featured', 'cover_image', 'genres', 'tags', 'price', 'author_name', 'ai_character_count']
+        fields = ['id', 'title', 'slug', 'synopsis', 'is_featured', 'cover_image', 'genres', 'tags', 'price', 'author_name', 'ai_character_count', 'estimated_pages']
 
     def get_price(self, obj):
         editions = obj.editions.all()
@@ -113,6 +114,14 @@ class BookListSerializer(serializers.ModelSerializer):
             main_author = book_authors[0]
             
         return main_author.author.full_name
+
+    def get_estimated_pages(self, obj):
+        """Calcula el aproximado de páginas basado en la longitud de caracteres (1500 caracteres ≈ 1 página)."""
+        total_len = getattr(obj, 'anno_total_len', None)
+        if total_len and total_len > 0:
+            return max(1, round(total_len / 1500))
+        synopsis = obj.synopsis or ''
+        return max(1, round(len(synopsis.split()) * 2.5)) if synopsis else 45
 
 
 class BookDetailSerializer(serializers.ModelSerializer):
