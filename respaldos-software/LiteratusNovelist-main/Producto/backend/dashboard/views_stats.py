@@ -29,7 +29,7 @@ class DashboardStatsView(APIView):
         last_7_days = now - timedelta(days=7)
 
         # --- Ventas ---
-        completed_txns = Transaction.objects.filter(status='AUTHORIZED')
+        completed_txns = Transaction.objects.filter(status=Transaction.StatusChoices.EXITOSA)
         total_revenue = completed_txns.aggregate(total=Sum('amount'))['total'] or 0
         revenue_30d = completed_txns.filter(created_at__gte=last_30_days).aggregate(
             total=Sum('amount')
