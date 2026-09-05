@@ -1160,3 +1160,19 @@
 - **Bundle**: no aplica (no se tocó frontend).
 - **Commit**: solo `NIGHT_AUDIT_STATE.json` + `NIGHT_AUDIT_LOG.md` (housekeeping de estado/registro; ningún archivo de código o datos del producto). `current_phase` avanza a `G_lector_audiolibro_chat_ia` para la próxima corrida (última reconfirmación de drift en la corrida #12).
 - **Push confirmado en origin**: sí, ver hash en el informe final de esta corrida.
+
+## 2026-09-05T13:57:44Z — corrida horaria #15
+
+- **Entorno**: repo OK (`git rev-parse --show-toplevel` termina en `LiteratusNovelistV2`; `git remote -v` -> `github.com/Cxris2145/LiteratusNovelistV2`). `git status` limpio al iniciar. Guarda de solapamiento: `run_in_progress` era `false`, heartbeat de la corrida #14 (`12:53:18Z`) con ~61 min de antigüedad al iniciar (<90 min, ya en `false`) -> sin corrida viva.
+- **Rama y commit base**: `agent/nightly-optimization-chris` (HEAD `3a6a131` al iniciar, `git pull --ff-only` -> `Already up to date`), `merge-base`/`git rev-parse origin/Chris` = `3786d288fd23e4228b6c0390ac00ee9cf6533940` -> confirmado que la base sigue siendo `origin/Chris`, sin desviación. `origin/Felipe`, `origin/eithan` y la rama vieja `origin/agent/nightly-optimization` (basada en Felipe/`e794ef95`) no se tocaron, solo se hizo fetch de sus refs.
+- **Push verificado (2.9)**: `git push --dry-run origin HEAD:refs/heads/agent/nightly-optimization-chris` -> `Everything up-to-date` -> **OK**.
+- **Entorno en frío**: se recreó `.venv312` (`python3.12 -m venv` + `pip install -r requirements.txt`, sin errores) y `.env` local desde `.env.example` (`DATABASE_URL=sqlite:///./db_local_check.sqlite3`, `SECRET_KEY` local; ambos gitignorados, sin credenciales reales).
+- **Smoke check (Fase A)**: `manage.py check` -> `System check identified no issues (0 silenced)`. `makemigrations --check --dry-run` -> `No changes detected`. Sin regresión.
+- **Fase y lote trabajados**: `G_lector_audiolibro_chat_ia` — cursor "re-confirmar drift desde la corrida #7/#12" -> re-confirmado con evidencia: `git diff --stat cec4966..HEAD -- catalog/models.py ai_engine/models.py library/views.py ai_engine/serializers.py ai_engine/views.py ai_engine/kokoro_service.py ai_engine/tts_service.py` (cec4966 = commit de la corrida #7, última auditoría a fondo de Fase G) devuelve **vacío** -> cero cambios en los 7 archivos que sustentan el análisis desde entonces (ni siquiera desde la reconfirmación de la corrida #12). El análisis de fondo (constraints `unique_chapter_order`/`unique_chapter_audio_voice` ya existentes, `AIAvatar.edition` FK NOT NULL, `CheckConstraint valid_temperature` ya existente, `select_related`/`prefetch_related` ya correcto, serializers sin fuga de campos sensibles) sigue vigente. Ver detalle completo en `NIGHT_AUDIT_STATE.json -> phase_cursor.G_lector_audiolibro_chat_ia`.
+- **Cambios aplicados**: ninguno (sin hallazgos nuevos corregibles de forma inequívoca; todo lo pendiente de Fase G sigue bloqueado por MR-0002 — falta de acceso a la BD real).
+- **Tabla de duplicados de imágenes**: no aplica esta corrida (fuera de Fase F).
+- **NEEDS MANUAL REVIEW nuevos**: ninguno. MR-0002 a MR-0014 revisadas: siguen abiertas, sin resolución del dueño.
+- **Pruebas**: `manage.py check` + `makemigrations --check --dry-run` (corrida no-op a nivel de auditoría, sin más pruebas según sección 6).
+- **Bundle**: no aplica (no se tocó frontend).
+- **Commit**: solo `NIGHT_AUDIT_STATE.json` + `NIGHT_AUDIT_LOG.md` (housekeeping de estado/registro; ningún archivo de código o datos del producto). `current_phase` avanza a `H_backend_api` para la próxima corrida (última reconfirmación de drift en la corrida #13).
+- **Push confirmado en origin**: sí, ver hash en el informe final de esta corrida.
