@@ -1098,3 +1098,17 @@
 - **Bundle**: sin cambios (no se tocó frontend esta corrida).
 - **Commit**: incluye los 20 archivos Python corregidos, `NIGHT_AUDIT_STATE.json` y `NIGHT_AUDIT_LOG.md`. Fase H_backend_api queda **CERRADA**; `current_phase` avanza a `F_duplicados_imagenes` para re-confirmar que no hay drift en `respaldos-software/books/*/images/` desde el último escaneo local (corrida #6).
 - **Push confirmado en origin**: ver verificación con `git ls-remote` registrada en el informe final de esta corrida.
+
+## 2026-09-05T10:05:00Z — corrida horaria #11
+
+- **Entorno**: repo OK (`Cxris2145/LiteratusNovelistV2`), rama `agent/nightly-optimization-chris`, commit base desde Chris confirmado (`3786d28`, merge-base sin desviación), HEAD al iniciar `907f86a`. `git status` limpio al empezar. Contenedor en frío: `.venv312` recreado (`python3.12 -m venv` + `pip install -r requirements.txt`, sin errores) y `.env` local generado desde `.env.example` (SQLite temporal, sin credenciales reales, gitignorado).
+- **Push verificado**: OK (`git push --dry-run origin HEAD:refs/heads/agent/nightly-optimization-chris` -> "Everything up-to-date").
+- **Smoke check**: `manage.py check` -> 0 issues. `makemigrations --check --dry-run` -> sin cambios pendientes. Fase A sin regresión.
+- **Fase y lote trabajados**: `F_duplicados_imagenes` (re-confirmación de drift) -> re-ejecutado `scripts/db_setup/audit_db_images.py --local-only` contra `respaldos-software/books/*/images/`. Resultado **idéntico** al de la corrida #6: 5056 archivos escaneados, 79 grupos de contenido duplicado entre libros distintos (2 grupos Zorrilla = MR-0011 ya abierta, 59 grupos Victor Hugo = MR-0012 ya abierta, 18 grupos de logos de editorial ya confirmados sin cambio). **Cero drift**, sin grupos nuevos. El cruce contra `Book.cover_image`/`Author.photo`/`AIAvatar.avatar_image` reales sigue bloqueado por MR-0002 (`backend/media/` sigue sin existir en este contenedor).
+- Spot-check adicional de Fase J: confirmado que las 6 referencias a librerías pesadas del frontend (`lottie-web` x4, `jspdf`/`jspdf-autotable`, `kokoro-js`) ya usan `import()` dinámico; el único import estático restante (`@huggingface/transformers` en `sherpa-tts.worker.ts`) es código de un Web Worker que ya se carga como bundle aparte solo al instanciarse — nada que optimizar sin efecto visual.
+- **Cambios aplicados**: ninguno (ninguna corrección inequívoca nueva encontrada esta corrida).
+- **NEEDS MANUAL REVIEW nuevos**: ninguno.
+- **Pruebas**: solo `manage.py check` + `makemigrations --check --dry-run` (corrida no-op según sección 6, sin más pruebas).
+- **Bundle**: no aplica (no se tocó frontend).
+- **Commit**: solo `NIGHT_AUDIT_STATE.json` + `NIGHT_AUDIT_LOG.md` (housekeeping de estado/registro; ningún archivo de código o datos del producto). Se commitea pese a ser una corrida no-op a nivel de auditoría porque el hook de fin de sesión del entorno exige un working tree limpio antes de terminar.
+- **Push confirmado en origin**: sí, ver hash en el informe final de la corrida.
