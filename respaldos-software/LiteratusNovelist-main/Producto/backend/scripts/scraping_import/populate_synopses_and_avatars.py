@@ -3,7 +3,6 @@ import django
 import json
 import requests
 import time
-import traceback
 import sys
 from pathlib import Path
 

@@ -1,6 +1,5 @@
 import os
 import sys
-import os
 # Add parent directory to path to allow importing django config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import django
@@ -33,7 +32,7 @@ def sync_character_images(images_dir='character_portraits'):
         char_id = filename.split('.')[0]
         
         try:
-            avatar = AIAvatar.objects.get(id=int(char_id))
+            avatar = AIAvatar.objects.get(id=char_id)
             
             file_path = os.path.join(images_dir, filename)
             with open(file_path, 'rb') as f:
