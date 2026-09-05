@@ -1176,3 +1176,15 @@
 - **Bundle**: no aplica (no se tocó frontend).
 - **Commit**: solo `NIGHT_AUDIT_STATE.json` + `NIGHT_AUDIT_LOG.md` (housekeeping de estado/registro; ningún archivo de código o datos del producto). `current_phase` avanza a `H_backend_api` para la próxima corrida (última reconfirmación de drift en la corrida #13).
 - **Push confirmado en origin**: sí, ver hash en el informe final de esta corrida.
+
+## 2026-09-05 ~14:53-15:10 UTC — corrida horaria #16
+- **Entorno**: repo OK (`Cxris2145/LiteratusNovelistV2`), rama `agent/nightly-optimization-chris` (HEAD `e8713f6` al iniciar), commit base confirmado desde `origin/Chris` (`3786d288`, sin desviación), `git status` limpio al iniciar. Entorno en frío: `.venv312` (python3.12 -m venv + pip install -r requirements.txt, sin errores) + `.env` local desde `.env.example` (SQLite temporal, sin credenciales reales). Smoke check: `manage.py check` → 0 issues.
+- **Push verificado**: OK (`git push --dry-run origin HEAD:refs/heads/agent/nightly-optimization-chris` → "Everything up-to-date").
+- **Fase y lote trabajados**: `H_backend_api` (cursor: re-confirmación de drift #13/#10 → este lote con hallazgo real). Se revisaron `catalog/views.py` (confirmado sin cambio, ya optimizado en corridas previas: select_related/prefetch_related, paginación, Cache-Control), `core/views.py` (StoreSettingsView, se evaluó Cache-Control y se descartó por riesgo de retrasar la propagación visible de un cambio de tema), `dashboard/views_stats.py` (bucle de 7 queries en `sales_chart`, colapsable a 1 con `TruncDate` pero NO aplicado por riesgo de cambiar el día calendario asignado a una venta cerca de medianoche bajo `TIME_ZONE=America/Lima` — cifras de ingresos, zona gris) y `users/views.py`.
+- **Cambios aplicados**: 1 corrección real.
+  - `backend/users/views.py` — `AddInkView.post()` leía `amount` directo de `request.data` (default 10) sin ningún token de recompensa ni límite de servidor ni throttling configurado; cualquier usuario autenticado podía otorgarse Tinta (moneda del sitio) ilimitada llamando `POST /users/me/add_ink/` directo con un `amount` arbitrario. Confirmado que el único llamador real (`frontend/src/app/library/tavern/tavern.component.ts:119`) siempre envía `amount: 10` fijo. Corregido: se reemplazó por una constante de servidor `AD_REWARD_AMOUNT = 10`, sin cambiar el comportamiento visible para el uso legítimo.
+- **NEEDS MANUAL REVIEW nuevos**: ninguno (el hallazgo fue corregible de forma inequívoca). MR-0002 a MR-0014 revisadas: siguen abiertas, sin resolución del dueño.
+- **Pruebas**: `manage.py check` (0 issues) + `makemigrations --check --dry-run` (sin cambios) + `manage.py test users` (21/21 OK) + `manage.py test` completo (67/67 OK, sin regresión).
+- **Bundle**: no aplica (no se tocó frontend).
+- **Commit**: `users/views.py` + `NIGHT_AUDIT_STATE.json` + `NIGHT_AUDIT_LOG.md`. `current_phase` avanza a `F_duplicados_imagenes` para la próxima corrida (re-confirmar drift, última vez confirmada en la corrida #14).
+- **Push confirmado en origin**: sí, ver hash en el informe final de esta corrida.

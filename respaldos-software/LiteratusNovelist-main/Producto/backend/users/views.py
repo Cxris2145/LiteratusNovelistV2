@@ -106,14 +106,21 @@ class AddInkView(APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
 
+    # Recompensa fija por anuncio visto. NUNCA se debe leer de request.data:
+    # el único llamador real (tavern.component.ts) ya envía siempre 10, y
+    # aceptar el monto del cliente permitía a cualquier usuario autenticado
+    # otorgarse tinta ilimitada llamando al endpoint directamente con un
+    # 'amount' arbitrario (no hay token de anuncio real que validar aún).
+    AD_REWARD_AMOUNT = 10
+
     def post(self, request, *args, **kwargs):
         # En una app real aquí se validaría un token de recompensa del anuncio
-        amount = int(request.data.get('amount', 10))
-        
+        amount = self.AD_REWARD_AMOUNT
+
         profile = request.user.profile
         profile.ink_balance += amount
         profile.save()
-        
+
         return Response({
             'message': f'¡Has ganado {amount} de Tinta!',
             'ink_balance': profile.ink_balance
