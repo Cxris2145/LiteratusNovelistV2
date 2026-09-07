@@ -13,7 +13,6 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMsg = '';
   isLoading = false;
-  isLoadingAdmin = false;
   returnUrl: string = '/catalog';
   showPassword = false;
 
@@ -45,7 +44,7 @@ export class LoginComponent implements OnInit {
     this.isLoading = true;
     this.errorMsg = '';
 
-    this.api.post<{ access: string, refresh: string, user: any }>('users/login/', this.loginForm.value)
+    this.api.post<{access: string, refresh: string, user: any}>('users/login/', this.loginForm.value)
       .subscribe({
         next: (res) => {
           this.auth.setTokens(res.access, res.refresh);
@@ -59,39 +58,5 @@ export class LoginComponent implements OnInit {
           this.isLoading = false;
         }
       });
-  }
-
-  loginAsAdmin() {
-    this.loginForm.patchValue({
-      username: 'admin',
-      password: 'admin123'
-    });
-
-    this.isLoading = true;
-    this.isLoadingAdmin = true;
-    this.errorMsg = '';
-
-    this.api.post<{ access: string, refresh: string, user: any }>('users/login/', {
-      username: 'admin',
-      password: 'admin123'
-    }).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        this.isLoadingAdmin = false;
-        this.auth.setTokens(res.access, res.refresh);
-        if (res.user) {
-          this.auth.setUser(res.user);
-        }
-        // Permanece en el catálogo o en la página donde estaba el usuario con acceso total
-        const target = (this.returnUrl && !this.returnUrl.includes('dashboard')) ? this.returnUrl : '/catalog';
-        this.router.navigateByUrl(target);
-      },
-      error: (err) => {
-        console.error('Error al conectar:', err);
-        this.errorMsg = 'No se pudo conectar. Verifica que el backend esté activo.';
-        this.isLoading = false;
-        this.isLoadingAdmin = false;
-      }
-    });
   }
 }

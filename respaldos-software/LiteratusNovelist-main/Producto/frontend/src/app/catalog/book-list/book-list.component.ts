@@ -12,8 +12,6 @@ export interface Book {
   is_featured: boolean;
   cover_image: string | null;
   created_at: string;
-  author_name?: string;
-  estimated_pages?: number;
 }
 
 interface PaginatedResponse {
@@ -54,39 +52,9 @@ export class BookListComponent implements OnInit {
     if (!url) return 'assets/default_cover.jpg';
     if (url.includes('/storage/v1/object/public/')) {
       return url.replace('/object/public/', '/render/image/public/')
-        + (url.includes('?') ? '&' : '?') + 'width=400&resize=contain&quality=85';
+        + (url.includes('?') ? '&' : '?') + 'width=400&quality=60&resize=cover';
     }
     return url;
-  }
-
-  /**
-   * Normaliza títulos en la interfaz como capa de seguridad adicional.
-   */
-  formatTitle(title: string, author?: string): string {
-    if (!title) return '';
-    let clean = title.trim();
-    if (author && author.trim()) {
-      const auth = author.trim();
-      const authVariants = [
-        auth,
-        auth.toLowerCase(),
-        auth.replace(/\s+/g, '-').toLowerCase()
-      ];
-      for (const v of authVariants) {
-        const esc = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        clean = clean.replace(new RegExp(`[-–—:]+\\s*${esc}$`, 'i'), '').trim();
-        clean = clean.replace(new RegExp(`\\s+by\\s+${esc}$`, 'i'), '').trim();
-        clean = clean.replace(new RegExp(`,\\s*${esc}$`, 'i'), '').trim();
-        clean = clean.replace(new RegExp(`-${esc}$`, 'i'), '').trim();
-      }
-    }
-    if (clean.includes('-') && (clean === clean.toLowerCase() || !clean.includes(' '))) {
-      if (clean.toLowerCase() !== 'hop-frog') {
-        clean = clean.replace(/[-_]/g, ' ');
-        clean = clean.charAt(0).toUpperCase() + clean.slice(1);
-      }
-    }
-    return clean.replace(/\s+/g, ' ').trim();
   }
 
   onImgError(event: Event): void {
@@ -145,54 +113,10 @@ export class BookListComponent implements OnInit {
     ]}
   ];
   allSubcategories: string[] = [];
-  genreCounts: Record<string, number> = {};
-  allBooksTotalCount = 0;
 
   ngOnInit(): void {
     this.categories.forEach(cat => this.allSubcategories.push(...cat.sub));
-    this.fetchGenreCounts();
     this.fetchBooks();
-  }
-
-  fetchGenreCounts(): void {
-    this.api.get<any>('catalog/genres/', new HttpParams().set('page_size', '100')).subscribe({
-      next: (res) => {
-        const items = res.results || res;
-        if (Array.isArray(items)) {
-          const map: Record<string, number> = {};
-          items.forEach((g: any) => {
-            const count = g.book_count ?? 0;
-            if (g.name) {
-              map[g.name] = count;
-              map[this.normalizeGenreKey(g.name)] = count;
-            }
-            if (g.slug) {
-              map[g.slug] = count;
-            }
-          });
-          this.genreCounts = map;
-        }
-      },
-      error: (err) => console.error('Error al cargar conteo de géneros:', err)
-    });
-  }
-
-  normalizeGenreKey(text: string): string {
-    return (text || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]/g, '');
-  }
-
-  getGenreCount(cat: string): number | null {
-    if (!this.genreCounts || Object.keys(this.genreCounts).length === 0) return null;
-    const dbName = this.genreDbMap[cat] || cat;
-    if (this.genreCounts[dbName] !== undefined) return this.genreCounts[dbName];
-    if (this.genreCounts[cat] !== undefined) return this.genreCounts[cat];
-    const normalized = this.normalizeGenreKey(cat);
-    if (this.genreCounts[normalized] !== undefined) return this.genreCounts[normalized];
-    return null;
   }
 
   fetchBooks() {
@@ -213,16 +137,15 @@ export class BookListComponent implements OnInit {
     params = params.set('page_size', this.activeCategory || this.searchTerm ? '50' : '24');
     params = params.set('page', this.currentPage);
 
-    // Ordenar alfabéticamente de la A a la Z
-    params = params.set('ordering', 'title');
+    // Si no hay filtro activo, mostrar libros de forma aleatoria
+    if (!this.activeCategory && !this.searchTerm) {
+      params = params.set('ordering', '?');
+    }
 
     this.api.get<PaginatedResponse>('catalog/books/', params).subscribe({
       next: (response) => {
         this.books = response.results;
         this.totalCount = response.count;
-        if (!this.activeCategory && !this.searchTerm) {
-          this.allBooksTotalCount = response.count;
-        }
         this.isLoading = false;
       },
       error: (err) => {
@@ -242,12 +165,6 @@ export class BookListComponent implements OnInit {
 
   setCategory(cat: string) {
     this.activeCategory = this.activeCategory === cat ? null : cat;
-    this.currentPage = 1;
-    this.fetchBooks();
-  }
-
-  clearCategory() {
-    this.activeCategory = null;
     this.currentPage = 1;
     this.fetchBooks();
   }

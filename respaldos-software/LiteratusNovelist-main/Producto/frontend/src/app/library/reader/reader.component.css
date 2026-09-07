@@ -136,47 +136,6 @@
   --th-bg-send-btn-hover: #3b2a1a;
 }
 
-/* ── TEMA PAPEL (LIBRO IMPRESO / PERGAMINO) ────────────────────────── */
-.theme-papel {
-  --th-bg-page:        #faf6ed;
-  --th-bg-toolbar:     rgba(250, 246, 237, 0.92);
-  --th-bg-sidebar:     rgba(250, 246, 237, 0.98);
-  --th-bg-sidebar-hdr: rgba(243, 237, 224, 0.95);
-  --th-bg-chat-footer: rgba(250, 246, 237, 0.98);
-  --th-bg-input:       rgba(60, 48, 36, 0.06);
-  --th-bg-bubble-ai:   rgba(60, 48, 36, 0.06);
-  --th-bg-bubble-user: #3d3126;
-  --th-bg-controls:    rgba(60, 48, 36, 0.07);
-  --th-bg-hover:       rgba(60, 48, 36, 0.12);
-  --th-bg-toc:         rgba(250, 246, 237, 0.98);
-  --th-bg-overlay:     rgba(250, 246, 237, 0.7);
-
-  --th-text-primary:   #2d241e;
-  --th-text-secondary: rgba(45, 36, 30, 0.65);
-  --th-text-bubble-ai: #2d241e;
-  --th-text-bubble-user: #faf6ed;
-  --th-text-input:     #2d241e;
-  --th-text-placeholder: rgba(45, 36, 30, 0.5);
-  --th-text-disclaimer: rgba(45, 36, 30, 0.5);
-  --th-text-char-name: #221a14;
-  --th-text-char-role: rgba(60, 48, 36, 0.65);
-
-  --th-border-base:    rgba(120, 95, 65, 0.18);
-  --th-border-input:   rgba(120, 95, 65, 0.15);
-  --th-border-sidebar: rgba(120, 95, 65, 0.18);
-  --th-border-btn:     rgba(120, 95, 65, 0.2);
-
-  --th-lottie-filter:  brightness(0);
-  --th-fab-bg:         rgba(250, 246, 237, 0.96);
-  --th-fab-color:      #3d3126;
-  --th-progress-track: rgba(120, 95, 65, 0.15);
-  --th-char-initial-bg: #3d3126;
-  --th-char-initial-text: #faf6ed;
-  --th-bg-send-btn:      #3d3126;
-  --th-text-send-btn:    #faf6ed;
-  --th-bg-send-btn-hover: #221a14;
-}
-
 /* â”€â”€ TEMA NOCTURNO (OLED) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 /* Negro puro en superficies de lectura, casi-negro en paneles
    Texto #e8e8e8 (off-white) para no cansar la vista en la oscuridad */
@@ -238,7 +197,7 @@
 }
 
 :root {
-  --font-size-reader: 15px;
+  --font-size-reader: 18px;
 }
 
 /* BARRA DE HERRAMIENTAS */
@@ -365,34 +324,8 @@
 
 .book-info {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 3px;
   overflow: hidden;
-  max-width: 280px;
-}
-
-.chapter-label {
-  font-weight: 700;
-  font-family: var(--font-ui, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif);
-  font-size: 0.95rem;
-  color: var(--th-text-primary);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.progress-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--th-accent-gold, #f59e0b);
-  opacity: 0.85;
-  line-height: 1.2;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
+  max-width: 250px;
 }
 
 .toolbar-center {
@@ -409,21 +342,32 @@
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
-  scrollbar-width: none;
+  scrollbar-width: none; /* Firefox */
   text-align: center;
 }
 
 .book-title-container::-webkit-scrollbar {
-  display: none;
+  display: none; /* Chrome/Safari/Edge */
 }
 
 .book-title-label {
   display: inline-block;
-  font-family: var(--font-ui, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif) !important;
-  font-size: 1.05rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
   font-weight: 700;
-  color: var(--th-text-primary);
-  letter-spacing: -0.2px;
+  color: var(--glow-purple, #a855f7);
+  letter-spacing: 0.5px;
+}
+
+.chapter-label {
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 
 .reader-settings {
@@ -452,19 +396,6 @@
 
 .font-controls button:hover {
   background: var(--th-bg-hover);
-}
-
-.font-size-indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
-  color: inherit;
-  opacity: 0.75;
-  user-select: none;
 }
 
 .theme-selector {
@@ -1858,296 +1789,179 @@ font-family: 'Outfit', sans-serif;
   font-size: 1rem;
 }
 
-/* ═════════════════════════════════════════════════════════════════════ */
-/* ESCENARIO DE LECTURA: LIBRO ABIERTO (DOBLE PÁGINA)                    */
-/* ═════════════════════════════════════════════════════════════════════ */
-.book-stage {
+/* LIENZO DE LECTURA */
+.reading-canvas {
   flex: 1;
-  height: calc(100vh - 64px);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px 24px;
-  overflow: hidden;
-  gap: 16px;
-  margin-top: 60px;
-  transition: margin-top 0.3s ease, height 0.3s ease;
-  user-select: text;
-}
-
-.book-stage.immersive {
-  margin-top: 0;
-  height: 100vh;
-}
-
-/* Libro Abierto con Sombra y Profundidad */
-.open-book-spread {
-  position: relative;
-  flex: 1;
-  max-width: 1320px;
-  height: 100%;
-  max-height: calc(100vh - 90px);
-  display: flex;
-  flex-direction: column;
-  border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--th-border-base);
-  background: var(--th-bg-page);
-  overflow: hidden;
-  padding: 18px 36px 14px;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
-}
-
-.theme-light .open-book-spread {
-  background: #ffffff;
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08);
-}
-
-.theme-sepia .open-book-spread {
-  background: #fbf0d9;
-  box-shadow: 0 15px 45px rgba(91, 70, 54, 0.15), 0 0 0 1px rgba(91, 70, 54, 0.12);
-}
-
-.theme-papel .open-book-spread {
-  background: #fbf8f1;
-  background-image: radial-gradient(ellipse at 50% 50%, #fefcf7 0%, #f6efe0 100%);
-  box-shadow: 0 18px 48px rgba(70, 50, 30, 0.16), 0 0 0 1px rgba(120, 95, 65, 0.14);
-}
-
-.theme-papel .book-spine-crease {
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(80, 55, 30, 0.04) 28%, 
-    rgba(80, 55, 30, 0.18) 48%, 
-    rgba(60, 40, 20, 0.28) 50%, 
-    rgba(80, 55, 30, 0.18) 52%, 
-    rgba(80, 55, 30, 0.04) 72%, 
-    transparent 100%
-  );
-}
-
-.theme-dark .open-book-spread {
-  background: #0f172a;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.theme-nocturno .open-book-spread {
-  background: #050505;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
-/* Pliegue/Lomo Central del Libro */
-.book-spine-crease {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 48px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(0, 0, 0, 0.04) 30%, 
-    rgba(0, 0, 0, 0.18) 48%, 
-    rgba(0, 0, 0, 0.28) 50%, 
-    rgba(0, 0, 0, 0.18) 52%, 
-    rgba(0, 0, 0, 0.04) 70%, 
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 10;
-}
-
-.theme-dark .book-spine-crease,
-.theme-nocturno .book-spine-crease {
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(0, 0, 0, 0.2) 30%, 
-    rgba(0, 0, 0, 0.55) 48%, 
-    rgba(0, 0, 0, 0.75) 50%, 
-    rgba(0, 0, 0, 0.55) 52%, 
-    rgba(0, 0, 0, 0.2) 70%, 
-    transparent 100%
-  );
-}
-
-/* Encabezado del Libro (Capítulo / Título) */
-.book-spread-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 28px;
-  font-size: 0.76rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  opacity: 0.5;
-  border-bottom: 1px solid var(--th-border-base);
-  margin-bottom: 12px;
-  user-select: none;
-  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
-}
-
-.page-header {
-  width: calc(50% - 30px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.page-header.right-header {
-  text-align: right;
-}
-
-/* Pie de Página del Libro (Paginación) */
-.book-spread-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 28px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  opacity: 0.65;
-  border-top: 1px solid var(--th-border-base);
-  margin-top: 10px;
-  user-select: none;
-  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
-}
-
-.page-footer {
-  width: calc(50% - 30px);
-}
-
-.page-footer.right-footer {
-  text-align: right;
-}
-
-/* Ventana de Lectura de Columnas */
-.book-columns-viewport {
-  flex: 1;
-  width: 100%;
-  height: calc(100% - 68px);
-  overflow-x: hidden;
-  overflow-y: hidden;
-  position: relative;
+  overflow-y: auto;
+  padding: 80px calc((100% - 70ch) / 2) 150px calc((100% - 70ch) / 2);
   scroll-behavior: smooth;
+  scrollbar-width: thin;
+  transition: background 0.3s ease;
 }
 
-.book-columns-stream {
-  column-count: 2;
-  column-gap: 60px;
-  column-fill: auto;
-  height: 100%;
-  font-family: 'Merriweather', 'Lora', 'Georgia', serif;
-  font-size: var(--font-size-reader, 15px);
-  line-height: 1.62;
-  color: var(--th-text-primary);
+/* CONFIGURACIÓN DINÁMICA DE FUENTES */
+.reading-canvas.font-serif {
+  font-family: 'Merriweather', 'Georgia', serif;
+}
+.reading-canvas.font-sans {
+  font-family: 'Outfit', 'Montserrat', sans-serif;
+}
+.reading-canvas.font-dyslexic {
+  font-family: 'Comic Neue', 'Comic Sans MS', sans-serif;
+}
+.reading-canvas.font-medieval {
+  font-family: 'Cinzel', 'MedievalSharp', 'Georgia', serif;
+}
+.reading-canvas.font-garamond {
+  font-family: 'EB Garamond', 'Garamond', serif;
+}
+.reading-canvas.font-georgia {
+  font-family: 'Georgia', serif;
+}
+.reading-canvas.font-palatino {
+  font-family: 'Palatino', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+.reading-canvas.font-opensans {
+  font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+.reading-canvas.font-helvetica {
+  font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+}
+
+.html-reader ::ng-deep p {
+  font-size: var(--font-size-reader);
+  line-height: 1.8;
+  margin-bottom: 0.8em;
   text-align: justify;
+  text-indent: 2em; /* Sangría de primera línea */
+  font-family: inherit; /* Hereda de la clase del canvas */
 }
 
-.book-columns-stream p {
-  margin-bottom: 0.75em;
-  text-indent: 1.5em;
-  font-family: inherit;
+.html-reader ::ng-deep h1 + p, 
+.html-reader ::ng-deep h2 + p, 
+.html-reader ::ng-deep h3 + p,
+.chapter-heading + p,
+.chapter-title-main + p {
+  text-indent: 0; /* Remover sangría después de un título (convención editorial) */
 }
 
-.book-columns-stream p:first-of-type,
-.book-columns-stream h1 + p,
-.book-columns-stream h2 + p {
-  text-indent: 0;
-}
-
-.book-columns-stream h1.chapter-title-main {
-  column-span: none;
-  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.35rem;
-  font-weight: 800;
-  margin-bottom: 0.8rem;
-  margin-top: 0.3rem;
-  line-height: 1.25;
-  text-align: left;
-  letter-spacing: -0.02em;
-}
-
-.book-columns-stream h1.chapter-heading,
-.book-columns-stream h2.chapter-heading {
-  margin-top: 1.8rem;
-  margin-bottom: 1rem;
-  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
-  font-weight: 700;
-  text-align: left;
-}
-
-.book-columns-stream img {
-  max-width: 100%;
-  max-height: 250px;
-  object-fit: contain;
-  margin: 1rem auto;
-  border-radius: 6px;
+.html-reader ::ng-deep img {
   display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 3rem auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* Flechas de Navegación */
-.book-nav-btn {
+.html-reader ::ng-deep h1, 
+.html-reader ::ng-deep h2, 
+.html-reader ::ng-deep h3,
+.chapter-heading {
+  margin-top: 3.5rem;
+  margin-bottom: 2rem;
+  font-family: inherit; /* Hereda de la clase del canvas */
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.chapter-title-main {
+  font-family: inherit; /* Hereda de la clase del canvas */
+  font-size: calc(var(--font-size-reader) * 1.8);
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 3rem;
+  margin-top: 1rem;
+  letter-spacing: -0.02em;
+  color: inherit;
+}
+
+/* NAVEGACIÓN OVERLAY */
+.navigation-overlay {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.nav-btn {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--th-bg-controls);
-  border: 1px solid var(--th-border-btn);
-  color: var(--th-text-primary);
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  cursor: pointer;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  flex-shrink: 0;
-  z-index: 20;
+  font-size: 1.5rem;
+  transition: all 0.2s;
+  backdrop-filter: blur(4px);
 }
 
-.book-nav-btn:hover:not(.disabled) {
+.nav-btn:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.4);
   transform: scale(1.1);
-  background: rgba(59, 130, 246, 0.25);
-  border-color: #3b82f6;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
 }
 
-.book-nav-btn.disabled,
-.book-nav-btn:disabled {
+.nav-btn:disabled {
   opacity: 0.2;
   cursor: not-allowed;
+}
+
+/* BOTÓN SIGUIENTE CAPÍTULO (AL FINAL DEL SCROLL) */
+.next-chapter-container {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
   pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1200; /* Por encima de todo: overlay, panels, toolbar */
+  width: max-content;
+  max-width: calc(100vw - 40px);
 }
 
-/* Responsive Móvil */
-@media (max-width: 800px) {
-  .book-stage {
-    padding: 8px 4px;
-    gap: 4px;
-  }
-  .open-book-spread {
-    padding: 12px 16px 8px;
-    max-height: calc(100vh - 70px);
-  }
-  .book-spine-crease {
-    display: none;
-  }
-  .book-columns-stream {
-    column-count: 1;
-    column-gap: 0;
-  }
-  .page-header.right-header {
-    display: none;
-  }
-  .page-header.left-header {
-    width: 100%;
-  }
-  .book-nav-btn {
-    width: 36px;
-    height: 36px;
-  }
+.next-chapter-container.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
+.next-chapter-btn {
+  background: linear-gradient(135deg, #3b82f6, #a855f7);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
+  transition: all 0.3s ease;
+}
+
+.next-chapter-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(168, 85, 247, 0.6);
+}
+
+.next-chapter-btn:active {
+  transform: translateY(0) scale(0.98);
+}
 
 /* VENTANA DE CHAT ESTILO WHATSAPP */
 .chat-window {
@@ -3257,37 +3071,6 @@ font-family: 'Outfit', sans-serif;
   border-color: transparent transparent rgba(168, 85, 247, 0.3);
 }
 
-/* Soporte específico para Tema Papel y Sepia en el Menú de Acción */
-.theme-papel .word-action-menu,
-.theme-sepia .word-action-menu {
-  background: #fbf8f0 !important;
-  border: 1.5px solid #d4c5a9 !important;
-  box-shadow: 0 12px 30px rgba(58, 42, 26, 0.18), 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-  color: #2d241e !important;
-}
-
-.theme-papel .word-action-menu.menu-above::after,
-.theme-sepia .word-action-menu.menu-above::after {
-  border-color: #d4c5a9 transparent transparent transparent !important;
-}
-
-.theme-papel .word-action-menu.menu-below::after,
-.theme-sepia .word-action-menu.menu-below::after {
-  border-color: transparent transparent #d4c5a9 !important;
-}
-
-.theme-papel .menu-action-btn,
-.theme-sepia .menu-action-btn {
-  color: #2d241e !important;
-  font-weight: 500 !important;
-}
-
-.theme-papel .menu-action-btn:hover:not(:disabled),
-.theme-sepia .menu-action-btn:hover:not(:disabled) {
-  background: rgba(180, 115, 30, 0.14) !important;
-  color: #7a420b !important;
-}
-
 /* Botones con Touch Target de 44px */
 .menu-action-btn {
   background: transparent;
@@ -3434,75 +3217,6 @@ font-family: 'Outfit', sans-serif;
 
 .theme-light .dict-example {
   color: #7c3aed;
-}
-
-/* Soporte para Modal de Diccionario en Tema Papel y Sepia */
-.theme-papel .dictionary-modal,
-.theme-sepia .dictionary-modal {
-  background: #fdfaf4 !important;
-  border: 1.5px solid #d4c5a9 !important;
-  box-shadow: 0 20px 45px rgba(58, 42, 26, 0.22), 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-  color: #2d241e !important;
-}
-
-.theme-papel .dict-header,
-.theme-sepia .dict-header {
-  background: #f2e9d8 !important;
-  border-bottom: 1px solid #d4c5a9 !important;
-}
-
-.theme-papel .dict-header h4,
-.theme-sepia .dict-header h4 {
-  color: #7a420b !important;
-  font-weight: 700 !important;
-}
-
-.theme-papel .dict-header .close-btn,
-.theme-sepia .dict-header .close-btn {
-  color: #5a3c22 !important;
-}
-
-.theme-papel .dict-word,
-.theme-sepia .dict-word {
-  color: #7a420b !important;
-  font-weight: 700 !important;
-}
-
-.theme-papel .dict-phonetic,
-.theme-sepia .dict-phonetic {
-  color: #695646 !important;
-}
-
-.theme-papel .dict-pos,
-.theme-sepia .dict-pos {
-  background: #ecdfc9 !important;
-  color: #5c3813 !important;
-  font-weight: 600 !important;
-  border: 1px solid #d4c5a9 !important;
-}
-
-.theme-papel .dict-meaning li,
-.theme-sepia .dict-meaning li {
-  color: #2d241e !important;
-}
-
-.theme-papel .dict-example,
-.theme-sepia .dict-example {
-  color: #695646 !important;
-}
-
-.theme-papel .dict-loading,
-.theme-sepia .dict-loading,
-.theme-papel .dict-error,
-.theme-sepia .dict-error {
-  color: #7a420b !important;
-}
-
-.theme-papel .dict-error .glass-btn,
-.theme-sepia .dict-error .glass-btn {
-  background: #ecdfc9 !important;
-  color: #5c3813 !important;
-  border: 1px solid #d4c5a9 !important;
 }
 
 /* ——— ANIMACIONES Y ESTILOS PARA MARCADOR ——— */

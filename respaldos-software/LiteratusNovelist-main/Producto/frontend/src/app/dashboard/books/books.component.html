@@ -2,30 +2,24 @@
   <header class="list-header">
     <div class="header-text">
       <h2>Gestión de Biblioteca</h2>
-      <p>Administra, edita y publica los libros de la plataforma. Los cambios se actualizan en tiempo real.</p>
+      <p>Administra, edita y publica los libros de la plataforma.</p>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-      <button type="button" class="add-btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); box-shadow: none;" (click)="reloadBooks()" [disabled]="loading" title="Actualizar lista de libros">
-        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom; margin-right: 4px;">refresh</span>
-        Actualizar
-      </button>
-      <a routerLink="new" class="add-btn">
-        <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom; margin-right: 4px;">add</span>
-        Nuevo Libro
-      </a>
-    </div>
+    <a routerLink="new" class="add-btn">
+      <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom; margin-right: 4px;">add</span>
+      Nuevo Libro
+    </a>
   </header>
 
   <!-- FILTROS Y BÚSQUEDA -->
   <div class="list-controls card">
     <div class="search-box" style="display: flex; align-items: center; gap: 8px;">
       <span class="material-symbols-outlined" style="color: #64748b; font-size: 20px;">search</span>
-      <input type="text" placeholder="Buscar por título o autor..." (input)="onSearchChange($event)" style="border: none; background: transparent; outline: none; color: white; width: 100%;">
+      <input type="text" placeholder="Buscar por título o autor..." (input)="filterBooks($event)" style="border: none; background: transparent; outline: none; color: white; width: 100%;">
     </div>
     <div class="filter-badges">
-      <span class="badge" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">Todos ({{ books.length }})</span>
-      <span class="badge" [class.active]="activeFilter === 'published'" (click)="setFilter('published')">Publicados ({{ totalPublished }})</span>
-      <span class="badge" [class.active]="activeFilter === 'draft'" (click)="setFilter('draft')">Borradores ({{ totalDrafts }})</span>
+      <span class="badge active">Todos ({{ books.length }})</span>
+      <span class="badge">Publicados</span>
+      <span class="badge">Borradores</span>
     </div>
   </div>
 
@@ -43,7 +37,7 @@
         <h3 class="book-title">{{ book.title }}</h3>
         <p class="book-author" style="display: flex; align-items: center; gap: 4px;">
           <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
-          {{ book.authors?.join(', ') || 'Autor Desconocido' }}
+          {{ book.authors.join(', ') }}
         </p>
         <div class="book-stats">
           <div class="stat" style="display: flex; align-items: center; gap: 4px;">

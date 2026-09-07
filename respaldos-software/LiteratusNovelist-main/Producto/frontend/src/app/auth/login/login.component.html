@@ -30,12 +30,7 @@
       </div>
 
       <button type="submit" class="glass-btn" [disabled]="loginForm.invalid || isLoading">
-        {{ isLoading && !isLoadingAdmin ? 'Conectando...' : 'Iniciar Sesión' }}
-      </button>
-
-      <button type="button" class="glass-btn admin-btn" (click)="loginAsAdmin()" [disabled]="isLoading">
-        <svg lucideShieldCheck style="width: 18px; height: 18px;"></svg>
-        <span>{{ isLoadingAdmin ? 'Ingresando...' : 'Ingreso de Pruebas' }}</span>
+        {{ isLoading ? 'Conectando...' : 'Iniciar Sesión' }}
       </button>
 
     </form>
