@@ -3,8 +3,11 @@ ai_engine/views.py — Controladores de interacciones AI (Roleplay Inmersivo)
 """
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions, status
+from rest_framework import generics, permissions, status
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
+
+from core.pagination import StandardResultsSetPagination
 
 from library.models import UserInventory
 from .models import AIAvatar, ChatSession, ChatMessage
@@ -65,7 +68,7 @@ class AvatarListView(APIView):
 
 class AvatarDetailView(APIView):
     """
-    GET /api/v1/ai/avatars/<int:pk>/
+    GET /api/v1/ai/avatars/<uuid:pk>/
     Devuelve el detalle de un avatar específico.
     """
     permission_classes = [permissions.IsAuthenticated]
@@ -79,38 +82,41 @@ class AvatarDetailView(APIView):
         return Response(serializer.data)
 
 
-class GlobalAvatarListView(APIView):
+class GlobalAvatarListView(generics.ListAPIView):
     """
-    GET /api/v1/ai/hub/avatars/
-    Hub Global: Devuelve TODOS los avatares para la página estilo Character.ai
+    GET /api/v1/ai/hub/avatars/?q=&sort=popularity&page=&page_size=
+    Hub Global: catálogo de avatares para la página estilo Character.ai.
+
+    Pagina con StandardResultsSetPagination (?page_size hasta 50). El catálogo
+    completo sigue siendo alcanzable: el frontend encadena páginas con scroll
+    infinito en lugar de descargar los ~4.500 registros de una sola vez, que era
+    lo que bloqueaba la página.
     """
     permission_classes = [permissions.AllowAny]
+    serializer_class = GlobalHubAvatarSerializer
+    pagination_class = StandardResultsSetPagination
 
-    def get(self, request):
-        query = request.query_params.get('q', '')
-        sort_by = request.query_params.get('sort', 'name') # name, popularity
+    def get_queryset(self):
+        params = self.request.query_params
+        query = params.get('q', '')
+        sort_by = params.get('sort', 'name')  # name, popularity
 
+        # select_related evita el N+1 de book_title/book_slug en el serializer.
         avatars = AIAvatar.objects.select_related('edition__book').all()
 
         if query:
-            from django.db.models import Q
             avatars = avatars.filter(
-                Q(name__icontains=query) | 
+                Q(name__icontains=query) |
                 Q(description__icontains=query) |
                 Q(edition__book__title__icontains=query)
             )
 
+        # 'id' cierra siempre el orden. Casi todos los avatares empatan en
+        # chat_count=0 y hay nombres repetidos entre ediciones, así que sin un
+        # desempate único la paginación repetiría o se saltaría filas.
         if sort_by == 'popularity':
-            avatars = avatars.order_by('-chat_count', 'name')
-        else:
-            avatars = avatars.order_by('name')
-
-        serializer = GlobalHubAvatarSerializer(
-            avatars,
-            many=True,
-            context={'request': request}
-        )
-        return Response(serializer.data)
+            return avatars.order_by('-chat_count', 'name', 'id')
+        return avatars.order_by('name', 'id')
 
 
 class RecentChatsView(APIView):

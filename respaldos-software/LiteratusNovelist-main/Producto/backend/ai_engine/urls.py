@@ -29,7 +29,7 @@ urlpatterns = [
     path('avatars/', AvatarListView.as_view(), name='ai-avatars'),
 
     # GET /api/v1/ai/avatars/<id>/
-    path('avatars/<int:pk>/', AvatarDetailView.as_view(), name='ai-avatar-detail'),
+    path('avatars/<uuid:pk>/', AvatarDetailView.as_view(), name='ai-avatar-detail'),
 
     # Obtener o crear sesión de chat con un personaje
     # GET /api/v1/ai/sessions/?avatar_id=<int>

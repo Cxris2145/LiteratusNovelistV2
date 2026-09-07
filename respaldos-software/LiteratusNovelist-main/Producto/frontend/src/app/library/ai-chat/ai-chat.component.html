@@ -12,8 +12,8 @@
     <div class="recent-list">
       <div class="recent-item" *ngFor="let char of recentCharacters" [class.active]="char.id === avatarId"
         (click)="selectCharacter(char.id)">
-        <img [src]="char.avatar_image_url || 'assets/liyumi_avatar.png'" class="mini-avatar"
-          onerror="this.src='assets/liyumi_avatar.png'">
+        <img [src]="char.avatar_image_url || 'assets/images/default-avatar.svg'" class="mini-avatar"
+          onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
         <div class="recent-info">
           <span class="recent-name">{{ char.name }}</span>
           <span class="recent-book">{{ char.book_title }}</span>
@@ -100,8 +100,8 @@
   <aside class="side-panel profile-panel">
     <div class="profile-card" *ngIf="avatar; else loadingProfile">
       <div class="profile-img-container">
-        <img [src]="avatar.avatar_image_url || 'assets/liyumi_avatar.png'" class="profile-img"
-          onerror="this.src='assets/liyumi_avatar.png'">
+        <img [src]="avatar.avatar_image_url || 'assets/images/default-avatar.svg'" class="profile-img"
+          onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
         <div class="profile-overlay"></div>
       </div>
 

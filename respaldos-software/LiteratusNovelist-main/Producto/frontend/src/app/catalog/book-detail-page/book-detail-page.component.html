@@ -116,7 +116,7 @@
           <ng-container *ngIf="book.book_authors[0] as rel">
             <div class="author-card-content">
               <div class="author-card-image">
-                <img [src]="$any(rel).author.photo || 'assets/default_avatar.png'" alt="{{ $any(rel).author.full_name }}">
+                <img [src]="$any(rel).author.photo || 'assets/images/default-avatar.svg'" alt="{{ $any(rel).author.full_name }}">
               </div>
               <div class="author-card-info">
                 <h3>{{ $any(rel).author.full_name | uppercase }}</h3>
@@ -140,7 +140,7 @@
           <div class="avatars-carousel" #avatarCarousel>
             <div class="avatar-card" *ngFor="let avatar of displayAvatars" (click)="selectAvatar(avatar)">
               <div class="avatar-img-container">
-                <img [src]="avatar.avatar_image || 'assets/default_avatar.png'" alt="{{avatar.name}}" class="avatar-img">
+                <img [src]="avatar.avatar_image || 'assets/images/default-avatar.svg'" alt="{{avatar.name}}" class="avatar-img">
                 <div class="avatar-overlay">
                   <svg lucideMessageCircle style="color: white;"></svg>
                 </div>
@@ -210,7 +210,7 @@
       <div class="comments-grid" *ngIf="book.reviews && book.reviews.length > 0">
         <div class="comment-card" *ngFor="let review of book.reviews">
           <div class="comment-header">
-            <img [src]="review.user_avatar || 'assets/default_avatar.png'" class="comment-avatar">
+            <img [src]="review.user_avatar || 'assets/images/default-avatar.svg'" class="comment-avatar">
             <div>
               <div class="comment-user">{{ review.username }}</div>
               <div class="comment-rating">
@@ -232,7 +232,7 @@
   <div class="avatar-modal glass-panel" (click)="$event.stopPropagation()">
     <button class="modal-close-btn" (click)="closeAvatarModal()"><svg lucideX></svg></button>
     
-    <img [src]="selectedAvatar.avatar_image || 'assets/default_avatar.png'" 
+    <img [src]="selectedAvatar.avatar_image || 'assets/images/default-avatar.svg'" 
          alt="{{selectedAvatar.name}}" 
          class="avatar-modal-img">
     

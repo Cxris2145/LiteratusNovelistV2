@@ -82,6 +82,11 @@ export class AppComponent implements OnInit {
 
     // Añadir listener global de errores
     window.addEventListener('error', (event) => {
+      // Los fallos de carga de un recurso (<img>, <link>, <script>) también burbujean
+      // hasta aquí, pero con target = el elemento en vez de window. No son errores de
+      // la aplicación: una portada o un avatar rotos no deben pintar el banner global
+      // ni disparar un ciclo de detección de cambios por cada imagen.
+      if (event.target instanceof Element) return;
       this.globalError = `Error: ${event.message} en ${event.filename}:${event.lineno}`;
     });
     window.addEventListener('unhandledrejection', (event) => {

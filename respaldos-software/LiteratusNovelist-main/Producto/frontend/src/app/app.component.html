@@ -37,7 +37,7 @@
         <li class="profile-dropdown-container">
           <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="avatar-btn">
             <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="Avatar" class="user-avatar"
-              onerror="this.src='assets/images/default-avatar.png'">
+              onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
             <div *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</div>
           </button>
           <mat-menu #profileMenu="matMenu" class="dark-premium-menu">

@@ -3,13 +3,14 @@
   <!-- 1. HERO CAROUSEL (Personajes al azar destacados) -->
   <section class="hero-section" *ngIf="!isLoading || heroCharacters.length > 0">
     <div class="hero-carousel">
-      <div class="hero-slide" *ngFor="let char of heroCharacters; let i = index"
+      <div class="hero-slide" *ngFor="let char of heroCharacters; let i = index; trackBy: trackById"
         [class.active]="i === currentHeroIndex">
-        
-        <!-- Fondo desenfocado -->
+
+        <!-- Fondo desenfocado. Solo el slide activo lo pinta: cinco blur(15px)
+             simultáneos a pantalla completa costaban un repintado continuo. -->
         <div class="hero-bg"
-          [style.backgroundImage]="'url(' + (char.avatar_image_url || 'assets/images/default-avatar.png') + ')'"></div>
-        
+          [style.backgroundImage]="i === currentHeroIndex ? char.background : 'none'"></div>
+
         <!-- Degradado para legibilidad -->
         <div class="hero-overlay"></div>
 
@@ -19,25 +20,26 @@
             <span class="hero-badge">Destacado</span>
             <h1 class="hero-name">{{ char.name }}</h1>
             <p class="hero-book">{{ char.book_title }}</p>
-            <p class="hero-desc">{{ char.description | slice:0:120 }}...</p>
+            <p class="hero-desc">{{ char.excerpt }}</p>
             <div class="hero-actions">
               <button class="btn-primary" (click)="openChat(char)">
                 <span class="icon"><svg lucideMessageCircle [size]="18" class="lucide-icon"></svg></span> Conversar ahora
               </button>
             </div>
           </div>
-          
+
           <div class="hero-image-container">
-             <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="hero-portrait"
-               onerror="this.src='assets/images/default-avatar.png'">
+             <img [src]="char.portrait" [alt]="char.name" class="hero-portrait"
+               decoding="async" width="480" height="640"
+               (error)="onImgError($event)">
           </div>
         </div>
       </div>
 
       <!-- Indicadores -->
       <div class="carousel-indicators">
-        <span *ngFor="let dot of heroCharacters; let i = index" [class.active]="i === currentHeroIndex"
-          (click)="setHeroIndex(i)"></span>
+        <span *ngFor="let dot of heroCharacters; let i = index; trackBy: trackByIndex"
+          [class.active]="i === currentHeroIndex" (click)="setHeroIndex(i)"></span>
       </div>
     </div>
   </section>
@@ -58,10 +60,12 @@
   <section class="results-section" *ngIf="isSearching">
     <h2 class="section-title">Resultados de "{{ searchQuery }}"</h2>
     <div class="character-grid">
-      <div class="char-card premium-card" *ngFor="let char of filteredCharacters" (click)="openChat(char)">
+      <div class="char-card premium-card" *ngFor="let char of filteredCharacters; trackBy: trackById"
+        (click)="openChat(char)">
         <div class="card-img-wrapper">
-          <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
-            onerror="this.src='assets/images/default-avatar.png'">
+          <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
+            loading="lazy" decoding="async" width="240" height="240"
+            (error)="onImgError($event)">
           <div class="overlay-gradient"></div>
         </div>
         <div class="card-content">
@@ -84,10 +88,12 @@
         <h2 class="section-title"><span class="icon"><svg lucideClock [size]="20" class="lucide-icon"></svg></span> Continuar conversación</h2>
       </div>
       <div class="horizontal-scroll">
-        <div class="char-card mini-card" *ngFor="let char of recentCharacters" (click)="openChat(char)">
+        <div class="char-card mini-card" *ngFor="let char of recentCharacters; trackBy: trackById"
+          (click)="openChat(char)">
           <div class="card-img-wrapper">
-            <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
-              onerror="this.src='assets/images/default-avatar.png'">
+            <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
+              loading="lazy" decoding="async" width="200" height="160"
+              (error)="onImgError($event)">
             <div class="overlay-gradient"></div>
           </div>
           <div class="card-content">
@@ -105,10 +111,12 @@
       </div>
 
       <div class="horizontal-scroll" *ngIf="!isLoading">
-        <div class="char-card premium-card" *ngFor="let char of featuredCharacters" (click)="openChat(char)">
+        <div class="char-card premium-card" *ngFor="let char of featuredCharacters; trackBy: trackById"
+          (click)="openChat(char)">
           <div class="card-img-wrapper">
-            <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
-              onerror="this.src='assets/images/default-avatar.png'">
+            <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
+              loading="lazy" decoding="async" width="240" height="240"
+              (error)="onImgError($event)">
             <div class="overlay-gradient"></div>
             <div class="trend-overlay">
               <span class="chat-count"><svg lucideUsers [size]="14" class="lucide-icon inline-icon"></svg> {{ char.chat_count || 0 }}</span>
@@ -118,7 +126,7 @@
             <h3 class="char-name">{{ char.name }}</h3>
             <p class="book-origin">{{ char.book_title }}</p>
             <div class="badges-container">
-              <span class="badge" *ngFor="let tag of char.tags">{{ tag }}</span>
+              <span class="badge" *ngFor="let tag of char.tags; trackBy: trackByTag">{{ tag }}</span>
             </div>
           </div>
         </div>
@@ -126,7 +134,7 @@
 
       <!-- Skeleton Loading -->
       <div class="horizontal-scroll" *ngIf="isLoading">
-        <div class="char-card skeleton-card" *ngFor="let s of skeletonArray">
+        <div class="char-card skeleton-card" *ngFor="let s of skeletonArray; trackBy: trackByIndex">
           <div class="shimmer-img"></div>
           <div class="shimmer-content">
             <div class="shimmer-line title"></div>
@@ -140,12 +148,17 @@
     <section class="hub-section">
       <div class="section-header">
         <h2 class="section-title"><span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Todos los Personajes</h2>
+        <p class="section-subtitle" *ngIf="totalCount">
+          Mostrando {{ allCharacters.length }} de {{ totalCount }}.
+        </p>
       </div>
       <div class="character-grid">
-        <div class="char-card premium-card" *ngFor="let char of allCharacters" (click)="openChat(char)">
+        <div class="char-card premium-card" *ngFor="let char of allCharacters; trackBy: trackById"
+          (click)="openChat(char)">
           <div class="card-img-wrapper">
-            <img [src]="char.avatar_image_url || 'assets/images/default-avatar.png'" [alt]="char.name" class="char-img"
-              onerror="this.src='assets/images/default-avatar.png'">
+            <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
+              loading="lazy" decoding="async" width="240" height="240"
+              (error)="onImgError($event)">
             <div class="overlay-gradient"></div>
           </div>
           <div class="card-content">
@@ -153,6 +166,13 @@
             <p class="book-origin">{{ char.book_title }}</p>
           </div>
         </div>
+      </div>
+
+      <!-- Centinela del scroll infinito: al asomarse pide la página siguiente. -->
+      <div #scrollSentinel class="scroll-sentinel" *ngIf="!isLoading"></div>
+
+      <div class="loading-more" *ngIf="isLoadingMore">
+        <span class="spinner"></span> Cargando más personajes...
       </div>
     </section>
 

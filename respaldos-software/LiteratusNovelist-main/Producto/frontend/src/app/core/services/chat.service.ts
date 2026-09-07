@@ -1,8 +1,32 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, Subject } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+
+/** Tamaño de página del hub de personajes (el backend admite hasta 50). */
+export const HUB_PAGE_SIZE = 48;
+
+/** Un personaje tal y como lo devuelve GlobalHubAvatarSerializer. */
+export interface HubAvatar {
+  id: string;                        // UUID
+  name: string;
+  book_title: string | null;
+  book_slug: string | null;
+  description: string;
+  avatar_image_url: string | null;   // null mientras no tenga retrato generado
+  tags: string[];
+  trend_level: string;
+  chat_count: number;
+}
+
+/** Envoltorio de DRF PageNumberPagination. */
+export interface Paginated<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
 
 export interface ChatMessage {
   id?: string;
@@ -82,21 +106,62 @@ export class ChatService {
     return this.http.get(`${this.API_URL}/sessions/?avatar_id=${avatarId}`);
   }
 
-  // Obtener todos los personajes para el Hub (con búsqueda y orden opcional)
-  getGlobalAvatars(query: string = '', sort: string = ''): Observable<any[]> {
-    let url = `${this.API_URL}/hub/avatars/?q=${query}`;
-    if (sort) url += `&sort=${sort}`;
-    return this.http.get<any[]>(url);
+  // Primera página cacheada por orden, para que volver al hub no re-descargue.
+  private firstPageCache = new Map<string, Observable<Paginated<HubAvatar>>>();
+
+  /**
+   * Una página del catálogo global de personajes.
+   *
+   * El backend pagina; el hub encadena páginas con scroll infinito en lugar de
+   * traerse los ~4.500 registros de una sola vez, que era lo que bloqueaba la
+   * página. Se usa HttpClient directo (no ApiService) a propósito: así la URL no
+   * lleva el cache-buster `_t=` y la respuesta sí es cacheable.
+   */
+  getGlobalAvatars(
+    query: string = '',
+    sort: string = '',
+    page: number = 1,
+    pageSize: number = HUB_PAGE_SIZE
+  ): Observable<Paginated<HubAvatar>> {
+    const cacheKey = `${sort}|${pageSize}`;
+    const cacheable = !query && page === 1;
+    if (cacheable) {
+      const hit = this.firstPageCache.get(cacheKey);
+      if (hit) return hit;
+    }
+
+    let params = new HttpParams()
+      .set('q', query)
+      .set('page', page)
+      .set('page_size', pageSize);
+    if (sort) params = params.set('sort', sort);
+
+    let request$ = this.http.get<Paginated<HubAvatar>>(`${this.API_URL}/hub/avatars/`, { params });
+
+    if (cacheable) {
+      request$ = request$.pipe(
+        // Un fallo no debe quedarse pegado en la caché: se descarta la entrada
+        // para que el siguiente intento vuelva a pedirlo.
+        catchError(err => {
+          this.firstPageCache.delete(cacheKey);
+          return throwError(() => err);
+        }),
+        shareReplay(1)
+      );
+      this.firstPageCache.set(cacheKey, request$);
+    }
+
+    return request$;
   }
 
-  // Obtener un avatar por ID
-  getAvatar(id: number): Observable<any> {
+  // Obtener un avatar por ID (la PK de AIAvatar es un UUID, no un entero)
+  getAvatar(id: string): Observable<any> {
     return this.http.get<any>(`${this.API_URL}/avatars/${id}/`);
   }
 
   // Obtener personajes recientes
-  getRecentAvatars(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URL}/hub/recent/`);
+  getRecentAvatars(): Observable<HubAvatar[]> {
+    return this.http.get<HubAvatar[]>(`${this.API_URL}/hub/recent/`);
   }
 
   // Enviar mensaje y manejar respuesta reactiva

@@ -19,10 +19,10 @@
       <div class="dchat-avatar-card">
         <div class="dchat-avatar-img-wrap">
           <img
-            [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+            [src]="avatar.avatar_image_url || 'assets/images/default-avatar.svg'"
             [alt]="avatar.name"
             class="dchat-avatar-img"
-            onerror="this.src='assets/default_cover.jpg'"
+            onerror="this.onerror=null;this.src='assets/default_cover.jpg'"
           />
         </div>
 
@@ -66,9 +66,9 @@
         </button>
         <div class="dchat-header-avatar">
           <img
-            [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+            [src]="avatar.avatar_image_url || 'assets/images/default-avatar.svg'"
             [alt]="avatar.name"
-            onerror="this.src='assets/default_cover.jpg'"
+            onerror="this.onerror=null;this.src='assets/default_cover.jpg'"
           />
           <div class="dchat-header-status">
             <span class="dchat-pulse-sm"></span>
@@ -131,9 +131,9 @@
           <ng-container *ngIf="msg.role === 'assistant'">
             <img
               class="dchat-msg-avatar"
-              [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+              [src]="avatar.avatar_image_url || 'assets/images/default-avatar.svg'"
               [alt]="avatar.name"
-              onerror="this.src='assets/default_cover.jpg'"
+              onerror="this.onerror=null;this.src='assets/default_cover.jpg'"
             />
             <div class="dchat-msg-bubble dchat-msg-bubble--char">
               <span class="dchat-msg-name">{{ avatar.name }}</span>
@@ -152,9 +152,9 @@
         <div class="dchat-msg dchat-msg--char" *ngIf="isSending">
           <img
             class="dchat-msg-avatar"
-            [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+            [src]="avatar.avatar_image_url || 'assets/images/default-avatar.svg'"
             [alt]="avatar.name"
-            onerror="this.src='assets/default_cover.jpg'"
+            onerror="this.onerror=null;this.src='assets/default_cover.jpg'"
           />
           <div class="dchat-msg-bubble dchat-msg-bubble--char dchat-typing">
             <span></span><span></span><span></span>

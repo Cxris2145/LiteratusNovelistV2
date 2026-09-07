@@ -134,11 +134,11 @@
                [attr.id]="'avatar-card-' + avatar.id">
             <div class="avatar-img-wrap">
               <img
-                [src]="avatar.avatar_image_url || 'assets/default_avatar.jpg'"
+                [src]="avatar.avatar_image_url || 'assets/images/default-avatar.svg'"
                 [alt]="avatar.name"
                 class="avatar-img"
                 loading="lazy"
-                onerror="this.src='assets/default_cover.jpg'"
+                onerror="this.onerror=null;this.src='assets/default_cover.jpg'"
               />
               <div class="avatar-overlay">
                 <span class="avatar-chat-badge">
@@ -195,7 +195,7 @@
           <div class="char-cover-wrap">
             <div class="border-glow-wrapper"></div>
             <img [src]="book.cover" [alt]="book.title" class="char-cover-img" loading="lazy"
-                 onerror="this.src='assets/default_cover.jpg'">
+                 onerror="this.onerror=null;this.src='assets/default_cover.jpg'">
             <div class="char-cover-overlay">
               <button class="char-cta-btn">Abrir libro →</button>
             </div>

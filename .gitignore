@@ -1,4 +1,4 @@
-﻿# ==========================================
+# ==========================================
 # Literatus Novelist - .gitignore
 # ==========================================
 
@@ -52,6 +52,8 @@ respaldos-software/books/*/images/
 **/.vscode/
 .idea/
 **/.idea/
+.claude/
+**/.claude/
 *.swp
 *.swo
 *~

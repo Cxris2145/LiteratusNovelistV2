@@ -139,6 +139,12 @@ class AIAvatar(TimeStampedModel):
     class Meta:
         verbose_name = 'AI Avatar'
         verbose_name_plural = 'AI Avatars'
+        indexes = [
+            # Orden por defecto del hub global (?sort=name).
+            models.Index(fields=['name'], name='aiavatar_name_idx'),
+            # Ranking de 'Más Destacados' (?sort=popularity).
+            models.Index(fields=['-chat_count', 'name'], name='aiavatar_popular_idx'),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=(
