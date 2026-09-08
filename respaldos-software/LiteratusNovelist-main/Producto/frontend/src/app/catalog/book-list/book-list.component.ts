@@ -12,6 +12,10 @@ export interface Book {
   is_featured: boolean;
   cover_image: string | null;
   created_at: string;
+  /** Campos derivados en cliente (no vienen del backend) */
+  coverThumb?: string;
+  coverLoaded?: boolean;
+  coverPriority?: boolean;
 }
 
 interface PaginatedResponse {
@@ -43,26 +47,48 @@ export class BookListComponent implements OnInit {
     return Math.ceil(this.totalCount / size);
   }
 
+  /** Nº de portadas de la primera "pantalla" que cargan con prioridad alta
+   *  (eager + fetchpriority=high). El resto usa lazy + prioridad baja. */
+  private readonly EAGER_COVERS = 8;
+
   /**
    * Miniatura optimizada. Usa la transformación de imágenes de Supabase
-   * (~1/3 del peso) para las portadas servidas desde Storage; deja igual
-   * las locales (assets/).
+   * (~1/3 del peso; formato negociado por Accept → webp/avif) para las portadas
+   * de Storage; deja igual las locales (assets/). Se calcula UNA vez por libro
+   * (ver decorateBooks) — nunca desde el binding del template.
    */
   thumb(url: string | null | undefined): string {
     if (!url) return 'assets/default_cover.jpg';
     if (url.includes('/storage/v1/object/public/')) {
       return url.replace('/object/public/', '/render/image/public/')
-        + (url.includes('?') ? '&' : '?') + 'width=400&quality=60&resize=cover';
+        + (url.includes('?') ? '&' : '?') + 'width=360&quality=62&resize=cover';
     }
     return url;
   }
 
-  onImgError(event: Event): void {
+  /** Enriquece cada libro con su URL de miniatura y su prioridad de carga. */
+  private decorateBooks(list: Book[]): Book[] {
+    return list.map((b, i) => ({
+      ...b,
+      coverThumb: this.thumb(b.cover_image),
+      coverPriority: i < this.EAGER_COVERS,
+      coverLoaded: false,
+    }));
+  }
+
+  onImgLoad(book: Book): void {
+    book.coverLoaded = true;
+  }
+
+  onImgError(event: Event, book?: Book): void {
     const img = event.target as HTMLImageElement;
+    if (book) book.coverLoaded = true; // quita el skeleton igualmente
     if (!img.src.endsWith('default_cover.jpg')) {
       img.src = 'assets/default_cover.jpg';
     }
   }
+
+  trackBook = (_: number, b: Book) => b.id;
 
   searchTerm = '';
   activeCategory: string | null = null;
@@ -142,15 +168,26 @@ export class BookListComponent implements OnInit {
       params = params.set('ordering', '?');
     }
 
-    this.api.get<PaginatedResponse>('catalog/books/', params).subscribe({
+    // Pinta al instante desde caché (si existe) y refresca en segundo plano:
+    // Explorar → Libro → Volver ya no muestra el skeleton de nuevo.
+    const cached = this.api.peekCached<PaginatedResponse>('catalog/books/', params);
+    if (cached) {
+      this.books = this.decorateBooks(cached.results);
+      this.totalCount = cached.count;
+      this.isLoading = false;
+    }
+
+    this.api.getCached<PaginatedResponse>('catalog/books/', params, 3 * 60 * 1000).subscribe({
       next: (response) => {
-        this.books = response.results;
+        this.books = this.decorateBooks(response.results);
         this.totalCount = response.count;
         this.isLoading = false;
       },
       error: (err) => {
         console.error(err);
-        this.errorMsg = 'No pudimos cargar la biblioteca. Por favor, revisa tu conexión.';
+        if (!cached) {
+          this.errorMsg = 'No pudimos cargar la biblioteca. Por favor, revisa tu conexión.';
+        }
         this.isLoading = false;
       }
     });

@@ -4,10 +4,16 @@
     <p class="subtitle">Tus obras adquiridas y progreso de lectura.</p>
   </div>
 
-  <!-- Loading State -->
-  <div class="library-loading-container" *ngIf="isLoading && !errorMsg">
-    <div class="librito-lottie" #libritoContainer></div>
-    <p class="loading-text">Cargando biblioteca...</p>
+  <!-- Loading State: skeleton localizado en tarjetas (no full-page loader) -->
+  <div class="grid-container" *ngIf="isLoading && !errorMsg && inventoryItems.length === 0">
+    <div class="glass-panel book-card skeleton-card" *ngFor="let s of skeletons">
+      <div class="card-image cover-pending"></div>
+      <div class="card-content">
+        <div class="skeleton-text title"></div>
+        <div class="skeleton-text description"></div>
+        <div class="skeleton-text description short"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Error State -->
@@ -23,11 +29,19 @@
   </div>
 
   <!-- Grid de Inventario -->
-  <div class="grid-container" *ngIf="!isLoading && inventoryItems.length > 0">
-    <div class="glass-panel book-card" *ngFor="let item of inventoryItems" [routerLink]="['/reader', item.id]">
-      
-      <div class="card-image" 
-           [style.backgroundImage]="'url(' + (item.book_cover || item.edition?.book?.cover_image || 'assets/default_cover.jpg') + ')'">
+  <div class="grid-container" *ngIf="inventoryItems.length > 0">
+    <div class="glass-panel book-card" *ngFor="let item of inventoryItems; trackBy: trackItem" [routerLink]="['/reader', item.id]">
+
+      <div class="card-image" [class.cover-pending]="!item.coverLoaded">
+        <img class="cover-img"
+             [src]="item.coverThumb"
+             [alt]="item.book_title || item.edition?.book?.title || 'Portada'"
+             [attr.loading]="item.coverPriority ? 'eager' : 'lazy'"
+             [attr.fetchpriority]="item.coverPriority ? 'high' : 'low'"
+             decoding="async"
+             width="360" height="225"
+             (load)="onImgLoad(item)"
+             (error)="onImgError($event, item)">
         <div class="progress-badge">{{ (item.progress?.completion_percentage || 0) | number:'1.0-0' }}% leído</div>
       </div>
       

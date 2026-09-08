@@ -199,26 +199,19 @@
 /* ═══════════════════════════════════════════════════════════════════════
    SISTEMA VISUAL DEL LECTOR  ──  tokens --reader-*
    Derivados de los tokens de marca de Literatus (--glow-gold, --bg-surface,
-   --font-*, etc. definidos en styles.css) para que el lector comparta el
-   mismo lenguaje visual que el resto de la plataforma.
-   · Métricas de lectura  → en :root, las ajusta el usuario desde "Aa"
-     (se escriben en document.documentElement como --font-size-reader).
-   · Color / superficie   → parten de aquí y cada .theme-* las refina.
-   ═══════════════════════════════════════════════════════════════════════ */
-:root {
-  /* ——— Métricas de lectura (ajustables) ——— */
-  --font-size-reader: 18px;                 /* compat: lo sigue fijando el TS */
-  --reader-font-size:   var(--font-size-reader, 18px);
-  --reader-line-height: 1.75;
-  --reader-measure:     66ch;               /* ancho de columna cómodo */
-  --reader-para-gap:    1.5em;              /* respiración entre párrafos */
-  --reader-para-indent: 0em;               /* sangría 1ª línea (0 = estilo web) */
-  --reader-align:       left;               /* left | justify */
-  --reader-pad-x:       clamp(20px, 6vw, 32px);
-  --reader-pad-top:     96px;               /* alto toolbar + aire */
-  --reader-pad-bottom:  16vh;
-  --reader-brightness:  1;                  /* 0.75 – 1.1 (control "Brillo") */
+   --font-*, etc. definidos en styles.css).
 
+   REPARTO (importante para que los ajustes en vivo funcionen):
+   · Métricas ajustables (tamaño, interlínea, medida, alineación, párrafo,
+     letter-spacing, brillo)  →  se DEFINEN en `src/styles.css :root` y el TS
+     las sobrescribe inline en <html> desde la hoja "Aa".  AQUÍ NO se declaran:
+     si se declararan en :host, ese valor fijo GANARÍA a la propiedad heredada
+     de <html> (por eso el tamaño se quedaba clavado en 18px).
+   · Forma / interacción / color  →  aquí en :host (Angular reescribe `:root` a
+     un selector que nunca coincide, pero `:host` = <app-reader> sí coincide y
+     hereda a todo el árbol). El TS nunca toca estas.
+   ═══════════════════════════════════════════════════════════════════════ */
+:host {
   /* ——— Forma (alineada con .glass-panel / .glass-btn de la marca) ——— */
   --reader-radius-sm:   10px;
   --reader-radius:      16px;
@@ -245,27 +238,29 @@
   --reader-active-text:   var(--glow-gold, #d4af37);
 }
 
-/* Refinado de acento por tema del lector (mantiene la identidad de marca:
-   oro viejo en oscuro/nocturno, tinta en claro, sepia cálido) */
-.theme-dark {
+/* Refinado de acento por tema del lector. Prefijo .workbench-container: ese
+   elemento lleva la clase theme-* (via [ngClass]) y SÍ lleva el atributo de
+   encapsulación, así que la regla coincide (a diferencia de un `.theme-*` suelto,
+   que Angular ata al <body> inexistente para este componente). */
+.workbench-container.theme-dark {
   --reader-accent:        #d4af37;
   --reader-active-bg:     rgba(212, 175, 55, 0.16);
   --reader-active-border: rgba(212, 175, 55, 0.42);
   --reader-active-text:   #e5c455;
 }
-.theme-nocturno {
+.workbench-container.theme-nocturno {
   --reader-accent:        #c9a94a;
   --reader-active-bg:     rgba(201, 169, 74, 0.14);
   --reader-active-border: rgba(201, 169, 74, 0.40);
   --reader-active-text:   #d8bd6b;
 }
-.theme-light {
+.workbench-container.theme-light {
   --reader-accent:        #1e1a12;
   --reader-active-bg:     rgba(30, 26, 18, 0.08);
   --reader-active-border: rgba(30, 26, 18, 0.28);
   --reader-active-text:   #1e1a12;
 }
-.theme-sepia {
+.workbench-container.theme-sepia {
   --reader-accent:        #7a5a2e;
   --reader-active-bg:     rgba(122, 90, 46, 0.14);
   --reader-active-border: rgba(122, 90, 46, 0.38);
@@ -1642,36 +1637,66 @@
 }
 
 /* CONFIGURACIÃ“N DINÃMICA DE FUENTES */
-.reading-canvas.font-serif {
-  font-family: 'Merriweather', 'Georgia', serif;
-}
-.reading-canvas.font-sans {
-  font-family: 'Outfit', 'Montserrat', sans-serif;
-}
-.reading-canvas.font-dyslexic {
-  font-family: 'Comic Neue', 'Comic Sans MS', sans-serif;
-}
-.reading-canvas.font-medieval {
-  font-family: 'Cinzel', 'MedievalSharp', 'Georgia', serif;
+/* ═══════════════════════════════════════════════════════════════════════
+   TIPOGRAFIAS DE LECTURA  --  cada opcion produce una diferencia REAL.
+   Las web-fonts (Merriweather, Outfit, Open Sans, Atkinson Hyperlegible,
+   Lexend) se cargan diferidas desde index.html; el resto son de sistema.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* Clasicas / serif */
+.reading-canvas.font-merriweather {
+  font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
 }
 .reading-canvas.font-garamond {
-  font-family: 'EB Garamond', 'Garamond', serif;
+  font-family: 'EB Garamond', Georgia, serif;
 }
 .reading-canvas.font-georgia {
-  font-family: 'Georgia', serif;
+  font-family: Georgia, 'Times New Roman', serif;
 }
 .reading-canvas.font-palatino {
-  font-family: 'Palatino', 'Palatino Linotype', 'Book Antiqua', serif;
+  font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+}
+/* Modernas / sans */
+.reading-canvas.font-outfit {
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: 0.005em;
 }
 .reading-canvas.font-opensans {
-  font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Open Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
-.reading-canvas.font-helvetica {
-  font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+/* Accesibilidad / alta legibilidad */
+.reading-canvas.font-atkinson {
+  font-family: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.reading-canvas.font-lexend {
+  font-family: 'Lexend', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+/* Decorativa / literaria -- solo titulos, no recomendada para parrafos largos */
+.reading-canvas.font-cinzel {
+  font-family: 'Cinzel', Georgia, serif;
+  letter-spacing: 0.02em;
 }
 
-.html-reader ::ng-deep p {
+/* Compatibilidad hacia atras: usuarios con reader-font-family antiguo en
+   localStorage. El TS migra el valor; estas clases cubren el intervalo. */
+.reading-canvas.font-serif { font-family: 'Merriweather', Georgia, serif; }
+.reading-canvas.font-sans { font-family: 'Outfit', system-ui, sans-serif; }
+.reading-canvas.font-dyslexic { font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; }
+.reading-canvas.font-medieval { font-family: 'Cinzel', Georgia, serif; }
+.reading-canvas.font-helvetica { font-family: 'Open Sans', system-ui, sans-serif; }
+
+/* El tamaño base vive en el contenedor: TODO el texto del capítulo (párrafos,
+   listas, citas, tablas, HTML importado) escala con --reader-font-size, y nada
+   de la interfaz (toolbar, hoja Aa, paneles: son hermanos, no descendientes). */
+.reading-canvas.html-reader {
   font-size: var(--reader-font-size, 18px);
+  letter-spacing: var(--reader-letter-spacing, 0);
+}
+
+.html-reader ::ng-deep p,
+.html-reader ::ng-deep li,
+.html-reader ::ng-deep blockquote,
+.html-reader ::ng-deep td {
+  font-size: 1em;                 /* hereda el tamaño del contenedor → escala */
   line-height: var(--reader-line-height, 1.75);
   /* Una sola senal de separacion: el hueco entre parrafos (no sangria + hueco). */
   margin: 0 0 var(--reader-para-gap, 1.5em);
@@ -1684,6 +1709,22 @@
   orphans: 2;
   widows: 2;
   font-family: inherit; /* Hereda de la clase del canvas */
+}
+
+/* Listas y citas del HTML importado: presentación decente */
+.html-reader ::ng-deep ul,
+.html-reader ::ng-deep ol {
+  margin: 0 0 var(--reader-para-gap, 1.5em);
+  padding-left: 1.5em;
+}
+.html-reader ::ng-deep li { margin-bottom: 0.4em; text-indent: 0; }
+.html-reader ::ng-deep blockquote {
+  margin-inline: 0;
+  padding: 0.2em 0 0.2em 1.1em;
+  border-left: 3px solid var(--reader-accent, #d4af37);
+  font-style: italic;
+  color: var(--reader-text-muted, inherit);
+  text-indent: 0;
 }
 
 .html-reader ::ng-deep h1 + p, 
@@ -1737,9 +1778,14 @@ h2.chapter-heading { font-size: 1.28em; }
   text-align: center;
   margin: 0.4em 0 1.9em;
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.02em;   /* fija: no hereda --reader-letter-spacing */
   color: inherit;
 }
+/* Los títulos/subtítulos no siguen el "espacio entre letras" del cuerpo */
+.html-reader ::ng-deep h1:not(.chapter-title-main),
+.html-reader ::ng-deep h2:not(.chapter-title-main),
+.html-reader ::ng-deep h3,
+.chapter-heading { letter-spacing: -0.01em; }
 
 /* ═══════════════════════════════════════════════════════════════════════
    NAVEGACION DE CAPITULO  ──  barra inferior discreta (reemplaza al FAB)
@@ -3798,9 +3844,9 @@ h2.chapter-heading { font-size: 1.28em; }
   z-index: 1105;
   right: 12px;
   top: calc(56px + env(safe-area-inset-top, 0px));
-  width: 360px;
+  width: 384px;
   max-width: calc(100vw - 24px);
-  max-height: calc(100vh - 84px);
+  max-height: calc(100dvh - 84px);
   display: flex;
   flex-direction: column;
   border-radius: var(--reader-radius, 16px);
@@ -3850,16 +3896,20 @@ h2.chapter-heading { font-size: 1.28em; }
 .sheet-close:hover { background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12)); }
 
 .sheet-body {
-  padding: 8px 16px 18px;
+  padding: 12px 16px 16px;
   overflow-y: auto;
+  overflow-x: hidden;           /* nunca scroll horizontal */
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+  scrollbar-width: thin;
 }
 
 .sheet-label {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
   font-size: 0.72rem;
   font-weight: 700;
@@ -3867,20 +3917,97 @@ h2.chapter-heading { font-size: 1.28em; }
   text-transform: uppercase;
   color: var(--reader-text-muted, rgba(255, 255, 255, 0.55));
 }
-
-.sheet-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.sheet-label em {
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--reader-text, inherit);
 }
-.sheet-row .sheet-label { flex-shrink: 0; }
 
+/* Todos los controles: etiqueta arriba, control full-width (sin overflow lateral) */
 .sheet-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
+
+/* ── Presets rápidos ── */
+.sheet-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 16px 0;
+  flex-shrink: 0;
+}
+.preset-chip {
+  flex: 1 1 auto;
+  min-width: max-content;
+  padding: 8px 12px;
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.2));
+  border-radius: 999px;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.18));
+  color: var(--reader-text, inherit);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--reader-transition), background var(--reader-transition);
+}
+.preset-chip:hover {
+  border-color: var(--reader-active-border, rgba(212, 175, 55, 0.45));
+  background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12));
+}
+
+/* ── Pestañas ── */
+.sheet-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 12px 16px 0;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.2));
+  flex-shrink: 0;
+}
+.sheet-tabs button {
+  flex: 1;
+  min-height: 34px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--reader-text-muted, inherit);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--reader-transition), color var(--reader-transition);
+}
+.sheet-tabs button.on {
+  background: var(--reader-active-bg, rgba(212, 175, 55, 0.16));
+  color: var(--reader-active-text, #e5c455);
+  box-shadow: inset 0 0 0 1px var(--reader-active-border, rgba(212, 175, 55, 0.4));
+}
+
+.font-group-name {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--reader-text-muted, rgba(255, 255, 255, 0.45));
+  margin-top: 2px;
+}
+.font-group-name:first-of-type { margin-top: 0; }
+
+.sheet-hint {
+  margin: 0;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--reader-text-muted, inherit);
+}
+.sheet-hint-soft { opacity: 0.65; font-size: 0.75rem; }
 
 /* — Stepper de tamaño de letra — */
 .stepper {
@@ -3925,18 +4052,21 @@ h2.chapter-heading { font-size: 1.28em; }
   gap: 2px;
 }
 .segmented button {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;                 /* deja que el texto encoja en vez de desbordar */
   min-height: 34px;
-  padding: 0 8px;
+  padding: 0 6px;
   border: none;
   border-radius: 8px;
   background: transparent;
   color: var(--reader-text-muted, inherit);
   font-family: var(--font-ui, sans-serif);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background var(--reader-transition), color var(--reader-transition);
 }
 .segmented button:hover:not(.on) { color: var(--reader-text, inherit); }
@@ -3946,10 +4076,9 @@ h2.chapter-heading { font-size: 1.28em; }
   box-shadow: inset 0 0 0 1px var(--reader-active-border, rgba(212, 175, 55, 0.4));
 }
 
-/* — Slider de brillo — */
+/* — Sliders (brillo, espacio entre letras) — */
 .sheet-range {
-  flex: 1;
-  max-width: 60%;
+  width: 100%;
   height: 4px;
   border-radius: 2px;
   accent-color: var(--reader-accent, #d4af37);
@@ -3959,7 +4088,7 @@ h2.chapter-heading { font-size: 1.28em; }
 /* — Grid de tipografías — */
 .font-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 .font-chip {
@@ -3991,20 +4120,20 @@ h2.chapter-heading { font-size: 1.28em; }
   text-overflow: ellipsis;
   max-width: 100%;
 }
-.font-chip.preview-serif    .font-chip-aa { font-family: 'Merriweather', Georgia, serif; }
-.font-chip.preview-garamond .font-chip-aa { font-family: 'EB Garamond', Garamond, serif; }
-.font-chip.preview-georgia  .font-chip-aa { font-family: Georgia, serif; }
-.font-chip.preview-palatino .font-chip-aa { font-family: 'Palatino Linotype', 'Book Antiqua', serif; }
-.font-chip.preview-sans     .font-chip-aa { font-family: 'Outfit', sans-serif; }
-.font-chip.preview-opensans .font-chip-aa { font-family: 'Open Sans', sans-serif; }
-.font-chip.preview-helvetica .font-chip-aa { font-family: 'Helvetica Neue', Arial, sans-serif; }
-.font-chip.preview-dyslexic .font-chip-aa { font-family: 'Comic Neue', 'Comic Sans MS', sans-serif; }
-.font-chip.preview-medieval .font-chip-aa { font-family: 'Cinzel', 'Georgia', serif; }
+.font-chip.preview-merriweather .font-chip-aa { font-family: 'Merriweather', Georgia, serif; }
+.font-chip.preview-garamond    .font-chip-aa { font-family: 'EB Garamond', Georgia, serif; }
+.font-chip.preview-georgia     .font-chip-aa { font-family: Georgia, serif; }
+.font-chip.preview-palatino    .font-chip-aa { font-family: 'Palatino Linotype', 'Book Antiqua', serif; }
+.font-chip.preview-outfit      .font-chip-aa { font-family: 'Outfit', system-ui, sans-serif; }
+.font-chip.preview-opensans    .font-chip-aa { font-family: 'Open Sans', system-ui, sans-serif; }
+.font-chip.preview-atkinson    .font-chip-aa { font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; }
+.font-chip.preview-lexend      .font-chip-aa { font-family: 'Lexend', system-ui, sans-serif; }
+.font-chip.preview-cinzel      .font-chip-aa { font-family: 'Cinzel', Georgia, serif; }
 
 /* — Grid de temas — */
 .theme-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 .theme-chip {
@@ -4062,7 +4191,20 @@ h2.chapter-heading { font-size: 1.28em; }
   cursor: pointer;
   text-align: left;
 }
-.toggle-row > span:first-child { flex: 1; }
+.toggle-row > span:first-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.toggle-row > span:first-child em {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--reader-text-muted, rgba(255, 255, 255, 0.5));
+  line-height: 1.3;
+}
 .switch {
   position: relative;
   width: 40px;
@@ -4127,7 +4269,7 @@ h2.chapter-heading { font-size: 1.28em; }
     bottom: 0;
     width: 100%;
     max-width: 100%;
-    max-height: 74vh;
+    max-height: 78dvh;
     border-radius: var(--reader-radius-lg, 22px) var(--reader-radius-lg, 22px) 0 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     animation: sheetUp 0.24s var(--reader-ease);
@@ -4136,5 +4278,34 @@ h2.chapter-heading { font-size: 1.28em; }
     from { transform: translateY(100%); }
     to   { transform: translateY(0); }
   }
-  .font-grid { grid-template-columns: repeat(3, 1fr); }
+  .sheet-presets { padding-top: 14px; }
+  .font-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ENFOQUE / ACCESIBILIDAD  ──  efectos reales sobre la experiencia
+   ═══════════════════════════════════════════════════════════════════════ */
+/* Modo concentración: oculta cromo secundario, deja sólo texto + toolbar mínima */
+.workbench-container.rc-concentration .chapter-nav { display: none; }
+.workbench-container.rc-concentration .reading-progress-container { opacity: 0 !important; transform: scaleY(0) !important; }
+.workbench-container.rc-concentration .reading-canvas { --reader-pad-bottom: 10vh; }
+.workbench-container.rc-concentration .toolbar:not(.hidden) { opacity: 0.55; transition: opacity 0.25s ease; }
+.workbench-container.rc-concentration .toolbar:hover,
+.workbench-container.rc-concentration .toolbar:focus-within { opacity: 1; }
+
+/* Alto contraste: texto y bordes al máximo dentro del tema activo */
+.workbench-container.rc-high-contrast.theme-dark,
+.workbench-container.rc-high-contrast.theme-nocturno {
+  --th-text-primary: #ffffff;
+  --reader-text: #ffffff;
+}
+.workbench-container.rc-high-contrast.theme-light,
+.workbench-container.rc-high-contrast.theme-sepia {
+  --th-text-primary: #000000;
+  --reader-text: #000000;
+}
+.workbench-container.rc-high-contrast .html-reader ::ng-deep p,
+.workbench-container.rc-high-contrast .html-reader ::ng-deep li {
+  color: var(--reader-text);
+}
+.workbench-container.rc-high-contrast .bionic-muted { opacity: 0.85 !important; }

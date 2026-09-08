@@ -31,6 +31,24 @@
   --font-body:       'EB Garamond', Georgia, serif;
   --font-brand:      'Cinzel', 'Trajan Pro', Georgia, serif;
   --font-literary:   'EB Garamond', Georgia, serif;
+
+  /* ── Métricas de lectura del LECTOR (valores por defecto) ──
+     Deben vivir en :root REAL (no en el CSS encapsulado del componente):
+     el TS de reader.component las sobrescribe inline en <html> desde "Aa",
+     y una declaración inline en <html> sólo gana a una regla de :root, no a
+     una heredada de un :host más profundo. Sólo las consume el lector. */
+  --font-size-reader:      18px;
+  --reader-font-size:      var(--font-size-reader, 18px);
+  --reader-line-height:    1.75;
+  --reader-measure:        66ch;
+  --reader-para-gap:       1.5em;
+  --reader-para-indent:    0em;
+  --reader-letter-spacing: 0em;
+  --reader-align:          left;
+  --reader-pad-x:          clamp(20px, 6vw, 32px);
+  --reader-pad-top:        96px;
+  --reader-pad-bottom:     16vh;
+  --reader-brightness:     1;
 }
 
 /* Tema Clásico Original (Neón) para demo al cliente */

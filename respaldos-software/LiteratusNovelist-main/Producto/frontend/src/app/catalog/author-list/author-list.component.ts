@@ -60,7 +60,7 @@ export class AuthorListComponent implements OnInit {
       params = params.set('ordering', '-book_count');
     }
 
-    this.api.get<PaginatedResponse<any>>('catalog/authors/', params).subscribe({
+    this.api.getCached<PaginatedResponse<any>>('catalog/authors/', params, 10 * 60 * 1000).subscribe({
       next: (data) => {
         this.totalCount = data.count;
         this.nextUrl = data.next;

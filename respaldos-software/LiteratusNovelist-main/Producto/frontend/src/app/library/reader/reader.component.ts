@@ -69,9 +69,11 @@ export class ReaderComponent implements OnInit, OnDestroy {
   progressId: number | null = null;
 
   // ── UX ───────────────────────────────────────────────────────────
+  readonly FONT_MIN = 14;
+  readonly FONT_MAX = 32;
   fontSize: number = 18;
   currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' = 'dark';
-  currentFontFamily: 'sans' | 'serif' | 'dyslexic' | 'medieval' | 'garamond' | 'georgia' | 'palatino' | 'opensans' | 'helvetica' = 'serif';
+  currentFontFamily: 'merriweather' | 'garamond' | 'georgia' | 'palatino' | 'outfit' | 'opensans' | 'atkinson' | 'lexend' | 'cinzel' = 'merriweather';
   isTocOpen: boolean = false;
   lastScrollTop: number = 0;
   isToolbarHidden: boolean = false;
@@ -82,21 +84,45 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   // ── HOJA "Aa" — Ajustes de lectura ───────────────────────────────
   isSettingsOpen: boolean = false;
+  settingsTab: 'texto' | 'apariencia' | 'enfoque' = 'texto';
   lineHeight: number = 1.75;                                   // 1.5 | 1.75 | 2
   readingWidth: 'narrow' | 'medium' | 'wide' = 'medium';
   textAlign: 'left' | 'justify' = 'left';
+  paraSpacing: 'tight' | 'normal' | 'relaxed' = 'normal';      // 1.1em | 1.5em | 2.2em
+  letterSpacing: number = 0;                                   // em, -0.01 – 0.08
+  highContrast: boolean = false;                               // Accesibilidad
+  concentrationMode: boolean = false;                          // Enfoque: oculta cromo secundario
   brightness: number = 1;                                      // 0.75 – 1.1
-  readonly fontOptions: { id: ReaderComponent['currentFontFamily']; label: string }[] = [
-    { id: 'serif', label: 'Serif' },
-    { id: 'garamond', label: 'Garamond' },
-    { id: 'georgia', label: 'Georgia' },
-    { id: 'palatino', label: 'Palatino' },
-    { id: 'sans', label: 'Outfit' },
-    { id: 'opensans', label: 'Open Sans' },
-    { id: 'helvetica', label: 'Helvetica' },
-    { id: 'dyslexic', label: 'Dislexia' },
-    { id: 'medieval', label: 'Cinzel' },
+
+  readonly fontOptions: { id: ReaderComponent['currentFontFamily']; label: string; group: string; note?: string }[] = [
+    { id: 'merriweather', label: 'Merriweather', group: 'Clásicas' },
+    { id: 'garamond',     label: 'Garamond',     group: 'Clásicas' },
+    { id: 'georgia',      label: 'Georgia',      group: 'Clásicas' },
+    { id: 'palatino',     label: 'Palatino',     group: 'Clásicas' },
+    { id: 'outfit',       label: 'Outfit',       group: 'Modernas' },
+    { id: 'opensans',     label: 'Open Sans',    group: 'Modernas' },
+    { id: 'atkinson',     label: 'Alta legibilidad', group: 'Accesibilidad', note: 'Atkinson Hyperlegible' },
+    { id: 'lexend',       label: 'Lexend',       group: 'Accesibilidad' },
+    { id: 'cinzel',       label: 'Cinzel',       group: 'Literaria', note: 'Mejor para títulos' },
   ];
+  /** Grupos de tipografías — PRECOMPUTADO (no getter): un getter en *ngFor
+   *  devuelve arrays nuevos en cada ciclo de detección de cambios y Angular
+   *  destruye+recrea todos los botones, tragándose el click (mousedown y mouseup
+   *  caen en elementos distintos). fontOptions es readonly, así que esto es fijo. */
+  readonly fontGroups: { name: string; fonts: ReaderComponent['fontOptions'] }[] =
+    ['Clásicas', 'Modernas', 'Accesibilidad', 'Literaria']
+      .map(name => ({ name, fonts: this.fontOptions.filter(f => f.group === name) }))
+      .filter(g => g.fonts.length > 0);
+
+  trackFont = (_: number, f: { id: string }) => f.id;
+  trackGroup = (_: number, g: { name: string }) => g.name;
+  /** Migración de ids antiguos de reader-font-family (compat retro). */
+  private readonly FONT_ID_MIGRATION: Record<string, ReaderComponent['currentFontFamily']> = {
+    serif: 'merriweather', sans: 'outfit', dyslexic: 'atkinson', medieval: 'cinzel',
+    helvetica: 'opensans', garamond: 'garamond', georgia: 'georgia',
+    palatino: 'palatino', opensans: 'opensans',
+  };
+
   readonly themeOptions: { id: ReaderComponent['currentTheme']; label: string }[] = [
     { id: 'light', label: 'Claro' },
     { id: 'sepia', label: 'Sepia' },
@@ -277,9 +303,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.loadInkBalance();
 
     const savedFont = localStorage.getItem('reader-font-family');
-    const validFonts = ['sans', 'serif', 'dyslexic', 'medieval', 'garamond', 'georgia', 'palatino', 'opensans', 'helvetica'];
-    if (savedFont && validFonts.includes(savedFont)) {
-      this.currentFontFamily = savedFont as any;
+    if (savedFont) {
+      const validNew = this.fontOptions.map(f => f.id) as string[];
+      if (validNew.includes(savedFont)) {
+        this.currentFontFamily = savedFont as any;
+      } else if (this.FONT_ID_MIGRATION[savedFont]) {
+        this.currentFontFamily = this.FONT_ID_MIGRATION[savedFont];
+        localStorage.setItem('reader-font-family', this.currentFontFamily); // migrar la clave
+      }
     }
 
     const savedTheme = localStorage.getItem('reader-theme');
@@ -291,8 +322,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const savedFontSize = localStorage.getItem('reader-font-size');
     if (savedFontSize) {
       const parsedSize = parseInt(savedFontSize, 10);
-      if (!isNaN(parsedSize) && parsedSize >= 12 && parsedSize <= 32) {
+      if (!isNaN(parsedSize) && parsedSize >= this.FONT_MIN && parsedSize <= this.FONT_MAX) {
         this.fontSize = parsedSize;
+      } else if (!isNaN(parsedSize)) {
+        this.fontSize = Math.min(this.FONT_MAX, Math.max(this.FONT_MIN, parsedSize)); // reencuadrar 12→14
       }
     }
 
@@ -682,12 +715,12 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   // ── TEMA Y FUENTE ─────────────────────────────────────────────────
   changeFontSize(delta: number) {
-    this.fontSize = Math.min(Math.max(this.fontSize + delta, 12), 32);
+    this.fontSize = Math.min(Math.max(this.fontSize + delta, this.FONT_MIN), this.FONT_MAX);
     this.applyFontSize();
     localStorage.setItem('reader-font-size', this.fontSize.toString());
   }
 
-  setFontFamily(font: 'sans' | 'serif' | 'dyslexic' | 'medieval' | 'garamond' | 'georgia' | 'palatino' | 'opensans' | 'helvetica') {
+  setFontFamily(font: ReaderComponent['currentFontFamily']) {
     this.currentFontFamily = font;
     localStorage.setItem('reader-font-family', font);
   }
@@ -720,6 +753,53 @@ export class ReaderComponent implements OnInit, OnDestroy {
     localStorage.setItem('reader-font-size', '18');
   }
 
+  setSettingsTab(t: ReaderComponent['settingsTab']) {
+    this.settingsTab = t;
+  }
+
+  setHighContrast(v: boolean) {
+    this.highContrast = v;
+    localStorage.setItem('reader-high-contrast', String(v));
+  }
+
+  setConcentrationMode(v: boolean) {
+    this.concentrationMode = v;
+    localStorage.setItem('reader-concentration', String(v));
+    if (v && !this.hideProgressOnScroll) { this.setHideProgress(true); }
+  }
+
+  /** Presets rápidos — sólo aplican configuraciones que ya existen. */
+  applyPreset(name: 'clasico' | 'noche' | 'enfoque' | 'accesible') {
+    switch (name) {
+      case 'clasico':
+        this.setFontFamily('merriweather');
+        this.setReadingWidth('medium');
+        this.setLineHeight(1.75);
+        this.setParaSpacing('normal');
+        this.setTextAlign('left');
+        this.setLetterSpacing(0);
+        break;
+      case 'noche':
+        this.setTheme('nocturno');
+        this.setBrightness(0.82);
+        break;
+      case 'enfoque':
+        this.setReadingWidth('narrow');
+        this.setLineHeight(2);
+        this.setParaSpacing('relaxed');
+        this.setConcentrationMode(true);
+        break;
+      case 'accesible':
+        this.setFontFamily('atkinson');
+        if (this.fontSize < 20) { this.fontSize = 20; this.applyFontSize(); localStorage.setItem('reader-font-size', '20'); }
+        this.setLineHeight(2);
+        this.setParaSpacing('relaxed');
+        this.setLetterSpacing(0.02);
+        this.setHighContrast(true);
+        break;
+    }
+  }
+
   setLineHeight(v: number) {
     this.lineHeight = v;
     localStorage.setItem('reader-line-height', String(v));
@@ -738,6 +818,18 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.applyReaderVars();
   }
 
+  setParaSpacing(v: 'tight' | 'normal' | 'relaxed') {
+    this.paraSpacing = v;
+    localStorage.setItem('reader-para-spacing', v);
+    this.applyReaderVars();
+  }
+
+  setLetterSpacing(v: number) {
+    this.letterSpacing = Math.min(0.08, Math.max(-0.01, Math.round(v * 1000) / 1000));
+    localStorage.setItem('reader-letter-spacing', String(this.letterSpacing));
+    this.applyReaderVars();
+  }
+
   setBrightness(v: number) {
     this.brightness = Math.min(1.1, Math.max(0.75, v));
     localStorage.setItem('reader-brightness', String(this.brightness));
@@ -745,14 +837,18 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   /** Vuelca las preferencias de lectura a variables CSS --reader-* en :root
-   *  (mismo mecanismo que --font-size-reader). */
+   *  (mismo mecanismo que --font-size-reader). Se llama en init y en cada cambio;
+   *  NO se toca al cambiar de capítulo, así que la config se mantiene. */
   private applyReaderVars() {
     const s = document.documentElement.style;
     s.setProperty('--reader-line-height', String(this.lineHeight));
-    const widthMap = { narrow: '58ch', medium: '66ch', wide: '74ch' };
+    const widthMap = { narrow: '54ch', medium: '66ch', wide: '78ch' };
     s.setProperty('--reader-measure', widthMap[this.readingWidth]);
     s.setProperty('--reader-align', this.textAlign);
     s.setProperty('--reader-para-indent', this.textAlign === 'justify' ? '1.4em' : '0em');
+    const gapMap = { tight: '1.1em', normal: '1.5em', relaxed: '2.2em' };
+    s.setProperty('--reader-para-gap', gapMap[this.paraSpacing]);
+    s.setProperty('--reader-letter-spacing', `${this.letterSpacing}em`);
     s.setProperty('--reader-brightness', String(this.brightness));
   }
 
@@ -766,8 +862,17 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const al = localStorage.getItem('reader-align');
     if (al === 'left' || al === 'justify') this.textAlign = al;
 
+    const ps = localStorage.getItem('reader-para-spacing');
+    if (ps === 'tight' || ps === 'normal' || ps === 'relaxed') this.paraSpacing = ps;
+
+    const ls = parseFloat(localStorage.getItem('reader-letter-spacing') || '');
+    if (!isNaN(ls) && ls >= -0.01 && ls <= 0.08) this.letterSpacing = ls;
+
     const br = parseFloat(localStorage.getItem('reader-brightness') || '');
     if (!isNaN(br) && br >= 0.75 && br <= 1.1) this.brightness = br;
+
+    this.highContrast = localStorage.getItem('reader-high-contrast') === 'true';
+    this.concentrationMode = localStorage.getItem('reader-concentration') === 'true';
 
     this.applyReaderVars();
   }
@@ -819,7 +924,11 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   private applyFontSize() {
-    document.documentElement.style.setProperty('--font-size-reader', `${this.fontSize}px`);
+    const s = document.documentElement.style;
+    // Se fijan AMBAS en <html> (ancestro de <app-reader>): el CSS del componente
+    // sólo puede declararlas en :host, y así el ajuste en vivo funciona seguro.
+    s.setProperty('--font-size-reader', `${this.fontSize}px`);
+    s.setProperty('--reader-font-size', `${this.fontSize}px`);
   }
 
   private applyTheme() {

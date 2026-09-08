@@ -1,4 +1,5 @@
-<div class="workbench-container" [ngClass]="'theme-' + currentTheme" [class.immersive]="isToolbarHidden">
+<div class="workbench-container" [ngClass]="'theme-' + currentTheme" [class.immersive]="isToolbarHidden"
+     [class.rc-high-contrast]="highContrast" [class.rc-concentration]="concentrationMode">
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- TOOLBAR SUPERIOR (FIJO)                                         -->
@@ -65,110 +66,167 @@
       </button>
     </div>
 
+    <!-- Presets rápidos -->
+    <div class="sheet-presets">
+      <button class="preset-chip" (click)="applyPreset('clasico')">📖 Clásico</button>
+      <button class="preset-chip" (click)="applyPreset('noche')">🌙 Noche</button>
+      <button class="preset-chip" (click)="applyPreset('enfoque')">🧠 Enfoque</button>
+      <button class="preset-chip" (click)="applyPreset('accesible')">♿ Accesible</button>
+    </div>
+
+    <!-- Pestañas -->
+    <div class="sheet-tabs" role="tablist">
+      <button role="tab" [attr.aria-selected]="settingsTab === 'texto'"
+              [class.on]="settingsTab === 'texto'" (click)="setSettingsTab('texto')">Texto</button>
+      <button role="tab" [attr.aria-selected]="settingsTab === 'apariencia'"
+              [class.on]="settingsTab === 'apariencia'" (click)="setSettingsTab('apariencia')">Apariencia</button>
+      <button role="tab" [attr.aria-selected]="settingsTab === 'enfoque'"
+              [class.on]="settingsTab === 'enfoque'" (click)="setSettingsTab('enfoque')">Enfoque</button>
+    </div>
+
     <div class="sheet-body">
-      <!-- Tamaño de letra -->
-      <div class="sheet-row">
-        <span class="sheet-label">Tamaño de letra</span>
-        <div class="stepper">
-          <button (click)="changeFontSize(-1)" [disabled]="fontSize <= 12" aria-label="Reducir letra">
-            <span class="material-symbols-rounded">remove</span>
+
+      <!-- ══ TEXTO ══ -->
+      <ng-container *ngIf="settingsTab === 'texto'">
+        <div class="sheet-block">
+          <span class="sheet-label">Tamaño de letra</span>
+          <div class="stepper">
+            <button (click)="changeFontSize(-1)" [disabled]="fontSize <= FONT_MIN" aria-label="Reducir letra">
+              <span class="material-symbols-rounded">remove</span>
+            </button>
+            <span class="stepper-val">{{ fontSize }}&nbsp;px</span>
+            <button (click)="changeFontSize(1)" [disabled]="fontSize >= FONT_MAX" aria-label="Aumentar letra">
+              <span class="material-symbols-rounded">add</span>
+            </button>
+            <button class="stepper-reset" (click)="resetFontSize()" title="Restablecer" aria-label="Restablecer tamaño">
+              <span class="material-symbols-rounded">restart_alt</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Tipografía</span>
+          <ng-container *ngFor="let g of fontGroups; trackBy: trackGroup">
+            <div class="font-group-name">{{ g.name }}</div>
+            <div class="font-grid">
+              <button type="button" *ngFor="let f of g.fonts; trackBy: trackFont"
+                      class="font-chip" [ngClass]="'preview-' + f.id"
+                      [class.on]="currentFontFamily === f.id" (click)="setFontFamily(f.id)"
+                      [attr.title]="f.note || f.label">
+                <span class="font-chip-aa">Aa</span>
+                <span class="font-chip-name">{{ f.label }}</span>
+              </button>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Interlineado</span>
+          <div class="segmented" role="group" aria-label="Interlineado">
+            <button [class.on]="lineHeight === 1.5"  (click)="setLineHeight(1.5)">Compacto</button>
+            <button [class.on]="lineHeight === 1.75" (click)="setLineHeight(1.75)">Normal</button>
+            <button [class.on]="lineHeight === 2"    (click)="setLineHeight(2)">Amplio</button>
+          </div>
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Espacio entre párrafos</span>
+          <div class="segmented" role="group" aria-label="Espacio entre párrafos">
+            <button [class.on]="paraSpacing === 'tight'"   (click)="setParaSpacing('tight')">Ajustado</button>
+            <button [class.on]="paraSpacing === 'normal'"  (click)="setParaSpacing('normal')">Normal</button>
+            <button [class.on]="paraSpacing === 'relaxed'" (click)="setParaSpacing('relaxed')">Amplio</button>
+          </div>
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Espacio entre letras <em>{{ letterSpacing > 0 ? '+' : '' }}{{ letterSpacing }}em</em></span>
+          <input type="range" class="sheet-range" min="-0.01" max="0.08" step="0.005"
+                 [value]="letterSpacing" (input)="setLetterSpacing(+$any($event.target).value)"
+                 aria-label="Espacio entre letras">
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Alineación</span>
+          <div class="segmented" role="group" aria-label="Alineación del texto">
+            <button [class.on]="textAlign === 'left'"    (click)="setTextAlign('left')">Izquierda</button>
+            <button [class.on]="textAlign === 'justify'" (click)="setTextAlign('justify')">Justificado</button>
+          </div>
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Ancho de columna</span>
+          <div class="segmented" role="group" aria-label="Ancho de columna">
+            <button [class.on]="readingWidth === 'narrow'" (click)="setReadingWidth('narrow')">Angosto</button>
+            <button [class.on]="readingWidth === 'medium'" (click)="setReadingWidth('medium')">Medio</button>
+            <button [class.on]="readingWidth === 'wide'"   (click)="setReadingWidth('wide')">Ancho</button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ══ APARIENCIA ══ -->
+      <ng-container *ngIf="settingsTab === 'apariencia'">
+        <div class="sheet-block">
+          <span class="sheet-label">Tema</span>
+          <div class="theme-grid">
+            <button *ngFor="let t of themeOptions" class="theme-chip" [class.on]="currentTheme === t.id"
+                    (click)="setTheme(t.id)">
+              <span class="theme-swatch" [attr.data-th]="t.id"></span>
+              <span>{{ t.label }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Brillo</span>
+          <input type="range" class="sheet-range" min="0.75" max="1.1" step="0.01"
+                 [value]="brightness" (input)="setBrightness(+$any($event.target).value)"
+                 aria-label="Brillo del lienzo">
+        </div>
+
+        <div class="sheet-toggles">
+          <button class="toggle-row" [class.on]="highContrast"
+                  (click)="setHighContrast(!highContrast)" [attr.aria-pressed]="highContrast">
+            <span>Alto contraste</span><span class="switch"></span>
           </button>
-          <span class="stepper-val">{{ fontSize }}&nbsp;px</span>
-          <button (click)="changeFontSize(1)" [disabled]="fontSize >= 32" aria-label="Aumentar letra">
-            <span class="material-symbols-rounded">add</span>
+          <button class="toggle-row" [class.on]="bionicReadingActive"
+                  (click)="setBionicReading(!bionicReadingActive)" [attr.aria-pressed]="bionicReadingActive">
+            <span>Lectura biónica</span><span class="switch"></span>
           </button>
-          <button class="stepper-reset" (click)="resetFontSize()" title="Restablecer" aria-label="Restablecer tamaño">
-            <span class="material-symbols-rounded">restart_alt</span>
+          <button class="toggle-row" [class.on]="showSceneImages"
+                  (click)="toggleSceneImages()" [attr.aria-pressed]="showSceneImages">
+            <span>Imágenes de escena</span><span class="switch"></span>
           </button>
-        </div>
-      </div>
-
-      <!-- Interlineado -->
-      <div class="sheet-row">
-        <span class="sheet-label">Interlineado</span>
-        <div class="segmented" role="group" aria-label="Interlineado">
-          <button [class.on]="lineHeight === 1.5"  (click)="setLineHeight(1.5)">Compacto</button>
-          <button [class.on]="lineHeight === 1.75" (click)="setLineHeight(1.75)">Normal</button>
-          <button [class.on]="lineHeight === 2"    (click)="setLineHeight(2)">Amplio</button>
-        </div>
-      </div>
-
-      <!-- Ancho de columna -->
-      <div class="sheet-row">
-        <span class="sheet-label">Ancho de columna</span>
-        <div class="segmented" role="group" aria-label="Ancho de columna">
-          <button [class.on]="readingWidth === 'narrow'" (click)="setReadingWidth('narrow')">Angosto</button>
-          <button [class.on]="readingWidth === 'medium'" (click)="setReadingWidth('medium')">Medio</button>
-          <button [class.on]="readingWidth === 'wide'"   (click)="setReadingWidth('wide')">Ancho</button>
-        </div>
-      </div>
-
-      <!-- Alineación -->
-      <div class="sheet-row">
-        <span class="sheet-label">Alineación</span>
-        <div class="segmented" role="group" aria-label="Alineación del texto">
-          <button [class.on]="textAlign === 'left'"    (click)="setTextAlign('left')">Izquierda</button>
-          <button [class.on]="textAlign === 'justify'" (click)="setTextAlign('justify')">Justificado</button>
-        </div>
-      </div>
-
-      <!-- Brillo del lienzo -->
-      <div class="sheet-row">
-        <span class="sheet-label">Brillo</span>
-        <input type="range" class="sheet-range" min="0.75" max="1.1" step="0.01"
-               [value]="brightness" (input)="setBrightness(+$any($event.target).value)"
-               aria-label="Brillo del lienzo">
-      </div>
-
-      <!-- Tipografía -->
-      <div class="sheet-block">
-        <span class="sheet-label">Tipografía</span>
-        <div class="font-grid">
-          <button *ngFor="let f of fontOptions" class="font-chip" [ngClass]="'preview-' + f.id"
-                  [class.on]="currentFontFamily === f.id" (click)="setFontFamily(f.id)">
-            <span class="font-chip-aa">Aa</span>
-            <span class="font-chip-name">{{ f.label }}</span>
+          <button class="toggle-row" [class.on]="!hideProgressOnScroll"
+                  (click)="setHideProgress(!hideProgressOnScroll)" [attr.aria-pressed]="!hideProgressOnScroll">
+            <span>Línea de progreso al leer</span><span class="switch"></span>
           </button>
         </div>
-      </div>
+      </ng-container>
 
-      <!-- Tema -->
-      <div class="sheet-block">
-        <span class="sheet-label">Tema</span>
-        <div class="theme-grid">
-          <button *ngFor="let t of themeOptions" class="theme-chip" [class.on]="currentTheme === t.id"
-                  (click)="setTheme(t.id)">
-            <span class="theme-swatch" [attr.data-th]="t.id"></span>
-            <span>{{ t.label }}</span>
+      <!-- ══ ENFOQUE ══ -->
+      <ng-container *ngIf="settingsTab === 'enfoque'">
+        <p class="sheet-hint">Herramientas opcionales para reducir distracciones y sostener la atención en lecturas largas.</p>
+        <div class="sheet-toggles">
+          <button class="toggle-row" [class.on]="concentrationMode"
+                  (click)="setConcentrationMode(!concentrationMode)" [attr.aria-pressed]="concentrationMode">
+            <span>Modo concentración<em>Oculta barras y controles secundarios</em></span><span class="switch"></span>
+          </button>
+          <button class="toggle-row" [class.on]="isFullscreenActive"
+                  (click)="toggleImmersiveButton()" [attr.aria-pressed]="isFullscreenActive">
+            <span>Pantalla completa<em>Usa toda la pantalla del dispositivo</em></span><span class="switch"></span>
+          </button>
+          <button class="toggle-row" [class.on]="bionicReadingActive"
+                  (click)="setBionicReading(!bionicReadingActive)" [attr.aria-pressed]="bionicReadingActive">
+            <span>Lectura biónica<em>Resalta el inicio de cada palabra</em></span><span class="switch"></span>
+          </button>
+          <button class="toggle-row" [class.on]="tapToScrollActive"
+                  (click)="toggleTapToScroll()" [attr.aria-pressed]="tapToScrollActive">
+            <span>Toque para avanzar<em>Avanza el texto tocando la pantalla</em></span><span class="switch"></span>
           </button>
         </div>
-      </div>
+      </ng-container>
 
-      <!-- Toggles (todas las funciones existentes, reorganizadas) -->
-      <div class="sheet-toggles">
-        <button class="toggle-row" [class.on]="bionicReadingActive"
-                (click)="setBionicReading(!bionicReadingActive)" [attr.aria-pressed]="bionicReadingActive">
-          <span>Lectura biónica</span><span class="switch"></span>
-        </button>
-        <button class="toggle-row" [class.on]="showSceneImages"
-                (click)="toggleSceneImages()" [attr.aria-pressed]="showSceneImages">
-          <span>Imágenes de escena</span><span class="switch"></span>
-        </button>
-        <button class="toggle-row" [class.on]="tapToScrollActive"
-                (click)="toggleTapToScroll()" [attr.aria-pressed]="tapToScrollActive">
-          <span>Toque para avanzar</span><span class="switch"></span>
-        </button>
-        <button class="toggle-row" [class.on]="isFullscreenActive"
-                (click)="toggleImmersiveButton()" [attr.aria-pressed]="isFullscreenActive">
-          <span>Modo inmersivo</span><span class="switch"></span>
-        </button>
-        <button class="toggle-row" [class.on]="!hideProgressOnScroll"
-                (click)="setHideProgress(!hideProgressOnScroll)" [attr.aria-pressed]="!hideProgressOnScroll">
-          <span>Línea de progreso al leer</span><span class="switch"></span>
-        </button>
-      </div>
-
-      <!-- Tinta -->
+      <!-- Tinta (siempre visible al pie) -->
       <a class="sheet-ink" routerLink="/tavern">
         <span class="material-symbols-rounded">ink_pen</span>
         <span class="sheet-ink-count">Tinta: {{ inkBalance }}</span>

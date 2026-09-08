@@ -45,7 +45,7 @@ export class CategoriesComponent implements OnInit {
 
   loadCounts(): void {
     this.isLoading = true;
-    this.api.get<any>('catalog/genres/?page_size=100').subscribe({
+    this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000).subscribe({
       next: (res) => {
         const genres = res.results || res;
         this.categories = genres.map((g: any, index: number) => {
@@ -79,7 +79,7 @@ export class CategoriesComponent implements OnInit {
         this.isLoading = false;
 
         // Conteo real de libros distintos (evita el doble conteo por multi-género)
-        this.api.get<any>('catalog/stats/').subscribe({
+        this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000).subscribe({
           next: (stats: any) => {
             const card = this.categories.find(c => c.slug === 'literatura-y-ficcion');
             if (card && typeof stats?.total_books === 'number') {

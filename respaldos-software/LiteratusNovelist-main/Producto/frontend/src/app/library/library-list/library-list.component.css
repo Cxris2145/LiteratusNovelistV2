@@ -53,11 +53,58 @@
 
 .card-image {
   height: 220px;
-  background-size: cover;
-  background-position: center;
   background-color: rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid var(--glass-border);
   position: relative;
+  overflow: hidden;
+}
+
+.card-image .cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.card-image:not(.cover-pending) .cover-img { opacity: 1; }
+
+/* Shimmer mientras carga ESTA portada (o en el skeleton) */
+.card-image.cover-pending::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(100deg, rgba(255,255,255,0) 20%, rgba(212,175,55,0.10) 50%, rgba(255,255,255,0) 80%),
+    rgba(0, 0, 0, 0.35);
+  background-size: 220% 100%;
+  animation: coverShimmer 1.25s ease-in-out infinite;
+}
+@keyframes coverShimmer {
+  0%   { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
+
+/* Skeleton de texto (biblioteca en carga) */
+.skeleton-card { pointer-events: none; }
+.skeleton-text {
+  height: 14px;
+  border-radius: 6px;
+  margin: 10px 0;
+  background: linear-gradient(100deg, rgba(255,255,255,0.04) 20%, rgba(212,175,55,0.10) 50%, rgba(255,255,255,0.04) 80%);
+  background-size: 220% 100%;
+  animation: coverShimmer 1.25s ease-in-out infinite;
+}
+.skeleton-text.title { height: 20px; width: 75%; }
+.skeleton-text.description { width: 100%; }
+.skeleton-text.description.short { width: 55%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-image.cover-pending::before,
+  .skeleton-text { animation: none; }
+  .card-image .cover-img { transition: none; }
 }
 
 .progress-badge {

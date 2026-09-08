@@ -124,7 +124,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Conteo real de libros del catálogo (se conecta a la base de datos). */
   private loadStats(): void {
-    this.api.get<any>('catalog/stats/').subscribe({
+    this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000).subscribe({
       next: (res: any) => {
         if (res && typeof res.total_books === 'number') {
           this.totalBooksCount = res.total_books;
@@ -329,7 +329,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private loadBooks(): void {
     this.isLoading = true;
-    this.api.get<any>('catalog/books/?ordering=-is_featured,-created_at&page_size=50').subscribe({
+    this.api.getCached<any>('catalog/books/?ordering=-is_featured,-created_at&page_size=50', undefined, 5 * 60 * 1000).subscribe({
       next: (response: any) => {
         if (this.destroy$.isStopped) {
           return;
@@ -368,7 +368,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private loadAIBooks(): void {
-    this.api.get<any>('catalog/books/?has_ai_avatars=true&ordering=-ai_character_count&page_size=10').subscribe({
+    this.api.getCached<any>('catalog/books/?has_ai_avatars=true&ordering=-ai_character_count&page_size=10', undefined, 5 * 60 * 1000).subscribe({
       next: (response: any) => {
         if (this.destroy$.isStopped) return;
         const booksWithCharacters = response.results || response;

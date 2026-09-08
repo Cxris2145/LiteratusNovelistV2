@@ -59,20 +59,23 @@
 
   <!-- Grid Principal de Tarjetas -->
   <div class="grid-container" *ngIf="!isLoading && books.length > 0">
-    
-    <div class="glass-panel book-card" *ngFor="let book of books; let i = index"
+
+    <div class="glass-panel book-card" *ngFor="let book of books; let i = index; trackBy: trackBook"
          [routerLink]="['/book', book.slug]"
          [style.animation-delay]="(i * 40) + 'ms'">
-      
-      <!-- Portada: <img> con lazy-load + miniatura de Supabase -->
-      <div class="card-image">
+
+      <!-- Portada: miniatura Supabase; las primeras cargan con prioridad,
+           el resto lazy. Skeleton local sólo mientras esta imagen carga. -->
+      <div class="card-image" [class.cover-pending]="!book.coverLoaded">
         <img class="cover-img"
-             [src]="thumb(book.cover_image)"
+             [src]="book.coverThumb"
              [alt]="book.title"
-             loading="lazy"
+             [attr.loading]="book.coverPriority ? 'eager' : 'lazy'"
+             [attr.fetchpriority]="book.coverPriority ? 'high' : 'low'"
              decoding="async"
-             width="400" height="250"
-             (error)="onImgError($event)">
+             width="360" height="225"
+             (load)="onImgLoad(book)"
+             (error)="onImgError($event, book)">
         <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
       </div>
       

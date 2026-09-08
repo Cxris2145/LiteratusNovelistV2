@@ -172,13 +172,34 @@
   box-shadow: 0 12px 40px rgba(139, 92, 246, 0.2);
 }
 
-/* Cover section */
+/* Cover section — el alto fijo reserva el espacio (sin salto de layout / CLS) */
 .card-image {
   height: 250px;
-  background-color: rgba(0, 0, 0, 0.5); /* Placeholder mientras carga la <img> */
+  background-color: rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid var(--glass-border);
   position: relative;
   overflow: hidden;
+}
+
+/* Shimmer SÓLO mientras esta portada concreta está cargando */
+.card-image.cover-pending::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(100deg,
+      rgba(255, 255, 255, 0) 20%,
+      rgba(212, 175, 55, 0.10) 50%,
+      rgba(255, 255, 255, 0) 80%),
+    rgba(0, 0, 0, 0.35);
+  background-size: 220% 100%;
+  animation: coverShimmer 1.25s ease-in-out infinite;
+}
+
+@keyframes coverShimmer {
+  0%   { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
 }
 
 .cover-img {
@@ -187,6 +208,16 @@
   object-fit: cover;
   object-position: center;
   display: block;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+/* Cuando la imagen ya cargó (o falló y cayó al default): se revela con fundido */
+.card-image:not(.cover-pending) .cover-img { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card-image.cover-pending::before { animation: none; }
+  .cover-img { transition: none; }
 }
 
 .featured-badge {
