@@ -80,6 +80,30 @@ export class ReaderComponent implements OnInit, OnDestroy {
   tapToScrollActive: boolean = false;
   showSceneImages: boolean = true;
 
+  // ── HOJA "Aa" — Ajustes de lectura ───────────────────────────────
+  isSettingsOpen: boolean = false;
+  lineHeight: number = 1.75;                                   // 1.5 | 1.75 | 2
+  readingWidth: 'narrow' | 'medium' | 'wide' = 'medium';
+  textAlign: 'left' | 'justify' = 'left';
+  brightness: number = 1;                                      // 0.75 – 1.1
+  readonly fontOptions: { id: ReaderComponent['currentFontFamily']; label: string }[] = [
+    { id: 'serif', label: 'Serif' },
+    { id: 'garamond', label: 'Garamond' },
+    { id: 'georgia', label: 'Georgia' },
+    { id: 'palatino', label: 'Palatino' },
+    { id: 'sans', label: 'Outfit' },
+    { id: 'opensans', label: 'Open Sans' },
+    { id: 'helvetica', label: 'Helvetica' },
+    { id: 'dyslexic', label: 'Dislexia' },
+    { id: 'medieval', label: 'Cinzel' },
+  ];
+  readonly themeOptions: { id: ReaderComponent['currentTheme']; label: string }[] = [
+    { id: 'light', label: 'Claro' },
+    { id: 'sepia', label: 'Sepia' },
+    { id: 'dark', label: 'Oscuro' },
+    { id: 'nocturno', label: 'OLED' },
+  ];
+
   // ── PERSONAJES / CHAT ─────────────────────────────────────────────
   isCharPanelOpen: boolean = false;
   avatars: any[] = [];
@@ -275,6 +299,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     // Aplicar las variables CSS ahora que cargamos de localStorage
     this.applyTheme();
     this.applyFontSize();
+    this.loadReaderPrefs();
 
     const savedHide = localStorage.getItem('reader-hide-progress');
     if (savedHide !== null) {
@@ -683,6 +708,70 @@ export class ReaderComponent implements OnInit, OnDestroy {
     localStorage.setItem('reader-bionic-reading', String(value));
   }
 
+  // ── HOJA "Aa" — Ajustes de lectura ───────────────────────────────
+  toggleSettings() {
+    this.isSettingsOpen = !this.isSettingsOpen;
+    if (this.isSettingsOpen) { this.isTocOpen = false; this.isCharPanelOpen = false; }
+  }
+
+  resetFontSize() {
+    this.fontSize = 18;
+    this.applyFontSize();
+    localStorage.setItem('reader-font-size', '18');
+  }
+
+  setLineHeight(v: number) {
+    this.lineHeight = v;
+    localStorage.setItem('reader-line-height', String(v));
+    this.applyReaderVars();
+  }
+
+  setReadingWidth(v: 'narrow' | 'medium' | 'wide') {
+    this.readingWidth = v;
+    localStorage.setItem('reader-width', v);
+    this.applyReaderVars();
+  }
+
+  setTextAlign(v: 'left' | 'justify') {
+    this.textAlign = v;
+    localStorage.setItem('reader-align', v);
+    this.applyReaderVars();
+  }
+
+  setBrightness(v: number) {
+    this.brightness = Math.min(1.1, Math.max(0.75, v));
+    localStorage.setItem('reader-brightness', String(this.brightness));
+    this.applyReaderVars();
+  }
+
+  /** Vuelca las preferencias de lectura a variables CSS --reader-* en :root
+   *  (mismo mecanismo que --font-size-reader). */
+  private applyReaderVars() {
+    const s = document.documentElement.style;
+    s.setProperty('--reader-line-height', String(this.lineHeight));
+    const widthMap = { narrow: '58ch', medium: '66ch', wide: '74ch' };
+    s.setProperty('--reader-measure', widthMap[this.readingWidth]);
+    s.setProperty('--reader-align', this.textAlign);
+    s.setProperty('--reader-para-indent', this.textAlign === 'justify' ? '1.4em' : '0em');
+    s.setProperty('--reader-brightness', String(this.brightness));
+  }
+
+  private loadReaderPrefs() {
+    const lh = parseFloat(localStorage.getItem('reader-line-height') || '');
+    if ([1.5, 1.75, 2].includes(lh)) this.lineHeight = lh;
+
+    const w = localStorage.getItem('reader-width');
+    if (w === 'narrow' || w === 'medium' || w === 'wide') this.readingWidth = w;
+
+    const al = localStorage.getItem('reader-align');
+    if (al === 'left' || al === 'justify') this.textAlign = al;
+
+    const br = parseFloat(localStorage.getItem('reader-brightness') || '');
+    if (!isNaN(br) && br >= 0.75 && br <= 1.1) this.brightness = br;
+
+    this.applyReaderVars();
+  }
+
   isAlphanumeric(c: string): boolean {
     const code = c.charCodeAt(0);
     return (code >= 48 && code <= 57) || // 0-9
@@ -741,7 +830,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   // ── TOC ───────────────────────────────────────────────────────────
   toggleToc() {
     this.isTocOpen = !this.isTocOpen;
-    if (this.isTocOpen) this.isCharPanelOpen = false;
+    if (this.isTocOpen) { this.isCharPanelOpen = false; this.isSettingsOpen = false; }
   }
 
   goToChapter(index: number) {
@@ -1106,6 +1195,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   toggleAudioPanel() {
     this.isAudioPanelOpen = !this.isAudioPanelOpen;
+    if (this.isAudioPanelOpen) this.isSettingsOpen = false;
   }
 
   toggleTapToScroll() {
@@ -1462,6 +1552,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.isCharPanelOpen = !this.isCharPanelOpen;
     if (this.isCharPanelOpen) {
       this.isTocOpen = false;
+      this.isSettingsOpen = false;
       if (this.avatars.length === 0) this.loadAvatars();
     }
     // Cerrar perfil y chat al cerrar el panel

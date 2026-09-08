@@ -196,8 +196,80 @@
   color: var(--th-text-primary);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   SISTEMA VISUAL DEL LECTOR  ──  tokens --reader-*
+   Derivados de los tokens de marca de Literatus (--glow-gold, --bg-surface,
+   --font-*, etc. definidos en styles.css) para que el lector comparta el
+   mismo lenguaje visual que el resto de la plataforma.
+   · Métricas de lectura  → en :root, las ajusta el usuario desde "Aa"
+     (se escriben en document.documentElement como --font-size-reader).
+   · Color / superficie   → parten de aquí y cada .theme-* las refina.
+   ═══════════════════════════════════════════════════════════════════════ */
 :root {
-  --font-size-reader: 18px;
+  /* ——— Métricas de lectura (ajustables) ——— */
+  --font-size-reader: 18px;                 /* compat: lo sigue fijando el TS */
+  --reader-font-size:   var(--font-size-reader, 18px);
+  --reader-line-height: 1.75;
+  --reader-measure:     66ch;               /* ancho de columna cómodo */
+  --reader-para-gap:    1.5em;              /* respiración entre párrafos */
+  --reader-para-indent: 0em;               /* sangría 1ª línea (0 = estilo web) */
+  --reader-align:       left;               /* left | justify */
+  --reader-pad-x:       clamp(20px, 6vw, 32px);
+  --reader-pad-top:     96px;               /* alto toolbar + aire */
+  --reader-pad-bottom:  16vh;
+  --reader-brightness:  1;                  /* 0.75 – 1.1 (control "Brillo") */
+
+  /* ——— Forma (alineada con .glass-panel / .glass-btn de la marca) ——— */
+  --reader-radius-sm:   10px;
+  --reader-radius:      16px;
+  --reader-radius-lg:   22px;
+  --reader-shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.18);
+  --reader-shadow-panel: 0 16px 48px rgba(0, 0, 0, 0.30);
+
+  /* ——— Interacción ——— */
+  --reader-touch:       44px;               /* zona táctil mínima */
+  --reader-ease:        cubic-bezier(0.165, 0.84, 0.44, 1);
+  --reader-transition:  0.22s var(--reader-ease);
+
+  /* ——— Color / superficie (fallback; cada .theme-* lo refina) ——— */
+  --reader-accent:        var(--glow-gold, #d4af37);
+  --reader-accent-2:      var(--glow-purple, #8b0000);
+  --reader-surface:       var(--th-bg-sidebar, #14261d);
+  --reader-surface-2:     var(--th-bg-controls, rgba(0, 0, 0, 0.2));
+  --reader-border:        var(--th-border-base, rgba(212, 175, 55, 0.15));
+  --reader-text:          var(--th-text-primary, #fcfaf2);
+  --reader-text-muted:    var(--th-text-secondary, #bbaea0);
+  --reader-hover-bg:      var(--th-bg-hover, rgba(212, 175, 55, 0.12));
+  --reader-active-bg:     rgba(212, 175, 55, 0.16);
+  --reader-active-border: rgba(212, 175, 55, 0.45);
+  --reader-active-text:   var(--glow-gold, #d4af37);
+}
+
+/* Refinado de acento por tema del lector (mantiene la identidad de marca:
+   oro viejo en oscuro/nocturno, tinta en claro, sepia cálido) */
+.theme-dark {
+  --reader-accent:        #d4af37;
+  --reader-active-bg:     rgba(212, 175, 55, 0.16);
+  --reader-active-border: rgba(212, 175, 55, 0.42);
+  --reader-active-text:   #e5c455;
+}
+.theme-nocturno {
+  --reader-accent:        #c9a94a;
+  --reader-active-bg:     rgba(201, 169, 74, 0.14);
+  --reader-active-border: rgba(201, 169, 74, 0.40);
+  --reader-active-text:   #d8bd6b;
+}
+.theme-light {
+  --reader-accent:        #1e1a12;
+  --reader-active-bg:     rgba(30, 26, 18, 0.08);
+  --reader-active-border: rgba(30, 26, 18, 0.28);
+  --reader-active-text:   #1e1a12;
+}
+.theme-sepia {
+  --reader-accent:        #7a5a2e;
+  --reader-active-bg:     rgba(122, 90, 46, 0.14);
+  --reader-active-border: rgba(122, 90, 46, 0.38);
+  --reader-active-text:   #5b4326;
 }
 
 /* BARRA DE HERRAMIENTAS */
@@ -205,34 +277,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 2rem;
+  gap: 12px;
+  padding: 8px max(20px, env(safe-area-inset-right, 0px)) 8px max(20px, env(safe-area-inset-left, 0px));
+  padding-top: calc(8px + env(safe-area-inset-top, 0px));
   border-radius: 0;
   border: none;
+  border-bottom: 1px solid var(--reader-border, rgba(212, 175, 55, 0.15));
   background: var(--th-bg-toolbar);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   z-index: 1100;
-  position: absolute; /* Posicionamiento absoluto para que no altere el flujo al ocultarse */
+  position: absolute; /* No altera el flujo al ocultarse */
   top: 0;
   left: 0;
   width: 100%;
-  transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  transition: transform 0.3s var(--reader-ease);
 }
 
 .toolbar.hidden {
   transform: translateY(-100%);
 }
 
-/* BARRA DE PROGRESO DE LECTURA (Estilo Wattpad) */
+/* BARRA DE PROGRESO DE LECTURA — pegada al borde inferior de la toolbar */
 .reading-progress-container {
   position: fixed;
-  top: 56px; /* altura de la toolbar */
+  top: calc(52px + env(safe-area-inset-top, 0px));
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: var(--th-progress-track);
   overflow: hidden;
   z-index: 1099;
-  transition: top 0.3s cubic-bezier(0.165, 0.84, 0.44, 1),
+  transition: top 0.3s var(--reader-ease),
               opacity 0.3s ease,
               transform 0.3s ease;
   opacity: 1;
@@ -242,10 +318,13 @@
 
 .reading-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #a855f7);
   width: 0%;
+  background: var(--reader-accent, #d4af37); /* fallback solido */
+  background: linear-gradient(90deg,
+    var(--reader-accent, #d4af37),
+    color-mix(in srgb, var(--reader-accent, #d4af37) 65%, #ffffff));
   transition: width 0.1s ease-out;
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.45);
 }
 
 /* Toolbar oculta: la barra sube al top:0 */
@@ -262,118 +341,73 @@
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0; /* permite que .book-info trunque con ellipsis */
 }
 
 .back-btn {
   background: var(--th-bg-input);
   border: 1px solid var(--th-border-btn);
   color: inherit;
-  width: 36px;
-  height: 36px;
+  width: var(--reader-touch, 44px);
+  height: var(--reader-touch, 44px);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 1.2rem;
+  transition: background var(--reader-transition), border-color var(--reader-transition);
+  font-size: 1.15rem;
+  flex-shrink: 0;
 }
 
 .back-btn:hover {
-  background: rgba(59, 130, 246, 0.4);
-  transform: translateX(-3px);
-  border-color: var(--glow-accent);
-}
-
-.font-family-dropdown,
-.theme-dropdown,
-.progress-hide-dropdown {
-  background: var(--th-bg-controls);
-  border: 1px solid var(--th-border-btn);
-  color: inherit;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-}
-
-.font-family-dropdown:hover,
-.font-family-dropdown:focus,
-.theme-dropdown:hover,
-.theme-dropdown:focus,
-.progress-hide-dropdown:hover,
-.progress-hide-dropdown:focus {
-  border-color: var(--glow-accent, #3b82f6);
-  background: var(--th-bg-hover);
-}
-
-/* Opciones del select â€” usan colores del sistema operativo por defecto,
-   pero aqui aseguramos coherencia donde el navegador lo permite */
-.font-family-dropdown option,
-.theme-dropdown option,
-.progress-hide-dropdown option {
-  background: var(--th-bg-sidebar);
-  color: var(--th-text-primary);
+  background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12));
+  border-color: var(--reader-active-border, rgba(212, 175, 55, 0.42));
 }
 
 .book-info {
   display: flex;
-  overflow: hidden;
-  max-width: 250px;
-}
-
-.toolbar-center {
-  flex: 1;
-  display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
+  gap: 1px;
   min-width: 0;
-  margin: 0 1rem;
-}
-
-.book-title-container {
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-  scrollbar-width: none; /* Firefox */
-  text-align: center;
-}
-
-.book-title-container::-webkit-scrollbar {
-  display: none; /* Chrome/Safari/Edge */
-}
-
-.book-title-label {
-  display: inline-block;
-  font-family: 'Cinzel', serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--glow-purple, #a855f7);
-  letter-spacing: 0.5px;
+  overflow: hidden;
 }
 
 .chapter-label {
-  font-weight: 700;
-  font-family: 'Outfit', sans-serif;
-  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.92rem;
+  line-height: 1.25;
+  color: var(--reader-text, inherit);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .progress-label {
-  font-size: 0.75rem;
-  opacity: 0.7;
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--reader-text-muted, rgba(255, 255, 255, 0.6));
 }
 
 .reader-settings {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Botón "Aa" — abre la hoja de ajustes de lectura */
+.aa-btn .aa-glyph {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
 }
 
 .font-controls {
@@ -398,68 +432,49 @@
   background: var(--th-bg-hover);
 }
 
-.theme-selector {
-  display: flex;
-  gap: 8px;
-}
-
-.theme-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.theme-btn:hover {
-  transform: scale(1.1);
-}
-
-.theme-btn.active {
-  border-color: var(--glow-accent, #3b82f6);
-}
-
-.theme-btn.dark { background: #0f172a; }
-.theme-btn.light { background: #f8fafc; border-color: #cbd5e1; }
-.theme-btn.sepia { background: #f4ecd8; border-color: #d6ccb5; }
-
 .toc-trigger-btn {
   background: transparent;
   border: 1px solid var(--th-border-btn);
   color: inherit;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: var(--reader-touch, 44px);
+  height: var(--reader-touch, 44px);
+  border-radius: var(--reader-radius-sm, 10px);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background var(--reader-transition), border-color var(--reader-transition), color var(--reader-transition);
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
-.toc-trigger-btn:hover,
+.toc-trigger-btn:hover {
+  background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12));
+  border-color: var(--reader-active-border, rgba(212, 175, 55, 0.42));
+}
+
 .toc-trigger-btn.active {
-  background: rgba(59, 130, 246, 0.4);
-  border-color: var(--glow-accent);
+  background: var(--reader-active-bg, rgba(212, 175, 55, 0.16));
+  border-color: var(--reader-active-border, rgba(212, 175, 55, 0.45));
+  color: var(--reader-active-text, #e5c455);
 }
 
-/* BOTÃ“N PERSONAJES */
+/* BOTON PERSONAJES */
 .char-trigger-btn {
   position: relative;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--th-border-btn);
   color: inherit;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: var(--reader-touch, 44px);
+  height: var(--reader-touch, 44px);
+  border-radius: var(--reader-radius-sm, 10px);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background var(--reader-transition), border-color var(--reader-transition), color var(--reader-transition);
   font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
 .theme-light .char-trigger-btn {
@@ -470,10 +485,25 @@
   border-color: rgba(91, 70, 54, 0.15);
 }
 
-.char-trigger-btn.active,
 .char-trigger-btn:hover {
-  background: rgba(168, 85, 247, 0.4);
-  border-color: #a855f7;
+  background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12));
+  border-color: var(--reader-active-border, rgba(212, 175, 55, 0.42));
+}
+
+.char-trigger-btn.active {
+  background: var(--reader-active-bg, rgba(212, 175, 55, 0.16));
+  border-color: var(--reader-active-border, rgba(212, 175, 55, 0.45));
+  color: var(--reader-active-text, #e5c455);
+}
+
+/* Foco visible por teclado en todos los controles del lector */
+.back-btn:focus-visible,
+.toc-trigger-btn:focus-visible,
+.char-trigger-btn:focus-visible,
+.font-controls button:focus-visible,
+.ink-counter:focus-visible {
+  outline: 2px solid var(--reader-accent, #d4af37);
+  outline-offset: 2px;
 }
 
 .ink-badge {
@@ -1304,7 +1334,6 @@
 }
 
 
-
 .avatar-item {
   display: flex;
   align-items: center;
@@ -1598,10 +1627,18 @@
 .reading-canvas {
   flex: 1;
   overflow-y: auto;
-  padding: 80px calc((100% - 70ch) / 2) 150px calc((100% - 70ch) / 2);
+  overflow-x: hidden;
+  /* El lateral nunca baja de --reader-pad-x; en pantallas anchas centra a la
+     medida de lectura (--reader-measure). Una sola regla para todos los tamanos. */
+  padding:
+    var(--reader-pad-top, 96px)
+    max(var(--reader-pad-x, 24px), calc((100% - var(--reader-measure, 66ch)) / 2))
+    var(--reader-pad-bottom, 16vh);
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  transition: background 0.3s ease;
+  -webkit-text-size-adjust: 100%;
+  filter: brightness(var(--reader-brightness, 1));
+  transition: background 0.3s ease, padding 0.25s var(--reader-ease), filter 0.2s ease;
 }
 
 /* CONFIGURACIÃ“N DINÃMICA DE FUENTES */
@@ -1634,11 +1671,18 @@
 }
 
 .html-reader ::ng-deep p {
-  font-size: var(--font-size-reader);
-  line-height: 1.8;
-  margin-bottom: 0.8em;
-  text-align: justify;
-  text-indent: 2em; /* SangrÃ­a de primera lÃ­nea */
+  font-size: var(--reader-font-size, 18px);
+  line-height: var(--reader-line-height, 1.75);
+  /* Una sola senal de separacion: el hueco entre parrafos (no sangria + hueco). */
+  margin: 0 0 var(--reader-para-gap, 1.5em);
+  text-align: var(--reader-align, left);
+  text-indent: var(--reader-para-indent, 0em);
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+  orphans: 2;
+  widows: 2;
   font-family: inherit; /* Hereda de la clase del canvas */
 }
 
@@ -1650,338 +1694,137 @@
   text-indent: 0; /* Remover sangrÃ­a despuÃ©s de un tÃ­tulo (convenciÃ³n editorial) */
 }
 
+/* Imagenes dentro de la prosa: regla unica y responsiva (ver tambien
+   ".html-reader ::ng-deep img, .inline-img..." mas abajo, ya sin !important). */
 .html-reader ::ng-deep img {
   display: block;
-  max-width: 100%;
+  max-width: min(100%, 640px);
   height: auto;
-  margin: 3rem auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  margin: 2.5em auto;
+  border-radius: var(--reader-radius-sm, 10px);
+  box-shadow: var(--reader-shadow-soft, 0 8px 30px rgba(0, 0, 0, 0.22));
 }
 
-.html-reader ::ng-deep h1, 
-.html-reader ::ng-deep h2, 
+/* Subtitulos internos del capitulo: alineados a la izquierda, jerarquia clara.
+   Se excluye .chapter-title-main (el titulo grande del capitulo). */
+.html-reader ::ng-deep h1:not(.chapter-title-main),
+.html-reader ::ng-deep h2:not(.chapter-title-main),
 .html-reader ::ng-deep h3,
 .chapter-heading {
-  margin-top: 3.5rem;
-  margin-bottom: 2rem;
-  font-family: inherit; /* Hereda de la clase del canvas */
-  text-align: center;
+  margin-top: 2.5em;
+  margin-bottom: 1em;
+  font-family: inherit;
+  text-align: left;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: inherit;
 }
+.html-reader ::ng-deep h1:not(.chapter-title-main),
+h1.chapter-heading { font-size: 1.5em; }
+.html-reader ::ng-deep h2:not(.chapter-title-main),
+h2.chapter-heading { font-size: 1.28em; }
+.html-reader ::ng-deep h3 { font-size: 1.12em; font-weight: 600; }
 
+/* Titulo principal del capitulo: centrado, con aire hacia el cuerpo.
+   El prefijo .html-reader eleva la especificidad por encima de la regla de
+   subtitulos para que gane siempre. */
+.html-reader .chapter-title-main,
 .chapter-title-main {
-  font-family: inherit; /* Hereda de la clase del canvas */
-  font-size: calc(var(--font-size-reader) * 1.8);
-  font-weight: 800;
+  font-family: inherit;
+  font-size: calc(var(--reader-font-size, 18px) * 1.9);
+  font-weight: 700;
   text-align: center;
-  margin-bottom: 3rem;
-  margin-top: 1rem;
+  margin: 0.4em 0 1.9em;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: inherit;
 }
 
-/* NAVEGACIÃ“N OVERLAY */
-.navigation-overlay {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2rem;
-  pointer-events: none;
-  transform: translateY(-50%);
-}
-
-.nav-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: white;
-  cursor: pointer;
-  pointer-events: auto;
+/* ═══════════════════════════════════════════════════════════════════════
+   NAVEGACION DE CAPITULO  ──  barra inferior discreta (reemplaza al FAB)
+   Se auto-oculta con la toolbar; al final del capitulo resalta "Siguiente".
+   ═══════════════════════════════════════════════════════════════════════ */
+.chapter-nav {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 900;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  transition: all 0.2s;
-  backdrop-filter: blur(4px);
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--th-bg-toolbar);
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.18));
+  box-shadow: var(--reader-shadow-soft, 0 4px 20px rgba(0, 0, 0, 0.18));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: transform 0.3s var(--reader-ease), opacity 0.3s var(--reader-ease);
 }
 
-.nav-btn:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.4);
-  transform: scale(1.1);
-}
-
-.nav-btn:disabled {
-  opacity: 0.2;
-  cursor: not-allowed;
-}
-
-/* BOTÃ“N SIGUIENTE CAPÃTULO (AL FINAL DEL SCROLL) */
-.next-chapter-container {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
+.chapter-nav.hidden {
+  transform: translateX(-50%) translateY(calc(100% + 24px));
   opacity: 0;
   pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 1200; /* Por encima de todo: overlay, panels, toolbar */
-  width: max-content;
-  max-width: calc(100vw - 40px);
 }
 
-.next-chapter-container.visible {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.next-chapter-btn {
-  background: linear-gradient(135deg, #3b82f6, #a855f7);
-  color: white;
-  border: none;
-  padding: 12px 30px;
-  border-radius: 30px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: flex;
+.chapter-nav-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
-  transition: all 0.3s ease;
-}
-
-.next-chapter-btn:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 15px 35px rgba(168, 85, 247, 0.6);
-}
-
-.next-chapter-btn:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* VENTANA DE CHAT ESTILO WHATSAPP */
-.chat-window {
-  position: fixed;
-  bottom: 2rem;
-  left: calc(50% - 200px);
-  width: 420px;
-  max-height: 65vh;
-  z-index: 1200;
-  display: flex;
-  flex-direction: column;
-  border-radius: 20px;
-  overflow: hidden;
-  background: rgba(10, 15, 35, 0.92);
-font-family: 'Outfit', sans-serif;
+  gap: 4px;
+  min-height: var(--reader-touch, 44px);
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--reader-text, inherit);
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
   font-size: 0.9rem;
-}
-
-.chapter-name {
-  font-size: 1rem;
-}
-
-/* LIENZO DE LECTURA */
-.reading-canvas {
-  flex: 1;
-  overflow-y: auto;
-  padding: 80px calc((100% - 70ch) / 2) 150px calc((100% - 70ch) / 2);
-  scroll-behavior: smooth;
-  scrollbar-width: thin;
-  transition: background 0.3s ease;
-}
-
-/* CONFIGURACIÓN DINÁMICA DE FUENTES */
-.reading-canvas.font-serif {
-  font-family: 'Merriweather', 'Georgia', serif;
-}
-.reading-canvas.font-sans {
-  font-family: 'Outfit', 'Montserrat', sans-serif;
-}
-.reading-canvas.font-dyslexic {
-  font-family: 'Comic Neue', 'Comic Sans MS', sans-serif;
-}
-.reading-canvas.font-medieval {
-  font-family: 'Cinzel', 'MedievalSharp', 'Georgia', serif;
-}
-.reading-canvas.font-garamond {
-  font-family: 'EB Garamond', 'Garamond', serif;
-}
-.reading-canvas.font-georgia {
-  font-family: 'Georgia', serif;
-}
-.reading-canvas.font-palatino {
-  font-family: 'Palatino', 'Palatino Linotype', 'Book Antiqua', serif;
-}
-.reading-canvas.font-opensans {
-  font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-.reading-canvas.font-helvetica {
-  font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-}
-
-.html-reader ::ng-deep p {
-  font-size: var(--font-size-reader);
-  line-height: 1.8;
-  margin-bottom: 0.8em;
-  text-align: justify;
-  text-indent: 2em; /* Sangría de primera línea */
-  font-family: inherit; /* Hereda de la clase del canvas */
-}
-
-.html-reader ::ng-deep h1 + p, 
-.html-reader ::ng-deep h2 + p, 
-.html-reader ::ng-deep h3 + p,
-.chapter-heading + p,
-.chapter-title-main + p {
-  text-indent: 0; /* Remover sangría después de un título (convención editorial) */
-}
-
-.html-reader ::ng-deep img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  margin: 3rem auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.html-reader ::ng-deep h1, 
-.html-reader ::ng-deep h2, 
-.html-reader ::ng-deep h3,
-.chapter-heading {
-  margin-top: 3.5rem;
-  margin-bottom: 2rem;
-  font-family: inherit; /* Hereda de la clase del canvas */
-  text-align: center;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.chapter-title-main {
-  font-family: inherit; /* Hereda de la clase del canvas */
-  font-size: calc(var(--font-size-reader) * 1.8);
-  font-weight: 800;
-  text-align: center;
-  margin-bottom: 3rem;
-  margin-top: 1rem;
-  letter-spacing: -0.02em;
-  color: inherit;
-}
-
-/* NAVEGACIÓN OVERLAY */
-.navigation-overlay {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2rem;
-  pointer-events: none;
-  transform: translateY(-50%);
-}
-
-.nav-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: white;
+  font-weight: 600;
   cursor: pointer;
-  pointer-events: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  transition: all 0.2s;
-  backdrop-filter: blur(4px);
+  transition: background var(--reader-transition), color var(--reader-transition);
 }
 
-.nav-btn:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.4);
-  transform: scale(1.1);
+.chapter-nav-btn:hover:not(:disabled) {
+  background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12));
 }
 
-.nav-btn:disabled {
-  opacity: 0.2;
+.chapter-nav-btn:disabled {
+  opacity: 0.32;
   cursor: not-allowed;
 }
 
-/* BOTÓN SIGUIENTE CAPÍTULO (AL FINAL DEL SCROLL) */
-.next-chapter-container {
-  position: fixed;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  opacity: 0;
-  pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 1200; /* Por encima de todo: overlay, panels, toolbar */
-  width: max-content;
-  max-width: calc(100vw - 40px);
+.chapter-nav-pos {
+  padding: 0 10px;
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--reader-text-muted, rgba(255, 255, 255, 0.6));
+  white-space: nowrap;
 }
 
-.next-chapter-container.visible {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-  pointer-events: auto;
+/* Al final del capitulo: resaltar el lado "Siguiente" con el acento de marca */
+.chapter-nav.at-end .chapter-nav-btn.next {
+  background: var(--reader-accent, #d4af37);
+  color: #1a1207;
+}
+.chapter-nav.at-end .chapter-nav-btn.next:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--reader-accent, #d4af37) 85%, #fff);
 }
 
-.next-chapter-btn {
-  background: linear-gradient(135deg, #3b82f6, #a855f7);
-  color: white;
-  border: none;
-  padding: 12px 30px;
-  border-radius: 30px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: 1.1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4);
-  transition: all 0.3s ease;
+.chapter-nav-btn:focus-visible {
+  outline: 2px solid var(--reader-accent, #d4af37);
+  outline-offset: 2px;
 }
 
-.next-chapter-btn:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 15px 35px rgba(168, 85, 247, 0.6);
+@media (max-width: 600px) {
+  .chapter-nav { width: calc(100vw - 24px); justify-content: space-between; }
+  .chapter-nav-btn { padding: 0 12px; }
+  .chapter-nav-btn .chapter-nav-txt { display: none; }
+  .chapter-nav.at-end .chapter-nav-btn.next .chapter-nav-txt { display: inline; }
 }
-
-.next-chapter-btn:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* VENTANA DE CHAT ESTILO WHATSAPP */
-.chat-window {
-  position: fixed;
-  bottom: 2rem;
-  left: calc(50% - 200px);
-  width: 420px;
-  max-height: 65vh;
-  z-index: 1200;
-  display: flex;
-  flex-direction: column;
-  border-radius: 20px;
-  overflow: hidden;
-  background: rgba(10, 15, 35, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 30px rgba(168, 85, 247, 0.15);
-}
-
-
 
 .sidebar-divider {
   height: 1px;
@@ -2281,32 +2124,10 @@ font-family: 'Outfit', sans-serif;
   color: #5b4636;
 }
 
-/* MOBILE */
+/* MOBILE — el padding lateral del lienzo lo gobierna --reader-pad-x
+   (clamp), aqui solo se ajusta el offset superior por la toolbar. */
 @media (max-width: 768px) {
-  .reading-canvas { padding: 2rem 1.5rem; }
-  .toolbar { padding: 0.5rem 1rem; }
-  .reader-settings { gap: 0.75rem; }
   .char-sidebar, .toc-sidebar { width: 100vw; }
-  .chapter-label {
-    max-width: 100px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .navigation-overlay {
-    bottom: 2rem;
-    top: auto;
-    transform: none;
-    justify-content: center;
-    gap: 2rem;
-  }
-  .chat-window {
-    left: 0.5rem;
-    right: 0.5rem;
-    width: auto;
-    bottom: 1rem;
-  }
-  .ink-counter { display: none; }
 }
 
 /* WARNING TINTA */
@@ -2751,18 +2572,26 @@ font-family: 'Outfit', sans-serif;
   display: block;
 }
 
-/* NEON WORD HIGHLIGHTING — EFECTO SPOTIFY */
+/* PALABRAS: el <span> por palabra existe para el resaltado de TTS y la
+   seleccion. Sin feedback de hover llamativo: el texto es el protagonista,
+   no una interfaz tecnica. Solo un realce discreto al mantener pulsado
+   (contexto tactil) para descubrir el menu de palabra. */
 .word {
-  transition: color 0.15s ease, text-shadow 0.15s ease, background 0.15s ease;
+  transition: background-color 0.12s ease;
   display: inline;
   border-radius: 3px;
-  cursor: pointer;
-  padding: 0 1px;
+  cursor: text;
 }
 
-.word:hover {
-  color: rgba(34, 211, 238, 0.7);
-  text-shadow: 0 0 4px rgba(34, 211, 238, 0.4);
+.word:active {
+  background-color: var(--reader-active-bg, rgba(212, 175, 55, 0.16));
+}
+
+/* En puntero fino (raton) permitimos un realce muy sutil al pasar, sin glow */
+@media (hover: hover) and (pointer: fine) {
+  .word:hover {
+    background-color: color-mix(in srgb, var(--reader-accent, #d4af37) 10%, transparent);
+  }
 }
 
 /* ↓ Resaltado sutil tipo ReadEra (sin distorsión ni reflow) */
@@ -2779,23 +2608,6 @@ font-family: 'Outfit', sans-serif;
   /* Se elimina el subrayado/resaltado amarillo para evitar desincronizaciones visuales */
 }
 
-/* INTEGRATED SIDEBAR CHAT STYLES */
-.sidebar-chat-view {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  animation: fadeIn 0.3s ease;
-}
-
-.sidebar-chat-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  margin-bottom: 1rem;
-}
-
 .sidebar-back-btn {
   background: rgba(255,255,255,0.1);
   border: none;
@@ -2804,103 +2616,6 @@ font-family: 'Outfit', sans-serif;
   border-radius: 12px;
   cursor: pointer;
   font-size: 0.9rem;
-}
-
-.sidebar-chat-title {
-  font-weight: 700;
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.1rem;
-  color: #b39ddb;
-}
-
-.sidebar-video-box {
-  width: 100%;
-  height: 220px;
-  background: #000;
-  border-radius: 20px;
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 1rem;
-  border: 2px solid rgba(126, 87, 194, 0.3);
-}
-
-.sidebar-avatar-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 20%;
-  filter: brightness(0.8);
-  transition: all 0.3s ease;
-}
-
-.sidebar-avatar-video.speaking {
-  filter: brightness(1.1);
-  transform: scale(1.05);
-}
-
-.sidebar-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-  scroll-behavior: smooth;
-}
-
-.sidebar-bubble-row {
-  display: flex;
-  width: 100%;
-}
-
-.sidebar-bubble-row.user-row {
-  justify-content: flex-end;
-}
-
-.sidebar-bubble {
-  max-width: 85%;
-  padding: 10px 14px;
-  border-radius: 15px;
-  font-size: 0.9rem;
-  line-height: 1.4;
-  background: rgba(255,255,255,0.1);
-}
-
-.user-row .sidebar-bubble {
-  background: #7e57c2;
-  color: white;
-}
-
-.sidebar-input-row {
-  display: flex;
-  gap: 0.5rem;
-  background: rgba(0,0,0,0.3);
-  padding: 8px;
-  border-radius: 15px;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar-input-row input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: white;
-  outline: none;
-  font-size: 0.9rem;
-}
-
-.sidebar-send-btn {
-  background: #7e57c2;
-  color: white;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 @keyframes fadeIn {
@@ -3259,47 +2974,29 @@ font-family: 'Outfit', sans-serif;
   50% { transform: translateY(-5px); }
 }
 
-/* Pulso de luz para la palabra restaurada */
-.bookmark-pulse {
-  background: rgba(168, 85, 247, 0.4);
-  border-radius: 4px;
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
-  color: #fff;
-  transition: all 0.5s ease;
-  animation: bookmark-glow 5s forwards;
-}
-
-@keyframes bookmark-glow {
-  0% {
-    background: rgba(168, 85, 247, 0.6);
-    box-shadow: 0 0 20px rgba(168, 85, 247, 1);
-  }
-  80% {
-    background: rgba(168, 85, 247, 0.2);
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-  }
-  100% {
-    background: transparent;
-    box-shadow: none;
-  }
-}
-
-/* IMAGES AND LIGHTBOX */
-.html-reader ::ng-deep img, .inline-img, .chapter-image img {
+/* IMAGENES DE ESCENA + LIGHTBOX
+   Una sola regla, responsiva, sin !important. Las imagenes acompanan la
+   lectura (hasta 640px, proporcionadas) en vez de miniaturas rigidas. */
+.html-reader ::ng-deep img,
+.inline-img,
+.scene-image,
+.chapter-image img {
   display: block;
-  max-width: 250px !important;
-  max-height: 250px !important;
-  object-fit: contain;
-  margin: 1.5rem auto !important;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  cursor: pointer;
-  transition: transform 0.2s;
+  max-width: min(100%, 640px);
+  height: auto;
+  margin: 2.5em auto;
+  border-radius: var(--reader-radius-sm, 10px);
+  box-shadow: var(--reader-shadow-soft, 0 8px 30px rgba(0, 0, 0, 0.22));
+  cursor: zoom-in;
+  transition: transform 0.25s var(--reader-ease), box-shadow 0.25s var(--reader-ease);
 }
 
-.html-reader ::ng-deep img:hover, .inline-img:hover, .chapter-image img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+.html-reader ::ng-deep img:hover,
+.inline-img:hover,
+.scene-image:hover,
+.chapter-image img:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.32);
 }
 
 .image-lightbox-overlay {
@@ -3353,13 +3050,6 @@ font-family: 'Outfit', sans-serif;
 @keyframes popIn {
   0% { transform: scale(0.8); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
-}
-
-.active-line { 
-    background: rgba(59, 130, 246, 0.04) !important; 
-    border-left: 4px solid #3b82f6 !important; 
-    padding-left: 1.5rem !important; 
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Modal de Reinicio */
@@ -3484,18 +3174,6 @@ font-family: 'Outfit', sans-serif;
 
 .theme-dark .active-paragraph-text {
   background-color: rgba(234, 179, 8, 0.15) !important;
-}
-
-/* Sangría y espaciado de párrafos para evitar acoplamiento */
-.reader-content p {
-  text-indent: 1.5rem;
-  margin-bottom: 1.2rem;
-  line-height: 1.7;
-}
-
-/* El primer párrafo usualmente no lleva sangría en los libros */
-.reader-content p:first-of-type {
-  text-indent: 0;
 }
 
 /* ——— ESTILOS EXCLUSIVOS MANGA / NOVELA VISUAL ——— */
@@ -3627,78 +3305,6 @@ font-family: 'Outfit', sans-serif;
   100% { opacity: 1; box-shadow: 0 0 15px rgba(168, 85, 247, 0.5); }
 }
 
-/* SELECTOR DE FUENTES, TEMAS Y PROGRESO (TOOLBAR) */
-.font-family-selector,
-.theme-selector-dropdown,
-.progress-hide-selector {
-  margin-right: 0.5rem;
-}
-
-.font-family-dropdown,
-.theme-dropdown,
-.progress-hide-dropdown {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: inherit;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  outline: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(8px);
-}
-
-.font-family-dropdown:hover,
-.font-family-dropdown:focus,
-.theme-dropdown:hover,
-.theme-dropdown:focus,
-.progress-hide-dropdown:hover,
-.progress-hide-dropdown:focus {
-  border-color: var(--glow-accent, #3b82f6);
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.theme-light .theme-dropdown:hover,
-.theme-light .theme-dropdown:focus,
-.theme-light .progress-hide-dropdown:hover,
-.theme-light .progress-hide-dropdown:focus {
-  background: rgba(0, 0, 0, 0.08);
-}
-
-.theme-sepia .font-family-dropdown:hover,
-.theme-sepia .font-family-dropdown:focus,
-.theme-sepia .theme-dropdown:hover,
-.theme-sepia .theme-dropdown:focus,
-.theme-sepia .progress-hide-dropdown:hover,
-.theme-sepia .progress-hide-dropdown:focus {
-  background: rgba(91, 70, 54, 0.15);
-}
-
-/* Opciones del select en modo oscuro y claro */
-.font-family-dropdown option,
-.theme-dropdown option,
-.progress-hide-dropdown option {
-  background: #1e293b;
-  color: #f1f5f9;
-}
-
-.theme-light .font-family-dropdown option,
-.theme-light .theme-dropdown option,
-.theme-light .progress-hide-dropdown option {
-  background: #ffffff;
-  color: #1e293b;
-}
-
-.theme-sepia .font-family-dropdown option,
-.theme-sepia .theme-dropdown option,
-.theme-sepia .progress-hide-dropdown option {
-  background: #f4ecd8;
-  color: #5b4636;
-}
-
 
 /* LECTURA BIÓNICA Y COLORES DE CONTRASTE (SIN DESPLAZAMIENTO DE TEXTO) */
 .html-reader .bionic-bold {
@@ -3783,93 +3389,30 @@ font-family: 'Outfit', sans-serif;
 
 @media (max-width: 768px) {
 
-  /* ——— LIENZO DE LECTURA: eliminar scroll horizontal ——— */
+  /* La toolbar reducida (4 acciones) cabe en una sola fila: menos aire arriba. */
+  :root { --reader-pad-top: 78px; }
+
   .reading-canvas {
     overflow-x: hidden;
-    padding: 72px 16px 100px; /* top para toolbar, bottom para botón siguiente */
     max-width: 100vw;
   }
 
-  /* ——— TOOLBAR: Colapsar en 2 filas compactas ——— */
   .toolbar {
-    flex-wrap: wrap;
-    padding: 6px 12px;
-    gap: 6px;
-    height: auto;
-    min-height: 56px;
-  }
-
-  /* Fila 1: volver + título + personajes (ocupa todo el ancho) */
-  .toolbar-left {
-    flex: 1 1 100%;
     gap: 8px;
+    padding-left: max(14px, env(safe-area-inset-left, 0px));
+    padding-right: max(14px, env(safe-area-inset-right, 0px));
   }
 
-  /* Ocultar texto del título del capítulo en móvil para ahorrar espacio */
-  .chapter-label {
-    font-size: 0.8rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
-  }
+  .toolbar-left { gap: 8px; min-width: 0; }
+  .chapter-label { font-size: 0.85rem; max-width: 46vw; }
+  .progress-label { font-size: 0.68rem; }
+  .reader-settings { gap: 4px; }
 
-  .progress-label {
-    font-size: 0.65rem;
-  }
-
-  /* Fila 2: todos los controles de lectura */
-  .reader-settings {
-    flex: 1 1 100%;
-    gap: 6px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none;  /* IE/Edge */
-    padding-bottom: 2px;
-  }
-
-  .reader-settings::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
-  }
-
-  /* Ocultar selector de fuente en móvil (es un control secundario) */
-  .font-family-selector {
-    display: none;
-  }
-
-  /* Ocultar el selector de "Fijar/Ocultar línea" en móvil */
-  .progress-hide-selector {
-    display: none;
-  }
-
-  /* Tinta más compacta */
-  .ink-counter {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-  }
-
-  /* Controles de fuente más compactos */
-  .font-controls button {
-    padding: 4px 8px;
-    font-size: 0.85rem;
-  }
-
-  /* Dropdowns más pequeños */
-  .theme-dropdown,
-  .font-family-dropdown {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-  }
-
-  /* ——— BARRA DE PROGRESO: ajustar al alto real de la toolbar en móvil ——— */
+  /* ——— BARRA DE PROGRESO: pegada al borde inferior de la toolbar ——— */
   .reading-progress-container {
-    top: 86px; /* toolbar 2 filas ≈ 86px en móvil */
+    top: calc(52px + env(safe-area-inset-top, 0px));
   }
-
-  .reading-progress-container.toolbar-hidden {
-    top: 0px;
-  }
+  .reading-progress-container.toolbar-hidden { top: 0px; }
 
   /* ——— SIDEBAR DE PERSONAJES: pantalla completa en móvil ——— */
   .char-sidebar {
@@ -3888,21 +3431,6 @@ font-family: 'Outfit', sans-serif;
     width: 100vw !important;
     right: 0;
     left: 0;
-  }
-
-  /* ——— BOTÓN SIGUIENTE CAPÍTULO: centrado y con buen tamaño táctil ——— */
-  .next-chapter-container {
-    bottom: 20px;
-    width: calc(100vw - 48px);
-    max-width: 400px;
-  }
-
-  .next-chapter-btn {
-    width: 100%;
-    justify-content: center;
-    font-size: 1rem;
-    padding: 14px 20px;
-    border-radius: 16px;
   }
 
   /* ——— PANEL DE AUDIO: adaptado a móvil ——— */
@@ -4071,7 +3599,6 @@ font-family: 'Outfit', sans-serif;
   transform: scale(1.05);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
-
 
 
 /* Toque Fluido: evitar selecciÃ³n accidental en tap simple sin bloquear long-press del diccionario.
@@ -4259,4 +3786,355 @@ font-family: 'Outfit', sans-serif;
     opacity: 1;
     transform: scale(0.95);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HOJA "Aa" — AJUSTES DE LECTURA
+   Popover lateral en escritorio · bottom-sheet en móvil.
+   Reagrupa TODOS los controles secundarios que antes vivían en la toolbar.
+   ═══════════════════════════════════════════════════════════════════════ */
+.reader-sheet {
+  position: fixed;
+  z-index: 1105;
+  right: 12px;
+  top: calc(56px + env(safe-area-inset-top, 0px));
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100vh - 84px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--reader-radius, 16px);
+  background: var(--th-bg-sidebar, var(--bg-surface, #14261d));
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.18));
+  box-shadow: var(--reader-shadow-panel, 0 16px 48px rgba(0, 0, 0, 0.3));
+  color: var(--reader-text, inherit);
+  overflow: hidden;
+  animation: sheetIn 0.22s var(--reader-ease);
+}
+
+@keyframes sheetIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--reader-border, rgba(212, 175, 55, 0.15));
+  flex-shrink: 0;
+}
+
+.sheet-header h3 {
+  margin: 0;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.sheet-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--reader-text-muted, inherit);
+  cursor: pointer;
+  transition: background var(--reader-transition);
+}
+.sheet-close:hover { background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12)); }
+
+.sheet-body {
+  padding: 8px 16px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sheet-label {
+  display: block;
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--reader-text-muted, rgba(255, 255, 255, 0.55));
+}
+
+.sheet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sheet-row .sheet-label { flex-shrink: 0; }
+
+.sheet-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* — Stepper de tamaño de letra — */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.2));
+  border-radius: 999px;
+  padding: 3px;
+}
+.stepper button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--reader-transition);
+}
+.stepper button:hover:not(:disabled) { background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12)); }
+.stepper button:disabled { opacity: 0.3; cursor: not-allowed; }
+.stepper .material-symbols-rounded { font-size: 1.1rem; }
+.stepper-val {
+  min-width: 52px;
+  text-align: center;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.stepper-reset .material-symbols-rounded { font-size: 1rem; opacity: 0.7; }
+
+/* — Control segmentado — */
+.segmented {
+  display: flex;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.2));
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+.segmented button {
+  flex: 1;
+  min-height: 34px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--reader-text-muted, inherit);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--reader-transition), color var(--reader-transition);
+}
+.segmented button:hover:not(.on) { color: var(--reader-text, inherit); }
+.segmented button.on {
+  background: var(--reader-active-bg, rgba(212, 175, 55, 0.16));
+  color: var(--reader-active-text, #e5c455);
+  box-shadow: inset 0 0 0 1px var(--reader-active-border, rgba(212, 175, 55, 0.4));
+}
+
+/* — Slider de brillo — */
+.sheet-range {
+  flex: 1;
+  max-width: 60%;
+  height: 4px;
+  border-radius: 2px;
+  accent-color: var(--reader-accent, #d4af37);
+  cursor: pointer;
+}
+
+/* — Grid de tipografías — */
+.font-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.font-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 6px 8px;
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.15));
+  border-radius: 12px;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.18));
+  color: inherit;
+  cursor: pointer;
+  transition: border-color var(--reader-transition), background var(--reader-transition);
+}
+.font-chip:hover { border-color: var(--reader-active-border, rgba(212, 175, 55, 0.4)); }
+.font-chip.on {
+  border-color: var(--reader-accent, #d4af37);
+  background: var(--reader-active-bg, rgba(212, 175, 55, 0.14));
+}
+.font-chip-aa { font-size: 1.35rem; line-height: 1; }
+.font-chip-name {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--reader-text-muted, inherit);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.font-chip.preview-serif    .font-chip-aa { font-family: 'Merriweather', Georgia, serif; }
+.font-chip.preview-garamond .font-chip-aa { font-family: 'EB Garamond', Garamond, serif; }
+.font-chip.preview-georgia  .font-chip-aa { font-family: Georgia, serif; }
+.font-chip.preview-palatino .font-chip-aa { font-family: 'Palatino Linotype', 'Book Antiqua', serif; }
+.font-chip.preview-sans     .font-chip-aa { font-family: 'Outfit', sans-serif; }
+.font-chip.preview-opensans .font-chip-aa { font-family: 'Open Sans', sans-serif; }
+.font-chip.preview-helvetica .font-chip-aa { font-family: 'Helvetica Neue', Arial, sans-serif; }
+.font-chip.preview-dyslexic .font-chip-aa { font-family: 'Comic Neue', 'Comic Sans MS', sans-serif; }
+.font-chip.preview-medieval .font-chip-aa { font-family: 'Cinzel', 'Georgia', serif; }
+
+/* — Grid de temas — */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.theme-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.15));
+  border-radius: 12px;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.18));
+  color: var(--reader-text-muted, inherit);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--reader-transition), color var(--reader-transition);
+}
+.theme-chip:hover { border-color: var(--reader-active-border, rgba(212, 175, 55, 0.4)); }
+.theme-chip.on {
+  border-color: var(--reader-accent, #d4af37);
+  color: var(--reader-active-text, #e5c455);
+}
+.theme-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(128, 128, 128, 0.35);
+}
+.theme-swatch[data-th="light"]    { background: #f8fafc; }
+.theme-swatch[data-th="sepia"]    { background: #f4ecd8; }
+.theme-swatch[data-th="dark"]     { background: #11261d; }
+.theme-swatch[data-th="nocturno"] { background: #000; }
+
+/* — Toggles — */
+.sheet-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--reader-border, rgba(212, 175, 55, 0.12));
+  padding-top: 8px;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+.toggle-row > span:first-child { flex: 1; }
+.switch {
+  position: relative;
+  width: 40px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.25));
+  box-shadow: inset 0 0 0 1px var(--reader-border, rgba(212, 175, 55, 0.2));
+  flex-shrink: 0;
+  transition: background var(--reader-transition);
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--reader-text-muted, #999);
+  transition: transform var(--reader-transition), background var(--reader-transition);
+}
+.toggle-row.on .switch { background: var(--reader-accent, #d4af37); }
+.toggle-row.on .switch::after { transform: translateX(16px); background: #1a1207; }
+
+/* — Enlace a la Taberna (tinta) — */
+.sheet-ink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--reader-surface-2, rgba(0, 0, 0, 0.18));
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.85rem;
+}
+.sheet-ink .material-symbols-rounded { font-size: 1.1rem; color: var(--reader-accent, #d4af37); }
+.sheet-ink-count { flex: 1; font-weight: 600; }
+.sheet-ink-cta {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--reader-active-text, #e5c455);
+}
+
+.reader-sheet button:focus-visible,
+.reader-sheet a:focus-visible,
+.reader-sheet input:focus-visible {
+  outline: 2px solid var(--reader-accent, #d4af37);
+  outline-offset: 2px;
+}
+
+/* Bottom-sheet en móvil */
+@media (max-width: 640px) {
+  .reader-sheet {
+    right: 0;
+    left: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 74vh;
+    border-radius: var(--reader-radius-lg, 22px) var(--reader-radius-lg, 22px) 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: sheetUp 0.24s var(--reader-ease);
+  }
+  @keyframes sheetUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .font-grid { grid-template-columns: repeat(3, 1fr); }
 }

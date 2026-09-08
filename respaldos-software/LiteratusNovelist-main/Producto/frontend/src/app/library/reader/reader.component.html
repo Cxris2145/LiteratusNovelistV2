@@ -5,97 +5,34 @@
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <header class="toolbar glass-panel" [class.hidden]="isToolbarHidden">
 
-    <!-- Izquierda: Volver + Info + Personajes -->
+    <!-- Izquierda: Volver + contexto del capítulo -->
     <div class="toolbar-left">
-      <button class="back-btn" routerLink="/library" title="Volver a mi biblioteca">
-        <span class="icon">✕</span>
+      <button class="back-btn" routerLink="/library" title="Volver a mi biblioteca" aria-label="Volver a mi biblioteca">
+        <span class="material-symbols-rounded" style="font-size:1.35rem;">arrow_back</span>
       </button>
       <div class="book-info">
         <span class="chapter-label">{{ chapterTitle }}</span>
-        <span class="progress-label">{{ currentPage - 1 > 0 ? 'Capítulo ' + (currentPage - 1) : 'Prólogo' }} · {{ currentPage }} de {{ totalPages }}</span>
-      </div>
-      <!-- Trigger Panel de Personajes (izquierda) -->
-      <button class="char-trigger-btn" (click)="toggleCharPanel()" title="Personajes IA"
-              [class.active]="isCharPanelOpen">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">group</span>
-        <span class="ink-badge" *ngIf="inkBalance <= 10" title="Tinta baja">{{ inkBalance }}</span>
-      </button>
-    </div>
-
-    <!-- Centro: Título del libro (deslizable) -->
-    <div class="toolbar-center">
-      <div class="book-title-container">
-        <span class="book-title-label" [attr.title]="bookTitle">{{ bookTitle }}</span>
+        <span class="progress-label">{{ currentPage - 1 > 0 ? 'Capítulo ' + (currentPage - 1) : 'Prólogo' }} · {{ currentPage }}/{{ totalPages }}</span>
       </div>
     </div>
 
-    <!-- Derecha: Fuente + Temas + TOC -->
+    <!-- Derecha: sólo acciones esenciales — el resto vive en "Aa" -->
     <div class="reader-settings">
-      <div class="ink-counter" title="Ir a la Taberna (Recargar Tinta)" routerLink="/tavern">
-        <span class="ink-icon material-symbols-rounded" style="font-size: 1.1rem;">ink_pen</span>
-        <span class="ink-number">{{ inkBalance }}</span>
-      </div>
-      
-      <!-- Selector de Tipo de Letra -->
-      <div class="font-family-selector">
-        <select class="font-family-dropdown" [value]="currentFontFamily" (change)="setFontFamily($any($event.target).value)" title="Tipografía de lectura">
-          <option value="serif">Serif</option>
-          <option value="sans">Outfit</option>
-          <option value="dyslexic">Comic Neue</option>
-          <option value="medieval">Cinzel</option>
-          <option value="garamond">Garamond</option>
-          <option value="georgia">Georgia</option>
-          <option value="palatino">Palatino</option>
-          <option value="opensans">Open Sans</option>
-          <option value="helvetica">Helvetica</option>
-        </select>
-      </div>
-
-      <div class="font-controls">
-        <button (click)="changeFontSize(-2)" title="Disminuir letra">A-</button>
-        <button (click)="changeFontSize(2)" title="Aumentar letra">A+</button>
-      </div>
-
-      <!-- Selector de Tema (Fondo) -->
-      <div class="theme-selector-dropdown">
-        <select class="theme-dropdown" [value]="currentTheme" (change)="setTheme($any($event.target).value)" title="Tema de fondo">
-          <option value="light">Claro</option>
-          <option value="sepia">Sepia</option>
-          <option value="dark">Oscuro</option>
-          <option value="nocturno">Nocturno (OLED)</option>
-        </select>
-      </div>
-
-      <!-- Toggle de Comportamiento de Barra de Progreso -->
-      <button class="toc-trigger-btn" (click)="setHideProgress(!hideProgressOnScroll)" [title]="hideProgressOnScroll ? 'Fijar línea de progreso' : 'Ocultar línea al leer'" [class.active]="!hideProgressOnScroll">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">linear_scale</span>
+      <button class="char-trigger-btn" (click)="toggleCharPanel()" title="Personajes IA" aria-label="Personajes"
+              [attr.aria-pressed]="isCharPanelOpen" [class.active]="isCharPanelOpen">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">group</span>
       </button>
-
-      <!-- Toggle de Lectura Biónica -->
-      <button class="toc-trigger-btn" (click)="setBionicReading(!bionicReadingActive)" title="Lectura Biónica" [class.active]="bionicReadingActive">
-        <svg lucideEye [size]="20" class="lucide-icon"></svg>
-      </button>
-
-      <!-- Toggle de Escenas (Imágenes) -->
-      <button class="toc-trigger-btn" (click)="toggleSceneImages()" title="Mostrar Imágenes de Escena" [class.active]="showSceneImages">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">image</span>
-      </button>
-
-      <!-- Toggle de Avance Táctil (Toque Fluido) -->
-      <button class="toc-trigger-btn" (click)="toggleTapToScroll()" title="Toque Fluido (Toque para avanzar)" [class.active]="tapToScrollActive">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">touch_app</span>
-      </button>
-
-      <!-- Toggle Modo Inmersivo (Pantalla Completa F11) -->
-      <button class="toc-trigger-btn immersive-toggle-btn" (click)="toggleImmersiveButton()" [title]="isFullscreenActive ? 'Salir de pantalla completa' : 'Pantalla completa (Modo Inmersivo)'">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">{{ isFullscreenActive ? 'fullscreen_exit' : 'fullscreen' }}</span>
-      </button>
-
-      <button class="toc-trigger-btn" (click)="toggleAudioPanel()" title="Narración AI" [class.active]="isAudioPanelOpen">
+      <button class="toc-trigger-btn" (click)="toggleAudioPanel()" title="Escuchar (narración por voz)" aria-label="Escuchar"
+              [attr.aria-pressed]="isAudioPanelOpen" [class.active]="isAudioPanelOpen">
         <svg lucideVolume2 [size]="20" class="lucide-icon"></svg>
       </button>
-      <button class="toc-trigger-btn" (click)="toggleToc()" title="Índice de capítulos" [class.active]="isTocOpen">
+      <button class="toc-trigger-btn" (click)="toggleToc()" title="Índice de capítulos" aria-label="Índice de capítulos"
+              [attr.aria-pressed]="isTocOpen" [class.active]="isTocOpen">
         <span class="material-symbols-rounded" style="font-size:1.3rem;">menu</span>
+      </button>
+      <button class="toc-trigger-btn aa-btn" (click)="toggleSettings()" title="Ajustes de lectura" aria-label="Ajustes de lectura"
+              [attr.aria-pressed]="isSettingsOpen" [class.active]="isSettingsOpen">
+        <span class="aa-glyph">Aa</span>
       </button>
     </div>
   </header>
@@ -112,8 +49,132 @@
   <!-- OVERLAY COMPARTIDO (click fuera cierra cualquier panel)         -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <div class="panel-overlay"
-       *ngIf="isTocOpen || isCharPanelOpen"
-       (click)="isTocOpen = false; isCharPanelOpen = false; showCharProfile = false">
+       *ngIf="isTocOpen || isCharPanelOpen || isSettingsOpen"
+       (click)="isTocOpen = false; isCharPanelOpen = false; showCharProfile = false; isSettingsOpen = false">
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- HOJA "Aa" — AJUSTES DE LECTURA                                   -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <div class="reader-sheet glass-panel" *ngIf="isSettingsOpen" role="dialog"
+       aria-label="Ajustes de lectura" (click)="$event.stopPropagation()">
+    <div class="sheet-header">
+      <h3>Ajustes de lectura</h3>
+      <button class="sheet-close" (click)="toggleSettings()" aria-label="Cerrar ajustes">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <!-- Tamaño de letra -->
+      <div class="sheet-row">
+        <span class="sheet-label">Tamaño de letra</span>
+        <div class="stepper">
+          <button (click)="changeFontSize(-1)" [disabled]="fontSize <= 12" aria-label="Reducir letra">
+            <span class="material-symbols-rounded">remove</span>
+          </button>
+          <span class="stepper-val">{{ fontSize }}&nbsp;px</span>
+          <button (click)="changeFontSize(1)" [disabled]="fontSize >= 32" aria-label="Aumentar letra">
+            <span class="material-symbols-rounded">add</span>
+          </button>
+          <button class="stepper-reset" (click)="resetFontSize()" title="Restablecer" aria-label="Restablecer tamaño">
+            <span class="material-symbols-rounded">restart_alt</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Interlineado -->
+      <div class="sheet-row">
+        <span class="sheet-label">Interlineado</span>
+        <div class="segmented" role="group" aria-label="Interlineado">
+          <button [class.on]="lineHeight === 1.5"  (click)="setLineHeight(1.5)">Compacto</button>
+          <button [class.on]="lineHeight === 1.75" (click)="setLineHeight(1.75)">Normal</button>
+          <button [class.on]="lineHeight === 2"    (click)="setLineHeight(2)">Amplio</button>
+        </div>
+      </div>
+
+      <!-- Ancho de columna -->
+      <div class="sheet-row">
+        <span class="sheet-label">Ancho de columna</span>
+        <div class="segmented" role="group" aria-label="Ancho de columna">
+          <button [class.on]="readingWidth === 'narrow'" (click)="setReadingWidth('narrow')">Angosto</button>
+          <button [class.on]="readingWidth === 'medium'" (click)="setReadingWidth('medium')">Medio</button>
+          <button [class.on]="readingWidth === 'wide'"   (click)="setReadingWidth('wide')">Ancho</button>
+        </div>
+      </div>
+
+      <!-- Alineación -->
+      <div class="sheet-row">
+        <span class="sheet-label">Alineación</span>
+        <div class="segmented" role="group" aria-label="Alineación del texto">
+          <button [class.on]="textAlign === 'left'"    (click)="setTextAlign('left')">Izquierda</button>
+          <button [class.on]="textAlign === 'justify'" (click)="setTextAlign('justify')">Justificado</button>
+        </div>
+      </div>
+
+      <!-- Brillo del lienzo -->
+      <div class="sheet-row">
+        <span class="sheet-label">Brillo</span>
+        <input type="range" class="sheet-range" min="0.75" max="1.1" step="0.01"
+               [value]="brightness" (input)="setBrightness(+$any($event.target).value)"
+               aria-label="Brillo del lienzo">
+      </div>
+
+      <!-- Tipografía -->
+      <div class="sheet-block">
+        <span class="sheet-label">Tipografía</span>
+        <div class="font-grid">
+          <button *ngFor="let f of fontOptions" class="font-chip" [ngClass]="'preview-' + f.id"
+                  [class.on]="currentFontFamily === f.id" (click)="setFontFamily(f.id)">
+            <span class="font-chip-aa">Aa</span>
+            <span class="font-chip-name">{{ f.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tema -->
+      <div class="sheet-block">
+        <span class="sheet-label">Tema</span>
+        <div class="theme-grid">
+          <button *ngFor="let t of themeOptions" class="theme-chip" [class.on]="currentTheme === t.id"
+                  (click)="setTheme(t.id)">
+            <span class="theme-swatch" [attr.data-th]="t.id"></span>
+            <span>{{ t.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Toggles (todas las funciones existentes, reorganizadas) -->
+      <div class="sheet-toggles">
+        <button class="toggle-row" [class.on]="bionicReadingActive"
+                (click)="setBionicReading(!bionicReadingActive)" [attr.aria-pressed]="bionicReadingActive">
+          <span>Lectura biónica</span><span class="switch"></span>
+        </button>
+        <button class="toggle-row" [class.on]="showSceneImages"
+                (click)="toggleSceneImages()" [attr.aria-pressed]="showSceneImages">
+          <span>Imágenes de escena</span><span class="switch"></span>
+        </button>
+        <button class="toggle-row" [class.on]="tapToScrollActive"
+                (click)="toggleTapToScroll()" [attr.aria-pressed]="tapToScrollActive">
+          <span>Toque para avanzar</span><span class="switch"></span>
+        </button>
+        <button class="toggle-row" [class.on]="isFullscreenActive"
+                (click)="toggleImmersiveButton()" [attr.aria-pressed]="isFullscreenActive">
+          <span>Modo inmersivo</span><span class="switch"></span>
+        </button>
+        <button class="toggle-row" [class.on]="!hideProgressOnScroll"
+                (click)="setHideProgress(!hideProgressOnScroll)" [attr.aria-pressed]="!hideProgressOnScroll">
+          <span>Línea de progreso al leer</span><span class="switch"></span>
+        </button>
+      </div>
+
+      <!-- Tinta -->
+      <a class="sheet-ink" routerLink="/tavern">
+        <span class="material-symbols-rounded">ink_pen</span>
+        <span class="sheet-ink-count">Tinta: {{ inkBalance }}</span>
+        <span class="sheet-ink-cta">Recargar</span>
+      </a>
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -639,12 +700,24 @@
   <!-- Chat integrado en el sidebar - sin código flotante aquí -->
 
 
-  <!-- BOTÓN INTERACTIVO SIGUIENTE CAPÍTULO (Aparece al final del scroll) -->
-  <div class="next-chapter-container" [class.visible]="isNearEnd && currentPage < totalPages">
-    <button class="next-chapter-btn glow-btn" (click)="nextPage()">
-      Pasar al siguiente capítulo <span class="icon">»</span>
+  <!-- NAVEGACIÓN DE CAPÍTULO — barra inferior, se auto-oculta con la toolbar.
+       Al final del capítulo se muestra siempre y resalta "Siguiente". -->
+  <nav class="chapter-nav glass-panel" *ngIf="totalPages > 1"
+       [class.hidden]="isToolbarHidden && !(isNearEnd && currentPage < totalPages)"
+       [class.at-end]="isNearEnd && currentPage < totalPages"
+       aria-label="Navegación de capítulos">
+    <button class="chapter-nav-btn prev" (click)="previousPage()"
+            [disabled]="currentPage <= 1" aria-label="Capítulo anterior">
+      <span class="material-symbols-rounded">chevron_left</span>
+      <span class="chapter-nav-txt">Anterior</span>
     </button>
-  </div>
+    <span class="chapter-nav-pos">{{ currentPage }} / {{ totalPages }}</span>
+    <button class="chapter-nav-btn next" (click)="nextPage()"
+            [disabled]="currentPage >= totalPages" aria-label="Capítulo siguiente">
+      <span class="chapter-nav-txt">Siguiente</span>
+      <span class="material-symbols-rounded">chevron_right</span>
+    </button>
+  </nav>
 
 
   <!-- MENU FLOTANTE DE ACCIONES SOBRE EL TEXTO -->
