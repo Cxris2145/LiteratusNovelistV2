@@ -72,8 +72,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
   readonly FONT_MIN = 14;
   readonly FONT_MAX = 32;
   fontSize: number = 18;
-  currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' = 'dark';
-  currentFontFamily: 'merriweather' | 'garamond' | 'georgia' | 'palatino' | 'outfit' | 'opensans' | 'atkinson' | 'lexend' | 'cinzel' = 'merriweather';
+  currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' | 'gris' = 'dark';
+  currentFontFamily: 'merriweather' | 'garamond' | 'georgia' | 'palatino' | 'outfit' | 'opensans' | 'atkinson' | 'lexend' | 'opendyslexic' | 'cinzel' = 'merriweather';
   isTocOpen: boolean = false;
   lastScrollTop: number = 0;
   isToolbarHidden: boolean = false;
@@ -93,6 +93,39 @@ export class ReaderComponent implements OnInit, OnDestroy {
   highContrast: boolean = false;                               // Accesibilidad
   concentrationMode: boolean = false;                          // Enfoque: oculta cromo secundario
   brightness: number = 1;                                      // 0.75 – 1.1
+  wordSpacing: number = 0;                                     // em, 0 – 0.6
+
+  // ── LECTURA ASISTIDA (TDAH / neurodivergencias) ──────────────────
+  focusMode: 'off' | 'word' | 'sentence' | 'paragraph' = 'off'; // atenúa todo salvo la unidad activa
+  rulerActive: boolean = false;                                 // regla horizontal que sigue la línea activa
+  rulerY: number = -1000;                                       // posición vertical (px, relativa al canvas) de la regla; fuera de vista por defecto
+  readonly highlightColorOptions: { id: 'gold' | 'blue' | 'green' | 'pink'; label: string; hex: string }[] = [
+    { id: 'gold',  label: 'Dorado', hex: '#eab308' },
+    { id: 'blue',  label: 'Azul',   hex: '#3b82f6' },
+    { id: 'green', label: 'Verde',  hex: '#22c55e' },
+    { id: 'pink',  label: 'Rosa',   hex: '#ec4899' },
+  ];
+  highlightColor: 'gold' | 'blue' | 'green' | 'pink' = 'gold';
+  longParaSplit: boolean = false;                               // divide visualmente párrafos largos
+  private readonly LONG_PARA_CHARS = 420;                       // umbral para considerar un párrafo "largo"
+
+  // Avance automático (auto-scroll tipo teleprompter)
+  autoScrollActive: boolean = false;
+  autoScrollSpeed: number = 35;                                 // px/segundo, 10–120
+  private autoScrollRafId: number | null = null;
+  private autoScrollLastTs: number = 0;
+
+  // Temporizador de sesión + recordatorio de pausa
+  readonly sessionTimerOptions: number[] = [0, 15, 25, 45];     // minutos; 0 = desactivado
+  sessionTimerMinutes: number = 0;
+  sessionTimeRemainingSec: number = 0;
+  sessionTimerRunning: boolean = false;
+  showBreakModal: boolean = false;
+  private sessionTimerInterval: any = null;
+
+  // Botón flotante "volver a mi lectura" — aparece si el usuario se aleja
+  // de su posición de lectura (scroll manual, exploración) más allá de lo visible.
+  showBackToReadingBtn: boolean = false;
 
   readonly fontOptions: { id: ReaderComponent['currentFontFamily']; label: string; group: string; note?: string }[] = [
     { id: 'merriweather', label: 'Merriweather', group: 'Clásicas' },
@@ -103,6 +136,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     { id: 'opensans',     label: 'Open Sans',    group: 'Modernas' },
     { id: 'atkinson',     label: 'Alta legibilidad', group: 'Accesibilidad', note: 'Atkinson Hyperlegible' },
     { id: 'lexend',       label: 'Lexend',       group: 'Accesibilidad' },
+    { id: 'opendyslexic', label: 'OpenDyslexic', group: 'Accesibilidad', note: 'Diseñada para dislexia' },
     { id: 'cinzel',       label: 'Cinzel',       group: 'Literaria', note: 'Mejor para títulos' },
   ];
   /** Grupos de tipografías — PRECOMPUTADO (no getter): un getter en *ngFor
@@ -126,6 +160,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   readonly themeOptions: { id: ReaderComponent['currentTheme']; label: string }[] = [
     { id: 'light', label: 'Claro' },
     { id: 'sepia', label: 'Sepia' },
+    { id: 'gris', label: 'Gris suave' },
     { id: 'dark', label: 'Oscuro' },
     { id: 'nocturno', label: 'OLED' },
   ];
@@ -206,6 +241,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   parsedBlocks: Array<{
     tag: string;
     tokens: Array<any>;
+    long?: boolean;
     sentences?: Array<{
       idx: number;
       tokens: Array<{
@@ -314,7 +350,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
 
     const savedTheme = localStorage.getItem('reader-theme');
-    const validThemes = ['dark', 'light', 'sepia', 'nocturno'];
+    const validThemes = ['dark', 'light', 'sepia', 'nocturno', 'gris'];
     if (savedTheme && validThemes.includes(savedTheme)) {
       this.currentTheme = savedTheme as any;
     }
@@ -545,6 +581,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.kokoroVoice.stop();
     this.saveAudioPosition();
     this.stopThinkingAnimation();
+    this.stopAutoScroll();
+    this.clearSessionInterval();
 
     // Restaurar las barras del OS al salir del lector
     this.toggleImmersiveMode(false);
@@ -606,6 +644,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
     
     // No guardamos palabra aquí, solo porcentaje exacto
     this.saveProgressSubject.next(exactPage);
+
+    this.checkBackToReadingVisibility();
   }
 
   checkIfNearEnd() {
@@ -725,7 +765,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     localStorage.setItem('reader-font-family', font);
   }
 
-  setTheme(theme: 'dark' | 'light' | 'sepia' | 'nocturno') {
+  setTheme(theme: ReaderComponent['currentTheme']) {
     this.currentTheme = theme;
     this.applyTheme();
     localStorage.setItem('reader-theme', theme);
@@ -788,6 +828,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
         this.setLineHeight(2);
         this.setParaSpacing('relaxed');
         this.setConcentrationMode(true);
+        this.setFocusMode('sentence');
+        this.toggleRuler(true);
         break;
       case 'accesible':
         this.setFontFamily('atkinson');
@@ -836,6 +878,147 @@ export class ReaderComponent implements OnInit, OnDestroy {
     this.applyReaderVars();
   }
 
+  setWordSpacing(v: number) {
+    this.wordSpacing = Math.min(0.6, Math.max(0, Math.round(v * 100) / 100));
+    localStorage.setItem('reader-word-spacing', String(this.wordSpacing));
+    this.applyReaderVars();
+  }
+
+  // ── LECTURA ASISTIDA ──────────────────────────────────────────────
+  setFocusMode(v: ReaderComponent['focusMode']) {
+    this.focusMode = v;
+    localStorage.setItem('reader-focus-mode', v);
+  }
+
+  toggleRuler(v: boolean) {
+    this.rulerActive = v;
+    localStorage.setItem('reader-ruler', String(v));
+    if (!v) this.rulerY = -1000;
+  }
+
+  /** Sigue al puntero dentro del lienzo para posicionar la regla de lectura. */
+  onCanvasMouseMove(event: MouseEvent) {
+    if (!this.rulerActive) return;
+    const canvas = event.currentTarget as HTMLElement;
+    const rect = canvas.getBoundingClientRect();
+    this.rulerY = event.clientY - rect.top + canvas.scrollTop;
+  }
+
+  onCanvasMouseLeave() {
+    // Si hay audio narrando, la regla vuelve a seguir la palabra activa en el
+    // siguiente evento; si no, simplemente se oculta hasta el próximo movimiento.
+    if (this.currentWordIndex < 0) this.rulerY = -1000;
+  }
+
+  setHighlightColor(c: ReaderComponent['highlightColor']) {
+    this.highlightColor = c;
+    localStorage.setItem('reader-highlight-color', c);
+    this.applyReaderVars();
+  }
+
+  toggleLongParaSplit(v: boolean) {
+    this.longParaSplit = v;
+    localStorage.setItem('reader-long-para-split', String(v));
+  }
+
+  // ── Avance automático (auto-scroll) ──────────────────────────────
+  toggleAutoScroll(v: boolean) {
+    this.autoScrollActive = v;
+    if (v) {
+      this.tapToScrollActive = false; // evitar interferencia con el toque para avanzar
+      this.startAutoScroll();
+    } else {
+      this.stopAutoScroll();
+    }
+  }
+
+  setAutoScrollSpeed(v: number) {
+    this.autoScrollSpeed = Math.min(120, Math.max(10, Math.round(v)));
+    localStorage.setItem('reader-autoscroll-speed', String(this.autoScrollSpeed));
+  }
+
+  private startAutoScroll() {
+    this.stopAutoScroll();
+    this.autoScrollLastTs = performance.now();
+    const step = (ts: number) => {
+      if (!this.autoScrollActive) return;
+      const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+      const dt = (ts - this.autoScrollLastTs) / 1000;
+      this.autoScrollLastTs = ts;
+      if (canvas) {
+        canvas.scrollTop += this.autoScrollSpeed * dt;
+        // Al llegar al final, detener automáticamente (no forzar cambio de capítulo)
+        if (canvas.scrollTop >= canvas.scrollHeight - canvas.clientHeight - 2) {
+          this.toggleAutoScroll(false);
+          return;
+        }
+      }
+      this.autoScrollRafId = requestAnimationFrame(step);
+    };
+    this.autoScrollRafId = requestAnimationFrame(step);
+  }
+
+  private stopAutoScroll() {
+    if (this.autoScrollRafId !== null) {
+      cancelAnimationFrame(this.autoScrollRafId);
+      this.autoScrollRafId = null;
+    }
+  }
+
+  // ── Temporizador de sesión + recordatorio de pausa ───────────────
+  setSessionTimer(minutes: number) {
+    this.sessionTimerMinutes = minutes;
+    localStorage.setItem('reader-session-minutes', String(minutes));
+    if (minutes > 0) {
+      this.sessionTimeRemainingSec = minutes * 60;
+      this.sessionTimerRunning = true;
+      this.startSessionInterval();
+    } else {
+      this.sessionTimerRunning = false;
+      this.clearSessionInterval();
+    }
+  }
+
+  private startSessionInterval() {
+    this.clearSessionInterval();
+    this.sessionTimerInterval = setInterval(() => {
+      if (!this.sessionTimerRunning) return;
+      this.sessionTimeRemainingSec--;
+      if (this.sessionTimeRemainingSec <= 0) {
+        this.sessionTimerRunning = false;
+        this.showBreakModal = true;
+        this.clearSessionInterval();
+        this.cdr.detectChanges();
+      }
+    }, 1000);
+  }
+
+  private clearSessionInterval() {
+    if (this.sessionTimerInterval) {
+      clearInterval(this.sessionTimerInterval);
+      this.sessionTimerInterval = null;
+    }
+  }
+
+  get sessionTimerLabel(): string {
+    const m = Math.floor(this.sessionTimeRemainingSec / 60).toString().padStart(2, '0');
+    const s = Math.floor(this.sessionTimeRemainingSec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  takeBreak() {
+    this.showBreakModal = false;
+    this.stopAudio(true);
+    if (this.autoScrollActive) this.toggleAutoScroll(false);
+    this.setSessionTimer(0);
+  }
+
+  keepReading() {
+    this.showBreakModal = false;
+    // Reinicia una sesión igual de larga
+    this.setSessionTimer(this.sessionTimerMinutes || 25);
+  }
+
   /** Vuelca las preferencias de lectura a variables CSS --reader-* en :root
    *  (mismo mecanismo que --font-size-reader). Se llama en init y en cada cambio;
    *  NO se toca al cambiar de capítulo, así que la config se mantiene. */
@@ -849,7 +1032,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const gapMap = { tight: '1.1em', normal: '1.5em', relaxed: '2.2em' };
     s.setProperty('--reader-para-gap', gapMap[this.paraSpacing]);
     s.setProperty('--reader-letter-spacing', `${this.letterSpacing}em`);
+    s.setProperty('--reader-word-spacing', `${this.wordSpacing}em`);
     s.setProperty('--reader-brightness', String(this.brightness));
+    const hl = this.highlightColorOptions.find(h => h.id === this.highlightColor);
+    if (hl) s.setProperty('--reader-highlight-hex', hl.hex);
   }
 
   private loadReaderPrefs() {
@@ -868,11 +1054,27 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const ls = parseFloat(localStorage.getItem('reader-letter-spacing') || '');
     if (!isNaN(ls) && ls >= -0.01 && ls <= 0.08) this.letterSpacing = ls;
 
+    const wsp = parseFloat(localStorage.getItem('reader-word-spacing') || '');
+    if (!isNaN(wsp) && wsp >= 0 && wsp <= 0.6) this.wordSpacing = wsp;
+
     const br = parseFloat(localStorage.getItem('reader-brightness') || '');
     if (!isNaN(br) && br >= 0.75 && br <= 1.1) this.brightness = br;
 
     this.highContrast = localStorage.getItem('reader-high-contrast') === 'true';
     this.concentrationMode = localStorage.getItem('reader-concentration') === 'true';
+
+    const fm = localStorage.getItem('reader-focus-mode');
+    if (fm === 'off' || fm === 'word' || fm === 'sentence' || fm === 'paragraph') this.focusMode = fm;
+
+    this.rulerActive = localStorage.getItem('reader-ruler') === 'true';
+
+    const hc = localStorage.getItem('reader-highlight-color');
+    if (hc === 'gold' || hc === 'blue' || hc === 'green' || hc === 'pink') this.highlightColor = hc;
+
+    this.longParaSplit = localStorage.getItem('reader-long-para-split') === 'true';
+
+    const asSpeed = parseFloat(localStorage.getItem('reader-autoscroll-speed') || '');
+    if (!isNaN(asSpeed) && asSpeed >= 10 && asSpeed <= 120) this.autoScrollSpeed = asSpeed;
 
     this.applyReaderVars();
   }
@@ -932,7 +1134,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   private applyTheme() {
-    document.body.classList.remove('theme-dark', 'theme-light', 'theme-sepia', 'theme-nocturno');
+    document.body.classList.remove('theme-dark', 'theme-light', 'theme-sepia', 'theme-nocturno', 'theme-gris');
     document.body.classList.add(`theme-${this.currentTheme}`);
   }
 
@@ -987,6 +1189,12 @@ export class ReaderComponent implements OnInit, OnDestroy {
     setTimeout(() => this.parseAndRenderChapter(), 0);
   }
 
+  /** Token del render en curso. Si el usuario cambia de capítulo (doble tap en
+   *  "Siguiente"/"Anterior") antes de que termine el renderizado progresivo por
+   *  chunks del capítulo anterior, ese renderChunks() antiguo debe abortar en vez
+   *  de seguir empujando bloques viejos sobre `renderedBlocks` del capítulo nuevo. */
+  private renderToken = 0;
+
   isActiveSentence(sentence: any): boolean {
     if (this.currentWordIndex < 0 || !sentence || !sentence.tokens) return false;
     const words = sentence.tokens.filter((t: any) => t.isWord);
@@ -994,6 +1202,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const firstIdx = words[0].idx;
     const lastIdx = words[words.length - 1].idx;
     return this.currentWordIndex >= firstIdx && this.currentWordIndex <= lastIdx;
+  }
+
+  /** Para "Modo de foco → Párrafo": ¿la palabra activa (clic o TTS) cae dentro
+   *  de este bloque (párrafo/encabezado)? */
+  isActiveBlock(block: { tokens: Array<any> }): boolean {
+    if (this.currentWordIndex < 0 || !block || !block.tokens || block.tokens.length === 0) return false;
+    const words = block.tokens.filter((t: any) => t.isWord);
+    if (words.length === 0) return false;
+    return this.currentWordIndex >= words[0].idx && this.currentWordIndex <= words[words.length - 1].idx;
   }
 
   /** Parsea el HTML del capítulo y crea la estructura de bloques/tokens para el *ngFor */
@@ -1064,11 +1281,22 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
     const blockTags = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'li', 'ul', 'ol', 'section', 'article', 'figure']);
 
+    // Un bloque solo cuenta si tiene contenido real (palabra, imagen o salto de
+    // línea). Sin este filtro, envoltorios vacíos del HTML fuente (p.ej. spans de
+    // seguimiento de MediaWiki/Wikisource como <span about="#mwt1">\n</span>, que
+    // sólo contienen espacio en blanco) generan un bloque "fantasma" con un token
+    // no-palabra: pasa el chequeo `tokens.length > 0` pero no tiene texto visible.
+    // Si ese fantasma cae ANTES del primer encabezado real, se vuelve
+    // `parsedBlocks[0]` y rompe la extracción del título (ver más abajo), dejando
+    // el encabezado original sin extraer y duplicado en pantalla.
+    const hasMeaningfulContent = (tokens: typeof blocks[0]['tokens']) =>
+      tokens.some(t => t.isWord || t.isImg || t.isBr);
+
     const parseNode = (node: Node) => {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const el = node as Element;
         const tag = el.tagName.toLowerCase();
-        
+
         if (tag === 'img') {
           const img = el as HTMLImageElement;
           blocks.push({
@@ -1088,17 +1316,17 @@ export class ReaderComponent implements OnInit, OnDestroy {
             el.childNodes.forEach(child => parseNode(child));
           } else {
             const tokens = tokenizeInline(el);
-            if (tokens.length > 0) {
+            if (hasMeaningfulContent(tokens)) {
               blocks.push({ tag: tag === 'div' || tag === 'figure' ? 'p' : tag, tokens });
             }
           }
         } else {
           const tokens = tokenizeInline(node);
-          if (tokens.length > 0) blocks.push({ tag: 'p', tokens });
+          if (hasMeaningfulContent(tokens)) blocks.push({ tag: 'p', tokens });
         }
       } else if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
         const tokens = tokenizeInline(node);
-        if (tokens.length > 0) blocks.push({ tag: 'p', tokens });
+        if (hasMeaningfulContent(tokens)) blocks.push({ tag: 'p', tokens });
       }
     };
 
@@ -1161,21 +1389,48 @@ export class ReaderComponent implements OnInit, OnDestroy {
       if (splitIndex !== -1) {
         // Extraer los tokens del título
         this.titleTokens = firstBlock.tokens.splice(0, splitIndex);
-        
+
         // Limpiar espacios en blanco sobrantes al inicio del párrafo restante
         while (firstBlock.tokens.length > 0 && !firstBlock.tokens[0].isWord && !firstBlock.tokens[0].isImg) {
           firstBlock.tokens.shift();
         }
-        
+
         // Si el bloque quedó vacío (era solo el título), lo eliminamos
         if (firstBlock.tokens.length === 0) {
+          this.parsedBlocks.shift();
+        }
+
+        // Algunos libros repiten el título del capítulo (p.ej. "Primera Parte")
+        // como su propio encabezado dentro del cuerpo, justo debajo del título
+        // grande ya extraído — se ve duplicado en pantalla. Si el/los siguientes
+        // bloques son EXACTAMENTE ese mismo texto, se descartan también.
+        const normalizeBlockText = (b: typeof this.parsedBlocks[0]) =>
+          b.tokens.map(t => t.text).join('').toLowerCase().replace(/\s+/g, ' ').trim();
+        let guard = 0;
+        while (
+          this.parsedBlocks.length > 0 &&
+          this.parsedBlocks[0].tag !== 'img-block' &&
+          normalizeBlockText(this.parsedBlocks[0]) === titleToCompare &&
+          guard++ < 5
+        ) {
           this.parsedBlocks.shift();
         }
       }
     }
 
+    // Marcar párrafos largos (para la división visual opcional en Lectura asistida)
+    blocks.forEach(b => {
+      if (b.tag === 'p') {
+        const len = b.tokens.reduce((acc, t) => acc + (t.text?.length || 0), 0);
+        b.long = len > this.LONG_PARA_CHARS;
+      }
+    });
+
     this.totalWordCount = wordIdx;
     this.safeChapterHtml = this.sanitizer.bypassSecurityTrustHtml(''); // vaciar el fallback
+
+    // Invalidar cualquier renderizado por chunks todavía en curso de un capítulo anterior
+    const myRenderToken = ++this.renderToken;
 
     // Resetear estado de scroll al cargar nuevo capítulo
     this.chapterScrollPercent = 0;
@@ -1209,6 +1464,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
     let lottieDismissed = false;
 
     const renderChunks = (startIndex: number) => {
+      // Si mientras tanto se cambió de capítulo, este render quedó obsoleto: abortar
+      // sin tocar `renderedBlocks` (que ya pertenece al capítulo nuevo).
+      if (myRenderToken !== this.renderToken) return;
+
       // Usar un chunk más grande si estamos tratando de alcanzar rápido el progreso
       const chunkSize = (startIndex <= targetBlockIndex || needsFullRender) ? 50 : 15;
       const chunk = this.parsedBlocks.slice(startIndex, startIndex + chunkSize);
@@ -1607,12 +1866,42 @@ export class ReaderComponent implements OnInit, OnDestroy {
       const rect = el.getBoundingClientRect();
       const safeTop = window.innerHeight * 0.2;
       const safeBottom = window.innerHeight * 0.8;
-      
+
       // Solo hacer auto-scroll si la palabra sale de los límites seguros
       // Esto evita el molesto efecto "sube y baja" constante en cada palabra
       if (rect.top < safeTop || rect.bottom > safeBottom) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
       }
+
+      // Seguimiento automático de la regla de lectura durante la narración
+      if (this.rulerActive) {
+        const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+        if (canvas) {
+          const canvasRect = canvas.getBoundingClientRect();
+          this.rulerY = rect.top - canvasRect.top + canvas.scrollTop;
+        }
+      }
+    }
+  }
+
+  /** Distancia (en "capítulos de página") entre la posición de lectura guardada
+   *  (última palabra narrada, o progreso restaurado) y el scroll actual. Si el
+   *  usuario se aleja para explorar el índice/otra parte del capítulo, se ofrece
+   *  un botón para volver de un toque. */
+  private checkBackToReadingVisibility() {
+    const targetIdx = this.lastAudioWordIndex > 0 ? this.lastAudioWordIndex : this.currentWordIndex;
+    if (targetIdx <= 0) { this.showBackToReadingBtn = false; return; }
+    const el = document.getElementById(`word-${targetIdx}`);
+    if (!el) { this.showBackToReadingBtn = false; return; }
+    const rect = el.getBoundingClientRect();
+    this.showBackToReadingBtn = rect.bottom < 0 || rect.top > window.innerHeight;
+  }
+
+  scrollBackToReading() {
+    const targetIdx = this.lastAudioWordIndex > 0 ? this.lastAudioWordIndex : this.currentWordIndex;
+    if (targetIdx > 0) {
+      this.scrollWordIntoView(targetIdx);
+      setTimeout(() => this.checkBackToReadingVisibility(), 400);
     }
   }
 

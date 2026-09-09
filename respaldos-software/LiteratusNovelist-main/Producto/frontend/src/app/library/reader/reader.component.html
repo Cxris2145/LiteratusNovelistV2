@@ -81,7 +81,7 @@
       <button role="tab" [attr.aria-selected]="settingsTab === 'apariencia'"
               [class.on]="settingsTab === 'apariencia'" (click)="setSettingsTab('apariencia')">Apariencia</button>
       <button role="tab" [attr.aria-selected]="settingsTab === 'enfoque'"
-              [class.on]="settingsTab === 'enfoque'" (click)="setSettingsTab('enfoque')">Enfoque</button>
+              [class.on]="settingsTab === 'enfoque'" (click)="setSettingsTab('enfoque')">Lectura asistida</button>
     </div>
 
     <div class="sheet-body">
@@ -146,6 +146,13 @@
         </div>
 
         <div class="sheet-block">
+          <span class="sheet-label">Espacio entre palabras <em>+{{ wordSpacing }}em</em></span>
+          <input type="range" class="sheet-range" min="0" max="0.6" step="0.02"
+                 [value]="wordSpacing" (input)="setWordSpacing(+$any($event.target).value)"
+                 aria-label="Espacio entre palabras">
+        </div>
+
+        <div class="sheet-block">
           <span class="sheet-label">Alineación</span>
           <div class="segmented" role="group" aria-label="Alineación del texto">
             <button [class.on]="textAlign === 'left'"    (click)="setTextAlign('left')">Izquierda</button>
@@ -183,6 +190,17 @@
                  aria-label="Brillo del lienzo">
         </div>
 
+        <div class="sheet-block">
+          <span class="sheet-label">Color de resaltado</span>
+          <div class="highlight-grid" role="group" aria-label="Color de resaltado">
+            <button type="button" *ngFor="let h of highlightColorOptions" class="highlight-chip"
+                    [class.on]="highlightColor === h.id" (click)="setHighlightColor(h.id)"
+                    [attr.title]="h.label" [attr.aria-label]="h.label">
+              <span class="highlight-swatch" [style.background]="h.hex"></span>
+            </button>
+          </div>
+        </div>
+
         <div class="sheet-toggles">
           <button class="toggle-row" [class.on]="highContrast"
                   (click)="setHighContrast(!highContrast)" [attr.aria-pressed]="highContrast">
@@ -203,13 +221,29 @@
         </div>
       </ng-container>
 
-      <!-- ══ ENFOQUE ══ -->
+      <!-- ══ LECTURA ASISTIDA (TDAH / neurodivergencias) ══ -->
       <ng-container *ngIf="settingsTab === 'enfoque'">
         <p class="sheet-hint">Herramientas opcionales para reducir distracciones y sostener la atención en lecturas largas.</p>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Foco de lectura <em>atenúa el resto del texto</em></span>
+          <div class="segmented segmented-wrap" role="group" aria-label="Modo de foco">
+            <button [class.on]="focusMode === 'off'"       (click)="setFocusMode('off')">Ninguno</button>
+            <button [class.on]="focusMode === 'word'"       (click)="setFocusMode('word')">Palabra</button>
+            <button [class.on]="focusMode === 'sentence'"   (click)="setFocusMode('sentence')">Frase</button>
+            <button [class.on]="focusMode === 'paragraph'"  (click)="setFocusMode('paragraph')">Párrafo</button>
+          </div>
+          <p class="sheet-hint sheet-hint-soft" *ngIf="focusMode !== 'off'">Toca una palabra (o inicia la narración) para marcar el foco.</p>
+        </div>
+
         <div class="sheet-toggles">
+          <button class="toggle-row" [class.on]="rulerActive"
+                  (click)="toggleRuler(!rulerActive)" [attr.aria-pressed]="rulerActive">
+            <span>Regla de lectura<em>Guía horizontal que sigue tu línea</em></span><span class="switch"></span>
+          </button>
           <button class="toggle-row" [class.on]="concentrationMode"
                   (click)="setConcentrationMode(!concentrationMode)" [attr.aria-pressed]="concentrationMode">
-            <span>Modo concentración<em>Oculta barras y controles secundarios</em></span><span class="switch"></span>
+            <span>Modo sin distracciones<em>Oculta barras y controles secundarios</em></span><span class="switch"></span>
           </button>
           <button class="toggle-row" [class.on]="isFullscreenActive"
                   (click)="toggleImmersiveButton()" [attr.aria-pressed]="isFullscreenActive">
@@ -219,10 +253,34 @@
                   (click)="setBionicReading(!bionicReadingActive)" [attr.aria-pressed]="bionicReadingActive">
             <span>Lectura biónica<em>Resalta el inicio de cada palabra</em></span><span class="switch"></span>
           </button>
+          <button class="toggle-row" [class.on]="longParaSplit"
+                  (click)="toggleLongParaSplit(!longParaSplit)" [attr.aria-pressed]="longParaSplit">
+            <span>Dividir párrafos largos<em>Marca visualmente los bloques densos</em></span><span class="switch"></span>
+          </button>
           <button class="toggle-row" [class.on]="tapToScrollActive"
                   (click)="toggleTapToScroll()" [attr.aria-pressed]="tapToScrollActive">
             <span>Toque para avanzar<em>Avanza el texto tocando la pantalla</em></span><span class="switch"></span>
           </button>
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Avance automático <em>{{ autoScrollActive ? (autoScrollSpeed + ' px/s') : 'desactivado' }}</em></span>
+          <button class="toggle-row no-border" [class.on]="autoScrollActive"
+                  (click)="toggleAutoScroll(!autoScrollActive)" [attr.aria-pressed]="autoScrollActive">
+            <span>Desplazamiento continuo<em>Avanza el texto solo, a velocidad constante</em></span><span class="switch"></span>
+          </button>
+          <input type="range" class="sheet-range" min="10" max="120" step="5"
+                 [value]="autoScrollSpeed" (input)="setAutoScrollSpeed(+$any($event.target).value)"
+                 aria-label="Velocidad de avance automático">
+        </div>
+
+        <div class="sheet-block">
+          <span class="sheet-label">Sesión de lectura <em>recordatorio de pausa</em></span>
+          <div class="segmented" role="group" aria-label="Duración de la sesión">
+            <button *ngFor="let m of sessionTimerOptions" [class.on]="sessionTimerMinutes === m"
+                    (click)="setSessionTimer(m)">{{ m === 0 ? 'Off' : (m + ' min') }}</button>
+          </div>
+          <p class="sheet-hint sheet-hint-soft" *ngIf="sessionTimerRunning">Quedan {{ sessionTimerLabel }} antes de la próxima pausa sugerida.</p>
         </div>
       </ng-container>
 
@@ -665,7 +723,18 @@
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- LIENZO DE LECTURA (renderizado nativo Angular para highlighting) -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <main class="reading-canvas html-reader" [ngClass]="'font-' + currentFontFamily" [class.tap-to-scroll-active]="tapToScrollActive" (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)">
+  <main class="reading-canvas html-reader" [ngClass]="'font-' + currentFontFamily"
+        [class.tap-to-scroll-active]="tapToScrollActive"
+        [class.rc-focus-word]="focusMode === 'word'"
+        [class.rc-focus-sentence]="focusMode === 'sentence'"
+        [class.rc-focus-paragraph]="focusMode === 'paragraph'"
+        [class.rc-long-para]="longParaSplit"
+        (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)"
+        (mousemove)="onCanvasMouseMove($event)" (mouseleave)="onCanvasMouseLeave()">
+
+    <!-- Regla de lectura: guía horizontal, sigue el ratón o la palabra narrada -->
+    <div class="reading-ruler" *ngIf="rulerActive" [style.top.px]="rulerY" aria-hidden="true"></div>
+
     <!-- Título principal del capítulo -->
     <!-- Título principal del capítulo con soporte para highlighting -->
     <h1 class="chapter-title-main">
@@ -692,9 +761,9 @@
         <img [src]="block.tokens[0].src" [alt]="block.tokens[0].alt || ''" loading="lazy" (click)="openImageModal(block.tokens[0].src)" class="scene-image">
       </figure>
 
-      <h1 *ngIf="block.tag === 'h1'" class="chapter-heading">
+      <h1 *ngIf="block.tag === 'h1'" class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
         <ng-container *ngFor="let sentence of block.sentences">
-          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+          <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
               <span *ngIf="tok.isWord"
                     [id]="'word-' + tok.idx"
@@ -712,9 +781,9 @@
         </ng-container>
       </h1>
 
-      <h2 *ngIf="block.tag === 'h2'" class="chapter-heading">
+      <h2 *ngIf="block.tag === 'h2'" class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
         <ng-container *ngFor="let sentence of block.sentences">
-          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+          <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
               <span *ngIf="tok.isWord"
                     [id]="'word-' + tok.idx"
@@ -732,9 +801,10 @@
         </ng-container>
       </h2>
 
-      <p *ngIf="block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote'">
+      <p *ngIf="block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote'"
+         [class.active-paragraph]="isActiveBlock(block)" [class.long-para]="block.long">
         <ng-container *ngFor="let sentence of block.sentences">
-          <span [class.active-paragraph-text]="isActiveSentence(sentence)">
+          <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
             <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
               <span *ngIf="tok.isWord"
                     [id]="'word-' + tok.idx"
@@ -892,6 +962,37 @@
         (currentAudioMode !== 'kokoro' && currentAudioMode !== 'native-android' && (audioService.isPlaying$ | async))
       )">pause</span>
     </button>
+  </div>
+
+  <!-- BOTÓN "VOLVER A MI LECTURA" — aparece si el usuario se aleja de su posición -->
+  <button class="back-to-reading-btn glass-btn" *ngIf="showBackToReadingBtn"
+          (click)="scrollBackToReading()" aria-label="Volver a mi punto de lectura">
+    <span class="material-symbols-rounded">read_more</span>
+    <span>Volver a mi lectura</span>
+  </button>
+
+  <!-- INSIGNIA DEL TEMPORIZADOR DE SESIÓN -->
+  <div class="session-timer-badge" *ngIf="sessionTimerRunning" (click)="setSessionTimer(0)"
+       title="Toca para apagar el temporizador">
+    <span class="material-symbols-rounded">hourglass_top</span>
+    <span>{{ sessionTimerLabel }}</span>
+  </div>
+
+  <!-- MODAL DE RECORDATORIO DE PAUSA -->
+  <div class="restart-modal-overlay" *ngIf="showBreakModal" (click)="keepReading()">
+    <div class="restart-modal-card glass-panel" (click)="$event.stopPropagation()">
+      <div class="restart-modal-header">
+        <span class="restart-modal-icon">☕</span>
+        <h4>Es un buen momento para una pausa</h4>
+      </div>
+      <div class="restart-modal-body">
+        <p>Llevas un buen rato leyendo. Estirar la vista y las piernas unos minutos ayuda a sostener la atención.</p>
+      </div>
+      <div class="restart-modal-actions">
+        <button class="restart-modal-btn cancel-btn" (click)="takeBreak()">Tomar un descanso</button>
+        <button class="restart-modal-btn confirm-btn" (click)="keepReading()">Seguir leyendo</button>
+      </div>
+    </div>
   </div>
 
 </div>

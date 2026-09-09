@@ -9,6 +9,23 @@
    Todo el CSS de componentes usa SÃ“LO estas variables.
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
+/* OpenDyslexic — tipografía diseñada para dislexia (Lectura asistida).
+   Solo dos pesos (regular/bold) vía jsDelivr (paquete npm "open-dyslexic"). */
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'OpenDyslexic';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Bold.woff') format('woff');
+}
+
 /* â”€â”€ TEMA OSCURO (por defecto) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .theme-dark {
   /* Fondos */
@@ -134,6 +151,49 @@
   --th-bg-send-btn:      #4a3b32;
   --th-text-send-btn:    #f4ecd8;
   --th-bg-send-btn-hover: #3b2a1a;
+}
+
+/* â”€â”€ TEMA GRIS SUAVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* Contraste bajo y neutro (sin tinte cálido ni frío) — pensado para
+   fotosensibilidad / fatiga visual en sesiones largas. */
+.theme-gris {
+  --th-bg-page:        #d9dadd;
+  --th-bg-toolbar:     rgba(217,218,221,0.85);
+  --th-bg-sidebar:     rgba(230,231,234,0.98);
+  --th-bg-sidebar-hdr: rgba(210,211,214,0.95);
+  --th-bg-chat-footer: rgba(230,231,234,0.98);
+  --th-bg-input:       rgba(0,0,0,0.05);
+  --th-bg-bubble-ai:   rgba(0,0,0,0.06);
+  --th-bg-bubble-user: #4b5563;
+  --th-bg-controls:    rgba(0,0,0,0.06);
+  --th-bg-hover:       rgba(0,0,0,0.09);
+  --th-bg-toc:         rgba(230,231,234,0.98);
+  --th-bg-overlay:     rgba(217,218,221,0.75);
+
+  --th-text-primary:   #2b2e33;
+  --th-text-secondary: rgba(43,46,51,0.6);
+  --th-text-bubble-ai: #2b2e33;
+  --th-text-bubble-user: #ffffff;
+  --th-text-input:     #2b2e33;
+  --th-text-placeholder: rgba(43,46,51,0.5);
+  --th-text-disclaimer: rgba(43,46,51,0.5);
+  --th-text-char-name: #2b2e33;
+  --th-text-char-role: rgba(43,46,51,0.55);
+
+  --th-border-base:    rgba(0,0,0,0.1);
+  --th-border-input:   rgba(0,0,0,0.12);
+  --th-border-sidebar: rgba(0,0,0,0.1);
+  --th-border-btn:     rgba(0,0,0,0.1);
+
+  --th-lottie-filter:  brightness(0);
+  --th-fab-bg:         rgba(230,231,234,0.95);
+  --th-fab-color:      #2b2e33;
+  --th-progress-track: rgba(0,0,0,0.12);
+  --th-char-initial-bg: #4b5563;
+  --th-char-initial-text: #ffffff;
+  --th-bg-send-btn:      #4b5563;
+  --th-text-send-btn:    #ffffff;
+  --th-bg-send-btn-hover: #374151;
 }
 
 /* â”€â”€ TEMA NOCTURNO (OLED) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -265,6 +325,12 @@
   --reader-active-bg:     rgba(122, 90, 46, 0.14);
   --reader-active-border: rgba(122, 90, 46, 0.38);
   --reader-active-text:   #5b4326;
+}
+.workbench-container.theme-gris {
+  --reader-accent:        #4b5563;
+  --reader-active-bg:     rgba(75, 85, 99, 0.14);
+  --reader-active-border: rgba(75, 85, 99, 0.35);
+  --reader-active-text:   #374151;
 }
 
 /* BARRA DE HERRAMIENTAS */
@@ -1620,6 +1686,7 @@
 
 /* LIENZO DE LECTURA */
 .reading-canvas {
+  position: relative; /* ancla la regla de lectura (.reading-ruler) */
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1670,6 +1737,10 @@
 .reading-canvas.font-lexend {
   font-family: 'Lexend', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
+.reading-canvas.font-opendyslexic {
+  font-family: 'OpenDyslexic', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
 /* Decorativa / literaria -- solo titulos, no recomendada para parrafos largos */
 .reading-canvas.font-cinzel {
   font-family: 'Cinzel', Georgia, serif;
@@ -1690,6 +1761,7 @@
 .reading-canvas.html-reader {
   font-size: var(--reader-font-size, 18px);
   letter-spacing: var(--reader-letter-spacing, 0);
+  word-spacing: var(--reader-word-spacing, 0);
 }
 
 .html-reader ::ng-deep p,
@@ -2640,9 +2712,10 @@ h2.chapter-heading { font-size: 1.28em; }
   }
 }
 
-/* ↓ Resaltado sutil tipo ReadEra (sin distorsión ni reflow) */
+/* ↓ Resaltado sutil tipo ReadEra (sin distorsión ni reflow). El color sigue
+   la preferencia "Color de resaltado" (--reader-highlight-hex, gold por defecto). */
 .active-word {
-  background-color: rgba(234, 179, 8, 0.4) !important; /* Amarillo suave/cálido */
+  background-color: color-mix(in srgb, var(--reader-highlight-hex, #eab308) 40%, transparent) !important;
   border-radius: 3px;
   color: inherit !important;
   transition: background-color 0.1s ease;
@@ -3207,9 +3280,10 @@ h2.chapter-heading { font-size: 1.28em; }
   to { transform: rotate(0); }
 }
 
-/* Resaltado estilo ReadEra por párrafo (INLINE TEXT) */
+/* Resaltado estilo ReadEra por párrafo (INLINE TEXT) — el color sigue la
+   preferencia "Color de resaltado" de Lectura asistida (--reader-highlight-hex). */
 .active-paragraph-text {
-  background-color: rgba(234, 179, 8, 0.25) !important;
+  background-color: color-mix(in srgb, var(--reader-highlight-hex, #eab308) 25%, transparent) !important;
   border-radius: 4px;
   transition: background-color 0.4s ease;
   /* Box decoration break allows background to wrap smoothly across lines without looking like a rigid box */
@@ -3219,7 +3293,7 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 
 .theme-dark .active-paragraph-text {
-  background-color: rgba(234, 179, 8, 0.15) !important;
+  background-color: color-mix(in srgb, var(--reader-highlight-hex, #eab308) 15%, transparent) !important;
 }
 
 /* ——— ESTILOS EXCLUSIVOS MANGA / NOVELA VISUAL ——— */
@@ -4128,12 +4202,13 @@ h2.chapter-heading { font-size: 1.28em; }
 .font-chip.preview-opensans    .font-chip-aa { font-family: 'Open Sans', system-ui, sans-serif; }
 .font-chip.preview-atkinson    .font-chip-aa { font-family: 'Atkinson Hyperlegible', system-ui, sans-serif; }
 .font-chip.preview-lexend      .font-chip-aa { font-family: 'Lexend', system-ui, sans-serif; }
+.font-chip.preview-opendyslexic .font-chip-aa { font-family: 'OpenDyslexic', system-ui, sans-serif; }
 .font-chip.preview-cinzel      .font-chip-aa { font-family: 'Cinzel', Georgia, serif; }
 
 /* — Grid de temas — */
 .theme-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
   gap: 8px;
 }
 .theme-chip {
@@ -4165,6 +4240,7 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 .theme-swatch[data-th="light"]    { background: #f8fafc; }
 .theme-swatch[data-th="sepia"]    { background: #f4ecd8; }
+.theme-swatch[data-th="gris"]     { background: #d9dadd; }
 .theme-swatch[data-th="dark"]     { background: #11261d; }
 .theme-swatch[data-th="nocturno"] { background: #000; }
 
@@ -4309,3 +4385,139 @@ h2.chapter-heading { font-size: 1.28em; }
   color: var(--reader-text);
 }
 .workbench-container.rc-high-contrast .bionic-muted { opacity: 0.85 !important; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LECTURA ASISTIDA (TDAH / neurodivergencias)
+   Foco por unidad, regla de lectura, párrafos largos, resaltado configurable,
+   avance automático, botón "volver a mi lectura", temporizador de sesión.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Regla de lectura: guía horizontal traslúcida ── */
+.reading-ruler {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2.4em;
+  margin-top: -1.2em; /* centra la franja sobre la línea activa */
+  background: color-mix(in srgb, var(--reader-highlight-hex, #eab308) 12%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--reader-highlight-hex, #eab308) 45%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--reader-highlight-hex, #eab308) 45%, transparent);
+  pointer-events: none;
+  z-index: 5;
+  transition: top 0.12s linear;
+}
+@media (prefers-reduced-motion: reduce) { .reading-ruler { transition: none; } }
+
+/* ── Modo de foco: atenúa todo salvo la unidad activa ── */
+.rc-focus-word .word { transition: opacity 0.15s ease; }
+.rc-focus-word .word:not(.active-word) { opacity: 0.4; }
+
+.rc-focus-sentence .sentence-wrap { transition: opacity 0.15s ease; }
+.rc-focus-sentence .sentence-wrap:not(.active-paragraph-text) { opacity: 0.4; }
+
+.rc-focus-paragraph .html-reader ::ng-deep p,
+.rc-focus-paragraph p,
+.rc-focus-paragraph h1.chapter-heading,
+.rc-focus-paragraph h2.chapter-heading {
+  transition: opacity 0.2s ease;
+  opacity: 0.4;
+}
+.rc-focus-paragraph p.active-paragraph,
+.rc-focus-paragraph h1.chapter-heading.active-paragraph,
+.rc-focus-paragraph h2.chapter-heading.active-paragraph {
+  opacity: 1;
+}
+/* Sin nada marcado todavía (no se ha tocado una palabra ni hay narración
+   activa): no atenuar nada, para no dejar la pantalla en blanco de golpe. */
+.rc-focus-word:not(:has(.active-word)) .word,
+.rc-focus-sentence:not(:has(.active-paragraph-text)) .sentence-wrap,
+.rc-focus-paragraph:not(:has(.active-paragraph)) p,
+.rc-focus-paragraph:not(:has(.active-paragraph)) h1.chapter-heading,
+.rc-focus-paragraph:not(:has(.active-paragraph)) h2.chapter-heading {
+  opacity: 1;
+}
+
+/* ── División visual de párrafos largos ── */
+.rc-long-para .long-para {
+  position: relative;
+  padding-left: 0.9em;
+  border-left: 3px solid color-mix(in srgb, var(--reader-accent, #d4af37) 45%, transparent);
+}
+
+/* ── Color de resaltado: grid de swatches ── */
+.highlight-grid {
+  display: flex;
+  gap: 10px;
+}
+.highlight-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color var(--reader-transition);
+}
+.highlight-chip.on { border-color: var(--reader-text, currentColor); }
+.highlight-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+/* ── Segmentado de 4 columnas (foco de lectura): permite ajustarse en 320px ── */
+.segmented-wrap { flex-wrap: wrap; }
+.segmented-wrap button { flex: 1 1 40%; }
+
+/* ── Botón flotante "Volver a mi lectura" ── */
+.back-to-reading-btn {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--reader-shadow-panel, 0 10px 30px rgba(0, 0, 0, 0.3));
+  animation: sheetIn 0.22s var(--reader-ease);
+}
+.back-to-reading-btn .material-symbols-rounded { font-size: 1.1rem; }
+
+/* ── Insignia del temporizador de sesión ── */
+.session-timer-badge {
+  position: fixed;
+  top: calc(64px + env(safe-area-inset-top, 0px));
+  right: 12px;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--reader-surface, var(--th-bg-sidebar, #14261d));
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.2));
+  color: var(--reader-text-muted, inherit);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--reader-shadow-soft, 0 4px 20px rgba(0, 0, 0, 0.18));
+}
+.session-timer-badge .material-symbols-rounded { font-size: 1rem; color: var(--reader-accent, #d4af37); }
+.workbench-container.immersive .session-timer-badge { opacity: 0.55; }
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-reading-btn { animation: none; }
+}

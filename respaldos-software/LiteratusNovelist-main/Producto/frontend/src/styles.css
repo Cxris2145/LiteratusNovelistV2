@@ -44,11 +44,13 @@
   --reader-para-gap:       1.5em;
   --reader-para-indent:    0em;
   --reader-letter-spacing: 0em;
+  --reader-word-spacing:   0em;
   --reader-align:          left;
   --reader-pad-x:          clamp(20px, 6vw, 32px);
   --reader-pad-top:        96px;
   --reader-pad-bottom:     16vh;
   --reader-brightness:     1;
+  --reader-highlight-hex:  #eab308;
 }
 
 /* Tema Clásico Original (Neón) para demo al cliente */
