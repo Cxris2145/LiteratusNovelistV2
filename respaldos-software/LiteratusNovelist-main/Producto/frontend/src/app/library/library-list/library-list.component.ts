@@ -30,8 +30,10 @@ export class LibraryListComponent implements OnInit {
   private thumb(url: string): string {
     if (!url) return 'assets/default_cover.jpg';
     if (url.includes('/storage/v1/object/public/')) {
+      // Las portadas fuente son cuadradas (800x800); sin 'height' Supabase
+      // recorta una franja angosta en vez de reescalar. Pedimos alto = ancho.
       return url.replace('/object/public/', '/render/image/public/')
-        + (url.includes('?') ? '&' : '?') + 'width=360&quality=62&resize=cover';
+        + (url.includes('?') ? '&' : '?') + 'width=360&height=360&quality=62&resize=cover';
     }
     return url;
   }

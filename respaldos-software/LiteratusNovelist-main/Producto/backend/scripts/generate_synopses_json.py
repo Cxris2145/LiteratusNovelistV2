@@ -55,7 +55,7 @@ def get_synopses_batch(books_batch):
                     {"role": "user", "content": prompt}
                 ],
                 "response_format": {"type": "json_object"},
-                "max_tokens": 1500
+                "max_tokens": 3000
             },
             timeout=60
         )
@@ -94,7 +94,7 @@ def main():
 
     print(f"--- GENERANDO SINOPSIS PARA {total} LIBROS (Aproximadamente ${(total*0.00007):.2f} USD) ---")
     
-    batch_size = 5  # Procesar 5 libros a la vez para optimizar tokens y tiempo
+    batch_size = 1  # Un libro a la vez para maxima resiliencia (evita fallos de lote completo)
     
     for i in range(0, total, batch_size):
         batch = books_to_process[i:i+batch_size]

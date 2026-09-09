@@ -39,7 +39,7 @@
              [attr.loading]="item.coverPriority ? 'eager' : 'lazy'"
              [attr.fetchpriority]="item.coverPriority ? 'high' : 'low'"
              decoding="async"
-             width="360" height="225"
+             width="360" height="360"
              (load)="onImgLoad(item)"
              (error)="onImgError($event, item)">
         <div class="progress-badge">{{ (item.progress?.completion_percentage || 0) | number:'1.0-0' }}% leído</div>

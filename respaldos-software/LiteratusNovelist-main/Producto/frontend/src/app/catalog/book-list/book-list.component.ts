@@ -60,8 +60,11 @@ export class BookListComponent implements OnInit {
   thumb(url: string | null | undefined): string {
     if (!url) return 'assets/default_cover.jpg';
     if (url.includes('/storage/v1/object/public/')) {
+      // Las portadas fuente son cuadradas (800x800); si no se pasa 'height'
+      // junto a 'resize=cover', Supabase recorta una franja angosta en vez
+      // de reescalar, cortando el titulo. Pedimos el mismo alto que ancho.
       return url.replace('/object/public/', '/render/image/public/')
-        + (url.includes('?') ? '&' : '?') + 'width=360&quality=62&resize=cover';
+        + (url.includes('?') ? '&' : '?') + 'width=360&height=360&quality=62&resize=cover';
     }
     return url;
   }

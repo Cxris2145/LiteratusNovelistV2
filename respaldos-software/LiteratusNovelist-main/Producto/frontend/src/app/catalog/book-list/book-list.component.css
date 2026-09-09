@@ -172,9 +172,11 @@
   box-shadow: 0 12px 40px rgba(139, 92, 246, 0.2);
 }
 
-/* Cover section — el alto fijo reserva el espacio (sin salto de layout / CLS) */
+/* Cover section — cuadrada (las portadas fuente son 800x800 con el titulo
+   pegado a los bordes); aspect-ratio reserva el espacio sin salto de layout
+   y evita recortar el titulo como pasaba con un alto fijo no cuadrado. */
 .card-image {
-  height: 250px;
+  aspect-ratio: 1 / 1;
   background-color: rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid var(--glass-border);
   position: relative;
@@ -311,7 +313,7 @@
   animation: shimmer 1.5s infinite;
 }
 
-.skeleton-img { height: 250px; }
+.skeleton-img { aspect-ratio: 1 / 1; }
 .skeleton-text { border-radius: 4px; margin: 20px; }
 .skeleton-text.title { height: 24px; width: 70%; }
 .skeleton-text.description { height: 60px; width: 90%; }

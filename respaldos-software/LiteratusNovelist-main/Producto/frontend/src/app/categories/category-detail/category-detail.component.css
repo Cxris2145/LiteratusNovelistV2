@@ -186,8 +186,9 @@
   box-shadow: 0 12px 40px rgba(139, 92, 246, 0.2);
 }
 
+/* Cuadrada: las portadas fuente son 800x800 con el titulo pegado a los bordes. */
 .card-image {
-  height: 250px;
+  aspect-ratio: 1 / 1;
   background-size: cover;
   background-position: center;
   background-color: rgba(0, 0, 0, 0.5);
@@ -335,4 +336,4 @@
 .load-more-btn[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
-}
+}
