@@ -73,6 +73,45 @@ def _slugify(text):
     return text.strip("-")[:100]
 
 
+def _sentence_case(slug_part):
+    """'luces-de-bohemia' -> 'Luces de bohemia' (mayúscula sólo inicial).
+    Mucho mejor que str.title() para castellano ('De La' -> 'de la')."""
+    s = str(slug_part).replace("-", " ").strip()
+    return (s[:1].upper() + s[1:]) if s else s
+
+
+_ELEJANDRIA_PAIRS = None  # cache: list[(title_slug, author_slug)]
+
+
+def _elejandria_pairs():
+    """Pares (title-slug, author-slug) sacados de las URLs de
+    json_data/scraper_estado.json  (.../libro/<title>/<autor>/<id>).
+    Sirve para separar el título del autor cuando el EPUB no trae metadatos."""
+    global _ELEJANDRIA_PAIRS
+    if _ELEJANDRIA_PAIRS is None:
+        _ELEJANDRIA_PAIRS = []
+        path = Path(settings.BASE_DIR) / "json_data" / "scraper_estado.json"
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for url in data.get("descargados", []):
+                parts = [p for p in str(url).split("/") if p]
+                if len(parts) >= 3 and parts[-1].isdigit():
+                    _ELEJANDRIA_PAIRS.append((parts[-3], parts[-2]))
+        except Exception:  # noqa: BLE001
+            pass
+    return _ELEJANDRIA_PAIRS
+
+
+def _guess_meta_from_slug(slug):
+    """Deduce (title, author) legibles a partir del slug de carpeta
+    '<title>-<author>' usando el mapa de elejandria. (None, None) si no hay
+    coincidencia exacta."""
+    for t, a in _elejandria_pairs():
+        if f"{t}-{a}" == slug:
+            return _sentence_case(t), _sentence_case(a)
+    return None, None
+
+
 def _clean_html(soup, book_slug):
     for img in soup.find_all("img"):
         src = img.get("src", "")
@@ -277,8 +316,17 @@ class Command(BaseCommand):
                 if not chapters:
                     chapters = _chapters_wholebook(epub_path, slug)
 
+                # Si al EPUB le faltan <dc:title>/<dc:creator>, intentamos
+                # deducirlos del slug de carpeta ('<titulo>-<autor>') con el
+                # mapa de elejandria antes de usar valores de reserva. Así el
+                # título no queda como el slug entero titulizado.
+                if not title or not author:
+                    guess_title, guess_author = _guess_meta_from_slug(slug)
+                    title = title or guess_title
+                    author = author or guess_author
+
                 author = author or "Autor Desconocido"
-                title = title or slug.replace("-", " ").title()
+                title = title or _sentence_case(slug)
                 if not chapters:
                     failed += 1
                     w(f"  ! {slug}: sin capítulos extraíbles")
@@ -308,6 +356,8 @@ class Command(BaseCommand):
                                 and len(ch["content"]) < 500)
                     ]
                     Chapter.objects.bulk_create(rows, batch_size=200)
+                    # Nº exacto de palabras/páginas para el catálogo.
+                    book_obj.recount_words()
                 ok += 1
                 if i % 10 == 0:
                     w(f"  [{i}/{len(folders)}] {ok} ok / {skipped} saltados / {failed} fallidos")

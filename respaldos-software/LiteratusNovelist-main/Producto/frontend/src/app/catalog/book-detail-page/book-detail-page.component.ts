@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, inject, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, ViewChild, ElementRef, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -14,10 +14,15 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   private _avatarCarousel!: ElementRef;
   @ViewChild('avatarCarousel') set avatarCarousel(el: ElementRef) {
     this._avatarCarousel = el;
+    setTimeout(() => this.updateAvatarOverflow(), 0);
   }
   get avatarCarousel(): ElementRef {
     return this._avatarCarousel;
   }
+
+  /** True cuando el carrusel de personajes tiene más contenido del que cabe:
+   *  sólo entonces mostramos las flechas de navegación. */
+  avatarsCanScroll = false;
   
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -262,21 +267,17 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   scrollCarousel(direction: number): void {
-    if (this.avatarCarousel) {
-      const carousel = this.avatarCarousel.nativeElement;
-      const scrollAmount = 300;
-      const maxScroll = carousel.scrollWidth - carousel.clientWidth;
-      
-      if (direction === 1 && carousel.scrollLeft >= maxScroll - 50) {
-        carousel.scrollTo({ left: carousel.scrollWidth / 4, behavior: 'auto' });
-        setTimeout(() => carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' }), 50);
-      } else if (direction === -1 && carousel.scrollLeft <= 50) {
-        carousel.scrollTo({ left: (carousel.scrollWidth / 4) * 3, behavior: 'auto' });
-        setTimeout(() => carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' }), 50);
-      } else {
-        carousel.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
-      }
-    }
+    const carousel = this.avatarCarousel?.nativeElement as HTMLElement | undefined;
+    if (!carousel) return;
+    const card = carousel.firstElementChild as HTMLElement | null;
+    const step = card ? card.clientWidth + 24 : 160; // ancho tarjeta + gap
+    carousel.scrollBy({ left: step * 2 * direction, behavior: 'smooth' });
+  }
+
+  @HostListener('window:resize')
+  updateAvatarOverflow(): void {
+    const el = this.avatarCarousel?.nativeElement as HTMLElement | undefined;
+    this.avatarsCanScroll = !!el && el.scrollWidth - el.clientWidth > 8;
   }
 
   setRating(rating: number): void {

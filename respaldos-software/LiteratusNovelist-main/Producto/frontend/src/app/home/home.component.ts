@@ -79,6 +79,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   private charCarouselInterval: any;
 
   @ViewChild('avatarsCarousel') avatarsCarousel!: ElementRef;
+  @ViewChild('discoveryTrack') discoveryTrack?: ElementRef<HTMLElement>;
 
   private _readingContainer?: ElementRef;
   @ViewChild('readingContainer') set readingContainer(el: ElementRef) {
@@ -200,6 +201,15 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       const scrollAmount = 320 * direction; // width of card (220px) + gap (24px) approx
       el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+  }
+
+  /** Flechas del carrusel "Descubrimiento": desplaza ~2 tarjetas por clic. */
+  scrollDiscovery(direction: number): void {
+    const el = this.discoveryTrack?.nativeElement;
+    if (!el) return;
+    const card = el.firstElementChild as HTMLElement | null;
+    const step = card ? card.clientWidth + 24 : 244;
+    el.scrollBy({ left: step * 2 * direction, behavior: 'smooth' });
   }
 
   // ─── Demo Chat ───────────────────────────────────────────────────────────────

@@ -81,7 +81,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = Book.objects.prefetch_related('genres', 'book_authors__author', 'editions', 'tags')
         qs = qs.annotate(ai_character_count=Count('editions__avatars', distinct=True))
-        
+
         has_ai = self.request.query_params.get('has_ai_avatars', None)
         if has_ai and has_ai.lower() == 'true':
             qs = qs.filter(ai_character_count__gt=0)

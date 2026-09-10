@@ -412,14 +412,63 @@
 }
 
 /* AVATAR CAROUSEL REWORK */
+.avatars-carousel-viewport {
+  position: relative;
+}
+
 .avatars-carousel {
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
   padding-bottom: 1rem;
   scrollbar-width: none;
+  scroll-behavior: smooth;
 }
 .avatars-carousel::-webkit-scrollbar { display: none; }
+
+/* Flechas de navegación del carrusel de personajes */
+.carousel-arrow {
+  position: absolute;
+  top: 90px; /* centro de la imagen del avatar (180px de alto) */
+  transform: translateY(-50%);
+  z-index: 6;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #f8fafc;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.carousel-arrow:hover {
+  background: var(--glow-accent, #D4AF37);
+  color: #0A1914;
+  transform: translateY(-50%) scale(1.08);
+}
+.carousel-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+.carousel-arrow:focus-visible {
+  outline: 2px solid var(--glow-accent, #D4AF37);
+  outline-offset: 3px;
+}
+.carousel-arrow--left  { left: -6px; }
+.carousel-arrow--right { right: -6px; }
+
+@media (max-width: 640px) {
+  .carousel-arrow { width: 34px; height: 34px; }
+  .carousel-arrow--left  { left: -2px; }
+  .carousel-arrow--right { right: -2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel-arrow { transition: none; }
+  .avatars-carousel { scroll-behavior: auto; }
+}
 
 .avatar-card {
   flex: 0 0 140px;

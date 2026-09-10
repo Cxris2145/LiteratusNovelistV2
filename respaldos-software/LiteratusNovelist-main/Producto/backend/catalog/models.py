@@ -43,6 +43,8 @@ from django.utils.text import slugify
 from django.conf import settings
 from core.models import TimeStampedModel
 import json
+import math
+import re
 
 
 class Author(TimeStampedModel):
@@ -238,6 +240,19 @@ class Book(TimeStampedModel):
     view_count = models.PositiveIntegerField(default=0, help_text="Número total de visualizaciones de la ficha del libro.")
     download_count = models.PositiveIntegerField(default=0, help_text="Número total de descargas de la obra.")
 
+    # Nº EXACTO de palabras del libro = suma de las palabras de todos sus
+    # capítulos (texto plano, sin etiquetas HTML). Se almacena para no tener
+    # que recorrer todo el contenido en cada listado del catálogo; se recalcula
+    # al importar EPUBs y con `manage.py recount_words`.
+    word_count = models.PositiveIntegerField(
+        default=0,
+        help_text="Nº total de palabras del libro (suma de capítulos, sin HTML)."
+    )
+
+    # Convención de paginado: nº de palabras que caben en una página impresa.
+    # Se usa para derivar `page_count` a partir de `word_count`.
+    WORDS_PER_PAGE = 230
+
 
     cover_image = models.ImageField(
         upload_to='book_covers/',
@@ -275,6 +290,35 @@ class Book(TimeStampedModel):
             slug = f"{base_slug}-{counter}"
             counter += 1
         return slug
+
+    @property
+    def page_count(self):
+        """
+        Nº de páginas del libro. Es un valor EXACTO y determinista: se obtiene
+        de `word_count` (palabras reales del texto) dividido por `WORDS_PER_PAGE`
+        y redondeado hacia arriba. Devuelve None si el libro aún no tiene
+        contenido cargado (word_count == 0), para poder ocultar el dato.
+        """
+        if not self.word_count:
+            return None
+        return max(1, math.ceil(self.word_count / self.WORDS_PER_PAGE))
+
+    def recount_words(self, save=True):
+        """
+        Recalcula `word_count` a partir del HTML de todos los capítulos.
+        Quita las etiquetas y cuenta las palabras del texto resultante.
+        Devuelve el total. Con save=True persiste sólo esa columna.
+        """
+        total = 0
+        for html in self.chapters.values_list('content_html', flat=True):
+            if not html:
+                continue
+            text = re.sub(r'<[^>]+>', ' ', html)
+            total += len(text.split())
+        self.word_count = total
+        if save and self.pk:
+            self.save(update_fields=['word_count'])
+        return total
 
     @property
     def get_similar_books(self):

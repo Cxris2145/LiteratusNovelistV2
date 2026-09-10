@@ -365,24 +365,36 @@
           <a routerLink="/catalog" class="cta-primary" style="margin: 0;">Explorar Tienda</a>
         </div>
       </div>
-      <div class="trending-track" *ngIf="randomDiscoveryBooks.length > 0">
-        <div class="trending-card" *ngFor="let book of randomDiscoveryBooks; trackBy: trackBySlug"
-          (click)="goToBook(book.slug)">
-          <div class="trending-cover-wrap">
-            <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" class="trending-cover" loading="lazy">
-            <div class="trending-overlay">
-              <button class="overlay-cta">Ver Libro →</button>
+      <div class="carousel-viewport" *ngIf="randomDiscoveryBooks.length > 0">
+        <button type="button" class="carousel-arrow carousel-arrow--left"
+                (click)="scrollDiscovery(-1)" aria-label="Ver libros anteriores">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+
+        <div class="trending-track" #discoveryTrack>
+          <div class="trending-card" *ngFor="let book of randomDiscoveryBooks; trackBy: trackBySlug"
+            (click)="goToBook(book.slug)">
+            <div class="trending-cover-wrap">
+              <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" class="trending-cover" loading="lazy">
+              <div class="trending-overlay">
+                <button class="overlay-cta">Ver Libro →</button>
+              </div>
+              <div class="neon-border"></div>
             </div>
-            <div class="neon-border"></div>
-          </div>
-          <div class="trending-info">
-            <h3 class="trending-title">{{ book.title }}</h3>
-            <p class="trending-author" *ngIf="book.author_name">{{ book.author_name }}</p>
-            <div class="trending-tags" *ngIf="book.tags && book.tags.length">
-              <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2)">{{ tag.name }}</span>
+            <div class="trending-info">
+              <h3 class="trending-title">{{ book.title }}</h3>
+              <p class="trending-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+              <div class="trending-tags" *ngIf="book.tags && book.tags.length">
+                <span class="mini-tag" *ngFor="let tag of book.tags.slice(0,2)">{{ tag.name }}</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <button type="button" class="carousel-arrow carousel-arrow--right"
+                (click)="scrollDiscovery(1)" aria-label="Ver más libros">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
     </section>
 

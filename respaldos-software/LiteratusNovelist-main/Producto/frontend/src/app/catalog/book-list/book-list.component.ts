@@ -12,10 +12,30 @@ export interface Book {
   is_featured: boolean;
   cover_image: string | null;
   created_at: string;
+  /** Nombre del autor principal (BookListSerializer.author_name) */
+  author_name?: string | null;
+  /** Nº EXACTO de palabras del libro (BookListSerializer.word_count) */
+  word_count?: number;
+  /** Nº de páginas = word_count / 230 redondeado (BookListSerializer.page_count) */
+  page_count?: number | null;
+  genres?: { id?: string; name: string; slug: string }[];
   /** Campos derivados en cliente (no vienen del backend) */
   coverThumb?: string;
   coverLoaded?: boolean;
   coverPriority?: boolean;
+}
+
+/** Género con su nº de libros — viene de /catalog/genres/ */
+export interface GenreCount {
+  id: string;
+  name: string;
+  slug: string;
+  book_count: number;
+}
+
+interface GenreGroup {
+  title: string;
+  items: GenreCount[];
 }
 
 interface PaginatedResponse {
@@ -42,10 +62,42 @@ export class BookListComponent implements OnInit {
   totalCount = 0;
   currentPage = 1;
 
-  get totalPages(): number {
-    const size = this.activeCategory || this.searchTerm ? 50 : 24;
-    return Math.ceil(this.totalCount / size);
+  /* ── Filtro de géneros (barra lateral) ── */
+  genres: GenreCount[] = [];
+  genreGroups: GenreGroup[] = [];
+  totalBooksCount = 0;
+  activeGenreSlug: string | null = null;
+  /** En móvil la barra lateral es un panel deslizante. */
+  sidebarOpen = false;
+
+  get pageSize(): number {
+    return this.activeGenreSlug || this.searchTerm ? 50 : 24;
   }
+
+  get totalPages(): number {
+    return Math.ceil(this.totalCount / this.pageSize);
+  }
+
+  get activeGenreName(): string | null {
+    if (!this.activeGenreSlug) return null;
+    const g = this.genres.find(x => x.slug === this.activeGenreSlug);
+    return g ? g.name : null;
+  }
+
+  /** Slugs que consideramos "Literatura y ficción"; el resto es "No ficción". */
+  private readonly FICTION_SLUGS = new Set<string>([
+    'accion-y-aventura', 'antologias', 'ciencia-ficcion', 'cuentos', 'fantasia',
+    'ficcion-clasica', 'ficcion-contemporanea', 'ficcion-erotica', 'ficcion-historica',
+    'ficcion-religiosa-y-espiritual', 'literatura-de-viaje', 'mitos-leyendas-y-sagas',
+    'novela-corta', 'poesia', 'policiaca-negra-y-suspense', 'romantica', 'satira',
+    'teatro', 'terror', 'infantil-y-juvenil', 'humor', 'relatos'
+  ]);
+  private readonly NONFICTION_SLUGS = new Set<string>([
+    'biografias-diarios-y-hechos-reales', 'ensayos', 'filosofia', 'historia',
+    'psicologia', 'sociedad-y-ciencias-sociales', 'religion', 'politica',
+    'autoayuda-y-superacion-personal', 'ciencias-tecnologia-y-medicina',
+    'arte-cine-y-fotografia', 'historia-teoria-literaria-y-critica'
+  ]);
 
   /** Nº de portadas de la primera "pantalla" que cargan con prioridad alta
    *  (eager + fetchpriority=high). El resto usa lazy + prioridad baja. */
@@ -92,62 +144,81 @@ export class BookListComponent implements OnInit {
   }
 
   trackBook = (_: number, b: Book) => b.id;
+  trackGenre = (_: number, g: GenreCount) => g.slug;
 
   searchTerm = '';
-  activeCategory: string | null = null;
   private searchTimeout: any;
 
-  // Mapeo: Nombre en la píldora → Nombre exacto guardado en la DB
-  // Algunas categorías quedaron con .title() en el backend, otras no.
-  genreDbMap: Record<string, string> = {
-    'Acción y aventura':        'Acción y aventura',
-    'Ciencia ficción':          'Ciencia ficción',
-    'Cuentos':                  'Cuentos',
-    'Fantasía':                 'Fantasía',
-    'Ficción clásica':          'Ficción clásica',
-    'Ficción contemporánea':    'Ficción contemporánea',
-    'Poesía':                   'Poesía',
-    'Romántica':                'Romántica',
-    'Terror':                   'Terror',
-    'Antologías':               'Antologías',
-    'Novela corta':             'Novela corta',
-    'Teatro':                   'Teatro',
-    'Ficción histórica':        'Ficción histórica',
-    'Ficción erótica':          'Ficción erótica',
-    'Ficción religiosa y espiritual': 'Ficción religiosa y espiritual',
-    'Mitos, leyendas y sagas':  'Mitos, leyendas y sagas',
-    'Policíaca, negra y suspense': 'Policíaca, negra y suspense',
-    'Sátira':                   'Sátira',
-    'Literatura de viaje':      'Literatura de viaje',
-    // No ficción — algunas de estas están con mayúsculas en la DB
-    'Filosofía':                'Filosofía',
-    'Historia':                 'Historia',
-    'Psicología':               'Psicología',
-    'Biografías, diarios y hechos reales': 'Biografías, Diarios Y Hechos Reales',
-    'Ensayos':                  'Ensayos',
-    'Sociedad y ciencias sociales': 'Sociedad Y Ciencias Sociales',
-  };
-
-  categories = [
-    { name: 'Literatura y ficción', sub: [
-      'Acción y aventura', 'Antologías', 'Ciencia ficción', 'Cuentos', 'Fantasía',
-      'Ficción clásica', 'Ficción contemporánea', 'Ficción erótica', 'Ficción histórica',
-      'Ficción religiosa y espiritual', 'Literatura de viaje', 'Mitos, leyendas y sagas',
-      'Novela corta', 'Poesía', 'Policíaca, negra y suspense', 'Romántica',
-      'Sátira', 'Teatro', 'Terror'
-    ]},
-    { name: 'No ficción', sub: [
-      'Biografías, diarios y hechos reales', 'Ensayos', 'Filosofía',
-      'Historia', 'Psicología', 'Sociedad y ciencias sociales'
-    ]}
-  ];
-  allSubcategories: string[] = [];
-
   ngOnInit(): void {
-    this.categories.forEach(cat => this.allSubcategories.push(...cat.sub));
+    if (!this.isHome) {
+      this.loadGenres();
+    }
     this.fetchBooks();
   }
 
+  /* ═══════════════════════════════════════════════════════════════════
+     GÉNEROS  (barra lateral con contadores)
+     ═══════════════════════════════════════════════════════════════════ */
+  private loadGenres(): void {
+    this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000).subscribe({
+      next: (res) => {
+        const list: GenreCount[] = (res?.results ?? res ?? [])
+          .map((g: any) => ({
+            id: g.id,
+            name: g.name,
+            slug: g.slug,
+            book_count: g.book_count ?? 0,
+          }))
+          .filter((g: GenreCount) => g.book_count > 0);
+        this.genres = list;
+        this.genreGroups = this.buildGroups(list);
+        // Reserva mientras llega /stats/: suma de contadores (cuenta de más
+        // los libros multi-género, pero sirve de aproximación inicial).
+        if (!this.totalBooksCount) {
+          this.totalBooksCount = list.reduce((acc, g) => acc + g.book_count, 0);
+        }
+      },
+      error: () => { /* la barra lateral simplemente no aparece */ }
+    });
+
+    // Conteo real de libros distintos para "Todos los géneros".
+    this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000).subscribe({
+      next: (stats: any) => {
+        if (typeof stats?.total_books === 'number') this.totalBooksCount = stats.total_books;
+      },
+      error: () => { /* se mantiene la reserva */ }
+    });
+  }
+
+  private buildGroups(list: GenreCount[]): GenreGroup[] {
+    const byName = (a: GenreCount, b: GenreCount) => a.name.localeCompare(b.name, 'es');
+    const fiction = list.filter(g => this.FICTION_SLUGS.has(g.slug)).sort(byName);
+    const nonfiction = list.filter(g => this.NONFICTION_SLUGS.has(g.slug)).sort(byName);
+    const known = new Set([...fiction, ...nonfiction].map(g => g.slug));
+    const other = list.filter(g => !known.has(g.slug)).sort(byName);
+
+    const groups: GenreGroup[] = [];
+    if (fiction.length) groups.push({ title: 'Literatura y ficción', items: fiction });
+    if (nonfiction.length) groups.push({ title: 'No ficción', items: nonfiction });
+    if (other.length) groups.push({ title: 'Más géneros', items: other });
+    return groups;
+  }
+
+  selectGenre(slug: string | null): void {
+    this.activeGenreSlug = this.activeGenreSlug === slug ? null : slug;
+    this.currentPage = 1;
+    this.sidebarOpen = false;
+    this.fetchBooks();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     LIBROS
+     ═══════════════════════════════════════════════════════════════════ */
   fetchBooks() {
     this.isLoading = true;
     this.errorMsg = '';
@@ -157,17 +228,15 @@ export class BookListComponent implements OnInit {
     if (this.searchTerm) {
       params = params.set('search', this.searchTerm);
     }
-    if (this.activeCategory) {
-      // Usar el mapa para enviar el nombre exacto como está en la DB
-      const dbName = this.genreDbMap[this.activeCategory] || this.activeCategory;
-      params = params.set('genres__name', dbName);
+    if (this.activeGenreSlug) {
+      params = params.set('genres__slug', this.activeGenreSlug);
     }
     // Traer más resultados por página cuando hay filtro activo
-    params = params.set('page_size', this.activeCategory || this.searchTerm ? '50' : '24');
+    params = params.set('page_size', String(this.pageSize));
     params = params.set('page', this.currentPage);
 
     // Si no hay filtro activo, mostrar libros de forma aleatoria
-    if (!this.activeCategory && !this.searchTerm) {
+    if (!this.activeGenreSlug && !this.searchTerm) {
       params = params.set('ordering', '?');
     }
 
@@ -203,8 +272,9 @@ export class BookListComponent implements OnInit {
     this.searchTimeout = setTimeout(() => this.fetchBooks(), 400);
   }
 
-  setCategory(cat: string) {
-    this.activeCategory = this.activeCategory === cat ? null : cat;
+  clearFilters() {
+    this.searchTerm = '';
+    this.activeGenreSlug = null;
     this.currentPage = 1;
     this.fetchBooks();
   }

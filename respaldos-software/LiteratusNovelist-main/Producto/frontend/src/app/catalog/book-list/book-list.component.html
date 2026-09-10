@@ -1,5 +1,5 @@
 <div class="catalog-wrapper">
-  
+
   <div class="catalog-header" *ngIf="!isHome">
     <h1 class="glow-text">Explora el Catálogo</h1>
     <p class="subtitle">Descubre tu próxima aventura inmersiva.</p>
@@ -9,110 +9,169 @@
     <h2>Títulos destacados para tu próxima aventura</h2>
   </div>
 
-  <!-- Buscador y Filtros (Solo si no es Home) -->
-  <ng-container *ngIf="!isHome">
-    <div class="search-section">
-      <div class="search-box">
-        <span class="material-symbols-rounded search-icon">search</span>
-        <input type="text" placeholder="Encuentra tu próximo libro..." (keyup)="onSearch($event)" class="glass-input search-input">
-      </div>
-    </div>
+  <div class="explore-layout" [class.no-sidebar]="isHome">
 
-    <!-- Píldoras de Categorías -->
-    <div class="categories-section">
-      <div class="categories-scroll">
-        <button 
-          *ngFor="let cat of allSubcategories" 
-          class="category-pill"
-          [class.active]="activeCategory === cat"
-          (click)="setCategory(cat)">
-          {{ cat }}
+    <!-- ── Barra lateral de Géneros ─────────────────────────────── -->
+    <aside class="genre-sidebar" *ngIf="!isHome" [class.open]="sidebarOpen">
+      <div class="sidebar-inner">
+        <div class="sidebar-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          <span>Géneros</span>
+          <button class="sidebar-close" type="button" (click)="toggleSidebar()" aria-label="Cerrar filtros">✕</button>
+        </div>
+
+        <button class="genre-row genre-all" type="button"
+                [class.active]="!activeGenreSlug"
+                (click)="selectGenre(null)">
+          <span class="g-name">Todos los Géneros</span>
+          <span class="g-count" *ngIf="totalBooksCount">{{ totalBooksCount }}</span>
         </button>
+
+        <ng-container *ngFor="let group of genreGroups">
+          <div class="group-label">{{ group.title }}</div>
+          <button class="genre-row" type="button"
+                  *ngFor="let g of group.items; trackBy: trackGenre"
+                  [class.active]="activeGenreSlug === g.slug"
+                  (click)="selectGenre(g.slug)">
+            <span class="g-name">{{ g.name }}</span>
+            <span class="g-count">{{ g.book_count }}</span>
+          </button>
+        </ng-container>
       </div>
-    </div>
-  </ng-container>
+    </aside>
+    <div class="sidebar-backdrop" *ngIf="!isHome && sidebarOpen" (click)="toggleSidebar()"></div>
 
-  <!-- Loading State (Skeleton) -->
-  <div class="grid-container" *ngIf="isLoading && !errorMsg">
-    <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6]">
-      <div class="skeleton-img"></div>
-      <div class="skeleton-text title"></div>
-      <div class="skeleton-text description"></div>
-      <div class="skeleton-button"></div>
-    </div>
-  </div>
+    <!-- ── Columna de resultados ────────────────────────────────── -->
+    <section class="results-col">
 
-  <!-- Error State -->
-  <div class="message-banner error" *ngIf="errorMsg">
-    {{ errorMsg }}
-  </div>
-
-  <!-- Empty State -->
-  <!-- Contador de resultados -->
-  <div class="results-count" *ngIf="!isLoading && (activeCategory || searchTerm) && books.length > 0">
-    <span>{{ totalCount }} libros encontrados{{ activeCategory ? ' en "' + activeCategory + '"' : '' }}</span>
-  </div>
-
-  <div class="message-banner info" *ngIf="!isLoading && books.length === 0 && !errorMsg">
-    No se encontraron libros.
-  </div>
-
-  <!-- Grid Principal de Tarjetas -->
-  <div class="grid-container" *ngIf="!isLoading && books.length > 0">
-
-    <div class="glass-panel book-card" *ngFor="let book of books; let i = index; trackBy: trackBook"
-         [routerLink]="['/book', book.slug]"
-         [style.animation-delay]="(i * 40) + 'ms'">
-
-      <!-- Portada: miniatura Supabase; las primeras cargan con prioridad,
-           el resto lazy. Skeleton local sólo mientras esta imagen carga. -->
-      <div class="card-image" [class.cover-pending]="!book.coverLoaded">
-        <img class="cover-img"
-             [src]="book.coverThumb"
-             [alt]="book.title"
-             [attr.loading]="book.coverPriority ? 'eager' : 'lazy'"
-             [attr.fetchpriority]="book.coverPriority ? 'high' : 'low'"
-             decoding="async"
-             width="360" height="360"
-             (load)="onImgLoad(book)"
-             (error)="onImgError($event, book)">
-        <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
-      </div>
-      
-      <div class="card-content">
-        <h3 class="book-title">{{ book.title }}</h3>
-        
-        <!-- Synopsis recortada a 120 chars -->
-        <p class="book-synopsis">
-          {{ (book.synopsis && book.synopsis.length > 100) ? (book.synopsis | slice:0:100) + '...' : book.synopsis }}
-        </p>
-        
-        <div class="card-actions">
-          <span class="read-hint">
-            Ver Detalles
-            <svg xmlns="http://www.w3.org/svg/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-              <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+      <ng-container *ngIf="!isHome">
+        <div class="results-toolbar">
+          <button class="filter-toggle" type="button" (click)="toggleSidebar()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
             </svg>
+            Géneros
+            <span class="filter-toggle-dot" *ngIf="activeGenreSlug"></span>
+          </button>
+
+          <div class="search-box">
+            <span class="material-symbols-rounded search-icon">search</span>
+            <input type="text"
+                   placeholder="Encuentra tu próximo libro o autor…"
+                   [value]="searchTerm"
+                   (keyup)="onSearch($event)"
+                   class="glass-input search-input">
+          </div>
+        </div>
+
+        <div class="active-filters" *ngIf="activeGenreName || searchTerm">
+          <span class="filter-chip" *ngIf="activeGenreName" (click)="selectGenre(activeGenreSlug)">
+            {{ activeGenreName }} <span class="chip-x">✕</span>
           </span>
+          <span class="filter-chip" *ngIf="searchTerm">
+            «{{ searchTerm }}»
+          </span>
+          <button class="clear-link" type="button" (click)="clearFilters()">Limpiar filtros</button>
+        </div>
+      </ng-container>
+
+      <!-- Contador de resultados -->
+      <div class="results-count" *ngIf="!isLoading && !errorMsg && books.length > 0 && (activeGenreName || searchTerm)">
+        {{ totalCount }} {{ totalCount === 1 ? 'libro encontrado' : 'libros encontrados' }}<span *ngIf="activeGenreName"> en “{{ activeGenreName }}”</span>
+      </div>
+
+      <!-- Loading State (Skeleton) -->
+      <div class="grid-container" *ngIf="isLoading && !errorMsg">
+        <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6,7,8]">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-text title"></div>
+          <div class="skeleton-text description"></div>
+          <div class="skeleton-button"></div>
         </div>
       </div>
-    
-    </div>
 
-  </div>
+      <!-- Error State -->
+      <div class="message-banner error" *ngIf="errorMsg">
+        {{ errorMsg }}
+      </div>
 
-  <!-- Paginación -->
-  <div *ngIf="!isLoading && totalPages > 1" class="pagination-bar">
-    <span class="results-count">{{ totalCount }} libros encontrados</span>
-    <div class="pagination-controls">
-      <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-        ← Anterior
-      </button>
-      <span class="page-indicator">pág. {{ currentPage }} / {{ totalPages }}</span>
-      <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-        Siguiente →
-      </button>
-    </div>
+      <!-- Empty State -->
+      <div class="message-banner info" *ngIf="!isLoading && books.length === 0 && !errorMsg">
+        No se encontraron libros con estos filtros.
+        <button class="clear-link" type="button" *ngIf="activeGenreName || searchTerm" (click)="clearFilters()">Ver todo el catálogo</button>
+      </div>
+
+      <!-- Grid Principal de Tarjetas -->
+      <div class="grid-container" *ngIf="!isLoading && books.length > 0">
+
+        <a class="glass-panel book-card" *ngFor="let book of books; let i = index; trackBy: trackBook"
+           [routerLink]="['/book', book.slug]"
+           [style.animation-delay]="(i * 35) + 'ms'">
+
+          <!-- Portada: miniatura Supabase; las primeras cargan con prioridad,
+               el resto lazy. Skeleton local sólo mientras esta imagen carga. -->
+          <div class="card-image" [class.cover-pending]="!book.coverLoaded">
+            <img class="cover-img"
+                 [src]="book.coverThumb"
+                 [alt]="book.title"
+                 [attr.loading]="book.coverPriority ? 'eager' : 'lazy'"
+                 [attr.fetchpriority]="book.coverPriority ? 'high' : 'low'"
+                 decoding="async"
+                 width="360" height="360"
+                 (load)="onImgLoad(book)"
+                 (error)="onImgError($event, book)">
+            <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
+          </div>
+
+          <div class="card-content">
+            <h3 class="book-title">{{ book.title }}</h3>
+
+            <p class="book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+
+            <!-- Synopsis recortada -->
+            <p class="book-synopsis">
+              {{ (book.synopsis && book.synopsis.length > 110) ? (book.synopsis | slice:0:110) + '…' : (book.synopsis || 'Sin sinopsis disponible.') }}
+            </p>
+
+            <div class="card-footer">
+              <span class="pages-badge" *ngIf="book.page_count"
+                    [title]="book.word_count ? (book.word_count | number) + ' palabras' : null">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                {{ book.page_count | number }} {{ book.page_count === 1 ? 'pág.' : 'págs.' }}
+              </span>
+
+              <span class="read-hint">
+                Ver Detalles
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+
+        </a>
+
+      </div>
+
+      <!-- Paginación -->
+      <div *ngIf="!isLoading && totalPages > 1" class="pagination-bar">
+        <span class="results-count">{{ totalCount }} {{ totalCount === 1 ? 'libro' : 'libros' }}</span>
+        <div class="pagination-controls">
+          <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+            ← Anterior
+          </button>
+          <span class="page-indicator">pág. {{ currentPage }} / {{ totalPages }}</span>
+          <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+            Siguiente →
+          </button>
+        </div>
+      </div>
+
+    </section>
   </div>
 
 </div>

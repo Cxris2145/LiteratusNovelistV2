@@ -88,10 +88,15 @@ class BookListSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField()
     author_name = serializers.SerializerMethodField()
     ai_character_count = serializers.IntegerField(read_only=True)
-    
+    # word_count = nº EXACTO de palabras (columna en DB).
+    # page_count = word_count / WORDS_PER_PAGE redondeado (propiedad del modelo);
+    #             None si el libro aún no tiene contenido cargado.
+    word_count = serializers.IntegerField(read_only=True)
+    page_count = serializers.ReadOnlyField()
+
     class Meta:
         model = Book
-        fields = ['id', 'title', 'slug', 'synopsis', 'is_featured', 'cover_image', 'genres', 'tags', 'price', 'author_name', 'ai_character_count']
+        fields = ['id', 'title', 'slug', 'synopsis', 'is_featured', 'cover_image', 'genres', 'tags', 'price', 'author_name', 'ai_character_count', 'word_count', 'page_count']
 
     def get_price(self, obj):
         editions = obj.editions.all()
@@ -190,10 +195,13 @@ class BookDetailFullSerializer(BookDetailSerializer):
         return AIAvatarLightSerializer(unique_avatars, many=True, context=self.context).data
 
     def get_total_words(self, obj):
-        """Calcula el total de palabras de todos los capítulos."""
-        chapters = obj.chapters.all()
+        """Total EXACTO de palabras del libro. Usa el valor almacenado
+        (`word_count`, recalculado al importar) y sólo lo computa en vivo como
+        respaldo si aún no está poblado."""
+        if obj.word_count:
+            return obj.word_count
         total_words = 0
-        for chapter in chapters:
+        for chapter in obj.chapters.all():
             if chapter.content_html:
                 total_words += len(chapter.content_html.split())
         return total_words
