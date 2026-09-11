@@ -3,7 +3,7 @@
    Paleta: verde oscuro · azul petróleo · dorado suave
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
 
 /* ── Variables ─────────────────────────────────────────── */
 :host {
@@ -23,6 +23,7 @@
   --ease-smooth:  cubic-bezier(0.4, 0, 0.2, 1);
   --font-serif:   'Cormorant Garamond', Georgia, serif;
   --font-sans:    'Inter', system-ui, sans-serif;
+  --font-num:     'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* ── Wrapper global ──────────────────────────────────────── */
@@ -362,15 +363,18 @@
 }
 
 .balance-number {
-  font-family: var(--font-serif);
-  font-size: clamp(3rem, 6vw, 4.5rem);
-  font-weight: 700;
-  background: linear-gradient(to bottom, #fff 20%, var(--gold-bright) 80%);
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-size: clamp(2.8rem, 5.5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 25%, var(--gold-bright) 85%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
-  filter: drop-shadow(0 0 20px rgba(201,168,76,0.4));
+  filter: drop-shadow(0 0 18px rgba(201,168,76,0.35));
 }
 
 .balance-unit {
@@ -468,8 +472,11 @@
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.05));
   color: var(--gold-bright);
+  font-family: var(--font-sans);
   font-size: 0.92rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
   letter-spacing: 0.04em;
   cursor: pointer;
   overflow: hidden;
@@ -620,17 +627,29 @@
 .chest-amount-row {
   display: flex;
   align-items: baseline;
-  gap: 0.4rem;
+  gap: 0.45rem;
   justify-content: center;
+  margin: 0.4rem 0 0.2rem;
 }
 .chest-amount {
-  font-family: var(--font-serif);
-  font-size: 2.8rem;
-  font-weight: 700;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--gold-bright);
   line-height: 1;
+  text-shadow: 0 0 16px rgba(240, 208, 128, 0.25);
 }
-.chest-featured .chest-amount { font-size: 3.5rem; }
+.chest-featured .chest-amount {
+  font-size: 3.2rem;
+  background: linear-gradient(135deg, #ffffff 20%, var(--gold-bright) 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 18px rgba(201,168,76,0.35));
+}
 
 .chest-amount-label {
   font-size: 0.8rem;
@@ -658,8 +677,11 @@
   border-radius: 12px;
   background: rgba(255,255,255,0.06);
   color: var(--cream);
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-family: var(--font-num);
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
   cursor: pointer;
   overflow: hidden;
   transition: all 0.3s var(--ease-smooth);

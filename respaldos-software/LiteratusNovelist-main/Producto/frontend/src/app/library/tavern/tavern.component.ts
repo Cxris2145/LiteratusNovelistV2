@@ -26,6 +26,11 @@ export class TavernComponent implements OnInit, AfterViewInit {
 
   private router = inject(Router);
 
+  formatAmount(val: number): string {
+    if (val === null || val === undefined || isNaN(val)) return '0';
+    return Number(val).toLocaleString('es-CL');
+  }
+
   ngOnInit(): void {
     if (this.isLoggedIn()) {
       this.fetchBalance();

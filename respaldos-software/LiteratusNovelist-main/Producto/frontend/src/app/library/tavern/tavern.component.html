@@ -73,7 +73,7 @@
         <span class="balance-label">Tu Reserva de Tinta</span>
         <div class="balance-counter">
           <span class="ink-glyph" aria-hidden="true">🖋</span>
-          <span class="balance-number">{{ displayBalance }}</span>
+          <span class="balance-number">{{ formatAmount(displayBalance) }}</span>
           <span class="balance-unit">tinta</span>
         </div>
         <p class="balance-hint" *ngIf="isLoggedIn()">
@@ -133,7 +133,7 @@
         <div class="chest-body">
           <h3 class="chest-name">{{ chest.title }}</h3>
           <div class="chest-amount-row">
-            <span class="chest-amount">{{ chest.amount }}</span>
+            <span class="chest-amount">{{ formatAmount(chest.amount) }}</span>
             <span class="chest-amount-label">Tinta</span>
           </div>
           <p class="chest-tagline" [ngSwitch]="i">

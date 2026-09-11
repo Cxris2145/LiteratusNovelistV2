@@ -63,3 +63,9 @@
   text-decoration: underline;
   color: white;
 }
+
+/* ── Botón de Ingreso de pruebas (mismo formato que Iniciar Sesión) ── */
+.test-login-btn {
+  margin-top: 12px;
+}
+

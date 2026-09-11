@@ -907,6 +907,12 @@
     <span class="animated-emoji">🔖</span> Marcador guardado
   </div>
 
+  <!-- TOAST DE REANUDACIÓN DE MARCADOR (DESAPARECE EN 5S) -->
+  <div class="bookmark-resume-toast glass-panel" [class.show]="showBookmarkResumeBadge">
+    <span class="animated-emoji">🔖</span>
+    <span>Reanudando marcador en: <strong>"{{ bookmarkResumeWordText }}"</strong></span>
+  </div>
+
   <!-- LIGHTBOX PARA IMÁGENES -->
   <div class="image-lightbox-overlay" *ngIf="showImageModal" (click)="closeImageModal()">
     <button class="close-lightbox-btn" (click)="closeImageModal()">✕</button>

@@ -3093,6 +3093,76 @@ h2.chapter-heading { font-size: 1.28em; }
   50% { transform: translateY(-5px); }
 }
 
+/* ── RESALTADO TEMPORAL DE MARCADOR (5 SEGUNDOS) ── */
+.bookmark-word-highlight {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.45), rgba(245, 158, 11, 0.35)) !important;
+  color: #ffffff !important;
+  border-radius: 4px;
+  padding: 2px 5px !important;
+  margin: -2px -5px !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.85), 0 0 28px rgba(251, 191, 36, 0.45) !important;
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+  display: inline-block;
+  position: relative;
+  z-index: 10;
+  animation: bookmarkGlowPulse 1.2s infinite alternate ease-in-out;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes bookmarkGlowPulse {
+  0% {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.5), 0 0 16px rgba(251, 191, 36, 0.25);
+    outline-color: rgba(245, 158, 11, 0.7);
+  }
+  100% {
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.95), 0 0 35px rgba(251, 191, 36, 0.6);
+    outline-color: #fbbf24;
+  }
+}
+
+/* Efecto destello al guardar marcador */
+.bookmark-saved-flash {
+  background: rgba(52, 211, 153, 0.5) !important;
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.7) !important;
+  border-radius: 3px;
+  transition: all 0.5s ease-out;
+}
+
+/* Toast flotante de reanudación de marcador */
+.bookmark-resume-toast {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  padding: 12px 24px;
+  border-radius: 30px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #f1f5f9;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.35);
+  backdrop-filter: blur(12px);
+}
+
+.bookmark-resume-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.bookmark-resume-toast strong {
+  color: #fbbf24;
+}
+
 /* IMAGENES DE ESCENA + LIGHTBOX
    Una sola regla, responsiva, sin !important. Las imagenes acompanan la
    lectura (hasta 640px, proporcionadas) en vez de miniaturas rigidas. */

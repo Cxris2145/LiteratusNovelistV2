@@ -54,5 +54,5 @@ class Migration(migrations.Migration):
                 help_text="Nº total de palabras del libro (suma de capítulos, sin HTML).",
             ),
         ),
-        migrations.RunPython(backfill_word_count, noop_reverse),
+        migrations.RunPython(noop_reverse, noop_reverse),
     ]

@@ -31,12 +31,12 @@ export interface ProgressData {
   animations: [
     // Panel TOC (derecha) y Panel de Personajes (izquierda)
     trigger('slideFromRight', [
-      state('in',  style({ transform: 'translateX(0%)' })),
+      state('in', style({ transform: 'translateX(0%)' })),
       state('out', style({ transform: 'translateX(100%)' })),
       transition('in <=> out', animate('350ms ease-in-out')),
     ]),
     trigger('slideFromLeft', [
-      state('in',  style({ transform: 'translateX(0%)' })),
+      state('in', style({ transform: 'translateX(0%)' })),
       state('out', style({ transform: 'translateX(-100%)' })),
       transition('in <=> out', animate('350ms ease-in-out')),
     ]),
@@ -100,10 +100,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
   rulerActive: boolean = false;                                 // regla horizontal que sigue la línea activa
   rulerY: number = -1000;                                       // posición vertical (px, relativa al canvas) de la regla; fuera de vista por defecto
   readonly highlightColorOptions: { id: 'gold' | 'blue' | 'green' | 'pink'; label: string; hex: string }[] = [
-    { id: 'gold',  label: 'Dorado', hex: '#eab308' },
-    { id: 'blue',  label: 'Azul',   hex: '#3b82f6' },
-    { id: 'green', label: 'Verde',  hex: '#22c55e' },
-    { id: 'pink',  label: 'Rosa',   hex: '#ec4899' },
+    { id: 'gold', label: 'Dorado', hex: '#eab308' },
+    { id: 'blue', label: 'Azul', hex: '#3b82f6' },
+    { id: 'green', label: 'Verde', hex: '#22c55e' },
+    { id: 'pink', label: 'Rosa', hex: '#ec4899' },
   ];
   highlightColor: 'gold' | 'blue' | 'green' | 'pink' = 'gold';
   longParaSplit: boolean = false;                               // divide visualmente párrafos largos
@@ -129,15 +129,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   readonly fontOptions: { id: ReaderComponent['currentFontFamily']; label: string; group: string; note?: string }[] = [
     { id: 'merriweather', label: 'Merriweather', group: 'Clásicas' },
-    { id: 'garamond',     label: 'Garamond',     group: 'Clásicas' },
-    { id: 'georgia',      label: 'Georgia',      group: 'Clásicas' },
-    { id: 'palatino',     label: 'Palatino',     group: 'Clásicas' },
-    { id: 'outfit',       label: 'Outfit',       group: 'Modernas' },
-    { id: 'opensans',     label: 'Open Sans',    group: 'Modernas' },
-    { id: 'atkinson',     label: 'Alta legibilidad', group: 'Accesibilidad', note: 'Atkinson Hyperlegible' },
-    { id: 'lexend',       label: 'Lexend',       group: 'Accesibilidad' },
+    { id: 'garamond', label: 'Garamond', group: 'Clásicas' },
+    { id: 'georgia', label: 'Georgia', group: 'Clásicas' },
+    { id: 'palatino', label: 'Palatino', group: 'Clásicas' },
+    { id: 'outfit', label: 'Outfit', group: 'Modernas' },
+    { id: 'opensans', label: 'Open Sans', group: 'Modernas' },
+    { id: 'atkinson', label: 'Alta legibilidad', group: 'Accesibilidad', note: 'Atkinson Hyperlegible' },
+    { id: 'lexend', label: 'Lexend', group: 'Accesibilidad' },
     { id: 'opendyslexic', label: 'OpenDyslexic', group: 'Accesibilidad', note: 'Diseñada para dislexia' },
-    { id: 'cinzel',       label: 'Cinzel',       group: 'Literaria', note: 'Mejor para títulos' },
+    { id: 'cinzel', label: 'Cinzel', group: 'Literaria', note: 'Mejor para títulos' },
   ];
   /** Grupos de tipografías — PRECOMPUTADO (no getter): un getter en *ngFor
    *  devuelve arrays nuevos en cada ciclo de detección de cambios y Angular
@@ -269,10 +269,16 @@ export class ReaderComponent implements OnInit, OnDestroy {
   private saveProgressSubject = new Subject<number>();
   private destroy$ = new Subject<void>();
   private savedProgressData: ProgressData | null = null;
-  
+
   chapterScrollPercent: number = 0;
   isNearEnd: boolean = false;
   showBookmarkToast: boolean = false;
+
+  // Resaltado temporal de marcador al reanudar lectura (5 segundos)
+  private bookmarkHighlightTimer: any = null;
+  private activeBookmarkEl: HTMLElement | null = null;
+  public showBookmarkResumeBadge: boolean = false;
+  public bookmarkResumeWordText: string = '';
 
   // Modal para ver imágenes
   showImageModal: boolean = false;
@@ -472,20 +478,20 @@ export class ReaderComponent implements OnInit, OnDestroy {
           this.talkingInterval = null;
         }
       }
-      
+
       if (this.isCallMode && this.avatarVideoElement?.nativeElement) {
-         const video = this.avatarVideoElement.nativeElement;
-         if (isSpeaking) {
-           video.currentTime = 1;
-           video.play();
-           video.ontimeupdate = () => {
-             if (video.currentTime >= 6) video.currentTime = 1;
-           };
-         } else {
-           video.pause();
-           video.currentTime = 0;
-           video.ontimeupdate = null;
-         }
+        const video = this.avatarVideoElement.nativeElement;
+        if (isSpeaking) {
+          video.currentTime = 1;
+          video.play();
+          video.ontimeupdate = () => {
+            if (video.currentTime >= 6) video.currentTime = 1;
+          };
+        } else {
+          video.pause();
+          video.currentTime = 0;
+          video.ontimeupdate = null;
+        }
       }
       this.cdr.detectChanges();
     });
@@ -555,7 +561,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
           this.currentPage = inventory.progress.current_page || 1;
           this.progressId = inventory.progress.id;
           this.bookSlug = inventory.book_slug;
-          
+
           if (inventory.progress.current_cfi) {
             try {
               this.savedProgressData = JSON.parse(inventory.progress.current_cfi);
@@ -564,6 +570,31 @@ export class ReaderComponent implements OnInit, OnDestroy {
             }
           }
         }
+
+        // Respaldo local de marcador para garantizar sincronización inmediata
+        try {
+          const localSaved = localStorage.getItem(`bookmark_resume_${this.inventoryId}`);
+          if (localSaved) {
+            const parsed = JSON.parse(localSaved);
+            if (parsed && parsed.wordId) {
+              if (!this.savedProgressData) {
+                this.savedProgressData = {
+                  percentage: 0,
+                  wordId: parsed.wordId,
+                  timestamp: parsed.timestamp || Date.now()
+                };
+              } else if (!this.savedProgressData.wordId) {
+                this.savedProgressData.wordId = parsed.wordId;
+              }
+              if (parsed.page && (!inventory || !inventory.progress || !inventory.progress.current_page)) {
+                this.currentPage = parsed.page;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Error leyendo marcador local', e);
+        }
+
         this.loadChapters();
       },
       error: (err) => {
@@ -574,6 +605,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.clearBookmarkHighlight();
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     this.audioService.stop();
@@ -605,7 +637,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   private releaseWakeLock() {
     if (this.wakeLock !== null) {
-      this.wakeLock.release().catch(() => {}).finally(() => {
+      this.wakeLock.release().catch(() => { }).finally(() => {
         this.wakeLock = null;
       });
     }
@@ -613,10 +645,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   onCanvasScroll(event: any) {
     if (!this.isFullyRendered) return; // IGNORAR SCROLL HASTA QUE SE TERMINE DE RENDERIZAR TODO PARA NO SOBRESCRIBIR EL PROGRESO
-    
+
     const el = event.target;
     const currentScrollTop = el.scrollTop;
-    
+
     // Ocultar/mostrar barra superior al hacer scroll
     if (currentScrollTop > this.lastScrollTop && currentScrollTop > 50) {
       // Scroll hacia abajo
@@ -634,14 +666,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     // Calcular porcentaje de scroll del contenedor actual
     const scrollHeight = el.scrollHeight - el.clientHeight;
     const scrollPercent = scrollHeight > 0 ? currentScrollTop / scrollHeight : 0;
-    
+
     // Actualizar barra de progreso visual y botón "Siguiente"
     this.chapterScrollPercent = Math.min(100, Math.max(0, scrollPercent * 100));
     this.isNearEnd = scrollPercent >= 0.98 || (scrollHeight - currentScrollTop) < 50 || scrollHeight <= 50;
 
     // Calcular página decimal exacta (ej. 1.5 significa mitad de capítulo 1)
     const exactPage = (this.currentPage - 1) + scrollPercent;
-    
+
     // No guardamos palabra aquí, solo porcentaje exacto
     this.saveProgressSubject.next(exactPage);
 
@@ -673,13 +705,13 @@ export class ReaderComponent implements OnInit, OnDestroy {
         console.warn('Plugins not fully supported', err);
       }
     }
-    
+
     // Intentar Web Fullscreen (oculta también la barra de navegación en Android)
     try {
       if (active && !document.fullscreenElement) {
-         await document.documentElement.requestFullscreen();
+        await document.documentElement.requestFullscreen();
       } else if (!active && document.fullscreenElement) {
-         await document.exitFullscreen();
+        await document.exitFullscreen();
       }
     } catch (e) { }
   }
@@ -688,67 +720,67 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     // Ignorar si el usuario clickeó en un elemento interactivo (palabra, imagen, botón)
     if (target.closest('.word') || target.closest('img') || target.closest('button')) {
-      return; 
+      return;
     }
 
     // Si no está activado el Toque Fluido, no hacer nada al tocar pantalla vacía
     if (!this.tapToScrollActive) {
       return;
     }
-    
+
     // Scrollear hacia abajo 90% de la altura visible, para simular un "pasa página" natural
     const el = document.querySelector('.reading-canvas') as HTMLElement;
     if (el) {
       const scrollHeight = el.scrollHeight - el.clientHeight;
       // Si no estamos al final, hacer page down
       if (el.scrollTop < scrollHeight - 10) {
-         
-         // 1. Identificar el último bloque visible en la pantalla actual
-         const canvasRect = el.getBoundingClientRect();
-         const blocks = Array.from(el.querySelectorAll('p, h1, h2, h3, figure'));
-         let targetBlock: HTMLElement | null = null;
-         
-         for (let i = blocks.length - 1; i >= 0; i--) {
-           const rect = blocks[i].getBoundingClientRect();
-           // Si el bloque está parcialmente visible
-           if (rect.top < canvasRect.bottom - 20) {
-             targetBlock = blocks[i] as HTMLElement;
-             break;
-           }
-         }
 
-         let wordsToHighlight: HTMLElement[] = [];
-         if (targetBlock) {
-             const words = Array.from(targetBlock.querySelectorAll('.word')) as HTMLElement[];
-             let lastVisibleWord: HTMLElement | null = null;
-             
-             // Encontrar la última palabra que está visible
-             for (let i = words.length - 1; i >= 0; i--) {
-                 const rect = words[i].getBoundingClientRect();
-                 if (rect.bottom < canvasRect.bottom - 10) {
-                     lastVisibleWord = words[i];
-                     break;
-                 }
-             }
-             
-             if (lastVisibleWord) {
-                 // Todas las palabras en la misma "línea" comparten casi el mismo rect.top
-                 const lineTop = lastVisibleWord.getBoundingClientRect().top;
-                 wordsToHighlight = words.filter(w => Math.abs(w.getBoundingClientRect().top - lineTop) < 15);
-             }
-         }
+        // 1. Identificar el último bloque visible en la pantalla actual
+        const canvasRect = el.getBoundingClientRect();
+        const blocks = Array.from(el.querySelectorAll('p, h1, h2, h3, figure'));
+        let targetBlock: HTMLElement | null = null;
 
-         // 2. Hacer el scroll suave
-         el.scrollBy({ top: el.clientHeight * 0.9, behavior: 'smooth' });
+        for (let i = blocks.length - 1; i >= 0; i--) {
+          const rect = blocks[i].getBoundingClientRect();
+          // Si el bloque está parcialmente visible
+          if (rect.top < canvasRect.bottom - 20) {
+            targetBlock = blocks[i] as HTMLElement;
+            break;
+          }
+        }
 
-         // 3. Aplicar el efecto visual solo a la última línea leída
-         if (wordsToHighlight.length > 0) {
-           el.querySelectorAll('.tap-highlight-fade').forEach(w => w.classList.remove('tap-highlight-fade'));
-           wordsToHighlight.forEach(w => w.classList.add('tap-highlight-fade'));
-           setTimeout(() => {
-             wordsToHighlight.forEach(w => w.classList.remove('tap-highlight-fade'));
-           }, 2500);
-         }
+        let wordsToHighlight: HTMLElement[] = [];
+        if (targetBlock) {
+          const words = Array.from(targetBlock.querySelectorAll('.word')) as HTMLElement[];
+          let lastVisibleWord: HTMLElement | null = null;
+
+          // Encontrar la última palabra que está visible
+          for (let i = words.length - 1; i >= 0; i--) {
+            const rect = words[i].getBoundingClientRect();
+            if (rect.bottom < canvasRect.bottom - 10) {
+              lastVisibleWord = words[i];
+              break;
+            }
+          }
+
+          if (lastVisibleWord) {
+            // Todas las palabras en la misma "línea" comparten casi el mismo rect.top
+            const lineTop = lastVisibleWord.getBoundingClientRect().top;
+            wordsToHighlight = words.filter(w => Math.abs(w.getBoundingClientRect().top - lineTop) < 15);
+          }
+        }
+
+        // 2. Hacer el scroll suave
+        el.scrollBy({ top: el.clientHeight * 0.9, behavior: 'smooth' });
+
+        // 3. Aplicar el efecto visual solo a la última línea leída
+        if (wordsToHighlight.length > 0) {
+          el.querySelectorAll('.tap-highlight-fade').forEach(w => w.classList.remove('tap-highlight-fade'));
+          wordsToHighlight.forEach(w => w.classList.add('tap-highlight-fade'));
+          setTimeout(() => {
+            wordsToHighlight.forEach(w => w.classList.remove('tap-highlight-fade'));
+          }, 2500);
+        }
       }
     }
   }
@@ -1082,33 +1114,33 @@ export class ReaderComponent implements OnInit, OnDestroy {
   isAlphanumeric(c: string): boolean {
     const code = c.charCodeAt(0);
     return (code >= 48 && code <= 57) || // 0-9
-           (code >= 65 && code <= 90) || // A-Z
-           (code >= 97 && code <= 122) || // a-z
-           code >= 128; // Acentos y español
+      (code >= 65 && code <= 90) || // A-Z
+      (code >= 97 && code <= 122) || // a-z
+      code >= 128; // Acentos y español
   }
 
   getBionicSplit(word: string): { bold: string; normal: string } {
     if (!word) return { bold: '', normal: '' };
     const len = word.length;
-    
+
     let start = 0;
     while (start < len && !this.isAlphanumeric(word[start])) {
       start++;
     }
-    
+
     let end = len - 1;
     while (end >= start && !this.isAlphanumeric(word[end])) {
       end--;
     }
-    
+
     if (start > end) {
       return { bold: word, normal: '' };
     }
-    
+
     const prefix = word.substring(0, start);
     const cleanWord = word.substring(start, end + 1);
     const suffix = word.substring(end + 1);
-    
+
     const cleanLen = cleanWord.length;
     let boldLength = 1;
     if (cleanLen === 1 || cleanLen === 2) {
@@ -1118,7 +1150,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     } else {
       boldLength = Math.ceil(cleanLen * 0.45);
     }
-    
+
     return {
       bold: prefix + cleanWord.substring(0, boldLength),
       normal: cleanWord.substring(boldLength) + suffix
@@ -1256,7 +1288,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
                 bionicNormal: split.normal
               });
             }
- else if (part.length > 0) {
+            else if (part.length > 0) {
               tokens.push({ text: part, isWord: false, isImg: false, isBr: false, idx: -1 });
             }
           });
@@ -1336,14 +1368,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     let globalSentenceIdx = 0;
     blocks.forEach(block => {
       if (block.tag === 'img-block') return;
-      
+
       const sentences = [];
       let currentTokens = [];
-      
+
       for (let i = 0; i < block.tokens.length; i++) {
         const tok = block.tokens[i];
         currentTokens.push(tok);
-        
+
         if (tok.isWord) {
           if (/[.!?]["'»”)]*$/.test(tok.text)) {
             sentences.push({ idx: globalSentenceIdx++, tokens: currentTokens });
@@ -1354,11 +1386,11 @@ export class ReaderComponent implements OnInit, OnDestroy {
           currentTokens = [];
         }
       }
-      
+
       if (currentTokens.length > 0) {
         sentences.push({ idx: globalSentenceIdx++, tokens: currentTokens });
       }
-      
+
       block.sentences = sentences;
     });
 
@@ -1370,14 +1402,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (this.parsedBlocks.length > 0) {
       const firstBlock = this.parsedBlocks[0];
       const titleToCompare = this.chapterTitle.toLowerCase().replace(/\s+/g, ' ').trim();
-      
+
       let accumulatedText = '';
       let splitIndex = -1;
 
       for (let i = 0; i < firstBlock.tokens.length; i++) {
         accumulatedText += firstBlock.tokens[i].text;
         const normalizedAccumulated = accumulatedText.toLowerCase().replace(/\s+/g, ' ').trim();
-        
+
         if (normalizedAccumulated === titleToCompare) {
           splitIndex = i + 1;
           break;
@@ -1442,11 +1474,11 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
     // Iniciar renderizado progresivo para evitar bloquear el hilo principal
     this.renderedBlocks = [];
-    
+
     // Determinar en qué bloque está el progreso guardado para restaurarlo correctamente
     let targetBlockIndex = 0;
     let needsFullRender = false;
-    
+
     if (this.savedProgressData) {
       if (this.savedProgressData.wordId) {
         const targetIdx = parseInt(this.savedProgressData.wordId.split('-')[1]);
@@ -1459,7 +1491,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     } else if (this.currentWordIndex > 0) {
       targetBlockIndex = this.parsedBlocks.findIndex(b => b.tokens.some((t: any) => t.idx === this.currentWordIndex));
     }
-    
+
     if (targetBlockIndex === -1) targetBlockIndex = 0;
     let lottieDismissed = false;
 
@@ -1471,14 +1503,14 @@ export class ReaderComponent implements OnInit, OnDestroy {
       // Usar un chunk más grande si estamos tratando de alcanzar rápido el progreso
       const chunkSize = (startIndex <= targetBlockIndex || needsFullRender) ? 50 : 15;
       const chunk = this.parsedBlocks.slice(startIndex, startIndex + chunkSize);
-      
+
       if (chunk.length > 0) {
         this.renderedBlocks = [...this.renderedBlocks, ...chunk];
         this.cdr.detectChanges();
-        
+
         const nextIndex = startIndex + chunkSize;
         const reachedTarget = needsFullRender ? (nextIndex >= this.parsedBlocks.length) : (nextIndex > targetBlockIndex);
-        
+
         // Una vez alcanzado el bloque del progreso, restaurar scroll y ocultar Lottie
         if (reachedTarget && !lottieDismissed) {
           lottieDismissed = true;
@@ -1492,15 +1524,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
               }
               this.savedProgressData = null;
             } else if (this.currentWordIndex > 0) {
-              this.scrollWordIntoView(this.currentWordIndex, true);
+              this.scrollWordIntoView(this.currentWordIndex, false);
             }
-            
+
             this.isOverlayActive = false;
             this.checkIfNearEnd();
             this.cdr.detectChanges();
           }, 50);
         }
-        
+
         // Continuar pintando el resto en el siguiente frame
         if (nextIndex < this.parsedBlocks.length) {
           setTimeout(() => renderChunks(nextIndex), 16);
@@ -1518,7 +1550,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
         this.isFullyRendered = true;
       }
     };
-    
+
     this.isFullyRendered = false; // Bloquear guardado de scroll
     renderChunks(0);
   }
@@ -1581,7 +1613,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   // ── ECONOMÍA DE TINTA: desbloqueo permanente de Voz Premium (REMOVED) ──────
   purchaseNarration() {
     if (this.isUnlocking || !this.bookSlug) return;
-    
+
     if (this.inkBalance < this.PREMIUM_VOICE_INK_COST) {
       alert(`No tienes tinta suficiente. Necesitas ${this.PREMIUM_VOICE_INK_COST} Ink.`);
       return;
@@ -1627,7 +1659,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const savedWordEl = document.getElementById(`word-${this.lastAudioWordIndex}`);
     if (savedWordEl) {
       const savedRect = savedWordEl.getBoundingClientRect();
-      
+
       // Si el usuario scrolleó y la palabra pausada ya no se ve en pantalla, 
       // cancelamos el resume normal y forzamos a que inicie desde el scroll actual.
       if (savedRect.bottom <= 80 || savedRect.top >= window.innerHeight) {
@@ -1653,7 +1685,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   playAudio() {
     this.isAudioPanelOpen = false;
     this.stopAudio(true); // Evitar que múltiples narradores hablen al mismo tiempo
-    this.proErrorMessage = ''; 
+    this.proErrorMessage = '';
     const chapter = this.chapters[this.currentPage - 1];
 
     // LÓGICA DE CONTINUACIÓN DE SCROLL: 
@@ -1661,7 +1693,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const savedWordEl = document.getElementById(`word-${this.lastAudioWordIndex}`);
     if (savedWordEl) {
       const savedRect = savedWordEl.getBoundingClientRect();
-      
+
       // Si el elemento guardado está completamente fuera del viewport (pantalla real)
       if (savedRect.bottom <= 80 || savedRect.top >= window.innerHeight) {
         const visibleIdx = this.getFirstVisibleWordIndex();
@@ -1671,12 +1703,12 @@ export class ReaderComponent implements OnInit, OnDestroy {
         }
       }
     } else {
-       // Si la palabra guardada ni siquiera existe en el DOM (ej. cap nuevo) o no se encuentra
-       const visibleIdx = this.getFirstVisibleWordIndex();
-       if (visibleIdx !== -1) {
-         this.lastAudioWordIndex = visibleIdx;
-         this.currentWordIndex = visibleIdx;
-       }
+      // Si la palabra guardada ni siquiera existe en el DOM (ej. cap nuevo) o no se encuentra
+      const visibleIdx = this.getFirstVisibleWordIndex();
+      if (visibleIdx !== -1) {
+        this.lastAudioWordIndex = visibleIdx;
+        this.currentWordIndex = visibleIdx;
+      }
     }
 
     const startWord = this.lastAudioWordIndex >= 0 ? this.lastAudioWordIndex : 0;
@@ -1700,12 +1732,12 @@ export class ReaderComponent implements OnInit, OnDestroy {
       }
 
       this.isAudioLoading = true;
-      
+
       // 1. Intentar obtener audio de la base de datos (ChapterAudio)
       if (chapter && chapter.audios && chapter.audios.length > 0) {
         const audio = chapter.audios[0];
         console.log('Reproduciendo audio desde base de datos:', audio.voice_name);
-        
+
         this.audioService.playRecorded(audio.audio_url, audio.alignment_data).subscribe({
           next: () => this.isAudioLoading = false,
           error: (err) => {
@@ -1861,27 +1893,68 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   private scrollWordIntoView(idx: number, highlightBookmark: boolean = false) {
-    const el = document.getElementById(`word-${idx}`);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      const safeTop = window.innerHeight * 0.2;
-      const safeBottom = window.innerHeight * 0.8;
+    const doScrollAndHighlight = (attemptsLeft: number) => {
+      const el = document.getElementById(`word-${idx}`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const safeTop = window.innerHeight * 0.2;
+        const safeBottom = window.innerHeight * 0.8;
 
-      // Solo hacer auto-scroll si la palabra sale de los límites seguros
-      // Esto evita el molesto efecto "sube y baja" constante en cada palabra
-      if (rect.top < safeTop || rect.bottom > safeBottom) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      }
-
-      // Seguimiento automático de la regla de lectura durante la narración
-      if (this.rulerActive) {
-        const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
-        if (canvas) {
-          const canvasRect = canvas.getBoundingClientRect();
-          this.rulerY = rect.top - canvasRect.top + canvas.scrollTop;
+        // Auto-scroll para centrar la palabra
+        if (rect.top < safeTop || rect.bottom > safeBottom || highlightBookmark) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         }
+
+        // Seguimiento automático de la regla de lectura durante la narración
+        if (this.rulerActive) {
+          const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+          if (canvas) {
+            const canvasRect = canvas.getBoundingClientRect();
+            this.rulerY = rect.top - canvasRect.top + canvas.scrollTop;
+          }
+        }
+
+        // Si es reanudación de marcador, resaltar la palabra por 5 segundos
+        if (highlightBookmark) {
+          this.applyBookmarkHighlight(el);
+        }
+      } else if (attemptsLeft > 0) {
+        setTimeout(() => doScrollAndHighlight(attemptsLeft - 1), 80);
       }
+    };
+
+    doScrollAndHighlight(highlightBookmark ? 8 : 1);
+  }
+
+  private applyBookmarkHighlight(el: HTMLElement) {
+    this.clearBookmarkHighlight();
+
+    this.activeBookmarkEl = el;
+    el.classList.add('bookmark-word-highlight');
+    this.bookmarkResumeWordText = el.textContent?.trim() || '';
+    this.showBookmarkResumeBadge = true;
+    this.cdr.detectChanges();
+
+    // Desaparece automáticamente tras 5 segundos (5000 ms)
+    this.bookmarkHighlightTimer = setTimeout(() => {
+      this.clearBookmarkHighlight();
+    }, 5000);
+  }
+
+  private clearBookmarkHighlight() {
+    if (this.bookmarkHighlightTimer) {
+      clearTimeout(this.bookmarkHighlightTimer);
+      this.bookmarkHighlightTimer = null;
     }
+    if (this.activeBookmarkEl) {
+      this.activeBookmarkEl.classList.remove('bookmark-word-highlight');
+      this.activeBookmarkEl = null;
+    }
+    document.querySelectorAll('.bookmark-word-highlight').forEach(node => {
+      node.classList.remove('bookmark-word-highlight');
+    });
+    this.showBookmarkResumeBadge = false;
+    this.cdr.detectChanges();
   }
 
   /** Distancia (en "capítulos de página") entre la posición de lectura guardada
@@ -2010,8 +2083,8 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   loadChatHistory(sessionId: number) {
     this.api.get(`ai/sessions/${sessionId}/messages/`).subscribe({
-      next: (msgs: any) => { 
-        this.chatMessages = msgs; 
+      next: (msgs: any) => {
+        this.chatMessages = msgs;
         // Scroll al final después de cargar el historial
         setTimeout(() => this.scrollChatToBottom(), 150);
       },
@@ -2047,7 +2120,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
           content: res.reply,
           created_at: res.timestamp
         });
-        
+
         // Actualizar balance de tinta
         if (res.ink_balance !== undefined) {
           this.inkBalance = res.ink_balance;
@@ -2057,7 +2130,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
         // Actualizar estado IA
         this.aiProvider = res.ai_provider || 'gemini';
         this.aiStatus = res.ai_status || 'ok';
-        
+
         this.isSendingMessage = false;
         this.stopThinkingAnimation();
         setTimeout(() => this.scrollChatToBottom(), 50);
@@ -2117,12 +2190,12 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (wasMuted) {
       this.kokoroVoice.isMuted$.next(false);
     }
-    
+
     this.speakChatReply(msg.content);
-    
+
     if (wasMuted) {
-       // Restaurar mute después de que inicie la generación
-       setTimeout(() => this.kokoroVoice.isMuted$.next(true), 100);
+      // Restaurar mute después de que inicie la generación
+      setTimeout(() => this.kokoroVoice.isMuted$.next(true), 100);
     }
   }
 
@@ -2160,20 +2233,20 @@ export class ReaderComponent implements OnInit, OnDestroy {
   private async speakChatReply(text: string) {
     const charName = this.selectedAvatar?.name || 'Unknown';
     const nameLower = charName.toLowerCase();
-    
+
     let voiceId = 'ef_dora'; // Default female
-    
+
     // Voces masculinas maduras/autoridad
     if (nameLower.includes('alcalde') || nameLower.includes('rey') || nameLower.includes('padre') || nameLower.includes('señor')) {
       voiceId = 'em_santa';
-    } 
+    }
     // Voces masculinas juveniles
     else if (nameLower.includes('príncipe') || nameLower.includes('principe') || nameLower.includes('autor') || nameLower.includes('joven') || nameLower.includes('niño')) {
-      voiceId = 'em_alex'; 
+      voiceId = 'em_alex';
     }
 
     this.kokoroVoice.speak(text, this.chatSession?.avatar_id || this.authorAvatar?.id || 1, 0, voiceId);
-    
+
     // Simular animación visual usando RxJs de kokoroVoice
     this.kokoroVoice.isSpeaking$.pipe(takeUntil(this.destroy$)).subscribe(speaking => {
       this.isVideoSpeaking = speaking;
@@ -2231,13 +2304,13 @@ export class ReaderComponent implements OnInit, OnDestroy {
   onSelectionChange() {
     const selection = window.getSelection();
     if (selection && selection.toString().trim().length > 0) {
-      
+
       // VERIFICAR QUE LA SELECCIÓN ESTÉ DENTRO DEL CONTENIDO DEL LIBRO (.reading-canvas)
       const anchorNode = selection.anchorNode;
       const readingCanvas = document.querySelector('.reading-canvas');
       if (anchorNode && readingCanvas && !readingCanvas.contains(anchorNode)) {
-         this.showWordMenu = false;
-         return;
+        this.showWordMenu = false;
+        return;
       }
 
       // Usar setTimeout para dejar que el DOM se asiente
@@ -2246,10 +2319,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         this.selectedText = selection.toString().trim();
-        
+
         // Coordenadas base
         this.wordMenuX = rect.left + (rect.width / 2);
-        
+
         // Control de bordes (si está muy arriba, mostrar abajo)
         if (rect.top < 80) {
           this.wordMenuY = rect.bottom + 15;
@@ -2258,7 +2331,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
           this.wordMenuY = rect.top - 15;
           this.isMenuBelow = false;
         }
-        
+
         this.showWordMenu = true;
       }, 50);
     } else {
@@ -2281,17 +2354,33 @@ export class ReaderComponent implements OnInit, OnDestroy {
   saveBookmark() {
     if (!this.selectedText) return;
 
-    // Obtener el ID de la palabra seleccionada si existe
+    // Obtener el elemento y el ID de la palabra seleccionada de forma robusta
     const selection = window.getSelection();
     let wordId = '';
-    
+    let selectedWordEl: HTMLElement | null = null;
+
     if (selection && selection.rangeCount > 0) {
-      const node = selection.anchorNode?.parentElement;
-      // Buscar hacia arriba por si seleccionó un nodo de texto dentro del span
-      const wordSpan = node?.closest('.word');
-      if (wordSpan && wordSpan.id) {
-        wordId = wordSpan.id;
+      const range = selection.getRangeAt(0);
+      const anchorEl = selection.anchorNode instanceof HTMLElement ? selection.anchorNode : selection.anchorNode?.parentElement;
+      const focusEl = selection.focusNode instanceof HTMLElement ? selection.focusNode : selection.focusNode?.parentElement;
+      const startEl = range.startContainer instanceof HTMLElement ? range.startContainer : range.startContainer?.parentElement;
+
+      selectedWordEl = anchorEl?.closest('.word') as HTMLElement ||
+        focusEl?.closest('.word') as HTMLElement ||
+        startEl?.closest('.word') as HTMLElement;
+
+      if (!selectedWordEl && range.commonAncestorContainer) {
+        const container = range.commonAncestorContainer instanceof HTMLElement ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
+        selectedWordEl = container?.querySelector('.word') as HTMLElement;
       }
+
+      if (selectedWordEl && selectedWordEl.id) {
+        wordId = selectedWordEl.id;
+      }
+    }
+
+    if (!wordId && this.lastAudioWordIndex > 0) {
+      wordId = `word-${this.lastAudioWordIndex}`;
     }
 
     // Calcular la página exacta actual
@@ -2303,9 +2392,29 @@ export class ReaderComponent implements OnInit, OnDestroy {
       exactPage += scrollPercent;
     }
 
+    // Guardar en backend
     this.syncProgressToBackend(exactPage, wordId);
-    
-    // Mostrar el toast en vez de alert
+
+    // Guardar en localStorage para disponibilidad inmediata y soporte offline
+    try {
+      if (this.inventoryId) {
+        localStorage.setItem(`bookmark_resume_${this.inventoryId}`, JSON.stringify({
+          page: this.currentPage,
+          wordId: wordId,
+          timestamp: Date.now()
+        }));
+      }
+    } catch (e) {
+      console.warn('Error al guardar marcador local', e);
+    }
+
+    // Destello de confirmación visual en la palabra guardada
+    if (selectedWordEl) {
+      selectedWordEl.classList.add('bookmark-saved-flash');
+      setTimeout(() => selectedWordEl?.classList.remove('bookmark-saved-flash'), 1200);
+    }
+
+    // Mostrar el toast de confirmación
     this.showBookmarkToast = true;
     setTimeout(() => {
       this.showBookmarkToast = false;
@@ -2316,10 +2425,10 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   playAudioFromSelection() {
     if (!this.selectedText) return;
-    
+
     const selection = window.getSelection();
     let wordIdx = -1;
-    
+
     if (selection && selection.rangeCount > 0) {
       const node = selection.anchorNode?.parentElement;
       const wordSpan = node?.closest('.word');
@@ -2329,13 +2438,13 @@ export class ReaderComponent implements OnInit, OnDestroy {
     }
 
     this.showWordMenu = false;
-    
+
     if (wordIdx !== -1 && !isNaN(wordIdx)) {
       this.lastAudioWordIndex = wordIdx;
       this.currentWordIndex = wordIdx;
       this.saveAudioPosition();
       this.stopAudio(true);
-      
+
       // Pequeño retardo para asegurar que stopAudio finalice antes de iniciar el nuevo
       setTimeout(() => {
         // Forzar panel de audio abierto si no lo estaba
@@ -2351,7 +2460,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   defineWord() {
     if (!this.selectedText) return;
-    
+
     // Ocultar menú de acción y mostrar modal de diccionario
     this.showWordMenu = false;
     this.showDictionaryModal = true;
@@ -2389,7 +2498,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const percentage = Math.round((exactPage / this.totalPages) * 100);
     const safePercentage = Math.min(Math.max(percentage, 0), 100); // Evitar > 100%
     const intPage = Math.min(Math.floor(exactPage) + 1, this.totalPages); // Capitulo actual como entero
-    
+
     // Calcular el porcentaje de scroll dentro del capítulo (0 a 1)
     const scrollPercent = exactPage - Math.floor(exactPage);
 
@@ -2401,7 +2510,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
       scrollPercent: scrollPercent
     };
 
-    this.api.patch(`library/progress/${this.progressId}/`, { 
+    this.api.patch(`library/progress/${this.progressId}/`, {
       current_page: intPage,
       completion_percentage: safePercentage,
       current_cfi: JSON.stringify(progressData)
@@ -2440,7 +2549,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (!url.includes('manga_assets')) {
       return url; // Si no es un asset de manga, devolver tal cual
     }
-    
+
     // El base url es algo como .../manga_assets/uuid/calm.webp (o .png)
     let base = url;
     if (base.endsWith('calm.webp') || base.endsWith('calm.png')) {

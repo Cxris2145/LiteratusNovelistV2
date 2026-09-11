@@ -30,7 +30,11 @@
       </div>
 
       <button type="submit" class="glass-btn" [disabled]="loginForm.invalid || isLoading">
-        {{ isLoading ? 'Conectando...' : 'Iniciar Sesión' }}
+        {{ isLoading && !isAdminLoading ? 'Conectando...' : 'Iniciar Sesión' }}
+      </button>
+
+      <button type="button" class="glass-btn test-login-btn" (click)="loginAsAdmin()" [disabled]="isLoading">
+        {{ isAdminLoading ? 'Conectando...' : 'Ingreso de pruebas' }}
       </button>
 
     </form>

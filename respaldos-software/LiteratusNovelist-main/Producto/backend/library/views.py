@@ -97,7 +97,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             })
             
         return Response({
-            'has_premium_narration': inventory_item.has_premium_narration,
+            'has_premium_narration': inventory_item.has_premium_narration or request.user.is_staff or request.user.is_superuser,
             'chapters': data
         })
 
@@ -115,6 +115,16 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             user=request.user, 
             edition__book__slug=slug
         ).first()
+
+        if not inventory_item and (request.user.is_staff or request.user.is_superuser):
+            from catalog.models import Book
+            book = Book.objects.filter(slug=slug).first()
+            if book and book.editions.exists():
+                inventory_item, _ = UserInventory.objects.get_or_create(
+                    user=request.user,
+                    edition=book.editions.first(),
+                    defaults={'has_premium_narration': True}
+                )
         
         if inventory_item:
             return Response({

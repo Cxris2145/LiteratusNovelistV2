@@ -13,6 +13,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMsg = '';
   isLoading = false;
+  isAdminLoading = false;
   returnUrl: string = '/catalog';
   showPassword = false;
 
@@ -58,5 +59,34 @@ export class LoginComponent implements OnInit {
           this.isLoading = false;
         }
       });
+  }
+
+  loginAsAdmin() {
+    this.isLoading = true;
+    this.isAdminLoading = true;
+    this.errorMsg = '';
+
+    this.api.post<{access: string, refresh: string, user: any}>('users/login/', {
+      username: 'admin',
+      password: 'admin'
+    }).subscribe({
+      next: (res) => {
+        this.auth.setTokens(res.access, res.refresh);
+        if (res.user) {
+          this.auth.setUser(res.user);
+        }
+        // Entrar a la aplicación (catálogo o URL previa no administrativa), NO al panel de administración
+        const target = (this.returnUrl && !this.returnUrl.startsWith('/dashboard') && this.returnUrl !== '/login') 
+          ? this.returnUrl 
+          : '/catalog';
+        this.router.navigateByUrl(target);
+      },
+      error: (err) => {
+        console.error('Error al iniciar sesión como administrador:', err);
+        this.errorMsg = 'No se pudo conectar con las credenciales de administrador.';
+        this.isLoading = false;
+        this.isAdminLoading = false;
+      }
+    });
   }
 }

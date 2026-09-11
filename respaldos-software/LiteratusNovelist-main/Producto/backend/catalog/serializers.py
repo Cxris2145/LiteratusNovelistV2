@@ -230,6 +230,8 @@ class BookDetailFullSerializer(BookDetailSerializer):
     def get_is_owned(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
+            if request.user.is_staff or request.user.is_superuser:
+                return True
             from library.models import UserInventory
             return UserInventory.objects.filter(user=request.user, edition__book=obj).exists()
         return False
@@ -238,13 +240,23 @@ class BookDetailFullSerializer(BookDetailSerializer):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             from library.models import UserInventory
-            inv = UserInventory.objects.filter(user=request.user, edition__book=obj).first()
-            return str(inv.id) if inv else None
+            item = UserInventory.objects.filter(user=request.user, edition__book=obj).first()
+            if not item and (request.user.is_staff or request.user.is_superuser):
+                edition = obj.editions.first()
+                if edition:
+                    item, _ = UserInventory.objects.get_or_create(
+                        user=request.user,
+                        edition=edition,
+                        defaults={'has_premium_narration': True}
+                    )
+            return item.id if item else None
         return None
 
     def get_has_premium_narration(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
+            if request.user.is_staff or request.user.is_superuser:
+                return True
             from library.models import UserInventory
             inv = UserInventory.objects.filter(user=request.user, edition__book=obj).first()
             return inv.has_premium_narration if inv else False
