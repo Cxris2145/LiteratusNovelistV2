@@ -8,6 +8,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { Location } from '@angular/common';
 
 import { SettingsService } from './core/services/settings.service';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -87,9 +88,11 @@ export class AppComponent implements OnInit {
       // la aplicación: una portada o un avatar rotos no deben pintar el banner global
       // ni disparar un ciclo de detección de cambios por cada imagen.
       if (event.target instanceof Element) return;
+      if (environment.production) { console.error(event.message, event.filename, event.lineno); return; }
       this.globalError = `Error: ${event.message} en ${event.filename}:${event.lineno}`;
     });
     window.addEventListener('unhandledrejection', (event) => {
+      if (environment.production) { console.error(event.reason); return; }
       this.globalError = `Promesa rechazada: ${event.reason}`;
     });
 

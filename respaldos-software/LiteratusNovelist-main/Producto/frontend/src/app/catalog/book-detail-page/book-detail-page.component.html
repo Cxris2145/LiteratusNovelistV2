@@ -60,7 +60,7 @@
               <span class="price-val">{{ book.editions[0].price }} <span class="ink-text">Tinta</span></span>
             </div>
             <div class="action-price" *ngIf="isOwned">
-              <span class="price-val" style="color: #34d399;"><svg lucideCheckCircle></svg> Adquirido</span>
+              <span class="price-val owned-val"><svg lucideCheckCircle></svg> Adquirido</span>
             </div>
             
             <div class="action-buttons">
@@ -167,7 +167,7 @@
         <!-- LEGAL NOTICE -->
         <div class="legal-notice-container glass-panel" *ngIf="book.copyright_notice">
           <div class="legal-header">
-            <svg lucideShieldCheck style="color: #3b82f6;"></svg>
+            <svg lucideShieldCheck style="color: var(--home-amber-ink);"></svg>
             <h3>Derechos y Legal</h3>
           </div>
           <p class="legal-text">{{ book.copyright_notice }}</p>
@@ -187,18 +187,18 @@
           <div class="avg-stars">
             <span class="star" *ngFor="let s of [1,2,3,4,5]" [class.filled]="s <= getAvgRating(book.reviews)">★</span>
           </div>
-          <span style="color:#94a3b8;">({{ book.reviews.length }})</span>
+          <span style="color: var(--home-ink-muted);">({{ book.reviews.length }})</span>
         </div>
       </div>
 
-      <div *ngIf="!book.reviews || book.reviews.length === 0" style="text-align: center; color: #64748b; padding: 2rem;">
+      <div *ngIf="!book.reviews || book.reviews.length === 0" style="text-align: center; color: var(--home-ink-subtle); padding: 2rem;">
         <svg lucideMessageSquare style="width:40px; height:40px; opacity:0.5; margin-bottom:1rem;"></svg>
         <p>Sé el primero en compartir tu opinión.</p>
       </div>
       
       <!-- FORMULARIO DE RESEÑA -->
       <div class="review-form-container" *ngIf="(auth.isLoggedIn$ | async) && isOwned">
-        <h4 style="font-family: var(--font-display); font-size: 1.5rem; color:#fff; margin-bottom:1rem;">Tu opinión</h4>
+        <h4 style="font-family: var(--font-display); font-size: 1.5rem; color: var(--home-ink-strong); margin-bottom:1rem;">Tu opinión</h4>
         <div class="star-rating-input">
           <span class="star-input" *ngFor="let s of [1,2,3,4,5]" 
                 [class.filled]="s <= reviewRating" 

@@ -1,4 +1,5 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import './browse-theme.css';
 
 /* ──────────────────────────────────────────────────────────────────────────
    SISTEMA TIPOGRÁFICO — LiteratusNovelist
@@ -51,6 +52,31 @@
   --reader-pad-bottom:     16vh;
   --reader-brightness:     1;
   --reader-highlight-hex:  #eab308;
+
+  /* ── Paleta "Boutique Literaria" — usada por el nuevo Home ──
+     5 colores fijos, aplicados con jerarquía 60/30/10 (ver plan de
+     rediseño). Ámbar/coral son claros: nunca usarlos como color de
+     texto de cuerpo (fallan contraste AA sobre el fondo crema). */
+  --home-bg:               #FAF6F0;  /* Papel: tinte ligero del crema de marca */
+  --home-bg-surface:       #FFFCF8;
+  --home-parchment:        #EDDBC4;  /* Crema original, reservado para énfasis */
+  --home-ink:               #5C5259;  /* Gris malva oscuro — texto principal */
+  --home-ink-muted:        #70656C;
+  --home-ink-subtle:       #786D73;
+  --home-ink-strong:       #40383E;
+  --home-accent-amber:     #FFB353;  /* Acento primario — CTAs */
+  --home-accent-coral:     #FF6E4A;  /* Acento secundario — IA / energía */
+  --home-accent-sage:      #A3C9A7;  /* Acento terciario — progreso / calma */
+  --home-amber-ink:        #80531D;
+  --home-coral-ink:        #A34430;
+  --home-sage-ink:         #416449;
+  --home-sage-surface:     #EDF2EA;
+  --home-coral-surface:    #FAEAE3;
+  --home-glass-bg:         rgba(250, 246, 240, 0.96);
+  --home-glass-border:     #DED5D5;
+  --home-shadow:           rgba(64, 56, 62, 0.09);
+  --home-content-width:    1200px;
+  --home-gutter:           max(clamp(20px, 5vw, 72px), calc((100vw - var(--home-content-width)) / 2));
 }
 
 /* Tema Clásico Original (Neón) para demo al cliente */
@@ -104,201 +130,6 @@ body {
   font-weight: 400;
   line-height: 1.6;
   min-height: 100vh;
-  margin: 0;
-  padding-top: env(safe-area-inset-top, 0px);
-  overflow-x: clip; /* Usar clip en vez de hidden impide la creación de un contexto de scroll en Windows */
-  overflow-y: visible !important;
-  /*
-   * FONDO ARTESANAL — Tres capas:
-   */
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(212, 175, 55, 0.08), transparent),
-    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(139, 0, 0, 0.06), transparent),
-    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(212, 175, 55, 0.03), transparent);
-  background-attachment: fixed;
-  background-size: 300px 300px, 100% 100%, 100% 100%, 100% 100%;
-}
-
-[data-theme="neon"] body {
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(59, 130, 246, 0.12), transparent),
-    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(139, 92, 246, 0.14), transparent),
-    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(245, 158, 11, 0.04), transparent);
-}
-
-[data-theme="light-gallery"] body {
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(0, 0, 0, 0.02), transparent),
-    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(0, 0, 0, 0.01), transparent);
-}
-
-/* Base Glass Container */
-.glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-/* Native Inputs & Forms */
-.glass-input {
-  width: 100%;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
-  color: var(--text-main);
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.glass-input:focus {
-  border-color: var(--glow-accent);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-}
-
-/* Premium Buttons: Artesanal */
-.glass-btn {
-  background: var(--bg-surface);
-  color: var(--glow-gold);
-  border: 1px solid var(--glass-border);
-  padding: 12px 24px;
-  border-radius: 4px; /* Menos redondeado, más clásico */
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
-  font-family: var(--font-ui);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  box-shadow: inset 0 0 0 0 var(--glow-gold);
-}
-
-[data-theme="neon"] .glass-btn {
-  background: linear-gradient(135deg, var(--glow-accent), var(--glow-purple));
-  color: white;
-  border: none;
-  border-radius: 8px;
-  text-transform: none;
-  letter-spacing: 0.02em;
-  box-shadow: none;
-}
-
-.glass-btn:hover {
-  background: var(--glow-gold);
-  color: #000;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-}
-
-[data-theme="neon"] .glass-btn:hover {
-  background: linear-gradient(135deg, var(--glow-accent), var(--glow-purple));
-  color: white;
-  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
-}
-
-[data-theme="light-gallery"] .glass-btn {
-  background: #FFFFFF;
-  color: #000000;
-  border: 1px solid rgba(0,0,0,0.2);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-[data-theme="light-gallery"] .glass-btn:hover {
-  background: #000000;
-  color: #FFFFFF;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-}
-
-.glass-btn:disabled {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-muted);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Mobile Tweak - Full width layout for nativeness */
-.container {
-  max-width: 100vw;
-  margin: 0 auto;
-  padding: 0;
-}
-
-/* ── DASHBOARD MODE: Immersive (no navbar, no outer scroll) ── */
-.container.dashboard-mode {
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* When in dashboard, prevent body from creating its own scrollbar */
-body:has(.container.dashboard-mode) {
-  overflow: hidden;
-  height: 100vh;
-}
-
-/* ── PREMIUM MINIMALIST LUCIDE ICONS ── */
-.lucide-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: middle;
-  stroke: currentColor;
-  stroke-width: 2px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.4));
-}
-
-.lucide-icon:hover {
-  transform: scale(1.15) translateY(-2px);
-  filter: drop-shadow(0 0 12px var(--glow-accent));
-  color: var(--glow-accent);
-}
-
-.checkout-icon .lucide-icon, .ink-icon .lucide-icon {
-  color: var(--glow-purple);
-  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.6));
-}
-
-/* ── LIGHT THEME COMPONENT OVERRIDES ── */
-[data-theme="light-gallery"] .search-input {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(0, 0, 0, 0.2) !important;
-  color: #111 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
-}
-
-[data-theme="light-gallery"] .search-input::placeholder {
-  color: #64748b !important;
-}
-
-[data-theme="light-gallery"] .search-input:focus {
-  background: #ffffff !important;
-  border-color: #111 !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
-}
-
-[data-theme="light-gallery"] .category-pill {
-  background: #f8fafc !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
-}
-
-[data-theme="light-gallery"] .category-pill:hover {
-  background: #e2e8f0 !important;
-  border-color: #94a3b8 !important;
-}
-
-[data-theme="light-gallery"] .category-pill.active {
   margin: 0;
   padding-top: env(safe-area-inset-top, 0px);
   overflow-x: clip; /* Usar clip en vez de hidden impide la creación de un contexto de scroll en Windows */

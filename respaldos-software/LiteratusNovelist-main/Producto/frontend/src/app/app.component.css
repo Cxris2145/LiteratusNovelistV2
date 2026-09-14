@@ -75,6 +75,15 @@
   color: var(--text-main);
 }
 
+.nav-links a:focus-visible,
+.menu-icon:focus-visible,
+.avatar-btn:focus-visible,
+.ink-widget:focus-visible {
+  outline: 2px solid var(--glow-gold);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 .auth-btn a {
   padding: 8px 16px;
   border-radius: 8px;
@@ -313,4 +322,45 @@
 
 .logout-btn .mat-icon {
   color: #ef4444 !important;
+}
+
+/* La portada comparte tinta, papel y ancho editorial con su navegación y pie. */
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) {
+  --bg-color: var(--home-bg);
+  --bg-surface: var(--home-bg-surface);
+  --text-main: var(--home-ink);
+  --text-muted: var(--home-ink-muted);
+  --glass-bg: var(--home-glass-bg);
+  --glass-border: var(--home-glass-border);
+  --glow-accent: var(--home-ink);
+  --glow-gold: var(--home-sage-ink);
+}
+.nav-container { max-width: none; padding-inline: var(--home-gutter); gap: 24px; }
+.logo { flex-shrink: 0; gap: 4px; }
+.literatus, .novelist { font-size: 1.12rem; letter-spacing: .025em; }
+.nav-links { gap: 20px; }
+.nav-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; letter-spacing: 0; }
+.auth-btn a { border-radius: 8px; padding: 10px 14px; }
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .auth-btn.highlight a { color: var(--home-bg-surface); }
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .auth-btn.highlight a:hover { background: var(--home-ink-strong); }
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .novelist { color: var(--home-ink); }
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .ink-icon { color: var(--home-amber-ink); filter: none; }
+.menu-icon { background: none; border: 0; padding: 10px; min-width: 44px; min-height: 44px; justify-content: center; }
+.menu-icon .bar { width: 22px; height: 2px; }
+.skip-link { position: fixed; top: 8px; left: 16px; z-index: 1000; padding: 12px 18px; border-radius: 6px; background: var(--home-ink-strong); color: var(--home-bg-surface); font: 600 14px var(--font-ui); transform: translateY(-160%); }
+.skip-link:focus { transform: translateY(0); }
+@media (max-width: 1200px) {
+  .menu-icon { display: flex; }
+  .nav-links { display: none; position: absolute; top: 100%; right: 0; width: 100%; padding: 16px var(--home-gutter) 24px; flex-direction: column; align-items: stretch; gap: 4px; background: var(--bg-color); border-bottom: 1px solid var(--glass-border); box-shadow: 0 12px 24px #40383E14; }
+  .nav-links.active { display: flex; max-height: calc(100dvh - 80px); overflow-y: auto; }
+  .nav-links a { width: 100%; min-height: 44px; font-size: 14px; }
+  .auth-btn a { justify-content: center; margin-top: 4px; }
+  .nav-links .ink-widget { align-self: flex-start; }
+}
+@media (max-width: 480px) {
+  .literatus, .novelist { font-size: 15px; }
+  .nav-container { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-links, .bar, .auth-btn a, .ink-widget { transition: none; }
 }

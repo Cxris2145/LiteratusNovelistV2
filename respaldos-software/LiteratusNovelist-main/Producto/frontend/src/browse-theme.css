@@ -1,0 +1,105 @@
+/* La identidad de la portada acompaña las vistas de navegación y de cuenta.
+   El lector y el panel de administración conservan sus temas propios. */
+:root body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) {
+  --bg-color: var(--home-bg);
+  --bg-surface: var(--home-bg-surface);
+  --text-main: var(--home-ink);
+  --text-muted: var(--home-ink-muted);
+  --text-subtle: var(--home-ink-subtle);
+  --glass-bg: var(--home-bg-surface);
+  --glass-border: var(--home-glass-border);
+  --glow-accent: var(--home-ink);
+  --glow-purple: var(--home-ink);
+  --glow-gold: var(--home-amber-ink);
+  --glow-cyan: var(--home-sage-ink);
+  background: var(--home-bg);
+  color: var(--home-ink);
+  color-scheme: light;
+}
+
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) {
+  display: block;
+  color: var(--home-ink);
+  --surface-light: var(--home-bg-surface);
+  --text-primary: var(--home-ink);
+  --border-color: var(--home-glass-border);
+  --primary-color: var(--home-parchment);
+  --font-heading: var(--font-ui);
+}
+
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) :is(input, select, button) {
+  font-family: var(--font-ui);
+}
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) input::placeholder {
+  color: var(--home-ink-subtle);
+  opacity: 1;
+}
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) :is(a, button, input, select, [tabindex]):focus-visible {
+  outline: 3px solid var(--home-sage-ink);
+  outline-offset: 3px;
+}
+:is(app-book-list, app-category-detail, app-author-list, app-library-list) .glass-panel {
+  background: var(--home-bg-surface);
+  border-color: var(--home-glass-border);
+  box-shadow: 0 4px 16px var(--home-shadow);
+}
+
+/* Formularios de cuenta: el crema es el fondo, así que los mensajes de estado
+   necesitan tinta oscura en vez de los tonos claros del tema nocturno. */
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) {
+  display: block;
+  color: var(--home-ink);
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .glass-input {
+  background: var(--home-bg-surface);
+  color: var(--home-ink);
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .glass-input:focus {
+  border-color: var(--home-sage-ink);
+  box-shadow: 0 0 0 3px #41644918;
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .error-banner,
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .validation-error {
+  background: var(--home-coral-surface);
+  border-left-color: var(--home-coral-ink);
+  color: var(--home-coral-ink);
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .validation-error {
+  background: none;
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .success-banner {
+  background: var(--home-sage-surface);
+  border-left-color: var(--home-sage-ink);
+  color: var(--home-sage-ink);
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .footer-link a:hover {
+  color: var(--home-coral-ink);
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .glass-btn {
+  background: var(--home-ink);
+  color: var(--home-bg-surface);
+  border-color: var(--home-ink);
+  text-transform: none;
+  letter-spacing: .01em;
+  border-radius: 8px;
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .glass-btn:hover {
+  background: var(--home-ink-strong);
+  border-color: var(--home-ink-strong);
+  color: var(--home-bg-surface);
+}
+:is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .glass-btn:disabled {
+  background: var(--home-parchment);
+  border-color: var(--home-glass-border);
+  color: var(--home-ink-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-library-list) *,
+  :is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-library-list) *::before,
+  :is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-library-list) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -6,15 +6,15 @@
       <div class="category-card"
            *ngFor="let cat of categories"
            (click)="goToCategory(cat.slug)"
-           [style.--accent]="cat.color">
+           role="link" tabindex="0" (keydown.enter)="goToCategory(cat.slug)">
 
         <!-- Imagen de fondo -->
-        <div class="card-image-wrap" [style.background]="cat.image ? 'transparent' : 'linear-gradient(135deg, #1e1e2f 0%, ' + cat.color + '33 100%)'">
-          <img *ngIf="cat.image" [src]="cat.image" [alt]="cat.name" class="card-bg-img" loading="lazy">
-          <div *ngIf="!cat.image" class="card-icon-fallback" [style.color]="cat.color">
+        <div class="card-image-wrap">
+          <img *ngIf="cat.image" [src]="cat.image" [alt]="cat.name" class="card-bg-img" loading="lazy" (error)="cat.image = ''">
+          <div *ngIf="!cat.image" class="card-icon-fallback">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
           </div>
-          <div class="card-gradient" [style.background]="'linear-gradient(to top, ' + cat.color + '88 0%, rgba(0,0,0,0.6) 50%, transparent 100%)'"></div>
+          <div class="card-gradient"></div>
         </div>
 
         <!-- Contenido encima de la imagen -->

@@ -11,11 +11,16 @@
 
 .glow-text {
   font-size: 2.5rem;
-  background: linear-gradient(135deg, var(--text-main), var(--glow-purple));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
   margin-bottom: 10px;
+  color: var(--home-ink-strong);
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-shadow: none;
+  filter: none;
 }
 
 .subtitle {
@@ -25,7 +30,7 @@
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
   gap: 30px;
 }
 
@@ -40,21 +45,21 @@
 
 .book-card:hover {
   transform: translateY(-5px);
-  border-color: var(--glow-purple, #8b5cf6);
-  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.2);
+  border-color: #B6A7AF;
+  box-shadow: 0 8px 24px var(--home-shadow);
 }
 
 .book-card:hover .read-btn {
-  background: linear-gradient(135deg, #8b5cf6, #06b6d4) !important;
-  color: white !important;
-  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5) !important;
-  border-color: transparent !important;
+  background: var(--home-ink-strong);
+  color: var(--home-bg-surface);
+  box-shadow: none;
+  border-color: var(--home-ink-strong);
 }
 
 /* Cuadrada: las portadas fuente son 800x800 con el titulo pegado a los bordes. */
 .card-image {
   aspect-ratio: 1 / 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--home-parchment);
   border-bottom: 1px solid var(--glass-border);
   position: relative;
   overflow: hidden;
@@ -78,8 +83,7 @@
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(100deg, rgba(255,255,255,0) 20%, rgba(212,175,55,0.10) 50%, rgba(255,255,255,0) 80%),
-    rgba(0, 0, 0, 0.35);
+    linear-gradient(100deg, #E8E0DA 20%, #F7F1EA 50%, #E8E0DA 80%);
   background-size: 220% 100%;
   animation: coverShimmer 1.25s ease-in-out infinite;
 }
@@ -94,7 +98,7 @@
   height: 14px;
   border-radius: 6px;
   margin: 10px 0;
-  background: linear-gradient(100deg, rgba(255,255,255,0.04) 20%, rgba(212,175,55,0.10) 50%, rgba(255,255,255,0.04) 80%);
+  background: linear-gradient(100deg, #EAE3DF 20%, #F7F1EA 50%, #EAE3DF 80%);
   background-size: 220% 100%;
   animation: coverShimmer 1.25s ease-in-out infinite;
 }
@@ -112,14 +116,15 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--home-sage-surface);
   backdrop-filter: blur(4px);
-  color: var(--glow-cyan);
+  color: var(--home-sage-ink);
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 600;
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid var(--glass-border);
+  border-color: #BCCDBA;
 }
 
 .card-content {
@@ -155,16 +160,17 @@
 
 .progress-bar-container {
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #DEE8DB;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-color: #BCCDBA;
 }
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #06b6d4);
-  box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+  background: var(--home-sage-ink);
+  box-shadow: none;
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -180,17 +186,26 @@
   gap: 8px;
   padding: 10px 0;
   text-decoration: none;
+  background: var(--home-ink);
+  color: var(--home-bg-surface);
+  border-color: var(--home-ink);
+  box-shadow: none;
+  border-radius: 8px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .catalog-link-btn {
   display: inline-block;
   padding: 10px 24px;
-  background: var(--glow-purple);
-  color: white;
+  background: var(--home-ink);
+  color: var(--home-bg-surface);
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
+  border-color: var(--home-ink);
+  box-shadow: none;
 }
 
 .catalog-link-btn:hover {
@@ -206,11 +221,11 @@
   justify-content: center;
   padding: 4rem 2rem;
   gap: 1.5rem;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--bg-surface);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 20px var(--home-shadow);
   margin: 2rem auto;
   max-width: 600px;
 }
@@ -218,8 +233,8 @@
 .librito-lottie {
   width: 180px;
   height: 180px;
-  filter: drop-shadow(0 8px 24px rgba(168,85,247,.4));
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 75%);
+  filter: none;
+  background: var(--bg-surface);
   border-radius: 50%;
   animation: floatLottie 6s ease-in-out infinite;
 }
@@ -227,7 +242,7 @@
 .loading-text {
   font-family: 'Outfit', sans-serif;
   font-size: 1.1rem;
-  color: #e2e8f0;
+  color: var(--text-main);
   opacity: 0.8;
   letter-spacing: 1px;
   animation: pulse 1.5s infinite;
@@ -250,7 +265,12 @@
   text-align: center;
 }
 .message-banner.info {
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
   color: var(--text-main);
+}
+.message-banner.error {
+  background: var(--home-coral-surface);
+  color: var(--home-coral-ink);
+  border: 1px solid #D6A499;
 }
