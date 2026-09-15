@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
+import { getBookPages } from '../../core/utils/book-pages.util';
 
 @Component({
   selector: 'app-library-list',
@@ -8,6 +9,7 @@ import { ApiService } from '../../core/services/api.service';
 })
 export class LibraryListComponent implements OnInit {
   private api = inject(ApiService);
+  getBookPages = getBookPages;
 
   inventoryItems: any[] = [];
   isLoading = true;

@@ -27,6 +27,11 @@
               [attr.aria-pressed]="isAudioPanelOpen" [class.active]="isAudioPanelOpen">
         <svg lucideVolume2 [size]="20" class="lucide-icon"></svg>
       </button>
+      <button class="toc-trigger-btn" (click)="toggleDoublePageView()"
+              [title]="isDoublePageView ? 'Cambiar a lectura continua' : 'Cambiar a libro abierto (doble página)'"
+              [attr.aria-pressed]="isDoublePageView" [class.active]="isDoublePageView">
+        <span class="material-symbols-rounded" style="font-size:1.3rem;">auto_stories</span>
+      </button>
       <button class="toc-trigger-btn" (click)="toggleToc()" title="Índice de capítulos" aria-label="Índice de capítulos"
               [attr.aria-pressed]="isTocOpen" [class.active]="isTocOpen">
         <span class="material-symbols-rounded" style="font-size:1.3rem;">menu</span>
@@ -202,6 +207,10 @@
         </div>
 
         <div class="sheet-toggles">
+          <button class="toggle-row" [class.on]="isDoublePageView"
+                  (click)="toggleDoublePageView()" [attr.aria-pressed]="isDoublePageView">
+            <span>Vista libro (doble página)<em>Diseño de libro abierto de dos caras</em></span><span class="switch"></span>
+          </button>
           <button class="toggle-row" [class.on]="highContrast"
                   (click)="setHighContrast(!highContrast)" [attr.aria-pressed]="highContrast">
             <span>Alto contraste</span><span class="switch"></span>
@@ -721,16 +730,57 @@
   <!-- LIENZO DE LECTURA PRINCIPAL                                      -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <!-- LIENZO DE LECTURA (renderizado nativo Angular para highlighting) -->
+  <!-- ESCENARIO DE LECTURA (LIBRO REAL ABIERTO / CONTINUO)            -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <main class="reading-canvas html-reader" [ngClass]="'font-' + currentFontFamily"
-        [class.tap-to-scroll-active]="tapToScrollActive"
-        [class.rc-focus-word]="focusMode === 'word'"
-        [class.rc-focus-sentence]="focusMode === 'sentence'"
-        [class.rc-focus-paragraph]="focusMode === 'paragraph'"
-        [class.rc-long-para]="longParaSplit"
-        (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)"
-        (mousemove)="onCanvasMouseMove($event)" (mouseleave)="onCanvasMouseLeave()">
+  <div class="real-book-stage" [class.double-page-stage]="isDoublePageView" [class.flipping]="isPageFlipping">
+
+    <!-- Botón lateral izquierdo para hojear hacia atrás -->
+    <button *ngIf="isDoublePageView"
+            type="button"
+            class="book-page-turn-btn turn-prev"
+            (click)="turnSpreadPrev()"
+            [disabled]="isFirstSpread && currentPage <= 1"
+            [class.faded]="isFirstSpread && currentPage <= 1"
+            title="Página anterior (o pulsa flecha izquierda)"
+            aria-label="Página anterior">
+      <span class="material-symbols-rounded">chevron_left</span>
+    </button>
+
+    <!-- Estructura del libro físico abierto -->
+    <div class="real-book-wrapper" [class.book-open-mode]="isDoublePageView"
+         [class.flipping-next]="isPageFlipping && flipDirection === 'next'"
+         [class.flipping-prev]="isPageFlipping && flipDirection === 'prev'">
+
+      <!-- Efecto de barrido / sombra de página en 3D durante el hojeo -->
+      <div class="page-flip-sweep sweep-next" *ngIf="isPageFlipping && flipDirection === 'next'" aria-hidden="true"></div>
+      <div class="page-flip-sweep sweep-prev" *ngIf="isPageFlipping && flipDirection === 'prev'" aria-hidden="true"></div>
+
+      <!-- Efecto de lomo, pliegue central y costura cuando está en doble página -->
+      <div class="book-spine-crease" *ngIf="isDoublePageView" aria-hidden="true">
+        <div class="book-spine-shadow left-shadow"></div>
+        <div class="book-spine-seam"></div>
+        <div class="book-spine-shadow right-shadow"></div>
+      </div>
+
+      <!-- Cinta marcapáginas decorativa en el lomo superior -->
+      <div class="book-ribbon-bookmark" *ngIf="isDoublePageView" aria-hidden="true"></div>
+
+      <!-- Encabezado sutil del libro físico (autor a la izquierda, título de capítulo a la derecha) -->
+      <header class="book-spread-header" *ngIf="isDoublePageView" aria-hidden="true">
+        <span class="spread-header-left">{{ authorName || 'Literatus Novelist' }}</span>
+        <span class="spread-header-right">{{ chapterTitle }}</span>
+      </header>
+
+      <!-- Lienzo de lectura donde corre el texto -->
+      <main class="reading-canvas html-reader" [ngClass]="'font-' + currentFontFamily"
+            [class.double-page-active]="isDoublePageView"
+            [class.tap-to-scroll-active]="tapToScrollActive"
+            [class.rc-focus-word]="focusMode === 'word'"
+            [class.rc-focus-sentence]="focusMode === 'sentence'"
+            [class.rc-focus-paragraph]="focusMode === 'paragraph'"
+            [class.rc-long-para]="longParaSplit"
+            (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)"
+            (mousemove)="onCanvasMouseMove($event)" (mouseleave)="onCanvasMouseLeave()">
 
     <!-- Regla de lectura: guía horizontal, sigue el ratón o la palabra narrada -->
     <div class="reading-ruler" *ngIf="rulerActive" [style.top.px]="rulerY" aria-hidden="true"></div>
@@ -825,12 +875,36 @@
     </ng-container>
   </main>
 
+      <!-- Pie de pliego con numeración física izquierda y derecha -->
+      <footer class="book-spread-footer" *ngIf="isDoublePageView" aria-hidden="true">
+        <span class="spread-footer-page left-page-num">{{ currentLeftPageNum }}</span>
+        <span class="spread-footer-progress">Capítulo {{ currentPage }} · Páginas {{ currentLeftPageNum }}-{{ currentRightPageNum }} (Pliego {{ currentSpreadIndex + 1 }}/{{ totalSpreads }})</span>
+        <span class="spread-footer-page right-page-num">{{ currentRightPageNum }}</span>
+      </footer>
+
+    </div><!-- /.real-book-wrapper -->
+
+    <!-- Botón lateral derecho para hojear hacia adelante -->
+    <button *ngIf="isDoublePageView"
+            type="button"
+            class="book-page-turn-btn turn-next"
+            (click)="turnSpreadNext()"
+            [disabled]="isLastSpread && currentPage >= totalPages"
+            [class.faded]="isLastSpread && currentPage >= totalPages"
+            [class.pulse-turn]="isNearEnd"
+            title="Página siguiente (o pulsa flecha derecha)"
+            aria-label="Página siguiente">
+      <span class="material-symbols-rounded">chevron_right</span>
+    </button>
+
+  </div><!-- /.real-book-stage -->
+
   <!-- Chat integrado en el sidebar - sin código flotante aquí -->
 
 
   <!-- NAVEGACIÓN DE CAPÍTULO — barra inferior, se auto-oculta con la toolbar.
        Al final del capítulo se muestra siempre y resalta "Siguiente". -->
-  <nav class="chapter-nav glass-panel" *ngIf="totalPages > 1"
+  <nav class="chapter-nav glass-panel" *ngIf="totalPages > 1 && !isDoublePageView"
        [class.hidden]="isToolbarHidden && !(isNearEnd && currentPage < totalPages)"
        [class.at-end]="isNearEnd && currentPage < totalPages"
        aria-label="Navegación de capítulos">

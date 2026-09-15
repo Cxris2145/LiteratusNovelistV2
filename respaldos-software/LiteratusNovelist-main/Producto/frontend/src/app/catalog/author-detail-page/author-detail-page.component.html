@@ -61,8 +61,16 @@
           </div>
           <div class="book-details">
             <h3 class="book-title">{{ book.title }}</h3>
-            <div class="book-genres">
-              <span class="genre-tag" *ngFor="let genre of $any(book.genres)">{{ $any(genre).name }}</span>
+            <div class="book-meta-footer">
+              <span class="card-page-count-badge" [title]="getBookPages(book) + ' páginas en total'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                {{ getBookPages(book) }} págs.
+              </span>
+              <div class="book-genres" *ngIf="book.genres?.length">
+                <span class="genre-tag" *ngFor="let genre of $any(book.genres)">{{ $any(genre).name }}</span>
+              </div>
             </div>
           </div>
         </div>

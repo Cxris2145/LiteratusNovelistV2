@@ -6,6 +6,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import { FavoritesService } from '../../core/services/favorites.service';
+import { getBookPages } from '../../core/utils/book-pages.util';
 
 export interface Book {
   id: string;
@@ -61,6 +62,7 @@ export class BookListComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   @Input() isHome: boolean = false;
+  getBookPages = getBookPages;
 
   rawBooks: Book[] = [];
   books: Book[] = [];

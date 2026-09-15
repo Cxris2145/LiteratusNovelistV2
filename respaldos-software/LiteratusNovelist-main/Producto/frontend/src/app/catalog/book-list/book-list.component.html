@@ -164,8 +164,13 @@
           <h4 class="rec-book-title">{{ rec.title }}</h4>
           <p class="rec-book-author">{{ rec.author_name || 'Autor Desconocido' }}</p>
           <div class="rec-meta">
+            <span class="card-page-count-badge" [title]="getBookPages(rec) + ' páginas en total'">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              {{ getBookPages(rec) }} págs.
+            </span>
             <span *ngIf="rec.readingTimeEstimate">⏱ {{ rec.readingTimeEstimate }}</span>
-            <span *ngIf="rec.page_count">{{ rec.page_count }} págs.</span>
           </div>
         </div>
       </div>
@@ -288,14 +293,14 @@
           {{ (book.synopsis && book.synopsis.length > 95) ? (book.synopsis | slice:0:95) + '…' : (book.synopsis || 'Explora este título en Literatus Novelist.') }}
         </p>
 
-        <!-- Footer de la Tarjeta -->
+        <!-- Footer de la Tarjeta (Zona inferior con indicador de páginas en la izquierda) -->
         <div class="card-footer">
           <div class="meta-tags">
-            <span class="meta-tag pages" *ngIf="book.page_count">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <span class="card-page-count-badge" [title]="getBookPages(book) + ' páginas en total'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
               </svg>
-              {{ book.page_count }} pág.
+              {{ getBookPages(book) }} págs.
             </span>
             <span class="meta-tag time" *ngIf="book.readingTimeEstimate">
               ⏱ {{ book.readingTimeEstimate }}

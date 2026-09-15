@@ -166,23 +166,76 @@
 
 .card-actions {
   margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-page-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--glow-gold, #D4AF37);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.card-page-count-badge svg {
+  color: var(--glow-gold, #D4AF37);
+  flex-shrink: 0;
+}
+
+.book-card:hover .card-page-count-badge {
+  background: rgba(212, 175, 55, 0.22);
+  border-color: rgba(212, 175, 55, 0.6);
+  color: #FFF;
 }
 
 .read-btn {
-  width: 100%;
-  display: flex;
-  justify-content: center;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 0;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--glow-gold, #D4AF37);
+  color: #0A1914;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25);
+  transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
   text-decoration: none;
-  background: var(--home-ink);
-  color: var(--home-bg-surface);
-  border-color: var(--home-ink);
-  box-shadow: none;
-  border-radius: 8px;
-  text-transform: none;
-  letter-spacing: 0;
+}
+
+.read-btn svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.book-card:hover .read-btn,
+.read-btn:hover {
+  background: #edd274;
+  color: #000000;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.45);
+}
+
+.book-card:hover .read-btn svg {
+  transform: translateX(2px);
 }
 
 .catalog-link-btn {

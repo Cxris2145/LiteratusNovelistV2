@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
+import { getBookPages } from '../../core/utils/book-pages.util';
 
 @Component({
   selector: 'app-author-detail-page',
@@ -11,6 +12,7 @@ export class AuthorDetailPageComponent implements OnInit {
   author: any = null;
   isLoading = true;
   errorMsg = '';
+  getBookPages = getBookPages;
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);

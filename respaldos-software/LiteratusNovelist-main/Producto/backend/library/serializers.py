@@ -71,10 +71,12 @@ class UserInventorySerializer(serializers.ModelSerializer):
     book_title = serializers.SerializerMethodField()
     book_cover = serializers.SerializerMethodField()
     book_slug = serializers.SerializerMethodField()
+    page_count = serializers.IntegerField(source='edition.book.page_count', read_only=True)
+    word_count = serializers.IntegerField(source='edition.book.word_count', read_only=True)
 
     class Meta:
         model = UserInventory
-        fields = ['id', 'book_title', 'book_cover', 'book_slug', 'edition', 'acquired_at', 'progress']
+        fields = ['id', 'book_title', 'book_cover', 'book_slug', 'page_count', 'word_count', 'edition', 'acquired_at', 'progress']
         read_only_fields = fields
 
     def get_book_title(self, obj):

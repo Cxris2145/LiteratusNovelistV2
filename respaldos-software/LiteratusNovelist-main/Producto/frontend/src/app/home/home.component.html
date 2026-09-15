@@ -170,6 +170,14 @@
           <div class="book-info">
             <h3 class="book-title">{{ book.title }}</h3>
             <p class="book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+            <div class="book-card-bottom">
+              <span class="card-page-count-badge" [title]="getBookPages(book) + ' páginas en total'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                {{ getBookPages(book) }} págs.
+              </span>
+            </div>
           </div>
         </a>
       </div>
@@ -190,6 +198,14 @@
           <div class="book-info">
             <h4 class="book-title">{{ book.title }}</h4>
             <p class="book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+            <div class="book-card-bottom">
+              <span class="card-page-count-badge" [title]="getBookPages(book) + ' páginas en total'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                {{ getBookPages(book) }} págs.
+              </span>
+            </div>
           </div>
         </a>
       </div>
@@ -227,9 +243,17 @@
           <div class="char-book-meta">
             <h3 class="char-book-title">{{ book.title }}</h3>
             <p class="char-book-author">{{ book.author }}</p>
-            <div class="char-count-chip">
-              <span aria-hidden="true" class="material-symbols-rounded" style="font-size:14px;">person</span>
-              {{ book.characterCount }} personajes IA
+            <div class="char-meta-row">
+              <span class="card-page-count-badge" [title]="getBookPages(book) + ' páginas en total'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                {{ getBookPages(book) }} págs.
+              </span>
+              <div class="char-count-chip">
+                <span aria-hidden="true" class="material-symbols-rounded" style="font-size:14px;">person</span>
+                {{ book.characterCount }} personajes IA
+              </div>
             </div>
           </div>
         </a>

@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import { FavoriteApiBook, FavoritesService } from '../../core/services/favorites.service';
+import { getBookPages } from '../../core/utils/book-pages.util';
 
 export interface FavoriteBook {
   id: string;
@@ -35,6 +36,7 @@ export class FavoritesComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
 
+  getBookPages = getBookPages;
   favoriteBooks: FavoriteBook[] = [];
   isLoading = true;
   errorMsg = '';
@@ -45,7 +47,7 @@ export class FavoritesComponent implements OnInit {
   userInventoryMap = new Map<string, { inventoryId: string; progress: number }>();
 
   get totalPages(): number {
-    return this.favoriteBooks.reduce((acc, b) => acc + (b.page_count || 0), 0);
+    return this.favoriteBooks.reduce((acc, b) => acc + this.getBookPages(b), 0);
   }
 
   get totalEstimatedHours(): string {

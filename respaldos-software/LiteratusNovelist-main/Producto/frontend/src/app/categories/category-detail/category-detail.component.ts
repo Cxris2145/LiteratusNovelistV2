@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { HttpParams } from '@angular/common/http';
 import { Category } from '../categories.component';
+import { getBookPages } from '../../core/utils/book-pages.util';
 
 interface Book {
   id: string;
@@ -13,6 +14,8 @@ interface Book {
   is_featured: boolean;
   created_at: string;
   book_authors?: any[];
+  page_count?: number | null;
+  word_count?: number;
 }
 
 @Component({
@@ -24,6 +27,7 @@ export class CategoryDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(ApiService);
+  getBookPages = getBookPages;
 
   categorySlug = '';
   category: Category | null = null;

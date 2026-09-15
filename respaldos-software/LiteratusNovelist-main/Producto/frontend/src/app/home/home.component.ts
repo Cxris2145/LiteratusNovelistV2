@@ -5,6 +5,7 @@ import { ApiService } from '../core/services/api.service';
 import { AuthService } from '../core/services/auth.service';
 import { Router } from '@angular/router';
 import type { AnimationItem } from 'lottie-web';
+import { getBookPages } from '../core/utils/book-pages.util';
 
 export interface Book {
   id: string;
@@ -17,6 +18,8 @@ export interface Book {
   price?: number;
   author_name?: string;
   ai_character_count?: number;
+  page_count?: number | null;
+  word_count?: number;
 }
 
 export interface DemoAvatar {
@@ -50,6 +53,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
 
   // ─── Libros ──────────────────────────────────────────────────────────────
+  getBookPages = getBookPages;
   allBooks: Book[] = [];
   featuredBooks: Book[] = [];      // Curados (is_featured) — "Libros destacados"
   forYouBooks: Book[] = [];        // catalog/books/recommendations/ — "Para ti"

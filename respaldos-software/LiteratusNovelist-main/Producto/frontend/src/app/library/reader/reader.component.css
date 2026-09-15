@@ -4591,3 +4591,550 @@ h2.chapter-heading { font-size: 1.28em; }
 @media (prefers-reduced-motion: reduce) {
   .back-to-reading-btn { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   VISTA DE LECTURA: LIBRO REAL ABIERTO A DOBLE PÁGINA (ESTILO FÍSICO)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Escenario general del libro */
+.real-book-stage {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.real-book-stage.double-page-stage {
+  padding: calc(54px + env(safe-area-inset-top, 0px)) 24px calc(20px + env(safe-area-inset-bottom, 0px)) 24px;
+  perspective: 2400px;
+  perspective-origin: 50% 50%;
+}
+
+/* Envoltorio del libro físico abierto */
+.real-book-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.real-book-wrapper.book-open-mode {
+  width: min(95vw, 1380px);
+  height: calc(100vh - 96px);
+  max-height: 880px;
+  min-height: 520px;
+  border-radius: 12px 16px 16px 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0 44px; /* Margen exterior izquierdo y derecho del libro */
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--th-bg-page);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Sombra de libro encuadernado con grosor de páginas laterales */
+  box-shadow:
+    0 30px 70px -15px rgba(0, 0, 0, 0.65),
+    0 10px 25px -5px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    -12px 0 24px -8px rgba(0, 0, 0, 0.5),
+    12px 0 24px -8px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Animación de volteo de página realista en 3D (Next) */
+.real-book-wrapper.flipping-next .reading-canvas {
+  animation: pageFlipTurnNext 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes pageFlipTurnNext {
+  0% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg);
+  }
+  45% {
+    opacity: 0.85;
+    transform: perspective(1800px) rotateY(-3deg) scale(0.994);
+    filter: brightness(0.95);
+  }
+  55% {
+    opacity: 0.85;
+    transform: perspective(1800px) rotateY(3deg) scale(0.994);
+    filter: brightness(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg) scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Animación de volteo de página realista en 3D (Prev) */
+.real-book-wrapper.flipping-prev .reading-canvas {
+  animation: pageFlipTurnPrev 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes pageFlipTurnPrev {
+  0% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg);
+  }
+  45% {
+    opacity: 0.85;
+    transform: perspective(1800px) rotateY(3deg) scale(0.994);
+    filter: brightness(0.95);
+  }
+  55% {
+    opacity: 0.85;
+    transform: perspective(1800px) rotateY(-3deg) scale(0.994);
+    filter: brightness(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1800px) rotateY(0deg) scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Sombra y barrido de página al pasar */
+.page-flip-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.page-flip-sweep.sweep-next {
+  right: 0;
+  transform-origin: left center;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.22) 90%, rgba(255, 255, 255, 0.12) 100%);
+  animation: sweepNextAnim 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.page-flip-sweep.sweep-prev {
+  left: 0;
+  transform-origin: right center;
+  background: linear-gradient(to left, transparent, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0.22) 90%, rgba(255, 255, 255, 0.12) 100%);
+  animation: sweepPrevAnim 0.36s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes sweepNextAnim {
+  0% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scaleX(0.2);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+}
+
+@keyframes sweepPrevAnim {
+  0% {
+    transform: scaleX(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scaleX(0.2);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+}
+
+/* ── Lomo / Pliegue central del libro físico ── */
+.book-spine-crease {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 80px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 25;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.book-spine-shadow {
+  flex: 1;
+  height: 100%;
+  pointer-events: none;
+}
+
+.book-spine-shadow.left-shadow {
+  background: linear-gradient(to right, transparent 0%, rgba(0, 0, 0, 0.16) 75%, rgba(0, 0, 0, 0.30) 100%);
+}
+
+.book-spine-seam {
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.75) 50%, rgba(0, 0, 0, 0.45) 100%);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.book-spine-shadow.right-shadow {
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.30) 0%, rgba(0, 0, 0, 0.16) 25%, transparent 100%);
+}
+
+/* ── Cinta marcapáginas decorativa en el lomo superior ── */
+.book-ribbon-bookmark {
+  position: absolute;
+  top: -8px;
+  left: calc(50% - 8px);
+  width: 16px;
+  height: 44px;
+  background: linear-gradient(135deg, #d32f2f, #8b0000);
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  z-index: 30;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* ── Encabezado de pliego editorial ── */
+.book-spread-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0 10px 0;
+  font-family: 'Cinzel', 'EB Garamond', Georgia, serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+  pointer-events: none;
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+.spread-header-left {
+  flex: 1;
+  text-align: center;
+  padding-right: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--reader-text-muted, inherit);
+  opacity: 0.65;
+}
+
+.spread-header-right {
+  flex: 1;
+  text-align: center;
+  padding-left: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--reader-text-muted, inherit);
+  opacity: 0.65;
+}
+
+/* ── Pie de pliego editorial con números de página ── */
+.book-spread-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 14px 0;
+  border-top: 1px solid rgba(128, 128, 128, 0.12);
+  pointer-events: none;
+  z-index: 20;
+  box-sizing: border-box;
+}
+
+.spread-footer-page {
+  font-family: 'Cinzel', 'EB Garamond', Georgia, serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--reader-accent, #d4af37);
+  min-width: 48px;
+}
+
+.left-page-num {
+  text-align: left;
+}
+
+.right-page-num {
+  text-align: right;
+}
+
+.spread-footer-progress {
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--reader-text-muted, inherit);
+  opacity: 0.55;
+  text-align: center;
+  flex: 1;
+  padding: 0 16px;
+}
+
+/* ── Botones laterales para pasar página física ── */
+.book-page-turn-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1050;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 22, 32, 0.75);
+  color: var(--th-text-primary, #ffffff);
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.3));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  transition: all 0.24s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.book-page-turn-btn .material-symbols-rounded {
+  font-size: 1.8rem;
+  transition: transform 0.2s ease;
+}
+
+.book-page-turn-btn.turn-prev {
+  left: max(10px, calc((100% - 1380px) / 2 - 28px));
+}
+
+.book-page-turn-btn.turn-next {
+  right: max(10px, calc((100% - 1380px) / 2 - 28px));
+}
+
+.book-page-turn-btn:hover:not(:disabled) {
+  background: var(--reader-accent, #d4af37);
+  color: #121212;
+  border-color: var(--reader-accent, #d4af37);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.35);
+}
+
+.book-page-turn-btn.turn-prev:hover:not(:disabled) .material-symbols-rounded {
+  transform: translateX(-3px);
+}
+
+.book-page-turn-btn.turn-next:hover:not(:disabled) .material-symbols-rounded {
+  transform: translateX(3px);
+}
+
+.book-page-turn-btn:disabled,
+.book-page-turn-btn.faded {
+  opacity: 0.18;
+  cursor: default;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.book-page-turn-btn.pulse-turn {
+  animation: turnNextGlow 2.5s infinite alternate;
+}
+
+@keyframes turnNextGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+  }
+}
+
+/* ── Lienzo en modo Doble Página ── */
+.reading-canvas.double-page-active {
+  flex: 1;
+  min-height: 0;
+  height: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  column-count: 2;
+  column-gap: 80px;
+  column-fill: auto;
+  column-rule: 1px solid transparent;
+  padding: 16px 0 !important; /* CERO padding horizontal para preservar la geometría exacta de pliegos */
+  margin: 0 !important;
+  box-sizing: border-box;
+  scroll-behavior: auto !important; /* Desactiva scroll horizontal deslizante en favor del volteo realista */
+  user-select: text;
+}
+
+/* Prevención de cortes antiestéticos en doble página */
+.reading-canvas.double-page-active h1,
+.reading-canvas.double-page-active h2,
+.reading-canvas.double-page-active h3,
+.reading-canvas.double-page-active figure,
+.reading-canvas.double-page-active blockquote {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.reading-canvas.double-page-active p {
+  orphans: 2;
+  widows: 2;
+}
+
+/* ── Ajustes visuales por Tema para la vista libro ── */
+/* Tema Sepia: libro clásico con textura de papel cálido */
+.workbench-container.theme-sepia .real-book-wrapper.book-open-mode {
+  background: linear-gradient(to right, #f4ecd8 0%, #fbf7ee 47%, #ede3cb 50%, #fbf7ee 53%, #f4ecd8 100%);
+  border-color: rgba(122, 90, 46, 0.25);
+  box-shadow:
+    0 30px 70px -15px rgba(60, 40, 15, 0.35),
+    0 10px 25px -5px rgba(60, 40, 15, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    -12px 0 24px -8px rgba(60, 40, 15, 0.3),
+    12px 0 24px -8px rgba(60, 40, 15, 0.3);
+}
+
+.workbench-container.theme-sepia .book-spine-shadow.left-shadow {
+  background: linear-gradient(to right, transparent 0%, rgba(122, 90, 46, 0.12) 75%, rgba(100, 70, 30, 0.28) 100%);
+}
+
+.workbench-container.theme-sepia .book-spine-seam {
+  background: linear-gradient(to bottom, rgba(90, 60, 25, 0.4) 0%, rgba(80, 50, 20, 0.7) 50%, rgba(90, 60, 25, 0.4) 100%);
+}
+
+.workbench-container.theme-sepia .book-spine-shadow.right-shadow {
+  background: linear-gradient(to right, rgba(100, 70, 30, 0.28) 0%, rgba(122, 90, 46, 0.12) 25%, transparent 100%);
+}
+
+.workbench-container.theme-sepia .book-spread-header,
+.workbench-container.theme-sepia .book-spread-footer {
+  border-color: rgba(122, 90, 46, 0.18);
+}
+
+.workbench-container.theme-sepia .book-page-turn-btn {
+  background: rgba(244, 236, 216, 0.9);
+  color: #422d14;
+  border-color: rgba(122, 90, 46, 0.35);
+}
+
+.workbench-container.theme-sepia .book-page-turn-btn:hover:not(:disabled) {
+  background: #7a5a2e;
+  color: #fbf7ee;
+  border-color: #7a5a2e;
+}
+
+/* Tema Pergamino: estilo manuscrito antiguo */
+.workbench-container.theme-pergamino .real-book-wrapper.book-open-mode {
+  background: linear-gradient(to right, #eedcbe 0%, #f7ecd9 47%, #decaa7 50%, #f7ecd9 53%, #eedcbe 100%);
+  border-color: rgba(140, 100, 50, 0.3);
+}
+
+/* Tema Claro (Light): libro moderno encuadernado en blanco nítido */
+.workbench-container.theme-light .real-book-wrapper.book-open-mode {
+  background: linear-gradient(to right, #f7f9fa 0%, #ffffff 47%, #e8edf1 50%, #ffffff 53%, #f7f9fa 100%);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.18),
+    0 10px 20px -5px rgba(0, 0, 0, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8),
+    -10px 0 20px -8px rgba(0, 0, 0, 0.15),
+    10px 0 20px -8px rgba(0, 0, 0, 0.15);
+}
+
+.workbench-container.theme-light .book-page-turn-btn {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a202c;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.workbench-container.theme-light .book-page-turn-btn:hover:not(:disabled) {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+/* ── Adaptabilidad Responsiva para dispositivos móviles (< 820px) ── */
+@media (max-width: 820px) {
+  .real-book-stage.double-page-stage {
+    padding: calc(48px + env(safe-area-inset-top, 0px)) 8px calc(14px + env(safe-area-inset-bottom, 0px)) 8px;
+  }
+
+  .real-book-wrapper.book-open-mode {
+    width: 100%;
+    height: calc(100vh - 75px);
+    max-height: none;
+    min-height: auto;
+    border-radius: 8px;
+    padding: 0 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  }
+
+  .reading-canvas.double-page-active {
+    column-count: 1;
+    column-gap: 0;
+    padding: 12px 0 !important;
+  }
+
+  .book-spine-crease,
+  .book-ribbon-bookmark {
+    display: none !important;
+  }
+
+  .book-spread-header {
+    padding: 8px 0;
+  }
+
+  .spread-header-left {
+    display: none;
+  }
+
+  .spread-header-right {
+    padding-left: 0;
+    font-size: 0.72rem;
+  }
+
+  .book-spread-footer {
+    padding: 8px 0;
+  }
+
+  .left-page-num {
+    display: none;
+  }
+
+  .book-page-turn-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(18, 22, 32, 0.85);
+  }
+
+  .book-page-turn-btn .material-symbols-rounded {
+    font-size: 1.4rem;
+  }
+
+  .book-page-turn-btn.turn-prev {
+    left: 4px;
+  }
+
+  .book-page-turn-btn.turn-next {
+    right: 4px;
+  }
+}
+
+

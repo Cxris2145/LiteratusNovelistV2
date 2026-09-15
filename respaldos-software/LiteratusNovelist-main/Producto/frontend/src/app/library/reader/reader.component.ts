@@ -64,9 +64,20 @@ export class ReaderComponent implements OnInit, OnDestroy {
   safeChapterHtml: SafeHtml = '';
   chapterTitle: string = 'Cargando libro...';
   bookTitle: string = 'Cargando...';
+  authorName: string = '';
   bookSlug: string = '';
   hasPremiumNarration: boolean = false;
   progressId: number | null = null;
+
+  // ── VISTA DE DOBLE PÁGINA (LIBRO REAL) ─────────────────────────
+  readonly SPINE_GAP: number = 80;
+  isDoublePageView: boolean = true;
+  currentSpreadIndex: number = 0;
+  totalSpreads: number = 1;
+  currentLeftPageNum: number = 1;
+  currentRightPageNum: number = 2;
+  isPageFlipping: boolean = false;
+  flipDirection: 'next' | 'prev' = 'next';
 
   // ── UX ───────────────────────────────────────────────────────────
   readonly FONT_MIN = 14;
@@ -361,6 +372,9 @@ export class ReaderComponent implements OnInit, OnDestroy {
       this.currentTheme = savedTheme as any;
     }
 
+    const savedDoublePage = localStorage.getItem('reader-double-page');
+    this.isDoublePageView = savedDoublePage !== null ? savedDoublePage === 'true' : true;
+
     const savedFontSize = localStorage.getItem('reader-font-size');
     if (savedFontSize) {
       const parsedSize = parseInt(savedFontSize, 10);
@@ -558,6 +572,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
         this.isInitialDataLoaded = true;
         if (inventory && inventory.progress) {
           this.bookTitle = inventory.book_title || inventory.edition?.book?.title || 'Libro';
+          this.authorName = inventory.author_name || inventory.edition?.book?.author_name || '';
           this.currentPage = inventory.progress.current_page || 1;
           this.progressId = inventory.progress.id;
           this.bookSlug = inventory.book_slug;
@@ -721,6 +736,21 @@ export class ReaderComponent implements OnInit, OnDestroy {
     // Ignorar si el usuario clickeó en un elemento interactivo (palabra, imagen, botón)
     if (target.closest('.word') || target.closest('img') || target.closest('button')) {
       return;
+    }
+
+    // En vista de libro real (doble página), clic en los extremos izquierdo/derecho pasa página
+    if (this.isDoublePageView) {
+      const container = (event.currentTarget as HTMLElement) || target;
+      const rect = container.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const width = rect.width;
+      if (clickX < width * 0.20) {
+        this.turnSpreadPrev();
+        return;
+      } else if (clickX > width * 0.80) {
+        this.turnSpreadNext();
+        return;
+      }
     }
 
     // Si no está activado el Toque Fluido, no hacer nada al tocar pantalla vacía
@@ -1539,6 +1569,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
         } else {
           // Finalizado el renderizado total
           this.isFullyRendered = true;
+          if (this.isDoublePageView) setTimeout(() => this.recalculateSpreads(), 60);
         }
       } else {
         if (!lottieDismissed) {
@@ -1548,6 +1579,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
         this.isFullyRendered = true;
+        if (this.isDoublePageView) setTimeout(() => this.recalculateSpreads(), 60);
       }
     };
 
@@ -1994,8 +2026,26 @@ export class ReaderComponent implements OnInit, OnDestroy {
         } else {
           currentWord.classList.add('active-word');
         }
-        // Scroll suave si la palabra se sale del viewport
-        currentWord.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+        if (this.isDoublePageView) {
+          const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+          if (canvas) {
+            const isMobile = window.innerWidth <= 820;
+            const gap = isMobile ? 0 : this.SPINE_GAP;
+            const spreadStride = (canvas.clientWidth || 1) + gap;
+            const wordOffsetLeft = currentWord.offsetLeft;
+            const targetSpread = Math.floor((wordOffsetLeft + 10) / spreadStride);
+            if (targetSpread !== this.currentSpreadIndex && targetSpread >= 0 && targetSpread < this.totalSpreads) {
+              this.currentSpreadIndex = targetSpread;
+              canvas.scrollTo({ left: this.currentSpreadIndex * spreadStride, behavior: 'instant' as any });
+              this.updateSpreadPages();
+              this.updateSpreadProgress();
+            }
+          }
+        } else {
+          // Scroll suave si la palabra se sale del viewport
+          currentWord.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }
       }
     }
   }
@@ -2003,18 +2053,171 @@ export class ReaderComponent implements OnInit, OnDestroy {
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.currentSpreadIndex = 0;
       this.renderCurrentChapter();
       this.saveProgressSubject.next(this.currentPage - 1);
       this.loadAvatars();
+      this.updateSpreadPages();
     }
   }
 
   previousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.currentSpreadIndex = 0;
       this.renderCurrentChapter();
       this.saveProgressSubject.next(this.currentPage - 1);
       this.loadAvatars();
+      this.updateSpreadPages();
+    }
+  }
+
+  // ── MÉTODOS DE VISTA DE LIBRO REAL (DOBLE PÁGINA) ──────────────────
+  get isFirstSpread(): boolean {
+    return this.currentSpreadIndex === 0;
+  }
+
+  get isLastSpread(): boolean {
+    return this.currentSpreadIndex >= this.totalSpreads - 1;
+  }
+
+  toggleDoublePageView(enabled?: boolean) {
+    this.isDoublePageView = enabled !== undefined ? enabled : !this.isDoublePageView;
+    localStorage.setItem('reader-double-page', String(this.isDoublePageView));
+    this.currentSpreadIndex = 0;
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.recalculateSpreads();
+      const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+      if (canvas) {
+        canvas.scrollLeft = 0;
+        canvas.scrollTop = 0;
+      }
+    }, 100);
+  }
+
+  recalculateSpreads() {
+    if (!this.isDoublePageView) return;
+    const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+    if (!canvas) return;
+    const isMobile = window.innerWidth <= 820;
+    const gap = isMobile ? 0 : this.SPINE_GAP;
+    const clientWidth = canvas.clientWidth || 1;
+    const scrollWidth = canvas.scrollWidth || clientWidth;
+    const spreadStride = clientWidth + gap;
+    this.totalSpreads = Math.max(1, Math.ceil((scrollWidth + gap - 10) / spreadStride));
+    if (this.currentSpreadIndex >= this.totalSpreads) {
+      this.currentSpreadIndex = Math.max(0, this.totalSpreads - 1);
+    }
+    this.updateSpreadPages();
+    this.updateSpreadProgress();
+    this.cdr.detectChanges();
+  }
+
+  updateSpreadProgress() {
+    if (!this.isDoublePageView) return;
+    const progress = this.totalSpreads > 1
+      ? (this.currentSpreadIndex / (this.totalSpreads - 1))
+      : 1;
+    this.chapterScrollPercent = Math.min(100, Math.max(0, Math.round(progress * 100)));
+    this.isNearEnd = this.currentSpreadIndex >= this.totalSpreads - 1;
+
+    const exactPage = (this.currentPage - 1) + (this.totalSpreads > 1 ? (this.currentSpreadIndex / this.totalSpreads) : 0);
+    this.saveProgressSubject.next(exactPage);
+    this.checkBackToReadingVisibility();
+  }
+
+  updateSpreadPages() {
+    this.currentLeftPageNum = (this.currentSpreadIndex * 2) + 1;
+    this.currentRightPageNum = (this.currentSpreadIndex * 2) + 2;
+  }
+
+  turnSpreadNext() {
+    if (!this.isDoublePageView) {
+      this.nextPage();
+      return;
+    }
+    const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+    if (!canvas) return;
+
+    if (this.currentSpreadIndex < this.totalSpreads - 1) {
+      this.flipDirection = 'next';
+      this.isPageFlipping = true;
+      this.currentSpreadIndex++;
+      this.updateSpreadPages();
+      this.updateSpreadProgress();
+
+      const isMobile = window.innerWidth <= 820;
+      const gap = isMobile ? 0 : this.SPINE_GAP;
+      const spreadStride = canvas.clientWidth + gap;
+
+      // Volteo suave con corte de página sin deslizar texto por el lomo
+      setTimeout(() => {
+        canvas.scrollTo({ left: this.currentSpreadIndex * spreadStride, behavior: 'instant' as any });
+      }, 130);
+
+      setTimeout(() => {
+        this.isPageFlipping = false;
+        this.cdr.detectChanges();
+      }, 360);
+    } else if (this.currentPage < this.totalPages) {
+      this.nextPage();
+    }
+  }
+
+  turnSpreadPrev() {
+    if (!this.isDoublePageView) {
+      this.previousPage();
+      return;
+    }
+    const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+    if (!canvas) return;
+
+    if (this.currentSpreadIndex > 0) {
+      this.flipDirection = 'prev';
+      this.isPageFlipping = true;
+      this.currentSpreadIndex--;
+      this.updateSpreadPages();
+      this.updateSpreadProgress();
+
+      const isMobile = window.innerWidth <= 820;
+      const gap = isMobile ? 0 : this.SPINE_GAP;
+      const spreadStride = canvas.clientWidth + gap;
+
+      setTimeout(() => {
+        canvas.scrollTo({ left: this.currentSpreadIndex * spreadStride, behavior: 'instant' as any });
+      }, 130);
+
+      setTimeout(() => {
+        this.isPageFlipping = false;
+        this.cdr.detectChanges();
+      }, 360);
+    } else if (this.currentPage > 1) {
+      this.previousPage();
+    }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize() {
+    if (this.isDoublePageView) {
+      this.recalculateSpreads();
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onReaderKeydown(event: KeyboardEvent) {
+    const target = event.target as HTMLElement;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      return;
+    }
+    if (this.isDoublePageView) {
+      if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+        event.preventDefault();
+        this.turnSpreadNext();
+      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+        event.preventDefault();
+        this.turnSpreadPrev();
+      }
     }
   }
 
