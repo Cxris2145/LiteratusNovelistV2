@@ -49,7 +49,7 @@
   height: calc(100vh - 64px);
   border-left: 1px solid var(--glass-border);
   border-right: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.15);
+  background: color-mix(in srgb, var(--color-bg-primary) 82%, transparent);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@
   display: flex;
   flex-direction: column;
   padding: 24px;
-  background: rgba(17, 38, 29, 0.3); /* dark surface glass */
+  background: color-mix(in srgb, var(--color-surface) 84%, transparent);
   border-right: 1px solid var(--glass-border);
   overflow-y: auto;
   gap: 24px;
@@ -70,8 +70,8 @@
 }
 
 [data-theme="light-gallery"] .dchat-sidebar {
-  background: #ffffff;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
 }
 
 /* Volver a Personajes */
@@ -93,15 +93,15 @@
 }
 
 .dchat-back-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-hover);
   color: var(--text-main);
   border-color: var(--glow-gold);
 }
 
 [data-theme="light-gallery"] .dchat-back-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #000;
-  border-color: #000;
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+  border-color: var(--color-focus);
 }
 
 /* Avatar Card */
@@ -205,7 +205,7 @@
 
 .dchat-tag {
   font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-hover);
   border: 1px solid var(--glass-border);
   color: var(--text-muted);
   padding: 4px 8px;
@@ -270,7 +270,7 @@
 
 .dchat-register-btn {
   background: var(--glow-purple);
-  color: white;
+  color: var(--color-text-strong);
   border: none;
   border-radius: 8px;
   font-size: 0.85rem;
@@ -293,8 +293,8 @@
 }
 
 [data-theme="light-gallery"] .dchat-register-btn {
-  background: #000000;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -304,7 +304,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--color-bg-primary);
   position: relative;
 }
 
@@ -313,7 +313,7 @@
   display: flex;
   align-items: center;
   padding: 16px 24px;
-  background: rgba(17, 38, 29, 0.4); /* glass header */
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
   border-bottom: 1px solid var(--glass-border);
   gap: 16px;
   z-index: 10;
@@ -324,8 +324,8 @@
 }
 
 [data-theme="light-gallery"] .dchat-header {
-  background: #ffffff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .dchat-header-avatar {
@@ -475,8 +475,8 @@
 }
 
 [data-theme="light-gallery"] .dchat-msg-bubble--char {
-  background: #f1f5f9;
-  border-color: rgba(0, 0, 0, 0.05);
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border);
 }
 
 .dchat-msg-bubble--user {
@@ -490,9 +490,9 @@
 }
 
 [data-theme="light-gallery"] .dchat-msg-bubble--user {
-  background: #000000;
-  color: #ffffff;
-  border: none;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
 }
 
 .dchat-msg-name {
@@ -532,8 +532,8 @@
 
 /* Limit banner */
 .dchat-limit-banner {
-  background: rgba(139, 0, 0, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
   margin: 16px 24px;
   padding: 16px 24px;
   border-radius: 12px;
@@ -567,7 +567,7 @@
 
 .dchat-cta-btn {
   background: var(--glow-gold);
-  color: #000;
+  color: var(--color-on-primary);
   border: none;
   font-weight: 700;
   font-size: 0.9rem;
@@ -594,7 +594,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-surface);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 6px 12px 6px 20px;
@@ -603,8 +603,8 @@
 }
 
 [data-theme="light-gallery"] .dchat-input-inner {
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.15);
+  background: var(--color-surface);
+  border-color: var(--color-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -627,12 +627,12 @@
 }
 
 [data-theme="light-gallery"] .dchat-input {
-  color: #000;
+  color: var(--color-text-primary);
 }
 
 .dchat-send-btn {
   background: var(--glow-gold);
-  color: #000;
+  color: var(--color-on-primary);
   border: none;
   width: 36px;
   height: 36px;
@@ -650,7 +650,7 @@
 }
 
 .dchat-send-btn:disabled {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-surface-elevated);
   color: var(--text-subtle);
   cursor: not-allowed;
 }

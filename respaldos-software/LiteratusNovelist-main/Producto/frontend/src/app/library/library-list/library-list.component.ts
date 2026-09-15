@@ -23,18 +23,12 @@ export class LibraryListComponent implements OnInit {
   private decorate(list: any[]): any[] {
     return list.map((item, i) => {
       const raw = item.book_cover || item.edition?.book?.cover_image || 'assets/default_cover.jpg';
-      return { ...item, coverThumb: this.thumb(raw), coverLoaded: false, coverPriority: i < this.EAGER_COVERS };
+      return { ...item, coverThumb: this.thumb(raw), coverLoaded: true, coverPriority: i < this.EAGER_COVERS };
     });
   }
 
   private thumb(url: string): string {
     if (!url) return 'assets/default_cover.jpg';
-    if (url.includes('/storage/v1/object/public/')) {
-      // Las portadas fuente son cuadradas (800x800); sin 'height' Supabase
-      // recorta una franja angosta en vez de reescalar. Pedimos alto = ancho.
-      return url.replace('/object/public/', '/render/image/public/')
-        + (url.includes('?') ? '&' : '?') + 'width=360&height=360&quality=62&resize=cover';
-    }
     return url;
   }
 

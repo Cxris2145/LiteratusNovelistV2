@@ -36,9 +36,9 @@
 }
 
 .error-banner {
-  background: rgba(239, 68, 68, 0.1);
-  border-left: 4px solid #ef4444;
-  color: #fca5a5;
+  background: var(--color-error-bg);
+  border-left: 4px solid var(--color-error);
+  color: var(--color-error);
   padding: 10px;
   margin-bottom: 20px;
   border-radius: 4px;

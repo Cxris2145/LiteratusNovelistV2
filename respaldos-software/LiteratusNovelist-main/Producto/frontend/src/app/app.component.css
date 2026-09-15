@@ -1,160 +1,493 @@
-.glass-navbar {
+:host {
+  --navbar-h: 172px;
+}
+
+.main-header.glass-navbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--glass-bg);
+  background: rgba(10, 25, 20, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
-  padding: 1rem 0;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  display: flex;
+  flex-direction: column;
+  --text-main: #FCFAF2;
+  --text-muted: #C9BEB0;
+  --glow-accent: #D4AF37;
+  --glow-gold: #D4AF37;
 }
 
-.nav-container {
+/* ── Fila 1: Logo (izq), Buscador grande (centro), Accesos (der) ──── */
+.header-top-bar {
+  width: 100%;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+}
+
+.header-top-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Logo Principal de Marca ──────────────────────────────────────── */
+.brand-logo,
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none !important;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.brand-logo:hover,
+.logo:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.brand-logo:focus-visible,
+.logo:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.brand-literatus,
+.literatus {
+  font-family: var(--font-brand), 'Cinzel', 'Trajan Pro', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #FCFAF2 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.brand-novelist,
+.novelist {
+  font-family: var(--font-brand), 'Cinzel', 'Trajan Pro', Georgia, serif;
+  font-weight: 400;
+  font-size: 1.55rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #D4AF37 !important;
+  text-shadow: 0 0 14px rgba(212, 175, 55, 0.45);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.header-center {
+  flex: 1;
+  max-width: 620px;
+  min-width: 220px;
+  display: flex;
+  justify-content: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Buscador Grande ──────────────────────────────────────────────── */
+.nav-search-form {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--color-primary);
+  opacity: 0.85;
+  pointer-events: none;
+  font-size: 20px;
+}
+
+.nav-search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 46px 0 42px;
+  background: rgba(20, 41, 31, 0.65);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 24px;
+  color: var(--color-text-primary);
+  font: 400 13.5px var(--font-ui);
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.nav-search-input::placeholder {
+  color: var(--color-text-disabled);
+  opacity: 0.85;
+}
+
+.nav-search-input:focus {
+  border-color: var(--color-primary);
+  background: rgba(26, 51, 39, 0.9);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 42px;
+  background: none;
+  border: none;
+  color: var(--color-text-disabled);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.search-clear-btn:hover {
+  color: var(--color-primary);
+}
+
+.search-submit-btn {
+  position: absolute;
+  right: 5px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-primary);
+  color: #1C1607;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.search-submit-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.search-submit-btn:hover {
+  transform: scale(1.06);
+  background: #F3C66D;
+}
+
+/* ── Accesos Rápidos (Derecha) ────────────────────────────────────── */
+.quick-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.quick-action-btn:hover {
+  color: var(--color-primary);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.action-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon-wrap .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.action-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: #ef4444;
+  color: #fff;
+  font: 700 9.5px var(--font-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.action-badge--dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  top: -2px;
+  right: -2px;
+}
+
+.action-label {
+  font: 500 11px var(--font-ui);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+/* Botón de cuenta / usuario */
+.auth-action-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.user-account-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.user-account-btn:hover {
+  background: var(--color-primary);
+  color: #1C1607;
+}
+
+.account-icon {
+  font-size: 22px;
+}
+
+.account-texts {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.1;
+}
+
+.account-sub {
+  font: 400 9.5px var(--font-ui);
+  opacity: 0.8;
+}
+
+.account-main {
+  font: 600 11.5px var(--font-ui);
+}
+
+/* ── Fila 2: Burbujas de Navegación Rápida (Círculo) ──────────────── */
+.nav-bubbles-bar {
+  width: 100%;
+  background: rgba(10, 25, 20, 0.65);
+  padding: 10px 16px 12px;
+  border-top: 1px solid rgba(212, 175, 55, 0.08);
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.bubbles-container {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  justify-content: center;
+  gap: 1.6rem;
+  padding: 8px 16px 6px;
+  scrollbar-width: none;
+  overflow: visible;
 }
 
-.logo {
-  font-size: 1.4rem;
-  font-weight: 600;
+.bubbles-container::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-bubble-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 84px;
+  text-decoration: none !important;
   cursor: pointer;
-  letter-spacing: 0.5px;
-  text-decoration: none;
+  flex-shrink: 0;
+  padding: 4px 6px 2px;
+  position: relative;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.bubble-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 0;
+  justify-content: center;
+  background: rgba(20, 41, 31, 0.72);
+  border: 1.5px solid rgba(212, 175, 55, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1),
+              border-color 0.22s ease,
+              box-shadow 0.22s ease,
+              background 0.22s ease;
+  margin: 0 auto;
 }
 
-.literatus {
-  /*
-   * Cinzel: fuente romana clásíca inspirada en inscripciones del Imperio Romano.
-   * Perfecta para una marca literaria — comunica autoridad, atemporalidad, cultura.
-   * Contrasta elegantemente con la fuente sans-serif del resto de la UI.
-   */
-  font-family: var(--font-brand);
-  font-weight: 600;
-  font-size: 1.35rem;
-  color: var(--text-main);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.novelist {
-  font-family: var(--font-brand);
-  font-weight: 400;  /* Lighter weight crea contraste elegante dentro del mismo logo */
-  font-size: 1.35rem;
-  color: var(--glow-accent);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.nav-links {
+.bubble-circle .material-symbols-rounded {
+  font-size: 23px;
+  color: #EDE8DD;
+  line-height: 1;
   display: flex;
-  gap: 28px;
-  list-style: none;
   align-items: center;
+  justify-content: center;
+  transition: color 0.22s ease, transform 0.22s ease;
 }
 
-.nav-links a, .nav-links li.logout {
+.bubble-label {
   font-family: var(--font-ui);
-  font-weight: 500;           /* Plus Jakarta Sans 500 es la misma “Medium” que usa Linear, Vercel */
-  font-size: 0.9rem;
-  letter-spacing: 0.02em;     /* Micro-tracking para elegancia */
+  font-weight: 500;
+  font-size: 11.5px;
+  color: #C9BEB0;
+  margin-top: 6px;
+  transition: color 0.2s ease, font-weight 0.2s ease;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+/* Hover común para todas las burbujas */
+.nav-bubble-item:hover .bubble-circle {
+  transform: translateY(-2px);
+  border-color: #D4AF37;
+  background: rgba(33, 59, 47, 0.95);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.32);
+}
+
+.nav-bubble-item:hover .bubble-circle .material-symbols-rounded {
+  color: #D4AF37;
+  transform: scale(1.05);
+}
+
+.nav-bubble-item:hover .bubble-label {
+  color: #FFFDF8;
+  font-weight: 600;
+}
+
+/* Estado Activo: diseño uniforme y completo para las 6 secciones (incluyendo Mi Biblioteca) */
+.nav-bubble-item.active-bubble .bubble-circle {
+  border: 2px solid #D4AF37;
+  background: rgba(212, 175, 55, 0.18);
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+}
+
+.nav-bubble-item.active-bubble .bubble-circle .material-symbols-rounded {
+  color: #D4AF37;
+}
+
+.nav-bubble-item.active-bubble .bubble-label {
+  color: #D4AF37;
+  font-weight: 600;
+}
+
+/* ── Accesos de invitado (Ingresar / Registrarse) ───────────────────── */
+.auth-link {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
   color: var(--text-muted);
   text-decoration: none;
-  transition: color 0.25s ease;
-  cursor: pointer;
-  position: relative;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.nav-links a:hover, .nav-links li.logout:hover {
+.auth-link:hover {
   color: var(--text-main);
+  background: var(--color-hover);
 }
 
-.nav-links a:focus-visible,
-.menu-icon:focus-visible,
+.auth-link--solid {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: transparent;
+}
+
+.auth-link--solid:hover {
+  background: var(--color-focus);
+  color: var(--color-on-primary);
+}
+
+.auth-link:focus-visible,
 .avatar-btn:focus-visible,
 .ink-widget:focus-visible {
-  outline: 2px solid var(--glow-gold);
+  outline: 2px solid var(--color-focus);
   outline-offset: 3px;
   border-radius: 4px;
 }
 
-.auth-btn a {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-}
-
-.auth-btn.highlight a {
-  background: var(--glow-accent);
-  color: white;
-  border: none;
-}
-
-/* --- Menu Hamburguesa (Mobile First) --- */
-.menu-icon {
-  display: none;
+/* ── Contenedor principal de contenido ────────────────────────────── */
+.site-body {
+  display: flex;
   flex-direction: column;
-  gap: 5px;
-  cursor: pointer;
+  min-height: calc(100vh - var(--navbar-h));
+  width: 100%;
 }
 
-.bar {
-  width: 25px;
-  height: 3px;
-  background-color: var(--text-main);
-  transition: 0.3s;
-  border-radius: 5px;
+.site-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  container-type: inline-size;
+  container-name: page-pane;
 }
 
-@media (max-width: 768px) {
-  .menu-icon {
-    display: flex;
-  }
-  
-  .nav-links {
-    position: absolute;
-    top: 70px;
-    right: -100%;
-    flex-direction: column;
-    background: var(--bg-color);
-    width: 100%;
-    padding: 20px 0;
-    transition: 0.3s ease-in-out;
-    border-bottom: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px);
-  }
-
-  .nav-links.active {
-    right: 0;
-  }
+.site-content > .container {
+  flex: 1;
+  width: 100%;
+  margin: 0;
 }
 
-/* --- Dark Premium Aesthetic Additions --- */
-.active-link {
-  color: var(--text-main) !important;
-  /*
-   * Subrayado dorado animado: en lugar del borde estático, usamos un gradiente
-   * en el pseudo-elemento para una línea más fina y elegante.
-   * El color dorado (#f59e0b) es la señal visual clásica de "seleccionado" en apps premium.
-   */
-  padding-bottom: 3px;
-  border-bottom: 1.5px solid var(--glow-gold);
-  transition: border-color 0.3s ease;
-}
-
+/* ── Saldo de tinta (La Taberna) ─────────────────────────────────────── */
 .ink-widget {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: var(--bg-surface);
   border: 1px solid var(--glass-border);
-  padding: 8px 18px;
+  padding: 8px 16px;
   border-radius: 24px;
   cursor: pointer;
   transition: transform 0.2s ease, filter 0.2s ease;
@@ -173,7 +506,7 @@
 }
 
 .ink-balance {
-  color: var(--glow-gold);
+  color: var(--color-primary);
   font-weight: 700;
   font-size: 1rem;
   font-family: var(--font-ui);
@@ -229,8 +562,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--glow-accent);
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,7 +658,7 @@
 }
 
 /* La portada comparte tinta, papel y ancho editorial con su navegación y pie. */
-:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) {
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) {
   --bg-color: var(--home-bg);
   --bg-surface: var(--home-bg-surface);
   --text-main: var(--home-ink);
@@ -335,32 +668,88 @@
   --glow-accent: var(--home-ink);
   --glow-gold: var(--home-sage-ink);
 }
-.nav-container { max-width: none; padding-inline: var(--home-gutter); gap: 24px; }
-.logo { flex-shrink: 0; gap: 4px; }
-.literatus, .novelist { font-size: 1.12rem; letter-spacing: .025em; }
-.nav-links { gap: 20px; }
-.nav-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 12px; letter-spacing: 0; }
-.auth-btn a { border-radius: 8px; padding: 10px 14px; }
-:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .auth-btn.highlight a { color: var(--home-bg-surface); }
-:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .auth-btn.highlight a:hover { background: var(--home-ink-strong); }
-:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .novelist { color: var(--home-ink); }
-:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list) .ink-icon { color: var(--home-amber-ink); filter: none; }
-.menu-icon { background: none; border: 0; padding: 10px; min-width: 44px; min-height: 44px; justify-content: center; }
-.menu-icon .bar { width: 22px; height: 2px; }
+.nav-container { max-width: none; padding-inline: var(--home-gutter); }
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) .auth-link--solid { color: var(--color-on-primary); }
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) .auth-link--solid:hover { background: var(--color-text-strong); color: var(--color-bg-primary); }
+:host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) .ink-icon { color: var(--home-amber-ink); filter: none; }
+
 .skip-link { position: fixed; top: 8px; left: 16px; z-index: 1000; padding: 12px 18px; border-radius: 6px; background: var(--home-ink-strong); color: var(--home-bg-surface); font: 600 14px var(--font-ui); transform: translateY(-160%); }
 .skip-link:focus { transform: translateY(0); }
-@media (max-width: 1200px) {
-  .menu-icon { display: flex; }
-  .nav-links { display: none; position: absolute; top: 100%; right: 0; width: 100%; padding: 16px var(--home-gutter) 24px; flex-direction: column; align-items: stretch; gap: 4px; background: var(--bg-color); border-bottom: 1px solid var(--glass-border); box-shadow: 0 12px 24px #40383E14; }
-  .nav-links.active { display: flex; max-height: calc(100dvh - 80px); overflow-y: auto; }
-  .nav-links a { width: 100%; min-height: 44px; font-size: 14px; }
-  .auth-btn a { justify-content: center; margin-top: 4px; }
-  .nav-links .ink-widget { align-self: flex-start; }
+
+@media (max-width: 900px) {
+  .brand-literatus, .brand-novelist,
+  .literatus, .novelist { font-size: 1.35rem; }
+  .header-top-container { padding: 8px 16px; gap: 12px; }
+  .bubbles-container { gap: 1.2rem; }
 }
-@media (max-width: 480px) {
-  .literatus, .novelist { font-size: 15px; }
-  .nav-container { gap: 12px; }
+
+@media (max-width: 768px) {
+  :host {
+    --navbar-h: 196px;
+  }
+  .header-top-container {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .header-left {
+    order: 1;
+  }
+  .header-right {
+    order: 2;
+    gap: 8px;
+  }
+  .header-center {
+    order: 3;
+    max-width: 100%;
+    width: 100%;
+    min-width: 100%;
+    padding-top: 4px;
+  }
+  .quick-action-btn .action-label {
+    display: none;
+  }
+  .nav-bubbles-bar {
+    padding: 6px 10px 8px;
+  }
+  .bubbles-container {
+    justify-content: flex-start;
+    gap: 1rem;
+    padding: 6px 10px 6px;
+    overflow-x: auto;
+  }
+  .nav-bubble-item {
+    min-width: 74px;
+    padding: 2px 4px;
+  }
+  .bubble-circle {
+    width: 46px;
+    height: 46px;
+  }
+  .bubble-circle .material-symbols-rounded {
+    font-size: 20px;
+  }
+  .bubble-label {
+    font-size: 11px;
+    margin-top: 4px;
+  }
 }
+
+@media (max-width: 640px) {
+  .brand-literatus, .brand-novelist,
+  .literatus, .novelist { font-size: 1.2rem; }
+  .brand-logo, .logo { gap: 5px; }
+  .ink-widget { padding: 6px 10px; gap: 6px; }
+  .ink-balance { font-size: 0.85rem; }
+}
+
+@media (max-width: 380px) {
+  .brand-literatus, .brand-novelist,
+  .literatus, .novelist { font-size: 1.05rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .nav-links, .bar, .auth-btn a, .ink-widget { transition: none; }
+  .auth-link, .ink-widget, .site-body, .nav-bubble-item .bubble-circle {
+    transition: none;
+  }
 }
+

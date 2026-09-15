@@ -26,9 +26,15 @@ import { CharacterHubComponent } from './characters/character-hub/character-hub.
 import { DemoChatPageComponent } from './characters/demo-chat-page/demo-chat-page.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { CategoryDetailComponent } from './categories/category-detail/category-detail.component';
+import { FavoritesComponent } from './library/favorites/favorites.component';
+import { MessagesComponent } from './characters/messages/messages.component';
+import { CartComponent } from './catalog/cart/cart.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
+  { path: 'favorites', component: FavoritesComponent, canActivate: [authGuard] },
+  { path: 'messages', component: MessagesComponent },
+  { path: 'cart', component: CartComponent },
   { path: 'tavern', component: TavernComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },

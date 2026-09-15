@@ -216,3 +216,52 @@ class ChatMessage(TimeStampedModel):
     def __str__(self):
         preview = self.content[:50] + '...' if len(self.content) > 50 else self.content
         return f"[{self.get_role_display()}] {preview}"
+
+
+class AssistantConversation(TimeStampedModel):
+    """
+    Hilo de conversación entre un usuario y el Asistente global de la plataforma
+    (guía de uso, no roleplay con personajes). A diferencia de ChatSession, no
+    depende de ningún AIAvatar/Edition: es una conversación de soporte dentro
+    de la app, disponible para cualquier usuario autenticado en cualquier libro.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assistant_conversations')
+    title = models.CharField(max_length=255, blank=True, default='Nueva conversación')
+
+    class Meta:
+        verbose_name = 'Assistant Conversation'
+        verbose_name_plural = 'Assistant Conversations'
+        indexes = [
+            # "las conversaciones del usuario X, más recientes primero" (lista del panel).
+            models.Index(fields=['user', '-updated_at'], name='assistant_conv_user_idx'),
+        ]
+
+    def __str__(self):
+        return f"[{self.user.username}] {self.title}"
+
+
+class AssistantMessage(TimeStampedModel):
+    """Mensaje individual dentro de una AssistantConversation."""
+
+    class RoleChoices(models.TextChoices):
+        USER = 'user', 'User'
+        ASSISTANT = 'assistant', 'Assistant'
+
+    conversation = models.ForeignKey(AssistantConversation, on_delete=models.CASCADE, related_name='messages')
+    role = models.CharField(max_length=20, choices=RoleChoices.choices)
+    content = models.TextField()
+    # Sección de la app desde la que se envió (ej. "Mi Biblioteca"), para dar
+    # contexto al LLM sobre dónde estaba el usuario al preguntar.
+    section = models.CharField(max_length=100, blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Assistant Message'
+        verbose_name_plural = 'Assistant Messages'
+        indexes = [
+            models.Index(fields=['conversation', 'created_at'], name='assistant_msg_conv_idx'),
+        ]
+        ordering = ['created_at']
+
+    def __str__(self):
+        preview = self.content[:50] + '...' if len(self.content) > 50 else self.content
+        return f"[{self.get_role_display()}] {preview}"

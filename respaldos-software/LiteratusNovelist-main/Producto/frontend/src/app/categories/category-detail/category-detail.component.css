@@ -17,7 +17,7 @@
 .cat-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #FAF6F0 10%, #FAF6F0F2 60%, #FAF6F0CC);
+  background: linear-gradient(90deg, var(--home-bg) 10%, color-mix(in srgb, var(--home-bg) 95%, transparent) 60%, color-mix(in srgb, var(--home-bg) 80%, transparent));
 }
 
 .cat-hero-content {
@@ -57,7 +57,7 @@
   text-transform: uppercase;
   background: var(--home-sage-surface);
   color: var(--home-sage-ink);
-  border-color: #BCCDBA;
+  border-color: var(--color-border);
 }
 
 .cat-hero-title {
@@ -117,7 +117,7 @@
 
 .search-box:focus-within {
   border-color: var(--home-sage-ink);
-  box-shadow: 0 0 0 3px #41644918;
+  box-shadow: 0 0 0 3px var(--color-focus-soft);
 }
 
 .search-icon-svg {

@@ -44,10 +44,21 @@ class GenreSerializer(serializers.ModelSerializer):
     Metadatos de clasificación que acompañarán anidados a los libros.
     """
     book_count = serializers.IntegerField(read_only=True, required=False)
+    cover_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Genre
         fields = ['id', 'name', 'slug', 'cover_image', 'book_count']
+
+    def get_cover_image(self, obj):
+        from django.conf import settings
+        media_url = getattr(settings, 'MEDIA_URL', '/media/')
+        if obj.cover_image and obj.cover_image.name:
+            val = str(obj.cover_image.name)
+            if val.startswith('http://') or val.startswith('https://'):
+                return val
+            return f"{media_url.rstrip('/')}/{val.lstrip('/')}"
+        return f"{media_url.rstrip('/')}/category_covers/{obj.slug}.webp"
 
 class EditionSerializer(serializers.ModelSerializer):
     """

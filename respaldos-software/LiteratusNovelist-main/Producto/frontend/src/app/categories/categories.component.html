@@ -1,28 +1,191 @@
 <div class="categories-page">
-  <!-- Grid de Categorías -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       1. HERO EDITORIAL DE CATEGORÍAS
+  ═══════════════════════════════════════════════════════════ -->
+  <header class="categories-hero">
+    <div class="hero-container">
+      <div class="hero-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <span>CATÁLOGO CLASIFICADO</span>
+      </div>
+
+      <h1 class="hero-title">Explora por Géneros y Mundos Literarios</h1>
+      <p class="hero-subtitle">
+        Sumérgete en miles de historias, tratados y obras cumbre clasificadas por su atmósfera narrativa, corriente y época.
+      </p>
+
+      <!-- Métricas en vivo -->
+      <div class="hero-metrics">
+        <div class="metric-pill">
+          <span class="material-symbols-rounded metric-icon">category</span>
+          <span class="metric-value">{{ totalCategoriesCount || 33 }}</span>
+          <span class="metric-label">Géneros Curados</span>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-pill">
+          <span class="material-symbols-rounded metric-icon">auto_stories</span>
+          <span class="metric-value">{{ totalBooksCount > 0 ? (totalBooksCount | number) : '2,500+' }}</span>
+          <span class="metric-label">Libros Disponibles</span>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-pill">
+          <span class="material-symbols-rounded metric-icon">bolt</span>
+          <span class="metric-value">100%</span>
+          <span class="metric-label">Acceso Digital e IA</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       2. BARRA DE CONTROLES: BUSCADOR, FILTROS Y ORDENACIÓN
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="categories-controls-wrapper">
+    <div class="categories-controls">
+      
+      <!-- Buscador en tiempo real -->
+      <div class="search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Buscar género o temática (ej. Filosofía, Terror, Cuentos)..."
+          [value]="searchTerm"
+          (input)="onSearch($event)"
+          aria-label="Buscar categoría">
+        <button
+          *ngIf="searchTerm"
+          type="button"
+          class="search-clear-btn"
+          (click)="clearSearch()"
+          aria-label="Limpiar búsqueda">✕</button>
+      </div>
+
+      <!-- Filtros rápidos por familia literaria -->
+      <div class="filter-chips">
+        <button
+          type="button"
+          class="chip-btn"
+          [class.active]="selectedFamily === 'all'"
+          (click)="setFamily('all')">
+          <span class="material-symbols-rounded chip-icon">apps</span>
+          Todos los géneros
+        </button>
+        <button
+          type="button"
+          class="chip-btn"
+          [class.active]="selectedFamily === 'fiction'"
+          (click)="setFamily('fiction')">
+          <span class="material-symbols-rounded chip-icon">auto_stories</span>
+          Ficción & Narrativa
+        </button>
+        <button
+          type="button"
+          class="chip-btn"
+          [class.active]="selectedFamily === 'thought'"
+          (click)="setFamily('thought')">
+          <span class="material-symbols-rounded chip-icon">psychology</span>
+          Pensamiento & Ensayo
+        </button>
+        <button
+          type="button"
+          class="chip-btn"
+          [class.active]="selectedFamily === 'arts'"
+          (click)="setFamily('arts')">
+          <span class="material-symbols-rounded chip-icon">theater_comedy</span>
+          Artes, Teatro & Lírica
+        </button>
+      </div>
+
+      <!-- Selector de Ordenamiento -->
+      <div class="sort-selector">
+        <span class="sort-label">Ordenar por:</span>
+        <button
+          type="button"
+          class="sort-btn"
+          [class.active]="sortOption === 'popular'"
+          (click)="setSort('popular')">
+          <span class="material-symbols-rounded sort-icon">trending_up</span>
+          Más populares
+        </button>
+        <button
+          type="button"
+          class="sort-btn"
+          [class.active]="sortOption === 'alpha'"
+          (click)="setSort('alpha')">
+          <span class="material-symbols-rounded sort-icon">sort_by_alpha</span>
+          A — Z
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       3. CUERPO PRINCIPAL: GRILLA / SKELETON / EMPTY STATE
+  ═══════════════════════════════════════════════════════════ -->
   <main class="categories-main">
 
-    <div class="categories-grid">
-      <div class="category-card"
-           *ngFor="let cat of categories"
-           (click)="goToCategory(cat.slug)"
-           role="link" tabindex="0" (keydown.enter)="goToCategory(cat.slug)">
+    <!-- SKELETON LOADER ANIMADO -->
+    <div class="categories-grid" *ngIf="isLoading">
+      <div class="category-card skeleton-card" *ngFor="let s of skeletonCards">
+        <div class="skeleton-shimmer"></div>
+        <div class="skeleton-top">
+          <div class="skeleton-pill"></div>
+        </div>
+        <div class="skeleton-bottom">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-cta"></div>
+        </div>
+      </div>
+    </div>
 
-        <!-- Imagen de fondo -->
+    <!-- GRILLA REAL DE CATEGORÍAS -->
+    <div class="categories-grid" *ngIf="!isLoading && filteredCategories.length > 0">
+      <article
+        class="category-card"
+        *ngFor="let cat of filteredCategories; trackBy: trackBySlug"
+        (click)="goToCategory(cat.slug)"
+        role="link"
+        tabindex="0"
+        (keydown.enter)="goToCategory(cat.slug)"
+        [style.--cat-accent]="cat.color">
+
+        <!-- Contenedor de Imagen de Portada -->
         <div class="card-image-wrap">
-          <img *ngIf="cat.image" [src]="cat.image" [alt]="cat.name" class="card-bg-img" loading="lazy" (error)="cat.image = ''">
-          <div *ngIf="!cat.image" class="card-icon-fallback">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          </div>
+          <img
+            [src]="cat.image"
+            [alt]="'Portada de ' + cat.name"
+            class="card-bg-img"
+            [class.loaded]="cat.imageLoaded"
+            loading="lazy"
+            (load)="onImageLoad(cat)"
+            (error)="onImageError(cat)">
+          
+          <!-- Gradientes y viñeta cinematográfica para lectura óptima -->
           <div class="card-gradient"></div>
+          <div class="card-glow" [style.background]="cat.color"></div>
         </div>
 
-        <!-- Contenido encima de la imagen -->
+        <!-- Contenido y Metadatos -->
         <div class="card-content">
           <div class="card-top">
+            <span class="card-family-tag">
+              {{ cat.family === 'fiction' ? 'Narrativa' : cat.family === 'thought' ? 'Pensamiento' : 'Artes' }}
+            </span>
             <div class="card-book-count" *ngIf="cat.bookCount && cat.bookCount > 0">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-              {{ cat.bookCount }}+ libros
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              <span>{{ cat.bookCount }}+ obras</span>
             </div>
           </div>
 
@@ -30,14 +193,30 @@
             <h2 class="card-title">{{ cat.name }}</h2>
             <p class="card-description">{{ cat.description }}</p>
             <div class="card-cta">
-              <span>Explorar →</span>
+              <span class="cta-text">Explorar género</span>
+              <span class="cta-arrow" aria-hidden="true">→</span>
             </div>
           </div>
         </div>
 
-        <!-- Hover Overlay -->
-        <div class="card-hover-overlay"></div>
+        <!-- Borde activo en hover -->
+        <div class="card-border-glow"></div>
+      </article>
+    </div>
+
+    <!-- ESTADO VACÍO CUANDO NO HAY COINCIDENCIAS -->
+    <div class="categories-empty" *ngIf="!isLoading && filteredCategories.length === 0">
+      <div class="empty-icon-wrap">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          <line x1="8" y1="11" x2="14" y2="11"/>
+        </svg>
       </div>
+      <h3 class="empty-title">No se encontraron géneros para "{{ searchTerm }}"</h3>
+      <p class="empty-desc">Prueba a buscar con otro término literario o restablece los filtros para ver todo el catálogo.</p>
+      <button type="button" class="empty-reset-btn" (click)="clearSearch(); setFamily('all')">
+        Ver todos los géneros
+      </button>
     </div>
 
   </main>

@@ -49,6 +49,7 @@ export class LoginComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.auth.setTokens(res.access, res.refresh);
+          this.auth.markFreshLogin();
           if (res.user) {
             this.auth.setUser(res.user);
           }
@@ -72,6 +73,7 @@ export class LoginComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         this.auth.setTokens(res.access, res.refresh);
+        this.auth.markFreshLogin();
         if (res.user) {
           this.auth.setUser(res.user);
         }

@@ -99,7 +99,7 @@
           <span class="badge-dot"></span>
           Administrador
         </div>
-        <button class="logout-btn" [matMenuTriggerFor]="themeMenu" style="background: var(--glow-purple); margin-right: 10px;">
+        <button class="logout-btn theme-switcher-btn" [matMenuTriggerFor]="themeMenu">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
           Tema: {{ currentTheme === 'default' ? 'Classic' : (currentTheme === 'neon' ? 'Neon' : 'Light') }}
         </button>

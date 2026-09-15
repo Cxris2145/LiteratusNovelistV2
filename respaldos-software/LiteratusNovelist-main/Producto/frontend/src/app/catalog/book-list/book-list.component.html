@@ -1,177 +1,578 @@
-<div class="catalog-wrapper">
+<div class="catalog-wrapper centered" [class.is-home-view]="isHome">
 
+  <!-- Encabezado de catálogo editorial -->
   <div class="catalog-header" *ngIf="!isHome">
+    <div class="header-badge">
+      <span class="sparkle-icon">✦</span> Catálogo Literario
+    </div>
     <h1 class="glow-text">Explora el Catálogo</h1>
-    <p class="subtitle">Descubre tu próxima aventura inmersiva.</p>
+    <p class="subtitle">Descubre tu próxima aventura inmersiva entre cientos de obras maestras.</p>
   </div>
 
   <div class="home-grid-header" *ngIf="isHome">
     <h2>Títulos destacados para tu próxima aventura</h2>
   </div>
 
-  <div class="explore-layout" [class.no-sidebar]="isHome">
+  <!-- Barra de Búsqueda y Herramientas Superiores -->
+  <section class="top-controls-bar" *ngIf="!isHome">
+    <div class="search-box">
+      <span class="material-symbols-rounded search-icon">search</span>
+      <input type="text"
+             placeholder="Busca por título, autor, saga o palabra clave…"
+             [value]="searchTerm"
+             (keyup)="onSearch($event)"
+             class="glass-input search-input">
+      <button class="clear-search-btn" *ngIf="searchTerm" (click)="searchTerm = ''; fetchBooks()">✕</button>
+    </div>
 
-    <!-- ── Barra lateral de Géneros ─────────────────────────────── -->
-    <aside class="genre-sidebar" *ngIf="!isHome" [class.open]="sidebarOpen">
-      <div class="sidebar-inner">
-        <div class="sidebar-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
-          <span>Géneros</span>
-          <button class="sidebar-close" type="button" (click)="toggleSidebar()" aria-label="Cerrar filtros">✕</button>
-        </div>
+    <div class="controls-actions">
+      <!-- Botón Filtros Avanzados -->
+      <button class="control-btn filter-modal-btn"
+              type="button"
+              [class.has-active]="hasActiveAdvancedFilters"
+              (click)="toggleAdvancedFilters()">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+        </svg>
+        <span>Filtros</span>
+        <span class="active-dot" *ngIf="hasActiveAdvancedFilters"></span>
+      </button>
 
-        <button class="genre-row genre-all" type="button"
-                [class.active]="!activeGenreSlug"
-                (click)="selectGenre(null)">
-          <span class="g-name">Todos los Géneros</span>
-          <span class="g-count" *ngIf="totalBooksCount">{{ totalBooksCount }}</span>
+      <!-- Botón Asistente ¿No sabes qué leer? -->
+      <button class="control-btn wizard-btn" type="button" (click)="openWizard()">
+        <span class="wizard-label">¿No sabes qué leer?</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Barra Horizontal de Géneros -->
+  <section class="horizontal-genres-bar" *ngIf="!isHome">
+    <div class="genres-scroll-container">
+
+      <!-- Pinned Genres -->
+      <button *ngFor="let p of PINNED_GENRES"
+              type="button"
+              class="genre-tab"
+              [class.active]="activeGenreSlug === p.slug"
+              (click)="selectGenre(p.slug)">
+        {{ p.name }}
+      </button>
+
+      <!-- Más géneros Dropdown -->
+      <div class="more-genres-wrapper">
+        <button type="button"
+                class="genre-tab more-genres-btn"
+                [class.active]="isMoreGenreActive"
+                (click)="toggleMoreGenres($event)">
+          <span *ngIf="!isMoreGenreActive">Más categorías ▾</span>
+          <span *ngIf="isMoreGenreActive">{{ activeGenreName }} <span class="tab-close" (click)="selectGenre(null); $event.stopPropagation()">✕</span></span>
         </button>
 
-        <ng-container *ngFor="let group of genreGroups">
-          <div class="group-label">{{ group.title }}</div>
-          <button class="genre-row" type="button"
-                  *ngFor="let g of group.items; trackBy: trackGenre"
-                  [class.active]="activeGenreSlug === g.slug"
-                  (click)="selectGenre(g.slug)">
-            <span class="g-name">{{ g.name }}</span>
-            <span class="g-count">{{ g.book_count }}</span>
-          </button>
-        </ng-container>
-      </div>
-    </aside>
-    <div class="sidebar-backdrop" *ngIf="!isHome && sidebarOpen" (click)="toggleSidebar()"></div>
-
-    <!-- ── Columna de resultados ────────────────────────────────── -->
-    <section class="results-col">
-
-      <ng-container *ngIf="!isHome">
-        <div class="results-toolbar">
-          <button class="filter-toggle" type="button" (click)="toggleSidebar()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
-            </svg>
-            Géneros
-            <span class="filter-toggle-dot" *ngIf="activeGenreSlug"></span>
-          </button>
-
-          <div class="search-box">
-            <span class="material-symbols-rounded search-icon">search</span>
+        <!-- Dropdown flotante con todas las demás categorías -->
+        <div class="more-genres-dropdown glass-panel" *ngIf="moreGenresOpen" (click)="$event.stopPropagation()">
+          <div class="dropdown-header">
+            <span class="dropdown-title">Todas las Categorías</span>
             <input type="text"
-                   placeholder="Encuentra tu próximo libro o autor…"
-                   [value]="searchTerm"
-                   (keyup)="onSearch($event)"
-                   class="glass-input search-input">
+                   [(ngModel)]="moreGenresSearch"
+                   placeholder="Filtrar género..."
+                   class="dropdown-search-input"
+                   (click)="$event.stopPropagation()">
+          </div>
+
+          <div class="dropdown-genres-list">
+            <button *ngFor="let g of otherGenres; trackBy: trackGenre"
+                    type="button"
+                    class="dropdown-genre-item"
+                    [class.active]="activeGenreSlug === g.slug"
+                    (click)="selectGenre(g.slug)">
+              <span class="dg-name">{{ g.name }}</span>
+              <span class="dg-count">{{ g.book_count }}</span>
+            </button>
+            <div class="no-results-text" *ngIf="otherGenres.length === 0">
+              No se encontraron categorías.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Barra de Filtros Rápidos y Ordenamiento -->
+  <section class="sub-toolbar" *ngIf="!isHome">
+    <div class="quick-chips-wrapper">
+      <button *ngFor="let chip of QUICK_FILTERS"
+              type="button"
+              class="quick-chip"
+              [class.active]="activeQuickFilter === chip.id"
+              (click)="toggleQuickFilter(chip.id)">
+        <span class="material-symbols-rounded chip-icon">{{ chip.icon }}</span>
+        <span>{{ chip.label }}</span>
+      </button>
+    </div>
+
+    <!-- Selector de Orden -->
+    <div class="sort-dropdown-container">
+      <button class="sort-toggle-btn" type="button" (click)="toggleSortDropdown($event)">
+        <span class="sort-prefix">Ordenar:</span>
+        <span class="sort-current">{{ activeSortLabel }}</span>
+        <span class="sort-arrow">▾</span>
+      </button>
+
+      <div class="sort-dropdown-menu glass-panel" *ngIf="sortDropdownOpen" (click)="$event.stopPropagation()">
+        <button *ngFor="let opt of SORT_OPTIONS"
+                type="button"
+                class="sort-option-item"
+                [class.selected]="activeSort === opt.id"
+                (click)="setSort(opt.id)">
+          {{ opt.label }}
+          <span *ngIf="activeSort === opt.id" class="check-mark">✓</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección: Recomendados para ti (Editorial Showcase) -->
+  <section class="recommendations-section" *ngIf="!isHome && recommendedBooks.length > 0 && !searchTerm && !activeGenreSlug && !activeQuickFilter && currentPage === 1">
+    <div class="rec-section-header">
+      <div class="rec-title-group">
+        <span class="rec-icon">✨</span>
+        <h2 class="rec-title">Recomendados para ti</h2>
+      </div>
+      <span class="rec-badge">Curaduría Editorial</span>
+    </div>
+
+    <div class="rec-cards-row">
+      <div class="glass-panel rec-card"
+           *ngFor="let rec of recommendedBooks; trackBy: trackBook"
+           [routerLink]="['/book', rec.slug]">
+        <div class="rec-card-cover">
+          <img [src]="rec.coverThumb" [alt]="rec.title" loading="lazy">
+          <button class="rec-heart-btn"
+                  [class.is-fav]="isFavorite(rec)"
+                  (click)="toggleFavorite(rec, $event)"
+                  [disabled]="pendingFavoriteIds.has(rec.id)"
+                  [attr.aria-busy]="pendingFavoriteIds.has(rec.id)"
+                  title="Guardar en favoritos">
+            <svg width="16" height="16" viewBox="0 0 24 24" [attr.fill]="isFavorite(rec) ? '#E05D52' : 'none'" [attr.stroke]="isFavorite(rec) ? '#E05D52' : 'currentColor'" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="rec-card-body">
+          <span class="rec-featured-tag">★ Destacado</span>
+          <h4 class="rec-book-title">{{ rec.title }}</h4>
+          <p class="rec-book-author">{{ rec.author_name || 'Autor Desconocido' }}</p>
+          <div class="rec-meta">
+            <span *ngIf="rec.readingTimeEstimate">⏱ {{ rec.readingTimeEstimate }}</span>
+            <span *ngIf="rec.page_count">{{ rec.page_count }} págs.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Indicador de Filtros Activos & Conteo -->
+  <div class="active-filters-bar" *ngIf="!isHome && (activeGenreName || searchTerm || activeQuickFilter || hasActiveAdvancedFilters)">
+    <div class="chips-list">
+      <span class="active-chip" *ngIf="activeGenreName">
+        Categoría: {{ activeGenreName }}
+        <button type="button" class="chip-remove" (click)="selectGenre(null)">✕</button>
+      </span>
+      <span class="active-chip" *ngIf="searchTerm">
+        Búsqueda: «{{ searchTerm }}»
+        <button type="button" class="chip-remove" (click)="searchTerm = ''; fetchBooks()">✕</button>
+      </span>
+      <span class="active-chip" *ngIf="activeQuickFilter">
+        Filtro: {{ activeQuickFilter }}
+        <button type="button" class="chip-remove" (click)="toggleQuickFilter(activeQuickFilter)">✕</button>
+      </span>
+      <span class="active-chip" *ngIf="hasActiveAdvancedFilters">
+        Filtros avanzados activos
+        <button type="button" class="chip-remove" (click)="resetAdvancedFilters()">✕</button>
+      </span>
+    </div>
+    <button class="clear-all-link" type="button" (click)="clearFilters()">Restablecer todo</button>
+  </div>
+
+  <!-- Contador de Resultados -->
+  <div class="results-header" *ngIf="!isLoading && books.length > 0 && !isHome">
+    <span class="results-count-text">
+      <strong>{{ totalCount }}</strong> {{ totalCount === 1 ? 'obra disponible' : 'obras disponibles' }}
+      <span *ngIf="activeGenreName"> en <em>{{ activeGenreName }}</em></span>
+    </span>
+  </div>
+
+  <!-- Loading Skeletons -->
+  <div class="grid-container" *ngIf="isLoading && rawBooks.length === 0">
+    <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6,7,8]">
+      <div class="skeleton-img"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-text title"></div>
+        <div class="skeleton-text author"></div>
+        <div class="skeleton-text description"></div>
+        <div class="skeleton-footer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Banner -->
+  <div class="message-banner error" *ngIf="errorMsg">
+    <span class="banner-icon">⚠️</span>
+    <p>{{ errorMsg }}</p>
+    <button class="retry-btn" type="button" (click)="fetchBooks()">Reintentar</button>
+  </div>
+
+  <!-- Empty State -->
+  <div class="message-banner info" *ngIf="!isLoading && books.length === 0 && !errorMsg">
+    <span class="empty-icon">📖</span>
+    <h3>No encontramos libros con los filtros actuales</h3>
+    <p>Prueba buscando con otro término o explorando otras categorías.</p>
+    <button class="catalog-btn" type="button" (click)="clearFilters()">Ver todo el catálogo</button>
+  </div>
+
+  <!-- Grilla Principal Centrada (4 columnas escritorio, 3 mediano, 3 tablet, 3 móvil) -->
+  <div class="grid-container" *ngIf="books.length > 0">
+    <div class="glass-panel book-card"
+         *ngFor="let book of books; let i = index; trackBy: trackBook"
+         [routerLink]="['/book', book.slug]"
+         [style.animation-delay]="(i * 30) + 'ms'">
+
+      <!-- Portada Cuadrada con badges e interacción -->
+      <div class="card-image">
+        <img class="cover-img"
+             [src]="book.coverThumb"
+             [alt]="book.title"
+             [attr.loading]="book.coverPriority ? 'eager' : 'lazy'"
+             [attr.fetchpriority]="book.coverPriority ? 'high' : 'low'"
+             decoding="async"
+             width="360" height="360"
+             (load)="onImgLoad(book)"
+             (error)="onImgError($event, book)">
+
+        <!-- Botón de Favorito Flotante -->
+        <button class="card-favorite-btn"
+                [class.active]="isFavorite(book)"
+                (click)="toggleFavorite(book, $event)"
+                [disabled]="pendingFavoriteIds.has(book.id)"
+                [attr.aria-busy]="pendingFavoriteIds.has(book.id)"
+                [attr.aria-label]="isFavorite(book) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                title="Favorito">
+          <svg width="17" height="17" viewBox="0 0 24 24" [attr.fill]="isFavorite(book) ? '#E05D52' : 'none'" [attr.stroke]="isFavorite(book) ? '#E05D52' : '#FFFFFF'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+
+        <!-- Micro-Badges Superiores -->
+        <div class="card-micro-badges">
+          <span class="badge-tag featured" *ngIf="book.is_featured">★ Destacado</span>
+          <span class="badge-tag free">Gratis</span>
+        </div>
+
+        <!-- Barra de Progreso de Lectura sobre la portada -->
+        <div class="card-reading-progress" *ngIf="book.readingProgress && book.readingProgress > 0">
+          <div class="progress-track">
+            <div class="progress-fill" [style.width]="book.readingProgress + '%'"></div>
+          </div>
+          <span class="progress-text">{{ book.readingProgress }}% leído</span>
+        </div>
+      </div>
+
+      <!-- Contenido de la Tarjeta -->
+      <div class="card-content">
+        <h3 class="book-title" [title]="book.title">{{ book.title }}</h3>
+        <p class="book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+
+        <!-- Sinopsis con clamp estilizado -->
+        <p class="book-synopsis">
+          {{ (book.synopsis && book.synopsis.length > 95) ? (book.synopsis | slice:0:95) + '…' : (book.synopsis || 'Explora este título en Literatus Novelist.') }}
+        </p>
+
+        <!-- Footer de la Tarjeta -->
+        <div class="card-footer">
+          <div class="meta-tags">
+            <span class="meta-tag pages" *ngIf="book.page_count">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              {{ book.page_count }} pág.
+            </span>
+            <span class="meta-tag time" *ngIf="book.readingTimeEstimate">
+              ⏱ {{ book.readingTimeEstimate }}
+            </span>
+          </div>
+
+          <!-- Acción dinámicas: Continuar leyendo vs Ver detalles -->
+          <div class="card-action-wrapper">
+            <button *ngIf="book.readingProgress && book.readingProgress > 0"
+                    class="action-pill resume-pill"
+                    type="button"
+                    (click)="continueReading(book, $event)">
+              <span>Continuar</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </button>
+
+            <span *ngIf="!book.readingProgress || book.readingProgress === 0" class="action-hint">
+              Ver
+              <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <div *ngIf="!isLoading && totalPages > 1" class="pagination-bar">
+    <span class="pagination-total">{{ totalCount }} {{ totalCount === 1 ? 'libro en total' : 'libros en total' }}</span>
+    <div class="pagination-controls">
+      <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        ← Anterior
+      </button>
+      <span class="page-indicator">Página {{ currentPage }} de {{ totalPages }}</span>
+      <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       MODAL DE FILTROS AVANZADOS
+       ═══════════════════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" *ngIf="advancedFiltersOpen" (click)="advancedFiltersOpen = false">
+    <div class="modal-dialog glass-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">⚙️</span>
+          <h3>Filtros Avanzados</h3>
+        </div>
+        <button class="modal-close-btn" type="button" (click)="advancedFiltersOpen = false">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Extensión del libro -->
+        <div class="filter-group">
+          <label class="group-title">Extensión de Lectura</label>
+          <div class="filter-options-grid">
+            <button type="button"
+                    class="filter-opt-btn"
+                    [class.selected]="filterLength === 'all'"
+                    (click)="filterLength = 'all'">
+              Cualquiera
+            </button>
+            <button type="button"
+                    class="filter-opt-btn"
+                    [class.selected]="filterLength === 'short'"
+                    (click)="filterLength = 'short'">
+              Corta (< 120 pág.)
+            </button>
+            <button type="button"
+                    class="filter-opt-btn"
+                    [class.selected]="filterLength === 'medium'"
+                    (click)="filterLength = 'medium'">
+              Media (120 - 300 pág.)
+            </button>
+            <button type="button"
+                    class="filter-opt-btn"
+                    [class.selected]="filterLength === 'long'"
+                    (click)="filterLength = 'long'">
+              Extensa (> 300 pág.)
+            </button>
           </div>
         </div>
 
-        <div class="active-filters" *ngIf="activeGenreName || searchTerm">
-          <span class="filter-chip" *ngIf="activeGenreName" (click)="selectGenre(activeGenreSlug)">
-            {{ activeGenreName }} <span class="chip-x">✕</span>
-          </span>
-          <span class="filter-chip" *ngIf="searchTerm">
-            «{{ searchTerm }}»
-          </span>
-          <button class="clear-link" type="button" (click)="clearFilters()">Limpiar filtros</button>
-        </div>
-      </ng-container>
-
-      <!-- Contador de resultados -->
-      <div class="results-count" *ngIf="!isLoading && !errorMsg && books.length > 0 && (activeGenreName || searchTerm)">
-        {{ totalCount }} {{ totalCount === 1 ? 'libro encontrado' : 'libros encontrados' }}<span *ngIf="activeGenreName"> en “{{ activeGenreName }}”</span>
-      </div>
-
-      <!-- Loading State (Skeleton) -->
-      <div class="grid-container" *ngIf="isLoading && !errorMsg">
-        <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4,5,6,7,8]">
-          <div class="skeleton-img"></div>
-          <div class="skeleton-text title"></div>
-          <div class="skeleton-text description"></div>
-          <div class="skeleton-button"></div>
+        <!-- Características adicionales -->
+        <div class="filter-group">
+          <label class="group-title">Características Especiales</label>
+          <div class="checkbox-list">
+            <label class="checkbox-row">
+              <input type="checkbox" [(ngModel)]="filterFeaturedOnly">
+              <span>Solo obras destacadas y recomendadas</span>
+            </label>
+          </div>
         </div>
       </div>
 
-      <!-- Error State -->
-      <div class="message-banner error" *ngIf="errorMsg">
-        {{ errorMsg }}
+      <div class="modal-footer">
+        <button class="btn-secondary" type="button" (click)="resetAdvancedFilters()">Restablecer</button>
+        <button class="btn-primary" type="button" (click)="applyAdvancedFilters()">Aplicar Filtros</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       MODAL WIZARD: ¿NO SABES QUÉ LEER?
+       ═══════════════════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" *ngIf="wizardOpen" (click)="closeWizard()">
+    <div class="modal-dialog wizard-dialog glass-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="wizard-wand-big">🪄</span>
+          <div>
+            <h3>¿No sabes qué leer?</h3>
+            <p class="wizard-sub">Tu oráculo literario para encontrar la obra perfecta.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" type="button" (click)="closeWizard()">✕</button>
       </div>
 
-      <!-- Empty State -->
-      <div class="message-banner info" *ngIf="!isLoading && books.length === 0 && !errorMsg">
-        No se encontraron libros con estos filtros.
-        <button class="clear-link" type="button" *ngIf="activeGenreName || searchTerm" (click)="clearFilters()">Ver todo el catálogo</button>
-      </div>
+      <div class="modal-body wizard-body">
 
-      <!-- Grid Principal de Tarjetas -->
-      <div class="grid-container" *ngIf="!isLoading && books.length > 0">
+        <!-- PASO 1: Estado de ánimo -->
+        <div *ngIf="wizardStep === 1" class="wizard-step-content">
+          <div class="step-indicator">Paso 1 de 3</div>
+          <h4 class="step-question">¿Qué sensación o estado de ánimo buscas hoy?</h4>
 
-        <a class="glass-panel book-card" *ngFor="let book of books; let i = index; trackBy: trackBook"
-           [routerLink]="['/book', book.slug]"
-           [style.animation-delay]="(i * 35) + 'ms'">
+          <div class="wizard-cards-grid">
+            <button type="button" class="wizard-choice-card" (click)="selectWizardMood('epico')">
+              <span class="choice-emoji">⚔️</span>
+              <div class="choice-info">
+                <strong>Épico y Fantástico</strong>
+                <p>Aventuras colosales, héroes y tierras ignotas.</p>
+              </div>
+            </button>
 
-          <!-- Portada: miniatura Supabase; las primeras cargan con prioridad,
-               el resto lazy. Skeleton local sólo mientras esta imagen carga. -->
-          <div class="card-image" [class.cover-pending]="!book.coverLoaded">
-            <img class="cover-img"
-                 [src]="book.coverThumb"
-                 [alt]="book.title"
-                 [attr.loading]="book.coverPriority ? 'eager' : 'lazy'"
-                 [attr.fetchpriority]="book.coverPriority ? 'high' : 'low'"
-                 decoding="async"
-                 width="360" height="360"
-                 (load)="onImgLoad(book)"
-                 (error)="onImgError($event, book)">
-            <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
+            <button type="button" class="wizard-choice-card" (click)="selectWizardMood('misterio')">
+              <span class="choice-emoji">🕯️</span>
+              <div class="choice-info">
+                <strong>Misterio y Suspenso</strong>
+                <p>Secretos góticos, intrigas y giros oscuros.</p>
+              </div>
+            </button>
+
+            <button type="button" class="wizard-choice-card" (click)="selectWizardMood('reflexion')">
+              <span class="choice-emoji">📜</span>
+              <div class="choice-info">
+                <strong>Profundo y Filosófico</strong>
+                <p>Clásicos inmortales para reflexionar y aprender.</p>
+              </div>
+            </button>
+
+            <button type="button" class="wizard-choice-card" (click)="selectWizardMood('ligero')">
+              <span class="choice-emoji">☕</span>
+              <div class="choice-info">
+                <strong>Ligero y Cautivador</strong>
+                <p>Relatos amenos, ágiles y reconfortantes.</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- PASO 2: Duración -->
+        <div *ngIf="wizardStep === 2" class="wizard-step-content">
+          <div class="step-indicator">Paso 2 de 3</div>
+          <h4 class="step-question">¿Cuánto tiempo tienes para tu sesión de lectura?</h4>
+
+          <div class="wizard-cards-grid">
+            <button type="button" class="wizard-choice-card" (click)="selectWizardDuration('corto')">
+              <span class="choice-emoji">⚡</span>
+              <div class="choice-info">
+                <strong>Menos de 1 hora</strong>
+                <p>Cuentos breves o relatos para devorar de golpe.</p>
+              </div>
+            </button>
+
+            <button type="button" class="wizard-choice-card" (click)="selectWizardDuration('medio')">
+              <span class="choice-emoji">⏳</span>
+              <div class="choice-info">
+                <strong>1 a 3 horas</strong>
+                <p>Novela corta perfecta para una tarde inolvidable.</p>
+              </div>
+            </button>
+
+            <button type="button" class="wizard-choice-card" (click)="selectWizardDuration('largo')">
+              <span class="choice-emoji">📚</span>
+              <div class="choice-info">
+                <strong>Más de 3 horas</strong>
+                <p>Una gran obra completa para sumergirte sin prisa.</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- PASO 3: Experiencia -->
+        <div *ngIf="wizardStep === 3" class="wizard-step-content">
+          <div class="step-indicator">Paso 3 de 3</div>
+          <h4 class="step-question">¿Cómo prefieres vivir la historia?</h4>
+
+          <div class="wizard-cards-grid">
+            <button type="button" class="wizard-choice-card" (click)="selectWizardExperience('inmersivo')">
+              <span class="choice-emoji">📖</span>
+              <div class="choice-info">
+                <strong>Lectura pura e inmersiva</strong>
+                <p>Tipografía clásica, formato libro y tranquilidad.</p>
+              </div>
+            </button>
+
+            <button type="button" class="wizard-choice-card" (click)="selectWizardExperience('ia')">
+              <span class="choice-emoji">🤖</span>
+              <div class="choice-info">
+                <strong>Con Personajes IA</strong>
+                <p>Habla con los protagonistas y debate la trama.</p>
+              </div>
+            </button>
+
+            <button type="button" class="wizard-choice-card" (click)="selectWizardExperience('narracion')">
+              <span class="choice-emoji">🎧</span>
+              <div class="choice-info">
+                <strong>Con Narración Auditiva</strong>
+                <p>Audio inmersivo para escuchar mientras lees.</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- PASO 4: Resultados Personalizados -->
+        <div *ngIf="wizardStep === 4" class="wizard-step-content">
+          <div class="wizard-results-header">
+            <span class="results-sparkle">🎉</span>
+            <h4>¡Hemos seleccionado tus 3 obras perfectas!</h4>
+            <p>Basado en tu estado de ánimo y preferencias de hoy:</p>
           </div>
 
-          <div class="card-content">
-            <h3 class="book-title">{{ book.title }}</h3>
-
-            <p class="book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
-
-            <!-- Synopsis recortada -->
-            <p class="book-synopsis">
-              {{ (book.synopsis && book.synopsis.length > 110) ? (book.synopsis | slice:0:110) + '…' : (book.synopsis || 'Sin sinopsis disponible.') }}
-            </p>
-
-            <div class="card-footer">
-              <span class="pages-badge" *ngIf="book.page_count"
-                    [title]="book.word_count ? (book.word_count | number) + ' palabras' : null">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                </svg>
-                {{ book.page_count | number }} {{ book.page_count === 1 ? 'pág.' : 'págs.' }}
-              </span>
-
-              <span class="read-hint">
-                Ver Detalles
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                  <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
-                </svg>
-              </span>
+          <div class="wizard-matches-list">
+            <div class="wizard-match-card glass-panel"
+                 *ngFor="let match of wizardMatches"
+                 [routerLink]="['/book', match.book.slug]"
+                 (click)="closeWizard()">
+              <img [src]="match.book.coverThumb" [alt]="match.book.title" class="match-cover">
+              <div class="match-details">
+                <div class="match-badge">
+                  <span>{{ match.matchPercent }}% afinidad</span>
+                  <span class="match-reason">· {{ match.reason }}</span>
+                </div>
+                <h5 class="match-title">{{ match.book.title }}</h5>
+                <p class="match-author">{{ match.book.author_name || 'Autor Desconocido' }}</p>
+                <p class="match-synopsis">
+                  {{ (match.book.synopsis && match.book.synopsis.length > 90) ? (match.book.synopsis | slice:0:90) + '…' : match.book.synopsis }}
+                </p>
+                <div class="match-action">
+                  <span class="start-read-btn">Comenzar a leer →</span>
+                </div>
+              </div>
             </div>
           </div>
 
-        </a>
-
-      </div>
-
-      <!-- Paginación -->
-      <div *ngIf="!isLoading && totalPages > 1" class="pagination-bar">
-        <span class="results-count">{{ totalCount }} {{ totalCount === 1 ? 'libro' : 'libros' }}</span>
-        <div class="pagination-controls">
-          <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-            ← Anterior
-          </button>
-          <span class="page-indicator">pág. {{ currentPage }} / {{ totalPages }}</span>
-          <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-            Siguiente →
-          </button>
+          <div class="wizard-reset-row">
+            <button type="button" class="btn-secondary" (click)="openWizard()">
+              🔄 Probar con otras respuestas
+            </button>
+          </div>
         </div>
-      </div>
 
-    </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Notificación de Favoritos -->
+  <div class="favorite-toast" *ngIf="favoriteToast">
+    <span>✨</span>
+    <span>{{ favoriteToast }}</span>
   </div>
 
 </div>

@@ -3,7 +3,7 @@
   <!-- Hero Header de la Categoría -->
   <header class="cat-hero" *ngIf="category" [style.--cat-color]="category.color">
     <div class="cat-hero-bg">
-      <img [src]="category.image" [alt]="category.name" class="cat-hero-img">
+      <img [src]="category.image" [alt]="category.name" class="cat-hero-img" (error)="onCoverError()">
       <div class="cat-hero-overlay"></div>
     </div>
     <div class="cat-hero-content">

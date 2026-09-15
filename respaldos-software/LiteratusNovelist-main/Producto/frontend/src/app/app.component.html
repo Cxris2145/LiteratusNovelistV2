@@ -1,87 +1,222 @@
 <a *ngIf="!isDashboard" class="skip-link" href="#main-content">Saltar al contenido</a>
-<!-- Navbar superior: oculta en dashboard para experiencia inmersiva -->
-<nav class="glass-navbar" *ngIf="!isDashboard" aria-label="Navegación principal" (keydown.escape)="menuOpen = false">
-  <div class="nav-container">
-    <a routerLink="/" class="logo" style="text-decoration: none;">
-      <span class="literatus">Literatus</span><span class="novelist">Novelist</span>
-    </a>
 
-    <!-- Hamburger icon for mobile -->
-    <button type="button" class="menu-icon" [attr.aria-expanded]="menuOpen" [attr.aria-label]="menuOpen ? 'Cerrar menú' : 'Abrir menú'" aria-controls="main-navigation"
-         (click)="toggleMenu()">
-      <span class="bar" [class.open]="menuOpen"></span>
-      <span class="bar" [class.open]="menuOpen"></span>
-      <span class="bar" [class.open]="menuOpen"></span>
-    </button>
+<!-- ═════════════════════════════════════════════════════════════════════
+     HEADER PRINCIPAL: LOGO (IZQ), BUSCADOR GRANDE (CENTRO), ACCESOS (DER)
+     Y FILA DE BURBUJAS CIRCULARES ABAJO DEL SEARCH
+═════════════════════════════════════════════════════════════════════ -->
+<header class="main-header glass-navbar" *ngIf="!isDashboard" aria-label="Navegación principal">
+  
+  <!-- Fila 1: Logo + Buscador grande + Accesos Rápidos -->
+  <div class="header-top-bar">
+    <div class="header-top-container">
 
-    <!-- Links de Navegación -->
-    <ul id="main-navigation" class="nav-links" [class.active]="menuOpen">
-      <li><a routerLink="/catalog" routerLinkActive="active-link" (click)="menuOpen = false">Explorar</a></li>
-      <li><a routerLink="/categories" routerLinkActive="active-link" (click)="menuOpen = false">Categorías</a></li>
-      <li><a routerLink="/authors" routerLinkActive="active-link" (click)="menuOpen = false">Autores</a></li>
-      <li><a routerLink="/characters" routerLinkActive="active-link" (click)="menuOpen = false">Personajes</a></li>
-      <li><a routerLink="/tavern" routerLinkActive="active-link" (click)="menuOpen = false">La Taberna</a></li>
-      <li *ngIf="isLoggedIn"><a routerLink="/library" routerLinkActive="active-link" (click)="menuOpen = false">Mi Biblioteca</a></li>
+      <!-- Izquierda: Logo principal completo -->
+      <div class="header-left">
+        <a routerLink="/" class="brand-logo logo" title="Literatus Novelist - Inicio" aria-label="Literatus Novelist">
+          <span class="brand-literatus literatus">Literatus</span>
+          <span class="brand-novelist novelist">Novelist</span>
+        </a>
+      </div>
 
-      <li *ngIf="!isLoggedIn" class="auth-btn"><a routerLink="/login" (click)="menuOpen = false">Ingresar</a></li>
-      <li *ngIf="!isLoggedIn" class="auth-btn highlight"><a routerLink="/register"
-          (click)="menuOpen = false">Registrarse</a></li>
+      <!-- Centro: Buscador Grande -->
+      <div class="header-center">
+        <form class="nav-search-form" (ngSubmit)="onGlobalSearch()">
+          <span class="search-icon material-symbols-rounded" aria-hidden="true">search</span>
+          <input
+            type="text"
+            class="nav-search-input"
+            name="globalSearch"
+            placeholder="Buscar libros, autores, géneros, sagas..."
+            [(ngModel)]="globalSearchTerm"
+            autocomplete="off"
+            aria-label="Buscar en Literatus Novelist">
+          <button
+            *ngIf="globalSearchTerm"
+            type="button"
+            class="search-clear-btn"
+            (click)="clearGlobalSearch()"
+            aria-label="Borrar búsqueda">
+            ✕
+          </button>
+          <button type="submit" class="search-submit-btn" aria-label="Ejecutar búsqueda">
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </button>
+        </form>
+      </div>
 
-      <!-- User Controls (Loggeado) -->
-      <ng-container *ngIf="isLoggedIn">
-        <!-- La Taberna (Ink Widget) -->
-        <li class="ink-widget" role="button" tabindex="0" (click)="openTavern()" (keydown.enter)="openTavern()"
-            [@shake]="shakeState" title="La Taberna - Recarga Tinta">
+      <!-- Derecha: Accesos rápidos -->
+      <div class="header-right">
+
+        <!-- 1. Favoritos -->
+        <button type="button" class="quick-action-btn" (click)="goToFavorites()" title="Mis Favoritos" aria-label="Favoritos">
+          <div class="action-icon-wrap">
+            <span class="material-symbols-rounded">favorite</span>
+            <span class="action-badge" *ngIf="favoritesCount > 0">{{ favoritesCount }}</span>
+          </div>
+          <span class="action-label">Favoritos</span>
+        </button>
+
+        <!-- 2. Mensajes / Correo -->
+        <button type="button" class="quick-action-btn" (click)="goToMessages()" title="Mensajes con Personajes IA" aria-label="Mensajes">
+          <div class="action-icon-wrap">
+            <span class="material-symbols-rounded">mail</span>
+            <span class="action-badge action-badge--dot" *ngIf="unreadMessagesCount > 0"></span>
+          </div>
+          <span class="action-label">Mensajes</span>
+        </button>
+
+        <!-- 3. Carrito -->
+        <button type="button" class="quick-action-btn" (click)="goToCart()" title="Carrito de compras" aria-label="Carrito">
+          <div class="action-icon-wrap">
+            <span class="material-symbols-rounded">shopping_cart</span>
+            <span class="action-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+          </div>
+          <span class="action-label">Carrito</span>
+        </button>
+
+        <!-- Saldo de Tinta (Widget si está autenticado) -->
+        <div *ngIf="isLoggedIn" class="ink-widget" role="button" tabindex="0" (click)="openTavern()" (keydown.enter)="openTavern()"
+             [@shake]="shakeState" title="La Taberna - Recarga Tinta">
           <span class="ink-icon material-symbols-rounded">ink_pen</span>
           <span class="ink-balance">{{ inkBalance$ | async }}</span>
-        </li>
+        </div>
 
-        <!-- User Profile Dropdown -->
-        <li class="profile-dropdown-container">
-          <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="avatar-btn" aria-label="Abrir menú de perfil">
-            <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="Avatar" class="user-avatar"
-              onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
-            <div *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</div>
-          </button>
-          <mat-menu #profileMenu="matMenu" class="dark-premium-menu">
-            <div class="menu-header">
-              <span class="user-name">{{ userName }}</span>
-            </div>
-            <mat-divider></mat-divider>
-            <button mat-menu-item routerLink="/profile">
-              <!-- Material Symbols Rounded: 'person' con FILL=0 y wght ligero = minimalista -->
-              <span class="mat-symbol">manage_accounts</span>
-              <span>Editar Perfil</span>
-            </button>
-            <ng-container *ngIf="isAdmin">
-              <mat-divider></mat-divider>
-              <button mat-menu-item routerLink="/dashboard/overview">
-                <span class="mat-symbol">dashboard</span>
-                <span>Panel de Control</span>
+        <!-- 4. Iniciar sesión / Perfil -->
+        <div class="auth-action-wrap">
+          <ng-container *ngIf="!isLoggedIn">
+            <a routerLink="/login" class="user-account-btn">
+              <span class="material-symbols-rounded account-icon">account_circle</span>
+              <div class="account-texts">
+                <span class="account-sub">Bienvenido</span>
+                <span class="account-main">Ingresar</span>
+              </div>
+            </a>
+          </ng-container>
+
+          <ng-container *ngIf="isLoggedIn">
+            <div class="profile-dropdown-container">
+              <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="avatar-btn" aria-label="Abrir menú de perfil">
+                <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="Avatar" class="user-avatar"
+                  onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
+                <div *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</div>
               </button>
-            </ng-container>
-            <mat-divider></mat-divider>
-            <button mat-menu-item (click)="logout()" class="logout-btn">
-              <!-- logout: icono de puerta con flecha, universalmente reconocible -->
-              <span class="mat-symbol">logout</span>
-              <span>Cerrar Sesión</span>
-            </button>
-          </mat-menu>
-        </li>
-      </ng-container>
-    </ul>
-  </div>
-</nav>
+              <mat-menu #profileMenu="matMenu" class="dark-premium-menu">
+                <div class="menu-header">
+                  <span class="user-name">{{ userName }}</span>
+                </div>
+                <mat-divider></mat-divider>
+                <button mat-menu-item routerLink="/profile">
+                  <span class="mat-symbol">manage_accounts</span>
+                  <span>Editar Perfil</span>
+                </button>
+                <ng-container *ngIf="isAdmin">
+                  <mat-divider></mat-divider>
+                  <button mat-menu-item routerLink="/dashboard/overview">
+                    <span class="mat-symbol">dashboard</span>
+                    <span>Panel de Control</span>
+                  </button>
+                </ng-container>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="logout()" class="logout-btn">
+                  <span class="mat-symbol">logout</span>
+                  <span>Cerrar Sesión</span>
+                </button>
+              </mat-menu>
+            </div>
+          </ng-container>
+        </div>
 
-<!-- DEBUGGING: Global Error Banner -->
-<div *ngIf="globalError" style="background: red; color: white; padding: 20px; font-weight: bold; z-index: 9999; position: relative;">
-  <h1>🚨 CRASH DETECTED 🚨</h1>
-  <p>{{ globalError }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════
+       FILA 2: SECCIONES TIPO BURBUJA (CÍRCULO) ABAJO DEL SEARCH
+  ═════════════════════════════════════════════════════════════ -->
+  <nav class="nav-bubbles-bar" aria-label="Secciones rápidas principales">
+    <div class="bubbles-container">
+
+      <!-- 1. Explorar -->
+      <a routerLink="/catalog" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">explore</span>
+        </div>
+        <span class="bubble-label">Explorar</span>
+      </a>
+
+      <!-- 2. Categorías -->
+      <a routerLink="/categories" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">grid_view</span>
+        </div>
+        <span class="bubble-label">Categorías</span>
+      </a>
+
+      <!-- 3. Autores -->
+      <a routerLink="/authors" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">history_edu</span>
+        </div>
+        <span class="bubble-label">Autores</span>
+      </a>
+
+      <!-- 4. Personajes -->
+      <a routerLink="/characters" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">theater_comedy</span>
+        </div>
+        <span class="bubble-label">Personajes</span>
+      </a>
+
+      <!-- 5. La Taberna -->
+      <a routerLink="/tavern" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">local_bar</span>
+        </div>
+        <span class="bubble-label">La Taberna</span>
+      </a>
+
+      <!-- 6. Mi Biblioteca -->
+      <a routerLink="/library" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">menu_book</span>
+        </div>
+        <span class="bubble-label">Mi Biblioteca</span>
+      </a>
+
+    </div>
+  </nav>
+
+</header>
+
+<!-- ═══ SITE BODY: Contenido a ancho completo ═══ -->
+<div class="site-body" *ngIf="!isDashboard">
+  <div class="site-content">
+    <!-- DEBUGGING: Global Error Banner -->
+    <div *ngIf="globalError" style="background: red; color: white; padding: 20px; font-weight: bold; z-index: 9999; position: relative;">
+      <h1>🚨 CRASH DETECTED 🚨</h1>
+      <p>{{ globalError }}</p>
+    </div>
+
+    <main id="main-content" tabindex="-1" class="container" [@routeAnimations]="prepareRoute(outlet)">
+      <router-outlet #outlet="outlet"></router-outlet>
+    </main>
+
+    <app-footer></app-footer>
+  </div>
 </div>
 
-<!-- Contenedor Principal Ruteado con Animaciones -->
-<main id="main-content" tabindex="-1" class="container" [class.dashboard-mode]="isDashboard" [@routeAnimations]="prepareRoute(outlet)">
-  <router-outlet #outlet="outlet"></router-outlet>
-</main>
+<!-- Dashboard mode: sin header de tienda, layout propio -->
+<ng-container *ngIf="isDashboard">
+  <div *ngIf="globalError" style="background: red; color: white; padding: 20px; font-weight: bold; z-index: 9999; position: relative;">
+    <h1>🚨 CRASH DETECTED 🚨</h1>
+    <p>{{ globalError }}</p>
+  </div>
+  <main id="main-content" tabindex="-1" class="container dashboard-mode" [@routeAnimations]="prepareRoute(outlet)">
+    <router-outlet #outlet="outlet"></router-outlet>
+  </main>
+</ng-container>
 
-<app-footer *ngIf="!isDashboard"></app-footer>
+<!-- Asistente global de la plataforma: solo para usuarios con sesión iniciada,
+     oculto en el panel de administración. -->
+<app-assistant-widget *ngIf="isLoggedIn && !isDashboard"></app-assistant-widget>

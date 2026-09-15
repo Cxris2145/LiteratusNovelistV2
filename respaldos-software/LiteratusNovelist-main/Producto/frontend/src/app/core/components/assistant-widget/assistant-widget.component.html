@@ -1,0 +1,101 @@
+<div class="lit-assistant-root">
+
+  <!-- BURBUJA FLOTANTE: permanece siempre en el DOM (oculta con [hidden], no *ngIf)
+       para no perder ni tener que recargar la animación Lottie de la mascota. -->
+  <button
+    type="button"
+    class="lit-bubble"
+    [hidden]="isOpen"
+    [class.bouncing]="isBouncing"
+    (click)="toggle()"
+    aria-label="Abrir el Asistente de Literatus">
+    <span class="lit-bubble-glow"></span>
+    <div class="lit-bubble-avatar" #bubbleLottie></div>
+    <span class="lit-bubble-ping" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+  </button>
+
+  <!-- PANEL DE CONVERSACIÓN -->
+  <section
+    class="lit-panel"
+    *ngIf="isOpen"
+    [@slideUpPanel]
+    role="dialog"
+    aria-label="Asistente de Literatus Novelist">
+
+    <header class="lit-panel-header">
+      <div class="lit-header-identity">
+        <div class="lit-header-avatar-wrap">
+          <span class="material-symbols-rounded lit-header-avatar-icon">auto_awesome</span>
+        </div>
+        <div class="lit-header-texts">
+          <span class="lit-header-title">Asistente Literatus</span>
+          <span class="lit-header-subtitle">{{ currentSection }}</span>
+        </div>
+      </div>
+      <div class="lit-header-actions">
+        <button type="button" class="lit-icon-btn" [class.active]="isHistoryOpen" (click)="toggleHistory()" title="Conversaciones anteriores" aria-label="Ver conversaciones anteriores">
+          <span class="material-symbols-rounded">history</span>
+        </button>
+        <button type="button" class="lit-icon-btn" (click)="newConversation()" title="Nueva conversación" aria-label="Nueva conversación">
+          <span class="material-symbols-rounded">add_comment</span>
+        </button>
+        <button type="button" class="lit-icon-btn" (click)="minimize()" title="Minimizar" aria-label="Minimizar el asistente">
+          <span class="material-symbols-rounded">remove</span>
+        </button>
+        <button type="button" class="lit-icon-btn" (click)="close()" title="Cerrar" aria-label="Cerrar el asistente">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- HISTORIAL DE CONVERSACIONES -->
+    <div class="lit-history-drawer" *ngIf="isHistoryOpen">
+      <div class="lit-history-list">
+        <button
+          type="button"
+          class="lit-history-item"
+          *ngFor="let c of conversations; trackBy: trackByConversation"
+          [class.active]="c.id === activeConversationId"
+          (click)="selectConversation(c)">
+          <span class="lit-history-item-title">{{ c.title || 'Nueva conversación' }}</span>
+          <span class="lit-history-item-preview" *ngIf="c.last_message">{{ c.last_message }}</span>
+        </button>
+        <p class="lit-history-empty" *ngIf="conversations.length === 0">Aún no tienes conversaciones anteriores.</p>
+      </div>
+    </div>
+
+    <!-- MENSAJES -->
+    <div class="lit-messages" #messagesEl *ngIf="!isHistoryOpen">
+      <div
+        *ngFor="let msg of messages; trackBy: trackByMessage"
+        [class]="'lit-msg ' + (msg.role === 'user' ? 'lit-msg--user' : 'lit-msg--assistant')">
+        <div class="lit-msg-bubble" *ngIf="!msg.pending">{{ msg.content }}</div>
+        <div class="lit-msg-bubble lit-typing" *ngIf="msg.pending">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTRADA DE TEXTO -->
+    <footer class="lit-input-bar" *ngIf="!isHistoryOpen">
+      <textarea
+        class="lit-input"
+        rows="1"
+        maxlength="1000"
+        placeholder="Escribe tu pregunta sobre Literatus..."
+        [(ngModel)]="draft"
+        (keydown)="onKeydown($event)"
+        [disabled]="isSending"
+        aria-label="Escribe tu pregunta para el Asistente"></textarea>
+      <button
+        type="button"
+        class="lit-send-btn"
+        (click)="send()"
+        [disabled]="isSending || !draft.trim()"
+        aria-label="Enviar mensaje">
+        <span class="material-symbols-rounded">send</span>
+      </button>
+    </footer>
+
+  </section>
+</div>

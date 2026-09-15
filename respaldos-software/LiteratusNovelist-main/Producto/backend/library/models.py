@@ -25,7 +25,41 @@ DISEÑO 3NF:
 from django.db import models
 from core.models import TimeStampedModel
 from users.models import User
-from catalog.models import Edition
+from catalog.models import Book, Edition
+
+
+class UserFavorite(TimeStampedModel):
+    """Una obra guardada por un usuario en su colección de favoritos."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+    )
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='favorited_by',
+    )
+
+    class Meta:
+        verbose_name = 'User Favorite'
+        verbose_name_plural = 'User Favorites'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'book'],
+                condition=models.Q(deleted_at__isnull=True),
+                name='unique_active_user_favorite',
+                violation_error_message='Este libro ya está en tus favoritos.',
+            )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} ♥ {self.book.title}"
 
 
 class UserInventory(TimeStampedModel):

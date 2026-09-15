@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import AIAvatar, ChatSession, ChatMessage
+from .models import AIAvatar, ChatSession, ChatMessage, AssistantConversation, AssistantMessage
 
 
 class AIAvatarListSerializer(serializers.ModelSerializer):
@@ -136,3 +136,34 @@ class GlobalHubAvatarSerializer(serializers.ModelSerializer):
         if obj.is_major_character:
             tags.append("Principal")
         return tags
+
+
+class AssistantMessageSerializer(serializers.ModelSerializer):
+    """Serializer para los mensajes del Asistente global."""
+    class Meta:
+        model = AssistantMessage
+        fields = ['id', 'role', 'content', 'created_at']
+
+
+class AssistantConversationSerializer(serializers.ModelSerializer):
+    """Serializer para el listado de conversaciones del Asistente global."""
+    id = serializers.CharField(read_only=True)
+    last_message = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AssistantConversation
+        fields = ['id', 'title', 'created_at', 'updated_at', 'last_message']
+
+    def get_last_message(self, obj):
+        last = obj.messages.order_by('-created_at').first()
+        if not last:
+            return None
+        preview = last.content[:120] + '...' if len(last.content) > 120 else last.content
+        return preview
+
+
+class AssistantChatSerializer(serializers.Serializer):
+    """Valida la entrada del endpoint de chat del Asistente global."""
+    conversation_id = serializers.UUIDField(required=True)
+    message = serializers.CharField(required=True, max_length=2000)
+    section = serializers.CharField(required=False, allow_blank=True, max_length=100, default='')

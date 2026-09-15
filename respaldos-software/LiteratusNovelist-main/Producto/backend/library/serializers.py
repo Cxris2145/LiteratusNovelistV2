@@ -1,6 +1,45 @@
 from rest_framework import serializers
-from .models import UserInventory, ReadingProgress, UserBookmark
-from catalog.serializers import EditionSerializer
+from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark
+from catalog.models import Book
+from catalog.serializers import BookListSerializer, EditionSerializer
+
+
+class UserFavoriteSerializer(serializers.ModelSerializer):
+    """Expone la obra guardada y acepta únicamente su id al crearla."""
+
+    book = BookListSerializer(read_only=True)
+    book_id = serializers.PrimaryKeyRelatedField(
+        queryset=Book.objects.filter(is_published=True),
+        source='book',
+        write_only=True,
+    )
+
+    class Meta:
+        model = UserFavorite
+        fields = ['id', 'book', 'book_id', 'created_at']
+        read_only_fields = ['id', 'book', 'created_at']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        book = validated_data['book']
+
+        active = UserFavorite.objects.filter(user=user, book=book).first()
+        if active:
+            return active
+
+        # Reutiliza el registro borrado lógicamente para no acumular duplicados.
+        deleted = (
+            UserFavorite.all_objects
+            .filter(user=user, book=book, deleted_at__isnull=False)
+            .order_by('-updated_at')
+            .first()
+        )
+        if deleted:
+            deleted.restore()
+            return deleted
+
+        favorite, _ = UserFavorite.objects.get_or_create(user=user, book=book)
+        return favorite
 
 class ReadingProgressSerializer(serializers.ModelSerializer):
     """

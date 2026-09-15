@@ -28,6 +28,7 @@
   font-size: 1.1rem;
 }
 
+
 .grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
@@ -45,7 +46,7 @@
 
 .book-card:hover {
   transform: translateY(-5px);
-  border-color: #B6A7AF;
+  border-color: var(--color-border);
   box-shadow: 0 8px 24px var(--home-shadow);
 }
 
@@ -71,34 +72,23 @@
   object-fit: cover;
   object-position: center;
   display: block;
-  opacity: 0;
+  opacity: 1;
+  position: relative;
+  z-index: 2;
   transition: opacity 0.35s ease;
 }
-.card-image:not(.cover-pending) .cover-img { opacity: 1; }
 
-/* Shimmer mientras carga ESTA portada (o en el skeleton) */
-.card-image.cover-pending::before {
+/* Shimmer en skeleton */
+.card-image.cover-pending:empty::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(100deg, #E8E0DA 20%, #F7F1EA 50%, #E8E0DA 80%);
-  background-size: 220% 100%;
-  animation: coverShimmer 1.25s ease-in-out infinite;
-}
-@keyframes coverShimmer {
-  0%   { background-position: 120% 0; }
-  100% { background-position: -120% 0; }
-}
-
-/* Skeleton de texto (biblioteca en carga) */
-.skeleton-card { pointer-events: none; }
-.skeleton-text {
-  height: 14px;
+    linear-gradient(100deg, var(--color-skeleton) 20%, var(--color-skeleton-shine) 50%, var(--color-skeleton) 80%);
   border-radius: 6px;
   margin: 10px 0;
-  background: linear-gradient(100deg, #EAE3DF 20%, #F7F1EA 50%, #EAE3DF 80%);
+  background: linear-gradient(100deg, var(--color-skeleton) 20%, var(--color-skeleton-shine) 50%, var(--color-skeleton) 80%);
   background-size: 220% 100%;
   animation: coverShimmer 1.25s ease-in-out infinite;
 }
@@ -124,7 +114,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   border: 1px solid var(--glass-border);
-  border-color: #BCCDBA;
+  border-color: var(--color-border);
 }
 
 .card-content {
@@ -160,11 +150,11 @@
 
 .progress-bar-container {
   height: 8px;
-  background: #DEE8DB;
+  background: var(--color-success-bg);
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--glass-border);
-  border-color: #BCCDBA;
+  border-color: var(--color-border);
 }
 
 .progress-bar {
@@ -272,5 +262,5 @@
 .message-banner.error {
   background: var(--home-coral-surface);
   color: var(--home-coral-ink);
-  border: 1px solid #D6A499;
+  border: 1px solid var(--color-border);
 }

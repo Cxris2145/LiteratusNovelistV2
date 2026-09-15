@@ -115,6 +115,14 @@ TEMPLATES = [
 DATABASES = {
     'default': env.db(),
 }
+# La base vive en un pooler remoto (Supabase). Sin CONN_MAX_AGE, Django abre
+# y cierra una conexión TCP+TLS nueva EN CADA REQUEST — el handshake contra
+# un host en otra región puede costar más que la propia consulta. Con
+# CONN_MAX_AGE reutilizamos la conexión entre requests (dentro del mismo
+# proceso/worker) y CONN_HEALTH_CHECKS evita reusar una conexión que el
+# pooler ya haya cerrado por inactividad.
+DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=0)
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 # ---------------------------------------------------------------------------
 # Validación de contraseñas

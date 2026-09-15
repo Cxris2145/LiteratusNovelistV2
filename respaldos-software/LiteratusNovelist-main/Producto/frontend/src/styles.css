@@ -14,6 +14,40 @@
    ──────────────────────────────────────────────────────────────────────── */
 
 :root {
+  /* Sistema semántico WCAG 2.2 AA — Classic Dark.
+     Los componentes deben consumir estos tokens o sus alias de compatibilidad. */
+  --color-bg-primary:       #0A1914;
+  --color-bg-secondary:     #0F211A;
+  --color-surface:          #14291F;
+  --color-surface-elevated: #1A3327;
+  --color-text-primary:     #FCFAF2;
+  --color-text-strong:      #FFFDF8;
+  --color-text-secondary:   #C9BEB0;
+  --color-text-disabled:    #A99B8C;
+  --color-border:           #6F7F75;
+  --color-border-strong:    #D4AF37;
+  --color-primary:          #D4AF37;
+  --color-on-primary:       #1C1607;
+  --color-nav-active-bg:    #D4AF37;
+  --color-nav-active-text:  #1C1607;
+  --color-hover:            #213B2F;
+  --color-selected:         #2B493A;
+  --color-focus:            #E3BF49;
+  --color-success:          #9EE0AA;
+  --color-success-bg:       #17351F;
+  --color-warning:          #F3C66D;
+  --color-warning-bg:       #3C2B0F;
+  --color-info:             #9BD7EB;
+  --color-info-bg:          #143441;
+  --color-error:            #FFB0A8;
+  --color-error-bg:         #431C1C;
+  --color-selection-bg:     #D4AF37;
+  --color-selection-text:   #1C1607;
+  --color-image-overlay:    rgba(9, 17, 13, 0.82);
+  --color-shadow:           rgba(0, 0, 0, 0.28);
+  --color-skeleton:         #263B31;
+  --color-skeleton-shine:   #344C40;
+
   /* Paleta de color — Classic Literature Artisanal (Default) */
   --bg-color:        #0A1914;  /* Deep Emerald Dark */
   --bg-surface:      #11261d;  /* Darker surface */
@@ -81,6 +115,38 @@
 
 /* Tema Clásico Original (Neón) para demo al cliente */
 [data-theme="neon"] {
+  --color-bg-primary:       #0B0F1A;
+  --color-bg-secondary:     #0F1626;
+  --color-surface:          #111827;
+  --color-surface-elevated: #172033;
+  --color-text-primary:     #F1F5F9;
+  --color-text-strong:      #FFFFFF;
+  --color-text-secondary:   #B2C0D1;
+  --color-text-disabled:    #96A5B8;
+  --color-border:           #66758A;
+  --color-border-strong:    #93C5FD;
+  --color-primary:          #93C5FD;
+  --color-on-primary:       #0B0F1A;
+  --color-nav-active-bg:    #93C5FD;
+  --color-nav-active-text:  #0B0F1A;
+  --color-hover:            #1D2940;
+  --color-selected:         #263655;
+  --color-focus:            #C4B5FD;
+  --color-success:          #9EE0AA;
+  --color-success-bg:       #17351F;
+  --color-warning:          #F3C66D;
+  --color-warning-bg:       #3C2B0F;
+  --color-info:             #A9D8FF;
+  --color-info-bg:          #173451;
+  --color-error:            #FFB0A8;
+  --color-error-bg:         #431C1C;
+  --color-selection-bg:     #93C5FD;
+  --color-selection-text:   #0B0F1A;
+  --color-image-overlay:    rgba(5, 8, 16, 0.84);
+  --color-shadow:           rgba(0, 0, 0, 0.34);
+  --color-skeleton:         #202B40;
+  --color-skeleton-shine:   #2D3B56;
+
   --bg-color:        #0b0f1a;
   --bg-surface:      #0f172a;
   --text-main:       #f1f5f9;
@@ -97,6 +163,38 @@
 
 /* Tema Light Gallery (Minimalista, Estilo Galería de Arte) */
 [data-theme="light-gallery"] {
+  --color-bg-primary:       #FAF6F0;
+  --color-bg-secondary:     #F1E8DE;
+  --color-surface:          #FFFCF8;
+  --color-surface-elevated: #FFFFFF;
+  --color-text-primary:     #40383E;
+  --color-text-strong:      #332C31;
+  --color-text-secondary:   #62575E;
+  --color-text-disabled:    #70656C;
+  --color-border:           #8F8289;
+  --color-border-strong:    #62575E;
+  --color-primary:          #5C5259;
+  --color-on-primary:       #FFFCF8;
+  --color-nav-active-bg:    #5C5259;
+  --color-nav-active-text:  #FFFCF8;
+  --color-hover:            #EFE5DA;
+  --color-selected:         #E4D2BE;
+  --color-focus:            #416449;
+  --color-success:          #2F6B3E;
+  --color-success-bg:       #EAF3EA;
+  --color-warning:          #754915;
+  --color-warning-bg:       #FFF1D6;
+  --color-info:             #275D74;
+  --color-info-bg:          #E6F2F6;
+  --color-error:            #96352E;
+  --color-error-bg:         #FBE9E6;
+  --color-selection-bg:     #D7C0A4;
+  --color-selection-text:   #30292D;
+  --color-image-overlay:    rgba(28, 23, 26, 0.82);
+  --color-shadow:           rgba(64, 56, 62, 0.12);
+  --color-skeleton:         #E5DCD5;
+  --color-skeleton-shine:   #F7F1EA;
+
   --bg-color:        #FAFAFA;
   --bg-surface:      #FFFFFF;
   --text-main:       #111111;
@@ -110,6 +208,57 @@
   
   --font-body:       'Plus Jakarta Sans', system-ui, sans-serif;
   --font-display:    'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+}
+
+/* Alias de compatibilidad. Mantienen la API visual existente mientras todos los
+   temas obtienen superficies y contrastes consistentes. */
+:root,
+[data-theme="neon"],
+[data-theme="light-gallery"] {
+  --bg-color:          var(--color-bg-primary);
+  --bg-surface:        var(--color-surface);
+  --text-main:         var(--color-text-primary);
+  --text-muted:        var(--color-text-secondary);
+  --text-subtle:       var(--color-text-disabled);
+  --glass-bg:          color-mix(in srgb, var(--color-surface) 94%, transparent);
+  --glass-border:      var(--color-border);
+  --glow-accent:       var(--color-primary);
+  --glow-gold:         var(--color-primary);
+  --color-text-inverse: var(--color-on-primary);
+  --color-focus-soft:   color-mix(in srgb, var(--color-focus) 24%, transparent);
+  --color-warning-fg:   var(--color-warning);
+  --color-overlay:      color-mix(in srgb, var(--color-bg-primary) 62%, transparent);
+
+  --home-bg:           var(--color-bg-primary);
+  --home-bg-surface:   var(--color-surface);
+  --home-parchment:    var(--color-bg-secondary);
+  --home-ink:          var(--color-text-primary);
+  --home-ink-muted:    var(--color-text-secondary);
+  --home-ink-subtle:   var(--color-text-disabled);
+  --home-ink-strong:   var(--color-text-strong);
+  --home-amber-ink:    var(--color-primary);
+  --home-coral-ink:    var(--color-error);
+  --home-sage-ink:     var(--color-success);
+  --home-sage-surface: var(--color-success-bg);
+  --home-coral-surface:var(--color-error-bg);
+  --home-glass-bg:     color-mix(in srgb, var(--color-surface) 96%, transparent);
+  --home-glass-border: var(--color-border);
+  --home-shadow:       var(--color-shadow);
+}
+
+::selection {
+  background: var(--color-selection-bg);
+  color: var(--color-selection-text);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+:where(input, textarea)::placeholder {
+  color: var(--color-text-disabled);
+  opacity: 1;
 }
 
 * {
@@ -159,6 +308,93 @@ body {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E"),
     radial-gradient(ellipse 60% 50% at 15% 55%, rgba(0, 0, 0, 0.02), transparent),
     radial-gradient(ellipse 55% 45% at 85% 25%, rgba(0, 0, 0, 0.01), transparent);
+}
+
+/* Panel administrativo: los temas globales también gobiernan el Nexus. Esta
+   capa conserva la estructura existente y corrige los pares de bajo contraste
+   que antes estaban fijados a grises sobre azul casi negro. */
+app-dashboard-layout .nexus-content {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+app-dashboard-layout .card,
+app-dashboard-layout .stat-card,
+app-dashboard-layout .chart-card,
+app-dashboard-layout .activity-card,
+app-dashboard-layout .quick-actions-card,
+app-dashboard-layout .modal-content,
+app-dashboard-layout .preview-card,
+app-dashboard-layout .form-card {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary);
+}
+
+app-dashboard-layout :is(.page-heading, .header-text h2, .editor-header h2,
+  .header-info h1, .section-header h2, .book-title, .meta-value, .action-label,
+  .stat-value, .activity-title, .panel-title, .chart-title, .section-title) {
+  color: var(--color-text-strong) !important;
+}
+
+app-dashboard-layout :is(.page-subheading, .header-text p, .subtitle, .help-text,
+  .empty-state, .stat-label, .meta-label, .meta-dates, .book-author,
+  .bar-label, .chart-subtitle, .action-description, .activity-meta, .range-labels,
+  .search-icon-svg, .edit-hint) {
+  color: var(--color-text-secondary) !important;
+}
+
+app-dashboard-layout label,
+app-dashboard-layout .pane-label,
+app-dashboard-layout .nav-section-label {
+  color: var(--color-text-secondary) !important;
+}
+
+app-dashboard-layout :is(input, textarea, select) {
+  background: var(--color-bg-secondary) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+app-dashboard-layout :is(input, textarea)::placeholder {
+  color: var(--color-text-disabled) !important;
+  opacity: 1;
+}
+
+app-dashboard-layout :is(input, textarea, select):focus {
+  border-color: var(--color-focus) !important;
+  box-shadow: 0 0 0 3px var(--color-focus-soft) !important;
+  outline: none;
+}
+
+app-dashboard-layout :is(.primary-action-btn, .add-btn, .save-btn, .btn-primary) {
+  background: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+}
+
+app-dashboard-layout :is(.back-btn, .btn-secondary, .badge, .theme-btn) {
+  background: var(--color-surface-elevated) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+}
+
+app-dashboard-layout .badge.active {
+  background: var(--color-selected) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text-strong) !important;
+}
+
+app-dashboard-layout :is(.alert-error, .error-message) {
+  background: var(--color-error-bg) !important;
+  border-color: var(--color-error) !important;
+  color: var(--color-error) !important;
+}
+
+app-dashboard-layout :is(.alert-success, .success-message) {
+  background: var(--color-success-bg) !important;
+  border-color: var(--color-success) !important;
+  color: var(--color-success) !important;
 }
 
 /* Base Glass Container */
@@ -297,91 +533,90 @@ body:has(.container.dashboard-mode) {
 
 /* ── LIGHT THEME COMPONENT OVERRIDES ── */
 [data-theme="light-gallery"] .search-input {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(0, 0, 0, 0.2) !important;
-  color: #111 !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: 0 2px 10px var(--color-shadow) !important;
 }
 
 [data-theme="light-gallery"] .search-input::placeholder {
-  color: #64748b !important;
+  color: var(--color-text-disabled) !important;
 }
 
 [data-theme="light-gallery"] .search-input:focus {
-  background: #ffffff !important;
-  border-color: #111 !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  background: var(--color-surface) !important;
+  border-color: var(--color-focus) !important;
+  box-shadow: 0 0 0 3px var(--color-focus-soft) !important;
 }
 
 [data-theme="light-gallery"] .category-pill {
-  background: #f8fafc !important;
-  color: #334155 !important;
-  border-color: #cbd5e1 !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
 }
 
 [data-theme="light-gallery"] .category-pill:hover {
-  background: #e2e8f0 !important;
-  border-color: #94a3b8 !important;
+  background: var(--color-hover) !important;
+  border-color: var(--color-border-strong) !important;
 }
 
 [data-theme="light-gallery"] .category-pill.active {
-  background: #0f172a !important;
-  color: #ffffff !important;
-  border-color: #0f172a !important;
+  background: var(--color-primary) !important;
+  color: var(--color-on-primary) !important;
+  border-color: var(--color-primary) !important;
 }
 
 [data-theme="light-gallery"] .progress-badge {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: #0f172a !important;
-  border-color: rgba(0, 0, 0, 0.15) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
+  box-shadow: 0 2px 8px var(--color-shadow) !important;
   font-weight: 700 !important;
 }
 
 [data-theme="light-gallery"] .title-font {
-  background: linear-gradient(to right, #111, #333) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--color-text-strong) !important;
+  color: var(--color-text-strong) !important;
   filter: none !important;
 }
 
 [data-theme="light-gallery"] .glass-select-mini {
-  background: #ffffff !important;
-  color: #111 !important;
-  border-color: rgba(0, 0, 0, 0.2) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
 }
 
 [data-theme="light-gallery"] .filter-box-mini::after {
-  color: #111 !important;
+  color: var(--color-text-primary) !important;
 }
 
 [data-theme="light-gallery"] .search-box .search-icon {
-  color: #475569 !important;
+  color: var(--color-text-secondary) !important;
 }
 
 /* ── THE ECONOMIST & CHECKOUT LIGHT THEME OVERRIDES ── */
 [data-theme="light-gallery"] .hero-backdrop { opacity: 0.05 !important; filter: blur(20px) grayscale(100%) !important; }
-[data-theme="light-gallery"] .hero-overlay { background: linear-gradient(to bottom, rgba(255,255,255,0.8), #fff 80%) !important; }
+[data-theme="light-gallery"] .hero-overlay { background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg-primary) 80%, transparent), var(--color-bg-primary) 80%) !important; }
 [data-theme="light-gallery"] .book-title {
   background: none !important;
-  -webkit-text-fill-color: #000 !important;
-  color: #000 !important;
+  -webkit-text-fill-color: var(--color-text-strong) !important;
+  color: var(--color-text-strong) !important;
   text-shadow: none !important;
   font-family: 'Cormorant Garamond', 'EB Garamond', Georgia, serif !important;
 }
-[data-theme="light-gallery"] .book-authors { color: #d32f2f !important; font-weight: 600 !important; }
-[data-theme="light-gallery"] .action-bar { background: #fff !important; border-color: #e5e7eb !important; box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important; }
-[data-theme="light-gallery"] .price-val { color: #000 !important; }
-[data-theme="light-gallery"] .ink-text { color: #d32f2f !important; }
-[data-theme="light-gallery"] .buy-btn { background: #d32f2f !important; color: #fff !important; box-shadow: none !important; border-radius: 4px !important; }
-[data-theme="light-gallery"] .buy-btn:hover { background: #b71c1c !important; }
-[data-theme="light-gallery"] .badge { background: #f8f9fa !important; border-color: #dee2e6 !important; color: #333 !important; }
-[data-theme="light-gallery"] .synopsis-section h3 { color: #000 !important; border-bottom: 2px solid #d32f2f !important; display: inline-block !important; padding-bottom: 0.5rem !important; margin-bottom: 1rem !important; }
+[data-theme="light-gallery"] .book-authors { color: var(--color-error) !important; font-weight: 600 !important; }
+[data-theme="light-gallery"] .action-bar { background: var(--color-surface) !important; border-color: var(--color-border) !important; box-shadow: 0 10px 25px var(--color-shadow) !important; }
+[data-theme="light-gallery"] .price-val { color: var(--color-text-strong) !important; }
+[data-theme="light-gallery"] .ink-text { color: var(--color-error) !important; }
+[data-theme="light-gallery"] .buy-btn { background: var(--color-primary) !important; color: var(--color-on-primary) !important; box-shadow: none !important; border-radius: 4px !important; }
+[data-theme="light-gallery"] .buy-btn:hover { background: var(--color-text-strong) !important; }
+[data-theme="light-gallery"] .badge { background: var(--color-bg-secondary) !important; border-color: var(--color-border) !important; color: var(--color-text-primary) !important; }
+[data-theme="light-gallery"] .synopsis-section h3 { color: var(--color-text-strong) !important; border-bottom: 2px solid var(--color-error) !important; display: inline-block !important; padding-bottom: 0.5rem !important; margin-bottom: 1rem !important; }
 
 /* The Economist Typography for Synopsis */
 [data-theme="light-gallery"] .synopsis-text { 
-  color: #000 !important; 
+  color: var(--color-text-primary) !important; 
   font-family: 'EB Garamond', 'Cormorant Garamond', Georgia, serif !important;
   font-size: 1.15rem !important;
   line-height: 1.8 !important;
@@ -394,33 +629,33 @@ body:has(.container.dashboard-mode) {
   padding-right: 0.5rem !important;
   padding-top: 0.2rem !important;
   font-weight: 700 !important;
-  color: #000 !important;
+  color: var(--color-text-strong) !important;
 }
 
-[data-theme="light-gallery"] .tag-chip { background: #f1f5f9 !important; color: #334155 !important; border-color: #e2e8f0 !important; }
-[data-theme="light-gallery"] .author-card-container, [data-theme="light-gallery"] .reviews-container { background: #fff !important; border: 1px solid #e5e7eb !important; box-shadow: 0 10px 25px rgba(0,0,0,0.02) !important; }
-[data-theme="light-gallery"] .author-card-info h3, [data-theme="light-gallery"] .reviews-header h3 { color: #000 !important; }
-[data-theme="light-gallery"] .author-card-bio, [data-theme="light-gallery"] .comment-text { color: #555 !important; }
-[data-theme="light-gallery"] .comment-card { background: #f8f9fa !important; border-color: #dee2e6 !important; color: #111 !important; }
-[data-theme="light-gallery"] .comment-user { color: #000 !important; }
+[data-theme="light-gallery"] .tag-chip { background: var(--color-bg-secondary) !important; color: var(--color-text-primary) !important; border-color: var(--color-border) !important; }
+[data-theme="light-gallery"] .author-card-container, [data-theme="light-gallery"] .reviews-container { background: var(--color-surface) !important; border: 1px solid var(--color-border) !important; box-shadow: 0 10px 25px var(--color-shadow) !important; }
+[data-theme="light-gallery"] .author-card-info h3, [data-theme="light-gallery"] .reviews-header h3 { color: var(--color-text-strong) !important; }
+[data-theme="light-gallery"] .author-card-bio, [data-theme="light-gallery"] .comment-text { color: var(--color-text-secondary) !important; }
+[data-theme="light-gallery"] .comment-card { background: var(--color-bg-secondary) !important; border-color: var(--color-border) !important; color: var(--color-text-primary) !important; }
+[data-theme="light-gallery"] .comment-user { color: var(--color-text-strong) !important; }
 
 /* Checkout Light Theme */
-[data-theme="light-gallery"] .checkout-page { color: #111 !important; }
-[data-theme="light-gallery"] .checkout-header h1 { background: none !important; -webkit-text-fill-color: #000 !important; color: #000 !important; }
-[data-theme="light-gallery"] .checkout-header p { color: #555 !important; }
-[data-theme="light-gallery"] .checkout-icon { color: #000 !important; }
-[data-theme="light-gallery"] .glass-panel { background: #fff !important; border-color: #e5e7eb !important; box-shadow: 0 8px 30px rgba(0,0,0,0.05) !important; }
-[data-theme="light-gallery"] .product-title { color: #000 !important; }
-[data-theme="light-gallery"] .product-synopsis, [data-theme="light-gallery"] .price-label { color: #555 !important; }
-[data-theme="light-gallery"] .price-value { color: #d32f2f !important; }
-[data-theme="light-gallery"] .security-badge { background: #f8f9fa !important; border-color: #dee2e6 !important; color: #333 !important; }
+[data-theme="light-gallery"] .checkout-page { color: var(--color-text-primary) !important; }
+[data-theme="light-gallery"] .checkout-header h1 { background: none !important; -webkit-text-fill-color: var(--color-text-strong) !important; color: var(--color-text-strong) !important; }
+[data-theme="light-gallery"] .checkout-header p { color: var(--color-text-secondary) !important; }
+[data-theme="light-gallery"] .checkout-icon { color: var(--color-text-strong) !important; }
+[data-theme="light-gallery"] .glass-panel { background: var(--color-surface) !important; border-color: var(--color-border) !important; box-shadow: 0 8px 30px var(--color-shadow) !important; }
+[data-theme="light-gallery"] .product-title { color: var(--color-text-strong) !important; }
+[data-theme="light-gallery"] .product-synopsis, [data-theme="light-gallery"] .price-label { color: var(--color-text-secondary) !important; }
+[data-theme="light-gallery"] .price-value { color: var(--color-error) !important; }
+[data-theme="light-gallery"] .security-badge { background: var(--color-bg-secondary) !important; border-color: var(--color-border) !important; color: var(--color-text-primary) !important; }
 
 /* Adicionales faltantes para Book Detail Light Theme */
-[data-theme="light-gallery"] .guest-btn { background: #fff !important; color: #000 !important; border: 1px solid #000 !important; box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important; }
-[data-theme="light-gallery"] .guest-btn:hover { background: #000 !important; color: #fff !important; }
-[data-theme="light-gallery"] .avatars-container h3, [data-theme="light-gallery"] .legal-header h3 { color: #000 !important; }
-[data-theme="light-gallery"] .avatar-name { color: #333 !important; }
-[data-theme="light-gallery"] .legal-text { color: #555 !important; }
-[data-theme="light-gallery"] .tts-btn { color: #000 !important; border-color: #000 !important; }
-[data-theme="light-gallery"] .tts-btn:hover { background: rgba(0,0,0,0.1) !important; }
+[data-theme="light-gallery"] .guest-btn { background: var(--color-surface) !important; color: var(--color-text-primary) !important; border: 1px solid var(--color-border-strong) !important; box-shadow: 0 2px 10px var(--color-shadow) !important; }
+[data-theme="light-gallery"] .guest-btn:hover { background: var(--color-primary) !important; color: var(--color-on-primary) !important; }
+[data-theme="light-gallery"] .avatars-container h3, [data-theme="light-gallery"] .legal-header h3 { color: var(--color-text-strong) !important; }
+[data-theme="light-gallery"] .avatar-name { color: var(--color-text-primary) !important; }
+[data-theme="light-gallery"] .legal-text { color: var(--color-text-secondary) !important; }
+[data-theme="light-gallery"] .tts-btn { color: var(--color-text-primary) !important; border-color: var(--color-border-strong) !important; }
+[data-theme="light-gallery"] .tts-btn:hover { background: var(--color-hover) !important; }
 

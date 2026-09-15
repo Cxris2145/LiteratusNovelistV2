@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400" role="img" aria-label="Portada literaria Literatus">
+  <defs>
+    <linearGradient id="catBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0A1914"/>
+      <stop offset="50%" stop-color="#14291F"/>
+      <stop offset="100%" stop-color="#07130F"/>
+    </linearGradient>
+    <radialGradient id="catGlow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#D4AF37" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#D4AF37" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="gridPattern" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#D4AF37" stroke-width="0.5" stroke-opacity="0.08"/>
+    </pattern>
+  </defs>
+
+  <rect width="600" height="400" fill="url(#catBg)"/>
+  <rect width="600" height="400" fill="url(#gridPattern)"/>
+  <rect width="600" height="400" fill="url(#catGlow)"/>
+
+  <!-- Marco ornamental sutil -->
+  <rect x="24" y="24" width="552" height="352" rx="12" fill="none" stroke="#D4AF37" stroke-width="1" stroke-opacity="0.18" stroke-dasharray="6 4"/>
+
+  <!-- Icono central de libro y pluma -->
+  <g transform="translate(300, 180) scale(1.6)" text-anchor="middle">
+    <!-- Libro abierto estilizado -->
+    <path d="M-28 -10 C-14 -16, -4 -12, 0 -8 C4 -12, 14 -16, 28 -10 L28 18 C14 12, 4 16, 0 12 C-4 16, -14 12, -28 18 Z" 
+          fill="none" stroke="#D4AF37" stroke-width="2" stroke-linejoin="round" opacity="0.85"/>
+    <path d="M0 -8 L0 12" stroke="#D4AF37" stroke-width="2" opacity="0.85"/>
+    <!-- Brillo y estrella -->
+    <path d="M0 -24 L2 -18 L8 -16 L2 -14 L0 -8 L-2 -14 L-8 -16 L-2 -18 Z" fill="#D4AF37" opacity="0.75"/>
+  </g>
+
+  <!-- Tipografía de marca sutil -->
+  <text x="300" y="270" font-family="'Cinzel', serif" font-size="14" fill="#D4AF37" letter-spacing="4" text-anchor="middle" opacity="0.55">LITERATUS NOVELIST</text>
+</svg>

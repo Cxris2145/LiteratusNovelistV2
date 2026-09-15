@@ -6,10 +6,58 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from core.pagination import StandardResultsSetPagination
 
-from .models import UserInventory, ReadingProgress, UserBookmark
-from .serializers import UserInventorySerializer, ReadingProgressSerializer, UserBookmarkSerializer
+from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark
+from .serializers import (
+    UserFavoriteSerializer,
+    UserInventorySerializer,
+    ReadingProgressSerializer,
+    UserBookmarkSerializer,
+)
+
+
+class UserFavoriteViewSet(viewsets.ModelViewSet):
+    """CRUD de favoritos aislado estrictamente por usuario autenticado."""
+
+    serializer_class = UserFavoriteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+    http_method_names = ['get', 'post', 'delete']
+
+    def get_queryset(self):
+        return (
+            UserFavorite.objects
+            .filter(user=self.request.user)
+            .select_related('book')
+            .prefetch_related(
+                'book__genres',
+                'book__tags',
+                'book__editions',
+                'book__book_authors__author',
+            )
+        )
+
+    @action(detail=False, methods=['delete'], url_path=r'book/(?P<book_id>[^/.]+)')
+    def remove_book(self, request, book_id=None):
+        favorite = get_object_or_404(
+            UserFavorite.objects,
+            user=request.user,
+            book_id=book_id,
+        )
+        favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['delete'], url_path='clear')
+    def clear(self, request):
+        now = timezone.now()
+        deleted_count = self.get_queryset().update(
+            is_active=False,
+            deleted_at=now,
+            updated_at=now,
+        )
+        return Response({'deleted': deleted_count}, status=status.HTTP_200_OK)
 
 class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
     """

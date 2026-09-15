@@ -9,6 +9,7 @@ import { Location } from '@angular/common';
 
 import { SettingsService } from './core/services/settings.service';
 import { environment } from '../environments/environment';
+import { FavoritesService } from './core/services/favorites.service';
 
 @Component({
   selector: 'app-root',
@@ -21,11 +22,19 @@ export class AppComponent implements OnInit {
   authService = inject(AuthService);
   chatService = inject(ChatService);
   settingsService = inject(SettingsService);
+  favoritesService = inject(FavoritesService);
   router = inject(Router);
-  
-  menuOpen = false;
+
   isDashboard = false;
-  
+
+  // Buscador global del navbar
+  globalSearchTerm = '';
+
+  // Contadores de accesos rápidos
+  cartCount = 0;
+  favoritesCount = 0;
+  unreadMessagesCount = 1;
+
   // DEBUGGING: Global Error Catcher
   globalError: string | null = null;
   
@@ -44,7 +53,7 @@ export class AppComponent implements OnInit {
   }
   
   userAvatarUrl: string | null = null;
-  userAvatarColor: string = localStorage.getItem('user_avatar_color') || '#7c3aed'; // default purple or cached
+  userAvatarColor: string = localStorage.getItem('user_avatar_color') || '#7c3aed';
 
   // Animación Tinta
   shakeState = 'default';
@@ -62,6 +71,15 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     // Cargar la configuración global (Tema) apenas inicie
     this.settingsService.loadSettings().subscribe();
+
+    // El contador refleja la colección persistida del usuario autenticado.
+    this.favoritesService.count$.subscribe(count => this.favoritesCount = count);
+
+    // Sincronizar contador de carrito
+    this.updateCartCount();
+    window.addEventListener('literatus-cart-updated', () => {
+      this.updateCartCount();
+    });
 
     // Escuchar cambios en el estado de login para cargar datos
     this.authService.isLoggedIn$.subscribe(loggedIn => {
@@ -139,18 +157,13 @@ export class AppComponent implements OnInit {
     return this.authService.isAdmin();
   }
 
-  toggleMenu() {
-    this.menuOpen = !this.menuOpen;
-  }
-
   logout() {
     this.authService.clearTokens();
-    this.toggleMenu();
     this.router.navigate(['/login']);
   }
 
   openTavern() {
-    this.router.navigate(['/ink-shop']);
+    this.router.navigate(['/tavern']);
   }
 
   triggerShake() {
@@ -158,6 +171,47 @@ export class AppComponent implements OnInit {
     setTimeout(() => {
       this.shakeState = 'default';
     }, 400); // Duración de la animación
+  }
+
+  onGlobalSearch(): void {
+    const query = this.globalSearchTerm.trim();
+    if (query) {
+      this.router.navigate(['/catalog'], { queryParams: { search: query } });
+    } else {
+      this.router.navigate(['/catalog']);
+    }
+  }
+
+  clearGlobalSearch(): void {
+    this.globalSearchTerm = '';
+  }
+
+  goToFavorites(): void {
+    this.router.navigate(['/favorites']);
+  }
+
+  goToMessages(): void {
+    this.router.navigate(['/messages']);
+  }
+
+  goToCart(): void {
+    this.router.navigate(['/cart']);
+  }
+
+  updateFavoritesCount(): void {
+    this.favoritesService.load().subscribe({
+      error: () => this.favoritesCount = 0,
+    });
+  }
+
+  updateCartCount(): void {
+    try {
+      const raw = localStorage.getItem('literatus_cart');
+      const list = raw ? JSON.parse(raw) : [];
+      this.cartCount = Array.isArray(list) ? list.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) : 0;
+    } catch {
+      this.cartCount = 0;
+    }
   }
 
   prepareRoute(outlet: RouterOutlet) {

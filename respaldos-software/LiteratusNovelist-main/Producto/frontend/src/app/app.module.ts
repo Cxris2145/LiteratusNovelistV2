@@ -42,6 +42,10 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { VerifyEmailComponent } from './auth/verify-email/verify-email.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
+import { FavoritesComponent } from './library/favorites/favorites.component';
+import { MessagesComponent } from './characters/messages/messages.component';
+import { CartComponent } from './catalog/cart/cart.component';
+import { AssistantWidgetComponent } from './core/components/assistant-widget/assistant-widget.component';
 
 @NgModule({
   declarations: [
@@ -68,7 +72,11 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
     CategoryDetailComponent,
     VerifyEmailComponent,
     ForgotPasswordComponent,
-    ResetPasswordComponent
+    ResetPasswordComponent,
+    FavoritesComponent,
+    MessagesComponent,
+    CartComponent,
+    AssistantWidgetComponent
   ],
   imports: [
     BrowserModule,

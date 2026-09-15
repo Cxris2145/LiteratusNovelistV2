@@ -1,6 +1,6 @@
-/* La identidad de la portada acompaña las vistas de navegación y de cuenta.
-   El lector y el panel de administración conservan sus temas propios. */
-:root body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) {
+/* La identidad editorial acompaña todas las vistas públicas y de cuenta.
+   Sus valores proceden del tema activo; ya no se fuerza una paleta clara. */
+:root body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) {
   --bg-color: var(--home-bg);
   --bg-surface: var(--home-bg-surface);
   --text-main: var(--home-ink);
@@ -14,10 +14,14 @@
   --glow-cyan: var(--home-sage-ink);
   background: var(--home-bg);
   color: var(--home-ink);
+  color-scheme: dark;
+}
+
+[data-theme="light-gallery"] body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) {
   color-scheme: light;
 }
 
-:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) {
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) {
   display: block;
   color: var(--home-ink);
   --surface-light: var(--home-bg-surface);
@@ -27,15 +31,15 @@
   --font-heading: var(--font-ui);
 }
 
-:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) :is(input, select, button) {
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) :is(input, select, button, textarea) {
   font-family: var(--font-ui);
 }
-:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) input::placeholder {
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) :is(input, textarea)::placeholder {
   color: var(--home-ink-subtle);
   opacity: 1;
 }
-:is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-tavern, app-library-list, app-book-detail-page) :is(a, button, input, select, [tabindex]):focus-visible {
-  outline: 3px solid var(--home-sage-ink);
+:is(app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }
 :is(app-book-list, app-category-detail, app-author-list, app-library-list) .glass-panel {
@@ -56,21 +60,21 @@
 }
 :is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .glass-input:focus {
   border-color: var(--home-sage-ink);
-  box-shadow: 0 0 0 3px #41644918;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
 }
 :is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .error-banner,
 :is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .validation-error {
-  background: var(--home-coral-surface);
-  border-left-color: var(--home-coral-ink);
-  color: var(--home-coral-ink);
+  background: var(--color-error-bg);
+  border-left-color: var(--color-error);
+  color: var(--color-error);
 }
 :is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .validation-error {
   background: none;
 }
 :is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .success-banner {
-  background: var(--home-sage-surface);
-  border-left-color: var(--home-sage-ink);
-  color: var(--home-sage-ink);
+  background: var(--color-success-bg);
+  border-left-color: var(--color-success);
+  color: var(--color-success);
 }
 :is(app-login, app-register, app-forgot-password, app-reset-password, app-verify-email) .footer-link a:hover {
   color: var(--home-coral-ink);
@@ -95,9 +99,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-library-list) *,
-  :is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-library-list) *::before,
-  :is(app-book-list, app-categories, app-category-detail, app-author-list, app-character-hub, app-library-list) *::after {
+  :is(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) *,
+  :is(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) *::before,
+  :is(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) *::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;

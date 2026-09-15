@@ -75,8 +75,8 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['title', 'synopsis', 'book_authors__author__full_name', 'genres__name']
     
     # Ordenamiento DRF: ?ordering=-created_at
-    ordering_fields = ['title', 'created_at', 'is_featured', 'ai_character_count', '?']
-    ordering = ['-is_featured', '-created_at'] # Por defecto los destacados y luego más nuevos
+    ordering_fields = ['title', 'created_at', 'is_featured', 'ai_character_count']
+    ordering = ['-is_featured', '-created_at', 'id'] # Orden determinístico y estático
 
     def get_queryset(self):
         qs = Book.objects.prefetch_related('genres', 'book_authors__author', 'editions', 'tags')
@@ -101,6 +101,14 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == 'retrieve':
             return BookDetailSerializer
         return BookListSerializer
+
+    def list(self, request, *args, **kwargs):
+        """
+        Listado estático y determinístico del catálogo.
+        Garantiza que en cada refresco de página siempre se devuelvan los mismos
+        libros iniciales con máximo rendimiento de caché.
+        """
+        return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=['GET'])
     def recommendations(self, request):

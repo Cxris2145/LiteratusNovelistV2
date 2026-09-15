@@ -12,6 +12,9 @@ from .views import (
     ChatInteractionView,
     TTSGenerateView,
     DemoChatView,
+    AssistantConversationListView,
+    AssistantMessageListView,
+    AssistantChatView,
 )
 
 urlpatterns = [
@@ -50,4 +53,14 @@ urlpatterns = [
     # Narración AI (TTS ElevenLabs)
     # POST /api/v1/ai/audio/generate/
     path('audio/generate/', TTSGenerateView.as_view(), name='ai-audio-generate'),
+
+    # ── Asistente global de la plataforma (guía de uso, gratuito) ──
+    # GET/POST /api/v1/ai/assistant/conversations/
+    path('assistant/conversations/', AssistantConversationListView.as_view(), name='assistant-conversations'),
+
+    # GET /api/v1/ai/assistant/conversations/<uuid>/messages/
+    path('assistant/conversations/<uuid:conversation_id>/messages/', AssistantMessageListView.as_view(), name='assistant-messages'),
+
+    # POST /api/v1/ai/assistant/chat/
+    path('assistant/chat/', AssistantChatView.as_view(), name='assistant-chat'),
 ]

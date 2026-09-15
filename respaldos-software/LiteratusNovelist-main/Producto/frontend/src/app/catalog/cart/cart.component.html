@@ -1,0 +1,177 @@
+<div class="cart-wrapper centered">
+
+  <!-- Encabezado -->
+  <header class="cart-header">
+    <div class="header-badge">
+      <span class="material-symbols-rounded">shopping_cart</span>
+      <span>Cesta Literaria</span>
+    </div>
+    <h1 class="glow-title">Carrito de Compras</h1>
+    <p class="subtitle">Gestiona tus recargas de Tinta y obras adquiridas para tu viaje por Literatus Novelist.</p>
+  </header>
+
+  <!-- Estado Vacío -->
+  <div class="empty-cart-container glass-panel" *ngIf="cartItems.length === 0">
+    <div class="empty-icon-wrap">
+      <span class="empty-cart-icon">🛒</span>
+    </div>
+    <h2 class="empty-title">Tu carrito está vacío</h2>
+    <p class="empty-desc">
+      Aún no has añadido obras ni recargas de tinta. Elige uno de nuestros paquetes recomendados para empezar a dialogar con personajes de IA o descubre nuevas historias.
+    </p>
+
+    <!-- Paquetes de tinta recomendados en estado vacío -->
+    <div class="recommended-ink-grid">
+      <div class="ink-pack-card glass-panel" *ngFor="let pkg of POPULAR_INK_PACKAGES">
+        <span class="ink-pack-badge">{{ pkg.badge }}</span>
+        <div class="ink-pack-icon">
+          <span class="material-symbols-rounded">ink_pen</span>
+        </div>
+        <h4 class="ink-pack-title">{{ pkg.title }}</h4>
+        <p class="ink-pack-price">${{ pkg.price | number }} CLP</p>
+        <p class="ink-pack-desc">{{ pkg.description }}</p>
+        <button type="button" class="btn-add-ink" (click)="addInkPackage(pkg)">
+          <span class="material-symbols-rounded">add_shopping_cart</span>
+          <span>Añadir al Carrito</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="empty-actions">
+      <a routerLink="/catalog" class="btn-explore-catalog">
+        <span class="material-symbols-rounded">menu_book</span>
+        <span>Explorar Catálogo de Libros</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Contenido del Carrito (2 Columnas) -->
+  <div class="cart-layout" *ngIf="cartItems.length > 0">
+
+    <!-- Columna Izquierda: Lista de Productos -->
+    <div class="cart-items-col">
+      <div class="cart-list-header">
+        <span class="items-count-text">Tienes <strong>{{ totalItemsCount }}</strong> {{ totalItemsCount === 1 ? 'artículo' : 'artículos' }} en tu cesta</span>
+        <button type="button" class="clear-cart-btn" (click)="clearCart()">
+          <span class="material-symbols-rounded">delete_sweep</span>
+          <span>Vaciar Carrito</span>
+        </button>
+      </div>
+
+      <div class="cart-items-list">
+        <div class="cart-item-card glass-panel" *ngFor="let item of cartItems">
+
+          <!-- Imagen o Icono -->
+          <div class="item-visual-wrap">
+            <img *ngIf="item.coverThumb" [src]="item.coverThumb" [alt]="item.title" class="item-cover-img">
+            <div *ngIf="!item.coverThumb && item.type === 'ink'" class="item-ink-icon-box">
+              <span class="material-symbols-rounded">ink_pen</span>
+            </div>
+            <div *ngIf="!item.coverThumb && item.type !== 'ink'" class="item-ink-icon-box">
+              <span class="material-symbols-rounded">menu_book</span>
+            </div>
+          </div>
+
+          <!-- Detalles del Producto -->
+          <div class="item-details">
+            <div class="item-title-row">
+              <h3 class="item-title">{{ item.title }}</h3>
+              <span class="item-tag-pill" *ngIf="item.label">{{ item.label }}</span>
+            </div>
+            <p class="item-author" *ngIf="item.author_name">{{ item.author_name }}</p>
+            <p class="item-unit-price">${{ item.price | number }} CLP c/u</p>
+          </div>
+
+          <!-- Controles de Cantidad -->
+          <div class="item-quantity-controls">
+            <button type="button" class="qty-btn" (click)="updateQuantity(item, -1)" title="Disminuir">-</button>
+            <span class="qty-value">{{ item.quantity }}</span>
+            <button type="button" class="qty-btn" (click)="updateQuantity(item, 1)" title="Aumentar">+</button>
+          </div>
+
+          <!-- Subtotal del Item -->
+          <div class="item-subtotal-wrap">
+            <span class="item-subtotal">${{ (item.price * item.quantity) | number }} CLP</span>
+            <button type="button" class="remove-item-btn" (click)="removeItem(item)" title="Eliminar del carrito">
+              <span class="material-symbols-rounded">delete</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Sección de Recargas Rápidas de Tinta -->
+      <div class="extra-ink-section">
+        <h4 class="extra-ink-title">¿Deseas añadir más Tinta para tus diálogos IA?</h4>
+        <div class="quick-ink-cards">
+          <div class="quick-ink-card glass-panel" *ngFor="let pkg of POPULAR_INK_PACKAGES">
+            <div class="q-ink-info">
+              <strong>{{ pkg.title }}</strong>
+              <span>${{ pkg.price | number }} CLP</span>
+            </div>
+            <button type="button" class="q-ink-add-btn" (click)="addInkPackage(pkg)">
+              + Añadir
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Resumen de Orden y Pago -->
+    <aside class="cart-summary-col">
+      <div class="summary-card glass-panel">
+        <h3 class="summary-title">Resumen de tu Compra</h3>
+
+        <div class="summary-line">
+          <span>Subtotal</span>
+          <span>${{ subtotal | number }} CLP</span>
+        </div>
+
+        <div class="summary-line discount-line" *ngIf="couponApplied">
+          <span>Descuento cupón (15%)</span>
+          <span>-${{ discountAmount | number }} CLP</span>
+        </div>
+
+        <!-- Cupón de descuento -->
+        <div class="coupon-box">
+          <div class="coupon-input-wrap">
+            <input type="text"
+                   [(ngModel)]="couponCode"
+                   placeholder="Código de descuento"
+                   class="coupon-input"
+                   [disabled]="couponApplied">
+            <button type="button" class="coupon-apply-btn" (click)="applyCoupon()" [disabled]="couponApplied">
+              {{ couponApplied ? 'Aplicado' : 'Aplicar' }}
+            </button>
+          </div>
+          <span class="coupon-hint" *ngIf="!couponApplied">Prueba: <strong>LITERATUS</strong> para 15% off</span>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="summary-total-row">
+          <span class="total-label">Total a Pagar</span>
+          <span class="total-amount">${{ total | number }} CLP</span>
+        </div>
+
+        <button type="button" class="btn-checkout-webpay" (click)="proceedToCheckout()">
+          <span class="material-symbols-rounded">lock</span>
+          <span>Pagar con Webpay Plus</span>
+        </button>
+
+        <div class="payment-guarantees">
+          <div class="guarantee-item">
+            <span class="material-symbols-rounded">verified_user</span>
+            <span>Transbank Webpay Plus Oficial</span>
+          </div>
+          <div class="guarantee-item">
+            <span class="material-symbols-rounded">bolt</span>
+            <span>Acreditación Instantánea</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+</div>

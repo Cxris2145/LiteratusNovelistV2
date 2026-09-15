@@ -1,0 +1,513 @@
+/* ══════════════════════════════════════════════════════════════════
+   PÁGINA DE FAVORITOS — LITERATUS NOVELIST
+   ══════════════════════════════════════════════════════════════════ */
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.favorites-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Encabezado ── */
+.favorites-header {
+  text-align: center;
+  margin-bottom: 34px;
+}
+
+.header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(224, 93, 82, 0.1);
+  border: 1px solid rgba(224, 93, 82, 0.3);
+  color: #FFA59E;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.glow-title {
+  font-size: 2.6rem;
+  font-family: var(--font-display, 'Cinzel Decorative', serif);
+  font-weight: 700;
+  color: var(--text-main, #FCFAF2);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  color: var(--text-muted, #A2B2A8);
+  font-size: 1.05rem;
+  max-width: 620px;
+  margin: 0 auto 24px;
+  line-height: 1.5;
+}
+
+/* Métricas de la colección */
+.stats-cards-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.stat-card {
+  padding: 12px 24px;
+  border-radius: 14px;
+  background: var(--home-bg-surface, #14291F);
+  border: 1px solid var(--color-border, #1F3A2E);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px;
+}
+
+.stat-number {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--glow-gold, #D4AF37);
+  font-family: var(--font-ui, 'Cinzel', serif);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted, #A2B2A8);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+  font-family: var(--font-ui, sans-serif);
+}
+
+/* ── Barra de Acciones y Búsqueda ── */
+.actions-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.search-box .search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--glow-gold, #D4AF37);
+  font-size: 1.25rem;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 46px;
+  border-radius: 12px;
+  background: var(--home-bg-surface, #14291F);
+  border: 1px solid var(--color-border, #1F3A2E);
+  color: var(--text-main, #FCFAF2);
+  font-size: 0.92rem;
+  font-family: var(--font-ui, sans-serif);
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--glow-gold, #D4AF37);
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted, #A2B2A8);
+  cursor: pointer;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.secondary-btn {
+  background: rgba(20, 41, 31, 0.8);
+  border: 1px solid var(--color-border, #1F3A2E);
+  color: var(--text-main, #FCFAF2);
+}
+
+.secondary-btn:hover {
+  border-color: var(--glow-gold, #D4AF37);
+  color: var(--glow-gold, #D4AF37);
+}
+
+.clear-btn {
+  background: transparent;
+  border: 1px solid rgba(224, 93, 82, 0.4);
+  color: #FFA59E;
+}
+
+.clear-btn:hover {
+  background: rgba(224, 93, 82, 0.15);
+  border-color: #E05D52;
+}
+
+.toolbar-btn:disabled,
+.remove-fav-btn:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+/* ── Grilla Centrada ── */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .grid-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+}
+
+@media (max-width: 560px) {
+  .favorites-wrapper {
+    padding: 16px 10px 50px;
+  }
+  .grid-container {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+  }
+}
+
+/* ── Tarjetas de Libro ── */
+.book-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--home-bg-surface, #14291F);
+  border: 1px solid var(--color-border, #1F3A2E);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+  position: relative;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.book-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.card-image {
+  aspect-ratio: 1 / 1;
+  position: relative;
+  background: #081510;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border, #1F3A2E);
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.remove-fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(10, 25, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(6px);
+}
+
+.remove-fav-btn:hover {
+  transform: scale(1.15);
+  background: rgba(224, 93, 82, 0.3);
+  border-color: #E05D52;
+}
+
+/* Progreso de lectura */
+.card-reading-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(10, 25, 20, 0.88);
+  padding: 4px 8px;
+  backdrop-filter: blur(4px);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #79D19E, var(--glow-gold, #D4AF37));
+  border-radius: 999px;
+}
+
+.progress-text {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--glow-gold, #D4AF37);
+}
+
+/* Contenido */
+.card-content {
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.book-title {
+  font-family: var(--font-display, 'Cinzel', serif);
+  font-size: 1.05rem;
+  line-height: 1.3;
+  color: var(--text-main, #FCFAF2);
+  margin: 0 0 4px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 600;
+}
+
+.book-author {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.8rem;
+  color: var(--glow-gold, #D4AF37);
+  margin: 0 0 8px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-synopsis {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--text-muted, #A2B2A8);
+  margin: 0 0 12px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid rgba(31, 58, 46, 0.5);
+}
+
+.meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted, #A2B2A8);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.meta-tag svg {
+  color: var(--glow-gold, #D4AF37);
+}
+
+.actions-group {
+  margin-left: auto;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--glow-gold, #D4AF37);
+  transition: gap 0.2s ease;
+  white-space: nowrap;
+}
+
+.book-card:hover .btn-action {
+  gap: 7px;
+}
+
+.resume-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--glow-gold, #D4AF37);
+  color: #0A1914;
+  border: none;
+  cursor: pointer;
+  font-size: 0.74rem;
+}
+
+/* ── Estado Vacío ── */
+.empty-favorites-container {
+  max-width: 580px;
+  margin: 40px auto;
+  padding: 48px 32px;
+  text-align: center;
+  border-radius: 20px;
+  background: var(--home-bg-surface, #14291F);
+  border: 1px solid var(--color-border, #1F3A2E);
+}
+
+.empty-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.empty-heart-icon {
+  font-size: 2.2rem;
+}
+
+.empty-title {
+  font-family: var(--font-ui, 'Cinzel', serif);
+  font-size: 1.45rem;
+  color: var(--text-main, #FCFAF2);
+  margin-bottom: 12px;
+}
+
+.empty-description {
+  color: var(--text-muted, #A2B2A8);
+  font-size: 0.94rem;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.explore-catalog-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  background: var(--glow-gold, #D4AF37);
+  color: #0A1914;
+  font-weight: 700;
+  text-decoration: none;
+  font-family: var(--font-ui, sans-serif);
+  transition: all 0.2s ease;
+}
+
+.explore-catalog-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.35);
+}
+
+.no-filter-match {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted, #A2B2A8);
+}
+
+.clear-search-link {
+  background: none;
+  border: none;
+  color: var(--glow-gold, #D4AF37);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* ── Móvil ── */
+@media (max-width: 640px) {
+  .glow-title { font-size: 1.85rem; }
+  .card-content { padding: 8px 8px 9px; }
+  .book-title { font-size: 0.82rem; -webkit-line-clamp: 2; margin-bottom: 2px; }
+  .book-author { font-size: 0.72rem; margin-bottom: 4px; }
+  .book-synopsis { display: none; }
+  .meta-tag.time { display: none; }
+  .remove-fav-btn { top: 6px; right: 6px; width: 26px; height: 26px; }
+  .remove-fav-btn svg { width: 14px; height: 14px; }
+}

@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "audit:contrast": "node scripts/contrast-audit.mjs --write",
+    "audit:capture": "node scripts/capture-visual-audit.mjs"
   },
   "private": true,
   "engines": {

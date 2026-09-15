@@ -10,15 +10,18 @@ from django.shortcuts import get_object_or_404
 from core.pagination import StandardResultsSetPagination
 
 from library.models import UserInventory
-from .models import AIAvatar, ChatSession, ChatMessage
+from .models import AIAvatar, ChatSession, ChatMessage, AssistantConversation, AssistantMessage
 from .serializers import (
     AIAvatarListSerializer,
     ChatSessionSerializer,
     ChatMessageSerializer,
     ChatInteractionSerializer,
     GlobalHubAvatarSerializer,
+    AssistantConversationSerializer,
+    AssistantMessageSerializer,
+    AssistantChatSerializer,
 )
-from .services import AIService
+from .services import AIService, AssistantAIService
 from .tts_service import TTSService
 from .kokoro_service import KokoroTTSService
 from core.decorators import consume_ink
@@ -481,3 +484,109 @@ class TTSGenerateView(APIView):
                     "message": "El servicio de voz está iniciando. Intenta de nuevo en 30 segundos."
                 }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             return Response({"error": err_str}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# ASISTENTE GLOBAL DE LA PLATAFORMA (guía de uso, gratuito, no consume Tinta)
+# ═══════════════════════════════════════════════════════════════════════════
+
+ASSISTANT_GREETING = "Hola, ¿en qué puedo ayudarte dentro de Literatus?"
+
+
+class AssistantConversationListView(APIView):
+    """
+    GET  /api/v1/ai/assistant/conversations/   Lista las conversaciones del usuario (más reciente primero).
+    POST /api/v1/ai/assistant/conversations/   Crea una conversación nueva con el saludo inicial del Asistente.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        conversations = AssistantConversation.objects.filter(user=request.user).order_by('-updated_at')
+        paginator = StandardResultsSetPagination()
+        page = paginator.paginate_queryset(conversations, request)
+        serializer = AssistantConversationSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request):
+        conversation = AssistantConversation.objects.create(user=request.user)
+        AssistantMessage.objects.create(
+            conversation=conversation,
+            role=AssistantMessage.RoleChoices.ASSISTANT,
+            content=ASSISTANT_GREETING,
+        )
+        serializer = AssistantConversationSerializer(conversation)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class AssistantMessageListView(APIView):
+    """GET /api/v1/ai/assistant/conversations/<uuid>/messages/ — historial de una conversación."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, conversation_id):
+        conversation = get_object_or_404(AssistantConversation, id=conversation_id, user=request.user)
+        messages = conversation.messages.order_by('created_at')[:200]
+        serializer = AssistantMessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+
+class AssistantChatView(APIView):
+    """
+    POST /api/v1/ai/assistant/chat/
+    Envía un mensaje del usuario al Asistente global y devuelve su respuesta.
+    Gratuito (no descuenta Tinta): es una guía de uso de la plataforma, no una
+    interacción de roleplay con un personaje.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = AssistantChatSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        conversation_id = serializer.validated_data['conversation_id']
+        message_content = serializer.validated_data['message']
+        section = serializer.validated_data.get('section', '')
+
+        conversation = get_object_or_404(AssistantConversation, id=conversation_id, user=request.user)
+        if conversation.user != request.user:
+            return Response(
+                {"error": "No tienes permiso sobre esta conversación."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        user_msg = AssistantMessage.objects.create(
+            conversation=conversation,
+            role=AssistantMessage.RoleChoices.USER,
+            content=message_content,
+            section=section,
+        )
+
+        # Título automático a partir del primer mensaje del usuario.
+        if conversation.title == 'Nueva conversación':
+            conversation.title = message_content[:60]
+            conversation.save(update_fields=['title', 'updated_at'])
+        else:
+            conversation.save(update_fields=['updated_at'])
+
+        try:
+            assistant_service = AssistantAIService(conversation=conversation)
+            reply_text = assistant_service.generate_reply(message_content, section=section)
+        except Exception as e:
+            user_msg.delete()
+            return Response(
+                {"error": f"Error del asistente: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        assistant_msg = AssistantMessage.objects.create(
+            conversation=conversation,
+            role=AssistantMessage.RoleChoices.ASSISTANT,
+            content=reply_text,
+        )
+
+        return Response({
+            "reply": assistant_msg.content,
+            "timestamp": assistant_msg.created_at,
+            "conversation_id": str(conversation.id),
+            "conversation_title": conversation.title,
+        }, status=status.HTTP_200_OK)

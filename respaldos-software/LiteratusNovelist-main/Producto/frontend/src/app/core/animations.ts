@@ -51,3 +51,14 @@ export const fadeDownAnimation = trigger('fadeDown', [
     animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(10px)' }))
   ])
 ]);
+
+/** Despliegue del panel del Asistente: entra deslizando desde abajo. */
+export const slideUpPanelAnimation = trigger('slideUpPanel', [
+  transition(':enter', [
+    style({ opacity: 0, transform: 'translateY(32px) scale(0.98)' }),
+    animate('320ms cubic-bezier(0.22, 1, 0.36, 1)', style({ opacity: 1, transform: 'translateY(0) scale(1)' }))
+  ]),
+  transition(':leave', [
+    animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(24px) scale(0.98)' }))
+  ])
+]);

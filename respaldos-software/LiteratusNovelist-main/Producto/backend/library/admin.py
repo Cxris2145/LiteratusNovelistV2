@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import UserInventory, ReadingProgress, UserBookmark
+from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark
+
+
+@admin.register(UserFavorite)
+class UserFavoriteAdmin(admin.ModelAdmin):
+    list_display = ['user', 'book', 'created_at']
+    search_fields = ['user__email', 'user__username', 'book__title']
 
 class ReadingProgressInline(admin.StackedInline):
     model = ReadingProgress

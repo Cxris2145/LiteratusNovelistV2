@@ -5,16 +5,16 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  color: #fff;
+  color: var(--color-text-primary);
 }
 
 .result-container {
   text-align: center;
   z-index: 10;
   padding: 3rem;
-  background: rgba(20, 20, 35, 0.8);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
   border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--color-border);
   backdrop-filter: blur(16px);
   max-width: 500px;
   width: 90%;
@@ -32,26 +32,26 @@ h1 {
   margin: 0 0 1rem;
 }
 
-.success-page h1 { color: #00ff88; }
+.success-page h1 { color: var(--color-success); }
 
 .result-message {
   font-size: 1.1rem;
-  color: #ccc;
+  color: var(--color-text-secondary);
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
 
 .order-ref {
-  background: rgba(0,255,136,0.08);
-  border: 1px solid rgba(0,255,136,0.2);
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success);
   border-radius: 10px;
   padding: 0.8rem 1.2rem;
   margin-bottom: 2rem;
   font-size: 0.9rem;
 }
 
-.ref-label { color: #aaa; margin-right: 0.5rem; }
-.ref-value { color: #00ff88; font-weight: 600; font-family: monospace; }
+.ref-label { color: var(--color-text-secondary); margin-right: 0.5rem; }
+.ref-value { color: var(--color-success); font-weight: 600; font-family: monospace; }
 
 .result-actions {
   display: flex;
@@ -65,9 +65,9 @@ h1 {
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
-  background: linear-gradient(135deg, #00cc66, #00ff88);
+  background: var(--color-success);
   border: none;
-  color: #000;
+  color: var(--color-success-bg);
   transition: all 0.3s ease;
   box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
 }
@@ -83,14 +83,14 @@ h1 {
   font-size: 1rem;
   cursor: pointer;
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.2);
-  color: #aaa;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
   transition: all 0.3s ease;
 }
 
 .btn-catalog:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
+  background: var(--color-hover);
+  color: var(--color-text-primary);
 }
 
 /* Neon particles */

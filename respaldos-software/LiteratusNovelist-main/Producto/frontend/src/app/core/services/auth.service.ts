@@ -18,6 +18,7 @@ export class AuthService {
   private readonly TOKEN_KEY = 'access_token';
   private readonly REFRESH_KEY = 'refresh_token';
   private readonly USER_KEY = 'user_profile';
+  private readonly FRESH_LOGIN_KEY = 'literatus_fresh_login';
 
   private loggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
   public isLoggedIn$ = this.loggedInSubject.asObservable();
@@ -76,8 +77,25 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_KEY);
     localStorage.removeItem(this.USER_KEY);
+    sessionStorage.removeItem(this.FRESH_LOGIN_KEY);
     this.loggedInSubject.next(false);
     this._currentUser.set(null);
+  }
+
+  /**
+   * Marca que el usuario acaba de iniciar sesión activamente (login real, no
+   * un refresh silencioso de token). Úsalo solo desde el flujo de login.
+   * `consumeFreshLogin()` lo lee una única vez para disparar UI de bienvenida
+   * (p. ej. el Asistente abriéndose automáticamente).
+   */
+  markFreshLogin(): void {
+    sessionStorage.setItem(this.FRESH_LOGIN_KEY, '1');
+  }
+
+  consumeFreshLogin(): boolean {
+    const wasFresh = sessionStorage.getItem(this.FRESH_LOGIN_KEY) === '1';
+    if (wasFresh) sessionStorage.removeItem(this.FRESH_LOGIN_KEY);
+    return wasFresh;
   }
 
   isLoggedIn(): boolean {

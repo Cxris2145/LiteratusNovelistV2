@@ -59,29 +59,47 @@ export class CategoryDetailComponent implements OnInit {
     const hash = Array.from(this.categorySlug).reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const color = this.colors[hash % this.colors.length];
     const nameStr = this.categorySlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const fallbackCover = `https://tknsbrxgkreikcbowvla.supabase.co/storage/v1/object/public/literatus-media/category_covers/${this.categorySlug}.webp`;
 
     // Fallback inicial mientras carga
     this.category = {
       name: nameStr,
       slug: this.categorySlug,
-      image: '/assets/default_cover.jpg',
-      description: `Explora nuestra colección de ${nameStr.toLowerCase()}`,
+      image: fallbackCover,
+      description: `Explora nuestra colección selecta de ${nameStr.toLowerCase()}`,
       color: color,
+      family: 'fiction'
     };
 
     // Obtenemos los detalles reales del backend
     this.api.get<any>(`catalog/genres/${this.categorySlug}/`).subscribe({
       next: (res) => {
+        const cover = res.cover_image && typeof res.cover_image === 'string' && res.cover_image.trim()
+          ? res.cover_image
+          : fallbackCover;
+
         this.category = {
           name: res.name || nameStr,
           slug: res.slug || this.categorySlug,
-          image: res.cover_image || '/assets/default_cover.jpg',
-          description: `Explora nuestra colección de ${(res.name || nameStr).toLowerCase()}`,
+          image: cover,
+          description: `Explora nuestra colección selecta de ${(res.name || nameStr).toLowerCase()}`,
           color: color,
+          family: 'fiction'
         };
       },
       error: (err) => console.error('Error fetching category', err)
     });
+  }
+
+  onCoverError(): void {
+    if (this.category) {
+      const secondaryUrl = `https://srbmswjsbkpftjabcurg.supabase.co/storage/v1/object/public/literatus-media/category_covers/${this.categorySlug}.webp`;
+      if (this.category.image !== secondaryUrl && !this.category.image.includes('default_category.svg')) {
+        this.category.image = secondaryUrl;
+      } else {
+        this.category.image = 'assets/images/default_category.svg';
+      }
+    }
   }
 
   resetPagination(): void {

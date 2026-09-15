@@ -1,0 +1,179 @@
+<div class="favorites-wrapper centered">
+
+  <!-- Encabezado Editorial -->
+  <header class="favorites-header">
+    <div class="header-badge">
+      <span class="heart-icon-badge">❤️</span>
+      <span>Colección Personal</span>
+    </div>
+    <h1 class="glow-title">Mis Obras Favoritas</h1>
+    <p class="subtitle">Tus libros y relatos predilectos reunidos en tu santuario de lectura.</p>
+
+    <!-- Métricas de la colección -->
+    <div class="stats-cards-row" *ngIf="!isLoading && favoriteBooks.length > 0">
+      <div class="glass-panel stat-card">
+        <span class="stat-number">{{ favoriteBooks.length }}</span>
+        <span class="stat-label">Obras Guardadas</span>
+      </div>
+      <div class="glass-panel stat-card">
+        <span class="stat-number">{{ totalPages | number }}</span>
+        <span class="stat-label">Páginas Totales</span>
+      </div>
+      <div class="glass-panel stat-card">
+        <span class="stat-number">{{ totalEstimatedHours }}</span>
+        <span class="stat-label">Tiempo Estimado</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Acciones y Búsqueda -->
+  <section class="actions-toolbar" *ngIf="!isLoading && favoriteBooks.length > 0">
+    <div class="search-box">
+      <span class="material-symbols-rounded search-icon">search</span>
+      <input type="text"
+             [(ngModel)]="searchTerm"
+             placeholder="Buscar entre tus obras favoritas..."
+             class="glass-input search-input">
+      <button class="clear-search" *ngIf="searchTerm" (click)="searchTerm = ''">✕</button>
+    </div>
+
+    <div class="toolbar-actions">
+      <a routerLink="/catalog" class="toolbar-btn secondary-btn">
+        <span class="material-symbols-rounded">menu_book</span>
+        <span>Explorar Catálogo</span>
+      </a>
+      <button type="button" class="toolbar-btn clear-btn" (click)="clearAllFavorites()" [disabled]="isClearing">
+        <span class="material-symbols-rounded">delete_sweep</span>
+        <span>{{ isClearing ? 'Vaciando…' : 'Vaciar lista' }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Estado de Carga (Skeletons) -->
+  <div class="grid-container" *ngIf="isLoading">
+    <div class="glass-panel book-card skeleton-card" *ngFor="let i of [1,2,3,4]">
+      <div class="skeleton-img"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-text title"></div>
+        <div class="skeleton-text author"></div>
+        <div class="skeleton-text description"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado de Error -->
+  <div class="message-banner error" *ngIf="errorMsg && !isLoading">
+    <span class="banner-icon">⚠️</span>
+    <p>{{ errorMsg }}</p>
+    <button class="retry-btn" type="button" (click)="loadFavorites()">Reintentar</button>
+  </div>
+
+  <!-- Estado Vacío (Sin Favoritos) -->
+  <div class="empty-favorites-container glass-panel" *ngIf="!isLoading && favoriteBooks.length === 0 && !errorMsg">
+    <div class="empty-icon-wrap">
+      <span class="empty-heart-icon">🤍</span>
+    </div>
+    <h2 class="empty-title">Aún no tienes obras en favoritos</h2>
+    <p class="empty-description">
+      Explora las historias de nuestra biblioteca universal. Marca con el corazón cualquier título que desees guardar para tu próxima sesión de lectura inmersiva.
+    </p>
+    <a routerLink="/catalog" class="btn-primary explore-catalog-btn">
+      <span class="material-symbols-rounded">auto_stories</span>
+      <span>Descubrir Obras en el Catálogo</span>
+    </a>
+  </div>
+
+  <!-- Grilla de Obras Favoritas (4 columnas desktop, 3 mediano, 3 tablet, 3 móvil) -->
+  <div class="grid-container" *ngIf="!isLoading && filteredBooks.length > 0">
+    <div class="glass-panel book-card"
+         *ngFor="let book of filteredBooks"
+         [routerLink]="['/book', book.slug]">
+
+      <!-- Portada Cuadrada con acciones flotantes -->
+      <div class="card-image" [class.cover-pending]="!book.coverLoaded">
+        <img class="cover-img"
+             [src]="book.coverThumb"
+             [alt]="book.title"
+             loading="lazy"
+             (load)="onImgLoad(book)"
+             (error)="onImgError($event, book)">
+
+        <!-- Botón Quitar de Favoritos -->
+        <button class="remove-fav-btn"
+                type="button"
+                (click)="removeFavorite(book, $event)"
+                [disabled]="pendingBookIds.has(book.id)"
+                [attr.aria-busy]="pendingBookIds.has(book.id)"
+                title="Quitar de favoritos"
+                aria-label="Quitar de favoritos">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#E05D52" stroke="#E05D52" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+
+        <!-- Barra de Progreso si ya comenzó a leer -->
+        <div class="card-reading-progress" *ngIf="book.readingProgress && book.readingProgress > 0">
+          <div class="progress-track">
+            <div class="progress-fill" [style.width]="book.readingProgress + '%'"></div>
+          </div>
+          <span class="progress-text">{{ book.readingProgress }}% leído</span>
+        </div>
+      </div>
+
+      <!-- Contenido de la Tarjeta -->
+      <div class="card-content">
+        <h3 class="book-title" [title]="book.title">{{ book.title }}</h3>
+        <p class="book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+
+        <p class="book-synopsis">
+          {{ (book.synopsis && book.synopsis.length > 95) ? (book.synopsis | slice:0:95) + '…' : (book.synopsis || 'Obra clásica de la literatura universal.') }}
+        </p>
+
+        <!-- Pie de Tarjeta con lectura y acciones -->
+        <div class="card-footer">
+          <div class="meta-tags">
+            <span class="meta-tag" *ngIf="book.page_count">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              {{ book.page_count }} pág.
+            </span>
+            <span class="meta-tag time" *ngIf="book.readingTimeEstimate">
+              ⏱ {{ book.readingTimeEstimate }}
+            </span>
+          </div>
+
+          <div class="actions-group">
+            <!-- Continuar Lectura -->
+            <button *ngIf="book.readingProgress && book.readingProgress > 0"
+                    class="btn-action resume-btn"
+                    type="button"
+                    (click)="goToReader(book, $event)">
+              <span>Continuar</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </button>
+
+            <!-- Leer o ver detalle -->
+            <span *ngIf="!book.readingProgress || book.readingProgress === 0" class="btn-action read-hint">
+              <span>Leer</span>
+              <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Sin resultados en la búsqueda interna -->
+  <div class="no-filter-match" *ngIf="!isLoading && favoriteBooks.length > 0 && filteredBooks.length === 0">
+    <p>No se encontraron obras favoritas que coincidan con «<strong>{{ searchTerm }}</strong>».</p>
+    <button type="button" class="clear-search-link" (click)="searchTerm = ''">Mostrar todas las favoritas</button>
+  </div>
+
+</div>

@@ -70,7 +70,7 @@
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, #FAF6F0B3 0%, #FAF6F0E6 65%, var(--home-bg) 100%);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--home-bg) 70%, transparent) 0%, color-mix(in srgb, var(--home-bg) 90%, transparent) 65%, var(--home-bg) 100%);
   z-index: 1;
 }
 
@@ -275,7 +275,7 @@
 
 .guest-btn {
   background: var(--home-bg-surface);
-  border-color: #A69AA1;
+  border-color: var(--color-border-strong);
   color: var(--home-ink);
 }
 
@@ -342,7 +342,7 @@
   align-items: center;
   gap: 0.5rem;
   background: var(--home-sage-surface);
-  border: 1px solid #BCCDBA;
+  border: 1px solid var(--color-border);
   color: var(--home-sage-ink);
   padding: 0.6rem 1.2rem;
   border-radius: 50px;
@@ -352,7 +352,7 @@
 }
 
 .tts-btn:hover {
-  background: #DEE8DB;
+  background: var(--color-success-bg);
 }
 
 /* AUTHOR CARD */
@@ -506,7 +506,7 @@
 .avatar-overlay {
   position: absolute;
   inset: 0;
-  background: #40383E66;
+  background: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -616,7 +616,7 @@
 .review-textarea:focus {
   outline: none;
   border-color: var(--home-sage-ink);
-  box-shadow: 0 0 0 3px #41644918;
+  box-shadow: 0 0 0 3px var(--color-focus-soft);
 }
 
 .comments-grid {
@@ -635,7 +635,7 @@
 
 .comment-card:hover {
   transform: translateY(-5px);
-  border-color: #B6A7AF;
+  border-color: var(--color-border);
 }
 
 .comment-header {
@@ -869,7 +869,7 @@
 
 .cancel-btn {
   background: var(--home-bg-surface);
-  border: 1px solid #A69AA1;
+  border: 1px solid var(--color-border-strong);
   color: var(--home-ink);
 }
 

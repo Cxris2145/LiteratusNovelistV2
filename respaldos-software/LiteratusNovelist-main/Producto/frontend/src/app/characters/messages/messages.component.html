@@ -1,0 +1,156 @@
+<div class="messages-wrapper centered">
+
+  <!-- Encabezado -->
+  <header class="messages-header">
+    <div class="header-badge">
+      <div class="icon-wrap">
+        <span class="material-symbols-rounded">mail</span>
+        <span class="green-unread-dot" *ngIf="unreadCharactersCount > 0 || unreadNoticesCount > 0"></span>
+      </div>
+      <span>Correspondencia Literaria</span>
+    </div>
+    <h1 class="glow-title">Mensajes & Correspondencia</h1>
+    <p class="subtitle">Interactúa en tiempo real con personajes de la literatura universal y revisa los avisos de tu biblioteca.</p>
+
+    <!-- Pestañas de Navegación -->
+    <div class="tabs-container">
+      <button type="button"
+              class="tab-btn"
+              [class.active]="activeTab === 'characters'"
+              (click)="activeTab = 'characters'">
+        <span class="material-symbols-rounded tab-icon">psychology</span>
+        <span>Personajes IA</span>
+        <span class="tab-badge" *ngIf="unreadCharactersCount > 0">{{ unreadCharactersCount }}</span>
+      </button>
+
+      <button type="button"
+              class="tab-btn"
+              [class.active]="activeTab === 'notices'"
+              (click)="activeTab = 'notices'">
+        <span class="material-symbols-rounded tab-icon">notifications</span>
+        <span>Avisos & Taberna</span>
+        <span class="tab-badge" *ngIf="unreadNoticesCount > 0">{{ unreadNoticesCount }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de Herramientas y Búsqueda -->
+  <section class="messages-toolbar">
+    <div class="search-box">
+      <span class="material-symbols-rounded search-icon">search</span>
+      <input type="text"
+             [(ngModel)]="searchTerm"
+             placeholder="Buscar personaje o mensaje..."
+             class="glass-input search-input">
+      <button class="clear-search" *ngIf="searchTerm" (click)="searchTerm = ''">✕</button>
+    </div>
+
+    <div class="toolbar-actions">
+      <button type="button"
+              class="action-btn secondary-btn"
+              (click)="markAllAsRead()"
+              *ngIf="unreadCharactersCount > 0 || unreadNoticesCount > 0">
+        <span class="material-symbols-rounded">mark_email_read</span>
+        <span>Marcar leídos</span>
+      </button>
+
+      <button type="button" class="action-btn primary-btn" (click)="goToCharactersHub()">
+        <span class="material-symbols-rounded">add_comment</span>
+        <span>Nuevo Diálogo</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- PESTAÑA 1: CONVERSACIONES CON PERSONAJES IA -->
+  <div class="conversations-list" *ngIf="activeTab === 'characters'">
+
+    <!-- Skeletons durante carga -->
+    <div class="glass-panel conv-card skeleton-card" *ngFor="let i of [1,2,3]" [class.hidden]="!isLoading">
+      <div class="skeleton-avatar"></div>
+      <div class="skeleton-texts">
+        <div class="skeleton-line title"></div>
+        <div class="skeleton-line message"></div>
+      </div>
+    </div>
+
+    <!-- Lista de Conversaciones -->
+    <div class="glass-panel conv-card"
+         *ngFor="let conv of filteredConversations"
+         [class.unread]="conv.unread"
+         (click)="openChat(conv)">
+
+      <!-- Avatar con indicador no leído -->
+      <div class="conv-avatar-wrap">
+        <img [src]="conv.avatarUrl"
+             [alt]="conv.name"
+             class="conv-avatar-img"
+             onerror="this.onerror=null; this.src='assets/default_avatar.png'">
+        <span class="online-indicator"></span>
+        <span class="unread-dot-badge" *ngIf="conv.unread"></span>
+      </div>
+
+      <!-- Cuerpo del Mensaje -->
+      <div class="conv-body">
+        <div class="conv-header-row">
+          <div class="name-group">
+            <h3 class="conv-name">{{ conv.name }}</h3>
+            <span class="book-tag">{{ conv.bookTitle }}</span>
+          </div>
+          <span class="conv-time">{{ conv.timestamp }}</span>
+        </div>
+
+        <p class="conv-snippet">
+          {{ conv.lastMessage }}
+        </p>
+
+        <div class="conv-footer-row">
+          <span class="conv-pill">{{ conv.tag }}</span>
+          <span class="open-chat-link">
+            <span>Abrir chat</span>
+            <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sin resultados -->
+    <div class="empty-state glass-panel" *ngIf="!isLoading && filteredConversations.length === 0">
+      <span class="empty-icon">✉️</span>
+      <h3>No se encontraron conversaciones</h3>
+      <p *ngIf="searchTerm">No hay personajes que coincidan con «{{ searchTerm }}».</p>
+      <button type="button" class="btn-primary" (click)="goToCharactersHub()">
+        Explorar Hub de Personajes
+      </button>
+    </div>
+
+  </div>
+
+  <!-- PESTAÑA 2: AVISOS Y TABERNA -->
+  <div class="notices-list" *ngIf="activeTab === 'notices'">
+    <div class="glass-panel notice-card"
+         *ngFor="let n of notices"
+         [class.unread]="n.unread">
+      <div class="notice-icon-wrap" [attr.data-cat]="n.category">
+        <span class="material-symbols-rounded" *ngIf="n.category === 'book'">auto_stories</span>
+        <span class="material-symbols-rounded" *ngIf="n.category === 'ink'">ink_pen</span>
+        <span class="material-symbols-rounded" *ngIf="n.category === 'event'">campaign</span>
+      </div>
+
+      <div class="notice-content">
+        <div class="notice-header">
+          <h4 class="notice-title">{{ n.title }}</h4>
+          <span class="notice-time">{{ n.timestamp }}</span>
+        </div>
+        <p class="notice-text">{{ n.content }}</p>
+
+        <div class="notice-action" *ngIf="n.actionUrl && n.actionLabel">
+          <a [routerLink]="n.actionUrl" class="notice-link-btn">
+            {{ n.actionLabel }} →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

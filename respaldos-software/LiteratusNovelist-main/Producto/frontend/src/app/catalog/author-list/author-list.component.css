@@ -413,5 +413,5 @@
 
 .search-container:focus-within {
   border-color: var(--home-sage-ink);
-  box-shadow: 0 0 0 3px #41644918;
+  box-shadow: 0 0 0 3px var(--color-focus-soft);
 }
