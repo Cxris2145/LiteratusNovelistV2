@@ -1,0 +1,406 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   achievements.component.css
+   Sistema de Logros — Literatus Novelist
+   Usa los tokens de diseño de :root (styles.css).
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── PÁGINA ────────────────────────────────────────────────────────────── */
+.achievements-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif);
+  color: var(--color-text-primary, #FCFAF2);
+}
+
+/* ── ENCABEZADO ─────────────────────────────────────────────────────────── */
+.achievements-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.achievements-header__title {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: var(--color-text-strong, #FFFDF8);
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.01em;
+}
+
+.achievements-header__subtitle {
+  color: var(--color-text-secondary, #C9BEB0);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* ── ANILLO DE PROGRESO GLOBAL ──────────────────────────────────────────── */
+.achievements-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.achievements-summary__ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+}
+
+.ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: var(--color-surface-elevated, #1A3327);
+  stroke-width: 3;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--color-primary, #D4AF37);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dashoffset: 0;
+  transition: stroke-dasharray 0.5s ease;
+}
+
+.ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary, #D4AF37);
+}
+
+.achievements-summary__stats {
+  text-align: left;
+}
+
+.stat-unlocked {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-primary, #D4AF37);
+  line-height: 1;
+}
+
+.stat-sep,
+.stat-total {
+  font-size: 1rem;
+  color: var(--color-text-secondary, #C9BEB0);
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--color-text-disabled, #A99B8C);
+  margin: 0.2rem 0 0;
+}
+
+/* ── TABS DE CATEGORÍA ──────────────────────────────────────────────────── */
+.achievements-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.achievements-tabs__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, #6F7F75);
+  background: transparent;
+  color: var(--color-text-secondary, #C9BEB0);
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.achievements-tabs__btn:hover {
+  background: var(--color-hover, #213B2F);
+  border-color: var(--color-primary, #D4AF37);
+  color: var(--color-text-primary, #FCFAF2);
+}
+
+.achievements-tabs__btn--active {
+  background: var(--color-primary, #D4AF37);
+  border-color: var(--color-primary, #D4AF37);
+  color: var(--color-on-primary, #1C1607);
+  font-weight: 600;
+}
+
+.tab-icon { font-size: 1rem; }
+
+/* ── GRID DE TARJETAS ───────────────────────────────────────────────────── */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ── TARJETA BASE ───────────────────────────────────────────────────────── */
+.achievement-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.75rem 1.5rem 1.5rem;
+  background: var(--color-surface, #14291F);
+  border: 1px solid var(--color-border, #6F7F75);
+  border-radius: 16px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
+}
+
+.achievement-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+/* ── ESTADO: DESBLOQUEADO ───────────────────────────────────────────────── */
+.achievement-card--unlocked {
+  border-color: var(--color-primary, #D4AF37);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.15),
+    0 4px 20px rgba(212, 175, 55, 0.12);
+}
+
+.achievement-card--unlocked::before {
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(212, 175, 55, 0.08) 0%,
+    transparent 70%
+  );
+  opacity: 1;
+}
+
+.achievement-card--unlocked:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.3),
+    0 8px 32px rgba(212, 175, 55, 0.2);
+}
+
+/* ── ESTADO: BLOQUEADO ──────────────────────────────────────────────────── */
+.achievement-card--locked {
+  opacity: 0.55;
+  filter: saturate(0.4);
+}
+
+.achievement-card--locked:hover {
+  opacity: 0.75;
+  filter: saturate(0.6);
+  transform: translateY(-2px);
+}
+
+/* ── INSIGNIA ───────────────────────────────────────────────────────────── */
+.achievement-card__badge {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-surface-elevated, #1A3327);
+  border: 2px solid var(--color-border, #6F7F75);
+  flex-shrink: 0;
+}
+
+.achievement-card--unlocked .achievement-card__badge {
+  border-color: var(--color-primary, #D4AF37);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+}
+
+.achievement-card__icon {
+  font-size: 2.2rem;
+  line-height: 1;
+  display: block;
+}
+
+/* Overlay de candado (bloqueado) */
+.achievement-card__lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 25, 20, 0.7);
+  border-radius: 50%;
+}
+
+.achievement-card__lock svg {
+  width: 22px;
+  height: 22px;
+  color: var(--color-text-disabled, #A99B8C);
+}
+
+/* Checkmark (desbloqueado) */
+.achievement-card__check {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary, #D4AF37);
+  border-radius: 50%;
+  border: 2px solid var(--color-surface, #14291F);
+}
+
+.achievement-card__check svg {
+  width: 14px;
+  height: 14px;
+  color: var(--color-on-primary, #1C1607);
+}
+
+/* ── CUERPO DE LA TARJETA ───────────────────────────────────────────────── */
+.achievement-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.achievement-card__title {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-strong, #FFFDF8);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.achievement-card--unlocked .achievement-card__title {
+  color: var(--color-primary, #D4AF37);
+}
+
+.achievement-card__desc {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary, #C9BEB0);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.achievement-card__date {
+  font-size: 0.75rem;
+  color: var(--color-text-disabled, #A99B8C);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ── BARRA DE PROGRESO ──────────────────────────────────────────────────── */
+.achievement-card__progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-surface-elevated, #1A3327);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: var(--color-primary, #D4AF37);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--color-text-disabled, #A99B8C);
+}
+
+/* ── RECOMPENSA DE TINTA ────────────────────────────────────────────────── */
+.achievement-card__reward {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--color-info, #9BD7EB);
+  margin-top: 0.25rem;
+}
+
+.reward-icon { font-size: 0.9rem; }
+
+/* ── SKELETON LOADER ────────────────────────────────────────────────────── */
+.achievement-card--skeleton {
+  pointer-events: none;
+  gap: 1rem;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+.skeleton-badge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-skeleton, #263B31);
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--color-skeleton, #263B31);
+}
+
+.skeleton-line--short { width: 55%; }
+.skeleton-line--long  { width: 85%; }
+
+/* ── ESTADO VACÍO ───────────────────────────────────────────────────────── */
+.achievements-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-disabled, #A99B8C);
+  font-size: 0.95rem;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .achievements-page { padding: 1.25rem 1rem 3rem; }
+  .achievements-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .achievements-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .achievement-card { padding: 1.25rem 1rem; }
+}
+
+@media (max-width: 380px) {
+  .achievements-grid { grid-template-columns: 1fr; }
+}

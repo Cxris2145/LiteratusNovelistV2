@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark
+from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark, Achievement, UserAchievement, ReadingSession
 from catalog.models import Book
 from catalog.serializers import BookListSerializer, EditionSerializer
 
@@ -94,3 +94,58 @@ class UserInventorySerializer(serializers.ModelSerializer):
         return None
 
 
+class AchievementSerializer(serializers.ModelSerializer):
+    """
+    Serializer de solo lectura para el catálogo público de logros.
+    Expone todos los campos visibles sin información de usuario.
+    """
+    class Meta:
+        model = Achievement
+        fields = [
+            'id', 'code', 'title', 'description', 'category',
+            'icon', 'badge_image', 'threshold', 'ink_reward', 'sort_order',
+        ]
+        read_only_fields = fields
+
+
+class UserAchievementSerializer(serializers.ModelSerializer):
+    """
+    Serializer de logros con progreso del usuario.
+    Combina datos del catálogo (achievement nested) con el progreso personal.
+    """
+    achievement = AchievementSerializer(read_only=True)
+    is_unlocked = serializers.BooleanField(read_only=True)
+    progress_percentage = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = UserAchievement
+        fields = [
+            'id', 'achievement', 'current_progress', 'progress_percentage',
+            'is_unlocked', 'unlocked_at', 'notified',
+        ]
+        read_only_fields = [
+            'id', 'achievement', 'current_progress', 'progress_percentage',
+            'is_unlocked', 'unlocked_at',
+        ]
+
+
+class ReadingSessionSerializer(serializers.ModelSerializer):
+    """
+    Serializer para crear y cerrar sesiones de lectura.
+    Escribe con book_id, lee con el id del libro.
+    El usuario se inyecta desde la view (no se acepta del cliente).
+    """
+    book_id = serializers.PrimaryKeyRelatedField(
+        queryset=Book.objects.filter(is_published=True),
+        source='book',
+        write_only=True,
+    )
+    book_title = serializers.CharField(source='book.title', read_only=True)
+
+    class Meta:
+        model = ReadingSession
+        fields = [
+            'id', 'book_id', 'book_title', 'started_at', 'ended_at',
+            'chapters_read', 'created_at',
+        ]
+        read_only_fields = ['id', 'book_title', 'created_at']

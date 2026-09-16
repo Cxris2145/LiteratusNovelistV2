@@ -16,6 +16,7 @@ import { NativeTtsService } from '../../core/services/native-tts.service';
 import { StatusBar } from '@capacitor/status-bar';
 import { NavigationBar } from '@hugotomazi/capacitor-navigation-bar';
 import { Capacitor } from '@capacitor/core';
+import { ReadingSessionService } from '../../core/services/reading-session.service';
 
 export interface ProgressData {
   percentage: number;
@@ -55,6 +56,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   public speechService = inject(SpeechRecognitionService);
   public wasmVoice = inject(WasmTtsService);
   public nativeTts = inject(NativeTtsService);
+  private readingSession = inject(ReadingSessionService);
 
   // ── LECTURA ──────────────────────────────────────────────────────
 
@@ -638,7 +640,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           console.warn('Error leyendo marcador local', e);
         }
 
+        // Guardar book ID para el tracking de sesión de logros
+        this._bookIdForSession = inventory.edition?.book?.id || null;
+
         this.loadChapters();
+
+        // Iniciar sesión de lectura para el motor de logros.
+        // Se hace DESPUÉS de cargar datos para tener el book ID disponible.
+        if (this._bookIdForSession) {
+          this.readingSession.startSession(this._bookIdForSession);
+        }
       },
       error: (err) => {
         console.error('Error cargando inventario', err);
@@ -646,6 +657,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
+
+  /** Book UUID para el tracking de sesión de logros */
+  private _bookIdForSession: string | null = null;
 
   ngOnDestroy() {
     if (this.rulerCanvasEl) {
@@ -670,6 +684,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Restaurar las barras del OS al salir del lector
     this.toggleImmersiveMode(false);
+
+    // Cerrar sesión de lectura para el motor de logros
+    this.readingSession.endSession();
+
     this.destroy$.next();
     this.destroy$.complete();
   }

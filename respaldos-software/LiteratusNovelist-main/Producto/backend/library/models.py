@@ -182,3 +182,150 @@ class UserBookmark(TimeStampedModel):
 
     def __str__(self):
         return f"Bookmark @ {self.position_cfi[:30]} [{self.inventory.user.username}]"
+
+
+class ReadingSession(TimeStampedModel):
+    """
+    Registro atómico de una sesión de lectura.
+
+    PROPÓSITO:
+        Almacena cuándo leyó un usuario para calcular:
+        - Rachas diarias (streak_3, streak_7, streak_30)
+        - Logros horarios (night_owl: 00h-05h, early_bird: 05h-08h)
+        - Métricas de engagement del dashboard
+
+    FLUJO:
+        1. Frontend POST /api/v1/library/sessions/ al abrir el lector.
+        2. Frontend PATCH /api/v1/library/sessions/{id}/ al salir (con ended_at).
+           Si el usuario cierra el navegador sin PATCH, ended_at queda null
+           (aceptable: solo importa el día para el cálculo de racha).
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reading_sessions',
+    )
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='reading_sessions',
+    )
+    started_at = models.DateTimeField()
+    ended_at = models.DateTimeField(null=True, blank=True)
+    chapters_read = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Reading Session'
+        verbose_name_plural = 'Reading Sessions'
+        indexes = [
+            models.Index(fields=['user', 'started_at']),
+        ]
+
+    def __str__(self):
+        return f"Sesión de {self.user.username} — {self.book.title} @ {self.started_at:%Y-%m-%d %H:%M}"
+
+
+class Achievement(TimeStampedModel):
+    """
+    Catálogo de logros disponibles en la plataforma.
+    Administrable vía Django Admin sin necesidad de deploy.
+    'code' es el identificador estable para el motor de evaluación.
+    """
+    class Category(models.TextChoices):
+        READING = 'reading', 'Lectura'
+        STREAK = 'streak', 'Racha'
+        EXPLORATION = 'exploration', 'Exploración'
+        TIME = 'time', 'Horario'
+        SOCIAL = 'social', 'Social'
+
+    code = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=150)
+    description = models.TextField()
+    category = models.CharField(max_length=20, choices=Category.choices)
+    icon = models.CharField(max_length=10, default='🏆')
+    badge_image = models.ImageField(
+        upload_to='achievements/',
+        null=True,
+        blank=True,
+        help_text="Imagen opcional de la insignia (si vacío, se usa el emoji)."
+    )
+    threshold = models.PositiveIntegerField(
+        default=1,
+        help_text="Valor meta para desbloquear (ej. 7 para streak de 7 días)."
+    )
+    ink_reward = models.PositiveIntegerField(
+        default=0,
+        help_text="Tinta otorgada al usuario al desbloquear este logro."
+    )
+    sort_order = models.PositiveIntegerField(
+        default=0,
+        help_text="Orden en la UI. Menor = aparece primero."
+    )
+
+    class Meta:
+        verbose_name = 'Achievement'
+        verbose_name_plural = 'Achievements'
+        ordering = ['sort_order', 'category']
+
+    def __str__(self):
+        return f"[{self.category}] {self.title} ({self.code})"
+
+
+class UserAchievement(TimeStampedModel):
+    """
+    Tabla pivote usuario ↔ logro con progreso y estado de desbloqueo.
+
+    'unlocked_at' null = no desbloqueado; NOT null = fecha exacta del desbloqueo.
+    'notified' indica si el frontend ya mostró el toast de celebración.
+    Soft-delete aware via UniqueConstraint parcial.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='achievements',
+    )
+    achievement = models.ForeignKey(
+        Achievement,
+        on_delete=models.CASCADE,
+        related_name='user_achievements',
+    )
+    current_progress = models.PositiveIntegerField(
+        default=0,
+        help_text="Progreso actual hacia achievement.threshold."
+    )
+    unlocked_at = models.DateTimeField(null=True, blank=True, default=None)
+    notified = models.BooleanField(
+        default=False,
+        help_text="True si el usuario ya vio la notificación toast de desbloqueo."
+    )
+
+    class Meta:
+        verbose_name = 'User Achievement'
+        verbose_name_plural = 'User Achievements'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'achievement'],
+                condition=models.Q(deleted_at__isnull=True),
+                name='unique_active_user_achievement',
+                violation_error_message="El usuario ya tiene registrado este logro."
+            )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'unlocked_at']),
+        ]
+
+    @property
+    def is_unlocked(self):
+        return self.unlocked_at is not None
+
+    @property
+    def progress_percentage(self):
+        """Porcentaje de avance de 0 a 100."""
+        threshold = self.achievement.threshold
+        if threshold == 0:
+            return 100
+        return min(100, int((self.current_progress / threshold) * 100))
+
+    def __str__(self):
+        status = "✅" if self.is_unlocked else f"{self.progress_percentage}%"
+        return f"{self.user.username} — {self.achievement.code} [{status}]"

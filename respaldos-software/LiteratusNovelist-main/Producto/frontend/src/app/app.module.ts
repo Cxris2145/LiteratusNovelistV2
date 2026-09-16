@@ -46,6 +46,7 @@ import { FavoritesComponent } from './library/favorites/favorites.component';
 import { MessagesComponent } from './characters/messages/messages.component';
 import { CartComponent } from './catalog/cart/cart.component';
 import { AssistantWidgetComponent } from './core/components/assistant-widget/assistant-widget.component';
+import { AchievementsComponent } from './library/achievements/achievements.component';
 
 @NgModule({
   declarations: [
@@ -76,7 +77,8 @@ import { AssistantWidgetComponent } from './core/components/assistant-widget/ass
     FavoritesComponent,
     MessagesComponent,
     CartComponent,
-    AssistantWidgetComponent
+    AssistantWidgetComponent,
+    AchievementsComponent
   ],
   imports: [
     BrowserModule,

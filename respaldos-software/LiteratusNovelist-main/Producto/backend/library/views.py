@@ -9,12 +9,18 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from core.pagination import StandardResultsSetPagination
 
-from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark
+from .models import (
+    UserFavorite, UserInventory, ReadingProgress, UserBookmark,
+    Achievement, UserAchievement, ReadingSession,
+)
 from .serializers import (
     UserFavoriteSerializer,
     UserInventorySerializer,
     ReadingProgressSerializer,
     UserBookmarkSerializer,
+    AchievementSerializer,
+    UserAchievementSerializer,
+    ReadingSessionSerializer,
 )
 
 
@@ -217,3 +223,76 @@ class UserBookmarkViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("No puedes añadir marcadores a una librería que no te pertenece.")
         serializer.save()
+
+
+class AchievementCatalogViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Catálogo público de logros disponibles.
+    Accesible sin autenticación para mostrar en páginas de marketing.
+    GET /api/v1/library/achievements/catalog/
+    """
+    serializer_class = AchievementSerializer
+    queryset = Achievement.objects.all()
+    permission_classes = [permissions.AllowAny]
+    pagination_class = None
+
+
+class UserAchievementViewSet(viewsets.GenericViewSet,
+                              viewsets.mixins.ListModelMixin,
+                              viewsets.mixins.RetrieveModelMixin,
+                              viewsets.mixins.UpdateModelMixin):
+    """
+    Logros del usuario autenticado con su progreso personal.
+    GET  /api/v1/library/achievements/me/          — lista todos mis logros
+    GET  /api/v1/library/achievements/me/{id}/     — detalle de un logro
+    PATCH /api/v1/library/achievements/me/{id}/    — marcar como notificado
+
+    El PATCH solo permite actualizar el campo 'notified' (el usuario ya vio el toast).
+    El resto (current_progress, unlocked_at) es gestionado por el motor de logros.
+    """
+    serializer_class = UserAchievementSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+    http_method_names = ['get', 'patch', 'head', 'options']
+
+    def get_queryset(self):
+        return (
+            UserAchievement.objects
+            .filter(user=self.request.user)
+            .select_related('achievement')
+            .order_by('achievement__sort_order', 'achievement__category')
+        )
+
+    @action(detail=False, methods=['get'], url_path='unnotified')
+    def unnotified(self, request):
+        """
+        GET /api/v1/library/achievements/me/unnotified/
+        Devuelve logros recién desbloqueados que aún no fueron notificados.
+        Usado por el componente toast de celebración en el frontend.
+        """
+        qs = self.get_queryset().filter(
+            unlocked_at__isnull=False,
+            notified=False,
+        )
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
+
+class ReadingSessionViewSet(viewsets.ModelViewSet):
+    """
+    Registro de sesiones de lectura del usuario.
+    POST  /api/v1/library/sessions/        — Abrir sesión (iniciar lectura)
+    PATCH /api/v1/library/sessions/{id}/   — Cerrar sesión (ended_at)
+
+    El usuario se inyecta automáticamente desde el token JWT.
+    No se expone GET de listado (privacidad de datos de lectura).
+    """
+    serializer_class = ReadingSessionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['post', 'patch', 'head', 'options']
+
+    def get_queryset(self):
+        return ReadingSession.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
