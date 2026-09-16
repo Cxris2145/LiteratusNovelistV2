@@ -771,19 +771,23 @@
         <span class="spread-header-right">{{ chapterTitle }}</span>
       </header>
 
-      <!-- Lienzo de lectura donde corre el texto -->
+      <!-- Lienzo de lectura donde corre el texto.
+           El contenedor "-shell" ancla la regla de lectura FUERA de .reading-canvas:
+           los descendientes position:absolute de un elemento con column-count quedan
+           confinados al ancho de UNA sola columna (comportamiento real en
+           Chromium/Firefox), así que en doble página la regla nunca cubría la
+           página derecha y desaparecía del todo tras voltear de pliego (quedaba
+           anclada a la primera columna, ya desplazada fuera de vista). -->
+      <div class="reading-canvas-shell">
       <main class="reading-canvas html-reader" [ngClass]="'font-' + currentFontFamily"
             [class.double-page-active]="isDoublePageView"
             [class.tap-to-scroll-active]="tapToScrollActive"
+            [class.ruler-guide-active]="rulerActive"
             [class.rc-focus-word]="focusMode === 'word'"
             [class.rc-focus-sentence]="focusMode === 'sentence'"
             [class.rc-focus-paragraph]="focusMode === 'paragraph'"
             [class.rc-long-para]="longParaSplit"
-            (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)"
-            (mousemove)="onCanvasMouseMove($event)" (mouseleave)="onCanvasMouseLeave()">
-
-    <!-- Regla de lectura: guía horizontal, sigue el ratón o la palabra narrada -->
-    <div class="reading-ruler" *ngIf="rulerActive" [style.top.px]="rulerY" aria-hidden="true"></div>
+            (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)">
 
     <!-- Título principal del capítulo -->
     <!-- Título principal del capítulo con soporte para highlighting -->
@@ -874,6 +878,14 @@
 
     </ng-container>
   </main>
+
+    <!-- Regla de lectura: guía horizontal traslúcida adaptada al renglón y columna activa -->
+    <div class="reading-ruler" *ngIf="rulerActive"
+         [class.col-left]="rulerColumn === 'left'"
+         [class.col-right]="rulerColumn === 'right'"
+         [class.col-full]="rulerColumn === 'full'"
+         [style.top.px]="rulerY" aria-hidden="true"></div>
+  </div><!-- /.reading-canvas-shell -->
 
       <!-- Pie de pliego con numeración física izquierda y derecha -->
       <footer class="book-spread-footer" *ngIf="isDoublePageView" aria-hidden="true">

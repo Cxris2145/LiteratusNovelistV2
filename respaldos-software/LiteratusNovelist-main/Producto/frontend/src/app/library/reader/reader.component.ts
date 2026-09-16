@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, OnDestroy, ChangeDetectorRef, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
@@ -42,13 +42,14 @@ export interface ProgressData {
     ]),
   ]
 })
-export class ReaderComponent implements OnInit, OnDestroy {
+export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
   public audioService = inject(AudioService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
   public kokoroVoice = inject(KokoroTtsService);
   public chatService = inject(ChatService);
   public speechService = inject(SpeechRecognitionService);
@@ -110,6 +111,17 @@ export class ReaderComponent implements OnInit, OnDestroy {
   focusMode: 'off' | 'word' | 'sentence' | 'paragraph' = 'off'; // atenúa todo salvo la unidad activa
   rulerActive: boolean = false;                                 // regla horizontal que sigue la línea activa
   rulerY: number = -1000;                                       // posición vertical (px, relativa al canvas) de la regla; fuera de vista por defecto
+  rulerColumn: 'left' | 'right' | 'full' = 'full';              // columna activa para vista de doble página
+  readonly TOTAL_LINES_PER_PAGE: number = 17;                   // exactamente 17 renglones por página en todos los libros
+  /** Líneas visibles del capítulo separadas por columna para precisión absoluta */
+  private rulerLinesLeft: { top: number; bottom: number; center: number }[] = [];
+  private rulerLinesRight: { top: number; bottom: number; center: number }[] = [];
+  private rulerLinesAll: { top: number; bottom: number; center: number }[] = [];
+  private rulerLineIndex: number = -1;
+  private rulerCanvasEl: HTMLElement | null = null;
+  private rulerRafId: number | null = null;
+  private pendingRulerClientX: number | null = null;
+  private pendingRulerClientY: number | null = null;
   readonly highlightColorOptions: { id: 'gold' | 'blue' | 'green' | 'pink'; label: string; hex: string }[] = [
     { id: 'gold', label: 'Dorado', hex: '#eab308' },
     { id: 'blue', label: 'Azul', hex: '#3b82f6' },
@@ -562,6 +574,22 @@ export class ReaderComponent implements OnInit, OnDestroy {
     window.addEventListener('beforeunload', () => this.saveAudioPosition());
   }
 
+  ngAfterViewInit() {
+    // El seguimiento de la regla de lectura se engancha fuera de la zona de Angular:
+    // mousemove dispara decenas de eventos por segundo y, dentro de la zona, cada
+    // uno forzaría un ciclo completo de detección de cambios sobre toda la página
+    // (cientos de spans .word ya enlazados) — eso es lo que causaba el lag. Aquí
+    // se mueve el DOM directamente y sólo se actualiza `rulerY` para que el binding
+    // quede consistente si Angular vuelve a renderizar por otro motivo.
+    this.ngZone.runOutsideAngular(() => {
+      const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+      if (!canvas) return;
+      this.rulerCanvasEl = canvas;
+      canvas.addEventListener('mousemove', this.handleRulerMouseMove);
+      canvas.addEventListener('mouseleave', this.handleRulerMouseLeave);
+    });
+  }
+
   loadInitialData() {
     if (this.isInitialDataLoaded || this.isLoadingInitialData) return;
     this.isLoadingInitialData = true;
@@ -620,6 +648,15 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.rulerCanvasEl) {
+      this.rulerCanvasEl.removeEventListener('mousemove', this.handleRulerMouseMove);
+      this.rulerCanvasEl.removeEventListener('mouseleave', this.handleRulerMouseLeave);
+      this.rulerCanvasEl = null;
+    }
+    if (this.rulerRafId !== null) {
+      cancelAnimationFrame(this.rulerRafId);
+      this.rulerRafId = null;
+    }
     this.clearBookmarkHighlight();
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
@@ -661,6 +698,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   onCanvasScroll(event: any) {
     if (!this.isFullyRendered) return; // IGNORAR SCROLL HASTA QUE SE TERMINE DE RENDERIZAR TODO PARA NO SOBRESCRIBIR EL PROGRESO
 
+    this.invalidateRulerLines(); // barato (sólo vacía el arreglo); el recálculo real es perezoso
     const el = event.target;
     const currentScrollTop = el.scrollTop;
 
@@ -825,6 +863,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   setFontFamily(font: ReaderComponent['currentFontFamily']) {
     this.currentFontFamily = font;
     localStorage.setItem('reader-font-family', font);
+    this.invalidateRulerLines(); // la tipografía cambia el ancho/alto de cada línea
   }
 
   setTheme(theme: ReaderComponent['currentTheme']) {
@@ -955,21 +994,252 @@ export class ReaderComponent implements OnInit, OnDestroy {
   toggleRuler(v: boolean) {
     this.rulerActive = v;
     localStorage.setItem('reader-ruler', String(v));
-    if (!v) this.rulerY = -1000;
+    this.invalidateRulerLines();
+    if (!v) {
+      this.setRulerTop(-1000);
+    } else {
+      const canvas = this.rulerCanvasEl || (document.querySelector('.reading-canvas') as HTMLElement | null);
+      if (canvas) {
+        this.rulerCanvasEl = canvas;
+        this.rebuildRulerLines(canvas);
+        const isDouble = this.isDoublePageView && window.innerWidth > 820;
+        if (isDouble && this.rulerLinesLeft.length > 0) {
+          this.rulerLineIndex = 0;
+          this.setRulerTop(this.rulerLinesLeft[0].center, 'left');
+        }
+      }
+    }
   }
 
-  /** Sigue al puntero dentro del lienzo para posicionar la regla de lectura. */
-  onCanvasMouseMove(event: MouseEvent) {
+  /** Handler crudo (enganchado fuera de la zona de Angular, ver ngAfterViewInit)
+   *  para mousemove sobre el lienzo. El ratón puede disparar 60-120 eventos/seg;
+   *  aquí se limita a un cálculo por frame con requestAnimationFrame. En doble
+   *  página detecta la columna activa (izquierda o derecha) y posiciona la regla
+   *  sobre el renglón correspondiente sin invadir la otra página. */
+  private handleRulerMouseMove = (event: MouseEvent) => {
     if (!this.rulerActive) return;
-    const canvas = event.currentTarget as HTMLElement;
-    const rect = canvas.getBoundingClientRect();
-    this.rulerY = event.clientY - rect.top + canvas.scrollTop;
+    this.pendingRulerClientX = event.clientX;
+    this.pendingRulerClientY = event.clientY;
+    if (this.rulerRafId !== null) return;
+    this.rulerRafId = requestAnimationFrame(() => {
+      this.rulerRafId = null;
+      const canvas = this.rulerCanvasEl;
+      const clientX = this.pendingRulerClientX;
+      const clientY = this.pendingRulerClientY;
+      if (!canvas || clientX === null || clientY === null || !this.rulerActive) return;
+
+      if (this.rulerLinesAll.length === 0) this.rebuildRulerLines(canvas);
+      if (this.rulerLinesAll.length === 0) return;
+
+      const canvasRect = canvas.getBoundingClientRect();
+      const isDouble = this.isDoublePageView && window.innerWidth > 820;
+      const colDivide = canvasRect.left + canvasRect.width / 2;
+      const isRight = isDouble && (clientX >= colDivide);
+      const activeCol: 'left' | 'right' | 'full' = isDouble ? (isRight ? 'right' : 'left') : 'full';
+
+      if (isDouble) {
+        const relativeY = clientY - canvasRect.top;
+        const renglonPx = Math.round(this.fontSize * this.lineHeight) || 32;
+        const lineIdx = Math.max(0, Math.min(this.TOTAL_LINES_PER_PAGE - 1, Math.floor((relativeY - 16) / renglonPx)));
+        this.rulerLineIndex = lineIdx;
+        this.setRulerTop(this.rulerLinesLeft[lineIdx].center, activeCol);
+        return;
+      }
+
+      const relativeY = clientY - canvasRect.top;
+      const idx = this.findClosestLineIndexIn(this.rulerLinesAll, relativeY);
+      if (idx === -1) return;
+
+      this.rulerLineIndex = idx;
+      this.setRulerTop(this.rulerLinesAll[idx].center, activeCol);
+    });
+  };
+
+  private handleRulerMouseLeave = () => {
+    if (this.currentWordIndex >= 0) return;
+    this.rulerLineIndex = -1;
+    this.setRulerTop(-1000);
+  };
+
+  /** Mueve la regla a la línea visible anterior/siguiente (ArrowUp/ArrowDown).
+   *  Recorre estrictamente cada uno de los 17 renglones de la página sin saltar ninguno.
+   *  Al llegar al renglón 17 de la izquierda pasa al 1 de la derecha, y al 17 de la derecha pasa de pliego. */
+  private moveRulerByLine(direction: 1 | -1) {
+    const canvas = this.rulerCanvasEl || (document.querySelector('.reading-canvas') as HTMLElement | null);
+    if (!canvas) return;
+    if (this.rulerLinesLeft.length === 0) this.rebuildRulerLines(canvas);
+
+    const isDouble = this.isDoublePageView && window.innerWidth > 820;
+    if (!isDouble) {
+      if (this.rulerLinesAll.length === 0) return;
+      let idx = this.rulerLineIndex < 0
+        ? this.findClosestLineIndexIn(this.rulerLinesAll, canvas.clientHeight / 2)
+        : this.rulerLineIndex + direction;
+      idx = Math.max(0, Math.min(this.rulerLinesAll.length - 1, idx));
+      this.rulerLineIndex = idx;
+      this.setRulerTop(this.rulerLinesAll[idx].center, 'full');
+      return;
+    }
+
+    // Exactamente 17 renglones por página en vista libro
+    let isRight = this.rulerColumn === 'right';
+    let idx = this.rulerLineIndex;
+
+    if (idx < 0) {
+      isRight = false;
+      idx = 0;
+    } else {
+      idx += direction;
+    }
+
+    if (direction === 1 && idx >= this.TOTAL_LINES_PER_PAGE) {
+      if (!isRight) {
+        isRight = true;
+        idx = 0;
+      } else {
+        if (this.currentSpreadIndex < this.totalSpreads - 1) {
+          this.turnSpreadNext();
+          isRight = false;
+          idx = 0;
+        } else {
+          idx = this.TOTAL_LINES_PER_PAGE - 1;
+        }
+      }
+    } else if (direction === -1 && idx < 0) {
+      if (isRight) {
+        isRight = false;
+        idx = this.TOTAL_LINES_PER_PAGE - 1;
+      } else {
+        if (this.currentSpreadIndex > 0) {
+          this.turnSpreadPrev();
+          isRight = true;
+          idx = this.TOTAL_LINES_PER_PAGE - 1;
+        } else {
+          idx = 0;
+        }
+      }
+    }
+
+    const activeCol: 'left' | 'right' | 'full' = isRight ? 'right' : 'left';
+    this.rulerLineIndex = idx;
+    this.setRulerTop(this.rulerLinesLeft[idx].center, activeCol);
   }
 
-  onCanvasMouseLeave() {
-    // Si hay audio narrando, la regla vuelve a seguir la palabra activa en el
-    // siguiente evento; si no, simplemente se oculta hasta el próximo movimiento.
-    if (this.currentWordIndex < 0) this.rulerY = -1000;
+  /** Aplica la posición de la regla directamente al DOM y mantiene actualizadas
+   *  las variables de estado para que los bindings de Angular permanezcan coherentes. */
+  private setRulerTop(center: number, col: 'left' | 'right' | 'full' = this.rulerColumn) {
+    this.rulerY = center;
+    this.rulerColumn = col;
+    const el = this.rulerCanvasEl?.parentElement?.querySelector('.reading-ruler') as HTMLElement | null;
+    if (el) {
+      el.style.top = `${center}px`;
+      el.classList.remove('col-left', 'col-right', 'col-full');
+      el.classList.add(`col-${col}`);
+    }
+  }
+
+  /** Reconstruye las líneas de texto visibles dentro del lienzo.
+   *  En doble página, cada hoja tiene exactamente TOTAL_LINES_PER_PAGE (17) renglones matemáticos.
+   *  En vista continua, agrupa por centros de palabras para seguir el flujo con precisión. */
+  private rebuildRulerLines(canvas: HTMLElement) {
+    const isDouble = this.isDoublePageView && window.innerWidth > 820;
+    const renglonPx = Math.round(this.fontSize * this.lineHeight) || 32;
+
+    if (isDouble) {
+      const lines: { top: number; bottom: number; center: number }[] = [];
+      const paddingTop = 16;
+      for (let i = 0; i < this.TOTAL_LINES_PER_PAGE; i++) {
+        const top = paddingTop + i * renglonPx;
+        const bottom = top + renglonPx;
+        const center = (top + bottom) / 2;
+        lines.push({ top, bottom, center });
+      }
+      this.rulerLinesLeft = lines;
+      this.rulerLinesRight = lines;
+      this.rulerLinesAll = lines;
+      this.rulerLineIndex = -1;
+      return;
+    }
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const isVisible = (r: DOMRect) =>
+      r.bottom >= canvasRect.top && r.top <= canvasRect.bottom &&
+      r.right >= canvasRect.left && r.left <= canvasRect.right;
+
+    interface WordPos {
+      top: number;
+      bottom: number;
+      center: number;
+    }
+
+    const wordsAll: WordPos[] = [];
+    const words = canvas.querySelectorAll<HTMLElement>('.word');
+    words.forEach(word => {
+      const r = word.getBoundingClientRect();
+      if (!isVisible(r)) return;
+
+      const top = r.top - canvasRect.top;
+      const bottom = r.bottom - canvasRect.top;
+      const center = (top + bottom) / 2;
+      wordsAll.push({ top, bottom, center });
+    });
+
+    const LINE_THRESHOLD = Math.max(7, Math.round(renglonPx * 0.35));
+
+    const clusterLines = (items: WordPos[]): { top: number; bottom: number; center: number }[] => {
+      if (items.length === 0) return [];
+      items.sort((a, b) => a.center - b.center);
+
+      const lines: { top: number; bottom: number; center: number }[] = [];
+      let currentLine = {
+        top: items[0].top,
+        bottom: items[0].bottom,
+        center: items[0].center
+      };
+
+      for (let i = 1; i < items.length; i++) {
+        const w = items[i];
+        if (Math.abs(w.center - currentLine.center) <= LINE_THRESHOLD) {
+          currentLine.top = Math.min(currentLine.top, w.top);
+          currentLine.bottom = Math.max(currentLine.bottom, w.bottom);
+          currentLine.center = (currentLine.top + currentLine.bottom) / 2;
+        } else {
+          lines.push(currentLine);
+          currentLine = {
+            top: w.top,
+            bottom: w.bottom,
+            center: w.center
+          };
+        }
+      }
+      lines.push(currentLine);
+      return lines;
+    };
+
+    this.rulerLinesAll = clusterLines(wordsAll);
+    this.rulerLinesLeft = this.rulerLinesAll;
+    this.rulerLinesRight = this.rulerLinesAll;
+    this.rulerLineIndex = -1;
+  }
+
+  private findClosestLineIndexIn(lines: { top: number; bottom: number; center: number }[], relativeY: number): number {
+    if (lines.length === 0) return -1;
+    let closest = 0;
+    let minDist = Math.abs(lines[0].center - relativeY);
+    for (let i = 1; i < lines.length; i++) {
+      const dist = Math.abs(lines[i].center - relativeY);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    }
+    return closest;
+  }
+
+  /** Invalida el caché de líneas de la regla; se reconstruye de forma perezosa
+   *  en el próximo mousemove o flecha de teclado. */
+  private invalidateRulerLines() {
+    this.rulerLinesLeft = [];
+    this.rulerLinesRight = [];
+    this.rulerLinesAll = [];
+    this.rulerLineIndex = -1;
   }
 
   setHighlightColor(c: ReaderComponent['highlightColor']) {
@@ -1085,13 +1355,21 @@ export class ReaderComponent implements OnInit, OnDestroy {
    *  (mismo mecanismo que --font-size-reader). Se llama en init y en cada cambio;
    *  NO se toca al cambiar de capítulo, así que la config se mantiene. */
   private applyReaderVars() {
+    this.invalidateRulerLines(); // interlineado/ancho/espaciado cambian la posición de las líneas
     const s = document.documentElement.style;
+    const renglonHeight = Math.round(this.fontSize * this.lineHeight);
     s.setProperty('--reader-line-height', String(this.lineHeight));
+    s.setProperty('--reader-renglon-height', `${renglonHeight}px`);
     const widthMap = { narrow: '54ch', medium: '66ch', wide: '78ch' };
     s.setProperty('--reader-measure', widthMap[this.readingWidth]);
     s.setProperty('--reader-align', this.textAlign);
-    s.setProperty('--reader-para-indent', this.textAlign === 'justify' ? '1.4em' : '0em');
-    const gapMap = { tight: '1.1em', normal: '1.5em', relaxed: '2.2em' };
+    const isTight = this.paraSpacing === 'tight';
+    s.setProperty('--reader-para-indent', (isTight || this.textAlign === 'justify') ? '1.5em' : '0em');
+    const gapMap = {
+      tight: '0px',
+      normal: `${renglonHeight}px`,
+      relaxed: `${renglonHeight * 2}px`
+    };
     s.setProperty('--reader-para-gap', gapMap[this.paraSpacing]);
     s.setProperty('--reader-letter-spacing', `${this.letterSpacing}em`);
     s.setProperty('--reader-word-spacing', `${this.wordSpacing}em`);
@@ -1188,11 +1466,13 @@ export class ReaderComponent implements OnInit, OnDestroy {
   }
 
   private applyFontSize() {
+    this.invalidateRulerLines(); // el tamaño de fuente cambia la posición de las líneas
     const s = document.documentElement.style;
     // Se fijan AMBAS en <html> (ancestro de <app-reader>): el CSS del componente
     // sólo puede declararlas en :host, y así el ajuste en vivo funciona seguro.
     s.setProperty('--font-size-reader', `${this.fontSize}px`);
     s.setProperty('--reader-font-size', `${this.fontSize}px`);
+    this.applyReaderVars();
   }
 
   private applyTheme() {
@@ -1280,6 +1560,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     const chapter = this.chapters[this.currentPage - 1];
     if (!chapter) return;
 
+    this.invalidateRulerLines(); // el capítulo nuevo invalida cualquier línea calculada del anterior
     this.currentWordIndex = this.getSavedAudioWordIndex();
 
     this.chapterTitle = chapter.title || `Capítulo ${this.currentPage}`;
@@ -1844,6 +2125,9 @@ export class ReaderComponent implements OnInit, OnDestroy {
       this.audioService.seekToWord(wordIdx, this.currentChapterPlainText);
     }
     this.currentWordIndex = wordIdx;
+    if (this.rulerActive) {
+      this.scrollWordIntoView(wordIdx);
+    }
   }
 
   getSavedAudioWordIndex(): number {
@@ -1937,12 +2221,29 @@ export class ReaderComponent implements OnInit, OnDestroy {
           el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         }
 
-        // Seguimiento automático de la regla de lectura durante la narración
+        // Seguimiento automático de la regla de lectura durante la narración y clic.
+        // Se sincroniza con el renglón y columna activa de la palabra hablada.
         if (this.rulerActive) {
           const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
           if (canvas) {
+            this.rulerCanvasEl = canvas;
             const canvasRect = canvas.getBoundingClientRect();
-            this.rulerY = rect.top - canvasRect.top + canvas.scrollTop;
+            const isDouble = this.isDoublePageView && window.innerWidth > 820;
+            const colDivide = canvasRect.left + canvasRect.width / 2;
+            const isRight = isDouble && ((rect.left + rect.right) / 2 >= colDivide);
+            const activeCol: 'left' | 'right' | 'full' = isDouble ? (isRight ? 'right' : 'left') : 'full';
+            if (isDouble) {
+              if (this.rulerLinesLeft.length === 0) this.rebuildRulerLines(canvas);
+              const renglonPx = Math.round(this.fontSize * this.lineHeight) || 32;
+              const relativeY = (rect.top + rect.bottom) / 2 - canvasRect.top;
+              const lineIdx = Math.max(0, Math.min(this.TOTAL_LINES_PER_PAGE - 1, Math.floor((relativeY - 16) / renglonPx)));
+              this.rulerLineIndex = lineIdx;
+              const center = this.rulerLinesLeft[lineIdx]?.center ?? (16 + (lineIdx + 0.5) * renglonPx);
+              this.setRulerTop(center, activeCol);
+            } else {
+              const wordCenterY = (rect.top + rect.bottom) / 2 - canvasRect.top;
+              this.setRulerTop(wordCenterY, activeCol);
+            }
           }
         }
 
@@ -2084,6 +2385,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
   toggleDoublePageView(enabled?: boolean) {
     this.isDoublePageView = enabled !== undefined ? enabled : !this.isDoublePageView;
     localStorage.setItem('reader-double-page', String(this.isDoublePageView));
+    this.invalidateRulerLines(); // cambia por completo el layout (columnas vs. continuo)
     this.currentSpreadIndex = 0;
     this.cdr.detectChanges();
     setTimeout(() => {
@@ -2100,6 +2402,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (!this.isDoublePageView) return;
     const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
     if (!canvas) return;
+    this.invalidateRulerLines(); // el layout de columnas puede haber cambiado
     const isMobile = window.innerWidth <= 820;
     const gap = isMobile ? 0 : this.SPINE_GAP;
     const clientWidth = canvas.clientWidth || 1;
@@ -2141,6 +2444,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (!canvas) return;
 
     if (this.currentSpreadIndex < this.totalSpreads - 1) {
+      this.invalidateRulerLines(); // el pliego cambia: las líneas visibles ya no son las mismas
       this.flipDirection = 'next';
       this.isPageFlipping = true;
       this.currentSpreadIndex++;
@@ -2174,6 +2478,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (!canvas) return;
 
     if (this.currentSpreadIndex > 0) {
+      this.invalidateRulerLines(); // el pliego cambia: las líneas visibles ya no son las mismas
       this.flipDirection = 'prev';
       this.isPageFlipping = true;
       this.currentSpreadIndex--;
@@ -2199,6 +2504,7 @@ export class ReaderComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onWindowResize() {
+    this.invalidateRulerLines(); // el reflow puede desplazar todas las líneas
     if (this.isDoublePageView) {
       this.recalculateSpreads();
     }
@@ -2210,14 +2516,24 @@ export class ReaderComponent implements OnInit, OnDestroy {
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
       return;
     }
-    if (this.isDoublePageView) {
-      if (event.key === 'ArrowRight' || event.key === 'PageDown') {
-        event.preventDefault();
-        this.turnSpreadNext();
-      } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
-        event.preventDefault();
-        this.turnSpreadPrev();
-      }
+    // Izquierda/derecha cambian de página o capítulo en cualquier modo de vista:
+    // turnSpreadNext/turnSpreadPrev ya delegan a nextPage/previousPage cuando no
+    // está activa la doble página, así que no hace falta repetir esa rama aquí.
+    if (event.key === 'ArrowRight' || event.key === 'PageDown') {
+      event.preventDefault();
+      this.turnSpreadNext();
+    } else if (event.key === 'ArrowLeft' || event.key === 'PageUp') {
+      event.preventDefault();
+      this.turnSpreadPrev();
+    } else if (event.key === 'ArrowDown') {
+      // Arriba/abajo mueven la regla de lectura línea a línea, sólo si está activada.
+      if (!this.rulerActive) return;
+      event.preventDefault();
+      this.moveRulerByLine(1);
+    } else if (event.key === 'ArrowUp') {
+      if (!this.rulerActive) return;
+      event.preventDefault();
+      this.moveRulerByLine(-1);
     }
   }
 

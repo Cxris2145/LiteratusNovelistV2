@@ -1685,9 +1685,21 @@
 }
 
 /* LIENZO DE LECTURA */
-.reading-canvas {
-  position: relative; /* ancla la regla de lectura (.reading-ruler) */
+/* Envoltorio no columnado: ancla la regla de lectura (.reading-ruler), que vive
+   como hermana de .reading-canvas en vez de hija — ver comentario en el HTML.
+   Ocupa el mismo espacio que antes ocupaba .reading-canvas dentro de .real-book-wrapper. */
+.reading-canvas-shell {
+  position: relative;
   flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.reading-canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   /* El lateral nunca baja de --reader-pad-x; en pantallas anchas centra a la
@@ -1762,6 +1774,7 @@
   font-size: var(--reader-font-size, 18px);
   letter-spacing: var(--reader-letter-spacing, 0);
   word-spacing: var(--reader-word-spacing, 0);
+  line-height: var(--reader-renglon-height, calc(var(--reader-font-size, 18px) * var(--reader-line-height, 1.75)));
 }
 
 .html-reader ::ng-deep p,
@@ -1769,9 +1782,9 @@
 .html-reader ::ng-deep blockquote,
 .html-reader ::ng-deep td {
   font-size: 1em;                 /* hereda el tamaño del contenedor → escala */
-  line-height: var(--reader-line-height, 1.75);
-  /* Una sola senal de separacion: el hueco entre parrafos (no sangria + hueco). */
-  margin: 0 0 var(--reader-para-gap, 1.5em);
+  line-height: var(--reader-renglon-height, calc(var(--reader-font-size, 18px) * var(--reader-line-height, 1.75))) !important;
+  /* Espaciado de párrafos en múltiplos enteros del renglón para mantener sincronía vertical */
+  margin: 0 0 var(--reader-para-gap, var(--reader-renglon-height, 32px));
   text-align: var(--reader-align, left);
   text-indent: var(--reader-para-indent, 0em);
   hyphens: auto;
@@ -1781,6 +1794,7 @@
   orphans: 2;
   widows: 2;
   font-family: inherit; /* Hereda de la clase del canvas */
+  box-sizing: border-box;
 }
 
 /* Listas y citas del HTML importado: presentación decente */
@@ -4462,20 +4476,40 @@ h2.chapter-heading { font-size: 1.28em; }
    avance automático, botón "volver a mi lectura", temporizador de sesión.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── Regla de lectura: guía horizontal traslúcida ── */
+/* ── Regla de lectura: guía horizontal traslúcida que se adapta al renglón y columna activa ── */
 .reading-ruler {
   position: absolute;
   left: 0;
-  right: 0;
-  height: 2.4em;
-  margin-top: -1.2em; /* centra la franja sobre la línea activa */
-  background: color-mix(in srgb, var(--reader-highlight-hex, #eab308) 12%, transparent);
-  border-top: 1px solid color-mix(in srgb, var(--reader-highlight-hex, #eab308) 45%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--reader-highlight-hex, #eab308) 45%, transparent);
+  width: 100%;
+  height: var(--reader-renglon-height, 32px);
+  margin-top: calc(var(--reader-renglon-height, 32px) / -2); /* Centra la regla exactamente sobre la línea activa */
+  background: color-mix(in srgb, var(--reader-highlight-hex, #eab308) 15%, transparent);
+  border-top: 1.5px solid color-mix(in srgb, var(--reader-highlight-hex, #eab308) 55%, transparent);
+  border-bottom: 1.5px solid color-mix(in srgb, var(--reader-highlight-hex, #eab308) 55%, transparent);
   pointer-events: none;
   z-index: 5;
-  transition: top 0.12s linear;
+  box-sizing: border-box;
+  transition: top 0.08s linear, left 0.12s ease, width 0.12s ease;
 }
+
+/* En vista doble página: resalta la columna activa (izquierda o derecha) sin invadir la otra */
+.reading-ruler.col-left {
+  left: 0;
+  width: calc(50% - 40px);
+  border-radius: 4px;
+}
+
+.reading-ruler.col-right {
+  left: calc(50% + 40px);
+  width: calc(50% - 40px);
+  border-radius: 4px;
+}
+
+.reading-ruler.col-full {
+  left: 0;
+  width: 100%;
+}
+
 @media (prefers-reduced-motion: reduce) { .reading-ruler { transition: none; } }
 
 /* ── Modo de foco: atenúa todo salvo la unidad activa ── */
@@ -4627,9 +4661,9 @@ h2.chapter-heading { font-size: 1.28em; }
 
 .real-book-wrapper.book-open-mode {
   width: min(95vw, 1380px);
-  height: calc(100vh - 96px);
-  max-height: 880px;
-  min-height: 520px;
+  height: auto;
+  min-height: calc(17 * var(--reader-renglon-height, 32px) + 110px);
+  max-height: calc(100vh - 60px);
   border-radius: 12px 16px 16px 12px;
   position: relative;
   display: flex;
@@ -4963,11 +4997,12 @@ h2.chapter-heading { font-size: 1.28em; }
   }
 }
 
-/* ── Lienzo en modo Doble Página ── */
+/* ── Lienzo en modo Doble Página: exactamente 17 renglones por página ── */
 .reading-canvas.double-page-active {
-  flex: 1;
-  min-height: 0;
-  height: auto !important;
+  box-sizing: border-box;
+  height: calc(17 * var(--reader-renglon-height, 32px) + 32px) !important;
+  min-height: calc(17 * var(--reader-renglon-height, 32px) + 32px) !important;
+  max-height: calc(17 * var(--reader-renglon-height, 32px) + 32px) !important;
   width: 100% !important;
   max-width: none !important;
   overflow-y: hidden !important;
@@ -4976,14 +5011,13 @@ h2.chapter-heading { font-size: 1.28em; }
   column-gap: 80px;
   column-fill: auto;
   column-rule: 1px solid transparent;
-  padding: 16px 0 !important; /* CERO padding horizontal para preservar la geometría exacta de pliegos */
+  padding: 16px 0 !important; /* 16px top + 16px bottom = 32px de margen vertical */
   margin: 0 !important;
-  box-sizing: border-box;
   scroll-behavior: auto !important; /* Desactiva scroll horizontal deslizante en favor del volteo realista */
   user-select: text;
 }
 
-/* Prevención de cortes antiestéticos en doble página */
+/* Prevención de cortes antiestéticos y rejilla estricta de 17 renglones en doble página */
 .reading-canvas.double-page-active h1,
 .reading-canvas.double-page-active h2,
 .reading-canvas.double-page-active h3,
@@ -4993,9 +5027,76 @@ h2.chapter-heading { font-size: 1.28em; }
   page-break-inside: avoid;
 }
 
+/* Sincronización estricta de encabezados con la cuadrícula de renglones */
+.reading-canvas.double-page-active .chapter-title-main {
+  font-size: calc(var(--reader-font-size, 18px) * 1.35) !important;
+  line-height: calc(2 * var(--reader-renglon-height, 32px)) !important;
+  min-height: calc(2 * var(--reader-renglon-height, 32px)) !important;
+  margin: 0 0 var(--reader-renglon-height, 32px) !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.reading-canvas.double-page-active .chapter-heading,
+.reading-canvas.double-page-active h1:not(.chapter-title-main),
+.reading-canvas.double-page-active h2:not(.chapter-title-main),
+.reading-canvas.double-page-active h3 {
+  font-size: 1.12em !important;
+  line-height: var(--reader-renglon-height, 32px) !important;
+  margin-top: var(--reader-renglon-height, 32px) !important;
+  margin-bottom: var(--reader-renglon-height, 32px) !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.reading-canvas.double-page-active blockquote {
+  line-height: var(--reader-renglon-height, 32px) !important;
+  margin-top: 0 !important;
+  margin-bottom: var(--reader-para-gap, var(--reader-renglon-height, 32px)) !important;
+  padding: 0 0 0 1.2em !important;
+  box-sizing: border-box;
+}
+
+.reading-canvas.double-page-active figure.scene-image-container {
+  margin: var(--reader-renglon-height, 32px) auto !important;
+  height: calc(8 * var(--reader-renglon-height, 32px)) !important;
+  max-height: calc(8 * var(--reader-renglon-height, 32px)) !important;
+  box-sizing: border-box;
+}
+
+.reading-canvas.double-page-active figure.scene-image-container img {
+  height: 100% !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
 .reading-canvas.double-page-active p {
-  orphans: 2;
-  widows: 2;
+  orphans: 1;
+  widows: 1;
+  line-height: var(--reader-renglon-height, 32px) !important;
+  margin-top: 0 !important;
+  margin-bottom: var(--reader-para-gap, var(--reader-renglon-height, 32px)) !important;
+  box-sizing: border-box;
+}
+
+/* Confinamiento de letras y palabras estrictamente dentro de su renglón */
+.reading-canvas.double-page-active .word {
+  display: inline;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+
+/* ── Pautado sutil de renglones en la hoja del libro (guía visual de lectura) ── */
+.reading-canvas.ruler-guide-active {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent calc(var(--reader-renglon-height, 32px) - 1px),
+    color-mix(in srgb, var(--reader-text-color, currentColor) 5%, transparent) calc(var(--reader-renglon-height, 32px) - 1px),
+    color-mix(in srgb, var(--reader-text-color, currentColor) 5%, transparent) var(--reader-renglon-height, 32px)
+  );
+  background-position-y: 16px;
+  background-size: 100% var(--reader-renglon-height, 32px);
 }
 
 /* ── Ajustes visuales por Tema para la vista libro ── */
