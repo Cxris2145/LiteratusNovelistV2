@@ -356,6 +356,57 @@
   color: #79D19E;
 }
 
+.ink-redemption-box {
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #0E2018;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.ink-redemption-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-bottom: 8px;
+}
+
+.ink-redemption-header .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.ink-redemption-options {
+  display: flex;
+  gap: 8px;
+}
+
+.ink-opt-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ink-opt-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+.ink-opt-btn.active {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: white;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+}
+
 .coupon-box {
   margin: 16px 0;
 }

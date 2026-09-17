@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { GamificationService } from '../../core/services/gamification.service';
 
 export interface CartItem {
   id: string;
@@ -23,11 +24,19 @@ export interface CartItem {
 export class CartComponent implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private gamificationService = inject(GamificationService);
 
   cartItems: CartItem[] = [];
   couponCode = '';
   couponApplied = false;
   couponDiscount = 0;
+
+  // Gamificación y Beneficios de Nivel
+  userLevel = 1;
+  userLevelName = 'Lector Novato';
+  levelDiscountPercent = 0;
+  userInkBalance = 0;
+  redeemInkAmount = 0;
 
   readonly POPULAR_INK_PACKAGES = [
     {
@@ -60,20 +69,54 @@ export class CartComponent implements OnInit {
     return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   }
 
-  get discountAmount(): number {
+  get levelDiscountAmount(): number {
+    if (this.levelDiscountPercent <= 0) return 0;
+    return Math.round(this.subtotal * (this.levelDiscountPercent / 100));
+  }
+
+  get inkRedemptionDiscount(): number {
+    if (this.redeemInkAmount <= 0) return 0;
+    // Cada 100 Tinta = $500 CLP
+    return Math.min(this.redeemInkAmount * 5, Math.max(0, this.subtotal - this.levelDiscountAmount));
+  }
+
+  get couponDiscountAmount(): number {
     return this.couponApplied ? Math.round(this.subtotal * this.couponDiscount) : 0;
   }
 
+  get totalDiscount(): number {
+    return this.levelDiscountAmount + this.inkRedemptionDiscount + this.couponDiscountAmount;
+  }
+
   get total(): number {
-    return Math.max(0, this.subtotal - this.discountAmount);
+    return Math.max(0, this.subtotal - this.totalDiscount);
   }
 
   get totalItemsCount(): number {
     return this.cartItems.reduce((sum, item) => sum + item.quantity, 0);
   }
 
+  toggleRedeemInk(amount: number): void {
+    if (this.redeemInkAmount === amount) {
+      this.redeemInkAmount = 0;
+    } else if (this.userInkBalance >= amount) {
+      this.redeemInkAmount = amount;
+    }
+  }
+
   ngOnInit(): void {
     this.loadCart();
+    if (this.authService.isLoggedIn()) {
+      this.gamificationService.profile$.subscribe(profile => {
+        if (profile) {
+          this.userLevel = profile.level || 1;
+          this.userLevelName = profile.level_name || 'Lector Novato';
+          this.levelDiscountPercent = profile.discount_percent || 0;
+          this.userInkBalance = profile.ink_balance || 0;
+        }
+      });
+      this.gamificationService.loadInitialProfile();
+    }
   }
 
   loadCart(): void {

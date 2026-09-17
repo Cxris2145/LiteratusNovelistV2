@@ -39,7 +39,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   profile: any = null;
   inkHistory: any[] = [];
   missions: any[] = [];
-  activeTab: 'achievements' | 'history' | 'missions' = 'achievements';
+  activeTab: 'achievements' | 'history' | 'missions' | 'levels' = 'achievements';
 
   readonly tabs: CategoryTab[] = [
     { key: 'all',         label: 'Todos',       icon: '🌟' },
@@ -122,7 +122,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     this.activeFilter = filter;
   }
 
-  switchTab(tab: 'achievements' | 'history' | 'missions') {
+  switchTab(tab: 'achievements' | 'history' | 'missions' | 'levels') {
     this.activeTab = tab;
   }
 

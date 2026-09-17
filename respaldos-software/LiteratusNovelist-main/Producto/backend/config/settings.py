@@ -291,11 +291,62 @@ GAMIFICATION_REWARDS = {
 # Niveles de lector: ordenados por nivel ascendente.
 # xp_required = XP acumulada necesaria para alcanzar este nivel.
 READER_LEVELS = [
-    {'level': 1, 'name': 'Lector Novato',    'xp_required': 0},
-    {'level': 2, 'name': 'Lector',           'xp_required': 100},
-    {'level': 3, 'name': 'Lector Frecuente', 'xp_required': 300},
-    {'level': 4, 'name': 'Lector Avanzado',  'xp_required': 700},
-    {'level': 5, 'name': 'Maestro Lector',   'xp_required': 1500},
+    {
+        'level': 1,
+        'name': 'Lector Novato',
+        'xp_required': 0,
+        'discount_percent': 0,
+        'perks': [
+            'Acceso al catálogo estándar',
+            'Chat con personajes de IA básicos',
+            'Historial de lectura y marcadores'
+        ]
+    },
+    {
+        'level': 2,
+        'name': 'Lector',
+        'xp_required': 100,
+        'discount_percent': 5,
+        'perks': [
+            '5% de descuento en compra de libros',
+            'Insignia de Lector en tu perfil',
+            'Desbloqueo de misiones semanales'
+        ]
+    },
+    {
+        'level': 3,
+        'name': 'Lector Frecuente',
+        'xp_required': 300,
+        'discount_percent': 10,
+        'perks': [
+            '10% de descuento en compra de libros',
+            'Bono diario de lectura aumentado',
+            'Acceso a temas visuales exclusivos'
+        ]
+    },
+    {
+        'level': 4,
+        'name': 'Lector Avanzado',
+        'xp_required': 700,
+        'discount_percent': 15,
+        'perks': [
+            '15% de descuento en compras y canjes',
+            'Interacciones con personajes IA avanzados',
+            'Prioridad en eventos literarios comunitarios'
+        ]
+    },
+    {
+        'level': 5,
+        'name': 'Maestro Lector',
+        'xp_required': 1500,
+        'discount_percent': 20,
+        'perks': [
+            '20% de descuento máximo en todo el catálogo',
+            'Insignia dorada de Maestro Lector',
+            'Desbloqueo prioritario de narraciones premium',
+            'Voto anticipado en nuevas obras del catálogo'
+        ]
+    },
 ]
 
 # Auto-reload trigger

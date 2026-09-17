@@ -127,9 +127,50 @@
           <span>${{ subtotal | number }} CLP</span>
         </div>
 
+        <!-- Descuento de Nivel de Lector -->
+        <div class="summary-line discount-line" *ngIf="levelDiscountPercent > 0">
+          <span>Beneficio {{ userLevelName }} (-{{ levelDiscountPercent }}%)</span>
+          <span>-${{ levelDiscountAmount | number }} CLP</span>
+        </div>
+
+        <!-- Descuento por Canje de Tinta -->
+        <div class="summary-line discount-line" *ngIf="inkRedemptionDiscount > 0">
+          <span>Canje de Tinta ({{ redeemInkAmount }} 🖋️)</span>
+          <span>-${{ inkRedemptionDiscount | number }} CLP</span>
+        </div>
+
+        <!-- Descuento por Cupón -->
         <div class="summary-line discount-line" *ngIf="couponApplied">
           <span>Descuento cupón (15%)</span>
-          <span>-${{ discountAmount | number }} CLP</span>
+          <span>-${{ couponDiscountAmount | number }} CLP</span>
+        </div>
+
+        <!-- Opción de Canjear Tinta por Descuento -->
+        <div class="ink-redemption-box" *ngIf="userInkBalance >= 100">
+          <div class="ink-redemption-header">
+            <span class="material-symbols-rounded">ink_pen</span>
+            <span>Canjear Tinta (Tienes {{ userInkBalance }} 🖋️)</span>
+          </div>
+          <div class="ink-redemption-options">
+            <button 
+              type="button" 
+              class="ink-opt-btn" 
+              [class.active]="redeemInkAmount === 100"
+              (click)="toggleRedeemInk(100)"
+              *ngIf="userInkBalance >= 100"
+            >
+              100 Tinta (-$500 CLP)
+            </button>
+            <button 
+              type="button" 
+              class="ink-opt-btn" 
+              [class.active]="redeemInkAmount === 200"
+              (click)="toggleRedeemInk(200)"
+              *ngIf="userInkBalance >= 200"
+            >
+              200 Tinta (-$1.000 CLP)
+            </button>
+          </div>
         </div>
 
         <!-- Cupón de descuento -->

@@ -648,3 +648,143 @@
   margin-bottom: 6px;
   align-self: flex-start;
 }
+
+/* LEVELS & PERKS TAB */
+.levels-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.level-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.level-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.level-card.current-level {
+  border: 2px solid #f59e0b;
+  background: linear-gradient(145deg, rgba(245, 158, 11, 0.08), var(--bg-card));
+}
+
+.level-card:not(.unlocked-level) {
+  opacity: 0.65;
+  filter: grayscale(0.4);
+}
+
+.level-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.level-card-badge-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f59e0b;
+}
+
+.level-card-badge-wrap .material-symbols-rounded {
+  font-size: 28px;
+}
+
+.level-card-info {
+  flex: 1;
+}
+
+.level-card-tier {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.level-card-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.current-badge {
+  background: #f59e0b;
+  color: #1a1a1a;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.level-req-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-body);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.req-val {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.discount-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.level-perks-list .perks-title {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: 0.5px;
+}
+
+.level-perks-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.level-perks-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.perk-icon {
+  font-size: 18px;
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 2px;
+}

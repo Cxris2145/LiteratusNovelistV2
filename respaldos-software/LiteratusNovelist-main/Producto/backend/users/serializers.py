@@ -22,10 +22,18 @@ class ProfileSerializer(serializers.ModelSerializer):
     """
     level_name = serializers.SerializerMethodField()
     xp_to_next_level = serializers.SerializerMethodField()
+    discount_percent = serializers.SerializerMethodField()
+    level_perks = serializers.SerializerMethodField()
+    all_levels = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
-        fields = ['id', 'avatar_color', 'bio', 'country', 'preferred_language', 'ink_balance', 'theme', 'xp', 'level', 'level_name', 'xp_to_next_level', 'streak_current']
+        fields = [
+            'id', 'avatar_color', 'bio', 'country', 'preferred_language', 
+            'ink_balance', 'theme', 'xp', 'level', 'level_name', 
+            'xp_to_next_level', 'streak_current', 'discount_percent', 
+            'level_perks', 'all_levels'
+        ]
 
     def get_level_name(self, obj):
         from django.conf import settings
@@ -42,6 +50,26 @@ class ProfileSerializer(serializers.ModelSerializer):
             if lvl['level'] == obj.level + 1:
                 return lvl['xp_required']
         return obj.xp  # Nivel máximo alcanzado
+
+    def get_discount_percent(self, obj):
+        from django.conf import settings
+        levels = getattr(settings, 'READER_LEVELS', [])
+        for lvl in sorted(levels, key=lambda x: x['level'], reverse=True):
+            if obj.level >= lvl['level']:
+                return lvl.get('discount_percent', 0)
+        return 0
+
+    def get_level_perks(self, obj):
+        from django.conf import settings
+        levels = getattr(settings, 'READER_LEVELS', [])
+        for lvl in sorted(levels, key=lambda x: x['level'], reverse=True):
+            if obj.level >= lvl['level']:
+                return lvl.get('perks', [])
+        return []
+
+    def get_all_levels(self, obj):
+        from django.conf import settings
+        return getattr(settings, 'READER_LEVELS', [])
 
 class UserReadSerializer(serializers.ModelSerializer):
     """

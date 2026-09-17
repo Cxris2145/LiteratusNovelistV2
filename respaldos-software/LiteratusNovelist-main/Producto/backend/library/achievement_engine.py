@@ -397,3 +397,23 @@ def update_streak(user):
         
     except Profile.DoesNotExist:
         pass
+
+
+def get_user_discount(user):
+    """
+    Retorna el porcentaje de descuento aplicable según el nivel del usuario.
+    """
+    from django.conf import settings
+    if not user or not user.is_authenticated:
+        return 0
+    
+    try:
+        user_level = user.profile.level
+    except Exception:
+        return 0
+
+    levels = getattr(settings, 'READER_LEVELS', [])
+    for lvl in sorted(levels, key=lambda x: x['level'], reverse=True):
+        if user_level >= lvl['level']:
+            return lvl.get('discount_percent', 0)
+    return 0

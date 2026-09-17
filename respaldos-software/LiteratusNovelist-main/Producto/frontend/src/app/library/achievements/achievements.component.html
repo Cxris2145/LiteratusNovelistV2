@@ -66,10 +66,57 @@
     <button class="main-tab-btn" [class.active]="activeTab === 'missions'" (click)="switchTab('missions')">
       Misiones
     </button>
+    <button class="main-tab-btn" [class.active]="activeTab === 'levels'" (click)="switchTab('levels')">
+      Niveles y Beneficios
+    </button>
     <button class="main-tab-btn" [class.active]="activeTab === 'history'" (click)="switchTab('history')">
       Historial de Tinta
     </button>
   </nav>
+
+  <!-- ==========================================
+       TAB: LEVELS & PERKS
+  =========================================== -->
+  <div *ngIf="activeTab === 'levels'" class="tab-content levels-tab">
+    <div class="levels-container" *ngIf="profile && profile.all_levels">
+      <div 
+        class="level-card" 
+        *ngFor="let lvl of profile.all_levels"
+        [class.current-level]="profile.level === lvl.level"
+        [class.unlocked-level]="profile.level >= lvl.level"
+      >
+        <div class="level-card-header">
+          <div class="level-card-badge-wrap">
+            <span class="material-symbols-rounded" *ngIf="lvl.level === 1">local_library</span>
+            <span class="material-symbols-rounded" *ngIf="lvl.level === 2">auto_stories</span>
+            <span class="material-symbols-rounded" *ngIf="lvl.level === 3">military_tech</span>
+            <span class="material-symbols-rounded" *ngIf="lvl.level === 4">workspace_premium</span>
+            <span class="material-symbols-rounded" *ngIf="lvl.level === 5">crown</span>
+          </div>
+          <div class="level-card-info">
+            <div class="level-card-tier">Rango {{ lvl.level }}</div>
+            <h3 class="level-card-name">{{ lvl.name }}</h3>
+          </div>
+          <span class="current-badge" *ngIf="profile.level === lvl.level">TU NIVEL ACTUAL</span>
+        </div>
+
+        <div class="level-req-box">
+          <span class="req-val">{{ lvl.xp_required }} XP</span>
+          <span class="discount-badge" *ngIf="lvl.discount_percent > 0">{{ lvl.discount_percent }}% DESCUENTO</span>
+        </div>
+
+        <div class="level-perks-list">
+          <h4 class="perks-title">Beneficios exclusivos:</h4>
+          <ul>
+            <li *ngFor="let perk of lvl.perks">
+              <span class="material-symbols-rounded perk-icon">check_circle</span>
+              <span>{{ perk }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ==========================================
        TAB: MISSIONS

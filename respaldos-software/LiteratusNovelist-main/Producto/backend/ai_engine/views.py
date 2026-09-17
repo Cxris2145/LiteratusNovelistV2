@@ -285,6 +285,20 @@ class ChatInteractionView(APIView):
             profile.ink_balance = max(0, profile.ink_balance - cost)
             profile.save()
 
+            # Registrar transacción de Tinta por consumo de chat
+            from library.models import InkTransaction
+            InkTransaction.objects.create(
+                user=request.user,
+                amount=-cost,
+                concept='ai_chat',
+                reference_id=str(session.id),
+                balance_after=profile.ink_balance
+            )
+
+            # Recompensar interacción con IA (XP y progreso de misión semanal)
+            from library.achievement_engine import reward_activity
+            reward_activity(request.user, 'ai_interaction', reference_id=str(session.id))
+
             assistant_msg = ChatMessage.objects.create(
                 session=session,
                 role=ChatMessage.RoleChoices.ASSISTANT,

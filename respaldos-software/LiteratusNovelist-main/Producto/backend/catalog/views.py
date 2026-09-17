@@ -211,8 +211,11 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         if not edition:
             return Response({'error': 'Este libro no tiene ediciones disponibles.'}, status=status.HTTP_400_BAD_REQUEST)
             
-        # Costo en tinta basado en el precio de la edición
-        cost = int(edition.price)
+        # Costo en tinta basado en el precio de la edición aplicando descuento de nivel
+        from library.achievement_engine import get_user_discount
+        discount_percent = get_user_discount(request.user)
+        base_cost = int(edition.price)
+        cost = max(1, int(base_cost * (100 - discount_percent) / 100)) if discount_percent > 0 else base_cost
         
         with transaction.atomic():
             # Bloquear la fila del perfil para evitar race conditions
@@ -234,10 +237,24 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             profile.ink_balance -= cost
             profile.save()
             
+            # Registrar transacción de Tinta
+            from library.models import InkTransaction
+            InkTransaction.objects.create(
+                user=request.user,
+                amount=-cost,
+                concept='book_purchase',
+                reference_id=str(book.id),
+                balance_after=profile.ink_balance
+            )
+            
             # Crear inventario
             UserInventory.objects.create(user=request.user, edition=edition)
             
-        return Response({'message': 'Libro adquirido con éxito.', 'ink_balance': profile.ink_balance}, status=status.HTTP_201_CREATED)
+        return Response({
+            'message': 'Libro adquirido con éxito.', 
+            'ink_balance': profile.ink_balance,
+            'discount_applied': discount_percent
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['POST'])
     def purchase_narration(self, request, slug=None):
@@ -276,6 +293,15 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             profile.ink_balance -= cost
             profile.save()
             
+            from library.models import InkTransaction
+            InkTransaction.objects.create(
+                user=request.user,
+                amount=-cost,
+                concept='narration_purchase',
+                reference_id=str(book.id),
+                balance_after=profile.ink_balance
+            )
+            
             inventory.has_premium_narration = True
             inventory.save()
             
@@ -289,6 +315,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Añade una reseña a una obra.
         Solo usuarios autenticados que posean la obra.
+        Otorga Tinta y XP al usuario.
         """
         if not request.user.is_authenticated:
             return Response({'error': 'Debes iniciar sesión para escribir una reseña.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -320,6 +347,10 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             rating=int(rating),
             comment=comment
         )
+        
+        # Recompensar actividad de reseña
+        from library.achievement_engine import reward_activity
+        reward_activity(request.user, 'review_written', reference_id=str(review.id))
         
         return Response({
             'message': 'Reseña publicada con éxito.',
