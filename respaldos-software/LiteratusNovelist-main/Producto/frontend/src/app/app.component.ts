@@ -10,6 +10,7 @@ import { Location } from '@angular/common';
 import { SettingsService } from './core/services/settings.service';
 import { environment } from '../environments/environment';
 import { FavoritesService } from './core/services/favorites.service';
+import { GamificationService, GamificationNotification } from './core/services/gamification.service';
 
 @Component({
   selector: 'app-root',
@@ -23,9 +24,14 @@ export class AppComponent implements OnInit {
   chatService = inject(ChatService);
   settingsService = inject(SettingsService);
   favoritesService = inject(FavoritesService);
+  gamificationService = inject(GamificationService);
   router = inject(Router);
 
   isDashboard = false;
+  
+  // Gamification Toasts
+  gamificationToasts: (GamificationNotification & { id: number })[] = [];
+  private toastIdCounter = 0;
 
   // Buscador global del navbar
   globalSearchTerm = '';
@@ -86,6 +92,7 @@ export class AppComponent implements OnInit {
       if (loggedIn) {
         this.chatService.loadInitialInk();
         this.loadUserProfile();
+        this.gamificationService.loadInitialProfile();
       }
     });
 
@@ -97,6 +104,17 @@ export class AppComponent implements OnInit {
     // Suscribirse a actualizaciones de perfil
     this.chatService.profileUpdated$.subscribe(() => {
       this.loadUserProfile();
+    });
+
+    // Suscribirse a notificaciones de gamificación
+    this.gamificationService.notifications$.subscribe(notification => {
+      const id = this.toastIdCounter++;
+      this.gamificationToasts.push({ ...notification, id });
+      
+      // Auto remover después de la animación (3.5s)
+      setTimeout(() => {
+        this.gamificationToasts = this.gamificationToasts.filter(t => t.id !== id);
+      }, 3500);
     });
 
     // Añadir listener global de errores

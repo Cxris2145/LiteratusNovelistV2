@@ -753,3 +753,87 @@
   }
 }
 
+
+/* Gamification Toasts */
+.gamification-toast-container {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.gamification-toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: slideInBottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease 3s forwards;
+  pointer-events: auto;
+  color: var(--text-main);
+  min-width: 250px;
+}
+
+.gamification-toast.toast-ink { border-left-color: #8b5cf6; } /* Purple for Ink */
+.gamification-toast.toast-xp { border-left-color: #3b82f6; } /* Blue for XP */
+.gamification-toast.toast-level_up { border-left-color: #f59e0b; } /* Amber for Level Up */
+.gamification-toast.toast-achievement { border-left-color: #10b981; } /* Green for Achievements */
+
+.gamification-toast .toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gamification-toast.toast-ink .toast-icon { color: #8b5cf6; }
+.gamification-toast.toast-xp .toast-icon { color: #3b82f6; }
+.gamification-toast.toast-level_up .toast-icon { color: #f59e0b; }
+.gamification-toast.toast-achievement .toast-icon { color: #10b981; }
+
+.gamification-toast .toast-icon .material-symbols-rounded {
+  font-size: 24px;
+}
+
+.gamification-toast .toast-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.gamification-toast .toast-amount {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.gamification-toast.toast-ink .toast-amount { color: #8b5cf6; }
+.gamification-toast.toast-xp .toast-amount { color: #3b82f6; }
+.gamification-toast.toast-level_up .toast-amount { color: #f59e0b; }
+.gamification-toast.toast-achievement .toast-amount { color: #10b981; }
+
+.gamification-toast .toast-message {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@keyframes slideInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}

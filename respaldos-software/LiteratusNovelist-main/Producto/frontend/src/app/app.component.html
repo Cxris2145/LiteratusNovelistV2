@@ -109,6 +109,10 @@
                   <span class="mat-symbol">manage_accounts</span>
                   <span>Editar Perfil</span>
                 </button>
+                <button mat-menu-item routerLink="/achievements">
+                  <span class="mat-symbol">emoji_events</span>
+                  <span>Mis Logros y Nivel</span>
+                </button>
                 <ng-container *ngIf="isAdmin">
                   <mat-divider></mat-divider>
                   <button mat-menu-item routerLink="/dashboard/overview">
@@ -184,6 +188,14 @@
         <span class="bubble-label">Mi Biblioteca</span>
       </a>
 
+      <!-- 7. Logros / Gamificación -->
+      <a routerLink="/achievements" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">emoji_events</span>
+        </div>
+        <span class="bubble-label">Logros</span>
+      </a>
+
     </div>
   </nav>
 
@@ -220,3 +232,21 @@
 <!-- Asistente global de la plataforma: solo para usuarios con sesión iniciada,
      oculto en el panel de administración. -->
 <app-assistant-widget *ngIf="isLoggedIn && !isDashboard"></app-assistant-widget>
+
+<!-- ═════════════════════════════════════════════════════════════════════
+     GAMIFICATION TOASTS
+═════════════════════════════════════════════════════════════════════ -->
+<div class="gamification-toast-container">
+  <div *ngFor="let toast of gamificationToasts" class="gamification-toast" [ngClass]="'toast-' + toast.type">
+    <div class="toast-icon">
+      <span class="material-symbols-rounded" *ngIf="toast.type === 'ink'">ink_pen</span>
+      <span class="material-symbols-rounded" *ngIf="toast.type === 'xp'">military_tech</span>
+      <span class="material-symbols-rounded" *ngIf="toast.type === 'level_up'">star</span>
+      <span class="material-symbols-rounded" *ngIf="toast.type === 'achievement'">emoji_events</span>
+    </div>
+    <div class="toast-content">
+      <div class="toast-amount" *ngIf="toast.amount">+{{ toast.amount }} <span *ngIf="toast.type === 'ink'">Tinta</span><span *ngIf="toast.type === 'xp'">XP</span></div>
+      <div class="toast-message">{{ toast.message }}</div>
+    </div>
+  </div>
+</div>

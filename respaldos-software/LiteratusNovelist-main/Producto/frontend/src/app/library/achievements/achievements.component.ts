@@ -6,12 +6,13 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, combineLatest } from 'rxjs';
 import {
   AchievementsService,
   UserAchievement,
   Achievement,
 } from '../../core/services/achievements.service';
+import { GamificationService } from '../../core/services/gamification.service';
 
 type CategoryFilter = 'all' | 'reading' | 'streak' | 'exploration' | 'time' | 'social';
 
@@ -35,6 +36,11 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   isLoading = true;
   activeFilter: CategoryFilter = 'all';
 
+  profile: any = null;
+  inkHistory: any[] = [];
+  missions: any[] = [];
+  activeTab: 'achievements' | 'history' | 'missions' = 'achievements';
+
   readonly tabs: CategoryTab[] = [
     { key: 'all',         label: 'Todos',       icon: '🌟' },
     { key: 'reading',     label: 'Lectura',      icon: '📚' },
@@ -45,11 +51,12 @@ export class AchievementsComponent implements OnInit, OnDestroy {
 
   constructor(
     private achievementsService: AchievementsService,
+    private gamificationService: GamificationService,
     private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
-    this.loadAchievements();
+    this.loadData();
   }
 
   ngOnDestroy(): void {
@@ -57,8 +64,35 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadAchievements(): void {
+  loadData(): void {
     this.isLoading = true;
+
+    // Load Gamification profile
+    this.gamificationService.profile$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(profile => {
+        if (profile) {
+          this.profile = profile;
+          this.cdr.markForCheck();
+        }
+      });
+
+    // Ensure profile is loaded if it hasn't been yet
+    this.gamificationService.loadInitialProfile();
+
+    this.gamificationService.getInkHistory()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(history => {
+        this.inkHistory = history;
+        this.cdr.markForCheck();
+      });
+
+    this.gamificationService.getMissions()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(missions => {
+        this.missions = missions;
+        this.cdr.markForCheck();
+      });
 
     // Cargar catálogo completo (incluye logros aún no iniciados por el usuario)
     this.achievementsService.getCatalog()
@@ -88,6 +122,10 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     this.activeFilter = filter;
   }
 
+  switchTab(tab: 'achievements' | 'history' | 'missions') {
+    this.activeTab = tab;
+  }
+
   /**
    * Fusiona el catálogo con el progreso del usuario.
    * Los logros del catálogo que el usuario aún no tiene se muestran
@@ -105,7 +143,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
       }
       // Logro no iniciado: construir un UserAchievement virtual con progreso 0
       return {
-        id: `virtual-${cat.code}`,
+        id: 'virtual-' + cat.code,
         achievement: cat,
         current_progress: 0,
         progress_percentage: 0,

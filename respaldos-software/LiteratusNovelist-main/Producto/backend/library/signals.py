@@ -25,10 +25,21 @@ def evaluate_session_achievements(sender, instance, created, **kwargs):
     - Rachas diarias (streak_3, streak_7, streak_30)
     - Horario de lectura (night_owl, early_bird)
     Solo se evalúa al CREAR una sesión (no al patchear ended_at).
+    Además, recompensa Tinta y XP si se leyeron capítulos en la actualización.
     """
     if created:
         from .achievement_engine import evaluate_for_user
         evaluate_for_user(instance.user, trigger='session', session=instance)
+        
+    # Recompensas de gamificación por lectura (solo si se leyeron capítulos y se cerró la sesión)
+    if not created and getattr(instance, 'chapters_read', 0) > 0 and instance.ended_at:
+        from .achievement_engine import reward_activity, update_streak
+        # Update streak
+        update_streak(instance.user)
+        # Dar recompensa por capítulo leído (proporcional a chapters_read)
+        # chapters_read debe ser trackeado para no dar recompensas duplicadas por la misma sesión.
+        # En MVP damos 1 recompensa por sesión cerrada que tenga chapters_read > 0
+        reward_activity(instance.user, 'chapter_read', str(instance.id))
 
 
 @receiver(post_save, sender=ReadingProgress)
@@ -40,6 +51,14 @@ def evaluate_progress_achievements(sender, instance, **kwargs):
     - Explorador de clásicos por género
     Se evalúa en cada guardado de progreso (PATCH desde el lector).
     """
-    from .achievement_engine import evaluate_for_user
+    from .achievement_engine import evaluate_for_user, reward_activity
     user = instance.inventory.user
     evaluate_for_user(user, trigger='progress', progress=instance)
+    
+    # Recompensa por libro terminado (100%)
+    if float(instance.completion_percentage) >= 100:
+        # Prevent duplicate rewards? The logic in reward_activity needs a unique check or we just rely on the fact that progress only hits 100% once (or we check if a transaction exists).
+        # Para MVP: damos recompensa por book_completed si no se ha dado antes.
+        from .models import InkTransaction
+        if not InkTransaction.objects.filter(user=user, concept='book_completed', reference_id=str(instance.inventory.edition.book.id)).exists():
+            reward_activity(user, 'book_completed', str(instance.inventory.edition.book.id))

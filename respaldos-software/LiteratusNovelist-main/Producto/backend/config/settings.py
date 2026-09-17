@@ -273,4 +273,29 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='resend')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@novelatus.tech')
 
+# ---------------------------------------------------------------------------
+# Gamificación — Tablas configurables de recompensas y niveles
+# Para modificar recompensas, editar SOLO este bloque.
+# ---------------------------------------------------------------------------
+
+GAMIFICATION_REWARDS = {
+    # Actividad              : {'ink': Tinta, 'xp': Experiencia}
+    'chapter_read':           {'ink': 10,  'xp': 15},
+    'book_completed':         {'ink': 50,  'xp': 100},
+    'review_written':         {'ink': 20,  'xp': 30},
+    'ai_interaction':         {'ink': 5,   'xp': 5},
+    'streak_bonus_day':       {'ink': 5,   'xp': 10},
+    'achievement_unlocked':   {'ink': 0,   'xp': 25},  # XP extra al desbloquear logro
+}
+
+# Niveles de lector: ordenados por nivel ascendente.
+# xp_required = XP acumulada necesaria para alcanzar este nivel.
+READER_LEVELS = [
+    {'level': 1, 'name': 'Lector Novato',    'xp_required': 0},
+    {'level': 2, 'name': 'Lector',           'xp_required': 100},
+    {'level': 3, 'name': 'Lector Frecuente', 'xp_required': 300},
+    {'level': 4, 'name': 'Lector Avanzado',  'xp_required': 700},
+    {'level': 5, 'name': 'Maestro Lector',   'xp_required': 1500},
+]
+
 # Auto-reload trigger

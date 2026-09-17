@@ -257,6 +257,143 @@ def _unlock_or_update(user, achievement_code: str, current: int, threshold: int)
 
         # Otorgar Tinta como recompensa si aplica
         if achievement.ink_reward > 0:
-            Profile.objects.filter(user=user).update(
-                ink_balance=F('ink_balance') + achievement.ink_reward
-            )
+            reward_activity(user, 'achievement_unlocked', str(ua.id), custom_ink=achievement.ink_reward)
+
+
+# ---------------------------------------------------------------------------
+# MOTOR DE GAMIFICACIÓN (Tinta, XP y Niveles)
+# ---------------------------------------------------------------------------
+
+@transaction.atomic
+def reward_activity(user, activity_type: str, reference_id: str = '', custom_ink: int = None, custom_xp: int = None):
+    """
+    Otorga Tinta y XP a un usuario por una actividad, y registra la transacción.
+    Actualiza el nivel si es necesario.
+    """
+    from django.conf import settings
+    from users.models import Profile
+    from .models import InkTransaction
+
+    rewards = getattr(settings, 'GAMIFICATION_REWARDS', {})
+    
+    ink_reward = custom_ink if custom_ink is not None else rewards.get(activity_type, {}).get('ink', 0)
+    xp_reward = custom_xp if custom_xp is not None else rewards.get(activity_type, {}).get('xp', 0)
+
+    if ink_reward == 0 and xp_reward == 0:
+        return
+
+    # Usamos select_for_update para evitar condiciones de carrera en el perfil
+    profile = Profile.objects.select_for_update().get(user=user)
+    
+    profile.ink_balance += ink_reward
+    profile.xp += xp_reward
+    profile.save(update_fields=['ink_balance', 'xp'])
+
+    if ink_reward != 0:
+        InkTransaction.objects.create(
+            user=user,
+            amount=ink_reward,
+            concept=activity_type,
+            reference_id=reference_id,
+            balance_after=profile.ink_balance
+        )
+        
+    if xp_reward > 0:
+        _check_level_up(profile)
+        
+    _update_missions(user, activity_type)
+
+
+def _update_missions(user, activity_type: str, increment: int = 1):
+    """
+    Actualiza el progreso de las misiones activas correspondientes al activity_type.
+    """
+    from .models import Mission, UserMission
+    from datetime import timedelta
+    
+    today = timezone.localdate()
+    # Calcular inicio de semana (lunes = 0)
+    start_of_week = today - timedelta(days=today.weekday())
+    # Calcular inicio de mes
+    start_of_month = today.replace(day=1)
+    
+    active_missions = Mission.objects.filter(is_active_mission=True, is_active=True, activity_type=activity_type)
+    
+    for mission in active_missions:
+        period_start = start_of_week if mission.reset_type == 'weekly' else start_of_month
+        
+        um, created = UserMission.objects.select_for_update().get_or_create(
+            user=user,
+            mission=mission,
+            period_start=period_start
+        )
+        
+        if um.completed_at is None:
+            um.current_count += increment
+            if um.current_count >= mission.target_count:
+                um.completed_at = timezone.now()
+                # Otorga la recompensa extra de la misión llamando a reward_activity
+                # con un concepto genérico para evitar loop infinito de activity_type
+                # pero indicando la misión
+                if mission.ink_reward > 0 or mission.xp_reward > 0:
+                    reward_activity(
+                        user, 
+                        'mission_completed', 
+                        str(um.id), 
+                        custom_ink=mission.ink_reward, 
+                        custom_xp=mission.xp_reward
+                    )
+            um.save(update_fields=['current_count', 'completed_at', 'updated_at'])
+
+
+def _check_level_up(profile):
+    """
+    Verifica si el XP actual del perfil amerita una subida de nivel.
+    """
+    from django.conf import settings
+    
+    levels = getattr(settings, 'READER_LEVELS', [])
+    if not levels:
+        return
+        
+    # Encontrar el nivel más alto que el usuario puede tener
+    new_level = profile.level
+    for lvl in sorted(levels, key=lambda x: x['level']):
+        if profile.xp >= lvl['xp_required']:
+            new_level = lvl['level']
+            
+    if new_level > profile.level:
+        profile.level = new_level
+        profile.save(update_fields=['level'])
+        
+def update_streak(user):
+    """
+    Actualiza la racha de lectura del usuario (se llama cada vez que lee).
+    Se considera una racha si lee al menos una vez al día.
+    """
+    from users.models import Profile
+    
+    today = timezone.localdate()
+    
+    try:
+        profile = Profile.objects.select_for_update().get(user=user)
+        
+        # Si ya actualizó hoy, no hacer nada
+        if profile.streak_last_date == today:
+            return
+            
+        # Si ayer leyó, aumentar la racha. Si no, reiniciar a 1.
+        yesterday = today - __import__('datetime').timedelta(days=1)
+        
+        if profile.streak_last_date == yesterday:
+            profile.streak_current += 1
+            # Dar recompensa por mantener racha
+            reward_activity(user, 'streak_bonus_day')
+        else:
+            profile.streak_current = 1
+            
+        profile.streak_last_date = today
+        profile.save(update_fields=['streak_current', 'streak_last_date'])
+        
+    except Profile.DoesNotExist:
+        pass

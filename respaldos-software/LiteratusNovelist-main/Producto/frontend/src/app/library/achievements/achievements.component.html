@@ -1,136 +1,278 @@
-<section class="achievements-page">
+<section class="gamification-page">
 
-  <!-- ── ENCABEZADO / RESUMEN GLOBAL ───────────────────────────── -->
-  <header class="achievements-header">
-    <div class="achievements-header__text">
-      <h1 class="achievements-header__title">Mis Logros</h1>
-      <p class="achievements-header__subtitle">
-        Tu historia como lector, contada en insignias.
-      </p>
-    </div>
-
-    <div class="achievements-summary" *ngIf="!isLoading">
-      <div class="achievements-summary__ring">
+  <!-- ── GAMIFICATION PROFILE HEADER ───────────────────────────── -->
+  <header class="gamification-header" *ngIf="profile">
+    
+    <!-- LEVEL & XP RING -->
+    <div class="level-badge-container">
+      <div class="level-ring">
         <svg viewBox="0 0 36 36" class="ring-svg" aria-hidden="true">
           <circle class="ring-bg" cx="18" cy="18" r="15.9"/>
           <circle
-            class="ring-fill"
+            class="ring-fill level-fill"
             cx="18" cy="18" r="15.9"
-            [style.strokeDasharray]="progressPercent + ' 100'"
+            [style.strokeDasharray]="(profile.xp / profile.xp_to_next_level * 100) + ' 100'"
           />
         </svg>
-        <span class="ring-label">{{ progressPercent }}%</span>
+        <div class="level-number">{{ profile.level }}</div>
       </div>
-      <div class="achievements-summary__stats">
-        <span class="stat-unlocked">{{ unlockedCount }}</span>
-        <span class="stat-sep">/</span>
-        <span class="stat-total">{{ totalCount }}</span>
-        <p class="stat-label">desbloqueados</p>
+    </div>
+    
+    <!-- USER INFO & STATS -->
+    <div class="gamification-stats-container">
+      <div class="gamification-title-area">
+        <h1 class="gamification-title">{{ profile.level_name }}</h1>
+        <p class="gamification-xp-text">{{ profile.xp }} / {{ profile.xp_to_next_level }} XP</p>
+      </div>
+      
+      <div class="gamification-metrics">
+        
+        <!-- STREAK -->
+        <div class="metric-box">
+          <span class="metric-icon material-symbols-rounded">local_fire_department</span>
+          <div class="metric-info">
+            <span class="metric-value">{{ profile.streak_current }}</span>
+            <span class="metric-label">Racha (Días)</span>
+          </div>
+        </div>
+        
+        <!-- INK -->
+        <div class="metric-box">
+          <span class="metric-icon material-symbols-rounded">ink_pen</span>
+          <div class="metric-info">
+            <span class="metric-value">{{ profile.ink_balance }}</span>
+            <span class="metric-label">Tinta</span>
+          </div>
+        </div>
+        
+        <!-- ACHIEVEMENTS STATS -->
+        <div class="metric-box">
+          <span class="metric-icon material-symbols-rounded">emoji_events</span>
+          <div class="metric-info">
+            <span class="metric-value">{{ unlockedCount }} / {{ totalCount }}</span>
+            <span class="metric-label">Logros</span>
+          </div>
+        </div>
+
       </div>
     </div>
   </header>
 
-  <!-- ── TABS DE CATEGORÍA ─────────────────────────────────────── -->
-  <nav class="achievements-tabs" role="tablist" aria-label="Filtrar logros">
-    <button
-      *ngFor="let tab of tabs"
-      class="achievements-tabs__btn"
-      [class.achievements-tabs__btn--active]="activeFilter === tab.key"
-      role="tab"
-      [attr.aria-selected]="activeFilter === tab.key"
-      (click)="setFilter(tab.key)"
-    >
-      <span class="tab-icon" aria-hidden="true">{{ tab.icon }}</span>
-      <span class="tab-label">{{ tab.label }}</span>
+  <!-- ── MAIN TABS (Logros / Historial) ───────────────────────────── -->
+  <nav class="main-tabs" role="tablist">
+    <button class="main-tab-btn" [class.active]="activeTab === 'achievements'" (click)="switchTab('achievements')">
+      Logros
+    </button>
+    <button class="main-tab-btn" [class.active]="activeTab === 'missions'" (click)="switchTab('missions')">
+      Misiones
+    </button>
+    <button class="main-tab-btn" [class.active]="activeTab === 'history'" (click)="switchTab('history')">
+      Historial de Tinta
     </button>
   </nav>
 
-  <!-- ── SKELETON LOADER ───────────────────────────────────────── -->
-  <div class="achievements-grid" *ngIf="isLoading" aria-busy="true">
-    <div class="achievement-card achievement-card--skeleton" *ngFor="let i of [1,2,3,4,5,6]">
-      <div class="skeleton-badge"></div>
-      <div class="skeleton-line skeleton-line--short"></div>
-      <div class="skeleton-line skeleton-line--long"></div>
+  <!-- ==========================================
+       TAB: MISSIONS
+  =========================================== -->
+  <div *ngIf="activeTab === 'missions'" class="tab-content missions-tab">
+    <div class="achievements-grid">
+      <li
+        *ngFor="let um of missions"
+        class="achievement-card"
+        [class.achievement-card--unlocked]="um.is_completed"
+        [class.achievement-card--locked]="!um.is_completed"
+      >
+        <!-- Insignia -->
+        <div class="achievement-card__badge">
+          <span class="achievement-card__icon" aria-hidden="true">
+            🎯
+          </span>
+          <!-- Checkmark para misiones completadas -->
+          <div class="achievement-card__check" *ngIf="um.is_completed" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Contenido textual -->
+        <div class="achievement-card__body">
+          <div class="mission-tag">{{ um.mission.reset_type === 'weekly' ? 'Semanal' : 'Mensual' }}</div>
+          <h3 class="achievement-card__title">{{ um.mission.title }}</h3>
+          <p class="achievement-card__desc">{{ um.mission.description }}</p>
+
+          <!-- Fecha de desbloqueo -->
+          <p class="achievement-card__date" *ngIf="um.is_completed && um.completed_at">
+            Completada el {{ formatUnlockDate(um.completed_at) }}
+          </p>
+
+          <!-- Barra de progreso (solo para misiones no completadas) -->
+          <div
+            class="achievement-card__progress"
+            *ngIf="!um.is_completed"
+            [attr.aria-label]="'Progreso: ' + um.current_count + ' de ' + um.mission.target_count"
+          >
+            <div class="progress-bar">
+              <div
+                class="progress-bar__fill"
+                [style.width.%]="um.progress_percentage"
+              ></div>
+            </div>
+            <span class="progress-text">
+              {{ um.current_count }} / {{ um.mission.target_count }}
+            </span>
+          </div>
+
+          <!-- Recompensa de Tinta y XP -->
+          <div class="achievement-card__reward" *ngIf="um.mission.ink_reward > 0 || um.mission.xp_reward > 0">
+            <span class="reward-amount" *ngIf="um.mission.ink_reward > 0">+{{ um.mission.ink_reward }} 🖋️</span>
+            <span class="reward-amount" *ngIf="um.mission.xp_reward > 0">+{{ um.mission.xp_reward }} XP</span>
+          </div>
+        </div>
+      </li>
+    </div>
+    
+    <div class="achievements-empty" *ngIf="missions.length === 0">
+      <p>No hay misiones activas en este periodo.</p>
     </div>
   </div>
 
-  <!-- ── GRID DE LOGROS ────────────────────────────────────────── -->
-  <ul
-    class="achievements-grid"
-    *ngIf="!isLoading"
-    role="list"
-    aria-label="Lista de logros"
-  >
-    <li
-      *ngFor="let ua of mergedAchievements; trackBy: trackByCode"
-      class="achievement-card"
-      [class.achievement-card--unlocked]="ua.is_unlocked"
-      [class.achievement-card--locked]="!ua.is_unlocked"
-      role="listitem"
+  <!-- ==========================================
+       TAB: ACHIEVEMENTS
+  =========================================== -->
+  <div *ngIf="activeTab === 'achievements'" class="tab-content">
+    
+    <!-- ── TABS DE CATEGORÍA ─────────────────────────────────────── -->
+    <nav class="achievements-tabs" role="tablist" aria-label="Filtrar logros">
+      <button
+        *ngFor="let tab of tabs"
+        class="achievements-tabs__btn"
+        [class.achievements-tabs__btn--active]="activeFilter === tab.key"
+        role="tab"
+        [attr.aria-selected]="activeFilter === tab.key"
+        (click)="setFilter(tab.key)"
+      >
+        <span class="tab-icon" aria-hidden="true">{{ tab.icon }}</span>
+        <span class="tab-label">{{ tab.label }}</span>
+      </button>
+    </nav>
+
+    <!-- ── SKELETON LOADER ───────────────────────────────────────── -->
+    <div class="achievements-grid" *ngIf="isLoading" aria-busy="true">
+      <div class="achievement-card achievement-card--skeleton" *ngFor="let i of [1,2,3,4,5,6]">
+        <div class="skeleton-badge"></div>
+        <div class="skeleton-line skeleton-line--short"></div>
+        <div class="skeleton-line skeleton-line--long"></div>
+      </div>
+    </div>
+
+    <!-- ── GRID DE LOGROS ────────────────────────────────────────── -->
+    <ul
+      class="achievements-grid"
+      *ngIf="!isLoading"
+      role="list"
+      aria-label="Lista de logros"
     >
-      <!-- Insignia -->
-      <div class="achievement-card__badge" [attr.aria-label]="ua.achievement.title">
-        <span class="achievement-card__icon" aria-hidden="true">
-          {{ ua.achievement.icon }}
-        </span>
-        <!-- Overlay de candado para logros bloqueados -->
-        <div class="achievement-card__lock" *ngIf="!ua.is_unlocked" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-        </div>
-        <!-- Checkmark para logros desbloqueados -->
-        <div class="achievement-card__check" *ngIf="ua.is_unlocked" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Contenido textual -->
-      <div class="achievement-card__body">
-        <h3 class="achievement-card__title">{{ ua.achievement.title }}</h3>
-        <p class="achievement-card__desc">{{ ua.achievement.description }}</p>
-
-        <!-- Fecha de desbloqueo -->
-        <p class="achievement-card__date" *ngIf="ua.is_unlocked && ua.unlocked_at">
-          Desbloqueado el {{ formatUnlockDate(ua.unlocked_at) }}
-        </p>
-
-        <!-- Barra de progreso (solo para logros no desbloqueados) -->
-        <div
-          class="achievement-card__progress"
-          *ngIf="!ua.is_unlocked"
-          [attr.aria-label]="'Progreso: ' + ua.current_progress + ' de ' + ua.achievement.threshold"
-        >
-          <div class="progress-bar">
-            <div
-              class="progress-bar__fill"
-              [style.width.%]="ua.progress_percentage"
-            ></div>
-          </div>
-          <span class="progress-text">
-            {{ ua.current_progress }} / {{ ua.achievement.threshold }}
+      <li
+        *ngFor="let ua of mergedAchievements; trackBy: trackByCode"
+        class="achievement-card"
+        [class.achievement-card--unlocked]="ua.is_unlocked"
+        [class.achievement-card--locked]="!ua.is_unlocked"
+        role="listitem"
+      >
+        <!-- Insignia -->
+        <div class="achievement-card__badge" [attr.aria-label]="ua.achievement.title">
+          <span class="achievement-card__icon" aria-hidden="true">
+            {{ ua.achievement.icon }}
           </span>
+          <!-- Overlay de candado para logros bloqueados -->
+          <div class="achievement-card__lock" *ngIf="!ua.is_unlocked" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <!-- Checkmark para logros desbloqueados -->
+          <div class="achievement-card__check" *ngIf="ua.is_unlocked" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
         </div>
 
-        <!-- Recompensa de Tinta -->
-        <div class="achievement-card__reward" *ngIf="ua.achievement.ink_reward > 0">
-          <span class="reward-icon" aria-hidden="true">🖋️</span>
-          <span class="reward-amount">+{{ ua.achievement.ink_reward }} tinta</span>
+        <!-- Contenido textual -->
+        <div class="achievement-card__body">
+          <h3 class="achievement-card__title">{{ ua.achievement.title }}</h3>
+          <p class="achievement-card__desc">{{ ua.achievement.description }}</p>
+
+          <!-- Fecha de desbloqueo -->
+          <p class="achievement-card__date" *ngIf="ua.is_unlocked && ua.unlocked_at">
+            Desbloqueado el {{ formatUnlockDate(ua.unlocked_at) }}
+          </p>
+
+          <!-- Barra de progreso (solo para logros no desbloqueados) -->
+          <div
+            class="achievement-card__progress"
+            *ngIf="!ua.is_unlocked"
+            [attr.aria-label]="'Progreso: ' + ua.current_progress + ' de ' + ua.achievement.threshold"
+          >
+            <div class="progress-bar">
+              <div
+                class="progress-bar__fill"
+                [style.width.%]="ua.progress_percentage"
+              ></div>
+            </div>
+            <span class="progress-text">
+              {{ ua.current_progress }} / {{ ua.achievement.threshold }}
+            </span>
+          </div>
+
+          <!-- Recompensa de Tinta -->
+          <div class="achievement-card__reward" *ngIf="ua.achievement.ink_reward > 0">
+            <span class="reward-icon" aria-hidden="true">🖋️</span>
+            <span class="reward-amount">+{{ ua.achievement.ink_reward }} tinta</span>
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <!-- ── ESTADO VACÍO ───────────────────────────────────────────── -->
+    <div
+      class="achievements-empty"
+      *ngIf="!isLoading && mergedAchievements.length === 0"
+      role="status"
+    >
+      <p>No hay logros en esta categoría aún.</p>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       TAB: INK HISTORY
+  =========================================== -->
+  <div *ngIf="activeTab === 'history'" class="tab-content ink-history-tab">
+    <div class="history-list">
+      <div class="history-item" *ngFor="let tx of inkHistory">
+        <div class="tx-icon" [class.positive]="tx.amount > 0" [class.negative]="tx.amount < 0">
+          <span class="material-symbols-rounded" *ngIf="tx.amount > 0">add_circle</span>
+          <span class="material-symbols-rounded" *ngIf="tx.amount < 0">do_not_disturb_on</span>
+        </div>
+        <div class="tx-details">
+          <div class="tx-concept">{{ tx.concept }}</div>
+          <div class="tx-date">{{ formatUnlockDate(tx.created_at) }}</div>
+        </div>
+        <div class="tx-amounts">
+          <div class="tx-amount" [class.positive]="tx.amount > 0" [class.negative]="tx.amount < 0">
+            {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount }} Tinta
+          </div>
+          <div class="tx-balance">Saldo: {{ tx.balance_after }}</div>
         </div>
       </div>
-    </li>
-  </ul>
-
-  <!-- ── ESTADO VACÍO ───────────────────────────────────────────── -->
-  <div
-    class="achievements-empty"
-    *ngIf="!isLoading && mergedAchievements.length === 0"
-    role="status"
-  >
-    <p>No hay logros en esta categoría aún.</p>
+      
+      <div class="achievements-empty" *ngIf="inkHistory.length === 0">
+        <p>Aún no hay movimientos de Tinta registrados.</p>
+      </div>
+    </div>
   </div>
 
 </section>

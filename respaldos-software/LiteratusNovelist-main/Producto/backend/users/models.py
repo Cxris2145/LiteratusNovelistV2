@@ -76,12 +76,29 @@ class Profile(TimeStampedModel):
     bio = models.TextField(blank=True, default='') # Biografía o descripción corta escrita por el usuario.
     country = models.CharField(max_length=100, blank=True, default='') # País de origen o residencia del usuario. Útil para métricas.
     preferred_language = models.CharField(max_length=10, default='es') # Idioma preferido del usuario en la plataforma (ej. 'es' para español).
-    # SISTEMA DE TINTA: Recurso de energía para limitar el uso del chat con IA.
-    # Cada mensaje enviado consume 1 tinta. Los administradores pueden recargar.
+    # SISTEMA DE GAMIFICACIÓN: Tinta, XP, Nivel y Racha
     ink_balance = models.PositiveIntegerField(
         default=50,
-        help_text="Tokens de energía (Tinta) disponibles para chatear con personajes de IA."
+        help_text="Tokens de energía (Tinta) disponibles para chatear con personajes de IA o adquirir contenido."
     ) # Saldo actual de "Tinta" del usuario. Funciona como moneda virtual para interactuar con la IA o adquirir contenido.
+    
+    xp = models.PositiveIntegerField(
+        default=0,
+        help_text="Puntos de experiencia acumulados."
+    )
+    level = models.PositiveIntegerField(
+        default=1,
+        help_text="Nivel actual del lector."
+    )
+    streak_current = models.PositiveIntegerField(
+        default=0,
+        help_text="Racha actual de días consecutivos leyendo."
+    )
+    streak_last_date = models.DateField(
+        null=True, blank=True,
+        help_text="Último día en el que se validó la racha de lectura."
+    )
+    
     theme = models.CharField(max_length=50, default='default', help_text="Tema visual preferido del usuario.")
 
     class Meta:

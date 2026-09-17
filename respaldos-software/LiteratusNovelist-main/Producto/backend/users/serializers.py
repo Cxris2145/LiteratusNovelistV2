@@ -18,11 +18,30 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     """
     Serializador del perfil del usuario.
-    Solo expone datos no-sensibles de visualización como Avatar y Biografía.
+    Solo expone datos no-sensibles de visualización como Avatar y Biografía, además de gamificación.
     """
+    level_name = serializers.SerializerMethodField()
+    xp_to_next_level = serializers.SerializerMethodField()
+    
     class Meta:
         model = Profile
-        fields = ['id', 'avatar_color', 'bio', 'country', 'preferred_language', 'ink_balance', 'theme']
+        fields = ['id', 'avatar_color', 'bio', 'country', 'preferred_language', 'ink_balance', 'theme', 'xp', 'level', 'level_name', 'xp_to_next_level', 'streak_current']
+
+    def get_level_name(self, obj):
+        from django.conf import settings
+        levels = getattr(settings, 'READER_LEVELS', [])
+        for lvl in sorted(levels, key=lambda x: x['level'], reverse=True):
+            if obj.level >= lvl['level']:
+                return lvl['name']
+        return "Lector Novato"
+
+    def get_xp_to_next_level(self, obj):
+        from django.conf import settings
+        levels = getattr(settings, 'READER_LEVELS', [])
+        for lvl in sorted(levels, key=lambda x: x['level']):
+            if lvl['level'] == obj.level + 1:
+                return lvl['xp_required']
+        return obj.xp  # Nivel máximo alcanzado
 
 class UserReadSerializer(serializers.ModelSerializer):
     """

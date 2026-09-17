@@ -329,3 +329,83 @@ class UserAchievement(TimeStampedModel):
     def __str__(self):
         status = "✅" if self.is_unlocked else f"{self.progress_percentage}%"
         return f"{self.user.username} — {self.achievement.code} [{status}]"
+
+class InkTransaction(TimeStampedModel):
+    """
+    Registro histórico inmutable de movimientos de Tinta (ganancia o gasto) por gamificación.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ink_transactions',
+    )
+    amount = models.IntegerField(
+        help_text="Monto sumado (positivo) o gastado (negativo)."
+    )
+    concept = models.CharField(
+        max_length=100,
+        help_text="Clave descriptiva del motivo (ej. 'chapter_read', 'book_completed')."
+    )
+    reference_id = models.CharField(
+        max_length=255, blank=True, default='',
+        help_text="UUID del objeto relacionado, p.ej. ReadingSession.id"
+    )
+    balance_after = models.PositiveIntegerField(
+        help_text="Saldo del usuario inmediatamente después de esta transacción."
+    )
+
+    class Meta:
+        verbose_name = 'Ink Transaction'
+        verbose_name_plural = 'Ink Transactions'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} | {self.amount} Tinta ({self.concept})"
+
+class Mission(TimeStampedModel):
+    """
+    Misiones configurables (ej. 'Leer 5 capítulos en una semana').
+    """
+    RESET_CHOICES = [
+        ('weekly', 'Semanal'),
+        ('monthly', 'Mensual'),
+    ]
+
+    code = models.CharField(max_length=50, unique=True)
+    title = models.CharField(max_length=150)
+    description = models.TextField()
+    activity_type = models.CharField(
+        max_length=50, 
+        help_text="Tipo de actividad que cuenta (ej. 'chapter_read', 'ai_interaction')"
+    )
+    target_count = models.PositiveIntegerField(default=1)
+    ink_reward = models.PositiveIntegerField(default=0)
+    xp_reward = models.PositiveIntegerField(default=0)
+    reset_type = models.CharField(max_length=20, choices=RESET_CHOICES, default='weekly')
+    is_active_mission = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Mission'
+        verbose_name_plural = 'Missions'
+
+    def __str__(self):
+        return self.title
+
+
+class UserMission(TimeStampedModel):
+    """
+    Progreso de un usuario en una misión específica durante un periodo de tiempo.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='missions')
+    mission = models.ForeignKey(Mission, on_delete=models.CASCADE)
+    current_count = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    period_start = models.DateField(help_text="Inicio de la semana o mes que corresponde a este registro.")
+
+    class Meta:
+        verbose_name = 'User Mission'
+        verbose_name_plural = 'User Missions'
+        unique_together = ('user', 'mission', 'period_start')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.mission.code} ({self.current_count}/{self.mission.target_count})"

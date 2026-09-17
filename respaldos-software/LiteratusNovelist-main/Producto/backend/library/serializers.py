@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark, Achievement, UserAchievement, ReadingSession
+from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark, Achievement, UserAchievement, ReadingSession, InkTransaction
 from catalog.models import Book
 from catalog.serializers import BookListSerializer, EditionSerializer
 
@@ -149,3 +149,38 @@ class ReadingSessionSerializer(serializers.ModelSerializer):
             'chapters_read', 'created_at',
         ]
         read_only_fields = ['id', 'book_title', 'created_at']
+
+class InkTransactionSerializer(serializers.ModelSerializer):
+    """
+    Serializer para el historial de transacciones de Tinta.
+    De solo lectura.
+    """
+    class Meta:
+        model = InkTransaction
+        fields = ['id', 'amount', 'concept', 'balance_after', 'created_at']
+        read_only_fields = fields
+
+class MissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        from .models import Mission
+        model = Mission
+        fields = ['id', 'code', 'title', 'description', 'activity_type', 'target_count', 'ink_reward', 'xp_reward', 'reset_type']
+
+class UserMissionSerializer(serializers.ModelSerializer):
+    mission = MissionSerializer(read_only=True)
+    is_completed = serializers.SerializerMethodField()
+    progress_percentage = serializers.SerializerMethodField()
+
+    class Meta:
+        from .models import UserMission
+        model = UserMission
+        fields = ['id', 'mission', 'current_count', 'is_completed', 'progress_percentage', 'period_start', 'completed_at']
+        
+    def get_is_completed(self, obj):
+        return obj.completed_at is not None
+        
+    def get_progress_percentage(self, obj):
+        if not obj.mission.target_count:
+            return 0
+        p = (obj.current_count / obj.mission.target_count) * 100
+        return min(100, round(p))

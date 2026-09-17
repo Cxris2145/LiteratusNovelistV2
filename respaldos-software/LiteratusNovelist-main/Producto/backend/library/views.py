@@ -296,3 +296,56 @@ class ReadingSessionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+class InkHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Historial de transacciones de Tinta del usuario autenticado.
+    GET /api/v1/library/ink-history/
+    """
+    from .serializers import InkTransactionSerializer
+    serializer_class = InkTransactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        from .models import InkTransaction
+        return InkTransaction.objects.filter(user=self.request.user).order_by('-created_at')
+
+class UserMissionViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Misiones activas y progreso del usuario autenticado.
+    GET /api/v1/library/missions/
+    """
+    from .serializers import UserMissionSerializer
+    serializer_class = UserMissionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        from .models import UserMission, Mission
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        today = timezone.localdate()
+        start_of_week = today - timedelta(days=today.weekday())
+        start_of_month = today.replace(day=1)
+        
+        # Ensure missions exist for this week/month by querying active missions
+        # We can just fetch them, and if not present, the achievement engine will create them later.
+        # But for UI, we might want to auto-create them when the user views the missions page.
+        active_missions = Mission.objects.filter(is_active_mission=True, is_active=True)
+        for mission in active_missions:
+            period_start = start_of_week if mission.reset_type == 'weekly' else start_of_month
+            UserMission.objects.get_or_create(
+                user=self.request.user,
+                mission=mission,
+                period_start=period_start
+            )
+            
+        # Return only current period missions
+        from django.db.models import Q
+        return UserMission.objects.filter(
+            user=self.request.user,
+            mission__is_active_mission=True
+        ).filter(
+            Q(mission__reset_type='weekly', period_start=start_of_week) |
+            Q(mission__reset_type='monthly', period_start=start_of_month)
+        ).select_related('mission').order_by('completed_at', 'mission__title')

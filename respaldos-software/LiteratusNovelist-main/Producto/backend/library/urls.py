@@ -11,6 +11,8 @@ from .views import (
     AchievementCatalogViewSet,
     UserAchievementViewSet,
     ReadingSessionViewSet,
+    InkHistoryViewSet,
+    UserMissionViewSet,
 )
 
 router = DefaultRouter()
@@ -28,6 +30,10 @@ router.register(r'achievements/catalog', AchievementCatalogViewSet, basename='ac
 router.register(r'achievements/me', UserAchievementViewSet, basename='user-achievement')
 # /api/v1/library/sessions/
 router.register(r'sessions', ReadingSessionViewSet, basename='reading-session')
+# /api/v1/library/ink-history/
+router.register(r'ink-history', InkHistoryViewSet, basename='ink-history')
+# /api/v1/library/missions/
+router.register(r'missions', UserMissionViewSet, basename='mission')
 
 urlpatterns = [
     path('', include(router.urls)),

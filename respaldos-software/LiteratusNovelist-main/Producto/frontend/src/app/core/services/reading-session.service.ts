@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { GamificationService } from './gamification.service';
 
 export interface ReadingSession {
   id: string;
@@ -17,7 +18,10 @@ export class ReadingSessionService {
   private readonly apiUrl = environment.apiUrl;
   private currentSessionId: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private gamificationService: GamificationService
+  ) {}
 
   /**
    * Abre una sesión de lectura para el libro dado.
@@ -60,7 +64,13 @@ export class ReadingSessionService {
         ended_at: new Date().toISOString(),
         chapters_read: chaptersRead,
       })
-      .subscribe({ error: () => {} }); // silencioso: la sesión queda abierta si falla
+      .subscribe({ 
+        next: () => {
+          // Chequear recompensas de gamificación
+          this.gamificationService.checkRewards();
+        },
+        error: () => {} 
+      }); // silencioso: la sesión queda abierta si falla
   }
 
   get hasActiveSession(): boolean {

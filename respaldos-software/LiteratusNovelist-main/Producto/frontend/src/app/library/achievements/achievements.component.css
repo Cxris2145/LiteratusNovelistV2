@@ -404,3 +404,247 @@
 @media (max-width: 380px) {
   .achievements-grid { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   GAMIFICATION HEADER & TABS
+========================================================= */
+.gamification-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.gamification-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.level-badge-container {
+  flex-shrink: 0;
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.level-ring {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.level-ring .ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.level-ring .ring-bg {
+  fill: none;
+  stroke: var(--bg-card-hover);
+  stroke-width: 3;
+}
+
+.level-ring .ring-fill {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s ease-out;
+}
+
+.level-ring .level-fill {
+  stroke: #f59e0b;
+}
+
+.level-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.gamification-stats-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.gamification-title-area .gamification-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.gamification-title-area .gamification-xp-text {
+  margin: 0.25rem 0 0 0;
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.gamification-metrics {
+  display: flex;
+  gap: 2rem;
+}
+
+.metric-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg-body);
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.metric-icon {
+  font-size: 28px;
+  color: var(--primary);
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* MAIN TABS */
+.main-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.main-tab-btn {
+  background: none;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.main-tab-btn:hover {
+  color: var(--text-main);
+}
+
+.main-tab-btn.active {
+  color: var(--primary);
+}
+
+.main-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 3px 3px 0 0;
+}
+
+/* INK HISTORY TAB */
+.ink-history-tab {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  background: var(--bg-body);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.history-item .tx-icon {
+  font-size: 28px;
+}
+.history-item .tx-icon.positive { color: #10b981; }
+.history-item .tx-icon.negative { color: #ef4444; }
+
+.history-item .tx-details {
+  flex: 1;
+}
+
+.history-item .tx-concept {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 1.1rem;
+}
+
+.history-item .tx-date {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.history-item .tx-amounts {
+  text-align: right;
+}
+
+.history-item .tx-amount {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.history-item .tx-amount.positive { color: #10b981; }
+.history-item .tx-amount.negative { color: #ef4444; }
+
+.history-item .tx-balance {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+
+/* MISSIONS TAB */
+.mission-tag {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  align-self: flex-start;
+}
