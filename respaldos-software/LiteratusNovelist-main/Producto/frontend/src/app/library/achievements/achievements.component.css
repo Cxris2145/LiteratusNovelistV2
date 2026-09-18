@@ -81,7 +81,7 @@
   justify-content: center;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--color-primary, #D4AF37);
+  color: var(--color-primary-text);
 }
 
 .achievements-summary__stats {
@@ -91,7 +91,7 @@
 .stat-unlocked {
   font-size: 1.6rem;
   font-weight: 800;
-  color: var(--color-primary, #D4AF37);
+  color: var(--color-primary-text);
   line-height: 1;
 }
 
@@ -184,14 +184,14 @@
 .achievement-card--unlocked {
   border-color: var(--color-primary, #D4AF37);
   box-shadow:
-    0 0 0 1px rgba(212, 175, 55, 0.15),
-    0 4px 20px rgba(212, 175, 55, 0.12);
+    0 0 0 1px color-mix(in srgb, var(--color-500) 15%, transparent),
+    0 4px 20px color-mix(in srgb, var(--color-500) 12%, transparent);
 }
 
 .achievement-card--unlocked::before {
   background: radial-gradient(
     ellipse at 50% 0%,
-    rgba(212, 175, 55, 0.08) 0%,
+    color-mix(in srgb, var(--color-500) 8%, transparent) 0%,
     transparent 70%
   );
   opacity: 1;
@@ -200,8 +200,8 @@
 .achievement-card--unlocked:hover {
   transform: translateY(-4px);
   box-shadow:
-    0 0 0 1px rgba(212, 175, 55, 0.3),
-    0 8px 32px rgba(212, 175, 55, 0.2);
+    0 0 0 1px color-mix(in srgb, var(--color-500) 30%, transparent),
+    0 8px 32px color-mix(in srgb, var(--color-500) 20%, transparent);
 }
 
 /* ── ESTADO: BLOQUEADO ──────────────────────────────────────────────────── */
@@ -232,7 +232,7 @@
 
 .achievement-card--unlocked .achievement-card__badge {
   border-color: var(--color-primary, #D4AF37);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-500) 25%, transparent);
 }
 
 .achievement-card__icon {
@@ -248,7 +248,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(10, 25, 20, 0.7);
+  background: rgba(8, 16, 17, 0.7);
   border-radius: 50%;
 }
 
@@ -298,7 +298,7 @@
 }
 
 .achievement-card--unlocked .achievement-card__title {
-  color: var(--color-primary, #D4AF37);
+  color: var(--color-primary-text);
 }
 
 .achievement-card__desc {
@@ -423,7 +423,7 @@
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(8, 16, 17, 0.06);
 }
 
 .level-badge-container {
@@ -471,7 +471,7 @@
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--text-main);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 4px rgba(8, 16, 17, 0.1);
 }
 
 .gamification-stats-container {
@@ -598,7 +598,7 @@
 .history-item .tx-icon {
   font-size: 28px;
 }
-.history-item .tx-icon.positive { color: #10b981; }
+.history-item .tx-icon.positive { color: var(--color-success); }
 .history-item .tx-icon.negative { color: #ef4444; }
 
 .history-item .tx-details {
@@ -625,7 +625,7 @@
   font-weight: 700;
   font-size: 1.2rem;
 }
-.history-item .tx-amount.positive { color: #10b981; }
+.history-item .tx-amount.positive { color: var(--color-success); }
 .history-item .tx-amount.negative { color: #ef4444; }
 
 .history-item .tx-balance {
@@ -670,7 +670,7 @@
 
 .level-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(8, 16, 17, 0.08);
 }
 
 .level-card.current-level {
@@ -749,8 +749,8 @@
 }
 
 .discount-badge {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: var(--color-hover);
+  color: var(--color-primary-text);
   font-size: 0.75rem;
   font-weight: 700;
   padding: 4px 8px;
@@ -784,7 +784,7 @@
 
 .perk-icon {
   font-size: 18px;
-  color: #10b981;
+  color: var(--color-primary-text);
   flex-shrink: 0;
   margin-top: 2px;
 }

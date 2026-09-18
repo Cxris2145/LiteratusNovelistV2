@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
 
 @Component({
@@ -9,16 +10,23 @@ import { getBookPages } from '../../core/utils/book-pages.util';
 })
 export class LibraryListComponent implements OnInit {
   private api = inject(ApiService);
+  public auth = inject(AuthService);
   getBookPages = getBookPages;
 
   inventoryItems: any[] = [];
   isLoading = true;
+  isAnonymous = false;
   errorMsg = '';
 
   private readonly EAGER_COVERS = 6;
   readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   ngOnInit(): void {
+    if (!this.auth.isLoggedIn()) {
+      this.isAnonymous = true;
+      this.isLoading = false;
+      return;
+    }
     this.fetchInventory();
   }
 
@@ -52,8 +60,10 @@ export class LibraryListComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        if (!this.inventoryItems.length) {
-          this.errorMsg = 'No pudimos cargar tu biblioteca. Intenta de nuevo más tarde.';
+        if (err.status === 401) {
+          this.isAnonymous = true;
+        } else if (!this.inventoryItems.length) {
+          this.errorMsg = 'No pudimos cargar tu biblioteca en este momento. Intenta de nuevo más tarde.';
         }
         this.isLoading = false;
       }

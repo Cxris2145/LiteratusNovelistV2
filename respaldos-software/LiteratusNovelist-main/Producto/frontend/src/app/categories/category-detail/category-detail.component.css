@@ -44,7 +44,7 @@
   border-color: var(--home-glass-border);
   box-shadow: none;
 }
-.back-btn:hover { color: var(--home-sage-ink); background: var(--home-sage-surface); }
+.back-btn:hover { color: var(--color-primary-text); background: var(--home-sage-surface); }
 
 .cat-badge {
   width: fit-content;
@@ -56,7 +56,7 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   background: var(--home-sage-surface);
-  color: var(--home-sage-ink);
+  color: var(--color-primary-text);
   border-color: var(--color-border);
 }
 
@@ -214,7 +214,7 @@
   top: 15px;
   right: 15px;
   background: var(--home-parchment);
-  color: var(--home-amber-ink);
+  color: var(--color-primary-text);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.75rem;
@@ -276,26 +276,26 @@
   align-items: center;
   gap: 5px;
   padding: 3px 8px;
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: color-mix(in srgb, var(--color-500) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-500) 35%, transparent);
   border-radius: 6px;
   font-size: 0.74rem;
   font-weight: 600;
-  color: var(--glow-gold, #D4AF37);
+  color: var(--color-primary-text);
   white-space: nowrap;
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
 }
 
 .card-page-count-badge svg {
-  color: var(--glow-gold, #D4AF37);
+  color: var(--color-primary-text);
   flex-shrink: 0;
 }
 
 .book-card:hover .card-page-count-badge {
-  background: rgba(212, 175, 55, 0.22);
-  border-color: rgba(212, 175, 55, 0.6);
-  color: #FFF;
+  background: color-mix(in srgb, var(--color-500) 22%, transparent);
+  border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
+  color: var(--color-text-strong);
 }
 
 .read-hint {

@@ -286,16 +286,16 @@
 
   /* ——— Color / superficie (fallback; cada .theme-* lo refina) ——— */
   --reader-accent:        var(--glow-gold, #d4af37);
-  --reader-accent-2:      var(--glow-purple, #8b0000);
+  --reader-accent-2:      var(--glow-purple, #A34430);
   --reader-surface:       var(--th-bg-sidebar, #14261d);
   --reader-surface-2:     var(--th-bg-controls, rgba(0, 0, 0, 0.2));
   --reader-border:        var(--th-border-base, rgba(212, 175, 55, 0.15));
   --reader-text:          var(--th-text-primary, #fcfaf2);
   --reader-text-muted:    var(--th-text-secondary, #bbaea0);
   --reader-hover-bg:      var(--th-bg-hover, rgba(212, 175, 55, 0.12));
-  --reader-active-bg:     rgba(212, 175, 55, 0.16);
-  --reader-active-border: rgba(212, 175, 55, 0.45);
-  --reader-active-text:   var(--glow-gold, #d4af37);
+  --reader-active-bg:     rgba(30, 90, 168, 0.14);
+  --reader-active-border: rgba(30, 90, 168, 0.45);
+  --reader-active-text:   var(--glow-gold, #1E5AA8);
 }
 
 /* Refinado de acento por tema del lector. Prefijo .workbench-container: ese
@@ -304,7 +304,7 @@
    que Angular ata al <body> inexistente para este componente). */
 .workbench-container.theme-dark {
   --reader-accent:        #d4af37;
-  --reader-active-bg:     rgba(212, 175, 55, 0.16);
+  --reader-active-bg:     rgba(30, 90, 168, 0.14);
   --reader-active-border: rgba(212, 175, 55, 0.42);
   --reader-active-text:   #e5c455;
 }
@@ -385,7 +385,7 @@
     var(--reader-accent, #d4af37),
     color-mix(in srgb, var(--reader-accent, #d4af37) 65%, #ffffff));
   transition: width 0.1s ease-out;
-  box-shadow: 0 0 8px rgba(212, 175, 55, 0.45);
+  box-shadow: 0 0 8px rgba(30, 90, 168, 0.45);
 }
 
 /* Toolbar oculta: la barra sube al top:0 */
@@ -4962,7 +4962,7 @@ h2.chapter-heading { font-size: 1.28em; }
   color: #121212;
   border-color: var(--reader-accent, #d4af37);
   transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 12px 35px rgba(30, 90, 168, 0.30);
 }
 
 .book-page-turn-btn.turn-prev:hover:not(:disabled) .material-symbols-rounded {
@@ -4987,13 +4987,13 @@ h2.chapter-heading { font-size: 1.28em; }
 
 @keyframes turnNextGlow {
   0% {
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 0 0 rgba(30, 90, 168, 0.4);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(212, 175, 55, 0);
+    box-shadow: 0 0 0 10px rgba(30, 90, 168, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    box-shadow: 0 0 0 0 rgba(30, 90, 168, 0);
   }
 }
 

@@ -106,7 +106,7 @@
 
 .bio-section h3, .themes-section h3 {
   font-size: 1.2rem;
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -198,7 +198,7 @@
 }
 
 .books-count {
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   font-weight: 600;
 }
 
@@ -291,26 +291,26 @@
   align-items: center;
   gap: 5px;
   padding: 3px 8px;
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: color-mix(in srgb, var(--color-500) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-500) 35%, transparent);
   border-radius: 6px;
   font-size: 0.74rem;
   font-weight: 600;
-  color: var(--glow-gold, #D4AF37);
+  color: var(--color-primary-text);
   white-space: nowrap;
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
 }
 
 .card-page-count-badge svg {
-  color: var(--glow-gold, #D4AF37);
+  color: var(--color-primary-text);
   flex-shrink: 0;
 }
 
 .book-card:hover .card-page-count-badge {
-  background: rgba(212, 175, 55, 0.22);
-  border-color: rgba(212, 175, 55, 0.6);
-  color: #FFF;
+  background: color-mix(in srgb, var(--color-500) 22%, transparent);
+  border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
+  color: var(--color-text-strong);
 }
 
 .book-genres {

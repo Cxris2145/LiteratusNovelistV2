@@ -8,11 +8,11 @@
   --text-subtle: var(--home-ink-subtle);
   --glass-bg: var(--home-bg-surface);
   --glass-border: var(--home-glass-border);
-  --glow-accent: var(--home-ink);
-  --glow-purple: var(--home-ink);
+  --glow-accent: var(--color-primary);
+  --glow-purple: var(--color-primary);
   --glow-gold: var(--home-amber-ink);
   --glow-cyan: var(--home-sage-ink);
-  background: var(--home-bg);
+  background-color: var(--home-bg);
   color: var(--home-ink);
   color-scheme: dark;
 }

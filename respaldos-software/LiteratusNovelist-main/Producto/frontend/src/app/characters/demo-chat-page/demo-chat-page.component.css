@@ -28,7 +28,7 @@
 .dchat-spinner {
   width: 48px;
   height: 48px;
-  border: 3px solid rgba(212, 175, 55, 0.1);
+  border: 3px solid color-mix(in srgb, var(--color-500) 10%, transparent);
   border-top-color: var(--glow-gold);
   border-radius: 50%;
   animation: dchat-spin 1s linear infinite;
@@ -120,7 +120,7 @@
   border-radius: 24px;
   overflow: hidden;
   border: 2px solid var(--glass-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(8, 16, 17, 0.13);
   transition: transform 0.3s ease;
 }
 
@@ -139,10 +139,10 @@
   bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(8, 16, 17, 0.75);
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  color: var(--glow-gold);
+  border: 1px solid rgba(255, 179, 83, 0.3);
+  color: var(--color-primary-text);
   font-size: 0.65rem;
   font-weight: 700;
   padding: 4px 10px;
@@ -159,22 +159,22 @@
   height: 6px;
   background-color: var(--glow-gold);
   border-radius: 50%;
-  box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-500) 70%, transparent);
   animation: dchat-pulse-anim 1.5s infinite;
 }
 
 @keyframes dchat-pulse-anim {
   0% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-500) 70%, transparent);
   }
   70% {
     transform: scale(1);
-    box-shadow: 0 0 0 6px rgba(212, 175, 55, 0);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-500) 0%, transparent);
   }
   100% {
     transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-500) 0%, transparent);
   }
 }
 
@@ -189,7 +189,7 @@
 .dchat-char-book {
   font-family: var(--font-ui);
   font-size: 0.9rem;
-  color: var(--glow-gold);
+  color: var(--color-primary-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: -8px 0 0 0;
@@ -226,7 +226,7 @@
 /* Counter & Limits */
 .dchat-counter {
   width: 100%;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(8, 16, 17, 0.06);
   border: 1px solid var(--glass-border);
   padding: 12px;
   border-radius: 12px;
@@ -241,7 +241,7 @@
 .dchat-counter-bar {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-hover);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -463,11 +463,11 @@
   line-height: 1.5;
   color: var(--text-main);
   position: relative;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(8, 16, 17, 0.03);
 }
 
 .dchat-msg-bubble--char {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-hover);
   border: 1px solid var(--glass-border);
   border-top-left-radius: 4px;
   display: flex;
@@ -480,7 +480,7 @@
 }
 
 .dchat-msg-bubble--user {
-  background: linear-gradient(135deg, rgba(139, 0, 0, 0.15), rgba(212, 175, 55, 0.05));
+  background: linear-gradient(135deg, rgba(139, 0, 0, 0.15), color-mix(in srgb, var(--color-500) 5%, transparent));
   border: 1px solid var(--glass-border);
   border-top-right-radius: 4px;
 }
@@ -499,7 +499,7 @@
   font-family: var(--font-ui);
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--glow-gold);
+  color: var(--color-primary-text);
   margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -544,7 +544,7 @@
 }
 
 .dchat-limit-banner span {
-  color: var(--glow-gold);
+  color: var(--color-primary-text);
   font-size: 2rem;
 }
 
@@ -580,13 +580,13 @@
 
 .dchat-cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--color-500) 40%, transparent);
 }
 
 /* Footer Input Area */
 .dchat-input-wrap {
   padding: 16px 24px 24px;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.4) 30%);
+  background: linear-gradient(180deg, transparent, rgba(8, 16, 17, 0.4) 30%);
   z-index: 10;
 }
 
@@ -599,18 +599,18 @@
   border-radius: 24px;
   padding: 6px 12px 6px 20px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 2px 4px rgba(8, 16, 17, 0.06);
 }
 
 [data-theme="light-gallery"] .dchat-input-inner {
   background: var(--color-surface);
   border-color: var(--color-border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(8, 16, 17, 0.02);
 }
 
 .dchat-input-inner:focus-within {
   border-color: var(--glow-gold);
-  box-shadow: 0 0 12px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-500) 15%, transparent);
 }
 
 .dchat-input {
@@ -646,7 +646,7 @@
 
 .dchat-send-btn:hover:not(:disabled) {
   transform: scale(1.1);
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-500) 50%, transparent);
 }
 
 .dchat-send-btn:disabled {
@@ -753,7 +753,7 @@
    CALL MODE & VOICE UI
    ────────────────────────────────────────────────────────────────────────── */
 .immersive-mode {
-  background: rgba(0, 0, 0, 0.85) !important;
+  background: rgba(8, 16, 17, 0.85) !important;
   transition: background 0.3s ease;
 }
 
@@ -789,7 +789,7 @@
 }
 
 .chat-manga-img.speaking {
-  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
+  filter: drop-shadow(0 0 15px color-mix(in srgb, var(--color-500) 40%, transparent));
   transform: scale(1.02);
 }
 
@@ -799,18 +799,18 @@
 
 .manga-status-tag {
   margin-top: 16px;
-  background: rgba(0,0,0,0.6);
+  background: rgba(8, 16, 17, 0.6);
   padding: 8px 16px;
   border-radius: 20px;
   backdrop-filter: blur(4px);
-  color: var(--glow-gold);
+  color: var(--color-primary-text);
   font-weight: bold;
 }
 
 .voice-controls {
   margin-top: 24px;
   text-align: center;
-  color: #fff;
+  color: var(--color-text-strong);
   z-index: 10;
   width: 100%;
   max-width: 440px;
@@ -819,7 +819,7 @@
 
 .partial-transcript {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-border);
   font-style: italic;
   margin: 8px 0 0 0;
   min-height: 24px;
@@ -836,20 +836,20 @@
 .manga-glow-effect {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at bottom center, rgba(212,175,55,0.08) 0%, transparent 70%);
+  background: radial-gradient(ellipse at bottom center, color-mix(in srgb, var(--color-500) 8%, transparent) 0%, transparent 70%);
   pointer-events: none;
   border-radius: 12px;
 }
 
 /* Footer en modo llamada: más compacto y transparente */
 .call-mode-footer {
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.6) 40%) !important;
+  background: linear-gradient(180deg, transparent, rgba(8, 16, 17, 0.6) 40%) !important;
   padding: 12px 24px 20px !important;
 }
 
 .call-mode-footer .dchat-input-inner {
-  background: rgba(0, 0, 0, 0.55) !important;
-  border-color: rgba(212, 175, 55, 0.35) !important;
+  background: rgba(8, 16, 17, 0.55) !important;
+  border-color: rgba(255, 179, 83, 0.35) !important;
 }
 
 .dchat-header-actions {
@@ -859,7 +859,7 @@
 }
 
 .dchat-icon-btn {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-hover);
   border: 1px solid var(--glass-border);
   color: var(--text-main);
   width: 40px;
@@ -875,7 +875,7 @@
 .dchat-icon-btn.active {
   background: var(--glow-gold);
   color: #000;
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--color-500) 40%, transparent);
 }
 
 .dchat-mic-btn {

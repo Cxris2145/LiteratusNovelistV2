@@ -16,16 +16,47 @@
     </div>
   </div>
 
-  <!-- Error State -->
-  <div class="message-banner error" *ngIf="errorMsg">
-    {{ errorMsg }}
+  <!-- Estado No Autenticado -->
+  <div class="message-banner unauth-banner" *ngIf="!isLoading && isAnonymous">
+    <div class="unauth-icon-wrap">
+      <span class="material-symbols-rounded">auto_stories</span>
+    </div>
+    <h2 class="unauth-title">Accede a tu Biblioteca Personal</h2>
+    <p class="unauth-sub">
+      Inicia sesión para consultar tus libros adquiridos, continuar tus lecturas exactamente donde las dejaste y sincronizar tus notas y logros.
+    </p>
+    <div class="unauth-actions">
+      <a routerLink="/login" class="cta-login-btn">
+        <span class="material-symbols-rounded">login</span>
+        <span>Iniciar Sesión</span>
+      </a>
+      <a routerLink="/catalog" class="cta-catalog-btn">
+        <span class="material-symbols-rounded">explore</span>
+        <span>Explorar Catálogo</span>
+      </a>
+    </div>
   </div>
 
-  <!-- Empty State -->
-  <div class="message-banner info" *ngIf="!isLoading && inventoryItems.length === 0 && !errorMsg">
-    Aún no has adquirido ningún libro. ¡Explora el catálogo para empezar!
-    <br><br>
-    <a routerLink="/catalog" class="catalog-link-btn">Ir al Catálogo</a>
+  <!-- Error State -->
+  <div class="message-banner error" *ngIf="errorMsg && !isAnonymous">
+    <span class="material-symbols-rounded" style="font-size: 32px; display: block; margin-bottom: 8px;">error_outline</span>
+    <p>{{ errorMsg }}</p>
+    <button type="button" (click)="fetchInventory()" class="catalog-link-btn" style="margin-top: 14px; cursor: pointer; border: none;">Reintentar</button>
+  </div>
+
+  <!-- Empty State (Autenticado pero sin obras adquiridas aún) -->
+  <div class="message-banner info" *ngIf="!isLoading && !isAnonymous && inventoryItems.length === 0 && !errorMsg">
+    <div class="empty-icon-wrap">
+      <span class="material-symbols-rounded">menu_book</span>
+    </div>
+    <h2 class="empty-title">Tu biblioteca aún no tiene libros</h2>
+    <p class="empty-sub">
+      Aún no has adquirido ninguna obra en tu colección personal. ¡Explora las más de 1,000 obras maestras del catálogo para comenzar tu primera aventura literaria!
+    </p>
+    <a routerLink="/catalog" class="catalog-link-btn">
+      <span class="material-symbols-rounded">explore</span>
+      <span>Ir al Catálogo de Libros</span>
+    </a>
   </div>
 
   <!-- Grid de Inventario -->

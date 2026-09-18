@@ -86,7 +86,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly FONT_MIN = 14;
   readonly FONT_MAX = 32;
   fontSize: number = 18;
-  currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' | 'gris' = 'dark';
+  currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' | 'gris' = 'light';
   currentFontFamily: 'merriweather' | 'garamond' | 'georgia' | 'palatino' | 'outfit' | 'opensans' | 'atkinson' | 'lexend' | 'opendyslexic' | 'cinzel' = 'merriweather';
   isTocOpen: boolean = false;
   lastScrollTop: number = 0;

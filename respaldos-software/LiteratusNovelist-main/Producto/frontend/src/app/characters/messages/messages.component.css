@@ -27,9 +27,9 @@
   gap: 8px;
   padding: 5px 16px;
   border-radius: 999px;
-  background: rgba(40, 199, 111, 0.1);
-  border: 1px solid rgba(40, 199, 111, 0.3);
-  color: #79D19E;
+  background: var(--color-hover);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary-text);
   font-family: var(--font-ui, sans-serif);
   font-size: 0.78rem;
   font-weight: 700;
@@ -55,8 +55,8 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #28C76F;
-  box-shadow: 0 0 6px #28C76F;
+  background: var(--color-primary);
+  box-shadow: 0 0 6px var(--color-primary);
 }
 
 .glow-title {
@@ -81,7 +81,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #0E2018;
+  background: var(--color-surface-elevated);
   border: 1px solid var(--color-border, #1F3A2E);
   border-radius: 999px;
   padding: 4px;
@@ -110,9 +110,9 @@
 
 .tab-btn.active {
   background: var(--glow-gold, #D4AF37);
-  color: #0A1914;
+  color: var(--color-on-primary);
   font-weight: 700;
-  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--color-500) 30%, transparent);
 }
 
 .tab-icon {
@@ -123,14 +123,14 @@
   font-size: 0.72rem;
   padding: 1px 7px;
   border-radius: 999px;
-  background: #28C76F;
-  color: #0A1914;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
   font-weight: 800;
 }
 
 .tab-btn.active .tab-badge {
-  background: #0A1914;
-  color: var(--glow-gold, #D4AF37);
+  background: var(--color-bg-secondary);
+  color: var(--color-primary-text);
 }
 
 /* ── Barra de Búsqueda y Acciones ── */
@@ -154,7 +154,7 @@
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--glow-gold, #D4AF37);
+  color: var(--color-primary-text);
   font-size: 1.25rem;
   pointer-events: none;
 }
@@ -207,12 +207,13 @@
 }
 
 .secondary-btn {
-  background: rgba(20, 41, 31, 0.8);
+  background: var(--color-surface);
   border: 1px solid var(--color-border, #1F3A2E);
   color: var(--text-muted, #A2B2A8);
 }
 
 .secondary-btn:hover {
+  background: var(--color-hover);
   border-color: var(--glow-gold, #D4AF37);
   color: var(--text-main, #FCFAF2);
 }
@@ -220,13 +221,13 @@
 .primary-btn {
   background: var(--glow-gold, #D4AF37);
   border: none;
-  color: #0A1914;
+  color: var(--color-on-primary);
   font-weight: 700;
 }
 
 .primary-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-500) 35%, transparent);
 }
 
 /* ── Lista de Conversaciones ── */
@@ -251,13 +252,13 @@
 
 .conv-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  border-color: color-mix(in srgb, var(--color-500) 50%, transparent);
+  box-shadow: 0 10px 24px rgba(8, 16, 17, 0.13);
 }
 
 .conv-card.unread {
-  border-color: rgba(40, 199, 111, 0.45);
-  background: linear-gradient(90deg, rgba(40, 199, 111, 0.05) 0%, rgba(20, 41, 31, 0.95) 100%);
+  border-color: var(--color-primary);
+  background: linear-gradient(90deg, var(--color-hover), var(--color-surface));
 }
 
 .conv-avatar-wrap {
@@ -274,7 +275,7 @@
   object-fit: cover;
   border-radius: 50%;
   border: 2px solid var(--color-border, #1F3A2E);
-  background: #081510;
+  background: var(--color-bg-secondary);
 }
 
 .online-indicator {
@@ -284,8 +285,8 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #28C76F;
-  border: 2px solid #0E2018;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface-elevated);
 }
 
 .unread-dot-badge {
@@ -295,8 +296,8 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #28C76F;
-  box-shadow: 0 0 8px #28C76F;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary);
 }
 
 .conv-body {
@@ -329,11 +330,11 @@
 
 .book-tag {
   font-size: 0.75rem;
-  color: var(--glow-gold, #D4AF37);
-  background: rgba(212, 175, 55, 0.1);
+  color: var(--color-primary-text);
+  background: color-mix(in srgb, var(--color-500) 10%, transparent);
   padding: 2px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-500) 20%, transparent);
 }
 
 .conv-time {
@@ -354,7 +355,7 @@
 }
 
 .conv-card.unread .conv-snippet {
-  color: #E2EAE5;
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
@@ -378,7 +379,7 @@
   gap: 4px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--glow-gold, #D4AF37);
+  color: var(--color-primary-text);
   transition: gap 0.2s ease;
 }
 
@@ -408,8 +409,8 @@
 }
 
 .notice-card.unread {
-  border-color: rgba(212, 175, 55, 0.4);
-  background: linear-gradient(90deg, rgba(212, 175, 55, 0.05) 0%, rgba(20, 41, 31, 0.95) 100%);
+  border-color: var(--color-primary);
+  background: linear-gradient(90deg, var(--color-hover), var(--color-surface));
 }
 
 .notice-icon-wrap {
@@ -420,21 +421,21 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(212, 175, 55, 0.12);
-  color: var(--glow-gold, #D4AF37);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: color-mix(in srgb, var(--color-500) 12%, transparent);
+  color: var(--color-primary-text);
+  border: 1px solid color-mix(in srgb, var(--color-500) 25%, transparent);
 }
 
 .notice-icon-wrap[data-cat="book"] {
-  background: rgba(121, 209, 158, 0.12);
-  color: #79D19E;
-  border-color: rgba(121, 209, 158, 0.3);
+  background: var(--color-hover);
+  color: var(--color-primary-text);
+  border-color: var(--color-border);
 }
 
 .notice-icon-wrap[data-cat="ink"] {
-  background: rgba(124, 58, 237, 0.12);
-  color: #B794F4;
-  border-color: rgba(124, 58, 237, 0.3);
+  background: var(--color-hover);
+  color: var(--color-primary-text);
+  border-color: var(--color-border);
 }
 
 .notice-content {
@@ -471,7 +472,7 @@
 
 .notice-link-btn {
   font-size: 0.82rem;
-  color: var(--glow-gold, #D4AF37);
+  color: var(--color-primary-text);
   font-weight: 700;
   text-decoration: none;
 }
@@ -497,7 +498,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: #14291F;
+  background: var(--color-surface);
 }
 
 .skeleton-texts {
@@ -508,7 +509,7 @@
 }
 
 .skeleton-line {
-  background: #14291F;
+  background: var(--color-surface);
   border-radius: 4px;
 }
 
@@ -546,7 +547,7 @@
   border-radius: 10px;
   border: none;
   background: var(--glow-gold, #D4AF37);
-  color: #0A1914;
+  color: var(--color-on-primary);
   font-weight: 700;
   cursor: pointer;
 }

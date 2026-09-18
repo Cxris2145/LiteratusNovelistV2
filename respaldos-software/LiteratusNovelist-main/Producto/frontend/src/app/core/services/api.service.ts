@@ -43,9 +43,14 @@ export class ApiService {
       return hit.stream$ as Observable<T>;
     }
     const stream$ = this.http.get<T>(`${this.baseUrl}${endpoint}`, { params: params || new HttpParams() }).pipe(
-      tap(value => {
-        const e = this.cache.get(key);
-        if (e) e.value = value;
+      tap({
+        next: value => {
+          const e = this.cache.get(key);
+          if (e) e.value = value;
+        },
+        error: () => {
+          this.cache.delete(key);
+        }
       }),
       shareReplay({ bufferSize: 1, refCount: false })
     ) as Observable<unknown>;

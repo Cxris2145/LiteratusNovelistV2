@@ -18,7 +18,7 @@
   font-family: var(--font-display);
   font-size: 2.2rem;
   margin-bottom: 10px;
-  color: var(--glow-gold);
+  color: var(--color-primary-text);
 }
 
 [data-theme="neon"] .auth-title {
@@ -64,14 +64,14 @@
 }
 
 .glow-link {
-  color: var(--glow-gold);
+  color: var(--color-primary-text);
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s;
 }
 
 [data-theme="neon"] .glow-link {
-  color: var(--glow-accent);
+  color: var(--color-primary-text);
 }
 
 [data-theme="light-gallery"] .glow-link {

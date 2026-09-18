@@ -26,7 +26,7 @@ export class ProfileComponent implements OnInit {
   
   settingsService = inject(SettingsService);
   availableThemes = [
-    { id: 'default', label: 'Classic Dark' },
+    { id: 'default', label: 'Amanecer (claro)' },
     { id: 'neon', label: 'Cyber Neon' },
     { id: 'light-gallery', label: 'Light Gallery' }
   ];

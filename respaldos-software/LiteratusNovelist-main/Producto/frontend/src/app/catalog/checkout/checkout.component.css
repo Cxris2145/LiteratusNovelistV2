@@ -88,7 +88,7 @@
 
 .product-type-badge {
   font-size: 0.8rem;
-  color: var(--color-primary);
+  color: var(--color-primary-text);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 0.5rem;

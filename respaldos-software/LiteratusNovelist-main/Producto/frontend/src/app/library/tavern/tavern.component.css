@@ -40,7 +40,7 @@
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
-  background:     var(--home-bg);
+  background: transparent;
 }
 
 /* Overlay de gradiente animado sobre el fondo */
@@ -454,7 +454,7 @@
 .progress-track {
   width: 100%;
   height: 4px;
-  background: #DEE8DB;
+  background: var(--color-bg-secondary);
   border-radius: 2px;
   margin-top: 1rem;
   overflow: hidden;
@@ -562,10 +562,10 @@
 
 /* Featured (Erudito) */
 .chest-featured {
-  border-color: #C7AD90;
+  border-color: var(--color-border-strong);
   padding-top: 3rem;
   box-shadow: none;
-  background:     #F7EBDC;
+  background: var(--color-surface-elevated);
 }
 .chest-featured::after {
   content: '';
@@ -588,7 +588,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--home-parchment);
-  color: var(--home-amber-ink);
+  color: var(--color-primary-text);
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -601,13 +601,13 @@
   position: static;
   transform: none;
   background: var(--home-sage-surface);
-  color: var(--home-sage-ink);
+  color: var(--color-primary-text);
   border: 1px solid var(--glass-border);
   padding: 0.2rem 0.75rem;
   border-radius: 20px;
   font-size: 0.6rem;
   margin-bottom: -0.5rem;
-  border-color:     #BCCDBA;
+  border-color:     var(--color-border);
 }
 
 /* Icon */
@@ -717,12 +717,12 @@
 }
 
 .btn-buy--featured {
-  border-color: var(--home-accent-amber);
-  background: var(--home-accent-amber);
+  border-color: var(--color-primary);
+  background: var(--color-hover);
   color: var(--home-ink-strong);
 }
 .btn-buy--featured:hover {
-  background: #F5A747;
+  background: var(--color-selected);
   box-shadow: none;
   color:     var(--home-ink-strong);
 }
@@ -805,7 +805,7 @@
 }
 .btn-secondary:hover {
   background: var(--home-sage-surface);
-  color: var(--home-sage-ink);
+  color: var(--color-primary-text);
   transform: translateX(-3px);
 }
 

@@ -14,51 +14,64 @@
    ──────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Sistema semántico WCAG 2.2 AA — Classic Dark.
-     Los componentes deben consumir estos tokens o sus alias de compatibilidad. */
-  --color-bg-primary:       #0A1914;
-  --color-bg-secondary:     #0F211A;
-  --color-surface:          #14291F;
-  --color-surface-elevated: #1A3327;
-  --color-text-primary:     #FCFAF2;
-  --color-text-strong:      #FFFDF8;
-  --color-text-secondary:   #C9BEB0;
-  --color-text-disabled:    #A99B8C;
-  --color-border:           #6F7F75;
-  --color-border-strong:    #D4AF37;
-  --color-primary:          #D4AF37;
-  --color-on-primary:       #1C1607;
-  --color-nav-active-bg:    #D4AF37;
-  --color-nav-active-text:  #1C1607;
-  --color-hover:            #213B2F;
-  --color-selected:         #2B493A;
-  --color-focus:            #E3BF49;
-  --color-success:          #9EE0AA;
-  --color-success-bg:       #17351F;
-  --color-warning:          #F3C66D;
-  --color-warning-bg:       #3C2B0F;
-  --color-info:             #9BD7EB;
-  --color-info-bg:          #143441;
-  --color-error:            #FFB0A8;
-  --color-error-bg:         #431C1C;
-  --color-selection-bg:     #D4AF37;
-  --color-selection-text:   #1C1607;
-  --color-image-overlay:    rgba(9, 17, 13, 0.82);
-  --color-shadow:           rgba(0, 0, 0, 0.28);
-  --color-skeleton:         #263B31;
-  --color-skeleton-shine:   #344C40;
+  /* Escala azul petróleo compartida por todas las secciones. */
+  --color-50:  #EEF5F7;
+  --color-100: #CFE3E8;
+  --color-200: #B0D1D9;
+  --color-300: #91BFCA;
+  --color-400: #72AEBB;
+  --color-500: #539CAC;
+  --color-600: #417A87;
+  --color-700: #35646E;
+  --color-800: #26484F;
+  --color-900: #172C30;
+  --color-950: #081011;
 
-  /* Paleta de color — Classic Literature Artisanal (Default) */
-  --bg-color:        #0A1914;  /* Deep Emerald Dark */
-  --bg-surface:      #11261d;  /* Darker surface */
-  --text-main:       #fcfaf2;  /* Parchment white */
-  --text-muted:      #bbaea0;  /* Aged paper gray */
-  --text-subtle:     #8a7f72;
-  --glass-bg:        rgba(10, 25, 20, 0.4);
-  --glass-border:    rgba(212, 175, 55, 0.15); /* Old Gold */
-  --glow-accent:     #D4AF37;  /* Old Gold */
-  --glow-purple:     #8B0000;  /* Deep Burgundy */
-  --glow-gold:       #D4AF37;  /* Old Gold */
+  --color-bg-primary:       var(--color-950);
+  --color-bg-secondary:     var(--color-900);
+  --color-surface:          var(--color-900);
+  --color-surface-elevated: var(--color-800);
+  --color-text-primary:     var(--color-100);
+  --color-text-strong:      var(--color-50);
+  --color-text-secondary:   var(--color-300);
+  --color-text-disabled:    var(--color-300);
+  --color-border:           var(--color-800);
+  --color-border-strong:    var(--color-500);
+  --color-primary:          var(--color-700);
+  --color-primary-text:     var(--color-100);
+  --color-primary-hover:    color-mix(in srgb, var(--color-700) 80%, var(--color-950));
+  --color-on-primary:       var(--color-50);
+  --color-nav-active-bg:    var(--color-700);
+  --color-nav-active-text:  var(--color-50);
+  --color-hover:            var(--color-800);
+  --color-selected:         var(--color-700);
+  --color-focus:            var(--color-200);
+  --color-success:          #34D399;
+  --color-success-bg:       rgba(52, 211, 153, 0.14);
+  --color-warning:          #FFB353;
+  --color-warning-bg:       rgba(255, 179, 83, 0.14);
+  --color-info:             var(--color-200);
+  --color-info-bg:          var(--color-800);
+  --color-error:            #F87171;
+  --color-error-bg:         rgba(248, 113, 113, 0.18);
+  --color-selection-bg:     var(--color-700);
+  --color-selection-text:   var(--color-50);
+  --color-image-overlay:    rgba(8, 16, 17, 0.85);
+  --color-shadow:           rgba(0, 0, 0, 0.55);
+  --color-skeleton:         var(--color-900);
+  --color-skeleton-shine:   var(--color-800);
+  --color-accent:           #FFB353;
+  --color-on-accent:        var(--color-950);
+  --color-accent-text:      #FFB353;
+  --color-accent-soft:      rgba(255, 179, 83, 0.14);
+  --color-accent-blue-soft: var(--color-800);
+  --glow-purple:            var(--color-400);
+
+  /* El mismo fondo del inicio, también en Explorar y las demás rutas. */
+  --color-page-background:
+    radial-gradient(ellipse 70% 50% at 50% -10%, color-mix(in srgb, var(--color-600) 20%, transparent), transparent),
+    radial-gradient(ellipse 60% 40% at 85% 30%, color-mix(in srgb, var(--color-700) 15%, transparent), transparent),
+    radial-gradient(ellipse 60% 40% at 15% 65%, color-mix(in srgb, var(--color-800) 18%, transparent), transparent);
 
   /* Sistema tipográfico Default */
   --font-display:    'Cormorant Garamond', 'EB Garamond', Georgia, serif;
@@ -67,11 +80,7 @@
   --font-brand:      'Cinzel', 'Trajan Pro', Georgia, serif;
   --font-literary:   'EB Garamond', Georgia, serif;
 
-  /* ── Métricas de lectura del LECTOR (valores por defecto) ──
-     Deben vivir en :root REAL (no en el CSS encapsulado del componente):
-     el TS de reader.component las sobrescribe inline en <html> desde "Aa",
-     y una declaración inline en <html> sólo gana a una regla de :root, no a
-     una heredada de un :host más profundo. Sólo las consume el lector. */
+  /* ── Métricas de lectura del LECTOR (valores por defecto) ── */
   --font-size-reader:      18px;
   --reader-font-size:      var(--font-size-reader, 18px);
   --reader-line-height:    1.75;
@@ -87,34 +96,33 @@
   --reader-brightness:     1;
   --reader-highlight-hex:  #eab308;
 
-  /* ── Paleta "Boutique Literaria" — usada por el nuevo Home ──
-     5 colores fijos, aplicados con jerarquía 60/30/10 (ver plan de
-     rediseño). Ámbar/coral son claros: nunca usarlos como color de
-     texto de cuerpo (fallan contraste AA sobre el fondo crema). */
-  --home-bg:               #FAF6F0;  /* Papel: tinte ligero del crema de marca */
-  --home-bg-surface:       #FFFCF8;
-  --home-parchment:        #EDDBC4;  /* Crema original, reservado para énfasis */
-  --home-ink:               #5C5259;  /* Gris malva oscuro — texto principal */
-  --home-ink-muted:        #70656C;
-  --home-ink-subtle:       #786D73;
-  --home-ink-strong:       #40383E;
-  --home-accent-amber:     #FFB353;  /* Acento primario — CTAs */
-  --home-accent-coral:     #FF6E4A;  /* Acento secundario — IA / energía */
-  --home-accent-sage:      #A3C9A7;  /* Acento terciario — progreso / calma */
-  --home-amber-ink:        #80531D;
-  --home-coral-ink:        #A34430;
-  --home-sage-ink:         #416449;
-  --home-sage-surface:     #EDF2EA;
-  --home-coral-surface:    #FAEAE3;
-  --home-glass-bg:         rgba(250, 246, 240, 0.96);
-  --home-glass-border:     #DED5D5;
-  --home-shadow:           rgba(64, 56, 62, 0.09);
+  /* ── Paleta "Boutique Literaria" — Sincronizada con Obsidian Teal ── */
+  --home-bg:               #081011;
+  --home-bg-surface:       #172C30;
+  --home-parchment:        #26484F;
+  --home-ink:              #D6E6E9;
+  --home-ink-muted:        #8FAEB5;
+  --home-ink-subtle:       #55757E;
+  --home-ink-strong:       #FFFFFF;
+  --home-accent-amber:     #FFB353;
+  --home-accent-coral:     #FF6E4A;
+  --home-accent-sage:      #417A87;
+  --home-amber-ink:        #FFB353;
+  --home-coral-ink:        #FF8A65;
+  --home-sage-ink:         #68B7C5;
+  --home-sage-surface:     #172C30;
+  --home-coral-surface:    rgba(255, 110, 74, 0.16);
+  --home-glass-bg:         rgba(23, 44, 48, 0.92);
+  --home-glass-border:     #26484F;
+  --home-shadow:           rgba(0, 0, 0, 0.50);
   --home-content-width:    1200px;
   --home-gutter:           max(clamp(20px, 5vw, 72px), calc((100vw - var(--home-content-width)) / 2));
 }
 
 /* Tema Clásico Original (Neón) para demo al cliente */
 [data-theme="neon"] {
+  --color-primary-text: var(--color-primary);
+  --color-primary-hover: var(--color-primary);
   --color-bg-primary:       #0B0F1A;
   --color-bg-secondary:     #0F1626;
   --color-surface:          #111827;
@@ -163,6 +171,8 @@
 
 /* Tema Light Gallery (Minimalista, Estilo Galería de Arte) */
 [data-theme="light-gallery"] {
+  --color-primary-text: var(--color-primary);
+  --color-primary-hover: var(--color-primary);
   --color-bg-primary:       #FAF6F0;
   --color-bg-secondary:     #F1E8DE;
   --color-surface:          #FFFCF8;
@@ -238,8 +248,8 @@
   --home-ink-strong:   var(--color-text-strong);
   --home-amber-ink:    var(--color-primary);
   --home-coral-ink:    var(--color-error);
-  --home-sage-ink:     var(--color-success);
-  --home-sage-surface: var(--color-success-bg);
+  --home-sage-ink:     var(--color-primary);
+  --home-sage-surface: var(--color-hover);
   --home-coral-surface:var(--color-error-bg);
   --home-glass-bg:     color-mix(in srgb, var(--color-surface) 96%, transparent);
   --home-glass-border: var(--color-border);
@@ -284,15 +294,11 @@ body {
   overflow-x: clip; /* Usar clip en vez de hidden impide la creación de un contexto de scroll en Windows */
   overflow-y: visible !important;
   /*
-   * FONDO ARTESANAL — Tres capas:
+   * FONDO ARTESANAL — Obsidian Teal:
    */
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
-    radial-gradient(ellipse 60% 50% at 15% 55%, rgba(212, 175, 55, 0.08), transparent),
-    radial-gradient(ellipse 55% 45% at 85% 25%, rgba(139, 0, 0, 0.06), transparent),
-    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(212, 175, 55, 0.03), transparent);
+  background-image: var(--color-page-background);
   background-attachment: fixed;
-  background-size: 300px 300px, 100% 100%, 100% 100%, 100% 100%;
+  background-size: 100% 100%;
 }
 
 [data-theme="neon"] body {
@@ -314,7 +320,8 @@ body {
    capa conserva la estructura existente y corrige los pares de bajo contraste
    que antes estaban fijados a grises sobre azul casi negro. */
 app-dashboard-layout .nexus-content {
-  background: var(--color-bg-primary);
+  background-color: var(--color-bg-primary);
+  background-image: var(--color-page-background);
   color: var(--color-text-primary);
 }
 
@@ -429,7 +436,7 @@ app-dashboard-layout :is(.alert-success, .success-message) {
 /* Premium Buttons: Artesanal */
 .glass-btn {
   background: var(--bg-surface);
-  color: var(--glow-gold);
+  color: var(--color-primary-text);
   border: 1px solid var(--glass-border);
   padding: 12px 24px;
   border-radius: 4px; /* Menos redondeado, más clásico */
@@ -523,7 +530,7 @@ body:has(.container.dashboard-mode) {
 .lucide-icon:hover {
   transform: scale(1.15) translateY(-2px);
   filter: drop-shadow(0 0 12px var(--glow-accent));
-  color: var(--glow-accent);
+  color: var(--color-primary-text);
 }
 
 .checkout-icon .lucide-icon, .ink-icon .lucide-icon {
