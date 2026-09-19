@@ -30,6 +30,7 @@ export class ProfileComponent implements OnInit {
     { id: 'neon', label: 'Cyber Neon' },
     { id: 'light-gallery', label: 'Light Gallery' }
   ];
+  selectedTheme: string = 'default';
   equippedFrame: string = '';
   equippedTitle: string = '';
 
