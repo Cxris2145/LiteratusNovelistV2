@@ -1,0 +1,102 @@
+<div class="categories-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Taxonomía Literaria</div>
+      <h1 class="header-title">Categorías & Géneros</h1>
+      <p class="header-desc">Administra los {{ genres.length }} géneros literarios de la plataforma, portadas temáticas y obras vinculadas.</p>
+    </div>
+    <div class="header-actions">
+      <button class="primary-btn" (click)="openCreateModal()">
+        <span class="material-symbols-outlined">add</span>
+        Nueva Categoría
+      </button>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-banner" *ngIf="toastMessage">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- BUSCADOR -->
+  <div class="search-bar-wrap">
+    <div class="search-input-box">
+      <span class="material-symbols-outlined">search</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (input)="filterGenres()" 
+        placeholder="Buscar categoría por nombre o descripción...">
+    </div>
+    <span class="count-pill">Total: {{ filteredGenres.length }} categorías</span>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando catálogo de géneros...</p>
+  </div>
+
+  <!-- GRID DE GÉNEROS -->
+  <div class="genres-grid" *ngIf="!loading">
+    <div class="genre-card" *ngFor="let g of filteredGenres">
+      <div class="genre-cover" [style.background-image]="g.cover_image ? 'url(' + g.cover_image + ')' : 'none'">
+        <div class="genre-overlay">
+          <span class="books-count-badge">
+            <span class="material-symbols-outlined">book</span>
+            {{ g.books_count }} {{ g.books_count === 1 ? 'libro' : 'libros' }}
+          </span>
+        </div>
+      </div>
+      <div class="genre-body">
+        <h2 class="genre-name">{{ g.name }}</h2>
+        <span class="genre-slug">/catalogo/generos/{{ g.slug }}</span>
+        <p class="genre-desc">{{ g.description || 'Sin descripción detallada registrada.' }}</p>
+
+        <div class="card-footer-actions">
+          <button class="icon-btn edit-btn" (click)="openEditModal(g)" title="Editar Categoría">
+            <span class="material-symbols-outlined">edit</span>
+            Editar
+          </button>
+          <button class="icon-btn delete-btn" (click)="delete(g)" title="Eliminar Categoría">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CREACIÓN / EDICIÓN -->
+  <div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ editingGenre ? 'Editar Categoría' : 'Nueva Categoría' }}</h2>
+        <button class="close-btn" (click)="closeModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="cName">Nombre de la Categoría *</label>
+          <input id="cName" type="text" [(ngModel)]="formName" class="form-input" placeholder="Ej. Novela Histórica">
+        </div>
+        <div class="form-group">
+          <label for="cDesc">Descripción Editorial</label>
+          <textarea id="cDesc" [(ngModel)]="formDescription" rows="3" class="form-input" placeholder="Breve contexto literario sobre el género..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Portada Temática (Opcional)</label>
+          <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" (click)="closeModal()" [disabled]="saving">Cancelar</button>
+        <button class="primary-btn" (click)="save()" [disabled]="saving">
+          <span *ngIf="!saving">{{ editingGenre ? 'Guardar Cambios' : 'Crear Categoría' }}</span>
+          <span *ngIf="saving">Guardando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

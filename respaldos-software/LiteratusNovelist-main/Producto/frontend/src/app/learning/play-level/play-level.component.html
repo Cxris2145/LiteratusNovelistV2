@@ -1,0 +1,301 @@
+<!-- src/app/learning/play-level/play-level.component.html -->
+<div class="play-level-container fade-in">
+
+  <!-- ── BARRA SUPERIOR DE SESIÓN ── -->
+  <header class="session-header">
+    <button type="button" class="exit-btn" (click)="quitSession()" aria-label="Salir de la sesión">
+      <span class="material-symbols-rounded">close</span>
+    </button>
+
+    <!-- BARRA DE PROGRESO (SOLO EN CUESTIONARIO) -->
+    <div class="session-progress-bar" *ngIf="gameState === 'quiz'">
+      <div class="session-progress-fill" [style.width.%]="quizProgressPercent"></div>
+    </div>
+
+    <!-- VIDAS / CORAZONES -->
+    <div class="session-hearts" *ngIf="gameState !== 'victory'">
+      <span class="material-symbols-rounded heart-icon">favorite</span>
+      <span class="hearts-count">{{ result ? result.hearts_remaining : (learningService.userStatus$ | async)?.hearts ?? 5 }}</span>
+    </div>
+  </header>
+
+  <!-- ── LOADING SKELETON ── -->
+  <div class="play-loading" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Preparando lectura y preguntas de comprensión...</p>
+  </div>
+
+  <div class="play-content-area" *ngIf="!isLoading && session">
+
+    <!-- ══════════════════════════════════════════════════════════════
+         FASE 1: LECTURA DE PÁGINAS DEL PASAJE
+    ══════════════════════════════════════════════════════════════ -->
+    <section class="reading-phase" *ngIf="gameState === 'reading'">
+      
+      <div class="book-meta-bar">
+        <div class="meta-tag difficulty-tag" [class]="session.difficulty">
+          {{ session.difficulty | uppercase }}
+        </div>
+        <div class="meta-source" *ngIf="session.book_title">
+          <span class="material-symbols-rounded source-icon">auto_stories</span>
+          <span class="source-title">{{ session.book_title }}</span>
+          <span class="source-author" *ngIf="session.author_name"> — {{ session.author_name }}</span>
+        </div>
+      </div>
+
+      <!-- PÁGINA DE LECTURA TIPO LIBRO REAL -->
+      <article class="parchment-page">
+        <div class="parchment-inner">
+          <h1 class="page-passage-title">{{ session.level_title }}</h1>
+          <div class="passage-text-body">
+            <p *ngFor="let paragraph of session.pages[currentPageIndex]?.split('\n')">
+              {{ paragraph }}
+            </p>
+          </div>
+        </div>
+        
+        <div class="page-footer-index">
+          Página {{ currentPageIndex + 1 }} de {{ session.pages.length }}
+        </div>
+      </article>
+
+      <!-- CONTROLES DE PAGINACIÓN -->
+      <div class="reading-nav-bar">
+        <button 
+          type="button" 
+          class="nav-btn prev-btn" 
+          [disabled]="currentPageIndex === 0"
+          (click)="prevPage()"
+        >
+          <span class="material-symbols-rounded">arrow_back</span>
+          <span>Anterior</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="nav-btn next-btn" 
+          *ngIf="currentPageIndex < session.pages.length - 1"
+          (click)="nextPage()"
+        >
+          <span>Siguiente</span>
+          <span class="material-symbols-rounded">arrow_forward</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="nav-btn start-quiz-btn" 
+          *ngIf="currentPageIndex === session.pages.length - 1"
+          (click)="startQuiz()"
+        >
+          <span>Comenzar Preguntas</span>
+          <span class="material-symbols-rounded">quiz</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         FASE 2: CUESTIONARIO INTERACTIVO
+    ══════════════════════════════════════════════════════════════ -->
+    <section class="quiz-phase" *ngIf="gameState === 'quiz' && currentQuestion">
+      
+      <div class="question-header">
+        <span class="question-counter">Pregunta {{ currentQuestionIndex + 1 }} de {{ session.questions.length }}</span>
+        <h2 class="question-prompt">{{ currentQuestion.prompt }}</h2>
+      </div>
+
+      <!-- TIPO A: OPCIÓN MÚLTIPLE / VOCABULARIO / ROL DE PERSONAJE -->
+      <div 
+        class="options-grid" 
+        *ngIf="currentQuestion.type !== 'order_events'"
+        role="radiogroup"
+      >
+        <button 
+          type="button"
+          class="option-card"
+          *ngFor="let opt of currentQuestion.options"
+          [class.option-selected]="currentSelectedOptionId === opt.id"
+          [disabled]="isQuestionChecked"
+          (click)="selectOption(opt.id)"
+          role="radio"
+          [attr.aria-checked]="currentSelectedOptionId === opt.id"
+        >
+          <span class="opt-letter">{{ opt.id | uppercase }}</span>
+          <span class="opt-text">{{ opt.text }}</span>
+        </button>
+      </div>
+
+      <!-- TIPO B: ORDENAR ACONTECIMIENTOS -->
+      <div class="order-events-container" *ngIf="currentQuestion.type === 'order_events'">
+        <p class="order-instructions">Organiza los acontecimientos en el orden en que ocurrieron:</p>
+        <div class="order-list">
+          <div 
+            class="order-item-card" 
+            *ngFor="let item of orderedItems; let idx = index"
+          >
+            <div class="order-badge">{{ idx + 1 }}</div>
+            <div class="order-content">{{ item }}</div>
+            <div class="order-arrows" *ngIf="!isQuestionChecked">
+              <button 
+                type="button" 
+                class="arrow-btn" 
+                [disabled]="idx === 0"
+                (click)="moveOrderItem(idx, 'up')"
+                aria-label="Subir acontecimiento"
+              >
+                ▲
+              </button>
+              <button 
+                type="button" 
+                class="arrow-btn" 
+                [disabled]="idx === orderedItems.length - 1"
+                (click)="moveOrderItem(idx, 'down')"
+                aria-label="Bajar acontecimiento"
+              >
+                ▼
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BARRA INFERIOR DE VALIDACIÓN (ESTILO DUOLINGO) ── -->
+      <footer 
+        class="quiz-bottom-tray"
+        [class.tray-checked]="isQuestionChecked"
+      >
+        <div class="tray-inner">
+          
+          <div class="tray-action-box" *ngIf="!isQuestionChecked">
+            <button 
+              type="button" 
+              class="verify-btn" 
+              [disabled]="!canCheck()"
+              (click)="checkAnswer()"
+            >
+              Comprobar
+            </button>
+          </div>
+
+          <div class="tray-feedback-box" *ngIf="isQuestionChecked">
+            <p class="feedback-ready-text">Respuesta registrada. ¡Avanza a la siguiente!</p>
+            <button 
+              type="button" 
+              class="verify-btn next-q-btn" 
+              (click)="continueNextQuestion()"
+            >
+              {{ currentQuestionIndex === session.questions.length - 1 ? 'Finalizar y Calificar' : 'Siguiente Pregunta' }}
+            </button>
+          </div>
+
+        </div>
+      </footer>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         FASE 3: PANTALLA DE RESULTADOS (VICTORIA / RESUMEN)
+    ══════════════════════════════════════════════════════════════ -->
+    <section class="result-phase zoom-in" *ngIf="gameState === 'victory' && result">
+      
+      <div class="result-card glass-panel">
+        
+        <!-- ENCABEZADO DE VICTORIA O ÁNIMO -->
+        <div class="result-header">
+          <div class="result-trophy">{{ result.passed ? '🎉' : '📖' }}</div>
+          <h2 class="result-title">{{ result.passed ? '¡Nivel Superado!' : 'Sigue Practicando' }}</h2>
+          <p class="result-sub">
+            {{ result.passed ? 'Has demostrado una comprensión sólida del texto.' : 'No alcanzaste el puntaje mínimo de este nivel, ¡pero cada intento te hace mejor lector!' }}
+          </p>
+        </div>
+
+        <!-- ESTRELLAS OBTENIDAS -->
+        <div class="result-stars" *ngIf="result.passed">
+          <span class="star-big" [class.star-lit]="result.stars >= 1">★</span>
+          <span class="star-big" [class.star-lit]="result.stars >= 2">★</span>
+          <span class="star-big" [class.star-lit]="result.stars >= 3">★</span>
+        </div>
+
+        <!-- CALIFICACIÓN Y ACIERTOS -->
+        <div class="result-metrics-grid">
+          <div class="metric-card">
+            <span class="metric-num">{{ result.score }}%</span>
+            <span class="metric-tag">Acierto</span>
+          </div>
+          <div class="metric-card" *ngIf="result.passed">
+            <span class="metric-num">+{{ result.xp_earned }}</span>
+            <span class="metric-tag">XP</span>
+          </div>
+          <div class="metric-card" *ngIf="result.passed">
+            <span class="metric-num">+{{ result.ink_earned }}</span>
+            <span class="metric-tag">Tinta 🖋️</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-num">🔥 {{ result.streak_current }}</span>
+            <span class="metric-tag">Racha</span>
+          </div>
+        </div>
+
+        <!-- FEEDBACK EDUCATIVO DETALLADO -->
+        <div class="feedback-recap-section">
+          <h3 class="recap-title">Revisión Pedagógica de Preguntas</h3>
+          <div class="recap-list">
+            <div 
+              class="recap-item" 
+              *ngFor="let item of result.feedback; let i = index"
+              [class.recap-correct]="item.is_correct"
+              [class.recap-incorrect]="!item.is_correct"
+            >
+              <div class="recap-status-icon">
+                {{ item.is_correct ? '✓' : '✗' }}
+              </div>
+              <div class="recap-content">
+                <p class="recap-prompt"><strong>Pregunta {{ i + 1 }}:</strong> {{ item.prompt }}</p>
+                <p class="recap-explanation" *ngIf="item.explanation">
+                  <em>Explicación:</em> {{ item.explanation }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTONES DE ACCIÓN -->
+        <div class="result-actions">
+          <button type="button" class="result-btn primary-btn" (click)="returnToPath()">
+            Volver a la Senda
+          </button>
+          <button type="button" class="result-btn secondary-btn" (click)="retryLevel()" *ngIf="!result.passed">
+            Reintentar Nivel
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         FASE 4: SIN CORAZONES (GAME OVER TEMPORAL)
+    ══════════════════════════════════════════════════════════════ -->
+    <section class="gameover-phase zoom-in" *ngIf="gameState === 'game_over'">
+      <div class="result-card glass-panel gameover-card">
+        <div class="gameover-heart-broken">💔</div>
+        <h2 class="result-title">¡Te has quedado sin corazones!</h2>
+        <p class="result-sub">
+          Tus corazones se recargan automáticamente con el tiempo (1 cada 30 minutos),
+          o puedes recargarlos al instante en El Bazar.
+        </p>
+
+        <div class="result-actions">
+          <button type="button" class="result-btn primary-btn" (click)="goToTavern()">
+            Ir a El Bazar (Recargar Vidas)
+          </button>
+          <button type="button" class="result-btn secondary-btn" (click)="returnToPath()">
+            Volver a la Senda
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+</div>

@@ -1,78 +1,232 @@
 <div class="books-list-container">
   <header class="list-header">
     <div class="header-text">
+      <div class="header-badge">Fondo Editorial</div>
       <h2>Gestión de Biblioteca</h2>
-      <p>Administra, edita y publica los libros de la plataforma.</p>
+      <p>Administra los {{ books.length }} títulos del catálogo, estados de publicación y metadatos.</p>
     </div>
-    <a routerLink="new" class="add-btn">
-      <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom; margin-right: 4px;">add</span>
+    <a routerLink="/dashboard/books/new" class="add-btn">
+      <span class="material-symbols-outlined">add</span>
       Nuevo Libro
     </a>
   </header>
 
-  <!-- FILTROS Y BÚSQUEDA -->
-  <div class="list-controls card">
-    <div class="search-box" style="display: flex; align-items: center; gap: 8px;">
-      <span class="material-symbols-outlined" style="color: #64748b; font-size: 20px;">search</span>
-      <input type="text" placeholder="Buscar por título o autor..." (input)="filterBooks($event)" style="border: none; background: transparent; outline: none; color: white; width: 100%;">
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-banner" *ngIf="actionToast">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{ actionToast }}</span>
+  </div>
+
+  <!-- FILTROS, BÚSQUEDA Y MODOS DE VISTA -->
+  <div class="list-controls-card">
+    <div class="controls-top-row">
+      <div class="search-box">
+        <span class="material-symbols-outlined">search</span>
+        <input 
+          type="text" 
+          placeholder="Buscar por título o autor entre {{ books.length }} libros..." 
+          (input)="onSearch($event)">
+      </div>
+
+      <div class="view-mode-toggle">
+        <button 
+          class="mode-btn" 
+          [class.active]="viewMode === 'grid'" 
+          (click)="setViewMode('grid')" 
+          title="Vista en Tarjetas">
+          <span class="material-symbols-outlined">grid_view</span>
+        </button>
+        <button 
+          class="mode-btn" 
+          [class.active]="viewMode === 'table'" 
+          (click)="setViewMode('table')" 
+          title="Vista en Tabla Compacta">
+          <span class="material-symbols-outlined">table_rows</span>
+        </button>
+      </div>
     </div>
-    <div class="filter-badges">
-      <span class="badge active">Todos ({{ books.length }})</span>
-      <span class="badge">Publicados</span>
-      <span class="badge">Borradores</span>
+
+    <div class="filter-badges-row">
+      <button class="badge-btn" [class.active]="activeFilter === 'all'" (click)="setFilter('all')">
+        Todos ({{ books.length }})
+      </button>
+      <button class="badge-btn" [class.active]="activeFilter === 'published'" (click)="setFilter('published')">
+        Publicados ({{ publishedCount }})
+      </button>
+      <button class="badge-btn" [class.active]="activeFilter === 'draft'" (click)="setFilter('draft')">
+        Borradores / Ocultos ({{ draftCount }})
+      </button>
+      <button class="badge-btn" [class.active]="activeFilter === 'featured'" (click)="setFilter('featured')">
+        Destacados ({{ featuredCount }})
+      </button>
     </div>
   </div>
 
-  <!-- GRID DE LIBROS -->
-  <div class="books-grid" *ngIf="!loading; else loadingState">
-    <div class="book-card card clickable" *ngFor="let book of filteredBooks" [routerLink]="[book.id, 'edit']">
-      <div class="book-cover">
-        <img [src]="book.cover || 'assets/no-cover.jpg'" alt="Cover" onerror="this.onerror=null;this.src='assets/no-cover.jpg'">
-        <div class="status-badge" [class.published]="book.is_published">
-          <span class="status-dot"></span>
-          {{ book.is_published ? 'Publicado' : 'Borrador' }}
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando biblioteca de libros...</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- VISTA EN CUADRÍCULA (GRID) -->
+    <div class="books-grid" *ngIf="viewMode === 'grid' && paginatedBooks.length > 0">
+      <div class="book-card" *ngFor="let book of paginatedBooks">
+        <div class="book-cover-wrap" [routerLink]="['/dashboard/books', book.id, 'edit']">
+          <img [src]="book.cover || 'assets/no-cover.jpg'" alt="Portada" onerror="this.src='assets/no-cover.jpg'">
+          
+          <button 
+            class="quick-toggle-badge" 
+            [class.published]="book.is_published"
+            (click)="togglePublish(book, $event)"
+            [title]="book.is_published ? 'Click para ocultar' : 'Click para publicar'">
+            <span class="status-dot"></span>
+            {{ book.is_published ? 'Publicado' : 'Borrador' }}
+          </button>
+
+          <span class="featured-star" *ngIf="book.is_featured" title="Libro Destacado">★</span>
+        </div>
+
+        <div class="book-info">
+          <h3 class="book-title" [routerLink]="['/dashboard/books', book.id, 'edit']">{{ book.title }}</h3>
+          <p class="book-author">
+            <span class="material-symbols-outlined">person</span>
+            {{ book.authors.join(', ') || 'Sin autor asignado' }}
+          </p>
+
+          <div class="book-stats">
+            <span class="stat-item">
+              <span class="material-symbols-outlined">description</span>
+              {{ book.chapters_count }} caps.
+            </span>
+            <span class="stat-item">
+              <span class="material-symbols-outlined">visibility</span>
+              {{ book.view_count }}
+            </span>
+          </div>
+
+          <div class="card-bottom-bar">
+            <a [routerLink]="['/dashboard/books', book.id, 'edit']" class="card-action edit-link">
+              <span class="material-symbols-outlined">edit</span>
+              Editar
+            </a>
+            <button class="card-action delete-link" (click)="deleteBook(book, $event)">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
         </div>
       </div>
-      <div class="book-info">
-        <h3 class="book-title">{{ book.title }}</h3>
-        <p class="book-author" style="display: flex; align-items: center; gap: 4px;">
-          <span class="material-symbols-outlined" style="font-size: 14px;">person</span>
-          {{ book.authors.join(', ') }}
-        </p>
-        <div class="book-stats">
-          <div class="stat" style="display: flex; align-items: center; gap: 4px;">
-            <span class="material-symbols-outlined" style="font-size: 14px;">description</span>
-            <span class="label">Caps.</span>
-            <span class="value">{{ book.chapters_count }}</span>
-          </div>
-          <div class="stat" style="display: flex; align-items: center; gap: 4px;">
-            <span class="material-symbols-outlined" style="font-size: 14px;">visibility</span>
-            <span class="label">Vistas</span>
-            <span class="value">{{ book.view_count }}</span>
-          </div>
-        </div>
-        <div class="edit-hint" style="display: flex; align-items: center; gap: 4px;">
-          <span class="material-symbols-outlined" style="font-size: 14px;">edit</span>
-          Click para editar
-        </div>
-      </div>
+    </div>
+
+    <!-- VISTA EN TABLA (TABLE) -->
+    <div class="table-wrap-card" *ngIf="viewMode === 'table' && paginatedBooks.length > 0">
+      <table class="books-table">
+        <thead>
+          <tr>
+            <th>Portada</th>
+            <th>Título de la Obra</th>
+            <th>Autores</th>
+            <th>Capítulos</th>
+            <th>Vistas</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let book of paginatedBooks">
+            <td class="cover-td">
+              <img [src]="book.cover || 'assets/no-cover.jpg'" class="table-cover" alt="Cover" onerror="this.src='assets/no-cover.jpg'">
+            </td>
+            <td>
+              <div class="table-title-cell">
+                <a [routerLink]="['/dashboard/books', book.id, 'edit']" class="title-link">{{ book.title }}</a>
+                <span class="table-slug font-mono">{{ book.slug }}</span>
+              </div>
+            </td>
+            <td class="authors-td">{{ book.authors.join(', ') || 'N/A' }}</td>
+            <td>{{ book.chapters_count }}</td>
+            <td>{{ book.view_count }}</td>
+            <td>
+              <button 
+                class="status-pill-btn" 
+                [class.published]="book.is_published" 
+                (click)="togglePublish(book, $event)">
+                <span class="status-dot"></span>
+                {{ book.is_published ? 'Publicado' : 'Borrador' }}
+              </button>
+            </td>
+            <td>
+              <div class="table-actions-cell">
+                <a [routerLink]="['/dashboard/books', book.id, 'edit']" class="table-icon-btn" title="Editar">
+                  <span class="material-symbols-outlined">edit</span>
+                </a>
+                <button class="table-icon-btn delete-btn" (click)="deleteBook(book, $event)" title="Eliminar">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- EMPTY STATE -->
     <div class="empty-state" *ngIf="filteredBooks.length === 0">
-      <span class="material-symbols-outlined" style="font-size: 52px; opacity: 0.2;">library_books</span>
-      <p>No se encontraron libros. ¡Sube el primero!</p>
-      <a routerLink="new" class="add-btn" style="font-size:12px;padding:8px 18px">
-        <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: text-bottom; margin-right: 4px;">add</span>
-        Añadir libro
-      </a>
+      <span class="material-symbols-outlined empty-icon">menu_book</span>
+      <h3>No se encontraron libros</h3>
+      <p>No hay títulos que coincidan con el criterio de búsqueda o filtro seleccionado.</p>
     </div>
-  </div>
 
-  <ng-template #loadingState>
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p>Consultando biblioteca...</p>
+    <!-- BARRA DE PAGINACIÓN COMPLETA -->
+    <div class="pagination-bar" *ngIf="filteredBooks.length > pageSize">
+      <button 
+        class="page-nav-btn" 
+        [disabled]="currentPage === 1" 
+        (click)="goToPage(1)"
+        title="Primera Página">
+        <span class="material-symbols-outlined">first_page</span>
+      </button>
+
+      <button 
+        class="page-nav-btn" 
+        [disabled]="currentPage === 1" 
+        (click)="goToPage(currentPage - 1)">
+        <span class="material-symbols-outlined">chevron_left</span>
+        Anterior
+      </button>
+
+      <div class="page-numbers-wrap">
+        <button 
+          *ngFor="let p of getPageNumbers()" 
+          class="page-num-btn" 
+          [class.active]="p === currentPage"
+          (click)="goToPage(p)">
+          {{ p }}
+        </button>
+      </div>
+
+      <button 
+        class="page-nav-btn" 
+        [disabled]="currentPage === totalPages" 
+        (click)="goToPage(currentPage + 1)">
+        Siguiente
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+
+      <button 
+        class="page-nav-btn" 
+        [disabled]="currentPage === totalPages" 
+        (click)="goToPage(totalPages)"
+        title="Última Página">
+        <span class="material-symbols-outlined">last_page</span>
+      </button>
+
+      <span class="page-info">
+        Pág. <strong>{{ currentPage }}</strong> / <strong>{{ totalPages }}</strong> 
+        ({{ filteredBooks.length }} libros)
+      </span>
     </div>
-  </ng-template>
+
+  </ng-container>
 </div>

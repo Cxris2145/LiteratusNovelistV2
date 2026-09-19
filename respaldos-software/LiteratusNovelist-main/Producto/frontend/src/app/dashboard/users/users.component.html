@@ -1,64 +1,182 @@
-<div class="books-list-container">
-  <header class="list-header">
-    <div class="header-text">
-      <h2>Monitoreo de Usuarios</h2>
-      <p>Supervisa los usuarios registrados, su última conexión y actividad.</p>
+<div class="users-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Comunidad & Accesos</div>
+      <h1 class="header-title">Gestión de Usuarios & Roles</h1>
+      <p class="header-desc">Supervisa los lectores registrados, roles de autor, balances de tinta, bloqueos y actividad.</p>
     </div>
   </header>
 
-  <div class="list-controls card">
-    <div class="search-box" style="display: flex; align-items: center; gap: 8px;">
-      <span class="material-symbols-outlined" style="color: #64748b; font-size: 20px;">search</span>
-      <input type="text" placeholder="Buscar por email o usuario..." (input)="filterUsers($event)" style="border: none; background: transparent; outline: none; color: white; width: 100%;">
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-banner" *ngIf="actionToast">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{ actionToast }}</span>
+  </div>
+
+  <!-- TARJETAS DE RESUMEN DE USUARIOS -->
+  <div class="summary-grid" *ngIf="!loading">
+    <div class="summary-card">
+      <span class="card-label">Usuarios Totales</span>
+      <span class="card-value">{{ users.length }}</span>
+      <span class="card-hint">Cuentas activas</span>
     </div>
-    <div class="filter-badges">
-      <span class="badge active">Total: {{ users.length }}</span>
+    <div class="summary-card">
+      <span class="card-label">Lectores</span>
+      <span class="card-value">{{ totalReaders }}</span>
+      <span class="card-hint">Rol principal</span>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Autores</span>
+      <span class="card-value">{{ totalAuthors }}</span>
+      <span class="card-hint">Creadores de contenido</span>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Administradores</span>
+      <span class="card-value">{{ totalAdmins }}</span>
+      <span class="card-hint">Acceso a Nexus</span>
     </div>
   </div>
 
-  <div class="card" *ngIf="!loading; else loadingState" style="padding: 0; overflow-x: auto;">
-    <table class="users-table">
+  <!-- CONTROLES Y FILTROS -->
+  <div class="controls-bar">
+    <div class="search-box">
+      <span class="material-symbols-outlined">search</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (input)="applyFilters()" 
+        placeholder="Buscar por nombre de usuario o correo electrónico...">
+    </div>
+
+    <div class="role-filter-badges">
+      <button class="badge-btn" [class.active]="roleFilter === 'all'" (click)="setRoleFilter('all')">
+        Todos ({{ users.length }})
+      </button>
+      <button class="badge-btn" [class.active]="roleFilter === 'reader'" (click)="setRoleFilter('reader')">
+        Lectores ({{ totalReaders }})
+      </button>
+      <button class="badge-btn" [class.active]="roleFilter === 'author'" (click)="setRoleFilter('author')">
+        Autores ({{ totalAuthors }})
+      </button>
+      <button class="badge-btn" [class.active]="roleFilter === 'admin'" (click)="setRoleFilter('admin')">
+        Admins ({{ totalAdmins }})
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Consultando base de usuarios...</p>
+  </div>
+
+  <!-- TABLA DE USUARIOS -->
+  <div class="table-card" *ngIf="!loading">
+    <table class="data-table" *ngIf="filteredUsers.length > 0; else emptyState">
       <thead>
         <tr>
           <th>Usuario</th>
-          <th>Email</th>
+          <th>Correo Electrónico</th>
           <th>Rol</th>
-          <th>Tinta</th>
+          <th>Saldo de Tinta</th>
           <th>Chats Activos</th>
           <th>Última Conexión</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of filteredUsers">
-          <td style="font-weight: 500; color: var(--glow-accent);">{{ user.username }}</td>
-          <td>{{ user.email }}</td>
+        <tr *ngFor="let u of filteredUsers">
           <td>
-            <div class="status-badge" style="display: inline-flex;">
-              <span class="status-dot"></span>
-              {{ user.role }}
+            <div class="user-main-cell">
+              <div class="user-avatar-sm">{{ u.username.slice(0, 2).toUpperCase() }}</div>
+              <span class="user-username">{{ u.username }}</span>
+            </div>
+          </td>
+          <td class="email-td">{{ u.email }}</td>
+          <td>
+            <div class="role-selector-wrap">
+              <span class="role-tag">{{ u.role }}</span>
+              <button class="role-menu-btn" [matMenuTriggerFor]="roleMenu" (click)="selectedUserForRole = u" title="Cambiar rol">
+                <span class="material-symbols-outlined">expand_more</span>
+              </button>
             </div>
           </td>
           <td>
-            <div style="display: flex; align-items: center; gap: 5px;">
-              <span class="material-symbols-outlined" style="font-size: 16px; color: var(--glow-secondary);">water_drop</span>
-              {{ user.ink_balance }}
+            <button class="ink-pill-btn" (click)="openInkModal(u)" title="Ajustar saldo de tinta">
+              <span class="material-symbols-outlined">water_drop</span>
+              {{ u.ink_balance | number }}
+              <span class="add-ink-icon">+</span>
+            </button>
+          </td>
+          <td>{{ u.chats_count }}</td>
+          <td class="date-cell">{{ u.last_login ? (u.last_login | date:'dd/MM/yyyy HH:mm') : 'Sin registro' }}</td>
+          <td>
+            <div class="actions-cell">
+              <button 
+                class="action-icon-btn block-btn" 
+                [class.blocked]="u.is_active === false"
+                (click)="toggleActive(u)" 
+                [title]="u.is_active === false ? 'Desbloquear usuario' : 'Bloquear usuario'">
+                <span class="material-symbols-outlined">{{ u.is_active === false ? 'lock_open' : 'block' }}</span>
+              </button>
             </div>
           </td>
-          <td>{{ user.chats_count }}</td>
-          <td style="color: #888;">{{ user.last_login | date:'short' || 'Nunca' }}</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="empty-state" *ngIf="filteredUsers.length === 0" style="padding: 40px;">
-      <p>No se encontraron usuarios.</p>
-    </div>
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <p>No se encontraron usuarios coincidentes con el filtro.</p>
+      </div>
+    </ng-template>
   </div>
 
-  <ng-template #loadingState>
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p>Cargando usuarios...</p>
+  <!-- MENÚ DE ROLES -->
+  <mat-menu #roleMenu="matMenu">
+    <button mat-menu-item (click)="selectedUserForRole && changeRole(selectedUserForRole, 'reader')">
+      <span class="material-symbols-outlined" style="margin-right: 8px;">auto_stories</span>
+      Asignar como Lector
+    </button>
+    <button mat-menu-item (click)="selectedUserForRole && changeRole(selectedUserForRole, 'author')">
+      <span class="material-symbols-outlined" style="margin-right: 8px;">edit_note</span>
+      Asignar como Autor
+    </button>
+    <button mat-menu-item (click)="selectedUserForRole && changeRole(selectedUserForRole, 'admin')">
+      <span class="material-symbols-outlined" style="margin-right: 8px;">shield_person</span>
+      Asignar como Administrador
+    </button>
+  </mat-menu>
+
+  <!-- MODAL DE AJUSTE DE TINTA -->
+  <div class="modal-backdrop" *ngIf="inkModalUser" (click)="closeInkModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Ajustar Tinta a {{ inkModalUser.username }}</h2>
+        <button class="close-btn" (click)="closeInkModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-subtitle">Saldo actual: <strong>{{ inkModalUser.ink_balance }} de Tinta</strong></p>
+
+        <div class="form-group">
+          <label>Cantidad a sumar o restar (usa signo menos para restar):</label>
+          <input type="number" [(ngModel)]="inkAmount" class="form-input" placeholder="Ej. 100 o -50">
+        </div>
+
+        <div class="form-group">
+          <label>Motivo o concepto del ajuste:</label>
+          <input type="text" [(ngModel)]="inkReason" class="form-input" placeholder="Ej. Bono promocional">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" (click)="closeInkModal()" [disabled]="savingInk">Cancelar</button>
+        <button class="primary-btn" (click)="submitInkAdjustment()" [disabled]="savingInk">
+          <span *ngIf="!savingInk">Aplicar Ajuste</span>
+          <span *ngIf="savingInk">Guardando...</span>
+        </button>
+      </div>
     </div>
-  </ng-template>
+  </div>
 </div>

@@ -20,6 +20,7 @@ DISEÑO SEPARACIÓN User ↔ Profile (3NF):
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 from core.models import TimeStampedModel
 
 
@@ -92,11 +93,35 @@ class Profile(TimeStampedModel):
     )
     streak_current = models.PositiveIntegerField(
         default=0,
-        help_text="Racha actual de días consecutivos leyendo."
+        help_text="Racha actual de días consecutivos leyendo o practicando."
+    )
+    streak_max = models.PositiveIntegerField(
+        default=0,
+        help_text="Mejor racha histórica de días consecutivos."
+    )
+    streak_shields = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Escudos protectores de racha activos (máximo 2 almacenables)."
     )
     streak_last_date = models.DateField(
         null=True, blank=True,
-        help_text="Último día en el que se validó la racha de lectura."
+        help_text="Último día en el que se validó la racha."
+    )
+    hearts = models.PositiveSmallIntegerField(
+        default=5,
+        help_text="Vidas actuales para ejercicios de comprensión (0 a 5)."
+    )
+    hearts_last_updated = models.DateTimeField(
+        default=timezone.now,
+        help_text="Último timestamp en el que se sincronizaron las vidas."
+    )
+    equipped_frame = models.CharField(
+        max_length=100, blank=True, default='',
+        help_text="Identificador del marco de perfil equipado."
+    )
+    equipped_title = models.CharField(
+        max_length=100, blank=True, default='',
+        help_text="Título literario honorífico equipado."
     )
     
     theme = models.CharField(max_length=50, default='default', help_text="Tema visual preferido del usuario.")

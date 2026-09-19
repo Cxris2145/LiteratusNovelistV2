@@ -3,184 +3,476 @@
   <!-- LOADING STATE -->
   <div class="loading-overlay" *ngIf="loading">
     <div class="spinner"></div>
-    <p>Cargando datos...</p>
+    <p>Sincronizando centro de control Literatus Nexus...</p>
   </div>
 
   <ng-container *ngIf="!loading && stats">
 
     <!-- PAGE HEADER -->
-    <div class="page-header">
-      <div>
+    <header class="page-header">
+      <div class="header-main">
+        <div class="header-badge">
+          <span class="live-dot"></span>
+          Centro de Control en Vivo
+        </div>
         <h1 class="page-heading">Visión General</h1>
-        <p class="page-subheading">Resumen de actividad y métricas clave de la plataforma</p>
+        <p class="page-subheading">Supervisión operativa integral de catálogo, comunidad, economía de tinta e inteligencia artificial.</p>
       </div>
-      <div class="header-actions" style="display: flex; gap: 1rem;">
-        <button (click)="exportPdf()" class="secondary-action-btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: background 0.2s;">
-          <span class="material-symbols-outlined" style="font-size: 18px;">picture_as_pdf</span>
-          Exportar a PDF
+
+      <div class="header-actions">
+        <button (click)="exportPdf()" class="secondary-btn" title="Descargar informe oficial en PDF">
+          <span class="material-symbols-outlined">picture_as_pdf</span>
+          Exportar PDF
         </button>
-        <a routerLink="/dashboard/books/new" class="primary-action-btn" style="display: flex; align-items: center; gap: 0.5rem;">
-          <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+        <a routerLink="/dashboard/books/new" class="primary-btn">
+          <span class="material-symbols-outlined">add</span>
           Nuevo Libro
         </a>
       </div>
+    </header>
+
+    <!-- NOTIFICACIÓN DE ACCIÓN -->
+    <div class="toast-alert" *ngIf="actionToast">
+      <span class="material-symbols-outlined">check_circle</span>
+      <span>{{ actionToast }}</span>
     </div>
 
-    <!-- STAT CARDS -->
+    <!-- BANNER DE ALERTAS & TAREAS PENDIENTES -->
+    <div class="alerts-card" *ngIf="stats.alerts && stats.alerts.length > 0">
+      <div class="alerts-header">
+        <span class="material-symbols-outlined alert-icon">notifications_active</span>
+        <span class="alerts-title">Tareas y Notificaciones Operativas ({{ stats.alerts.length }})</span>
+      </div>
+      <div class="alerts-list">
+        <div class="alert-item" *ngFor="let alt of stats.alerts" [ngClass]="alt.type">
+          <div class="alert-content">
+            <span class="alert-item-title">{{ alt.title }}</span>
+            <span class="alert-item-desc">{{ alt.description }}</span>
+          </div>
+          <a [routerLink]="alt.action_route" class="alert-action-btn">
+            {{ alt.action_label }}
+            <span class="material-symbols-outlined">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- STAT CARDS (6 KPIS CLAVE CLICKABLES) -->
     <div class="stats-grid">
 
-      <div class="stat-card revenue">
-        <div class="stat-card-inner">
+      <!-- KPI 1: INGRESOS -->
+      <a routerLink="/dashboard/transactions" class="stat-card revenue-card clickable-card" title="Ver transacciones Webpay">
+        <div class="stat-header">
           <div class="stat-icon-wrap revenue-icon">
-            <span class="material-symbols-outlined" style="font-size: 24px;">attach_money</span>
+            <span class="material-symbols-outlined">payments</span>
           </div>
-          <div class="stat-data">
-            <span class="stat-label">Ingresos Totales</span>
-            <span class="stat-value">${{ stats.revenue.total | number:'1.0-0' }}</span>
-            <div class="stat-trend up" style="display: flex; align-items: center; gap: 4px;">
-              <span class="material-symbols-outlined" style="font-size: 14px;">trending_up</span>
-              ${{ stats.revenue.last_30_days | number:'1.0-0' }} últimos 30 días
-            </div>
+          <span class="stat-label">Ingresos Webpay</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-main-val">${{ stats.revenue.total | number:'1.0-0' }}</div>
+          <div class="stat-sub">
+            <span class="material-symbols-outlined">info</span>
+            {{ stats.revenue.completed_count }} compras confirmadas
           </div>
         </div>
-        <div class="stat-bar"></div>
-      </div>
+        <div class="stat-footer-bar"></div>
+      </a>
 
-      <div class="stat-card users">
-        <div class="stat-card-inner">
+      <!-- KPI 2: USUARIOS ACTIVOS -->
+      <a routerLink="/dashboard/users" class="stat-card users-card clickable-card" title="Gestionar usuarios y roles">
+        <div class="stat-header">
           <div class="stat-icon-wrap users-icon">
-            <span class="material-symbols-outlined" style="font-size: 24px;">group</span>
+            <span class="material-symbols-outlined">group</span>
           </div>
-          <div class="stat-data">
-            <span class="stat-label">Usuarios Activos</span>
-            <span class="stat-value">{{ stats.users.total | number }}</span>
-            <div class="stat-trend up" style="display: flex; align-items: center; gap: 4px;">
-              <span class="material-symbols-outlined" style="font-size: 14px;">trending_up</span>
-              +{{ stats.users.new_last_30_days }} nuevos este mes
-            </div>
+          <span class="stat-label">Comunidad & Usuarios</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-main-val">{{ stats.users.total | number }}</div>
+          <div class="stat-sub up">
+            <span class="material-symbols-outlined">trending_up</span>
+            +{{ stats.users.new_last_30_days }} nuevos este mes
           </div>
         </div>
-        <div class="stat-bar"></div>
-      </div>
+        <div class="stat-footer-bar"></div>
+      </a>
 
-      <div class="stat-card books">
-        <div class="stat-card-inner">
+      <!-- KPI 3: CATÁLOGO LITERARIO -->
+      <a routerLink="/dashboard/books" class="stat-card books-card clickable-card" title="Explorar biblioteca de libros">
+        <div class="stat-header">
           <div class="stat-icon-wrap books-icon">
-            <span class="material-symbols-outlined" style="font-size: 24px;">library_books</span>
+            <span class="material-symbols-outlined">auto_stories</span>
           </div>
-          <div class="stat-data">
-            <span class="stat-label">Libros Publicados</span>
-            <span class="stat-value">{{ stats.content.total_books }}</span>
-            <div class="stat-trend neutral" style="display: flex; align-items: center; gap: 4px;">
-              <span class="material-symbols-outlined" style="font-size: 14px;">shopping_cart</span>
-              {{ stats.content.total_purchases }} compras totales
-            </div>
+          <span class="stat-label">Catálogo de Libros</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-main-val">{{ stats.content.published_books | number }}</div>
+          <div class="stat-sub">
+            <span>{{ stats.content.total_authors }} autores &middot; {{ stats.content.total_genres }} géneros</span>
           </div>
         </div>
-        <div class="stat-bar"></div>
+        <div class="stat-footer-bar"></div>
+      </a>
+
+      <!-- KPI 4: SESIONES DE LECTURA -->
+      <a routerLink="/dashboard/reports" class="stat-card reading-card clickable-card" title="Ver analíticas de lectura">
+        <div class="stat-header">
+          <div class="stat-icon-wrap reading-icon">
+            <span class="material-symbols-outlined">menu_book</span>
+          </div>
+          <span class="stat-label">Lectura en Vivo</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-main-val">{{ stats.reading.total_minutes }} min</div>
+          <div class="stat-sub">
+            <span>{{ stats.reading.total_sessions }} sesiones registradas</span>
+          </div>
+        </div>
+        <div class="stat-footer-bar"></div>
+      </a>
+
+      <!-- KPI 5: ECONOMÍA DE TINTA -->
+      <a routerLink="/dashboard/ink" class="stat-card ink-card clickable-card" title="Ver flujo de tinta">
+        <div class="stat-header">
+          <div class="stat-icon-wrap ink-icon">
+            <span class="material-symbols-outlined">water_drop</span>
+          </div>
+          <span class="stat-label">Tinta en Circulación</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-main-val">{{ stats.gamification.ink_in_circulation | number }}</div>
+          <div class="stat-sub">
+            <span>{{ stats.gamification.total_ink_transactions }} transacciones de saldo</span>
+          </div>
+        </div>
+        <div class="stat-footer-bar"></div>
+      </a>
+
+      <!-- KPI 6: INTERACCIONES IA -->
+      <a routerLink="/dashboard/ai-chats" class="stat-card ai-card clickable-card" title="Ver métricas de IA">
+        <div class="stat-header">
+          <div class="stat-icon-wrap ai-icon">
+            <span class="material-symbols-outlined">psychology</span>
+          </div>
+          <span class="stat-label">Interacciones de IA</span>
+        </div>
+        <div class="stat-body">
+          <div class="stat-main-val">{{ stats.ai.total_character_messages + stats.ai.total_assistant_messages }}</div>
+          <div class="stat-sub">
+            <span>{{ stats.ai.total_avatars }} personajes interactivos</span>
+          </div>
+        </div>
+        <div class="stat-footer-bar"></div>
+      </a>
+
+    </div>
+
+    <!-- PANEL DE GRÁFICOS DINÁMICOS -->
+    <div class="charts-card">
+      <div class="charts-card-header">
+        <div class="chart-titles">
+          <h2 class="chart-heading">
+            <span *ngIf="activeChartTab === 'sales'">Ingresos y Cobros (Últimos 7 días)</span>
+            <span *ngIf="activeChartTab === 'reading'">Minutos de Lectura Diarios</span>
+            <span *ngIf="activeChartTab === 'ai'">Actividad de Diálogo con IA</span>
+          </h2>
+          <p class="chart-desc">Datos en tiempo real consolidados por fecha de registro.</p>
+        </div>
+
+        <div class="chart-tabs">
+          <button class="chart-tab-btn" [class.active]="activeChartTab === 'sales'" (click)="setChartTab('sales')">
+            <span class="material-symbols-outlined">payments</span>
+            Ventas
+          </button>
+          <button class="chart-tab-btn" [class.active]="activeChartTab === 'reading'" (click)="setChartTab('reading')">
+            <span class="material-symbols-outlined">menu_book</span>
+            Lectura
+          </button>
+          <button class="chart-tab-btn" [class.active]="activeChartTab === 'ai'" (click)="setChartTab('ai')">
+            <span class="material-symbols-outlined">psychology</span>
+            IA
+          </button>
+        </div>
       </div>
 
-      <div class="stat-card revenue-7d">
-        <div class="stat-card-inner">
-          <div class="stat-icon-wrap revenue7d-icon">
-            <span class="material-symbols-outlined" style="font-size: 24px;">bar_chart</span>
+      <!-- GRÁFICO 1: VENTAS -->
+      <div class="bar-chart" *ngIf="activeChartTab === 'sales'">
+        <div 
+          class="bar-column" 
+          *ngFor="let day of stats.sales_chart"
+          [title]="day.date + ': $' + day.amount">
+          <div class="bar-track">
+            <div class="bar-fill sales-fill" [style.height.%]="getBarHeight(day.amount, 'sales')"></div>
           </div>
-          <div class="stat-data">
-            <span class="stat-label">Ingresos (7 días)</span>
-            <span class="stat-value">${{ stats.revenue.last_7_days | number:'1.0-0' }}</span>
-            <div class="stat-trend neutral" style="display: flex; align-items: center; gap: 4px;">
-              <span class="material-symbols-outlined" style="font-size: 14px;">calendar_month</span>
-              última semana
+          <span class="bar-date">{{ day.date }}</span>
+          <span class="bar-val">${{ day.amount }}</span>
+        </div>
+      </div>
+
+      <!-- GRÁFICO 2: LECTURA -->
+      <div class="bar-chart" *ngIf="activeChartTab === 'reading'">
+        <div 
+          class="bar-column" 
+          *ngFor="let day of stats.reading.reading_chart"
+          [title]="day.date + ': ' + day.minutes + ' minutos (' + day.sessions + ' sesiones)'">
+          <div class="bar-track">
+            <div class="bar-fill reading-fill" [style.height.%]="getBarHeight(day.minutes, 'reading')"></div>
+          </div>
+          <span class="bar-date">{{ day.date }}</span>
+          <span class="bar-val">{{ day.minutes }}m</span>
+        </div>
+      </div>
+
+      <!-- GRÁFICO 3: IA -->
+      <div class="bar-chart" *ngIf="activeChartTab === 'ai'">
+        <div 
+          class="bar-column" 
+          *ngFor="let day of stats.ai.ai_chart"
+          [title]="day.date + ': ' + day.messages + ' mensajes'">
+          <div class="bar-track">
+            <div class="bar-fill ai-fill" [style.height.%]="getBarHeight(day.messages, 'ai')"></div>
+          </div>
+          <span class="bar-date">{{ day.date }}</span>
+          <span class="bar-val">{{ day.messages }} msgs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOBLE COLUMNA OPERATIVA -->
+    <div class="dual-columns-grid">
+
+      <!-- COLUMNA IZQUIERDA -->
+      <div class="column-stack">
+
+        <!-- WIDGET 1: LIBROS PENDIENTES DE APROBACIÓN / CURADURÍA -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-header-titles">
+              <h3 class="panel-title">Curaduría & Aprobaciones</h3>
+              <p class="panel-subtitle">Obras en borrador o pendientes de publicación</p>
+            </div>
+            <a routerLink="/dashboard/curation" class="panel-action-link">Ver todo</a>
+          </div>
+
+          <div class="pending-books-list" *ngIf="stats.pending_books && stats.pending_books.length > 0; else noPending">
+            <div class="pending-book-row" *ngFor="let b of stats.pending_books">
+              <div class="pending-info">
+                <span class="pending-title">{{ b.title }}</span>
+                <span class="pending-authors">{{ b.authors.join(', ') || 'Sin autor' }}</span>
+              </div>
+              <button class="quick-publish-btn" (click)="publishBookQuick(b)">
+                <span class="material-symbols-outlined">publish</span>
+                Publicar
+              </button>
+            </div>
+          </div>
+          <ng-template #noPending>
+            <div class="clean-empty-state">
+              <span class="material-symbols-outlined clean-icon">check_circle</span>
+              <p>No hay obras pendientes de aprobación. Todos los libros están al día.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- WIDGET 2: VENTAS RECIENTES -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-header-titles">
+              <h3 class="panel-title">Ventas Recientes</h3>
+              <p class="panel-subtitle">Últimos cobros registrados por Webpay</p>
+            </div>
+            <a routerLink="/dashboard/transactions" class="panel-action-link">Ver historial</a>
+          </div>
+
+          <div class="sales-list" *ngIf="stats.recent_sales && stats.recent_sales.length > 0; else noSales">
+            <div class="sale-row" *ngFor="let s of stats.recent_sales">
+              <div class="sale-user">
+                <span class="sale-name">{{ s.username }}</span>
+                <span class="sale-order font-mono">{{ s.buy_order }}</span>
+              </div>
+              <div class="sale-amount">${{ s.amount | number:'1.0-0' }}</div>
+              <span class="sale-status" [class.success]="s.status === 'exitosa'">{{ s.status_display }}</span>
+            </div>
+          </div>
+          <ng-template #noSales>
+            <div class="clean-empty-state">
+              <span class="material-symbols-outlined clean-icon">receipt_long</span>
+              <p>Aún no se registran transacciones Webpay en el sistema.</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- WIDGET 3: ACTIVIDAD RECIENTE DEL SISTEMA -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-header-titles">
+              <h3 class="panel-title">Actividad Reciente</h3>
+              <p class="panel-subtitle">Eventos en vivo ocurridos en la plataforma</p>
+            </div>
+          </div>
+
+          <div class="activity-timeline" *ngIf="stats.activity_feed && stats.activity_feed.length > 0; else noActivity">
+            <div class="timeline-entry" *ngFor="let act of stats.activity_feed">
+              <div class="entry-icon-wrap">
+                <span class="material-symbols-outlined">{{ act.icon }}</span>
+              </div>
+              <div class="entry-details">
+                <span class="entry-title">{{ act.title }}</span>
+                <div class="entry-meta">
+                  <span class="entry-cat">{{ act.category }}</span>
+                  <span class="entry-time">{{ act.time | date:'dd/MM HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noActivity>
+            <div class="clean-empty-state">
+              <span class="material-symbols-outlined clean-icon">history</span>
+              <p>No se registran eventos recientes.</p>
+            </div>
+          </ng-template>
+        </div>
+
+      </div>
+
+      <!-- COLUMNA DERECHA -->
+      <div class="column-stack">
+
+        <!-- WIDGET 4: TOP LIBROS -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-header-titles">
+              <h3 class="panel-title">Top Libros Populares</h3>
+              <p class="panel-subtitle">Obras con mayor tracción en la plataforma</p>
+            </div>
+            <div class="mini-tab-toggle">
+              <button [class.active]="topBooksTab === 'views'" (click)="setTopBooksTab('views')">Vistas</button>
+              <button [class.active]="topBooksTab === 'purchases'" (click)="setTopBooksTab('purchases')">Compras</button>
+            </div>
+          </div>
+
+          <!-- TOP POR VISTAS -->
+          <div class="top-list" *ngIf="topBooksTab === 'views'">
+            <div class="top-row" *ngFor="let b of stats.top_books_views; let idx = index">
+              <span class="rank-badge" [class.gold]="idx === 0" [class.silver]="idx === 1" [class.bronze]="idx === 2">{{ idx + 1 }}</span>
+              <div class="top-info">
+                <span class="top-title">{{ b.title }}</span>
+              </div>
+              <span class="metric-pill">
+                <span class="material-symbols-outlined">visibility</span>
+                {{ b.view_count }}
+              </span>
+            </div>
+          </div>
+
+          <!-- TOP POR COMPRAS -->
+          <div class="top-list" *ngIf="topBooksTab === 'purchases'">
+            <div class="top-row" *ngFor="let b of stats.top_books; let idx = index">
+              <span class="rank-badge" [class.gold]="idx === 0" [class.silver]="idx === 1" [class.bronze]="idx === 2">{{ idx + 1 }}</span>
+              <div class="top-info">
+                <span class="top-title">{{ b['edition__book__title'] }}</span>
+              </div>
+              <span class="metric-pill">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                {{ b.purchases }}
+              </span>
             </div>
           </div>
         </div>
-        <div class="stat-bar"></div>
+
+        <!-- WIDGET 5: TOP PERSONAJES IA -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-header-titles">
+              <h3 class="panel-title">Personajes IA Más Consultados</h3>
+              <p class="panel-subtitle">Avatares con mayor número de chats iniciados</p>
+            </div>
+            <a routerLink="/dashboard/avatars" class="panel-action-link">Ver catálogo</a>
+          </div>
+
+          <div class="top-list">
+            <div class="top-char-row" *ngFor="let av of stats.top_characters">
+              <img [src]="av.image || 'assets/no-cover.jpg'" class="char-thumb" alt="Avatar" onerror="this.src='assets/no-cover.jpg'">
+              <div class="char-meta">
+                <span class="char-name-bold">{{ av.name }}</span>
+                <span class="char-type">{{ av.is_author ? 'Autor Literario' : 'Personaje de Obra' }}</span>
+              </div>
+              <span class="chat-count-tag">
+                <span class="material-symbols-outlined">forum</span>
+                {{ av.chat_count }} chats
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- WIDGET 6: NUEVOS USUARIOS -->
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-header-titles">
+              <h3 class="panel-title">Nuevos Usuarios</h3>
+              <p class="panel-subtitle">Últimos registros en la plataforma</p>
+            </div>
+            <a routerLink="/dashboard/users" class="panel-action-link">Ver todos</a>
+          </div>
+
+          <div class="top-list">
+            <div class="user-row-card" *ngFor="let u of stats.recent_users">
+              <div class="user-avatar-circle">{{ u.username.slice(0, 2).toUpperCase() }}</div>
+              <div class="user-row-info">
+                <span class="user-row-name">{{ u.username }}</span>
+                <span class="user-row-email">{{ u.email }}</span>
+              </div>
+              <div class="user-row-tags">
+                <span class="role-pill">{{ u.role }}</span>
+                <span class="ink-pill">
+                  <span class="material-symbols-outlined">water_drop</span>
+                  {{ u.ink_balance }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
 
-    <!-- CHARTS ROW -->
-    <div class="charts-row">
-
-      <!-- Gráfico de Ventas -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div>
-            <h3 class="chart-title">Ventas de la semana</h3>
-            <p class="chart-subtitle">Ingresos diarios — últimos 7 días</p>
-          </div>
-        </div>
-        <div class="bar-chart">
-          <div
-            class="bar-item"
-            *ngFor="let day of stats.sales_chart"
-            [style.height.%]="getBarHeight(day.amount)"
-            [title]="day.date + ': $' + day.amount">
-            <div class="bar-fill">
-              <div class="bar-glow"></div>
-            </div>
-            <span class="bar-label">{{ day.date | slice:5:10 }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Top Libros -->
-      <div class="chart-card top-books-card">
-        <div class="chart-header">
-          <div>
-            <h3 class="chart-title">Top Libros</h3>
-            <p class="chart-subtitle">Más comprados de la plataforma</p>
-          </div>
-        </div>
-        <div class="book-list">
-          <div class="book-item" *ngFor="let book of stats.top_books; let i = index">
-            <span class="rank" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">{{ i + 1 }}</span>
-            <div class="book-item-info">
-              <span class="book-title">{{ book['edition__book__title'] }}</span>
-            </div>
-            <div class="book-count-pill" style="display: flex; align-items: center; gap: 4px;">
-              <span class="material-symbols-outlined" style="font-size: 14px;">shopping_cart</span>
-              {{ book.purchases }}
-            </div>
-          </div>
-          <div class="empty-state" *ngIf="!stats.top_books?.length">
-            <span class="material-symbols-outlined" style="font-size: 32px; opacity: 0.2;">library_books</span>
-            <p>Sin datos de ventas aún</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- QUICK ACTIONS -->
-    <div class="quick-actions">
-      <h3 class="section-title">Acciones Rápidas</h3>
-      <div class="actions-grid">
-        <a routerLink="/dashboard/books/new" class="action-card action-upload">
-          <div class="action-icon-wrap">
-            <span class="material-symbols-outlined" style="font-size: 24px;">add_box</span>
-          </div>
-          <div class="action-text">
-            <span class="action-label">Subir Libro</span>
-            <span class="action-desc">Agregar nuevo título</span>
+    <!-- BANDEJA DE ACCESOS RÁPIDOS -->
+    <div class="quick-actions-bar">
+      <h3 class="qa-title">Accesos Rápidos del Administrador</h3>
+      <div class="qa-grid">
+        <a routerLink="/dashboard/books/new" class="qa-btn">
+          <span class="material-symbols-outlined qa-icon">post_add</span>
+          <div class="qa-text">
+            <span class="qa-label">Subir Libro</span>
+            <span class="qa-sub">Importar EPUB o PDF</span>
           </div>
         </a>
-        <a routerLink="/dashboard/authors" class="action-card action-authors">
-          <div class="action-icon-wrap">
-            <span class="material-symbols-outlined" style="font-size: 24px;">group</span>
-          </div>
-          <div class="action-text">
-            <span class="action-label">Gestionar Autores</span>
-            <span class="action-desc">Crear y editar perfiles</span>
+        <a routerLink="/dashboard/authors/new" class="qa-btn">
+          <span class="material-symbols-outlined qa-icon">person_add</span>
+          <div class="qa-text">
+            <span class="qa-label">Crear Autor</span>
+            <span class="qa-sub">Registrar nuevo perfil</span>
           </div>
         </a>
-        <a routerLink="/dashboard/books" class="action-card action-edit">
-          <div class="action-icon-wrap">
-            <span class="material-symbols-outlined" style="font-size: 24px;">library_books</span>
+        <a routerLink="/dashboard/categories" class="qa-btn">
+          <span class="material-symbols-outlined qa-icon">category</span>
+          <div class="qa-text">
+            <span class="qa-label">Gestionar Categorías</span>
+            <span class="qa-sub">{{ stats.content.total_genres }} géneros literarios</span>
           </div>
-          <div class="action-text">
-            <span class="action-label">Editar Biblioteca</span>
-            <span class="action-desc">Administrar libros existentes</span>
+        </a>
+        <a routerLink="/dashboard/audit" class="qa-btn">
+          <span class="material-symbols-outlined qa-icon">history</span>
+          <div class="qa-text">
+            <span class="qa-label">Bitácora de Logs</span>
+            <span class="qa-sub">Registro de cambios</span>
+          </div>
+        </a>
+        <a routerLink="/dashboard/settings" class="qa-btn">
+          <span class="material-symbols-outlined qa-icon">tune</span>
+          <div class="qa-text">
+            <span class="qa-label">Configuración</span>
+            <span class="qa-sub">Ajustes del sistema</span>
           </div>
         </a>
       </div>

@@ -1,0 +1,126 @@
+<div class="ai-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Inteligencia Artificial</div>
+      <h1 class="header-title">Uso de IA & Personajes</h1>
+      <p class="header-desc">Auditoría de conversaciones con personajes de obras, consultas al Asistente Global y consumo de tokens.</p>
+    </div>
+  </header>
+
+  <!-- KPIS DE INTELIGENCIA ARTIFICIAL -->
+  <div class="summary-grid" *ngIf="summary">
+    <div class="summary-card">
+      <span class="card-label">Personajes Disponibles</span>
+      <span class="card-value">{{ summary.total_avatars | number }}</span>
+      <span class="card-hint">Avatares literarios y de autor</span>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Sesiones con Personajes</span>
+      <span class="card-value">{{ summary.total_character_sessions }}</span>
+      <span class="card-hint">{{ summary.total_character_messages }} mensajes intercambiados</span>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Chats con Asistente</span>
+      <span class="card-value">{{ summary.total_assistant_conversations }}</span>
+      <span class="card-hint">{{ summary.total_assistant_messages }} preguntas respondidas</span>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Total Mensajes IA</span>
+      <span class="card-value">{{ summary.total_character_messages + summary.total_assistant_messages }}</span>
+      <span class="card-hint">Volumen total de diálogo</span>
+    </div>
+  </div>
+
+  <!-- TOP PERSONAJES MÁS ACTIVOS -->
+  <div class="top-chars-card" *ngIf="topCharacters.length > 0">
+    <h3 class="card-heading">Top Personajes Más Consultados</h3>
+    <div class="chars-row">
+      <div class="char-pill" *ngFor="let c of topCharacters">
+        <img [src]="c.image || 'assets/no-cover.jpg'" class="char-avatar" alt="Avatar" onerror="this.src='assets/no-cover.jpg'">
+        <div class="char-info">
+          <span class="char-name">{{ c.name }}</span>
+          <span class="char-chats">{{ c.chat_count }} chats iniciados</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SELECTOR DE VISTA -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeView === 'characters'" (click)="setView('characters')">
+      <span class="material-symbols-outlined">face</span>
+      Sesiones con Personajes ({{ characterSessions.length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeView === 'assistant'" (click)="setView('assistant')">
+      <span class="material-symbols-outlined">smart_toy</span>
+      Consultas al Asistente Global ({{ assistantConversations.length }})
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Extrayendo métricas de inferencia y chats...</p>
+  </div>
+
+  <!-- TABLA DE SESIONES DE PERSONAJES -->
+  <div class="table-card" *ngIf="!loading && activeView === 'characters'">
+    <table class="data-table" *ngIf="characterSessions.length > 0; else emptyChars">
+      <thead>
+        <tr>
+          <th>Lector</th>
+          <th>Personaje</th>
+          <th>Mensajes</th>
+          <th>Última Interacción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of characterSessions">
+          <td class="font-bold">{{ s.username }}</td>
+          <td>
+            <span class="char-badge">
+              <span class="material-symbols-outlined">face</span>
+              {{ s.avatar_name }}
+            </span>
+          </td>
+          <td>{{ s.messages_count }} mensajes</td>
+          <td class="date-cell">{{ s.updated_at | date:'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyChars>
+      <div class="empty-state">
+        <p>No se registran sesiones de personajes activas.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- TABLA DE CONVERSACIONES DEL ASISTENTE -->
+  <div class="table-card" *ngIf="!loading && activeView === 'assistant'">
+    <table class="data-table" *ngIf="assistantConversations.length > 0; else emptyAsst">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Interacciones</th>
+          <th>Fecha de Inicio</th>
+          <th>Última Actualización</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let a of assistantConversations">
+          <td class="font-bold">{{ a.username }}</td>
+          <td>{{ a.messages_count }} mensajes</td>
+          <td class="date-cell">{{ a.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="date-cell">{{ a.updated_at | date:'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyAsst>
+      <div class="empty-state">
+        <p>No se registran conversaciones con el asistente global.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

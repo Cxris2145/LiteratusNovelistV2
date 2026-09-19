@@ -1,0 +1,68 @@
+<div class="reports-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Analítica & Exportación</div>
+      <h1 class="header-title">Centro de Reportes</h1>
+      <p class="header-desc">Exporta información consolidada de la plataforma en formatos PDF de alta resolución, hojas de cálculo CSV y archivos de datos.</p>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast-banner" *ngIf="toastMessage" style="background: rgba(30, 41, 59, 0.95); border: 1px solid #10b981; color: #10b981; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+    <span class="material-symbols-outlined">info</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Preparando generador de informes...</p>
+  </div>
+
+  <div class="reports-grid" *ngIf="!loading">
+    <!-- TARJETA 1: REPORTE EJECUTIVO PDF -->
+    <div class="report-card">
+      <div class="card-icon-wrap pdf-icon">
+        <span class="material-symbols-outlined">picture_as_pdf</span>
+      </div>
+      <div class="card-content">
+        <h2>Informe Ejecutivo de la Plataforma (PDF)</h2>
+        <p>Documento oficial con portada corporativa, resumen de finanzas, catálogo de {{ stats?.content?.total_books | number }} libros, estadísticas de lectura y actividad de inteligencia artificial.</p>
+        <button class="export-btn primary" [disabled]="exportingPdf" (click)="exportExecutivePdf()">
+          <span class="material-symbols-outlined">{{ exportingPdf ? 'hourglass_top' : 'download' }}</span>
+          {{ exportingPdf ? 'Generando PDF...' : 'Descargar PDF Ejecutivo' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- TARJETA 2: CATÁLOGO DE LIBROS CSV -->
+    <div class="report-card">
+      <div class="card-icon-wrap csv-icon">
+        <span class="material-symbols-outlined">table_view</span>
+      </div>
+      <div class="card-content">
+        <h2>Catálogo de Libros (CSV)</h2>
+        <p>Exportación de la totalidad de {{ stats?.content?.total_books | number }} títulos literarios, autores asignados, conteo de capítulos, vistas registradas y estado de publicación.</p>
+        <button class="export-btn secondary" [disabled]="exportingBooks" (click)="exportBooksCsv()">
+          <span class="material-symbols-outlined">{{ exportingBooks ? 'hourglass_top' : 'file_download' }}</span>
+          {{ exportingBooks ? 'Exportando Libros...' : 'Exportar Libros (CSV)' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- TARJETA 3: LISTADO DE USUARIOS CSV -->
+    <div class="report-card">
+      <div class="card-icon-wrap users-icon">
+        <span class="material-symbols-outlined">group</span>
+      </div>
+      <div class="card-content">
+        <h2>Padrón de Usuarios & Tinta (CSV)</h2>
+        <p>Listado de {{ stats?.users?.total | number }} cuentas registradas, roles de usuario, saldos de tinta en monedero, última fecha de conexión y conteo de chats.</p>
+        <button class="export-btn secondary" [disabled]="exportingUsers" (click)="exportUsersCsv()">
+          <span class="material-symbols-outlined">{{ exportingUsers ? 'hourglass_top' : 'file_download' }}</span>
+          {{ exportingUsers ? 'Exportando Usuarios...' : 'Exportar Usuarios (CSV)' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

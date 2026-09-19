@@ -2,11 +2,12 @@
   <div class="glass-panel profile-card">
     <div class="profile-header">
       <div class="avatar-section">
-        <div class="avatar-wrapper">
+        <div class="avatar-wrapper" [class]="equippedFrame">
           <div class="initials-avatar-large" [style.background-color]="avatarColor">{{ userInitials }}</div>
         </div>
       </div>
       <h2>Tu Perfil</h2>
+      <span class="profile-equipped-title" *ngIf="equippedTitle">📜 {{ equippedTitle }}</span>
       <p class="subtitle">Gestiona tu identidad en Literatus Novelist</p>
     </div>
 

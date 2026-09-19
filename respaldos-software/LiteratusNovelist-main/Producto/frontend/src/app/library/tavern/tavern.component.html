@@ -106,8 +106,86 @@
 
   </section>
 
-  <!-- ═══════════ COFRES ═══════════ -->
-  <section class="chests-section reveal">
+  <!-- ═══════════ SELECTOR DE PESTAÑAS: BAZAR VS COFRES ═══════════ -->
+  <div class="tavern-tab-bar reveal">
+    <button 
+      type="button" 
+      class="tab-switch-btn" 
+      [class.active]="activeTab === 'bazar'"
+      (click)="activeTab = 'bazar'"
+    >
+      <span class="tab-emoji">🏺</span>
+      <span>El Bazar Literario (Canjear Tinta)</span>
+    </button>
+    <button 
+      type="button" 
+      class="tab-switch-btn" 
+      [class.active]="activeTab === 'chests'"
+      (click)="activeTab = 'chests'"
+    >
+      <span class="tab-emoji">👑</span>
+      <span>Cofres de Tinta (Webpay)</span>
+    </button>
+  </div>
+
+  <!-- ═══════════ SECCIÓN 1: EL BAZAR LITERARIO (CANJEAR TINTA) ═══════════ -->
+  <section class="bazar-section reveal" *ngIf="activeTab === 'bazar'">
+    <h2 class="section-title">Artículos de Gamificación y Cosméticos</h2>
+    <p class="section-subtitle">Gasta la tinta que has ganado leyendo y jugando para potenciar tu aventura.</p>
+
+    <div class="bazar-grid">
+      <div 
+        class="bazar-card glass-panel" 
+        *ngFor="let item of shopItems"
+        [class.item-equipped]="item.is_equipped"
+      >
+        <div class="bazar-badge" *ngIf="item.is_equipped">Equipado</div>
+        <div class="bazar-quantity-badge" *ngIf="item.quantity > 0 && !item.is_equipped">Tienes x{{ item.quantity }}</div>
+
+        <div class="bazar-icon-box">
+          <span class="material-symbols-rounded item-glyph">{{ item.icon || 'shopping_bag' }}</span>
+        </div>
+
+        <div class="bazar-info">
+          <h3 class="bazar-item-name">{{ item.name }}</h3>
+          <p class="bazar-item-desc">{{ item.description }}</p>
+        </div>
+
+        <div class="bazar-footer">
+          <div class="bazar-cost">
+            <span class="cost-val">{{ item.cost_ink }}</span>
+            <span class="cost-unit">🖋️ Tinta</span>
+          </div>
+
+          <!-- BOTONES: CANJEAR / EQUIPAR -->
+          <div class="bazar-actions">
+            <button 
+              type="button" 
+              class="btn-bazar-buy"
+              (click)="buyShopItem(item)"
+              [disabled]="inkBalance < item.cost_ink"
+              *ngIf="item.item_type === 'streak_shield' || item.item_type === 'streak_repair' || item.item_type === 'hearts_refill' || !item.is_owned"
+            >
+              Canjear
+            </button>
+
+            <button 
+              type="button" 
+              class="btn-bazar-equip"
+              (click)="equipShopItem(item)"
+              [disabled]="item.is_equipped"
+              *ngIf="item.is_owned && (item.item_type === 'profile_frame' || item.item_type === 'title' || item.item_type === 'theme')"
+            >
+              {{ item.is_equipped ? 'Equipado' : 'Equipar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ SECCIÓN 2: COFRES DE MONEDA REAL (WEBPAY) ═══════════ -->
+  <section class="chests-section reveal" *ngIf="activeTab === 'chests'">
     <h2 class="section-title">Escoge tu cofre de tinta</h2>
 
     <div class="chests-grid">

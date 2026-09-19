@@ -1,0 +1,111 @@
+<div class="gamification-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Fidelización & Dinámicas</div>
+      <h1 class="header-title">Centro de Gamificación</h1>
+      <p class="header-desc">Supervisión de logros, metas de lectura, misiones activas y niveles alcanzados por los lectores de la comunidad.</p>
+    </div>
+  </header>
+
+  <!-- PESTAÑAS DE NAVEGACIÓN -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab === 'achievements'" (click)="setTab('achievements')">
+      <span class="material-symbols-outlined">military_tech</span>
+      Logros & Medallas ({{ achievements.length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'missions'" (click)="setTab('missions')">
+      <span class="material-symbols-outlined">flag</span>
+      Misiones & Retos ({{ missions.length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'levels'" (click)="setTab('levels')">
+      <span class="material-symbols-outlined">trending_up</span>
+      Distribución de Niveles
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando datos del motor de gamificación...</p>
+  </div>
+
+  <!-- CONTENIDO: LOGROS -->
+  <div *ngIf="!loading && activeTab === 'achievements'">
+    <div class="achievements-grid">
+      <div class="achievement-card" *ngFor="let ach of achievements">
+        <div class="ach-icon-wrap">
+          <span class="ach-icon">{{ ach.icon }}</span>
+        </div>
+        <div class="ach-body">
+          <div class="ach-header">
+            <h3 class="ach-title">{{ ach.title }}</h3>
+            <span class="ach-category">{{ ach.category }}</span>
+          </div>
+          <p class="ach-desc">{{ ach.description }}</p>
+          <div class="ach-footer">
+            <span class="reward-pill">
+              <span class="material-symbols-outlined">water_drop</span>
+              +{{ ach.ink_reward }} Tinta
+            </span>
+            <span class="unlocked-count">
+              <span class="material-symbols-outlined">person</span>
+              {{ ach.unlocked_count }} usuarios
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENIDO: MISIONES -->
+  <div *ngIf="!loading && activeTab === 'missions'">
+    <div class="missions-grid">
+      <div class="mission-card" *ngFor="let m of missions">
+        <div class="mission-header">
+          <span class="mission-type-tag">{{ m.reset_type }}</span>
+          <span class="status-indicator" [class.active]="m.is_active">
+            {{ m.is_active ? 'Activa' : 'Inactiva' }}
+          </span>
+        </div>
+        <h3 class="mission-title">{{ m.title }}</h3>
+        <p class="mission-desc">{{ m.description }}</p>
+
+        <div class="mission-metrics">
+          <div class="metric-item">
+            <span class="metric-lbl">Meta</span>
+            <span class="metric-val">{{ m.target_count }} eventos</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-lbl">Completadas</span>
+            <span class="metric-val">{{ m.completed_count }} veces</span>
+          </div>
+        </div>
+
+        <div class="mission-rewards">
+          <span class="reward-tag ink">+{{ m.ink_reward }} Tinta</span>
+          <span class="reward-tag xp">+{{ m.xp_reward }} XP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENIDO: NIVELES -->
+  <div *ngIf="!loading && activeTab === 'levels'">
+    <div class="levels-card">
+      <h3 class="card-title">Pirámide de Niveles de Lectores</h3>
+      <p class="card-subtitle">Usuarios activos clasificados según su nivel de experiencia literaria.</p>
+
+      <div class="levels-list">
+        <div class="level-row" *ngFor="let lvl of levelsDistribution">
+          <div class="level-info">
+            <span class="level-badge">Nivel {{ lvl.level }}</span>
+            <span class="level-users-count">{{ lvl.user_count }} {{ lvl.user_count === 1 ? 'lector' : 'lectores' }}</span>
+          </div>
+          <div class="level-bar-track">
+            <div class="level-bar-fill" [style.width.%]="getLevelBarWidth(lvl.user_count)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

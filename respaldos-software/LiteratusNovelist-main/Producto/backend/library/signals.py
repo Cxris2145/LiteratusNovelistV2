@@ -31,15 +31,17 @@ def evaluate_session_achievements(sender, instance, created, **kwargs):
         from .achievement_engine import evaluate_for_user
         evaluate_for_user(instance.user, trigger='session', session=instance)
         
-    # Recompensas de gamificación por lectura (solo si se leyeron capítulos y se cerró la sesión)
-    if not created and getattr(instance, 'chapters_read', 0) > 0 and instance.ended_at:
-        from .achievement_engine import reward_activity, update_streak
-        # Update streak
-        update_streak(instance.user)
-        # Dar recompensa por capítulo leído (proporcional a chapters_read)
-        # chapters_read debe ser trackeado para no dar recompensas duplicadas por la misma sesión.
-        # En MVP damos 1 recompensa por sesión cerrada que tenga chapters_read > 0
-        reward_activity(instance.user, 'chapter_read', str(instance.id))
+    # Recompensas de gamificación y aseguramiento de racha por lectura
+    if not created and instance.ended_at:
+        try:
+            from learning.services import ensure_streak
+            ensure_streak(instance.user, 'chapter_read')
+        except Exception:
+            pass
+
+        if getattr(instance, 'chapters_read', 0) > 0:
+            from .achievement_engine import reward_activity
+            reward_activity(instance.user, 'chapter_read', str(instance.id))
 
 
 @receiver(post_save, sender=ReadingProgress)

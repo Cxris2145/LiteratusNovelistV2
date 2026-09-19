@@ -1,0 +1,111 @@
+<div class="ink-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Economía Virtual</div>
+      <h1 class="header-title">Control y Flujo de Tinta</h1>
+      <p class="header-desc">Supervisión de balances de Tinta en circulación, consumos en chat/narraciones y recompensas otorgadas por gamificación.</p>
+    </div>
+  </header>
+
+  <!-- CARDS DE SALDOS -->
+  <div class="summary-grid" *ngIf="circulation">
+    <div class="summary-card">
+      <span class="card-label">Tinta en Circulación</span>
+      <span class="card-value">{{ circulation.total_in_circulation | number }}</span>
+      <span class="card-hint">Total en monederos de usuarios</span>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Movimientos Registrados</span>
+      <span class="card-value">{{ circulation.total_transactions | number }}</span>
+      <span class="card-hint">Transacciones de saldo</span>
+    </div>
+    <div class="summary-card earned">
+      <span class="card-label">Tinta Otorgada</span>
+      <span class="card-value">+{{ circulation.earned_total | number }}</span>
+      <span class="card-hint">Misiones, logros y recargas</span>
+    </div>
+    <div class="summary-card spent">
+      <span class="card-label">Tinta Consumida</span>
+      <span class="card-value">-{{ circulation.spent_total | number }}</span>
+      <span class="card-hint">Chats con IA y narraciones</span>
+    </div>
+  </div>
+
+  <!-- INFORMACIÓN DE PAQUETES -->
+  <div class="packages-card">
+    <h3 class="packages-title">
+      <span class="material-symbols-outlined">payments</span>
+      Paquetes de Tinta Activos en Tienda
+    </h3>
+    <div class="packages-grid">
+      <div class="pkg-box">
+        <span class="pkg-qty">200 Tinta</span>
+        <span class="pkg-price">$990 CLP</span>
+        <span class="pkg-desc">Pack Básico para lecturas breves</span>
+      </div>
+      <div class="pkg-box featured">
+        <span class="pkg-badge">Más Popular</span>
+        <span class="pkg-qty">500 Tinta</span>
+        <span class="pkg-price">$1.990 CLP</span>
+        <span class="pkg-desc">Pack Estándar con bonificación</span>
+      </div>
+      <div class="pkg-box">
+        <span class="pkg-qty">1.200 Tinta</span>
+        <span class="pkg-price">$3.990 CLP</span>
+        <span class="pkg-desc">Pack Lector Voraz para desbloqueos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Consultando libro mayor de Tinta...</p>
+  </div>
+
+  <!-- TABLA DE MOVIMIENTOS -->
+  <div class="table-card" *ngIf="!loading">
+    <div class="table-header">
+      <h2>Historial de Movimientos de Tinta</h2>
+      <span class="tx-count">Últimas {{ transactions.length }} transacciones</span>
+    </div>
+
+    <table class="data-table" *ngIf="transactions.length > 0; else emptyState">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Variación</th>
+          <th>Concepto</th>
+          <th>Saldo Posterior</th>
+          <th>Fecha y Hora</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tx of transactions">
+          <td>
+            <div class="user-cell">
+              <span class="user-name">{{ tx.username }}</span>
+              <span class="user-email">{{ tx.user_email }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="amount-badge" [class.positive]="tx.amount > 0" [class.negative]="tx.amount < 0">
+              {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount }} Tinta
+            </span>
+          </td>
+          <td>{{ tx.concept }}</td>
+          <td class="balance-cell">{{ tx.balance_after | number }}</td>
+          <td class="date-cell">{{ tx.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <span class="material-symbols-outlined empty-icon">water_drop</span>
+        <h3>Sin movimientos recientes</h3>
+        <p>Los movimientos de saldo por recompensas, lectura o consumo se registrarán en esta tabla.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

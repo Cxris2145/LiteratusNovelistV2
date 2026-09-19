@@ -181,3 +181,33 @@ label {
 }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* MARCOS DE PERFIL Y TÍTULO HONORÍFICO */
+.profile-equipped-title {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 6px 0 10px 0;
+  letter-spacing: 0.03em;
+}
+
+.avatar-wrapper.frame-gold {
+  position: relative;
+  outline: 4px solid #f59e0b;
+  outline-offset: 4px;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+}
+
+.avatar-wrapper.frame-victorian {
+  position: relative;
+  outline: 4px dashed #8b5cf6;
+  outline-offset: 4px;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+}

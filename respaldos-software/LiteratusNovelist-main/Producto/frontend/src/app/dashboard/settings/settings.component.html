@@ -1,0 +1,89 @@
+<div class="settings-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Configuración de Plataforma</div>
+      <h1 class="header-title">Ajustes Generales de Literatus</h1>
+      <p class="header-desc">Personalización visual de la tienda, parámetros de sistema y diagnóstico del entorno de ejecución.</p>
+    </div>
+  </header>
+
+  <!-- TOAST -->
+  <div class="toast-banner" *ngIf="toastMessage">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando configuración general...</p>
+  </div>
+
+  <div class="settings-grid" *ngIf="!loading && settings">
+    <!-- PANEL DE TEMAS -->
+    <div class="settings-card">
+      <h2 class="card-heading">
+        <span class="material-symbols-outlined">palette</span>
+        Tema Predeterminado de la Plataforma
+      </h2>
+      <p class="card-desc">Elige la identidad visual global que se aplicará para todos los visitantes del catálogo y lectores.</p>
+
+      <div class="themes-options">
+        <label class="theme-option" *ngFor="let t of settings.themes_available" [class.selected]="selectedTheme === t.code">
+          <input type="radio" name="storeTheme" [value]="t.code" [(ngModel)]="selectedTheme">
+          <div class="theme-box">
+            <span class="theme-title">{{ t.name }}</span>
+            <span class="theme-code">{{ t.code }}</span>
+          </div>
+        </label>
+      </div>
+
+      <div class="card-actions">
+        <button class="primary-btn" (click)="saveTheme()" [disabled]="saving">
+          <span *ngIf="!saving">Guardar Preferencias de Tema</span>
+          <span *ngIf="saving">Guardando...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL DE INFORMACIÓN DEL SISTEMA -->
+    <div class="settings-card">
+      <h2 class="card-heading">
+        <span class="material-symbols-outlined">info</span>
+        Diagnóstico de la Plataforma
+      </h2>
+      <p class="card-desc">Parámetros del entorno de ejecución activo en Literatus Nexus.</p>
+
+      <div class="info-list" *ngIf="settings.platform_info">
+        <div class="info-row">
+          <span class="info-key">Aplicación:</span>
+          <span class="info-val">{{ settings.platform_info.app_name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Versión:</span>
+          <span class="info-val font-mono">{{ settings.platform_info.version }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Entorno:</span>
+          <span class="info-val">{{ settings.platform_info.environment }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Stack Tecnológico:</span>
+          <span class="info-val">{{ settings.platform_info.framework }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Motor de IA:</span>
+          <span class="info-val">Google Gemini (ai_engine)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Pasarela de Pago:</span>
+          <span class="info-val">Webpay Plus (Transbank SDK)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">Base de Datos:</span>
+          <span class="info-val">PostgreSQL (Supabase Pooler)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

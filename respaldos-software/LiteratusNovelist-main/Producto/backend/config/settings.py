@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'finance.apps.FinanceConfig',
     'library.apps.LibraryConfig',
     'ai_engine.apps.AiEngineConfig',
+    'learning.apps.LearningConfig',
     'dashboard',
 ]
 

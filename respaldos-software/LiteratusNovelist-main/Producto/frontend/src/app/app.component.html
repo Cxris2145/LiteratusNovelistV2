@@ -109,6 +109,10 @@
                   <span class="mat-symbol">manage_accounts</span>
                   <span>Editar Perfil</span>
                 </button>
+                <button mat-menu-item routerLink="/learn">
+                  <span class="mat-symbol">school</span>
+                  <span>La Senda del Lector</span>
+                </button>
                 <button mat-menu-item routerLink="/achievements">
                   <span class="mat-symbol">emoji_events</span>
                   <span>Mis Logros y Nivel</span>
@@ -188,7 +192,15 @@
         <span class="bubble-label">Mi Biblioteca</span>
       </a>
 
-      <!-- 7. Logros / Gamificación -->
+      <!-- 7. La Senda (Comprensión y Aprendizaje) -->
+      <a routerLink="/learn" routerLinkActive="active-bubble" class="nav-bubble-item">
+        <div class="bubble-circle bubble-circle--learn">
+          <span class="material-symbols-rounded">school</span>
+        </div>
+        <span class="bubble-label">La Senda</span>
+      </a>
+
+      <!-- 8. Logros / Gamificación -->
       <a routerLink="/achievements" routerLinkActive="active-bubble" class="nav-bubble-item">
         <div class="bubble-circle">
           <span class="material-symbols-rounded">emoji_events</span>

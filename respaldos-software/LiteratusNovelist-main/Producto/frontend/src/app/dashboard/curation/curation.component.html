@@ -1,0 +1,133 @@
+<div class="curation-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Control Editorial</div>
+      <h1 class="header-title">Curaduría & Aprobación de Libros</h1>
+      <p class="header-desc">Revisa obras en borrador, títulos enviados por autores y contenidos pendientes de publicación.</p>
+    </div>
+    <div class="header-stats" *ngIf="!loading">
+      <div class="stat-pill">
+        <span class="stat-num">{{ pendingBooks.length }}</span>
+        <span class="stat-label">Pendientes</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NOTIFICACIÓN DE ACCIÓN -->
+  <div class="toast-banner" *ngIf="actionMessage">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{ actionMessage }}</span>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Examinando obras pendientes de aprobación...</p>
+  </div>
+
+  <!-- LISTADO DE LIBROS PENDIENTES -->
+  <div *ngIf="!loading">
+    <div class="cards-grid" *ngIf="pendingBooks.length > 0; else emptyState">
+      <div class="curation-card" *ngFor="let book of pendingBooks">
+        <div class="card-cover-wrap">
+          <img [src]="book.cover || 'assets/no-cover.jpg'" alt="Portada" onerror="this.src='assets/no-cover.jpg'">
+          <span class="status-tag" [class.draft]="book.status === 'draft'">
+            {{ book.status === 'draft' ? 'Borrador' : (book.is_published ? 'Publicado' : 'Oculto') }}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="book-meta">
+            <span class="difficulty-badge">{{ book.difficulty_level }}</span>
+            <span class="chapters-count">{{ book.chapters_count }} capítulos</span>
+          </div>
+          <h2 class="book-title">{{ book.title }}</h2>
+          <p class="book-authors">
+            <span class="material-symbols-outlined">person</span>
+            {{ book.authors.join(', ') || 'Autor sin asignar' }}
+          </p>
+          <p class="book-synopsis" *ngIf="book.synopsis">{{ book.synopsis }}</p>
+
+          <div class="card-actions">
+            <button class="action-btn review-btn" (click)="selectBookForReview(book)">
+              <span class="material-symbols-outlined">visibility</span>
+              Inspeccionar
+            </button>
+            <button class="action-btn approve-btn" (click)="approve(book)">
+              <span class="material-symbols-outlined">check</span>
+              Aprobar
+            </button>
+            <button class="action-btn reject-btn" (click)="rejectBook(book)" title="Rechazar y descartar obra">
+              <span class="material-symbols-outlined">delete</span>
+              Rechazar
+            </button>
+            <a [routerLink]="['/dashboard/books', book.id, 'edit']" class="action-btn edit-btn">
+              <span class="material-symbols-outlined">edit</span>
+              Editar
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <ng-template #emptyState>
+      <div class="empty-state-panel">
+        <div class="empty-icon-wrap">
+          <span class="material-symbols-outlined">verified</span>
+        </div>
+        <h2 class="empty-title">Todo el catálogo está al día</h2>
+        <p class="empty-desc">No hay libros en borrador ni obras pendientes de revisión editorial en este momento. Todos los 1.046 títulos se encuentran publicados y disponibles para lectura.</p>
+        <div class="empty-actions">
+          <a routerLink="/dashboard/books/new" class="primary-btn">
+            <span class="material-symbols-outlined">add</span>
+            Cargar Nueva Obra
+          </a>
+          <a routerLink="/dashboard/books" class="secondary-btn">
+            <span class="material-symbols-outlined">library_books</span>
+            Explorar Biblioteca
+          </a>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- MODAL DE INSPECCIÓN -->
+  <div class="modal-backdrop" *ngIf="selectedBook" (click)="closeReview()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalles de Curaduría: {{ selectedBook.title }}</h2>
+        <button class="close-btn" (click)="closeReview()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-grid">
+          <img [src]="selectedBook.cover || 'assets/no-cover.jpg'" class="modal-cover" alt="Portada">
+          <div class="modal-info">
+            <p><strong>Autores:</strong> {{ selectedBook.authors.join(', ') || 'N/A' }}</p>
+            <p><strong>Géneros:</strong> {{ selectedBook.genres.join(', ') || 'N/A' }}</p>
+            <p><strong>Capítulos:</strong> {{ selectedBook.chapters_count }}</p>
+            <p><strong>Palabras estimadas:</strong> {{ selectedBook.word_count || 'Sin recalcular' }}</p>
+            <p><strong>Nivel:</strong> {{ selectedBook.difficulty_level }}</p>
+            <p><strong>Última actualización:</strong> {{ selectedBook.updated_at | date:'medium' }}</p>
+            <div class="synopsis-box">
+              <strong>Sinopsis:</strong>
+              <p>{{ selectedBook.synopsis || 'Sin sinopsis registrada.' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="secondary-btn" (click)="closeReview()">Cerrar</button>
+        <button class="danger-btn" (click)="rejectBook(selectedBook)">
+          <span class="material-symbols-outlined">delete</span>
+          Rechazar Borrador
+        </button>
+        <button class="primary-btn" (click)="approve(selectedBook); closeReview()">
+          <span class="material-symbols-outlined">publish</span>
+          Aprobar & Publicar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

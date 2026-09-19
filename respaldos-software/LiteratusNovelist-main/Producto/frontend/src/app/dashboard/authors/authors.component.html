@@ -69,7 +69,10 @@
 
     <!-- LISTADO DE AUTORES -->
     <div class="authors-list card">
-      <h3 class="section-title">Autores Registrados</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 class="section-title" style="margin: 0;">Autores Registrados</h3>
+        <span style="font-size: 12px; background: rgba(53, 100, 110, 0.3); color: #a5f3fc; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(65, 122, 135, 0.4);">{{ filteredAuthors.length }} de {{ authors.length }}</span>
+      </div>
       
       <div class="search-box" style="margin-bottom: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--nexus-border); border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px;">
         <span class="material-symbols-outlined" style="color: #64748b; font-size: 20px;">search</span>
@@ -141,7 +144,7 @@
               <div class="mini-book-info">
                 <h4>{{ book.title }}</h4>
                 <p>{{ book.synopsis }}</p>
-                <button class="view-book-btn">Ver libro</button>
+                <a [routerLink]="['/dashboard/books', book.id, 'edit']" (click)="previewAuthor = null" class="view-book-btn" style="text-decoration: none; display: inline-block; text-align: center;">Editar ficha de libro</a>
               </div>
             </div>
           </div>

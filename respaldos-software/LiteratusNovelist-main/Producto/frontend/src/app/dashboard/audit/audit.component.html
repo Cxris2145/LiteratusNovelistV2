@@ -1,0 +1,51 @@
+<div class="audit-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Seguridad & Trazabilidad</div>
+      <h1 class="header-title">Registro de Auditoría</h1>
+      <p class="header-desc">Historial cronológico de cambios, publicaciones y acciones administrativas realizadas en la plataforma.</p>
+    </div>
+  </header>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Consultando bitácora de auditoría...</p>
+  </div>
+
+  <div class="table-card" *ngIf="!loading">
+    <table class="data-table" *ngIf="logs.length > 0; else emptyLogs">
+      <thead>
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Administrador</th>
+          <th>Acción</th>
+          <th>Objeto Afectado</th>
+          <th>Detalle del Cambio</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs">
+          <td class="date-cell">{{ log.action_time | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+          <td class="user-cell">{{ log.username }}</td>
+          <td>
+            <span class="action-tag">{{ log.action_flag }}</span>
+          </td>
+          <td class="object-cell">
+            <span class="type-pill">{{ log.content_type }}</span>
+            <span class="repr-text">{{ log.object_repr }}</span>
+          </td>
+          <td class="msg-cell">{{ log.change_message || 'Sin mensaje adicional' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyLogs>
+      <div class="empty-state">
+        <span class="material-symbols-outlined empty-icon">history</span>
+        <h3>Sin registros de auditoría aún</h3>
+        <p>Las modificaciones directas a la base de datos a través de Django Admin y las acciones administrativas se registrarán aquí con sello temporal inviolable.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

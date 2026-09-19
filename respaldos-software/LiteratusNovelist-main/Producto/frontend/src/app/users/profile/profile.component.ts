@@ -30,7 +30,8 @@ export class ProfileComponent implements OnInit {
     { id: 'neon', label: 'Cyber Neon' },
     { id: 'light-gallery', label: 'Light Gallery' }
   ];
-  selectedTheme = 'default';
+  equippedFrame: string = '';
+  equippedTitle: string = '';
 
   constructor() {
     this.profileForm = this.fb.group({
@@ -57,6 +58,8 @@ export class ProfileComponent implements OnInit {
           });
           this.avatarColor = profile.avatar_color || '#3b82f6';
           this.selectedTheme = profile.theme || 'default';
+          this.equippedFrame = profile.equipped_frame || '';
+          this.equippedTitle = profile.equipped_title || '';
           this.updateInitials();
           if (profile.ink_balance !== undefined) {
             this.chatService.updateInkBalance(profile.ink_balance);

@@ -166,4 +166,78 @@ export class DashboardBooksService {
     formData.append('image', file);
     return this.http.post<{ url: string }>(`${this.apiUrl}/books/upload-image/`, formData);
   }
+
+  // ── Métodos Extendidos de Administración ──
+  togglePublishBook(id: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/books/${id}/toggle-publish/`, {});
+  }
+
+  approveBook(id: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/books/${id}/approve/`, {});
+  }
+
+  getCuration(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/curation/`);
+  }
+
+  toggleActiveUser(id: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/users/${id}/toggle-active/`, {});
+  }
+
+  changeUserRole(id: string, role: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/users/${id}/role/`, { role });
+  }
+
+  adjustUserInk(id: string, amount: number, reason: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/users/${id}/adjust-ink/`, { amount, reason });
+  }
+
+  getTransactions(params?: any): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/transactions/`, { params });
+  }
+
+  getInkEconomy(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/ink/`);
+  }
+
+  getGamification(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/gamification/`);
+  }
+
+  getAIChats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/ai-chats/`);
+  }
+
+  getAuditLogs(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/audit-logs/`);
+  }
+
+  getSettings(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/settings/`);
+  }
+
+  saveSettings(data: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/settings/`, data);
+  }
+
+  getAdminGenres(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/genres/`);
+  }
+
+  saveGenre(data: any, coverFile?: File, id?: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    if (data.description) formData.append('description', data.description);
+    if (coverFile) formData.append('cover_image', coverFile);
+
+    if (id) {
+      return this.http.put<any>(`${this.apiUrl}/genres/${id}/`, formData);
+    }
+    return this.http.post<any>(`${this.apiUrl}/genres/`, formData);
+  }
+
+  deleteGenre(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/genres/${id}/`);
+  }
 }
+

@@ -25,15 +25,36 @@ class ProfileSerializer(serializers.ModelSerializer):
     discount_percent = serializers.SerializerMethodField()
     level_perks = serializers.SerializerMethodField()
     all_levels = serializers.SerializerMethodField()
+    seconds_to_next_heart = serializers.SerializerMethodField()
+    current_hearts = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
         fields = [
             'id', 'avatar_color', 'bio', 'country', 'preferred_language', 
             'ink_balance', 'theme', 'xp', 'level', 'level_name', 
-            'xp_to_next_level', 'streak_current', 'discount_percent', 
+            'xp_to_next_level', 'streak_current', 'streak_max', 'streak_shields',
+            'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',
+            'equipped_frame', 'equipped_title', 'discount_percent', 
             'level_perks', 'all_levels'
         ]
+
+    def get_current_hearts(self, obj):
+        from django.utils import timezone
+        if obj.hearts >= 5:
+            return 5
+        elapsed = (timezone.now() - obj.hearts_last_updated).total_seconds()
+        regen = int(elapsed // 1800) # 30 min por vida
+        return min(5, obj.hearts + regen)
+
+    def get_seconds_to_next_heart(self, obj):
+        from django.utils import timezone
+        current = self.get_current_hearts(obj)
+        if current >= 5:
+            return 0
+        elapsed = (timezone.now() - obj.hearts_last_updated).total_seconds()
+        remainder = 1800 - (elapsed % 1800)
+        return int(max(0, remainder))
 
     def get_level_name(self, obj):
         from django.conf import settings

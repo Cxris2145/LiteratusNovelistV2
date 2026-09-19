@@ -2,6 +2,8 @@ import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { ChatService } from '../../core/services/chat.service';
+import { LearningService, ShopItem } from '../../core/services/learning.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-tavern',
@@ -11,6 +13,12 @@ import { ChatService } from '../../core/services/chat.service';
 export class TavernComponent implements OnInit, AfterViewInit {
   private api = inject(ApiService);
   private chatService = inject(ChatService);
+  private learningService = inject(LearningService);
+  private snackBar = inject(MatSnackBar);
+
+  activeTab: 'bazar' | 'chests' = 'bazar';
+  shopItems: ShopItem[] = [];
+  loadingShop: boolean = false;
 
   inkBalance: number = 0;
   displayBalance: number = 0;
@@ -35,6 +43,7 @@ export class TavernComponent implements OnInit, AfterViewInit {
     if (this.isLoggedIn()) {
       this.fetchBalance();
     }
+    this.loadShopItems();
   }
 
   ngAfterViewInit(): void {
@@ -125,5 +134,57 @@ export class TavernComponent implements OnInit, AfterViewInit {
       return;
     }
     alert(`Redirigiendo a pasarela de pago para el ${chest.title}...`);
+  }
+
+  loadShopItems(): void {
+    this.loadingShop = true;
+    this.learningService.getShopItems().subscribe({
+      next: (items) => {
+        this.shopItems = items;
+        this.loadingShop = false;
+      },
+      error: () => {
+        this.loadingShop = false;
+      }
+    });
+  }
+
+  buyShopItem(item: ShopItem): void {
+    if (!this.isLoggedIn()) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    if (this.inkBalance < item.cost_ink) {
+      this.snackBar.open(`Tinta insuficiente. Necesitas ${item.cost_ink} 🖋️`, 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    this.learningService.buyShopItem(item.code).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.inkBalance = res.ink_balance;
+          this.chatService.updateInkBalance(this.inkBalance);
+          this.animateOdometer();
+          this.snackBar.open(res.message, 'Cerrar', { duration: 3000 });
+          this.loadShopItems();
+        } else {
+          this.snackBar.open(res.message || 'Error al comprar artículo', 'Cerrar', { duration: 3000 });
+        }
+      },
+      error: (err) => {
+        this.snackBar.open(err?.error?.message || 'Error en la transacción', 'Cerrar', { duration: 3000 });
+      }
+    });
+  }
+
+  equipShopItem(item: ShopItem): void {
+    this.learningService.equipShopItem(item.code).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open(res.message, 'Cerrar', { duration: 3000 });
+          this.loadShopItems();
+        }
+      }
+    });
   }
 }

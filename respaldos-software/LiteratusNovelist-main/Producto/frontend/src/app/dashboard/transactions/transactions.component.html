@@ -1,0 +1,126 @@
+<div class="transactions-container">
+  <header class="section-header">
+    <div class="header-titles">
+      <div class="header-badge">Finanzas & Pagos</div>
+      <h1 class="header-title">Ventas & Transacciones Webpay</h1>
+      <p class="header-desc">Monitoreo en tiempo real de transacciones de compra de libros, recargas de tinta y conciliación con Transbank.</p>
+    </div>
+  </header>
+
+  <!-- TARJETAS DE RESUMEN FINANCIERO -->
+  <div class="summary-grid" *ngIf="summary">
+    <div class="summary-card">
+      <span class="card-label">Recaudación Total</span>
+      <span class="card-value">${{ summary.total_revenue | number:'1.0-0' }}</span>
+      <span class="card-hint">Monto confirmado</span>
+    </div>
+    <div class="summary-card">
+      <span class="card-label">Total Órdenes</span>
+      <span class="card-value">{{ summary.total_transactions }}</span>
+      <span class="card-hint">Intentos de pago</span>
+    </div>
+    <div class="summary-card success">
+      <span class="card-label">Pagos Exitosos</span>
+      <span class="card-value">{{ summary.successful }}</span>
+      <span class="card-hint">Cobros autorizados</span>
+    </div>
+    <div class="summary-card error">
+      <span class="card-label">Pagos Fallidos</span>
+      <span class="card-value">{{ summary.failed }}</span>
+      <span class="card-hint">Rechazados / Abortados</span>
+    </div>
+  </div>
+
+  <!-- CONTROLES Y FILTROS -->
+  <div class="controls-bar">
+    <div class="search-box">
+      <span class="material-symbols-outlined">search</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (keyup.enter)="onSearch()" 
+        placeholder="Buscar por orden Webpay, usuario o email...">
+    </div>
+
+    <div class="filters-group">
+      <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="select-filter">
+        <option value="">Todos los Estados</option>
+        <option value="exitosa">Exitosa</option>
+        <option value="iniciada">Iniciada (Pendiente)</option>
+        <option value="fallida">Fallida</option>
+        <option value="reversada">Reversada</option>
+      </select>
+
+      <select [(ngModel)]="itemTypeFilter" (change)="onFilterChange()" class="select-filter">
+        <option value="">Todos los Ítems</option>
+        <option value="book">Libro</option>
+        <option value="ink">Tinta</option>
+      </select>
+
+      <button class="primary-btn" (click)="onSearch()">Filtrar</button>
+      <button class="secondary-btn" *ngIf="statusFilter || itemTypeFilter || searchQuery" (click)="clearFilters()" title="Restablecer filtros">Limpiar</button>
+      <button class="secondary-btn" *ngIf="transactions.length > 0" (click)="exportCsv()" title="Exportar resultados a CSV">
+        <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 4px;">file_download</span>
+        Exportar CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Consultando registros de transacciones...</p>
+  </div>
+
+  <!-- TABLA DE TRANSACCIONES -->
+  <div class="table-card" *ngIf="!loading">
+    <table class="data-table" *ngIf="transactions.length > 0; else emptyState">
+      <thead>
+        <tr>
+          <th>Orden Webpay</th>
+          <th>Usuario</th>
+          <th>Ítem</th>
+          <th>Referencia</th>
+          <th>Monto</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of transactions">
+          <td class="font-mono">{{ t.buy_order }}</td>
+          <td>
+            <div class="user-cell">
+              <span class="user-name">{{ t.username }}</span>
+              <span class="user-email">{{ t.user_email }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="item-tag" [class.book]="t.item_type === 'book'" [class.ink]="t.item_type === 'ink'">
+              {{ t.item_type === 'book' ? 'Libro' : 'Tinta' }}
+            </span>
+          </td>
+          <td class="reference-cell">{{ t.item_reference }}</td>
+          <td class="amount-cell">${{ t.amount | number:'1.0-0' }}</td>
+          <td>
+            <span class="status-pill" [class.success]="t.status === 'exitosa'" [class.failed]="t.status === 'fallida'" [class.pending]="t.status === 'iniciada'">
+              <span class="dot"></span>
+              {{ t.status_display }}
+            </span>
+          </td>
+          <td class="date-cell">{{ t.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <div class="empty-icon-wrap">
+          <span class="material-symbols-outlined">receipt_long</span>
+        </div>
+        <h3>No hay transacciones registradas</h3>
+        <p>Aún no se han ejecutado pagos reales con la pasarela Webpay Plus. Cuando un usuario compre un libro o recargue Tinta, sus compras aparecerán aquí automáticamente.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

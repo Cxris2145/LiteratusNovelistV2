@@ -57,6 +57,11 @@ const routes: Routes = [
   { path: 'library', component: LibraryListComponent, canActivate: [authGuard] },
   { path: 'reader/:id', component: ReaderComponent, canActivate: [authGuard] },
   {
+    path: 'learn',
+    loadChildren: () => import('./learning/learning.module').then(m => m.LearningModule),
+    canActivate: [authGuard]
+  },
+  {
     path: 'dashboard',
     loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
     canActivate: [adminGuard]

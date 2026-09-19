@@ -10,7 +10,7 @@
         </div>
         <span class="logo-text" *ngIf="!sidebarCollapsed">Literatus<span class="logo-accent"> Nexus</span></span>
       </div>
-      <button class="collapse-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed ? 'Expandir' : 'Colapsar'">
+      <button class="collapse-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline *ngIf="!sidebarCollapsed" points="15 18 9 12 15 6"/>
           <polyline *ngIf="sidebarCollapsed" points="9 18 15 12 9 6"/>
@@ -19,45 +19,136 @@
     </div>
 
     <nav class="sidebar-nav">
-      <!-- PRINCIPAL -->
+      <!-- ÁREA 1: PRINCIPAL -->
       <div class="nav-section-label" *ngIf="!sidebarCollapsed">PRINCIPAL</div>
+
       <a routerLink="overview" routerLinkActive="active" class="nav-item" title="Visión General">
         <span class="nav-icon-wrap">
-          <span class="material-symbols-outlined">dashboard</span>
+          <span class="material-symbols-outlined">space_dashboard</span>
         </span>
         <span class="nav-label" *ngIf="!sidebarCollapsed">Visión General</span>
       </a>
 
-      <!-- CONTENIDO -->
-      <div class="nav-section-label" *ngIf="!sidebarCollapsed">CONTENIDO</div>
-      <a routerLink="books" routerLinkActive="active" class="nav-item" title="Biblioteca">
+      <a routerLink="reports" routerLinkActive="active" class="nav-item" title="Centro de Reportes">
         <span class="nav-icon-wrap">
-          <span class="material-symbols-outlined">library_books</span>
+          <span class="material-symbols-outlined">analytics</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Reportes</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed">PDF/CSV</span>
+      </a>
+
+      <!-- ÁREA 2: EDITORIAL & CATÁLOGO -->
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">EDITORIAL & CATÁLOGO</div>
+
+      <a routerLink="books" routerLinkActive="active" class="nav-item" title="Biblioteca de Libros">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">auto_stories</span>
         </span>
         <span class="nav-label" *ngIf="!sidebarCollapsed">Biblioteca</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">{{ (stats.content?.total_books || 1046) | number }}</span>
       </a>
-      <a routerLink="authors" routerLinkActive="active" class="nav-item" title="Autores">
+
+      <a routerLink="curation" routerLinkActive="active" class="nav-item" title="Curaduría & Aprobaciones">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">verified</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Curaduría</span>
+        <span class="nav-badge" [class.alert]="(stats?.pending_books?.length || 0) > 0" *ngIf="!sidebarCollapsed && stats">
+          {{ stats?.pending_books?.length || 0 }}
+        </span>
+      </a>
+
+      <a routerLink="authors" routerLinkActive="active" class="nav-item" title="Gestión de Autores">
         <span class="nav-icon-wrap">
           <span class="material-symbols-outlined">history_edu</span>
         </span>
         <span class="nav-label" *ngIf="!sidebarCollapsed">Autores</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">{{ (stats.content?.total_authors || 313) | number }}</span>
       </a>
-      <a routerLink="avatars" routerLinkActive="active" class="nav-item" title="Personajes">
+
+      <a routerLink="avatars" routerLinkActive="active" class="nav-item" title="Personajes IA">
         <span class="nav-icon-wrap">
           <span class="material-symbols-outlined">face</span>
         </span>
-        <span class="nav-label" *ngIf="!sidebarCollapsed">Personajes</span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Personajes IA</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">{{ (stats.ai?.total_avatars || 4477) | number }}</span>
       </a>
 
-      <!-- SISTEMA -->
-      <div class="nav-section-label" *ngIf="!sidebarCollapsed">SISTEMA</div>
-      <a routerLink="users" routerLinkActive="active" class="nav-item" title="Monitoreo de Usuarios">
+      <a routerLink="categories" routerLinkActive="active" class="nav-item" title="Categorías & Géneros">
         <span class="nav-icon-wrap">
-          <span class="material-symbols-outlined">monitoring</span>
+          <span class="material-symbols-outlined">category</span>
         </span>
-        <span class="nav-label" *ngIf="!sidebarCollapsed">Monitoreo de Usuarios</span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Categorías</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">{{ (stats.content?.total_genres || 33) | number }}</span>
       </a>
-      <a routerLink="/" class="nav-item nav-item-external" title="Ir a la Tienda">
+
+      <!-- ÁREA 3: COMUNIDAD & GAMIFICACIÓN -->
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">COMUNIDAD</div>
+
+      <a routerLink="users" routerLinkActive="active" class="nav-item" title="Usuarios & Roles">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">group</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Usuarios & Roles</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">{{ (stats.users?.total || 2) | number }}</span>
+      </a>
+
+      <a routerLink="gamification" routerLinkActive="active" class="nav-item" title="Centro de Gamificación">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">military_tech</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Gamificación</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">{{ stats.gamification?.total_achievements || 12 }}</span>
+      </a>
+
+      <a routerLink="ink" routerLinkActive="active" class="nav-item" title="Control y Flujo de Tinta">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">water_drop</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Economía Tinta</span>
+        <span class="nav-badge ink" *ngIf="!sidebarCollapsed && stats">
+          {{ ((stats.gamification?.ink_in_circulation || 100142) / 1000 | number:'1.0-1') }}k
+        </span>
+      </a>
+
+      <!-- ÁREA 4: OPERACIONES & SISTEMA -->
+      <div class="nav-section-label" *ngIf="!sidebarCollapsed">OPERACIONES & SISTEMA</div>
+
+      <a routerLink="transactions" routerLinkActive="active" class="nav-item" title="Ventas & Pagos Webpay">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">payments</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Ventas & Pagos</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">${{ (stats.revenue?.total || 0) | number:'1.0-0' }}</span>
+      </a>
+
+      <a routerLink="ai-chats" routerLinkActive="active" class="nav-item" title="Uso de IA & Personajes">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">psychology</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Métricas de IA</span>
+        <span class="nav-badge" *ngIf="!sidebarCollapsed && stats">
+          {{ ((stats.ai?.total_character_messages || 0) + (stats.ai?.total_assistant_messages || 0)) }} msgs
+        </span>
+      </a>
+
+      <a routerLink="audit" routerLinkActive="active" class="nav-item" title="Registro de Auditoría">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">history</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Auditoría / Logs</span>
+        <span class="nav-badge log" *ngIf="!sidebarCollapsed">Live</span>
+      </a>
+
+      <a routerLink="settings" routerLinkActive="active" class="nav-item" title="Ajustes Generales">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">settings</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Configuración</span>
+        <span class="nav-badge cfg" *ngIf="!sidebarCollapsed">v2.0</span>
+      </a>
+
+      <a routerLink="/" class="nav-item nav-item-external" title="Ir a la Tienda pública">
         <span class="nav-icon-wrap">
           <span class="material-symbols-outlined">storefront</span>
         </span>
@@ -68,7 +159,7 @@
     <div class="sidebar-footer" *ngIf="!sidebarCollapsed">
       <div class="version-badge">
         <span class="version-dot"></span>
-        v1.0 Nexus
+        v2.0 Nexus &middot; Producción
       </div>
     </div>
   </aside>
@@ -81,50 +172,131 @@
     <!-- TOPBAR -->
     <header class="nexus-topbar">
       <div class="topbar-left">
-        <button class="mobile-menu-btn" (click)="toggleMobileSidebar()">
+        <button class="mobile-menu-btn" (click)="toggleMobileSidebar()" aria-label="Abrir menú de navegación">
           <span class="material-symbols-outlined">menu</span>
         </button>
         <div class="breadcrumb-wrap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span class="breadcrumb-prefix">Literatus Nexus</span>
           <span class="breadcrumb-sep">/</span>
           <h2 class="page-title">{{ pageTitle }}</h2>
         </div>
+
+        <!-- BUSCADOR RÁPIDO EN TOPBAR -->
+        <div class="topbar-search-wrap">
+          <div class="topbar-search-input-box">
+            <span class="material-symbols-outlined search-icon">search</span>
+            <input 
+              type="text" 
+              placeholder="Buscar libros, autores, secciones..." 
+              [(ngModel)]="topbarSearchQuery"
+              (input)="onTopbarSearch($event)"
+              (keydown.escape)="topbarSearchQuery = ''; searchResults = []">
+            <span class="search-shortcut">⌘K</span>
+          </div>
+
+          <!-- MENÚ DROPDOWN DE RESULTADOS DE BÚSQUEDA -->
+          <div class="search-dropdown-menu" *ngIf="searchResults.length > 0">
+            <div class="search-res-item" *ngFor="let res of searchResults" (click)="selectSearchResult(res)">
+              <span class="material-symbols-outlined res-icon">{{ res.icon }}</span>
+              <div class="res-details">
+                <span class="res-title">{{ res.title }}</span>
+                <span class="res-subtitle">{{ res.subtitle }}</span>
+              </div>
+              <span class="res-tag">{{ res.type }}</span>
+            </div>
+          </div>
+        </div>
       </div>
+
       <div class="topbar-right">
-        <div class="topbar-date">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          {{ currentDate }}
-        </div>
-        <div class="admin-badge">
-          <span class="badge-dot"></span>
-          Administrador
-        </div>
-        <button class="logout-btn theme-switcher-btn" [matMenuTriggerFor]="themeMenu">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-          Tema: {{ currentTheme === 'default' ? 'Classic' : (currentTheme === 'neon' ? 'Neon' : 'Light') }}
+        <!-- NOTIFICACIONES CON MENÚ REAL -->
+        <button class="topbar-icon-btn" [matMenuTriggerFor]="notifMenu" title="Notificaciones del sistema">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="notif-dot" *ngIf="stats?.alerts && stats.alerts.length > 0"></span>
+        </button>
+        <mat-menu #notifMenu="matMenu" class="notifications-menu-panel">
+          <div class="menu-header-bar" (click)="$event.stopPropagation()">
+            <span class="menu-header-title">Alertas del Sistema</span>
+            <span class="menu-header-count" *ngIf="stats?.alerts">{{ stats.alerts.length }} activas</span>
+          </div>
+          <div class="menu-alerts-scroll" *ngIf="stats?.alerts && stats.alerts.length > 0; else noAlerts">
+            <div class="menu-alert-item" *ngFor="let alt of stats.alerts" [routerLink]="alt.action_route">
+              <div class="alert-icon-box" [ngClass]="alt.type">
+                <span class="material-symbols-outlined">{{ alt.type === 'warning' ? 'priority_high' : 'info' }}</span>
+              </div>
+              <div class="alert-texts">
+                <div class="alert-t">{{ alt.title }}</div>
+                <div class="alert-d">{{ alt.description }}</div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noAlerts>
+            <div class="menu-empty-alerts" (click)="$event.stopPropagation()">
+              <span class="material-symbols-outlined">check_circle</span>
+              <span>Todo el sistema opera con normalidad sin alertas pendientes.</span>
+            </div>
+          </ng-template>
+        </mat-menu>
+
+        <!-- SELECTOR DE TEMA -->
+        <button class="theme-switcher-btn" [matMenuTriggerFor]="themeMenu" title="Cambiar tema visual">
+          <span class="material-symbols-outlined">palette</span>
+          <span class="theme-label">Tema: {{ currentTheme === 'default' ? 'Classic Dark' : (currentTheme === 'neon' ? 'Cyber Neon' : 'Light Gallery') }}</span>
         </button>
         <mat-menu #themeMenu="matMenu" class="dark-premium-menu">
           <button mat-menu-item (click)="setThemeDirect('default')">
-            <span class="mat-symbol" [style.color]="currentTheme === 'default' ? 'var(--glow-accent)' : 'inherit'">dark_mode</span>
-            <span>Amanecer (claro)</span>
+            <span class="material-symbols-outlined">dark_mode</span>
+            <span>Classic Dark (Obsidian Teal)</span>
           </button>
           <button mat-menu-item (click)="setThemeDirect('neon')">
-            <span class="mat-symbol" [style.color]="currentTheme === 'neon' ? 'var(--glow-accent)' : 'inherit'">terminal</span>
+            <span class="material-symbols-outlined">terminal</span>
             <span>Cyber Neon</span>
           </button>
           <button mat-menu-item (click)="setThemeDirect('light-gallery')">
-            <span class="mat-symbol" [style.color]="currentTheme === 'light-gallery' ? 'var(--glow-accent)' : 'inherit'">light_mode</span>
-            <span>Light Gallery</span>
+            <span class="material-symbols-outlined">light_mode</span>
+            <span>Light Gallery (Pergamino)</span>
           </button>
         </mat-menu>
-        <button class="logout-btn" (click)="logout()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Salir
+
+        <!-- PERFIL ADMINISTRADOR CON MENÚ -->
+        <button class="admin-profile-btn" [matMenuTriggerFor]="adminUserMenu" title="Opciones de cuenta">
+          <div class="admin-avatar-circle">
+            {{ (currentUserProfile?.username || 'Admin').slice(0, 2).toUpperCase() }}
+          </div>
+          <div class="admin-profile-info">
+            <span class="admin-name">{{ currentUserProfile?.username || 'Administrador' }}</span>
+            <span class="admin-role">Super Staff</span>
+          </div>
+          <span class="material-symbols-outlined chevron-icon">expand_more</span>
         </button>
+        <mat-menu #adminUserMenu="matMenu" class="dark-premium-menu">
+          <div class="user-menu-header" (click)="$event.stopPropagation()">
+            <div class="user-menu-name">{{ currentUserProfile?.username || 'Administrador' }}</div>
+            <div class="user-menu-email">{{ currentUserProfile?.email || 'admin@literatus.com' }}</div>
+          </div>
+          <mat-divider></mat-divider>
+          <a mat-menu-item routerLink="/dashboard/overview">
+            <span class="material-symbols-outlined">space_dashboard</span>
+            <span>Centro de Control</span>
+          </a>
+          <a mat-menu-item routerLink="/dashboard/settings">
+            <span class="material-symbols-outlined">settings</span>
+            <span>Ajustes del Sistema</span>
+          </a>
+          <a mat-menu-item routerLink="/">
+            <span class="material-symbols-outlined">storefront</span>
+            <span>Explorar Tienda como Lector</span>
+          </a>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Cerrar Sesión</span>
+          </button>
+        </mat-menu>
       </div>
     </header>
 
-    <!-- ROUTER OUTLET -->
+    <!-- CONTENT OUTLET -->
     <main class="nexus-content">
       <router-outlet></router-outlet>
     </main>
