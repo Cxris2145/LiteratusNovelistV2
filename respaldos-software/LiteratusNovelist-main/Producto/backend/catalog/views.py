@@ -379,10 +379,23 @@ class CatalogStatsView(APIView):
         books_with_chapters = (
             Book.objects.annotate(_n=Count('chapters')).filter(_n__gt=0).count()
         )
+        total_authors = Author.objects.count()
+        total_genres = Genre.objects.count()
+
+        try:
+            from ai_engine.models import AIAvatar, ChatMessage
+            total_characters = AIAvatar.objects.count()
+            total_dialogues = ChatMessage.objects.count()
+        except Exception:
+            total_characters = 0
+            total_dialogues = 0
+
         return Response({
             'total_books': total_books,
             'books_with_chapters': books_with_chapters,
             'books_without_chapters': total_books - books_with_chapters,
-            'total_authors': Author.objects.count(),
-            'total_genres': Genre.objects.count(),
+            'total_authors': total_authors,
+            'total_genres': total_genres,
+            'total_characters': total_characters,
+            'total_dialogues': total_dialogues,
         })

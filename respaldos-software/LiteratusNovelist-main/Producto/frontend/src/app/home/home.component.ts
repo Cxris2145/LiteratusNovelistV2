@@ -84,7 +84,11 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   heroBooks: Book[] = [];
   heroCoverFailed = false;
   heroBookIndex = 0;
-  totalBooksCount: number = 1854;
+  totalBooksCount: number = 1046;
+  totalCharactersCount: number = 4477;
+  totalDialoguesCount: number = 27;
+  totalAuthorsCount: number = 313;
+  private hasAnimatedStats = false;
 
   // ─── Gran Catálogo de Libros y Filtros Reactivos ─────────────────────────
   catalogSearchTerm: string = '';
@@ -438,16 +442,33 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // ─── Estadísticas y Contadores ───────────────────────────────────────────
   private loadStats(): void {
-    this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000).subscribe({
+    this.api.getCached<any>('catalog/stats/', undefined, 5 * 60 * 1000).subscribe({
       next: (res: any) => {
-        if (res && typeof res.total_books === 'number') {
-          this.totalBooksCount = res.total_books;
-          const el = document.getElementById('stat-books');
-          if (el) el.textContent = this.totalBooksCount.toLocaleString('es-CL');
-          this.cdr.detectChanges();
+        if (!res) return;
+        if (typeof res.total_books === 'number') this.totalBooksCount = res.total_books;
+        if (typeof res.total_characters === 'number') this.totalCharactersCount = res.total_characters;
+        if (typeof res.total_dialogues === 'number') this.totalDialoguesCount = res.total_dialogues;
+        if (typeof res.total_authors === 'number') this.totalAuthorsCount = res.total_authors;
+
+        if (this.hasAnimatedStats || this.prefersReducedMotion) {
+          this.renderStatTexts();
         }
+        this.cdr.detectChanges();
       },
       error: () => { /* conserva fallback */ }
+    });
+  }
+
+  private renderStatTexts(): void {
+    const counters = [
+      { id: 'stat-books', target: this.totalBooksCount },
+      { id: 'stat-chars', target: this.totalCharactersCount },
+      { id: 'stat-convs', target: this.totalDialoguesCount },
+      { id: 'stat-authors', target: this.totalAuthorsCount }
+    ];
+    counters.forEach(({ id, target }) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = target.toLocaleString('es-CL');
     });
   }
 
@@ -809,29 +830,31 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private animateCounters(): void {
+    this.hasAnimatedStats = true;
     const counters = [
       { id: 'stat-books', target: this.totalBooksCount },
-      { id: 'stat-chars', target: 25 },
-      { id: 'stat-convs', target: 150 },
-      { id: 'stat-authors', target: 10 }
+      { id: 'stat-chars', target: this.totalCharactersCount },
+      { id: 'stat-convs', target: this.totalDialoguesCount },
+      { id: 'stat-authors', target: this.totalAuthorsCount }
     ];
     if (this.prefersReducedMotion) {
-      counters.forEach(({ id, target }) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = target.toLocaleString('es-CL');
-      });
+      this.renderStatTexts();
       return;
     }
     counters.forEach(({ id, target }) => {
       const el = document.getElementById(id);
       if (!el) return;
-      const duration = 1600;
+      const duration = 1800;
       const start = performance.now();
       const update = (now: number) => {
         const progress = Math.min((now - start) / duration, 1);
         const ease = 1 - Math.pow(1 - progress, 3);
         el.textContent = Math.floor(ease * target).toLocaleString('es-CL');
-        if (progress < 1) requestAnimationFrame(update);
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        } else {
+          el.textContent = target.toLocaleString('es-CL');
+        }
       };
       requestAnimationFrame(update);
     });

@@ -3,45 +3,107 @@
   <!-- ═══════════════════════════════════════════════════════════
        0. BARRA SUPERIOR DEL REFUGIO LECTOR (Usuarios Logueados)
   ═══════════════════════════════════════════════════════════ -->
-  <aside class="user-strip-bar reveal-section" *ngIf="auth.isLoggedIn()" aria-label="Estado de lectura del usuario">
+  <aside class="user-strip-bar" *ngIf="auth.isLoggedIn()" aria-label="Estado y actividad de lectura del usuario">
     <div class="user-strip-inner">
-      <div class="strip-user-info">
-        <span class="strip-greeting">{{ greetingText }},</span>
-        <strong class="strip-username">{{ auth.currentUser()?.username || userProfile?.username || 'Lector' }}</strong>
-        <span class="strip-rank-badge">{{ userLevelTitle }} (Nv. {{ userLevel }})</span>
-      </div>
-
-      <div class="strip-metrics-group">
-        <!-- Racha -->
-        <div class="strip-metric" title="Racha de lectura ininterrumpida">
-          <span class="material-symbols-rounded strip-icon strip-icon--coral">local_fire_department</span>
-          <span class="strip-metric-val">{{ userStreak }} días de racha</span>
+      
+      <!-- 1. Perfil e Identidad del Lector -->
+      <div class="strip-user-zone">
+        <div class="strip-greeting-lockup">
+          <span class="strip-greeting">{{ greetingText }},</span>
+          <strong class="strip-username">{{ auth.currentUser()?.username || userProfile?.username || 'Lector' }}</strong>
         </div>
 
-        <!-- Tinta -->
-        <a routerLink="/tavern" class="strip-metric strip-metric--link" title="Ir a La Taberna de Tinta">
-          <span class="material-symbols-rounded strip-icon strip-icon--amber">ink_pen</span>
-          <span class="strip-metric-val">{{ userInkBalance }} Tinta</span>
-          <span class="strip-plus-btn">+</span>
-        </a>
+        <div class="strip-rank-chip" [title]="'Rango actual: ' + userLevelTitle + ' · Nivel ' + userLevel">
+          <span class="material-symbols-rounded rank-icon" aria-hidden="true">workspace_premium</span>
+          <span class="rank-name">{{ userLevelTitle }}</span>
+          <span class="rank-level-tag">Nv. {{ userLevel }}</span>
+        </div>
+      </div>
 
-        <!-- Progreso de nivel -->
-        <div class="strip-xp-bar" [title]="xpPercent + '% para el siguiente nivel'">
-          <div class="strip-xp-track">
-            <div class="strip-xp-fill" [style.width]="xpPercent + '%'"></div>
+      <!-- 2. Dock Central: Métricas de Vitalidad, Economía y Rango -->
+      <div class="strip-metrics-dock" role="group" aria-label="Métricas de lectura y recursos">
+        
+        <!-- Racha activa -->
+        <div class="dock-metric dock-metric--streak" [title]="'Racha de lectura: ' + userStreak + ' ' + (userStreak === 1 ? 'día consecutivo' : 'días consecutivos')">
+          <span class="dock-icon-wrapper dock-icon-wrapper--coral" aria-hidden="true">
+            <span class="material-symbols-rounded dock-icon">local_fire_department</span>
+          </span>
+          <div class="dock-metric-content">
+            <span class="dock-val">{{ userStreak }}</span>
+            <span class="dock-lbl">{{ userStreak === 1 ? 'día de racha' : 'días de racha' }}</span>
           </div>
-          <span class="strip-xp-text">{{ xpPercent }}% Nv. {{ userLevel + 1 }}</span>
         </div>
+
+        <div class="dock-divider" aria-hidden="true"></div>
+
+        <!-- Tinta (Moneda) -->
+        <a routerLink="/tavern" class="dock-metric dock-metric--ink" title="Visitar La Taberna de Tinta para recargar o canjear">
+          <span class="dock-icon-wrapper dock-icon-wrapper--amber" aria-hidden="true">
+            <span class="material-symbols-rounded dock-icon">ink_pen</span>
+          </span>
+          <div class="dock-metric-content">
+            <span class="dock-val">{{ userInkBalance | number:'1.0-0' }}</span>
+            <span class="dock-lbl">Tinta</span>
+          </div>
+          <span class="dock-plus-btn" aria-hidden="true" title="Recargar Tinta">
+            <span class="material-symbols-rounded">add</span>
+          </span>
+        </a>
+
+        <div class="dock-divider" aria-hidden="true"></div>
+
+        <!-- Progreso hacia el siguiente nivel -->
+        <div class="dock-metric dock-metric--progress" [title]="xpPercent + '% acumulado para ascender al Nivel ' + (userLevel + 1)">
+          <span class="dock-icon-wrapper dock-icon-wrapper--teal" aria-hidden="true">
+            <span class="material-symbols-rounded dock-icon">trending_up</span>
+          </span>
+          <div class="dock-progress-wrapper">
+            <div class="dock-progress-track">
+              <div class="dock-progress-fill" [style.width]="xpPercent + '%'"></div>
+            </div>
+            <div class="dock-progress-meta">
+              <span class="progress-pct">{{ xpPercent }}%</span>
+              <span class="progress-target">al Nv. {{ userLevel + 1 }}</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Continuar leyendo rápido si hay libros en progreso -->
-      <div class="strip-continue-link" *ngIf="continueReadingItems.length > 0">
-        <a [routerLink]="['/reader', continueReadingItems[0].id]" class="strip-resume-btn">
-          <span class="material-symbols-rounded resume-icon">auto_stories</span>
-          <span>Reanudar: <em>{{ continueReadingItems[0].book_title || continueReadingItems[0].edition?.book?.title }}</em></span>
-          <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
+      <!-- 3. Marcador de Lectura Rápida / Continuar -->
+      <div class="strip-action-zone">
+        <a *ngIf="continueReadingItems.length > 0; else exploreCatalogLink"
+           [routerLink]="['/reader', continueReadingItems[0].id]" 
+           class="strip-resume-btn" 
+           [title]="'Reanudar lectura: ' + (continueReadingItems[0].book_title || continueReadingItems[0].edition?.book?.title)">
+          <span class="resume-icon-pill" aria-hidden="true">
+            <span class="material-symbols-rounded">auto_stories</span>
+          </span>
+          <div class="resume-details">
+            <span class="resume-hint">Reanudar</span>
+            <span class="resume-title">{{ continueReadingItems[0].book_title || continueReadingItems[0].edition?.book?.title }}</span>
+          </div>
+          <span class="resume-arrow-pill" aria-hidden="true">
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </span>
         </a>
+
+        <ng-template #exploreCatalogLink>
+          <a routerLink="/catalog" class="strip-resume-btn strip-resume-btn--explore" title="Explorar catálogo de obras maestras">
+            <span class="resume-icon-pill" aria-hidden="true">
+              <span class="material-symbols-rounded">explore</span>
+            </span>
+            <div class="resume-details">
+              <span class="resume-hint">Biblioteca</span>
+              <span class="resume-title">Explorar catálogo</span>
+            </div>
+            <span class="resume-arrow-pill" aria-hidden="true">
+              <span class="material-symbols-rounded">arrow_forward</span>
+            </span>
+          </a>
+        </ng-template>
       </div>
+
     </div>
   </aside>
 
@@ -1142,40 +1204,76 @@
   <!-- ═══════════════════════════════════════════════════════════
        9. ESTADÍSTICAS DE LA GRAN BIBLIOTECA
   ═══════════════════════════════════════════════════════════ -->
-  <section class="stats-section reveal-section" aria-label="Estadísticas de Literatus">
+  <section class="stats-section reveal-section" aria-label="Estadísticas en vivo de Literatus Novelist">
     <div class="stats-container">
+      
+      <!-- Insignia superior del registro imperial -->
+      <div class="stats-header-badge">
+        <span class="material-symbols-rounded stats-kicker-icon" aria-hidden="true">auto_awesome</span>
+        <span>El Registro Vivo de la Biblioteca</span>
+      </div>
+
       <div class="stats-grid">
-        <div class="stat-item">
+        
+        <!-- 1. Libros Clásicos Digitalizados -->
+        <div class="stat-item stat-item--books">
+          <div class="stat-icon-halo stat-icon-halo--teal" aria-hidden="true">
+            <span class="material-symbols-rounded">menu_book</span>
+          </div>
           <div class="stat-num-row">
-            <span class="stat-number" id="stat-books">0</span>
+            <span class="stat-number" id="stat-books">{{ totalBooksCount.toLocaleString('es-CL') }}</span>
             <span class="stat-plus">+</span>
           </div>
-          <span class="stat-label">Libros Clásicos Digitalizados</span>
+          <strong class="stat-title">Libros Clásicos</strong>
+          <span class="stat-label">Digitalizados e íntegros</span>
         </div>
 
-        <div class="stat-item">
+        <div class="stat-divider" aria-hidden="true"></div>
+
+        <!-- 2. Personajes Vivos con IA -->
+        <div class="stat-item stat-item--chars">
+          <div class="stat-icon-halo stat-icon-halo--coral" aria-hidden="true">
+            <span class="material-symbols-rounded">psychology</span>
+            <span class="stat-live-pulse" title="IA conversacional activa"></span>
+          </div>
           <div class="stat-num-row">
-            <span class="stat-number" id="stat-chars">0</span>
+            <span class="stat-number" id="stat-chars">{{ totalCharactersCount.toLocaleString('es-CL') }}</span>
             <span class="stat-plus">+</span>
           </div>
-          <span class="stat-label">Personajes Vivos con IA</span>
+          <strong class="stat-title">Personajes Vivos con IA</strong>
+          <span class="stat-label">Avatares conversacionales</span>
         </div>
 
-        <div class="stat-item">
+        <div class="stat-divider" aria-hidden="true"></div>
+
+        <!-- 3. Diálogos Literarios -->
+        <div class="stat-item stat-item--convs">
+          <div class="stat-icon-halo stat-icon-halo--amber" aria-hidden="true">
+            <span class="material-symbols-rounded">forum</span>
+          </div>
           <div class="stat-num-row">
-            <span class="stat-number" id="stat-convs">0</span>
+            <span class="stat-number" id="stat-convs">{{ totalDialoguesCount.toLocaleString('es-CL') }}</span>
             <span class="stat-plus">+</span>
           </div>
-          <span class="stat-label">Diálogos Literarios</span>
+          <strong class="stat-title">Diálogos Literarios</strong>
+          <span class="stat-label">Interacciones registradas</span>
         </div>
 
-        <div class="stat-item">
+        <div class="stat-divider" aria-hidden="true"></div>
+
+        <!-- 4. Autores Inmortales -->
+        <div class="stat-item stat-item--authors">
+          <div class="stat-icon-halo stat-icon-halo--azure" aria-hidden="true">
+            <span class="material-symbols-rounded">workspace_premium</span>
+          </div>
           <div class="stat-num-row">
-            <span class="stat-number" id="stat-authors">0</span>
+            <span class="stat-number" id="stat-authors">{{ totalAuthorsCount.toLocaleString('es-CL') }}</span>
             <span class="stat-plus">+</span>
           </div>
-          <span class="stat-label">Autores Inmortales</span>
+          <strong class="stat-title">Autores Inmortales</strong>
+          <span class="stat-label">Grandes plumas de la historia</span>
         </div>
+
       </div>
     </div>
   </section>
