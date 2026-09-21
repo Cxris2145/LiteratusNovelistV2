@@ -1272,31 +1272,36 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   scrollStepDown() {
+    this.stepScrollRuler(1);
+  }
+
+  scrollStepUp() {
+    this.stepScrollRuler(-1);
+  }
+
+  private stepScrollRuler(direction: 1 | -1) {
     const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
     if (!canvas) return;
 
     if (this.rulerActive && !this.isDoublePageView) {
-      // 1. Si no hay líneas cacheadas (por scroll), las reconstruimos
       if (this.rulerLinesAll.length === 0) {
         this.rebuildRulerLines(canvas);
       }
 
       if (this.rulerLinesAll.length > 0) {
-        // 2. Determinar la línea actual
         let currentIdx = this.rulerLineIndex;
         if (currentIdx < 0) {
-          // Buscamos la línea más cercana a donde estaba la regla
           const searchY = this.rulerY < 0 ? 0 : this.rulerY;
           currentIdx = this.findClosestLineIndexIn(this.rulerLinesAll, searchY);
         }
 
-        // 3. Avanzar a la siguiente línea
-        let nextIdx = currentIdx + 1;
+        let nextIdx = currentIdx + direction;
         if (this.rulerY < 0) {
-          // Si es el PRIMER toque absoluto, empezamos en la primera línea (top)
           nextIdx = 0;
         } else if (nextIdx >= this.rulerLinesAll.length) {
           nextIdx = this.rulerLinesAll.length - 1;
+        } else if (nextIdx < 0) {
+          nextIdx = 0;
         }
         
         this.rulerLineIndex = nextIdx;
@@ -1304,22 +1309,26 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         
         if (lineData) {
           const centerY = canvas.clientHeight / 2;
+          const targetDocumentY = canvas.scrollTop + lineData.center;
           
-          if (lineData.center <= centerY) {
-            // Si la línea está en la mitad superior, simplemente bajamos la regla
-            this.setRulerTop(lineData.center, 'full');
-          } else {
-            // Si la línea pasó del centro, fijamos la regla y scrolleamos el texto
-            const targetScrollTop = canvas.scrollTop + lineData.center - centerY;
-            this.setRulerTop(centerY, 'full');
+          let targetScrollTop = targetDocumentY - centerY;
+          const maxScroll = Math.max(0, canvas.scrollHeight - canvas.clientHeight);
+          
+          // Clamp the scroll to boundaries
+          targetScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll));
+          
+          const visualRulerY = targetDocumentY - targetScrollTop;
+          
+          this.setRulerTop(visualRulerY, 'full');
+          if (Math.abs(canvas.scrollTop - targetScrollTop) > 1) {
             canvas.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
           }
         }
       }
     } else if (this.rulerActive && this.isDoublePageView) {
-      this.moveRulerByLine(1);
+      this.moveRulerByLine(direction);
     } else {
-      canvas.scrollBy({ top: 80, behavior: 'smooth' });
+      canvas.scrollBy({ top: direction * 80, behavior: 'smooth' });
     }
   }
 

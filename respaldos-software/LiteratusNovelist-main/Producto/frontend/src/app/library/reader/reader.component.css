@@ -4579,11 +4579,17 @@ h2.chapter-heading { font-size: 1.28em; }
 .segmented-wrap button { flex: 1 1 40%; }
 
 /* 🔸 Botón flotante "Auto-scroll" 🔸 */
-.autoscroll-fab {
+.autoscroll-fab-container {
   position: fixed;
   right: 20px;
   bottom: calc(40px + env(safe-area-inset-bottom, 0px));
   z-index: 940;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.autoscroll-fab {
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -4643,9 +4649,12 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 
 @media (max-width: 768px) {
-  .autoscroll-fab {
+  .autoscroll-fab-container {
     right: 15px;
     bottom: calc(25px + env(safe-area-inset-bottom, 0px));
+    gap: 8px;
+  }
+  .autoscroll-fab {
     width: 44px;
     height: 44px;
   }

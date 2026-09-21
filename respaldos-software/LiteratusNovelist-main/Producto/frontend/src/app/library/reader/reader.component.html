@@ -1063,13 +1063,22 @@
     <span>Volver a mi lectura</span>
   </button>
 
-  <!-- BOTÓN DE BAJAR (TIPO FLECHA) -->
-  <button class="autoscroll-fab glass-btn" *ngIf="isFullyRendered" 
-          (click)="scrollStepDown()" 
-          title="Bajar"
-          aria-label="Bajar vista">
-    <span class="material-symbols-rounded">keyboard_arrow_down</span>
-  </button>
+  <!-- BOTONES DE NAVEGACIÓN (TIPO FLECHA) -->
+  <div class="autoscroll-fab-container" *ngIf="isFullyRendered">
+    <button class="autoscroll-fab glass-btn" 
+            (click)="scrollStepUp()" 
+            title="Subir"
+            aria-label="Subir vista">
+      <span class="material-symbols-rounded">keyboard_arrow_up</span>
+    </button>
+    
+    <button class="autoscroll-fab glass-btn" 
+            (click)="scrollStepDown()" 
+            title="Bajar"
+            aria-label="Bajar vista">
+      <span class="material-symbols-rounded">keyboard_arrow_down</span>
+    </button>
+  </div>
 
   <!-- INSIGNIA DEL TEMPORIZADOR DE SESIÓN -->
   <div class="session-timer-badge" *ngIf="sessionTimerRunning" (click)="setSessionTimer(0)"
