@@ -4578,6 +4578,82 @@ h2.chapter-heading { font-size: 1.28em; }
 .segmented-wrap { flex-wrap: wrap; }
 .segmented-wrap button { flex: 1 1 40%; }
 
+/* 🔸 Botón flotante "Auto-scroll" 🔸 */
+.autoscroll-fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  z-index: 940;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Glass effect para encajar con el diseño */
+  background: var(--reader-surface, rgba(20, 38, 29, 0.7));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.2));
+  color: var(--reader-text, #f0f0f0);
+  box-shadow: var(--reader-shadow-panel, 0 10px 30px rgba(0, 0, 0, 0.3));
+  cursor: pointer;
+  transition: all var(--reader-transition, 0.22s ease-out);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.theme-light .autoscroll-fab {
+  background: rgba(250, 247, 242, 0.85);
+  color: #1a1a1a;
+}
+
+.theme-sepia .autoscroll-fab {
+  background: rgba(244, 236, 216, 0.85);
+  color: #3e2723;
+}
+
+.autoscroll-fab:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
+  border-color: var(--color-primary, #D4AF37);
+  color: var(--color-primary, #D4AF37);
+}
+
+.autoscroll-fab:active {
+  transform: scale(0.95);
+}
+
+.autoscroll-fab.active {
+  color: var(--color-primary, #D4AF37);
+  border-color: var(--color-primary, #D4AF37);
+  background: rgba(212, 175, 55, 0.15);
+}
+
+.autoscroll-fab .material-symbols-rounded {
+  font-size: 1.6rem;
+}
+
+.immersive .autoscroll-fab {
+  opacity: 0.25;
+}
+.immersive .autoscroll-fab:hover,
+.immersive .autoscroll-fab.active {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .autoscroll-fab {
+    right: 15px;
+    bottom: calc(25px + env(safe-area-inset-bottom, 0px));
+    width: 44px;
+    height: 44px;
+  }
+  .autoscroll-fab .material-symbols-rounded {
+    font-size: 1.4rem;
+  }
+}
+
 /* ── Botón flotante "Volver a mi lectura" ── */
 .back-to-reading-btn {
   position: fixed;

@@ -1063,6 +1063,14 @@
     <span>Volver a mi lectura</span>
   </button>
 
+  <!-- BOTÓN DE BAJAR (TIPO FLECHA) -->
+  <button class="autoscroll-fab glass-btn" *ngIf="isFullyRendered" 
+          (click)="scrollStepDown()" 
+          title="Bajar"
+          aria-label="Bajar vista">
+    <span class="material-symbols-rounded">keyboard_arrow_down</span>
+  </button>
+
   <!-- INSIGNIA DEL TEMPORIZADOR DE SESIÓN -->
   <div class="session-timer-badge" *ngIf="sessionTimerRunning" (click)="setSessionTimer(0)"
        title="Toca para apagar el temporizador">

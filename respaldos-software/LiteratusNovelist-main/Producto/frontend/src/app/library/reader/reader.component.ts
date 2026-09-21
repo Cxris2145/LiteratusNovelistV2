@@ -1271,7 +1271,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     localStorage.setItem('reader-long-para-split', String(v));
   }
 
-  // ── Avance automático (auto-scroll) ──────────────────────────────
+  scrollStepDown() {
+    const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+    if (!canvas) return;
+
+    if (this.rulerActive) {
+      this.moveRulerByLine(1);
+      
+      // En modo de desplazamiento continuo (no doble página), 
+      // centramos el canvas en la nueva posición de la regla
+      if (!this.isDoublePageView && this.rulerLinesAll && this.rulerLineIndex >= 0) {
+        const lineData = this.rulerLinesAll[this.rulerLineIndex];
+        if (lineData) {
+          const targetScrollTop = lineData.center - (canvas.clientHeight / 2);
+          canvas.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+        }
+      }
+    } else {
+      canvas.scrollBy({ top: 80, behavior: 'smooth' });
+    }
+  }
+
   toggleAutoScroll(v: boolean) {
     this.autoScrollActive = v;
     if (v) {
