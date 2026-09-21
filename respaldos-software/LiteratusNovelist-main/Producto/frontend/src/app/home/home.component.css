@@ -3798,3 +3798,18 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+:host-context(.hide-nav-bubbles) .user-strip-bar {
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0;
+  border: none !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+
+.user-strip-bar {
+  transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease, border 0.3s ease;
+  overflow: hidden;
+}

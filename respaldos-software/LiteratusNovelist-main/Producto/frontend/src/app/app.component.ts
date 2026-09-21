@@ -157,6 +157,11 @@ export class AppComponent implements OnInit {
 
   toggleNavBubbles() {
     this.isNavBubblesHidden = !this.isNavBubblesHidden;
+    if (this.isNavBubblesHidden) {
+      document.body.classList.add('hide-nav-bubbles');
+    } else {
+      document.body.classList.remove('hide-nav-bubbles');
+    }
   }
 
   loadUserProfile() {
