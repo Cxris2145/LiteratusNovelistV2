@@ -1276,22 +1276,44 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!canvas) return;
 
     if (this.rulerActive && !this.isDoublePageView) {
-      // 1. Calculamos cuál será la siguiente línea usando la lógica existente
-      this.moveRulerByLine(1);
-      
-      // 2. Queremos que la regla se quede fija en el centro de la pantalla,
-      // y que el texto sea el que haga scroll hacia arriba.
-      if (this.rulerLinesAll && this.rulerLineIndex >= 0) {
-        const lineData = this.rulerLinesAll[this.rulerLineIndex];
+      // 1. Si no hay líneas cacheadas (por scroll), las reconstruimos
+      if (this.rulerLinesAll.length === 0) {
+        this.rebuildRulerLines(canvas);
+      }
+
+      if (this.rulerLinesAll.length > 0) {
+        // 2. Determinar la línea actual
+        let currentIdx = this.rulerLineIndex;
+        if (currentIdx < 0) {
+          // Buscamos la línea más cercana a donde estaba la regla
+          const searchY = this.rulerY < 0 ? 0 : this.rulerY;
+          currentIdx = this.findClosestLineIndexIn(this.rulerLinesAll, searchY);
+        }
+
+        // 3. Avanzar a la siguiente línea
+        let nextIdx = currentIdx + 1;
+        if (this.rulerY < 0) {
+          // Si es el PRIMER toque absoluto, empezamos en la primera línea (top)
+          nextIdx = 0;
+        } else if (nextIdx >= this.rulerLinesAll.length) {
+          nextIdx = this.rulerLinesAll.length - 1;
+        }
+        
+        this.rulerLineIndex = nextIdx;
+        const lineData = this.rulerLinesAll[nextIdx];
+        
         if (lineData) {
           const centerY = canvas.clientHeight / 2;
-          const targetScrollTop = canvas.scrollTop + lineData.center - centerY;
           
-          // Fijamos la regla rígidamente en el centro de la vista
-          this.setRulerTop(centerY, 'full');
-          
-          // Desplazamos el texto suavemente para que coincida con la regla
-          canvas.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+          if (lineData.center <= centerY) {
+            // Si la línea está en la mitad superior, simplemente bajamos la regla
+            this.setRulerTop(lineData.center, 'full');
+          } else {
+            // Si la línea pasó del centro, fijamos la regla y scrolleamos el texto
+            const targetScrollTop = canvas.scrollTop + lineData.center - centerY;
+            this.setRulerTop(centerY, 'full');
+            canvas.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+          }
         }
       }
     } else if (this.rulerActive && this.isDoublePageView) {
