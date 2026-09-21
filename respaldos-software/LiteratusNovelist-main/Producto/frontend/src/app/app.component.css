@@ -15,7 +15,7 @@
   flex-direction: column;
 }
 
-/* ── Fila 1: Logo (izq), Buscador grande (centro), Accesos (der) ──── */
+/* â”€â”€ Fila 1: Logo (izq), Buscador grande (centro), Accesos (der) â”€â”€â”€â”€ */
 .header-top-bar {
   width: 100%;
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
@@ -38,7 +38,7 @@
   flex-shrink: 0;
 }
 
-/* ── Logo Principal de Marca ──────────────────────────────────────── */
+/* â”€â”€ Logo Principal de Marca â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .brand-logo,
 .logo {
   display: inline-flex;
@@ -103,7 +103,7 @@
   flex-shrink: 0;
 }
 
-/* ── Buscador Grande ──────────────────────────────────────────────── */
+/* â”€â”€ Buscador Grande â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .nav-search-form {
   position: relative;
   width: 100%;
@@ -187,7 +187,7 @@
   background: var(--color-primary-hover);
 }
 
-/* ── Accesos Rápidos (Derecha) ────────────────────────────────────── */
+/* â”€â”€ Accesos RÃ¡pidos (Derecha) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .quick-action-btn {
   display: flex;
   flex-direction: column;
@@ -250,7 +250,7 @@
   white-space: nowrap;
 }
 
-/* Botón de cuenta / usuario */
+/* BotÃ³n de cuenta / usuario */
 .auth-action-wrap {
   display: flex;
   align-items: center;
@@ -295,7 +295,7 @@
   font: 600 11.5px var(--font-ui);
 }
 
-/* ── Fila 2: Burbujas de Navegación Rápida (Círculo) ──────────────── */
+/* â”€â”€ Fila 2: Burbujas de NavegaciÃ³n RÃ¡pida (CÃ­rculo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .nav-bubbles-bar {
   width: 100%;
   background: color-mix(in srgb, var(--color-bg-secondary) 70%, transparent);
@@ -391,7 +391,7 @@
   letter-spacing: 0.01em;
 }
 
-/* Hover común para todas las burbujas */
+/* Hover comÃºn para todas las burbujas */
 .nav-bubble-item:hover .bubble-circle {
   transform: translateY(-2px);
   border-color: var(--color-primary);
@@ -409,7 +409,7 @@
   font-weight: 600;
 }
 
-/* Estado Activo: diseño uniforme y completo para las 6 secciones (incluyendo Mi Biblioteca) */
+/* Estado Activo: diseÃ±o uniforme y completo para las 6 secciones (incluyendo Mi Biblioteca) */
 .nav-bubble-item.active-bubble .bubble-circle {
   border: 2px solid var(--color-primary);
   background: var(--color-primary);
@@ -425,7 +425,7 @@
   font-weight: 600;
 }
 
-/* ── Accesos de invitado (Ingresar / Registrarse) ───────────────────── */
+/* â”€â”€ Accesos de invitado (Ingresar / Registrarse) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .auth-link {
   font-family: var(--font-ui);
   font-weight: 600;
@@ -464,7 +464,7 @@
   border-radius: 4px;
 }
 
-/* ── Contenedor principal de contenido ────────────────────────────── */
+/* â”€â”€ Contenedor principal de contenido â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .site-body {
   display: flex;
   flex-direction: column;
@@ -489,7 +489,7 @@
   margin: 0;
 }
 
-/* ── Saldo de tinta (La Taberna) ─────────────────────────────────────── */
+/* â”€â”€ Saldo de tinta (La Taberna) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .ink-widget {
   display: flex;
   align-items: center;
@@ -521,7 +521,7 @@
   letter-spacing: 0.01em;
 }
 
-/* ── Material Symbols Rounded en el dropdown del perfil ── */
+/* â”€â”€ Material Symbols Rounded en el dropdown del perfil â”€â”€ */
 .mat-symbol {
   font-family: 'Material Symbols Rounded';
   font-weight: normal;
@@ -593,7 +593,7 @@
   object-fit: cover;
 }
 
-/* Material Menu Overrides — Dark Premium con Material Symbols Rounded */
+/* Material Menu Overrides â€” Dark Premium con Material Symbols Rounded */
 ::ng-deep .dark-premium-menu {
   background: var(--bg-surface) !important;
   backdrop-filter: blur(20px) !important;
@@ -665,7 +665,7 @@
   color: var(--color-error) !important;
 }
 
-/* La portada comparte tinta, papel y ancho editorial con su navegación y pie. */
+/* La portada comparte tinta, papel y ancho editorial con su navegaciÃ³n y pie. */
 :host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) {
   --bg-color: var(--home-bg);
   --bg-surface: var(--home-bg-surface);
@@ -845,5 +845,42 @@
   from { opacity: 1; }
   to { opacity: 0; }
 }
-. n a v - t o g g l e - b t n   {   p o s i t i o n :   a b s o l u t e ;   b o t t o m :   - 1 8 p x ;   l e f t :   5 0 % ;   t r a n s f o r m :   t r a n s l a t e X ( - 5 0 % ) ;   w i d t h :   3 6 p x ;   h e i g h t :   3 6 p x ;   b o r d e r - r a d i u s :   5 0 % ;   d i s p l a y :   f l e x ;   a l i g n - i t e m s :   c e n t e r ;   j u s t i f y - c o n t e n t :   c e n t e r ;   p a d d i n g :   0 ;   z - i n d e x :   1 0 1 ;   b a c k g r o u n d :   c o l o r - m i x ( i n   s r g b ,   v a r ( - - c o l o r - s u r f a c e )   9 5 % ,   t r a n s p a r e n t ) ;   b o r d e r :   1 p x   s o l i d   v a r ( - - c o l o r - b o r d e r ) ;   b o x - s h a d o w :   0   4 p x   1 2 p x   v a r ( - - c o l o r - s h a d o w ) ;   c u r s o r :   p o i n t e r ;   t r a n s i t i o n :   a l l   0 . 3 s   e a s e ;   }   . n a v - t o g g l e - b t n   . m a t e r i a l - s y m b o l s - r o u n d e d   {   f o n t - s i z e :   1 . 2 r e m ;   c o l o r :   v a r ( - - c o l o r - t e x t - s e c o n d a r y ) ;   t r a n s i t i o n :   t r a n s f o r m   0 . 3 s   e a s e ;   }   . n a v - t o g g l e - b t n . f l i p p e d   . m a t e r i a l - s y m b o l s - r o u n d e d   {   t r a n s f o r m :   r o t a t e ( 1 8 0 d e g ) ;   }   . n a v - t o g g l e - b t n : h o v e r   {   b a c k g r o u n d :   v a r ( - - c o l o r - p r i m a r y - l i g h t ) ;   b o r d e r - c o l o r :   v a r ( - - c o l o r - p r i m a r y ) ;   }   . n a v - t o g g l e - b t n : h o v e r   . m a t e r i a l - s y m b o l s - r o u n d e d   {   c o l o r :   v a r ( - - c o l o r - p r i m a r y ) ;   }  
- 
+
+.nav-toggle-btn {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 101;
+  background: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 12px var(--color-shadow);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-toggle-btn .material-symbols-rounded {
+  font-size: 1.2rem;
+  color: var(--color-text-secondary);
+  transition: transform 0.3s ease;
+}
+
+.nav-toggle-btn.flipped .material-symbols-rounded {
+  transform: rotate(180deg);
+}
+
+.nav-toggle-btn:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.nav-toggle-btn:hover .material-symbols-rounded {
+  color: var(--color-primary);
+}
