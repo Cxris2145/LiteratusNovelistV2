@@ -172,6 +172,16 @@ ACHIEVEMENTS = [
         'sort_order': 210,
     },
     {
+        'code': 'social_fluent_5',
+        'title': 'Aristócrata del Diálogo',
+        'description': 'Has mantenido conversaciones fluidas y sustanciales con 5 personajes distintos.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🎩',
+        'threshold': 5,
+        'ink_reward': 40,
+        'sort_order': 215,
+    },
+    {
         'code': 'social_5_chars',
         'title': 'Socialité de Ficción',
         'description': 'Has conversado con más de 5 personajes literarios distintos.',

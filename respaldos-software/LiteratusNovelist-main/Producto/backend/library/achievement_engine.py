@@ -1,4 +1,4 @@
-﻿"""
+"""
 library/achievement_engine.py â€” Motor de evaluaciÃ³n de logros.
 
 ARQUITECTURA:
@@ -438,17 +438,25 @@ def _evaluate_social_milestones(user, chat_session_id=None):
     distinct_books = ChatSession.objects.filter(user=user, messages__role='user').values('avatar__edition__book').distinct().count()
     _unlock_or_update(user, 'social_10_books', current=distinct_books, threshold=10)
     
-    if chat_session_id:
-        user_msgs = ChatMessage.objects.filter(session_id=chat_session_id, role='user')
-        total_user_msgs = user_msgs.count()
-        if total_user_msgs >= 5:
-            fluent_count = 0
-            for msg in user_msgs:
-                words = len(msg.content.split())
-                if 5 <= words <= 30:
-                    fluent_count += 1
-            if (fluent_count / total_user_msgs) >= 0.65:
-                _unlock_or_update(user, 'social_fluent', current=1, threshold=1)
+    from django.db import models
+    user_sessions = ChatSession.objects.filter(user=user).prefetch_related(
+        models.Prefetch('messages', queryset=ChatMessage.objects.filter(role='user'), to_attr='user_messages')
+    )
+    fluent_avatars = set()
+    for session in user_sessions:
+        if session.avatar_id in fluent_avatars:
+            continue
+        msgs = session.user_messages
+        total = len(msgs)
+        if total >= 5:
+            fluent = sum(1 for m in msgs if 5 <= len(m.content.split()) <= 30)
+            if (fluent / total) >= 0.65:
+                fluent_avatars.add(session.avatar_id)
+                
+    if len(fluent_avatars) >= 1:
+        _unlock_or_update(user, 'social_fluent', current=1, threshold=1)
+    
+    _unlock_or_update(user, 'social_fluent_5', current=len(fluent_avatars), threshold=5)
 
 
 
