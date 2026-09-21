@@ -1275,18 +1275,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
     if (!canvas) return;
 
-    if (this.rulerActive) {
+    if (this.rulerActive && !this.isDoublePageView) {
+      // 1. Calculamos cuál será la siguiente línea usando la lógica existente
       this.moveRulerByLine(1);
       
-      // En modo de desplazamiento continuo (no doble página), 
-      // centramos el canvas en la nueva posición de la regla
-      if (!this.isDoublePageView && this.rulerLinesAll && this.rulerLineIndex >= 0) {
+      // 2. Queremos que la regla se quede fija en el centro de la pantalla,
+      // y que el texto sea el que haga scroll hacia arriba.
+      if (this.rulerLinesAll && this.rulerLineIndex >= 0) {
         const lineData = this.rulerLinesAll[this.rulerLineIndex];
         if (lineData) {
-          const targetScrollTop = lineData.center - (canvas.clientHeight / 2);
+          const centerY = canvas.clientHeight / 2;
+          const targetScrollTop = canvas.scrollTop + lineData.center - centerY;
+          
+          // Fijamos la regla rígidamente en el centro de la vista
+          this.setRulerTop(centerY, 'full');
+          
+          // Desplazamos el texto suavemente para que coincida con la regla
           canvas.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
         }
       }
+    } else if (this.rulerActive && this.isDoublePageView) {
+      this.moveRulerByLine(1);
     } else {
       canvas.scrollBy({ top: 80, behavior: 'smooth' });
     }
