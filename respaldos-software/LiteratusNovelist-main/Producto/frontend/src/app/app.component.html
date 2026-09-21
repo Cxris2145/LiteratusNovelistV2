@@ -209,8 +209,11 @@
       </a>
 
     </div>
-  </nav>
-
+    </nav>
+  
+  <button class="nav-toggle-btn glass-btn" (click)="toggleNavBubbles()" [class.flipped]="isNavBubblesHidden" aria-label="Alternar menú rápido">
+    <span class="material-symbols-rounded">keyboard_arrow_up</span>
+  </button>
 </header>
 
 <!-- ═══ SITE BODY: Contenido a ancho completo ═══ -->

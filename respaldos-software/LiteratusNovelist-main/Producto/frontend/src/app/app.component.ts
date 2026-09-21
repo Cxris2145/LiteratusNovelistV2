@@ -155,18 +155,8 @@ export class AppComponent implements OnInit {
     });
   }
 
-  @HostListener('window:scroll', [])
-  onWindowScroll() {
-    const currentScroll = window.scrollY || document.documentElement.scrollTop;
-    
-    // Ocultar la barra de burbujas al hacer scroll hacia abajo, mostrar al subir
-    if (currentScroll > this.lastScrollTop && currentScroll > 80) {
-      this.isNavBubblesHidden = true;
-    } else {
-      this.isNavBubblesHidden = false;
-    }
-    
-    this.lastScrollTop = currentScroll;
+  toggleNavBubbles() {
+    this.isNavBubblesHidden = !this.isNavBubblesHidden;
   }
 
   loadUserProfile() {
