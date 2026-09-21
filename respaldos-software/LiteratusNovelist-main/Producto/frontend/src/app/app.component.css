@@ -304,6 +304,20 @@
   position: relative;
   display: flex;
   justify-content: center;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              padding 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 120px;
+  opacity: 1;
+  overflow: hidden;
+}
+
+.nav-bubbles-bar.hidden-on-scroll {
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  opacity: 0;
+  border-top-color: transparent;
 }
 
 .bubbles-container {

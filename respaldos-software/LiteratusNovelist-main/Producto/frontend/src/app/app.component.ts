@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, HostListener } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
@@ -28,6 +28,8 @@ export class AppComponent implements OnInit {
   router = inject(Router);
 
   isDashboard = false;
+  isNavBubblesHidden = false;
+  private lastScrollTop = 0;
   
   // Gamification Toasts
   gamificationToasts: (GamificationNotification & { id: number })[] = [];
@@ -151,6 +153,20 @@ export class AppComponent implements OnInit {
         this.location.back();
       }
     });
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    const currentScroll = window.scrollY || document.documentElement.scrollTop;
+    
+    // Ocultar la barra de burbujas al hacer scroll hacia abajo, mostrar al subir
+    if (currentScroll > this.lastScrollTop && currentScroll > 80) {
+      this.isNavBubblesHidden = true;
+    } else {
+      this.isNavBubblesHidden = false;
+    }
+    
+    this.lastScrollTop = currentScroll;
   }
 
   loadUserProfile() {
