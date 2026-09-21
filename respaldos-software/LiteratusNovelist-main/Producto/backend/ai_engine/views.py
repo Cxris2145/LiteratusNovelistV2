@@ -296,8 +296,11 @@ class ChatInteractionView(APIView):
             )
 
             # Recompensar interacción con IA (XP y progreso de misión semanal)
-            from library.achievement_engine import reward_activity
+            from library.achievement_engine import reward_activity, evaluate_for_user
             reward_activity(request.user, 'ai_interaction', reference_id=str(session.id))
+            
+            # Evaluar logros sociales
+            evaluate_for_user(request.user, trigger='chat', chat_session_id=session.id)
 
             assistant_msg = ChatMessage.objects.create(
                 session=session,

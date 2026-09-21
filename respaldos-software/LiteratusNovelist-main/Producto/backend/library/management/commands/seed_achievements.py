@@ -148,6 +148,49 @@ ACHIEVEMENTS = [
         'ink_reward': 10,
         'sort_order': 120,
     },
+    # -------------------------------------------------------------------------
+    # SOCIAL / CONVERSACIONES - Interacción con personajes IA
+    # -------------------------------------------------------------------------
+    {
+        'code': 'social_first_chat',
+        'title': 'Forastero curioso',
+        'description': 'Al iniciar la primera conversación con un personaje.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🗣️',
+        'threshold': 1,
+        'ink_reward': 5,
+        'sort_order': 200,
+    },
+    {
+        'code': 'social_fluent',
+        'title': 'Tertuliano',
+        'description': 'Mantuviste 1 conversación fluida y sustancial con un personaje.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🎭',
+        'threshold': 1,
+        'ink_reward': 20,
+        'sort_order': 210,
+    },
+    {
+        'code': 'social_5_chars',
+        'title': 'Socialité de Ficción',
+        'description': 'Has conversado con más de 5 personajes literarios distintos.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🍷',
+        'threshold': 6,
+        'ink_reward': 30,
+        'sort_order': 220,
+    },
+    {
+        'code': 'social_10_books',
+        'title': 'Viajero de Mundos',
+        'description': 'Conversaste con personajes en 10 libros distintos.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🌍',
+        'threshold': 10,
+        'ink_reward': 50,
+        'sort_order': 230,
+    },
 ]
 
 

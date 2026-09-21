@@ -1,25 +1,25 @@
-"""
-library/achievement_engine.py — Motor de evaluación de logros.
+﻿"""
+library/achievement_engine.py â€” Motor de evaluaciÃ³n de logros.
 
 ARQUITECTURA:
-    - Evaluación signal-driven: se dispara en Django signals (post_save)
+    - EvaluaciÃ³n signal-driven: se dispara en Django signals (post_save)
       sobre ReadingSession y ReadingProgress.
-    - Cada evaluador es una función pura y testeable que recibe el user
-      y contexto, evalúa la condición y llama a _unlock_or_update().
-    - _unlock_or_update() es el único punto de escritura en UserAchievement,
-      evitando race conditions con get_or_create + update atómico.
+    - Cada evaluador es una funciÃ³n pura y testeable que recibe el user
+      y contexto, evalÃºa la condiciÃ³n y llama a _unlock_or_update().
+    - _unlock_or_update() es el Ãºnico punto de escritura en UserAchievement,
+      evitando race conditions con get_or_create + update atÃ³mico.
 
 EVALUADORES IMPLEMENTADOS:
     Trigger 'session' (ReadingSession creada):
-        - streak_3, streak_7, streak_30: racha de días consecutivos
+        - streak_3, streak_7, streak_30: racha de dÃ­as consecutivos
         - night_owl, night_owl_10: lectura entre 00:00 y 04:59
         - early_bird: lectura entre 05:00 y 07:59
 
     Trigger 'progress' (ReadingProgress actualizado):
-        - first_chapter: primer avance de página registrado
+        - first_chapter: primer avance de pÃ¡gina registrado
         - first_book: primer libro completado al 100%
         - books_5, books_10: 5 y 10 libros completados
-        - classic_explorer_3, classic_explorer_10: libros de un mismo género
+        - classic_explorer_3, classic_explorer_10: libros de un mismo gÃ©nero
 """
 
 from django.utils import timezone
@@ -27,16 +27,17 @@ from django.db import transaction
 from django.db.models import Count, F
 
 
-def evaluate_for_user(user, trigger: str, session=None, progress=None):
+def evaluate_for_user(user, trigger: str, session=None, progress=None, chat_session_id=None):
     """
     Punto de entrada principal del motor.
-    Despacha a los evaluadores relevantes según el trigger.
+    Despacha a los evaluadores relevantes segÃºn el trigger.
 
     Args:
         user: instancia de User
-        trigger: 'session' | 'progress'
+        trigger: 'session' | 'progress' | 'chat'
         session: instancia de ReadingSession (trigger='session')
         progress: instancia de ReadingProgress (trigger='progress')
+        chat_session_id: ID de la sesiÃ³n de chat (trigger='chat')
     """
     try:
         if trigger == 'session' and session:
@@ -45,9 +46,11 @@ def evaluate_for_user(user, trigger: str, session=None, progress=None):
         elif trigger == 'progress' and progress:
             _evaluate_reading_milestones(user, progress)
             _evaluate_genre_exploration(user, progress)
+        elif trigger == 'chat':
+            _evaluate_social_milestones(user, chat_session_id)
     except Exception:
         # El motor de logros NO debe bloquear el flujo principal.
-        # Errores se ignoran silenciosamente para no romper la sesión
+        # Errores se ignoran silenciosamente para no romper la sesiÃ³n
         # o el guardado de progreso del usuario.
         import logging
         logger = logging.getLogger(__name__)
@@ -60,17 +63,17 @@ def evaluate_for_user(user, trigger: str, session=None, progress=None):
 
 def _evaluate_streak(user, session):
     """
-    Calcula la racha actual de días consecutivos de lectura y actualiza
+    Calcula la racha actual de dÃ­as consecutivos de lectura y actualiza
     los logros streak_3, streak_7 y streak_30.
 
     ALGORITMO:
-        1. Obtener las fechas únicas de sesión del usuario (solo la fecha, sin hora).
-        2. Ordenar desc y calcular cuántos días consecutivos hay desde hoy hacia atrás.
+        1. Obtener las fechas Ãºnicas de sesiÃ³n del usuario (solo la fecha, sin hora).
+        2. Ordenar desc y calcular cuÃ¡ntos dÃ­as consecutivos hay desde hoy hacia atrÃ¡s.
         3. Comparar contra los thresholds.
     """
     from .models import ReadingSession
 
-    # Fechas únicas de sesión (en timezone local del servidor)
+    # Fechas Ãºnicas de sesiÃ³n (en timezone local del servidor)
     session_dates = (
         ReadingSession.objects
         .filter(user=user, is_active=True)
@@ -78,7 +81,7 @@ def _evaluate_streak(user, session):
         .order_by('-started_at')
     )
 
-    # Convertir a set de fechas locales únicas
+    # Convertir a set de fechas locales Ãºnicas
     unique_dates = sorted(
         set(dt.astimezone(timezone.get_current_timezone()).date() for dt in session_dates),
         reverse=True
@@ -87,7 +90,7 @@ def _evaluate_streak(user, session):
     if not unique_dates:
         return
 
-    # Calcular racha desde hoy (o ayer, si no leyó hoy todavía)
+    # Calcular racha desde hoy (o ayer, si no leyÃ³ hoy todavÃ­a)
     today = timezone.localdate()
     streak = 0
 
@@ -113,10 +116,10 @@ def _evaluate_streak(user, session):
 
 def _evaluate_time_based(user, session):
     """
-    Evalúa logros basados en la hora de inicio de sesión.
-    - night_owl: sesión iniciada entre 00:00 y 04:59 (1 vez)
-    - night_owl_10: sesión nocturna, 10 veces
-    - early_bird: sesión iniciada entre 05:00 y 07:59 (1 vez)
+    EvalÃºa logros basados en la hora de inicio de sesiÃ³n.
+    - night_owl: sesiÃ³n iniciada entre 00:00 y 04:59 (1 vez)
+    - night_owl_10: sesiÃ³n nocturna, 10 veces
+    - early_bird: sesiÃ³n iniciada entre 05:00 y 07:59 (1 vez)
     """
     from .models import ReadingSession
 
@@ -151,15 +154,15 @@ def _evaluate_time_based(user, session):
 
 def _evaluate_reading_milestones(user, progress):
     """
-    Evalúa logros de hitos de lectura:
-    - first_chapter: primer avance de página registrado
+    EvalÃºa logros de hitos de lectura:
+    - first_chapter: primer avance de pÃ¡gina registrado
     - first_book: primer libro completado al 100%
     - books_5: 5 libros completados
     - books_10: 10 libros completados
     """
     from .models import ReadingProgress
 
-    # Logro: primer capítulo (cualquier progreso > 0%)
+    # Logro: primer capÃ­tulo (cualquier progreso > 0%)
     if float(progress.completion_percentage) > 0:
         _unlock_or_update(user, 'first_chapter', current=1, threshold=1)
 
@@ -182,15 +185,15 @@ def _evaluate_reading_milestones(user, progress):
 
 def _evaluate_genre_exploration(user, progress):
     """
-    Evalúa el logro 'classic_explorer_3' y 'classic_explorer_10':
-    Completar libros de un mismo género (el género más leído).
+    EvalÃºa el logro 'classic_explorer_3' y 'classic_explorer_10':
+    Completar libros de un mismo gÃ©nero (el gÃ©nero mÃ¡s leÃ­do).
     """
     from .models import ReadingProgress
 
     if float(progress.completion_percentage) < 100:
         return
 
-    # Géneros de los libros completados por el usuario, agrupados por cantidad
+    # GÃ©neros de los libros completados por el usuario, agrupados por cantidad
     genre_counts = (
         ReadingProgress.objects
         .filter(
@@ -223,11 +226,11 @@ def _evaluate_genre_exploration(user, progress):
 def _unlock_or_update(user, achievement_code: str, current: int, threshold: int):
     """
     Crea o actualiza el registro UserAchievement para el usuario.
-    Si current >= threshold y aún no estaba desbloqueado, lo desbloquea
+    Si current >= threshold y aÃºn no estaba desbloqueado, lo desbloquea
     y otorga la Tinta correspondiente.
 
     Usa select_for_update() para evitar race conditions si dos signals
-    se disparan simultáneamente para el mismo usuario/logro.
+    se disparan simultÃ¡neamente para el mismo usuario/logro.
     """
     from .models import Achievement, UserAchievement
     from users.models import Profile
@@ -235,7 +238,7 @@ def _unlock_or_update(user, achievement_code: str, current: int, threshold: int)
     try:
         achievement = Achievement.objects.get(code=achievement_code)
     except Achievement.DoesNotExist:
-        # El logro no está en el catálogo aún (seed pendiente), ignorar
+        # El logro no estÃ¡ en el catÃ¡logo aÃºn (seed pendiente), ignorar
         return
 
     ua, created = UserAchievement.objects.select_for_update().get_or_create(
@@ -245,12 +248,12 @@ def _unlock_or_update(user, achievement_code: str, current: int, threshold: int)
     )
 
     if not created:
-        # Actualizar progreso solo si mejoró
+        # Actualizar progreso solo si mejorÃ³
         if current > ua.current_progress:
             ua.current_progress = current
             ua.save(update_fields=['current_progress', 'updated_at'])
 
-    # Desbloquear si alcanzó el threshold y aún no estaba desbloqueado
+    # Desbloquear si alcanzÃ³ el threshold y aÃºn no estaba desbloqueado
     if ua.current_progress >= threshold and ua.unlocked_at is None:
         ua.unlocked_at = timezone.now()
         ua.save(update_fields=['unlocked_at', 'updated_at'])
@@ -261,13 +264,13 @@ def _unlock_or_update(user, achievement_code: str, current: int, threshold: int)
 
 
 # ---------------------------------------------------------------------------
-# MOTOR DE GAMIFICACIÓN (Tinta, XP y Niveles)
+# MOTOR DE GAMIFICACIÃ“N (Tinta, XP y Niveles)
 # ---------------------------------------------------------------------------
 
 @transaction.atomic
 def reward_activity(user, activity_type: str, reference_id: str = '', custom_ink: int = None, custom_xp: int = None):
     """
-    Otorga Tinta y XP a un usuario por una actividad, y registra la transacción.
+    Otorga Tinta y XP a un usuario por una actividad, y registra la transacciÃ³n.
     Actualiza el nivel si es necesario.
     """
     from django.conf import settings
@@ -332,9 +335,9 @@ def _update_missions(user, activity_type: str, increment: int = 1):
             um.current_count += increment
             if um.current_count >= mission.target_count:
                 um.completed_at = timezone.now()
-                # Otorga la recompensa extra de la misión llamando a reward_activity
-                # con un concepto genérico para evitar loop infinito de activity_type
-                # pero indicando la misión
+                # Otorga la recompensa extra de la misiÃ³n llamando a reward_activity
+                # con un concepto genÃ©rico para evitar loop infinito de activity_type
+                # pero indicando la misiÃ³n
                 if mission.ink_reward > 0 or mission.xp_reward > 0:
                     reward_activity(
                         user, 
@@ -356,7 +359,7 @@ def _check_level_up(profile):
     if not levels:
         return
         
-    # Encontrar el nivel más alto que el usuario puede tener
+    # Encontrar el nivel mÃ¡s alto que el usuario puede tener
     new_level = profile.level
     for lvl in sorted(levels, key=lambda x: x['level']):
         if profile.xp >= lvl['xp_required']:
@@ -369,7 +372,7 @@ def _check_level_up(profile):
 def update_streak(user):
     """
     Actualiza la racha de lectura del usuario (se llama cada vez que lee).
-    Se considera una racha si lee al menos una vez al día.
+    Se considera una racha si lee al menos una vez al dÃ­a.
     """
     from users.models import Profile
     
@@ -378,11 +381,11 @@ def update_streak(user):
     try:
         profile = Profile.objects.select_for_update().get(user=user)
         
-        # Si ya actualizó hoy, no hacer nada
+        # Si ya actualizÃ³ hoy, no hacer nada
         if profile.streak_last_date == today:
             return
             
-        # Si ayer leyó, aumentar la racha. Si no, reiniciar a 1.
+        # Si ayer leyÃ³, aumentar la racha. Si no, reiniciar a 1.
         yesterday = today - __import__('datetime').timedelta(days=1)
         
         if profile.streak_last_date == yesterday:
@@ -401,7 +404,7 @@ def update_streak(user):
 
 def get_user_discount(user):
     """
-    Retorna el porcentaje de descuento aplicable según el nivel del usuario.
+    Retorna el porcentaje de descuento aplicable segÃºn el nivel del usuario.
     """
     from django.conf import settings
     if not user or not user.is_authenticated:
@@ -417,3 +420,35 @@ def get_user_discount(user):
         if user_level >= lvl['level']:
             return lvl.get('discount_percent', 0)
     return 0
+
+# ---------------------------------------------------------------------------
+# EVALUADORES SOCIALES (Chat con IA)
+# ---------------------------------------------------------------------------
+
+def _evaluate_social_milestones(user, chat_session_id=None):
+    from ai_engine.models import ChatSession, ChatMessage
+    
+    has_message = ChatMessage.objects.filter(session__user=user, role='user').exists()
+    if has_message:
+        _unlock_or_update(user, 'social_first_chat', current=1, threshold=1)
+        
+    distinct_chars = ChatSession.objects.filter(user=user, messages__role='user').values('avatar').distinct().count()
+    _unlock_or_update(user, 'social_5_chars', current=distinct_chars, threshold=6)
+    
+    distinct_books = ChatSession.objects.filter(user=user, messages__role='user').values('avatar__edition__book').distinct().count()
+    _unlock_or_update(user, 'social_10_books', current=distinct_books, threshold=10)
+    
+    if chat_session_id:
+        user_msgs = ChatMessage.objects.filter(session_id=chat_session_id, role='user')
+        total_user_msgs = user_msgs.count()
+        if total_user_msgs >= 5:
+            fluent_count = 0
+            for msg in user_msgs:
+                words = len(msg.content.split())
+                if 5 <= words <= 30:
+                    fluent_count += 1
+            if (fluent_count / total_user_msgs) >= 0.65:
+                _unlock_or_update(user, 'social_fluent', current=1, threshold=1)
+
+
+
