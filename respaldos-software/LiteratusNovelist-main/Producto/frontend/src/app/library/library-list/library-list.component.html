@@ -59,41 +59,65 @@
     </a>
   </div>
 
-  <!-- Barra de Filtros Rápidos (si hay libros) -->
-  <div class="library-filter-bar" *ngIf="inventoryItems.length > 0">
-    <button 
-      type="button" 
-      class="filter-pill" 
-      [class.active]="activeFilter === 'all'"
-      (click)="setFilter('all')">
-      <span>Todos</span>
-      <span class="pill-count">{{ inventoryItems.length }}</span>
-    </button>
-    <button 
-      type="button" 
-      class="filter-pill" 
-      [class.active]="activeFilter === 'reading'"
-      (click)="setFilter('reading')">
-      <span>Leyendo</span>
-      <span class="pill-count" *ngIf="readingCount > 0">{{ readingCount }}</span>
-    </button>
-    <button 
-      type="button" 
-      class="filter-pill" 
-      [class.active]="activeFilter === 'completed'"
-      (click)="setFilter('completed')">
-      <span>Completados</span>
-      <span class="pill-count" *ngIf="completedCount > 0">{{ completedCount }}</span>
-    </button>
-    <button 
-      type="button" 
-      class="filter-pill" 
-      [class.active]="activeFilter === 'unread'"
-      (click)="setFilter('unread')">
-      <span>Por Empezar</span>
-      <span class="pill-count" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
-    </button>
+  <!-- Barra de Búsqueda y Filtros Rápidos (si hay libros) -->
+  <div class="library-controls-wrap" *ngIf="inventoryItems.length > 0">
+    
+    <!-- Input de Búsqueda Instantánea -->
+    <div class="library-search-box">
+      <span class="material-symbols-rounded search-icon">search</span>
+      <input 
+        type="text" 
+        class="library-search-input" 
+        placeholder="Buscar por título o autor en mi biblioteca..."
+        [(ngModel)]="searchTerm"
+        aria-label="Buscar en mis libros">
+      <button 
+        type="button" 
+        class="search-clear-mini-btn" 
+        *ngIf="searchTerm" 
+        (click)="clearSearch()"
+        aria-label="Limpiar búsqueda">
+        ✕
+      </button>
+    </div>
+
+    <!-- Píldoras de Filtro de Lectura -->
+    <div class="library-filter-bar">
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'all'"
+        (click)="setFilter('all')">
+        <span>Todos</span>
+        <span class="pill-count">{{ inventoryItems.length }}</span>
+      </button>
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'reading'"
+        (click)="setFilter('reading')">
+        <span>Leyendo</span>
+        <span class="pill-count" *ngIf="readingCount > 0">{{ readingCount }}</span>
+      </button>
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'completed'"
+        (click)="setFilter('completed')">
+        <span>Completados</span>
+        <span class="pill-count" *ngIf="completedCount > 0">{{ completedCount }}</span>
+      </button>
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'unread'"
+        (click)="setFilter('unread')">
+        <span>Por Empezar</span>
+        <span class="pill-count" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+    </div>
   </div>
+
 
   <!-- Grid de Inventario -->
   <div class="grid-container" *ngIf="filteredItems.length > 0">
@@ -146,16 +170,25 @@
     </div>
   </div>
 
-  <!-- Estado Vacío cuando el filtro seleccionado no tiene resultados -->
+  <!-- Estado Vacío cuando el filtro o búsqueda no tienen resultados -->
   <div class="filter-empty-state" *ngIf="inventoryItems.length > 0 && filteredItems.length === 0">
-    <span class="material-symbols-rounded filter-empty-icon">filter_alt_off</span>
-    <h3 class="filter-empty-title">Sin libros en esta categoría</h3>
-    <p class="filter-empty-desc">
+    <span class="material-symbols-rounded filter-empty-icon">{{ searchTerm ? 'search_off' : 'filter_alt_off' }}</span>
+    <h3 class="filter-empty-title">{{ searchTerm ? 'No se encontraron resultados' : 'Sin libros en esta categoría' }}</h3>
+    <p class="filter-empty-desc" *ngIf="searchTerm">
+      No hay ningún libro o autor que coincida con "<strong>{{ searchTerm }}</strong>"{{ activeFilter !== 'all' ? ' en esta categoría' : '' }}.
+    </p>
+    <p class="filter-empty-desc" *ngIf="!searchTerm">
       No tienes obras clasificadas como "{{ activeFilter === 'reading' ? 'Leyendo actualmente' : activeFilter === 'completed' ? 'Completados' : 'Por empezar' }}".
     </p>
-    <button type="button" class="clear-filter-btn" (click)="setFilter('all')">
-      Ver todos mis libros ({{ inventoryItems.length }})
-    </button>
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+      <button type="button" class="clear-filter-btn" *ngIf="searchTerm" (click)="clearSearch()">
+        Limpiar búsqueda
+      </button>
+      <button type="button" class="clear-filter-btn" *ngIf="activeFilter !== 'all'" (click)="setFilter('all')">
+        Ver todos mis libros ({{ inventoryItems.length }})
+      </button>
+    </div>
   </div>
+
 </div>
 

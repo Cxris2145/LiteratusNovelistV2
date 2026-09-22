@@ -19,31 +19,49 @@ export class LibraryListComponent implements OnInit {
   errorMsg = '';
 
   activeFilter: 'all' | 'reading' | 'completed' | 'unread' = 'all';
+  searchTerm: string = '';
 
   private readonly EAGER_COVERS = 6;
   readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   get filteredItems(): any[] {
+    let items = this.inventoryItems;
+
+    // Filtro por estado de lectura
     if (this.activeFilter === 'reading') {
-      return this.inventoryItems.filter(item => {
+      items = items.filter(item => {
         const pct = item.progress?.completion_percentage || 0;
         return pct > 0 && pct < 100;
       });
-    }
-    if (this.activeFilter === 'completed') {
-      return this.inventoryItems.filter(item => {
+    } else if (this.activeFilter === 'completed') {
+      items = items.filter(item => {
         const pct = item.progress?.completion_percentage || 0;
         return pct >= 100;
       });
-    }
-    if (this.activeFilter === 'unread') {
-      return this.inventoryItems.filter(item => {
+    } else if (this.activeFilter === 'unread') {
+      items = items.filter(item => {
         const pct = item.progress?.completion_percentage || 0;
         return pct === 0;
       });
     }
-    return this.inventoryItems;
+
+    // Filtro por término de búsqueda (título y autor)
+    const q = this.searchTerm.trim().toLowerCase();
+    if (q) {
+      items = items.filter(item => {
+        const title = (item.book_title || item.edition?.book?.title || '').toLowerCase();
+        const author = (item.edition?.book?.author_name || '').toLowerCase();
+        return title.includes(q) || author.includes(q);
+      });
+    }
+
+    return items;
   }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+  }
+
 
   get readingCount(): number {
     return this.inventoryItems.filter(item => {

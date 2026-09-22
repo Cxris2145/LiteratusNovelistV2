@@ -426,15 +426,85 @@
   margin-top: 20px;
 }
 
-/* ── FILTROS RÁPIDOS DE BIBLIOTECA ────────────────────────────────────── */
+/* ── FILTROS Y BÚSQUEDA RÁPIDA DE BIBLIOTECA ──────────────────────────── */
+.library-controls-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2.25rem;
+}
+
+.library-search-box {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  align-items: center;
+}
+
+.library-search-box .search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted, #a1a1aa);
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.library-search-input {
+  width: 100%;
+  padding: 10px 40px 10px 42px;
+  background: var(--bg-surface, #1e1e24);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
+  border-radius: 999px;
+  color: var(--color-text-primary, #ffffff);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+  outline: none;
+}
+
+.library-search-input:focus {
+  border-color: var(--color-primary, #417A87);
+  box-shadow: 0 0 0 3px rgba(65, 122, 135, 0.25);
+  background: var(--color-hover, rgba(255, 255, 255, 0.05));
+}
+
+.library-search-input::placeholder {
+  color: var(--text-muted, #71717a);
+  font-size: 0.88rem;
+}
+
+.search-clear-mini-btn {
+  position: absolute;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: var(--text-muted, #a1a1aa);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.search-clear-mini-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
 .library-filter-bar {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
+
 
 .filter-pill {
   display: inline-flex;
