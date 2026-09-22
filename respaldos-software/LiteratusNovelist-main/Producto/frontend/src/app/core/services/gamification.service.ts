@@ -19,6 +19,9 @@ export class GamificationService {
   private profileSource = new BehaviorSubject<any>(null);
   public profile$ = this.profileSource.asObservable();
 
+  private dailyRewardClaimableSource = new BehaviorSubject<boolean>(false);
+  public dailyRewardClaimable$ = this.dailyRewardClaimableSource.asObservable();
+
   private lastProfile: any = null;
 
   constructor(private http: HttpClient) {}
@@ -77,10 +80,41 @@ export class GamificationService {
   }
 
   getDailyRewardStatus(): Observable<any> {
-    return this.http.get<any>(environment.apiUrl + 'library/daily-reward/status/');
+    return this.http.get<any>(environment.apiUrl + 'library/daily-reward/status/').pipe(
+      // Actualizar automáticamente si se puede reclamar
+      (source$) => new Observable(observer => {
+        source$.subscribe({
+          next: (val) => {
+            this.dailyRewardClaimableSource.next(!!val?.can_claim);
+            observer.next(val);
+          },
+          error: (err) => observer.error(err),
+          complete: () => observer.complete()
+        });
+      })
+    );
   }
 
   claimDailyReward(): Observable<any> {
-    return this.http.post<any>(environment.apiUrl + 'library/daily-reward/claim/', {});
+    return this.http.post<any>(environment.apiUrl + 'library/daily-reward/claim/', {}).pipe(
+      (source$) => new Observable(observer => {
+        source$.subscribe({
+          next: (val) => {
+            this.dailyRewardClaimableSource.next(false);
+            observer.next(val);
+          },
+          error: (err) => observer.error(err),
+          complete: () => observer.complete()
+        });
+      })
+    );
+  }
+
+  checkDailyRewardStatus(): void {
+    this.getDailyRewardStatus().subscribe({
+      next: (val) => this.dailyRewardClaimableSource.next(!!val?.can_claim),
+      error: () => this.dailyRewardClaimableSource.next(false)
+    });
   }
 }
+
