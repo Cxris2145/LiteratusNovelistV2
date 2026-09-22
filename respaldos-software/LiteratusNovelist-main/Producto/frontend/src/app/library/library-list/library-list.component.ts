@@ -18,8 +18,52 @@ export class LibraryListComponent implements OnInit {
   isAnonymous = false;
   errorMsg = '';
 
+  activeFilter: 'all' | 'reading' | 'completed' | 'unread' = 'all';
+
   private readonly EAGER_COVERS = 6;
   readonly skeletons = [0, 1, 2, 3, 4, 5];
+
+  get filteredItems(): any[] {
+    if (this.activeFilter === 'reading') {
+      return this.inventoryItems.filter(item => {
+        const pct = item.progress?.completion_percentage || 0;
+        return pct > 0 && pct < 100;
+      });
+    }
+    if (this.activeFilter === 'completed') {
+      return this.inventoryItems.filter(item => {
+        const pct = item.progress?.completion_percentage || 0;
+        return pct >= 100;
+      });
+    }
+    if (this.activeFilter === 'unread') {
+      return this.inventoryItems.filter(item => {
+        const pct = item.progress?.completion_percentage || 0;
+        return pct === 0;
+      });
+    }
+    return this.inventoryItems;
+  }
+
+  get readingCount(): number {
+    return this.inventoryItems.filter(item => {
+      const pct = item.progress?.completion_percentage || 0;
+      return pct > 0 && pct < 100;
+    }).length;
+  }
+
+  get completedCount(): number {
+    return this.inventoryItems.filter(item => (item.progress?.completion_percentage || 0) >= 100).length;
+  }
+
+  get unreadCount(): number {
+    return this.inventoryItems.filter(item => (item.progress?.completion_percentage || 0) === 0).length;
+  }
+
+  setFilter(filter: 'all' | 'reading' | 'completed' | 'unread'): void {
+    this.activeFilter = filter;
+  }
+
 
   ngOnInit(): void {
     if (!this.auth.isLoggedIn()) {
