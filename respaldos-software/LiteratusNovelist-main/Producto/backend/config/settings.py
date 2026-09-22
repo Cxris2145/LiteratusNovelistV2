@@ -292,6 +292,7 @@ GAMIFICATION_REWARDS = {
     'ai_interaction':         {'ink': 5,   'xp': 5},
     'streak_bonus_day':       {'ink': 5,   'xp': 10},
     'achievement_unlocked':   {'ink': 0,   'xp': 25},  # XP extra al desbloquear logro
+    'daily_reward':           {'ink': 20,  'xp': 15},  # Recompensa diaria por iniciar sesión
 }
 
 # Niveles de lector: ordenados por nivel ascendente.

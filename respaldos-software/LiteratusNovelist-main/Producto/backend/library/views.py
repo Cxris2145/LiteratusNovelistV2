@@ -349,3 +349,93 @@ class UserMissionViewSet(viewsets.ReadOnlyModelViewSet):
             Q(mission__reset_type='weekly', period_start=start_of_week) |
             Q(mission__reset_type='monthly', period_start=start_of_month)
         ).select_related('mission').order_by('completed_at', 'mission__title')
+
+
+class DailyRewardViewSet(viewsets.ViewSet):
+    """
+    Controlador de la Recompensa Diaria de Tinta.
+    - GET /api/v1/library/daily-reward/status/: Comprueba si está disponible para reclamar hoy.
+    - POST /api/v1/library/daily-reward/claim/: Reclama la recompensa diaria.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['GET'], url_path='status')
+    def check_status(self, request):
+        from .models import InkTransaction
+        from django.utils import timezone
+        from django.conf import settings
+        from library.achievement_engine import get_user_discount
+
+        today = timezone.localdate()
+        already_claimed = InkTransaction.objects.filter(
+            user=request.user,
+            concept='daily_reward',
+            created_at__date=today
+        ).exists()
+
+        reward_config = getattr(settings, 'GAMIFICATION_REWARDS', {}).get('daily_reward', {'ink': 20, 'xp': 15})
+        user_level = request.user.profile.level if hasattr(request.user, 'profile') else 1
+        level_bonus_ink = max(0, (user_level - 1) * 5)
+        total_ink = reward_config.get('ink', 20) + level_bonus_ink
+        total_xp = reward_config.get('xp', 15)
+
+        last_claim = InkTransaction.objects.filter(
+            user=request.user,
+            concept='daily_reward'
+        ).order_by('-created_at').first()
+
+        return Response({
+            'can_claim': not already_claimed,
+            'ink_reward': total_ink,
+            'xp_reward': total_xp,
+            'base_ink': reward_config.get('ink', 20),
+            'level_bonus_ink': level_bonus_ink,
+            'last_claimed_at': last_claim.created_at if last_claim else None
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'], url_path='claim')
+    def claim(self, request):
+        from .models import InkTransaction
+        from django.utils import timezone
+        from django.conf import settings
+        from library.achievement_engine import reward_activity
+
+        today = timezone.localdate()
+        with transaction.atomic():
+            already_claimed = InkTransaction.objects.filter(
+                user=request.user,
+                concept='daily_reward',
+                created_at__date=today
+            ).exists()
+
+            if already_claimed:
+                return Response({
+                    'error': 'ALREADY_CLAIMED',
+                    'message': 'Ya has reclamado tu recompensa de Tinta el día de hoy. ¡Vuelve mañana!'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            reward_config = getattr(settings, 'GAMIFICATION_REWARDS', {}).get('daily_reward', {'ink': 20, 'xp': 15})
+            user_level = request.user.profile.level if hasattr(request.user, 'profile') else 1
+            level_bonus_ink = max(0, (user_level - 1) * 5)
+            total_ink = reward_config.get('ink', 20) + level_bonus_ink
+            total_xp = reward_config.get('xp', 15)
+
+            # Otorga la Tinta y XP de forma atómica y registra en InkTransaction
+            reward_activity(
+                user=request.user,
+                activity_type='daily_reward',
+                custom_ink=total_ink,
+                custom_xp=total_xp
+            )
+
+            # Refrescar balance actual
+            request.user.profile.refresh_from_db()
+
+            return Response({
+                'message': f'¡Has recibido +{total_ink} Gotas de Tinta y +{total_xp} XP!',
+                'ink_reward': total_ink,
+                'xp_reward': total_xp,
+                'new_ink_balance': request.user.profile.ink_balance,
+                'new_xp': request.user.profile.xp,
+                'new_level': request.user.profile.level
+            }, status=status.HTTP_200_OK)

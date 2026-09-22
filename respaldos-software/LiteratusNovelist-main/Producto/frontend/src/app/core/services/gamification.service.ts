@@ -75,4 +75,12 @@ export class GamificationService {
   getMissions(): Observable<any[]> {
     return this.http.get<any[]>(environment.apiUrl + 'library/missions/');
   }
+
+  getDailyRewardStatus(): Observable<any> {
+    return this.http.get<any>(environment.apiUrl + 'library/daily-reward/status/');
+  }
+
+  claimDailyReward(): Observable<any> {
+    return this.http.post<any>(environment.apiUrl + 'library/daily-reward/claim/', {});
+  }
 }

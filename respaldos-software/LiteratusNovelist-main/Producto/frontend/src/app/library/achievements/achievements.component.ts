@@ -41,6 +41,11 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   missions: any[] = [];
   activeTab: 'achievements' | 'history' | 'missions' | 'levels' = 'achievements';
 
+  // Recompensa Diaria
+  dailyReward: any = null;
+  isClaimingReward = false;
+  rewardClaimedSuccess = false;
+
   readonly tabs: CategoryTab[] = [
     { key: 'all',         label: 'Todos',       icon: '🌟' },
     { key: 'reading',     label: 'Lectura',      icon: '📚' },
@@ -57,6 +62,48 @@ export class AchievementsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadData();
+    this.loadDailyReward();
+  }
+
+  loadDailyReward(): void {
+    this.gamificationService.getDailyRewardStatus()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (status) => {
+          this.dailyReward = status;
+          this.cdr.markForCheck();
+        },
+        error: (err) => console.error('Error cargando estado de recompensa diaria:', err)
+      });
+  }
+
+  claimDailyReward(): void {
+    if (!this.dailyReward?.can_claim || this.isClaimingReward) return;
+
+    this.isClaimingReward = true;
+    this.gamificationService.claimDailyReward()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isClaimingReward = false;
+          this.rewardClaimedSuccess = true;
+          this.gamificationService.notifyInk(res.ink_reward, 'Recompensa Diaria');
+          this.gamificationService.notifyXP(res.xp_reward, 'Recompensa Diaria');
+          this.dailyReward.can_claim = false;
+          // Recargar perfil e historial
+          this.gamificationService.loadInitialProfile();
+          this.gamificationService.getInkHistory().pipe(takeUntil(this.destroy$)).subscribe(h => {
+            this.inkHistory = h;
+            this.cdr.markForCheck();
+          });
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.isClaimingReward = false;
+          console.error('Error al reclamar recompensa diaria:', err);
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   ngOnDestroy(): void {

@@ -54,6 +54,28 @@
           </div>
         </div>
 
+        <!-- RECOMPENSA DIARIA (DAILY REWARD) -->
+        <div class="metric-box daily-reward-box" *ngIf="dailyReward">
+          <span class="metric-icon material-symbols-rounded daily-gift-icon" [class.bounce]="dailyReward.can_claim">
+            featured_seasonal_and_gifts
+          </span>
+          <div class="metric-info">
+            <span class="metric-value">+{{ dailyReward.ink_reward }} Tinta</span>
+            <span class="metric-label">Diaria (+{{ dailyReward.xp_reward }} XP)</span>
+          </div>
+          <button 
+            type="button" 
+            class="daily-claim-btn"
+            [class.claimable]="dailyReward.can_claim"
+            [disabled]="!dailyReward.can_claim || isClaimingReward"
+            (click)="claimDailyReward()"
+          >
+            <span *ngIf="isClaimingReward">...</span>
+            <span *ngIf="!isClaimingReward && dailyReward.can_claim">Reclamar</span>
+            <span *ngIf="!isClaimingReward && !dailyReward.can_claim">Reclamado</span>
+          </button>
+        </div>
+
       </div>
     </div>
   </header>
