@@ -444,6 +444,8 @@
   line-height: 1.25;
   color: var(--reader-text, inherit);
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -776,6 +778,8 @@
   font-size: 0.95rem;
   color: #e2e8f0;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1014,6 +1018,8 @@
   font-size: 0.9rem;
   color: #e2e8f0;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1138,6 +1144,8 @@
   margin: 0;
   max-width: 90%;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1935,6 +1943,8 @@ h2.chapter-heading { font-size: 1.28em; }
   font-weight: 600;
   color: var(--reader-text-muted, rgba(255, 255, 255, 0.6));
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
 }
 
 /* Al final del capitulo: resaltar el lado "Siguiente" con el acento de marca */
@@ -1952,6 +1962,7 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 
 @media (max-width: 600px) {
+  .back-to-reading-btn { width: calc(100vw - 24px) !important; }
   .chapter-nav { width: calc(100vw - 24px); justify-content: space-between; }
   .chapter-nav-btn { padding: 0 12px; }
   .chapter-nav-btn .chapter-nav-txt { display: none; }
@@ -2632,6 +2643,8 @@ h2.chapter-heading { font-size: 1.28em; }
   color: #fbbf24;
   font-weight: 700;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
 }
 
 /* BADGE cuando la Voz Premium ya está desbloqueada */
@@ -2937,6 +2950,8 @@ h2.chapter-heading { font-size: 1.28em; }
   font-size: 0.95rem;
   transition: all 0.2s ease;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
 }
 
 .menu-action-btn:hover:not(:disabled) {
@@ -4115,6 +4130,8 @@ h2.chapter-heading { font-size: 1.28em; }
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   transition: border-color var(--reader-transition), background var(--reader-transition);
 }
 .preset-chip:hover {
@@ -4226,6 +4243,8 @@ h2.chapter-heading { font-size: 1.28em; }
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
   transition: background var(--reader-transition), color var(--reader-transition);
@@ -4277,6 +4296,8 @@ h2.chapter-heading { font-size: 1.28em; }
   font-weight: 600;
   color: var(--reader-text-muted, inherit);
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
@@ -4682,6 +4703,8 @@ h2.chapter-heading { font-size: 1.28em; }
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   box-shadow: var(--reader-shadow-panel, 0 10px 30px rgba(0, 0, 0, 0.3));
   animation: sheetIn 0.22s var(--reader-ease);
 }
@@ -4954,6 +4977,8 @@ h2.chapter-heading { font-size: 1.28em; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   color: var(--reader-text-muted, inherit);
   opacity: 0.65;
 }
@@ -4965,6 +4990,8 @@ h2.chapter-heading { font-size: 1.28em; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
   color: var(--reader-text-muted, inherit);
   opacity: 0.65;
 }
@@ -5325,6 +5352,8 @@ h2.chapter-heading { font-size: 1.28em; }
     right: 4px;
   }
 }
+
+
 
 
 
