@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+﻿import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { AudioCacheService } from './audio-cache.service';
 
@@ -18,7 +18,7 @@ export class KokoroTtsService {
   isDownloadingModel$ = new BehaviorSubject<boolean>(false); // Indica si está descargando modelo ONNX
   downloadProgress$ = new BehaviorSubject<number>(0); // 0 a 100
   
-  engineMode$ = new BehaviorSubject<'remote' | 'local'>('remote');
+  engineMode$ = new BehaviorSubject<'remote' | 'local'>('local');
   isMuted$ = new BehaviorSubject<boolean>(false); // Global Mute
 
   currentSentenceIdx$ = new BehaviorSubject<number>(-1);
@@ -71,7 +71,8 @@ export class KokoroTtsService {
   private audioCache = inject(AudioCacheService);
   
   constructor() {
-    const savedMode = localStorage.getItem('kokoro-engine-mode') as 'remote' | 'local';
+    localStorage.setItem('kokoro-engine-mode', 'local');
+    const savedMode = 'local';
     if (savedMode === 'local') {
       // Si el usuario tenía "local" guardado, iniciamos la descarga en background sin bloquear
       this.engineMode$.next('local');
@@ -504,3 +505,5 @@ export class KokoroTtsService {
     return sentences;
   }
 }
+
+
