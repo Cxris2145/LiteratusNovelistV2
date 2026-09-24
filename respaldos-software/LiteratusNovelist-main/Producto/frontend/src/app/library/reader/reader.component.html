@@ -1,4 +1,4 @@
-<div class="workbench-container" [ngClass]="'theme-' + currentTheme" [class.immersive]="isToolbarHidden"
+﻿<div class="workbench-container" [ngClass]="'theme-' + currentTheme" [class.immersive]="isToolbarHidden"
      [class.rc-high-contrast]="highContrast" [class.rc-concentration]="concentrationMode">
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -566,14 +566,14 @@
         <span class="ink-cost">Gratis</span>
       </div>
 
-      <!-- VOZ PREMIUM AI (KOKORO) -->
-      <div class="voice-option" [class.active]="currentAudioMode === 'kokoro'" (click)="setAudioMode('kokoro')">
-        <div class="voice-info">
-          <span>Voz Kokoro 80M</span>
-          <small>Voz Neuronal API</small>
+      <!-- VOZ PREMIUM AI (KOKORO) - DESHABILITADO -->
+        <div class="voice-option disabled-option" style="opacity: 0.5; pointer-events: none; filter: grayscale(100%);">
+          <div class="voice-info">
+            <span>Voz Kokoro 80M</span>
+            <small>Voz Neuronal (Mantenimiento)</small>
+          </div>
+          <span class="ink-cost unlocked-badge" style="background: #6b7280; color: white; border: none;">BETA</span>
         </div>
-        <span class="ink-cost unlocked-badge">Nuevo</span>
-      </div>
 
       <!-- VOZ WASM (PIPER) -->
       <div class="voice-option" [class.active]="currentAudioMode === 'wasm'" (click)="setAudioMode('wasm')">
@@ -626,19 +626,21 @@
         </option>
       </select>
 
-      <button *ngIf="false" class="btn-kokoro-local" 
-              [ngClass]="{'active': (engineMode$ | async) === 'local', 'downloading': kokoroDownloading$ | async}"
-              (click)="toggleKokoroEngine()"
-              [disabled]="kokoroDownloading$ | async">
-        <i class="fas fa-microchip"></i>
-        <span *ngIf="(engineMode$ | async) === 'local'">Desactivar Motor Local</span>
-        <span *ngIf="(engineMode$ | async) !== 'local' && !(kokoroDownloading$ | async)">Activar Motor Local</span>
-        <span *ngIf="kokoroDownloading$ | async">Descargando... {{ kokoroProgress$ | async }}%</span>
-      </button>
-      <div class="kokoro-progress-bar" *ngIf="kokoroDownloading$ | async">
-         <div class="kokoro-progress-fill" [style.width.%]="kokoroProgress$ | async"></div>
+      <div class="wasm-progress-container" *ngIf="kokoroDownloading$ | async" style="margin-top: 10px;">
+           <span class="status-label" style="font-size: 0.85rem; color: #8b92a5; display: flex; align-items: center; gap: 6px;">
+              <span class="loader-spin material-symbols-rounded" style="font-size: 1rem;">sync</span> 
+              Descargando Voz de Alta Calidad... {{ kokoroProgress$ | async }}%
+           </span>
+           <div class="kokoro-progress-bar" style="margin-top: 5px;">
+              <div class="kokoro-progress-fill" [style.width.%]="kokoroProgress$ | async"></div>
+           </div>
+        </div>
+        <div class="wasm-ready-container" *ngIf="!(kokoroDownloading$ | async)" style="margin-top: 10px;">
+           <span class="status-label" style="font-size: 0.85rem; color: #4ade80; display: flex; align-items: center; gap: 4px;">
+             <span class="material-symbols-rounded" style="font-size: 1rem;">check_circle</span> Motor IA activado
+             </span>
+          </div>
       </div>
-    </div>
 
     <!-- Selector de voz local Wasm/Piper -->
     <div class="audio-config" *ngIf="currentAudioMode === 'wasm'">
@@ -1104,4 +1106,7 @@
     </div>
   </div>
 
+
+
 </div>
+

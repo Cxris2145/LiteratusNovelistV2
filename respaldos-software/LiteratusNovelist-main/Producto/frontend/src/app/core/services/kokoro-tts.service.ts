@@ -18,7 +18,7 @@ export class KokoroTtsService {
   isDownloadingModel$ = new BehaviorSubject<boolean>(false); // Indica si está descargando modelo ONNX
   downloadProgress$ = new BehaviorSubject<number>(0); // 0 a 100
   
-  engineMode$ = new BehaviorSubject<'remote' | 'local'>('local');
+  engineMode$ = new BehaviorSubject<'remote' | 'local'>('remote');
   isMuted$ = new BehaviorSubject<boolean>(false); // Global Mute
 
   currentSentenceIdx$ = new BehaviorSubject<number>(-1);
@@ -33,6 +33,9 @@ export class KokoroTtsService {
   ];
 
   localVoices = [
+    { id: 'ef_dora', name: 'Dora (Femenina España)' },
+    { id: 'em_alex', name: 'Alex (Masculino España)' },
+    { id: 'em_santa', name: 'Santa (Masculino España)' },
     { id: 'af_bella', name: 'Bella (Femenina USA)' },
     { id: 'af_nicole', name: 'Nicole (Femenina USA)' },
     { id: 'am_adam', name: 'Adam (Masculino USA)' },
@@ -69,13 +72,14 @@ export class KokoroTtsService {
   // Instancia Local de KokoroTTS (cargada dinámicamente)
   private ttsInstance: any = null;
   private audioCache = inject(AudioCacheService);
+  private downloadPromise: Promise<void> | null = null;
   
   constructor() {
     localStorage.setItem('kokoro-engine-mode', 'local');
     const savedMode = 'local';
     if (savedMode === 'local') {
       // Si el usuario tenía "local" guardado, iniciamos la descarga en background sin bloquear
-      this.engineMode$.next('local');
+      this.engineMode$.next('remote');
       this.downloadLocalEngine().catch(err => console.error("Fallo auto-load local:", err));
     }
 
@@ -99,48 +103,47 @@ export class KokoroTtsService {
   /**
    * Permite cambiar manualmente al modo local y descargarlo
    */
-  async downloadLocalEngine(): Promise<void> {
+    async downloadLocalEngine(): Promise<void> {
     if (this.ttsInstance) {
-      this.engineMode$.next('local');
+      this.engineMode$.next('remote');
       localStorage.setItem('kokoro-engine-mode', 'local');
       return;
     }
 
-    this.isDownloadingModel$.next(true);
-    this.downloadProgress$.next(0);
-    this.error$.next(null);
+    if (this.downloadPromise) return this.downloadPromise;
 
-    try {
-      // Import dinámico para no bloat el app si usan 'remote'
-      const { KokoroTTS } = await import('kokoro-js');
-      
-      // Detectar si el navegador soporta WebGPU para aceleración gráfica
-      const deviceType = (navigator as any).gpu ? 'webgpu' : 'wasm';
-      
-      this.ttsInstance = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
-        dtype: 'q8',
-        device: deviceType,
-        progress_callback: (info: any) => {
-          if (info.status === 'progress' && info.total) {
-             const percent = Math.round((info.loaded / info.total) * 100);
-             this.downloadProgress$.next(percent);
-          } else if (info.status === 'done') {
-             this.downloadProgress$.next(100);
+    this.downloadPromise = (async () => {
+      this.isDownloadingModel$.next(true);
+      this.downloadProgress$.next(0);
+      this.error$.next(null);
+
+      try {
+        const { KokoroTTS } = await import('kokoro-js');
+        const deviceType = 'wasm'; 
+        
+        this.ttsInstance = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
+          dtype: 'q8',
+          device: deviceType,
+          progress_callback: (info: any) => {
+            if (info.status === 'progress' && info.total) {
+               const percent = Math.round((info.loaded / info.total) * 100);
+               this.downloadProgress$.next(percent);
+            } else if (info.status === 'done') {
+               this.downloadProgress$.next(100);
+            }
           }
-        }
-      });
-      
-      this.engineMode$.next('local');
-      localStorage.setItem('kokoro-engine-mode', 'local');
-      this.selectedVoiceId = 'af_bella'; // Auto-switch a una voz local válida
-      
-    } catch (err) {
-      console.error("[KokoroTTS] Error descargando modelo local:", err);
-      this.error$.next("Error al instalar motor local. Volviendo a modo remoto.");
-      this.setRemoteEngine();
-    } finally {
-      this.isDownloadingModel$.next(false);
-    }
+        });
+        
+        this.engineMode$.next('remote');
+        localStorage.setItem('kokoro-engine-mode', 'local');
+      } catch (err) {
+        console.error("Error inicializando Kokoro Local:", err);
+      } finally {
+        this.isDownloadingModel$.next(false);
+        this.downloadPromise = null;
+      }
+    })();
+    return this.downloadPromise;
   }
 
   setRemoteEngine() {
@@ -151,6 +154,13 @@ export class KokoroTtsService {
 
   async speak(fullText: string, avatarId: string | number | null, startWordIdx: number = 0, voiceId?: string): Promise<void> {
     if (this.isMuted$.value) return;
+
+    if (!this.audioCtx || this.audioCtx.state === 'closed') {
+      this.audioCtx = new AudioContext();
+    }
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {});
+    }
 
     this.currentSpeakId++;
     const mySpeakId = this.currentSpeakId;
@@ -382,10 +392,13 @@ export class KokoroTtsService {
   ): Promise<{ buffer: AudioBuffer; sentence: KokoroSentence } | null> {
     if (!sentence.text.trim() || this.isStopped) return null;
 
-    const useLocal = this.engineMode$.value === 'local' && this.ttsInstance;
-    const hfApiUrl = 'https://josuejheymi-kokoro-api.hf.space/v1/audio/speech';
+    if (this.engineMode$.value === 'local' && !this.ttsInstance) {
+        await this.downloadLocalEngine();
+      }
+      const useLocal = this.engineMode$.value === 'local' && this.ttsInstance;
+      const hfApiUrl = 'http://localhost:8880/v1/audio/speech';
 
-    for (let attempt = 1; attempt <= retries; attempt++) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
       if (this.isStopped) return null;
       
       try {
@@ -408,14 +421,22 @@ export class KokoroTtsService {
         // 2. Si no hay caché, generarlo (Local o Remoto)
         if (useLocal) {
            // MODO LOCAL ONNX
-           const rawAudio = await this.ttsInstance.generate(textToSpeak, {
+           if (!this.ttsInstance._validate_voice_patched) {
+                 this.ttsInstance._validate_voice = (v: any) => v.charAt(0);
+                 this.ttsInstance._validate_voice_patched = true;
+             }
+             const rawAudio = await this.ttsInstance.generate(textToSpeak, {
              voice: voiceId,
              speed: 1.0
            });
            if (this.isStopped) return null;
            
-           audioBuffer = this.audioCtx.createBuffer(1, rawAudio.audio.length, rawAudio.sampling_rate);
-           audioBuffer.copyToChannel(rawAudio.audio, 0);
+           const audioData = rawAudio.audio instanceof Float32Array ? rawAudio.audio : new Float32Array(rawAudio.audio || []);
+             if (!audioData || audioData.length === 0) {
+                 throw new Error("El motor IA devolvió un audio vacío (posible incompatibilidad de idioma o modelo).");
+             }
+             audioBuffer = this.audioCtx.createBuffer(1, audioData.length, rawAudio.sampling_rate || 24000);
+             audioBuffer.copyToChannel(audioData, 0);
            
            // Nota: Caché de rawAudio a ArrayBuffer es complejo (Float32Array a WAV).
            // Por ahora, en local es tan rápido que no es crítico cachear en DB, 
@@ -505,5 +526,16 @@ export class KokoroTtsService {
     return sentences;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 

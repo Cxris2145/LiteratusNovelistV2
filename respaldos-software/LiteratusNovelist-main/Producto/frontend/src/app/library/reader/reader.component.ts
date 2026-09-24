@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, ViewChild, ElementRef } from '@angular/core';
+﻿import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
@@ -3164,5 +3164,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     return base + 'calm.webp'; // Por defecto
   }
 }
+
 
 
