@@ -118,7 +118,7 @@ export class KokoroTtsService {
       const { KokoroTTS } = await import('kokoro-js');
       
       // Detectar si el navegador soporta WebGPU para aceleración gráfica
-      const deviceType = (navigator as any).gpu ? 'webgpu' : 'wasm';
+      const deviceType = 'wasm'; // Fallback seguro para q8
       
       this.ttsInstance = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
         dtype: 'q8',
@@ -154,6 +154,13 @@ export class KokoroTtsService {
 
   async speak(fullText: string, avatarId: string | number | null, startWordIdx: number = 0, voiceId?: string): Promise<void> {
     if (this.isMuted$.value) return;
+
+    if (!this.audioCtx || this.audioCtx.state === 'closed') {
+      this.audioCtx = new AudioContext();
+    }
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {});
+    }
 
     this.currentSpeakId++;
     const mySpeakId = this.currentSpeakId;
@@ -508,6 +515,9 @@ export class KokoroTtsService {
     return sentences;
   }
 }
+
+
+
 
 
 
