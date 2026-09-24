@@ -566,14 +566,14 @@
         <span class="ink-cost">Gratis</span>
       </div>
 
-      <!-- VOZ PREMIUM AI (KOKORO) -->
-      <div class="voice-option" [class.active]="currentAudioMode === 'kokoro'" (click)="setAudioMode('kokoro')">
-        <div class="voice-info">
-          <span>Voz Kokoro 80M</span>
-          <small>Voz Neuronal API</small>
+      <!-- VOZ PREMIUM AI (KOKORO) - DESHABILITADO -->
+        <div class="voice-option disabled-option" style="opacity: 0.5; pointer-events: none; filter: grayscale(100%);">
+          <div class="voice-info">
+            <span>Voz Kokoro 80M</span>
+            <small>Voz Neuronal (Mantenimiento)</small>
+          </div>
+          <span class="ink-cost unlocked-badge" style="background: #6b7280; color: white; border: none;">BETA</span>
         </div>
-        <span class="ink-cost unlocked-badge">Nuevo</span>
-      </div>
 
       <!-- VOZ WASM (PIPER) -->
       <div class="voice-option" [class.active]="currentAudioMode === 'wasm'" (click)="setAudioMode('wasm')">
@@ -1109,3 +1109,4 @@
 
 
 </div>
+
