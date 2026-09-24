@@ -129,8 +129,9 @@ def _clean_html(soup, book_slug):
     return html
 
 
-def _extract_images(epub_path, dest_folder):
-    img_dir = Path(dest_folder) / "images"
+def _extract_images(epub_path, book_slug):
+    from django.conf import settings
+    img_dir = Path(settings.MEDIA_ROOT) / "books" / book_slug / "images"
     img_dir.mkdir(parents=True, exist_ok=True)
     try:
         with zipfile.ZipFile(epub_path) as z:
@@ -290,7 +291,7 @@ class Command(BaseCommand):
                     skipped += 1
                     continue
 
-                _extract_images(epub_path, folder)
+                _extract_images(epub_path, slug)
                 title, author = _metadata_from_opf(epub_path)
 
                 chapters = []
