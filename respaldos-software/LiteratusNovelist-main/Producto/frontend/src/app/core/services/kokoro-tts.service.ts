@@ -73,7 +73,6 @@ export class KokoroTtsService {
   private ttsInstance: any = null;
   private audioCache = inject(AudioCacheService);
   private downloadPromise: Promise<void> | null = null;
-  private downloadPromise: Promise<void> | null = null;
   
   constructor() {
     localStorage.setItem('kokoro-engine-mode', 'local');
@@ -519,6 +518,7 @@ export class KokoroTtsService {
     return sentences;
   }
 }
+
 
 
 
