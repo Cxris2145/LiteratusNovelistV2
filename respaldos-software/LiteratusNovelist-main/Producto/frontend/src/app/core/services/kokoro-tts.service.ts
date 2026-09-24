@@ -396,7 +396,7 @@ export class KokoroTtsService {
         await this.downloadLocalEngine();
       }
       const useLocal = this.engineMode$.value === 'local' && this.ttsInstance;
-      const hfApiUrl = 'https://josuejheymi-kokoro-api.hf.space/v1/audio/speech';
+      const hfApiUrl = 'http://localhost:8880/v1/audio/speech';
 
       for (let attempt = 1; attempt <= retries; attempt++) {
       if (this.isStopped) return null;
