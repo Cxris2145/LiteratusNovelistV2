@@ -421,14 +421,22 @@ export class KokoroTtsService {
         // 2. Si no hay caché, generarlo (Local o Remoto)
         if (useLocal) {
            // MODO LOCAL ONNX
-           const rawAudio = await this.ttsInstance.generate(textToSpeak, {
+           if (!this.ttsInstance._validate_voice_patched) {
+                 this.ttsInstance._validate_voice = (v: any) => v.charAt(0);
+                 this.ttsInstance._validate_voice_patched = true;
+             }
+             const rawAudio = await this.ttsInstance.generate(textToSpeak, {
              voice: voiceId,
              speed: 1.0
            });
            if (this.isStopped) return null;
            
-           audioBuffer = this.audioCtx.createBuffer(1, rawAudio.audio.length, rawAudio.sampling_rate);
-           audioBuffer.copyToChannel(rawAudio.audio, 0);
+           const audioData = rawAudio.audio instanceof Float32Array ? rawAudio.audio : new Float32Array(rawAudio.audio || []);
+             if (!audioData || audioData.length === 0) {
+                 throw new Error("El motor IA devolvió un audio vacío (posible incompatibilidad de idioma o modelo).");
+             }
+             audioBuffer = this.audioCtx.createBuffer(1, audioData.length, rawAudio.sampling_rate || 24000);
+             audioBuffer.copyToChannel(audioData, 0);
            
            // Nota: Caché de rawAudio a ArrayBuffer es complejo (Float32Array a WAV).
            // Por ahora, en local es tan rápido que no es crítico cachear en DB, 
@@ -518,6 +526,7 @@ export class KokoroTtsService {
     return sentences;
   }
 }
+
 
 
 
