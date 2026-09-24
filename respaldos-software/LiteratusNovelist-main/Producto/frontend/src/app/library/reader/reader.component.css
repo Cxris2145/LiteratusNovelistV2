@@ -1,4 +1,4 @@
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SISTEMA DE TOKENS DE COLOR â€” CSS Variables por tema
    ConvenciÃ³n de nombres:
      --th-bg-*       : fondos (bg = background)
@@ -2283,7 +2283,8 @@ h2.chapter-heading { font-size: 1.28em; }
 /* AUDIO CONTROL PANEL (DAW Style) */
 .audio-controls-panel {
   position: fixed;
-  bottom: 80px;
+  top: 70px;
+  bottom: auto;
   right: 20px;
   background: linear-gradient(180deg, #2a2c33 0%, #1e2024 100%);
   backdrop-filter: blur(16px);
@@ -3642,6 +3643,8 @@ h2.chapter-heading { font-size: 1.28em; }
     width: calc(100vw - 24px) !important;
     left: 12px !important;
     right: 12px !important;
+    top: 60px !important;
+    bottom: auto !important;
     max-height: 70vh;
     overflow-y: auto;
   }
@@ -3703,7 +3706,7 @@ h2.chapter-heading { font-size: 1.28em; }
 .floating-audio-control {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   z-index: 900;
   display: flex;
   align-items: center;
@@ -5322,5 +5325,11 @@ h2.chapter-heading { font-size: 1.28em; }
     right: 4px;
   }
 }
+
+
+
+
+
+
 
 
