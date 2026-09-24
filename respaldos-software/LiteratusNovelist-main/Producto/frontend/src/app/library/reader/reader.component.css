@@ -1132,7 +1132,7 @@
 }
 
 .partial-transcript {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #a855f7;
   text-align: center;
   margin: 0;
@@ -1536,7 +1536,7 @@
 }
 
 .lock-big { font-size: 2.5rem; }
-.lock-progress { opacity: 0.6; font-size: 0.85rem; }
+.lock-progress { opacity: 0.6; font-size: 0.75rem; }
 
 .chat-actions {
   display: flex;
@@ -2268,7 +2268,7 @@ h2.chapter-heading { font-size: 1.28em; }
   color: #fca5a5;
   padding: 0.75rem;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   border-top: 1px solid rgba(239, 68, 68, 0.3);
 }
 
@@ -2310,7 +2310,7 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 
 .audio-controls-panel .section-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: #8b92a5;
@@ -2334,7 +2334,7 @@ h2.chapter-heading { font-size: 1.28em; }
   border-radius: 4px;
   padding: 0.4rem 0.5rem;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   transition: all 0.2s;
   display: flex;
   justify-content: space-between;
@@ -2352,7 +2352,7 @@ h2.chapter-heading { font-size: 1.28em; }
 
 .voice-info span {
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 
 .voice-info small {
@@ -2473,7 +2473,7 @@ h2.chapter-heading { font-size: 1.28em; }
   border: 1px solid rgba(239, 68, 68, 0.2);
   padding: 0.75rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   margin-top: 1rem;
   text-align: center;
 }
@@ -2655,7 +2655,7 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 
 .unlock-notice {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #a0a0a0;
   margin-bottom: 12px;
 }
@@ -2758,7 +2758,7 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 
 .config-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -3058,7 +3058,7 @@ h2.chapter-heading { font-size: 1.28em; }
 
 .dict-example {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   opacity: 0.7;
   margin-top: 4px;
   color: #a78bfa;
@@ -3609,7 +3609,7 @@ h2.chapter-heading { font-size: 1.28em; }
   }
 
   .toolbar-left { gap: 8px; min-width: 0; }
-  .chapter-label { font-size: 0.85rem; max-width: 46vw; }
+  .chapter-label { font-size: 0.75rem; max-width: 46vw; }
   .progress-label { font-size: 0.68rem; }
   .reader-settings { gap: 4px; }
 
@@ -4199,7 +4199,7 @@ h2.chapter-heading { font-size: 1.28em; }
   min-width: 52px;
   text-align: center;
   font-family: var(--font-ui, sans-serif);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 .stepper-reset .material-symbols-rounded { font-size: 1rem; opacity: 0.7; }
@@ -4404,7 +4404,7 @@ h2.chapter-heading { font-size: 1.28em; }
   color: inherit;
   text-decoration: none;
   font-family: var(--font-ui, sans-serif);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
 }
 .sheet-ink .material-symbols-rounded { font-size: 1.1rem; color: var(--reader-accent, #d4af37); }
 .sheet-ink-count { flex: 1; font-weight: 600; }
@@ -4676,16 +4676,16 @@ h2.chapter-heading { font-size: 1.28em; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 18px;
+  padding: 6px 14px;
   border-radius: 999px;
   font-family: var(--font-ui, sans-serif);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
   box-shadow: var(--reader-shadow-panel, 0 10px 30px rgba(0, 0, 0, 0.3));
   animation: sheetIn 0.22s var(--reader-ease);
 }
-.back-to-reading-btn .material-symbols-rounded { font-size: 1.1rem; }
+.back-to-reading-btn .material-symbols-rounded { font-size: 0.9rem; }
 
 /* ── Insignia del temporizador de sesión ── */
 .session-timer-badge {
@@ -5325,6 +5325,8 @@ h2.chapter-heading { font-size: 1.28em; }
     right: 4px;
   }
 }
+
+
 
 
 
