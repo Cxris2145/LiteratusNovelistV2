@@ -33,6 +33,9 @@ export class KokoroTtsService {
   ];
 
   localVoices = [
+    { id: 'ef_dora', name: 'Dora (Femenina España)' },
+    { id: 'em_alex', name: 'Alex (Masculino España)' },
+    { id: 'em_santa', name: 'Santa (Masculino España)' },
     { id: 'af_bella', name: 'Bella (Femenina USA)' },
     { id: 'af_nicole', name: 'Nicole (Femenina USA)' },
     { id: 'am_adam', name: 'Adam (Masculino USA)' },
@@ -505,5 +508,6 @@ export class KokoroTtsService {
     return sentences;
   }
 }
+
 
 
