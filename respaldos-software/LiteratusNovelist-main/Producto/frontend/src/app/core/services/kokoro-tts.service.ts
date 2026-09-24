@@ -72,6 +72,8 @@ export class KokoroTtsService {
   // Instancia Local de KokoroTTS (cargada dinámicamente)
   private ttsInstance: any = null;
   private audioCache = inject(AudioCacheService);
+  private downloadPromise: Promise<void> | null = null;
+  private downloadPromise: Promise<void> | null = null;
   
   constructor() {
     localStorage.setItem('kokoro-engine-mode', 'local');
@@ -102,48 +104,47 @@ export class KokoroTtsService {
   /**
    * Permite cambiar manualmente al modo local y descargarlo
    */
-  async downloadLocalEngine(): Promise<void> {
+    async downloadLocalEngine(): Promise<void> {
     if (this.ttsInstance) {
       this.engineMode$.next('local');
       localStorage.setItem('kokoro-engine-mode', 'local');
       return;
     }
 
-    this.isDownloadingModel$.next(true);
-    this.downloadProgress$.next(0);
-    this.error$.next(null);
+    if (this.downloadPromise) return this.downloadPromise;
 
-    try {
-      // Import dinámico para no bloat el app si usan 'remote'
-      const { KokoroTTS } = await import('kokoro-js');
-      
-      // Detectar si el navegador soporta WebGPU para aceleración gráfica
-      const deviceType = 'wasm'; // Fallback seguro para q8
-      
-      this.ttsInstance = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
-        dtype: 'q8',
-        device: deviceType,
-        progress_callback: (info: any) => {
-          if (info.status === 'progress' && info.total) {
-             const percent = Math.round((info.loaded / info.total) * 100);
-             this.downloadProgress$.next(percent);
-          } else if (info.status === 'done') {
-             this.downloadProgress$.next(100);
+    this.downloadPromise = (async () => {
+      this.isDownloadingModel$.next(true);
+      this.downloadProgress$.next(0);
+      this.error$.next(null);
+
+      try {
+        const { KokoroTTS } = await import('kokoro-js');
+        const deviceType = 'wasm'; 
+        
+        this.ttsInstance = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX', {
+          dtype: 'q8',
+          device: deviceType,
+          progress_callback: (info: any) => {
+            if (info.status === 'progress' && info.total) {
+               const percent = Math.round((info.loaded / info.total) * 100);
+               this.downloadProgress$.next(percent);
+            } else if (info.status === 'done') {
+               this.downloadProgress$.next(100);
+            }
           }
-        }
-      });
-      
-      this.engineMode$.next('local');
-      localStorage.setItem('kokoro-engine-mode', 'local');
-      this.selectedVoiceId = 'af_bella'; // Auto-switch a una voz local válida
-      
-    } catch (err) {
-      console.error("[KokoroTTS] Error descargando modelo local:", err);
-      this.error$.next("Error al instalar motor local. Volviendo a modo remoto.");
-      this.setRemoteEngine();
-    } finally {
-      this.isDownloadingModel$.next(false);
-    }
+        });
+        
+        this.engineMode$.next('local');
+        localStorage.setItem('kokoro-engine-mode', 'local');
+      } catch (err) {
+        console.error("Error inicializando Kokoro Local:", err);
+      } finally {
+        this.isDownloadingModel$.next(false);
+        this.downloadPromise = null;
+      }
+    })();
+    return this.downloadPromise;
   }
 
   setRemoteEngine() {
@@ -392,10 +393,13 @@ export class KokoroTtsService {
   ): Promise<{ buffer: AudioBuffer; sentence: KokoroSentence } | null> {
     if (!sentence.text.trim() || this.isStopped) return null;
 
-    const useLocal = this.engineMode$.value === 'local' && this.ttsInstance;
-    const hfApiUrl = 'https://josuejheymi-kokoro-api.hf.space/v1/audio/speech';
+    if (this.engineMode$.value === 'local' && !this.ttsInstance) {
+        await this.downloadLocalEngine();
+      }
+      const useLocal = this.engineMode$.value === 'local' && this.ttsInstance;
+      const hfApiUrl = 'https://josuejheymi-kokoro-api.hf.space/v1/audio/speech';
 
-    for (let attempt = 1; attempt <= retries; attempt++) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
       if (this.isStopped) return null;
       
       try {
@@ -515,6 +519,11 @@ export class KokoroTtsService {
     return sentences;
   }
 }
+
+
+
+
+
 
 
 
