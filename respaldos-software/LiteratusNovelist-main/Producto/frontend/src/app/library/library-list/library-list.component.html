@@ -59,9 +59,69 @@
     </a>
   </div>
 
+  <!-- Barra de Búsqueda y Filtros Rápidos (si hay libros) -->
+  <div class="library-controls-wrap" *ngIf="inventoryItems.length > 0">
+    
+    <!-- Input de Búsqueda Instantánea -->
+    <div class="library-search-box">
+      <span class="material-symbols-rounded search-icon">search</span>
+      <input 
+        type="text" 
+        class="library-search-input" 
+        placeholder="Buscar por título o autor en mi biblioteca..."
+        [(ngModel)]="searchTerm"
+        aria-label="Buscar en mis libros">
+      <button 
+        type="button" 
+        class="search-clear-mini-btn" 
+        *ngIf="searchTerm" 
+        (click)="clearSearch()"
+        aria-label="Limpiar búsqueda">
+        ✕
+      </button>
+    </div>
+
+    <!-- Píldoras de Filtro de Lectura -->
+    <div class="library-filter-bar">
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'all'"
+        (click)="setFilter('all')">
+        <span>Todos</span>
+        <span class="pill-count">{{ inventoryItems.length }}</span>
+      </button>
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'reading'"
+        (click)="setFilter('reading')">
+        <span>Leyendo</span>
+        <span class="pill-count" *ngIf="readingCount > 0">{{ readingCount }}</span>
+      </button>
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'completed'"
+        (click)="setFilter('completed')">
+        <span>Completados</span>
+        <span class="pill-count" *ngIf="completedCount > 0">{{ completedCount }}</span>
+      </button>
+      <button 
+        type="button" 
+        class="filter-pill" 
+        [class.active]="activeFilter === 'unread'"
+        (click)="setFilter('unread')">
+        <span>Por Empezar</span>
+        <span class="pill-count" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+    </div>
+  </div>
+
+
   <!-- Grid de Inventario -->
-  <div class="grid-container" *ngIf="inventoryItems.length > 0">
-    <div class="glass-panel book-card" *ngFor="let item of inventoryItems; trackBy: trackItem" [routerLink]="['/reader', item.id]">
+  <div class="grid-container" *ngIf="filteredItems.length > 0">
+    <div class="glass-panel book-card" *ngFor="let item of filteredItems; trackBy: trackItem" [routerLink]="['/reader', item.id]">
 
       <div class="card-image" [class.cover-pending]="!item.coverLoaded">
         <img class="cover-img"
@@ -73,7 +133,9 @@
              width="360" height="360"
              (load)="onImgLoad(item)"
              (error)="onImgError($event, item)">
-        <div class="progress-badge">{{ (item.progress?.completion_percentage || 0) | number:'1.0-0' }}% leído</div>
+        <div class="progress-badge" [class.badge-completed]="(item.progress?.completion_percentage || 0) >= 100">
+          {{ (item.progress?.completion_percentage || 0) >= 100 ? '✓ Completado' : ((item.progress?.completion_percentage || 0) | number:'1.0-0') + '% leído' }}
+        </div>
       </div>
       
       <div class="card-content">
@@ -86,7 +148,7 @@
             <span>{{ (item.progress?.completion_percentage || 0) | number:'1.0-0' }}%</span>
           </div>
           <div class="progress-bar-container">
-            <div class="progress-bar" [style.width]="(item.progress?.completion_percentage || 0) + '%'"></div>
+            <div class="progress-bar" [class.bar-completed]="(item.progress?.completion_percentage || 0) >= 100" [style.width]="(item.progress?.completion_percentage || 0) + '%'"></div>
           </div>
         </div>
         
@@ -98,7 +160,7 @@
             {{ getBookPages(item) }} págs.
           </span>
           <div class="resume-pill read-btn" role="button" aria-label="Continuar lectura">
-            <span>Continuar Lectura</span>
+            <span>{{ (item.progress?.completion_percentage || 0) >= 100 ? 'Releer Libro' : 'Continuar Lectura' }}</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
               <polygon points="5 3 19 12 5 21 5 3"/>
             </svg>
@@ -107,4 +169,26 @@
       </div>
     </div>
   </div>
+
+  <!-- Estado Vacío cuando el filtro o búsqueda no tienen resultados -->
+  <div class="filter-empty-state" *ngIf="inventoryItems.length > 0 && filteredItems.length === 0">
+    <span class="material-symbols-rounded filter-empty-icon">{{ searchTerm ? 'search_off' : 'filter_alt_off' }}</span>
+    <h3 class="filter-empty-title">{{ searchTerm ? 'No se encontraron resultados' : 'Sin libros en esta categoría' }}</h3>
+    <p class="filter-empty-desc" *ngIf="searchTerm">
+      No hay ningún libro o autor que coincida con "<strong>{{ searchTerm }}</strong>"{{ activeFilter !== 'all' ? ' en esta categoría' : '' }}.
+    </p>
+    <p class="filter-empty-desc" *ngIf="!searchTerm">
+      No tienes obras clasificadas como "{{ activeFilter === 'reading' ? 'Leyendo actualmente' : activeFilter === 'completed' ? 'Completados' : 'Por empezar' }}".
+    </p>
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+      <button type="button" class="clear-filter-btn" *ngIf="searchTerm" (click)="clearSearch()">
+        Limpiar búsqueda
+      </button>
+      <button type="button" class="clear-filter-btn" *ngIf="activeFilter !== 'all'" (click)="setFilter('all')">
+        Ver todos mis libros ({{ inventoryItems.length }})
+      </button>
+    </div>
+  </div>
+
 </div>
+

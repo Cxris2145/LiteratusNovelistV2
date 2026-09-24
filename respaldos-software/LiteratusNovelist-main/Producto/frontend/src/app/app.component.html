@@ -76,9 +76,10 @@
 
         <!-- Saldo de Tinta (Widget si está autenticado) -->
         <div *ngIf="isLoggedIn" class="ink-widget" role="button" tabindex="0" (click)="openTavern()" (keydown.enter)="openTavern()"
-             [@shake]="shakeState" title="La Taberna - Recarga Tinta">
+             [@shake]="shakeState" [title]="(dailyRewardClaimable$ | async) ? '¡Recompensa diaria lista en Logros! - Haz clic para Taberna' : 'La Taberna - Recarga Tinta'">
           <span class="ink-icon material-symbols-rounded">ink_pen</span>
           <span class="ink-balance">{{ inkBalance$ | async }}</span>
+          <span class="ink-reward-dot" *ngIf="dailyRewardClaimable$ | async" title="¡Recompensa diaria disponible!"></span>
         </div>
 
         <!-- 4. Iniciar sesión / Perfil -->
@@ -201,9 +202,12 @@
       </a>
 
       <!-- 8. Logros / Gamificación -->
-      <a routerLink="/achievements" routerLinkActive="active-bubble" class="nav-bubble-item">
+      <a routerLink="/achievements" routerLinkActive="active-bubble" class="nav-bubble-item" [title]="(dailyRewardClaimable$ | async) ? '¡Recompensa diaria disponible!' : 'Logros y Nivel'">
         <div class="bubble-circle">
           <span class="material-symbols-rounded">emoji_events</span>
+          <span class="bubble-badge-gift" *ngIf="dailyRewardClaimable$ | async" title="¡Recompensa diaria disponible!">
+            🎁
+          </span>
         </div>
         <span class="bubble-label">Logros</span>
       </a>

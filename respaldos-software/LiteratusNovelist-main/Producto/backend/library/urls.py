@@ -13,6 +13,7 @@ from .views import (
     ReadingSessionViewSet,
     InkHistoryViewSet,
     UserMissionViewSet,
+    DailyRewardViewSet,
 )
 
 router = DefaultRouter()
@@ -34,6 +35,8 @@ router.register(r'sessions', ReadingSessionViewSet, basename='reading-session')
 router.register(r'ink-history', InkHistoryViewSet, basename='ink-history')
 # /api/v1/library/missions/
 router.register(r'missions', UserMissionViewSet, basename='mission')
+# /api/v1/library/daily-reward/
+router.register(r'daily-reward', DailyRewardViewSet, basename='daily-reward')
 
 urlpatterns = [
     path('', include(router.urls)),

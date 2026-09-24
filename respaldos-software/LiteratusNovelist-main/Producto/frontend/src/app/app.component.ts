@@ -67,6 +67,9 @@ export class AppComponent implements OnInit {
   shakeState = 'default';
   inkBalance$ = this.chatService.inkBalance$;
 
+  // Recompensa Diaria indicador
+  dailyRewardClaimable$ = this.gamificationService.dailyRewardClaimable$;
+
   constructor() {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
@@ -95,6 +98,7 @@ export class AppComponent implements OnInit {
         this.chatService.loadInitialInk();
         this.loadUserProfile();
         this.gamificationService.loadInitialProfile();
+        this.gamificationService.checkDailyRewardStatus();
       }
     });
 
