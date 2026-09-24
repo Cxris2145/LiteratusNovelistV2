@@ -18,7 +18,7 @@ export class KokoroTtsService {
   isDownloadingModel$ = new BehaviorSubject<boolean>(false); // Indica si está descargando modelo ONNX
   downloadProgress$ = new BehaviorSubject<number>(0); // 0 a 100
   
-  engineMode$ = new BehaviorSubject<'remote' | 'local'>('local');
+  engineMode$ = new BehaviorSubject<'remote' | 'local'>('remote');
   isMuted$ = new BehaviorSubject<boolean>(false); // Global Mute
 
   currentSentenceIdx$ = new BehaviorSubject<number>(-1);
@@ -79,7 +79,7 @@ export class KokoroTtsService {
     const savedMode = 'local';
     if (savedMode === 'local') {
       // Si el usuario tenía "local" guardado, iniciamos la descarga en background sin bloquear
-      this.engineMode$.next('local');
+      this.engineMode$.next('remote');
       this.downloadLocalEngine().catch(err => console.error("Fallo auto-load local:", err));
     }
 
@@ -105,7 +105,7 @@ export class KokoroTtsService {
    */
     async downloadLocalEngine(): Promise<void> {
     if (this.ttsInstance) {
-      this.engineMode$.next('local');
+      this.engineMode$.next('remote');
       localStorage.setItem('kokoro-engine-mode', 'local');
       return;
     }
@@ -134,7 +134,7 @@ export class KokoroTtsService {
           }
         });
         
-        this.engineMode$.next('local');
+        this.engineMode$.next('remote');
         localStorage.setItem('kokoro-engine-mode', 'local');
       } catch (err) {
         console.error("Error inicializando Kokoro Local:", err);
