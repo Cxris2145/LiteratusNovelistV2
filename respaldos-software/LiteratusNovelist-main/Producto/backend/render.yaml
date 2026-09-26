@@ -14,7 +14,7 @@ services:
   - type: web
     name: literatus-novelist-backend      # <- si el nombre esta ocupado, cambialo (ej. -cxris)
     runtime: python
-    rootDir: Producto/backend
+    rootDir: respaldos-software/LiteratusNovelist-main/Producto/backend
     plan: free
     branch: main
     buildCommand: "pip install -r requirements.txt && python manage.py migrate"
