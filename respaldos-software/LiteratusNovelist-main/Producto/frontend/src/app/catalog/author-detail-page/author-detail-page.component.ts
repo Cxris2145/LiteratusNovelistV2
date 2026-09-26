@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
+import { coverThumb } from '../../core/utils/cover-thumb.util';
 
 @Component({
   selector: 'app-author-detail-page',
@@ -13,6 +14,10 @@ export class AuthorDetailPageComponent implements OnInit {
   isLoading = true;
   errorMsg = '';
   getBookPages = getBookPages;
+
+  thumbUrl(url: string | null | undefined): string {
+    return coverThumb(url, 300, 450, 62);
+  }
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);

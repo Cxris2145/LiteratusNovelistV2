@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
+import { coverThumb } from '../../core/utils/cover-thumb.util';
 
 export interface Book {
   id: string;
@@ -233,8 +234,7 @@ export class BookListComponent implements OnInit {
 
   /* ── Portadas y Decoración ── */
   thumb(url: string | null | undefined): string {
-    if (!url) return 'assets/default_cover.jpg';
-    return url;
+    return coverThumb(url, 300, 450, 62);
   }
 
   private decorateBooks(list: Book[]): Book[] {

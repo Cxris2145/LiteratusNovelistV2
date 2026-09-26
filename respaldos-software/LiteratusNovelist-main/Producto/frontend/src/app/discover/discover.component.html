@@ -5,7 +5,7 @@
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <section class="discover-hero" *ngIf="heroBook">
     <div class="hero-backdrop"
-         [style.background-image]="'url(' + (heroBook.cover_image || 'assets/default_cover.jpg') + ')'">
+         [style.background-image]="'url(' + thumbUrl(heroBook.cover_image, 480, 720, 40) + ')'">
     </div>
     <div class="hero-overlay"></div>
 
@@ -18,7 +18,7 @@
       <div class="hero-grid">
         <div class="hero-cover-col">
           <div class="hero-cover-wrap">
-            <img [src]="heroBook.cover_image || 'assets/default_cover.jpg'"
+            <img [src]="thumbUrl(heroBook.cover_image, 500, 720, 72)"
                  [alt]="heroBook.title"
                  class="hero-cover"
                  (click)="goToBook(heroBook)">
@@ -127,7 +127,7 @@
            (click)="goToBook(book)"
            [style.animation-delay]="i * 0.1 + 's'">
         <div class="quote-card-backdrop"
-             [style.background-image]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'">
+             [style.background-image]="'url(' + thumbUrl(book.cover_image, 400, 500, 40) + ')'">
         </div>
         <div class="quote-card-overlay"></div>
         <div class="quote-card-content">
@@ -161,7 +161,7 @@
            (mouseenter)="hoverBook = book"
            (mouseleave)="hoverBook = null">
         <div class="row-card-img">
-          <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
+          <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy">
           <div class="row-card-hover" *ngIf="hoverBook === book">
             <button class="row-hover-btn" (click)="saveForLater(book); $event.stopPropagation()">
               <span class="material-symbols-rounded">{{ isSaved(book) ? 'bookmark' : 'bookmark_add' }}</span>
@@ -195,7 +195,7 @@
       <div class="row-card ia-card" *ngFor="let book of iaBooks"
            (click)="goToBook(book)">
         <div class="row-card-img">
-          <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
+          <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy">
           <div class="ia-badge-discover">
             <span class="ia-dot"></span>
             <span>IA</span>
@@ -223,7 +223,7 @@
       <div class="row-card quick-card" *ngFor="let book of quickBooks"
            (click)="goToBook(book)">
         <div class="row-card-img">
-          <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy">
+          <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy">
           <div class="quick-badge" *ngIf="book.estimated_reading_time">
             <span class="material-symbols-rounded">timer</span>
             {{ book.estimated_reading_time }}
@@ -252,7 +252,7 @@
     <div class="matchmaker-grid">
       <div class="match-pair" *ngFor="let pair of matchPairs">
         <div class="match-from" (click)="goToBook(pair.from)">
-          <img [src]="pair.from.cover_image || 'assets/default_cover.jpg'" [alt]="pair.from.title">
+          <img [src]="thumbUrl(pair.from.cover_image)" [alt]="pair.from.title">
           <span class="match-label">Si te gustó</span>
           <span class="match-title">{{ pair.from.title }}</span>
         </div>
@@ -262,7 +262,7 @@
         </div>
 
         <div class="match-to" (click)="goToBook(pair.to)">
-          <img [src]="pair.to.cover_image || 'assets/default_cover.jpg'" [alt]="pair.to.title">
+          <img [src]="thumbUrl(pair.to.cover_image)" [alt]="pair.to.title">
           <span class="match-label">Prueba</span>
           <span class="match-title">{{ pair.to.title }}</span>
         </div>

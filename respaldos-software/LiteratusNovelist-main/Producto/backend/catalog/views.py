@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.db.models import Count
+from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
 from library.models import UserInventory
 from .models import Book, Author, Genre, Tag, Review
@@ -17,6 +18,15 @@ from .serializers import (
     AuthorDetailSerializer, AuthorReadSerializer, GenreSerializer
 )
 from core.pagination import StandardResultsSetPagination
+
+# Los listados públicos del catálogo (libros, géneros, stats) cambian con muy
+# poca frecuencia (altas/bajas de libros desde el Dashboard), pero la base de
+# datos vive en el pooler remoto de Supabase: cada consulta agregada (Count,
+# prefetch_related) cuesta varios round-trips de red. Cacheamos la respuesta
+# ya serializada (`response.data`, aún sin renderizar) por unos minutos para
+# que la home y el catálogo dejen de esperar ~2s en cada carga/recarga.
+CATALOG_CACHE_TTL = 300  # segundos
+
 
 class GenreViewSet(viewsets.ModelViewSet):
     """
@@ -29,6 +39,15 @@ class GenreViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
+
+    def list(self, request, *args, **kwargs):
+        cache_key = f"catalog:genres:{request.get_full_path()}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, CATALOG_CACHE_TTL)
+        return response
 
 
 class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
@@ -108,7 +127,13 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         Garantiza que en cada refresco de página siempre se devuelvan los mismos
         libros iniciales con máximo rendimiento de caché.
         """
-        return super().list(request, *args, **kwargs)
+        cache_key = f"catalog:books:{request.get_full_path()}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, CATALOG_CACHE_TTL)
+        return response
 
     @action(detail=False, methods=['GET'])
     def recommendations(self, request):
@@ -375,6 +400,11 @@ class CatalogStatsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        cache_key = "catalog:stats"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
         total_books = Book.objects.count()
         books_with_chapters = (
             Book.objects.annotate(_n=Count('chapters')).filter(_n__gt=0).count()
@@ -390,7 +420,7 @@ class CatalogStatsView(APIView):
             total_characters = 0
             total_dialogues = 0
 
-        return Response({
+        data = {
             'total_books': total_books,
             'books_with_chapters': books_with_chapters,
             'books_without_chapters': total_books - books_with_chapters,
@@ -398,4 +428,6 @@ class CatalogStatsView(APIView):
             'total_genres': total_genres,
             'total_characters': total_characters,
             'total_dialogues': total_dialogues,
-        })
+        }
+        cache.set(cache_key, data, CATALOG_CACHE_TTL)
+        return Response(data)

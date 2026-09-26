@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@an
 import { Router } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
 import { AuthService } from '../core/services/auth.service';
+import { coverThumb } from '../core/utils/cover-thumb.util';
 
 /* ────────────────────────────────────────────────────────────────────
    Mood definitions: each maps to a filter function used to segment
@@ -31,6 +32,10 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   allBooks: any[] = [];
   isLoading = true;
+
+  thumbUrl(url: string | null | undefined, width = 360, height = 540, quality = 62): string {
+    return coverThumb(url, width, height, quality);
+  }
 
   /* ── Hero ── */
   heroBook: any = null;

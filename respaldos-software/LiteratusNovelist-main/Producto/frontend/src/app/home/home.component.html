@@ -197,7 +197,7 @@
               (click)="selectHeroBook(i)"
               [attr.aria-label]="'Ver ' + hb.title"
             >
-              <img [src]="hb.cover_image || 'assets/default_cover.jpg'" [alt]="hb.title" class="thumb-img" loading="lazy">
+              <img [src]="thumbUrl(hb.cover_image, 200, 300, 58)" [alt]="hb.title" class="thumb-img" loading="lazy">
               <span class="thumb-glow" *ngIf="heroBookIndex === i"></span>
             </button>
           </div>
@@ -258,7 +258,7 @@
               <div class="book-cover-front">
                 <img
                   *ngIf="heroBook.cover_image && !heroCoverFailed"
-                  [src]="heroBook.cover_image"
+                  [src]="thumbUrl(heroBook.cover_image, 500, 720, 72)"
                   [alt]="heroBook.title"
                   class="cover-front-image"
                   fetchpriority="high"
@@ -479,7 +479,7 @@
           >
             <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
               <div class="shelf-book-cover">
-                <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy" class="book-img">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
                 <div class="shelf-cover-sheen"></div>
                 <span class="shelf-ribbon" *ngIf="book.is_featured">Clásico</span>
                 <div class="shelf-hover-actions">
@@ -538,7 +538,7 @@
           >
             <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
               <div class="shelf-book-cover cover--ai-active">
-                <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy" class="book-img">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
                 <div class="ai-live-halo"></div>
                 <div class="ai-character-badge">
                   <span class="pulse-point"></span>
@@ -599,7 +599,7 @@
           >
             <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
               <div class="shelf-book-cover">
-                <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy" class="book-img">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
                 <div class="shelf-cover-sheen"></div>
                 <div class="shelf-hover-actions">
                   <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
@@ -654,7 +654,7 @@
           >
             <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
               <div class="shelf-book-cover">
-                <img [src]="book.cover_image || 'assets/default_cover.jpg'" [alt]="book.title" loading="lazy" class="book-img">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
                 <div class="shelf-cover-sheen"></div>
                 <div class="shelf-hover-actions">
                   <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
@@ -720,7 +720,7 @@
       >
         <div class="card-cover-container" (click)="openQuickView(book, $event)">
           <img
-            [src]="book.cover_image || 'assets/default_cover.jpg'"
+            [src]="thumbUrl(book.cover_image)"
             [alt]="book.title"
             class="card-cover-img"
             loading="lazy"
@@ -826,7 +826,7 @@
           <div class="page-inner-content">
             <div class="tome-cover-wrap">
               <img
-                [src]="selectedQuickViewBook.cover_image || 'assets/default_cover.jpg'"
+                [src]="thumbUrl(selectedQuickViewBook.cover_image, 500, 720, 75)"
                 [alt]="selectedQuickViewBook.title"
                 class="tome-cover-img"
               />

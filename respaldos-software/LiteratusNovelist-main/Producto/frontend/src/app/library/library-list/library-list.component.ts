@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
+import { coverThumb } from '../../core/utils/cover-thumb.util';
 
 @Component({
   selector: 'app-library-list',
@@ -100,8 +101,7 @@ export class LibraryListComponent implements OnInit {
   }
 
   private thumb(url: string): string {
-    if (!url) return 'assets/default_cover.jpg';
-    return url;
+    return coverThumb(url, 240, 360, 60);
   }
 
   onImgLoad(item: any): void { item.coverLoaded = true; }

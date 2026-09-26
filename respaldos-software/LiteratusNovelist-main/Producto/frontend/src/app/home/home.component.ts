@@ -12,6 +12,7 @@ import { AchievementsService } from '../core/services/achievements.service';
 import { ChatService } from '../core/services/chat.service';
 import { FavoritesService } from '../core/services/favorites.service';
 import { getBookPages } from '../core/utils/book-pages.util';
+import { coverThumb } from '../core/utils/cover-thumb.util';
 
 export interface Book {
   id: string;
@@ -509,13 +510,8 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  private thumbUrl(url: string | null | undefined): string {
-    if (!url) return 'assets/default_cover.jpg';
-    if (url.includes('/storage/v1/object/public/')) {
-      return url.replace('/object/public/', '/render/image/public/')
-        + (url.includes('?') ? '&' : '?') + 'width=360&height=360&quality=62&resize=cover';
-    }
-    return url;
+  thumbUrl(url: string | null | undefined, width = 360, height = 540, quality = 62): string {
+    return coverThumb(url, width, height, quality);
   }
 
   goToReader(inventoryId: string): void {

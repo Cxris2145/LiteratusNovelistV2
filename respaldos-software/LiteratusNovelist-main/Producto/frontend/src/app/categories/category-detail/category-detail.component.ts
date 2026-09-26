@@ -4,6 +4,7 @@ import { ApiService } from '../../core/services/api.service';
 import { HttpParams } from '@angular/common/http';
 import { Category } from '../categories.component';
 import { getBookPages } from '../../core/utils/book-pages.util';
+import { coverThumb } from '../../core/utils/cover-thumb.util';
 
 interface Book {
   id: string;
@@ -28,6 +29,10 @@ export class CategoryDetailComponent implements OnInit {
   private router = inject(Router);
   private api = inject(ApiService);
   getBookPages = getBookPages;
+
+  thumbUrl(url: string | null | undefined): string {
+    return coverThumb(url, 360, 540, 62);
+  }
 
   categorySlug = '';
   category: Category | null = null;

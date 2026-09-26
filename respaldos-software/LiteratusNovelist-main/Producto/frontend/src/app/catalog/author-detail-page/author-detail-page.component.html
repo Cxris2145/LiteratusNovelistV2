@@ -54,7 +54,7 @@
       <div class="books-grid">
         <div class="book-card glass-panel" *ngFor="let book of $any(author.books)" (click)="goToBook(book.slug)">
           <div class="book-cover-container">
-            <img [src]="book.cover_image || 'assets/default_cover.png'" alt="{{ book.title }}" class="book-cover">
+            <img [src]="thumbUrl(book.cover_image)" alt="{{ book.title }}" class="book-cover" loading="lazy">
             <div class="book-overlay">
               <span>Leer Obra</span>
             </div>

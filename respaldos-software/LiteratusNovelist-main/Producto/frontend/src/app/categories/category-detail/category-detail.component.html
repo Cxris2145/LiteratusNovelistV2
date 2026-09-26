@@ -52,7 +52,7 @@
       <div class="glass-panel book-card" *ngFor="let book of books" (click)="goToBook(book.slug)">
         
         <div class="card-image" 
-             [style.backgroundImage]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'">
+             [style.backgroundImage]="'url(' + thumbUrl(book.cover_image) + ')'">
           <div class="featured-badge" *ngIf="book.is_featured">★ Destacado</div>
         </div>
         
