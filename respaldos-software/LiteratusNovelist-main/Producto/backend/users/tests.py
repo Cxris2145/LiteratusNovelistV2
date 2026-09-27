@@ -65,3 +65,53 @@ class UsersAPITests(APITestCase):
         """
         response = self.client.get('/api/v1/users/me/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_register_weak_password_rejected(self):
+        """
+        Verifica que contraseñas débiles sean rechazadas en el registro.
+        """
+        response = self.client.post('/api/v1/users/register/', {
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password': '123'
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('password', response.data)
+
+    def test_update_me_password_hashing(self):
+        """
+        Verifica que actualizar la contraseña en /users/me/ la almacene hasheada y no en texto plano.
+        """
+        login_resp = self.client.post('/api/v1/users/login/', {
+            'username': self.user_data['username'],
+            'password': self.user_data['password']
+        }, format='json')
+        token = login_resp.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
+
+        new_password = 'NewStrongPassword2026!'
+        response = self.client.patch('/api/v1/users/me/', {'password': new_password}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(new_password))
+        self.assertNotEqual(self.user.password, new_password)
+
+    def test_update_me_role_escalation_blocked(self):
+        """
+        Verifica que un usuario no pueda auto-escalar su rol a administrador en /users/me/.
+        """
+        login_resp = self.client.post('/api/v1/users/login/', {
+            'username': self.user_data['username'],
+            'password': self.user_data['password']
+        }, format='json')
+        token = login_resp.data['access']
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
+
+        response = self.client.patch('/api/v1/users/me/', {'role': 'admin', 'first_name': 'Hacker'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.role, 'admin')
+        self.assertEqual(self.user.first_name, 'Hacker')
+

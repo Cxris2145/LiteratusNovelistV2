@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import User, Profile
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -106,22 +108,47 @@ class UserReadSerializer(serializers.ModelSerializer):
 
 class UserWriteSerializer(serializers.ModelSerializer):
     """
-    Serializador de ESCRITURA (Creación/Registro).
-    Garantiza que la contraseña nunca se exponga (write_only) y crea el 
-    perfil paralelo atado en la misma transacción (Señal en DB / Create Override).
+    Serializador de ESCRITURA (Creación/Registro y Edición segura de usuario).
+    - Valida complejidad de contraseñas contra AUTH_PASSWORD_VALIDATORS.
+    - Asegura hashing automático mediante set_password tanto en create() como en update().
+    - Previene escalamiento de privilegios garantizando que 'role' no sea modificable por el usuario.
     """
+    profile = ProfileSerializer(read_only=True)
+
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'role']
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'profile']
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True, 'required': False},
+            'role': {'read_only': True},
+            'id': {'read_only': True}
         }
+
+    def validate_password(self, value):
+        """
+        Valida la contraseña utilizando los validadores configurados en AUTH_PASSWORD_VALIDATORS.
+        """
+        if value:
+            try:
+                validate_password(value, user=self.instance)
+            except DjangoValidationError as e:
+                raise serializers.ValidationError(list(e.messages))
+        return value
 
     def create(self, validated_data):
         # Desactivar usuario hasta que verifique su email
         validated_data['is_active'] = False
-        user = User.objects.create_user(**validated_data) # Hash automático de pass
-        
+
+        # Blindaje anti-escalamiento de roles: el registro siempre asigna rol LECTOR
+        validated_data['role'] = User.RoleChoices.READER
+
+        # Contraseña obligatoria al registrarse
+        password = validated_data.pop('password', None)
+        if not password:
+            raise serializers.ValidationError({'password': ['La contraseña es requerida para el registro.']})
+
+        user = User.objects.create_user(password=password, **validated_data)
+
         # Enviar correo de verificación
         from .utils import send_verification_email
         try:
@@ -130,6 +157,22 @@ class UserWriteSerializer(serializers.ModelSerializer):
             # En caso de error de correo (ej. credenciales inválidas en dev),
             # dejamos log para no romper el registro pero poder debuggear.
             print(f"Error enviando correo de verificación: {e}")
-            
+
         # Perfil se crea vía señal en users/signals.py para asegurar ink_balance = 150
         return user
+
+    def update(self, instance, validated_data):
+        # Blindaje anti-escalamiento: eliminar 'role' por si se enviara en el payload
+        validated_data.pop('role', None)
+
+        # Hashing seguro de contraseña: si se incluye, se procesa con set_password()
+        password = validated_data.pop('password', None)
+        if password:
+            instance.set_password(password)
+
+        # Actualizar los campos permitidos restantes
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance

@@ -9,6 +9,17 @@ import django.db.models.deletion
 import uuid
 
 
+def drop_old_tables(apps, schema_editor):
+    if schema_editor.connection.vendor == 'postgresql':
+        schema_editor.execute("DROP TABLE IF EXISTS finance_transaction CASCADE;")
+        schema_editor.execute("DROP TABLE IF EXISTS finance_orderitem CASCADE;")
+        schema_editor.execute("DROP TABLE IF EXISTS finance_order CASCADE;")
+    else:
+        schema_editor.execute("DROP TABLE IF EXISTS finance_transaction;")
+        schema_editor.execute("DROP TABLE IF EXISTS finance_orderitem;")
+        schema_editor.execute("DROP TABLE IF EXISTS finance_order;")
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,14 +28,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # 1. Borrar TODAS las tablas viejas (si existen) en un solo SQL seguro
-        migrations.RunSQL(
-            sql="""
-                DROP TABLE IF EXISTS finance_transaction CASCADE;
-                DROP TABLE IF EXISTS finance_orderitem CASCADE;
-                DROP TABLE IF EXISTS finance_order CASCADE;
-            """,
-            reverse_sql=migrations.RunSQL.noop,
+        # 1. Borrar TODAS las tablas viejas (si existen) de forma compatible con PostgreSQL y SQLite
+        migrations.RunPython(
+            drop_old_tables,
+            reverse_code=migrations.RunPython.noop,
         ),
 
         # 2. Eliminar los modelos del estado de Django con state_operations=[]

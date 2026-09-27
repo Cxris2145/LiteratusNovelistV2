@@ -36,16 +36,21 @@ class UserMeView(generics.RetrieveUpdateAPIView):
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:
-            # Al actualizar podemos reciclar Write u obligar campos concretos.
-            # Aquí, permitiremos la edición vía UserWriteSerializer en el cuerpo de JSON
-            # NOTA: Para no sobre-escribir lógica compleja del Profile anidado ahora,
-            # lo mantenemos simple. Django permite usar el mismo Serializer.
             return UserWriteSerializer
         return UserReadSerializer
 
     def get_object(self):
         # Exigimos devolver el objeto del request
         return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)
+        instance = self.get_object()
+        serializer = UserWriteSerializer(instance, data=request.data, partial=partial, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        read_serializer = UserReadSerializer(instance, context={'request': request})
+        return Response(read_serializer.data, status=status.HTTP_200_OK)
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
@@ -208,6 +213,13 @@ class PasswordResetConfirmView(APIView):
             user = None
             
         if user is not None and default_token_generator.check_token(user, token):
+            from django.contrib.auth.password_validation import validate_password
+            from django.core.exceptions import ValidationError as DjangoValidationError
+            try:
+                validate_password(new_password, user=user)
+            except DjangoValidationError as e:
+                return Response({'error': 'Contraseña débil.', 'details': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
             user.set_password(new_password)
             user.save()
             return Response({'message': 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.'}, status=status.HTTP_200_OK)
