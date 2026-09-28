@@ -114,6 +114,10 @@
                   <span class="mat-symbol">school</span>
                   <span>La Senda del Lector</span>
                 </button>
+                <button mat-menu-item routerLink="/games/enigma">
+                  <span class="mat-symbol">draw</span>
+                  <span>El Enigma del Tintero</span>
+                </button>
                 <button mat-menu-item routerLink="/achievements">
                   <span class="mat-symbol">emoji_events</span>
                   <span>Mis Logros y Nivel</span>
@@ -201,7 +205,15 @@
         <span class="bubble-label">La Senda</span>
       </a>
 
-      <!-- 8. Logros / Gamificación -->
+      <!-- 8. El Enigma del Tintero (Minijuego Literario) -->
+      <a routerLink="/games/enigma" routerLinkActive="active-bubble" class="nav-bubble-item" title="El Enigma del Tintero">
+        <div class="bubble-circle">
+          <span class="material-symbols-rounded">draw</span>
+        </div>
+        <span class="bubble-label">El Enigma</span>
+      </a>
+
+      <!-- 9. Logros / Gamificación -->
       <a routerLink="/achievements" routerLinkActive="active-bubble" class="nav-bubble-item" [title]="(dailyRewardClaimable$ | async) ? '¡Recompensa diaria disponible!' : 'Logros y Nivel'">
         <div class="bubble-circle">
           <span class="material-symbols-rounded">emoji_events</span>

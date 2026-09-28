@@ -30,11 +30,13 @@ import { FavoritesComponent } from './library/favorites/favorites.component';
 import { MessagesComponent } from './characters/messages/messages.component';
 import { CartComponent } from './catalog/cart/cart.component';
 import { AchievementsComponent } from './library/achievements/achievements.component';
+import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'favorites', component: FavoritesComponent, canActivate: [authGuard] },
   { path: 'achievements', component: AchievementsComponent, canActivate: [authGuard] },
+  { path: 'games/enigma', component: EnigmaGameComponent },
   { path: 'messages', component: MessagesComponent },
   { path: 'cart', component: CartComponent },
   { path: 'tavern', component: TavernComponent },

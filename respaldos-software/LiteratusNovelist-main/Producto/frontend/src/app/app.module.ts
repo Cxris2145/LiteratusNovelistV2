@@ -47,6 +47,7 @@ import { MessagesComponent } from './characters/messages/messages.component';
 import { CartComponent } from './catalog/cart/cart.component';
 import { AssistantWidgetComponent } from './core/components/assistant-widget/assistant-widget.component';
 import { AchievementsComponent } from './library/achievements/achievements.component';
+import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
 
 @NgModule({
   declarations: [
@@ -78,7 +79,8 @@ import { AchievementsComponent } from './library/achievements/achievements.compo
     MessagesComponent,
     CartComponent,
     AssistantWidgetComponent,
-    AchievementsComponent
+    AchievementsComponent,
+    EnigmaGameComponent
   ],
   imports: [
     BrowserModule,
