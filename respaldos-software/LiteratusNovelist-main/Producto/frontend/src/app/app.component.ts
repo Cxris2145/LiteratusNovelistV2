@@ -11,6 +11,8 @@ import { SettingsService } from './core/services/settings.service';
 import { environment } from '../environments/environment';
 import { FavoritesService } from './core/services/favorites.service';
 import { GamificationService, GamificationNotification } from './core/services/gamification.service';
+import { MatDialog } from '@angular/material/dialog';
+import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
 
 @Component({
   selector: 'app-root',
@@ -25,6 +27,7 @@ export class AppComponent implements OnInit {
   settingsService = inject(SettingsService);
   favoritesService = inject(FavoritesService);
   gamificationService = inject(GamificationService);
+  dialog = inject(MatDialog);
   router = inject(Router);
 
   isDashboard = false;
@@ -157,9 +160,35 @@ export class AppComponent implements OnInit {
         this.location.back();
       }
     });
+
+    // Verificar si el usuario debe ver la Guía de Bienvenida por primera vez
+    this.checkFirstTimeGuide();
+  }
+
+  checkFirstTimeGuide() {
+    const isDismissed = localStorage.getItem('literatus_guide_dismissed') === 'true';
+    const isSeen = localStorage.getItem('literatus_guide_seen') === 'true';
+    if (!isDismissed && !isSeen) {
+      // Mostrar tras una breve pausa para que la vista cargue suavemente
+      setTimeout(() => {
+        if (!this.isDashboard) {
+          this.openGuideDialog();
+        }
+      }, 1200);
+    }
+  }
+
+  openGuideDialog() {
+    this.dialog.open(GuideDialogComponent, {
+      panelClass: 'guide-custom-dialog-panel',
+      autoFocus: false,
+      maxWidth: '92vw',
+      width: '580px'
+    });
   }
 
   toggleNavBubbles() {
+
     this.isNavBubblesHidden = !this.isNavBubblesHidden;
     if (this.isNavBubblesHidden) {
       document.body.classList.add('hide-nav-bubbles');

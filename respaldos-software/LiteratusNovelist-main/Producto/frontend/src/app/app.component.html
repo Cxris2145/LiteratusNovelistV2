@@ -122,7 +122,12 @@
                   <span class="mat-symbol">emoji_events</span>
                   <span>Mis Logros y Nivel</span>
                 </button>
+                <button mat-menu-item (click)="openGuideDialog()">
+                  <span class="mat-symbol">help_outline</span>
+                  <span>Guía de Literatus</span>
+                </button>
                 <ng-container *ngIf="isAdmin">
+
                   <mat-divider></mat-divider>
                   <button mat-menu-item routerLink="/dashboard/overview">
                     <span class="mat-symbol">dashboard</span>

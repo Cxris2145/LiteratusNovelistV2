@@ -666,3 +666,19 @@ body:has(.container.dashboard-mode) {
 [data-theme="light-gallery"] .tts-btn { color: var(--color-text-primary) !important; border-color: var(--color-border-strong) !important; }
 [data-theme="light-gallery"] .tts-btn:hover { background: var(--color-hover) !important; }
 
+/* ── MODAL GUÍA DE LITERATUS (GLOBAL DIALOG OVERRIDE) ─────────────────── */
+.guide-custom-dialog-panel .mat-mdc-dialog-container {
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.guide-custom-dialog-panel .mat-mdc-dialog-surface {
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  border-radius: 20px !important;
+}
+
+

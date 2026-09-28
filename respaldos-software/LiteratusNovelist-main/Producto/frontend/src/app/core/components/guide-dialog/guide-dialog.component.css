@@ -1,0 +1,330 @@
+.guide-modal-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface, #111827);
+  color: var(--text-main, #f8fafc);
+  border-radius: 20px;
+  padding: 1.75rem 2rem 1.5rem;
+  max-width: 580px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  position: relative;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+/* ── HEADER ────────────────────────────────────────────────────────────── */
+.guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.guide-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-hover, rgba(65, 122, 135, 0.18));
+  color: var(--color-primary-text, #72AEBB);
+  border: 1px solid var(--color-border-strong, rgba(65, 122, 135, 0.4));
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.guide-tag-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent, #FFB353);
+  box-shadow: 0 0 8px var(--color-accent, #FFB353);
+}
+
+.guide-step-counter {
+  opacity: 0.7;
+  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: none;
+}
+
+.guide-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.guide-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main, #ffffff);
+}
+
+/* ── HERO ──────────────────────────────────────────────────────────────── */
+.guide-hero {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.guide-icon-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--color-primary, #417A87), var(--color-800, #26484F));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.guide-main-icon {
+  font-size: 34px;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
+}
+
+.guide-icon-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 24px;
+  background: radial-gradient(circle, var(--color-primary, #417A87) 0%, transparent 70%);
+  opacity: 0.4;
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+.guide-title {
+  font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text-strong, #ffffff);
+  margin: 0 0 0.35rem 0;
+  line-height: 1.2;
+}
+
+.guide-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted, #94a3b8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── BODY ──────────────────────────────────────────────────────────────── */
+.guide-body {
+  margin-bottom: 1.5rem;
+}
+
+.guide-desc {
+  font-size: 0.92rem;
+  color: var(--text-main, #e2e8f0);
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+  background: var(--bg-color, rgba(0, 0, 0, 0.2));
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border-left: 3px solid var(--color-primary, #417A87);
+}
+
+.guide-points-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.guide-point-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--color-hover, rgba(255, 255, 255, 0.04));
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
+}
+
+.point-icon-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-surface-elevated, rgba(255, 255, 255, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.point-icon-box .material-symbols-rounded {
+  font-size: 17px;
+  color: var(--color-accent, #FFB353);
+}
+
+.point-text {
+  font-size: 0.87rem;
+  color: var(--text-main, #f1f5f9);
+  line-height: 1.35;
+}
+
+.guide-quick-action {
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.quick-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--color-border-strong, #417A87);
+  color: var(--color-primary-text, #72AEBB);
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-nav-btn:hover {
+  background: var(--color-hover, rgba(65, 122, 135, 0.15));
+  border-style: solid;
+  color: #ffffff;
+}
+
+.quick-nav-btn .material-symbols-rounded {
+  font-size: 16px;
+}
+
+/* ── FOOTER ────────────────────────────────────────────────────────────── */
+.guide-footer {
+  border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  padding-top: 1.25rem;
+}
+
+.guide-dots-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+}
+
+.guide-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.guide-dot.active {
+  width: 26px;
+  border-radius: 999px;
+  background: var(--color-primary, #417A87);
+  box-shadow: 0 0 10px rgba(65, 122, 135, 0.5);
+}
+
+.guide-dot.passed {
+  background: var(--color-accent, #FFB353);
+}
+
+.guide-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.guide-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted, #94a3b8);
+  cursor: pointer;
+  user-select: none;
+}
+
+.guide-checkbox-label input[type="checkbox"] {
+  accent-color: var(--color-primary, #417A87);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.guide-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.guide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.guide-btn-prev {
+  background: var(--color-surface-elevated, rgba(255, 255, 255, 0.08));
+  color: var(--text-main, #f1f5f9);
+}
+
+.guide-btn-prev:hover {
+  background: var(--color-hover, rgba(255, 255, 255, 0.15));
+}
+
+.guide-btn-next {
+  background: linear-gradient(135deg, var(--color-primary, #417A87), var(--color-700, #35646E));
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.guide-btn-next:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.15); opacity: 0.6; }
+}
+
+@media (max-width: 600px) {
+  .guide-modal-container {
+    padding: 1.25rem 1.25rem 1rem;
+  }
+  .guide-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .guide-nav-buttons {
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+}

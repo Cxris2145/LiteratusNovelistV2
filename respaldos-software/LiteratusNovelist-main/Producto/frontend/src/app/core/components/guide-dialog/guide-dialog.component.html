@@ -1,0 +1,94 @@
+<div class="guide-modal-container">
+
+  <!-- Header con tag de paso y botón cerrar -->
+  <header class="guide-header">
+    <div class="guide-tag">
+      <span class="guide-tag-dot"></span>
+      <span>{{ currentStep.tag }}</span>
+      <span class="guide-step-counter">({{ currentStepIndex + 1 }} de {{ steps.length }})</span>
+    </div>
+
+    <button type="button" class="guide-close-btn" (click)="close()" aria-label="Cerrar guía">
+      <span class="material-symbols-rounded">close</span>
+    </button>
+  </header>
+
+  <!-- Hero del Paso con Icono animado -->
+  <div class="guide-hero">
+    <div class="guide-icon-wrap">
+      <span class="material-symbols-rounded guide-main-icon">{{ currentStep.icon }}</span>
+      <div class="guide-icon-glow"></div>
+    </div>
+    <h2 class="guide-title">{{ currentStep.title }}</h2>
+    <p class="guide-subtitle">{{ currentStep.subtitle }}</p>
+  </div>
+
+  <!-- Contenido Explicativo -->
+  <div class="guide-body">
+    <p class="guide-desc">{{ currentStep.description }}</p>
+
+    <div class="guide-points-list">
+      <div class="guide-point-item" *ngFor="let point of currentStep.points">
+        <div class="point-icon-box">
+          <span class="material-symbols-rounded">{{ point.icon }}</span>
+        </div>
+        <span class="point-text">{{ point.text }}</span>
+      </div>
+    </div>
+
+    <!-- Botón de acción rápida hacia la sección (si aplica) -->
+    <div class="guide-quick-action" *ngIf="currentStep.route">
+      <button type="button" class="quick-nav-btn" (click)="navigateToSection(currentStep.route)">
+        <span>{{ currentStep.actionText }}</span>
+        <span class="material-symbols-rounded">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer con indicadores de paso, checkbox y botones de navegación -->
+  <footer class="guide-footer">
+    
+    <!-- Dots indicadores de progreso -->
+    <div class="guide-dots-indicator" role="tablist">
+      <button 
+        type="button" 
+        *ngFor="let s of steps; let i = index"
+        class="guide-dot" 
+        [class.active]="i === currentStepIndex"
+        [class.passed]="i < currentStepIndex"
+        (click)="goToStep(i)"
+        [attr.aria-label]="'Ir al paso ' + (i + 1)">
+      </button>
+    </div>
+
+    <!-- Opciones de cierre y avance -->
+    <div class="guide-actions-row">
+      <label class="guide-checkbox-label">
+        <input type="checkbox" [(ngModel)]="dontShowAgain">
+        <span>No mostrar automáticamente al inicio</span>
+      </label>
+
+      <div class="guide-nav-buttons">
+        <button 
+          type="button" 
+          class="guide-btn guide-btn-prev" 
+          *ngIf="currentStepIndex > 0"
+          (click)="prevStep()">
+          <span class="material-symbols-rounded">chevron_left</span>
+          <span>Anterior</span>
+        </button>
+
+        <button 
+          type="button" 
+          class="guide-btn guide-btn-next" 
+          (click)="nextStep()">
+          <span>{{ isLastStep ? '¡Empezar a Explorar!' : 'Siguiente' }}</span>
+          <span class="material-symbols-rounded" *ngIf="!isLastStep">chevron_right</span>
+          <span class="material-symbols-rounded" *ngIf="isLastStep">check</span>
+        </button>
+      </div>
+    </div>
+
+  </footer>
+
+</div>

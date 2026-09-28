@@ -48,6 +48,7 @@ import { CartComponent } from './catalog/cart/cart.component';
 import { AssistantWidgetComponent } from './core/components/assistant-widget/assistant-widget.component';
 import { AchievementsComponent } from './library/achievements/achievements.component';
 import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
+import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
 
 @NgModule({
   declarations: [
@@ -80,8 +81,11 @@ import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.com
     CartComponent,
     AssistantWidgetComponent,
     AchievementsComponent,
-    EnigmaGameComponent
+    EnigmaGameComponent,
+    GuideDialogComponent
   ],
+
+
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
