@@ -89,6 +89,16 @@
         aria-label="Escribe tu pregunta para el Asistente"></textarea>
       <button
         type="button"
+        class="lit-mic-btn"
+        [class.listening]="isListening"
+        (click)="toggleVoiceInput()"
+        [title]="isListening ? 'Escuchando... Haz clic para detener' : 'Dictar por voz'"
+        [disabled]="isSending"
+        aria-label="Dictar por voz">
+        <span class="material-symbols-rounded">{{ isListening ? 'mic' : 'mic_none' }}</span>
+      </button>
+      <button
+        type="button"
         class="lit-send-btn"
         (click)="send()"
         [disabled]="isSending || !draft.trim()"

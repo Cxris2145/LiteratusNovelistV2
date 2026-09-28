@@ -376,6 +376,57 @@
   color: var(--color-text-disabled, #A99B8C);
 }
 
+.lit-mic-btn {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--color-500, #2E604A) 14%, transparent);
+  color: var(--color-text-secondary, #C9BEB0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lit-mic-btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.lit-mic-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-500, #2E604A) 24%, transparent);
+  color: var(--color-primary-text, #E8C15A);
+}
+
+.lit-mic-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.lit-mic-btn.listening {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.4);
+  animation: lit-mic-pulse 1.2s infinite ease-in-out;
+}
+
+@keyframes lit-mic-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    transform: scale(1.08);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    transform: scale(1);
+  }
+}
+
 .lit-send-btn {
   width: 38px;
   height: 38px;

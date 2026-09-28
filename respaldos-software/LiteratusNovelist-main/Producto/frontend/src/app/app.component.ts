@@ -13,6 +13,7 @@ import { FavoritesService } from './core/services/favorites.service';
 import { GamificationService, GamificationNotification } from './core/services/gamification.service';
 import { MatDialog } from '@angular/material/dialog';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
+import { SpeechRecognitionService } from './core/services/speech-recognition.service';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +29,11 @@ export class AppComponent implements OnInit {
   favoritesService = inject(FavoritesService);
   gamificationService = inject(GamificationService);
   dialog = inject(MatDialog);
+  speechService = inject(SpeechRecognitionService);
   router = inject(Router);
+
+  isListeningSearch = false;
+
 
   isDashboard = false;
   isNavBubblesHidden = false;
@@ -244,9 +249,56 @@ export class AppComponent implements OnInit {
     }
   }
 
+  toggleVoiceSearch(): void {
+    if (this.isListeningSearch) {
+      this.speechService.stopListening();
+      this.isListeningSearch = false;
+      return;
+    }
+
+    this.isListeningSearch = true;
+    this.speechService.startListening();
+
+    // Suscribirse a la transcripción parcial/final
+    const sub = this.speechService.partialTranscript$.subscribe(text => {
+      if (text && this.isListeningSearch) {
+        this.globalSearchTerm = text;
+      }
+    });
+
+    const finalSub = this.speechService.transcript$.subscribe(finalText => {
+      if (finalText && this.isListeningSearch) {
+        this.globalSearchTerm = finalText;
+        this.isListeningSearch = false;
+        this.speechService.stopListening();
+        sub.unsubscribe();
+        finalSub.unsubscribe();
+        this.onGlobalSearch();
+      }
+    });
+
+    // Auto-timeout tras 8 segundos de silencio
+    setTimeout(() => {
+      if (this.isListeningSearch) {
+        this.isListeningSearch = false;
+        this.speechService.stopListening();
+        sub.unsubscribe();
+        finalSub.unsubscribe();
+        if (this.globalSearchTerm.trim()) {
+          this.onGlobalSearch();
+        }
+      }
+    }, 8000);
+  }
+
   clearGlobalSearch(): void {
     this.globalSearchTerm = '';
+    if (this.isListeningSearch) {
+      this.speechService.stopListening();
+      this.isListeningSearch = false;
+    }
   }
+
 
   goToFavorites(): void {
     this.router.navigate(['/favorites']);

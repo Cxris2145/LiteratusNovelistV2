@@ -3,6 +3,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { slideUpPanelAnimation } from '../../animations';
 import { AssistantService, AssistantConversation, AssistantMessage } from '../../services/assistant.service';
+import { SpeechRecognitionService } from '../../services/speech-recognition.service';
 
 @Component({
   selector: 'app-assistant-widget',
@@ -12,6 +13,7 @@ import { AssistantService, AssistantConversation, AssistantMessage } from '../..
 })
 export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChecked {
   private assistant = inject(AssistantService);
+  private speechService = inject(SpeechRecognitionService);
   private destroy$ = new Subject<void>();
 
   @ViewChild('messagesEl') private messagesEl?: ElementRef<HTMLDivElement>;
@@ -23,6 +25,7 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   activeConversationId: string | null = null;
   messages: AssistantMessage[] = [];
   isSending = false;
+  isListening = false;
   unreadCount = 0;
   draft = '';
 
@@ -64,6 +67,10 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   ngOnDestroy(): void {
+    if (this.isListening) {
+      this.speechService.stopListening();
+      this.isListening = false;
+    }
     this.destroy$.next();
     this.destroy$.complete();
     this.lottieAnim?.destroy?.();
@@ -92,11 +99,56 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   minimize(): void {
+    if (this.isListening) {
+      this.speechService.stopListening();
+      this.isListening = false;
+    }
     this.assistant.minimize();
   }
 
   close(): void {
+    if (this.isListening) {
+      this.speechService.stopListening();
+      this.isListening = false;
+    }
     this.assistant.close();
+  }
+
+  toggleVoiceInput(): void {
+    if (this.isListening) {
+      this.speechService.stopListening();
+      this.isListening = false;
+      return;
+    }
+
+    this.isListening = true;
+    this.speechService.startListening();
+
+    const partialSub = this.speechService.partialTranscript$.subscribe(text => {
+      if (text && this.isListening) {
+        this.draft = text;
+      }
+    });
+
+    const finalSub = this.speechService.transcript$.subscribe(finalText => {
+      if (finalText && this.isListening) {
+        this.draft = finalText;
+        this.isListening = false;
+        this.speechService.stopListening();
+        partialSub.unsubscribe();
+        finalSub.unsubscribe();
+      }
+    });
+
+    // Auto-timeout tras 10 segundos
+    setTimeout(() => {
+      if (this.isListening) {
+        this.isListening = false;
+        this.speechService.stopListening();
+        partialSub.unsubscribe();
+        finalSub.unsubscribe();
+      }
+    }, 10000);
   }
 
   toggleHistory(): void {

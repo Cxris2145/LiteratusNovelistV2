@@ -38,11 +38,20 @@
             aria-label="Borrar búsqueda">
             ✕
           </button>
+          <button 
+            type="button" 
+            class="search-mic-btn" 
+            [class.listening]="isListeningSearch"
+            (click)="toggleVoiceSearch()" 
+            [title]="isListeningSearch ? 'Escuchando... Haz clic para detener' : 'Buscar por voz'">
+            <span class="material-symbols-rounded">{{ isListeningSearch ? 'mic' : 'mic_none' }}</span>
+          </button>
           <button type="submit" class="search-submit-btn" aria-label="Ejecutar búsqueda">
             <span class="material-symbols-rounded">arrow_forward</span>
           </button>
         </form>
       </div>
+
 
       <!-- Derecha: Accesos rápidos -->
       <div class="header-right">
