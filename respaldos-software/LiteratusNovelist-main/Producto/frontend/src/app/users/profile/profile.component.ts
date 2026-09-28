@@ -26,11 +26,15 @@ export class ProfileComponent implements OnInit {
   
   settingsService = inject(SettingsService);
   availableThemes = [
-    { id: 'default', label: 'Amanecer (claro)' },
-    { id: 'neon', label: 'Cyber Neon' },
-    { id: 'light-gallery', label: 'Light Gallery' }
+    { id: 'default', label: 'Obsidian Teal (Original / Predeterminado)' },
+    { id: 'high-contrast-dark', label: 'Alto Contraste Nocturno (Fácil Lectura)' },
+    { id: 'high-contrast-light', label: 'Alto Contraste Diurno (Máxima Nitidez)' },
+    { id: 'sepia', label: 'Sepia Cálido (Descanso Visual)' },
+    { id: 'light-gallery', label: 'Galería Minimalista' },
+    { id: 'neon', label: 'Cyber Neon' }
   ];
   selectedTheme: string = 'default';
+
   equippedFrame: string = '';
   equippedTitle: string = '';
 

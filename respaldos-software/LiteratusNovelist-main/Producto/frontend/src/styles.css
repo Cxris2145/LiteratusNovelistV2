@@ -220,13 +220,171 @@
   --font-display:    'Cormorant Garamond', 'EB Garamond', Georgia, serif;
 }
 
+/* ── TEMA ACCESIBILIDAD: ALTO CONTRASTE OSCURO (Negro puro + Alto Contraste) ── */
+[data-theme="high-contrast-dark"] {
+
+  --color-primary-text:     #FCD34D;
+  --color-primary-hover:    #FDE68A;
+  --color-bg-primary:       #000000;
+  --color-bg-secondary:     #0A0A0A;
+  --color-surface:          #121212;
+  --color-surface-elevated: #1F1F1F;
+  --color-text-primary:     #FFFFFF;
+  --color-text-strong:      #FFFFFF;
+  --color-text-secondary:   #E2E8F0;
+  --color-text-disabled:    #CBD5E1;
+  --color-border:           #FFFFFF;
+  --color-border-strong:    #FCD34D;
+  --color-primary:          #FCD34D;
+  --color-on-primary:       #000000;
+  --color-nav-active-bg:    #FCD34D;
+  --color-nav-active-text:  #000000;
+  --color-hover:            #262626;
+  --color-selected:         #FCD34D;
+  --color-focus:            #FCD34D;
+  --color-success:          #4ADE80;
+  --color-success-bg:       #052E16;
+  --color-warning:          #FCD34D;
+  --color-warning-bg:       #451A03;
+  --color-info:             #60A5FA;
+  --color-info-bg:          #172554;
+  --color-error:            #F87171;
+  --color-error-bg:         #450A0A;
+  --color-selection-bg:     #FCD34D;
+  --color-selection-text:   #000000;
+  --color-image-overlay:    rgba(0, 0, 0, 0.92);
+  --color-shadow:           rgba(0, 0, 0, 0.9);
+  --color-skeleton:         #1F1F1F;
+  --color-skeleton-shine:   #2E2E2E;
+
+  --bg-color:        #000000;
+  --bg-surface:      #121212;
+  --text-main:       #FFFFFF;
+  --text-muted:      #E2E8F0;
+  --text-subtle:     #CBD5E1;
+  --glass-bg:        #121212;
+  --glass-border:    #FFFFFF;
+  --glow-accent:     #FCD34D;
+  --glow-purple:     #FCD34D;
+  --glow-gold:       #FCD34D;
+
+  --font-body:       'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display:    'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ── TEMA ACCESIBILIDAD: ALTO CONTRASTE CLARO (Blanco puro + Negro carbón) ── */
+[data-theme="high-contrast-light"] {
+  --color-primary-text:     #000000;
+  --color-primary-hover:    #1F2937;
+  --color-bg-primary:       #FFFFFF;
+  --color-bg-secondary:     #F3F4F6;
+  --color-surface:          #FFFFFF;
+  --color-surface-elevated: #F9FAFB;
+  --color-text-primary:     #000000;
+  --color-text-strong:      #000000;
+  --color-text-secondary:   #1F2937;
+  --color-text-disabled:    #374151;
+  --color-border:           #000000;
+  --color-border-strong:    #000000;
+  --color-primary:          #000000;
+  --color-on-primary:       #FFFFFF;
+  --color-nav-active-bg:    #000000;
+  --color-nav-active-text:  #FFFFFF;
+  --color-hover:            #E5E7EB;
+  --color-selected:         #D1D5DB;
+  --color-focus:            #000000;
+  --color-success:          #15803D;
+  --color-success-bg:       #DCFCE7;
+  --color-warning:          #B45309;
+  --color-warning-bg:       #FEF3C7;
+  --color-info:             #1D4ED8;
+  --color-info-bg:          #DBEAFE;
+  --color-error:            #B91C1C;
+  --color-error-bg:         #FEE2E2;
+  --color-selection-bg:     #000000;
+  --color-selection-text:   #FFFFFF;
+  --color-image-overlay:    rgba(0, 0, 0, 0.4);
+  --color-shadow:           rgba(0, 0, 0, 0.2);
+  --color-skeleton:         #E5E7EB;
+  --color-skeleton-shine:   #F3F4F6;
+
+  --bg-color:        #FFFFFF;
+  --bg-surface:      #FFFFFF;
+  --text-main:       #000000;
+  --text-muted:      #1F2937;
+  --text-subtle:     #374151;
+  --glass-bg:        #FFFFFF;
+  --glass-border:    #000000;
+  --glow-accent:     #000000;
+  --glow-purple:     #000000;
+  --glow-gold:       #000000;
+
+  --font-body:       'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display:    'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* ── TEMA ACCESIBILIDAD: SEPIA CÁLIDO (Descanso visual y confort) ── */
+[data-theme="sepia"] {
+  --color-primary-text:     #78350F;
+  --color-primary-hover:    #92400E;
+  --color-bg-primary:       #FBF0D9;
+  --color-bg-secondary:     #F4E4C1;
+  --color-surface:          #FDF6E2;
+  --color-surface-elevated: #FFF9E6;
+  --color-text-primary:     #3B2713;
+  --color-text-strong:      #26190C;
+  --color-text-secondary:   #684C2E;
+  --color-text-disabled:    #8C6943;
+  --color-border:           #D7BA89;
+  --color-border-strong:    #9A6735;
+  --color-primary:          #92400E;
+  --color-on-primary:       #FFFDF7;
+  --color-nav-active-bg:    #92400E;
+  --color-nav-active-text:  #FFFDF7;
+  --color-hover:            #EED9AD;
+  --color-selected:         #E4C994;
+  --color-focus:            #92400E;
+  --color-success:          #2B6E3F;
+  --color-success-bg:       #E2EFE5;
+  --color-warning:          #854D0E;
+  --color-warning-bg:       #FEF3C7;
+  --color-info:             #2563EB;
+  --color-info-bg:          #DBEAFE;
+  --color-error:            #991B1B;
+  --color-error-bg:         #FEE2E2;
+  --color-selection-bg:     #E4C994;
+  --color-selection-text:   #26190C;
+  --color-image-overlay:    rgba(59, 39, 19, 0.4);
+  --color-shadow:           rgba(59, 39, 19, 0.15);
+  --color-skeleton:         #EBD4A7;
+  --color-skeleton-shine:   #F7E5C3;
+
+  --bg-color:        #FBF0D9;
+  --bg-surface:      #FDF6E2;
+  --text-main:       #3B2713;
+  --text-muted:      #684C2E;
+  --text-subtle:     #8C6943;
+  --glass-bg:        #FDF6E2;
+  --glass-border:    #D7BA89;
+  --glow-accent:     #92400E;
+  --glow-purple:     #92400E;
+  --glow-gold:       #92400E;
+
+  --font-body:       'EB Garamond', Georgia, serif;
+  --font-display:    'Cormorant Garamond', Georgia, serif;
+}
+
 /* Alias de compatibilidad. Mantienen la API visual existente mientras todos los
    temas obtienen superficies y contrastes consistentes. */
 :root,
 [data-theme="neon"],
-[data-theme="light-gallery"] {
+[data-theme="light-gallery"],
+[data-theme="high-contrast-dark"],
+[data-theme="high-contrast-light"],
+[data-theme="sepia"] {
   --bg-color:          var(--color-bg-primary);
   --bg-surface:        var(--color-surface);
+
   --text-main:         var(--color-text-primary);
   --text-muted:        var(--color-text-secondary);
   --text-subtle:       var(--color-text-disabled);

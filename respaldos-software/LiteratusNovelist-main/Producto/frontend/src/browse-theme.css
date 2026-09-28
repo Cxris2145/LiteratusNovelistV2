@@ -17,9 +17,12 @@
   color-scheme: dark;
 }
 
-[data-theme="light-gallery"] body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) {
+[data-theme="light-gallery"] body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile),
+[data-theme="high-contrast-light"] body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile),
+[data-theme="sepia"] body:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) {
   color-scheme: light;
 }
+
 
 :is(app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-profile) {
   display: block;
