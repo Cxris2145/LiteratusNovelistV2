@@ -4,12 +4,21 @@ import { ApiService } from '../../../core/services/api.service';
 import { ChatService } from '../../../core/services/chat.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+export interface EnigmaLetterItem {
+  id: string;
+  originalChar: string;
+  isLetter: boolean;
+  isRevealed: boolean;
+}
+
 export interface EnigmaWord {
-  id: number;
+  id: string | number;
   word: string;
   clue: string;
-  category: 'Obra Clásica' | 'Personaje Legendario' | 'Gran Autor';
+  category: string;
   authorOrOrigin?: string;
+  bookSlug?: string;
+  fromInventory?: boolean;
 }
 
 @Component({
@@ -23,143 +32,115 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
-  // Banco curado de enigmas literarios (Obras, personajes y autores universales)
+  // Banco curado de respaldo con obras clásicas universales
   readonly wordsBank: EnigmaWord[] = [
     {
-      id: 1,
+      id: 'cb-1',
       word: 'EL PRINCIPITO',
-      clue: 'La historia de un pequeño viajero de las estrellas que cuidaba con amor una rosa en el asteroide B-612.',
+      clue: 'La historia del pequeño viajero de las estrellas que cuidaba con amor una rosa en el asteroide B-612.',
       category: 'Obra Clásica',
       authorOrOrigin: 'Antoine de Saint-Exupéry'
     },
     {
-      id: 2,
+      id: 'cb-2',
       word: 'PETER PAN',
       clue: 'El niño que rehusaba crecer y lideraba a los niños perdidos en la mágica isla de Nunca Jamás.',
       category: 'Personaje Legendario',
       authorOrOrigin: 'J. M. Barrie'
     },
     {
-      id: 3,
+      id: 'cb-3',
       word: 'DON QUIJOTE',
       clue: 'El soñador caballero andante de la triste figura que confundía molinos de viento con gigantes.',
       category: 'Personaje Legendario',
       authorOrOrigin: 'Miguel de Cervantes'
     },
     {
-      id: 4,
+      id: 'cb-4',
       word: 'ALICIA',
       clue: 'La niña curiosa que siguió a un conejo blanco con reloj de bolsillo hasta un mundo subterráneo.',
       category: 'Personaje Legendario',
       authorOrOrigin: 'Lewis Carroll'
     },
     {
-      id: 5,
+      id: 'cb-5',
       word: 'LA METAMORFOSIS',
-      clue: 'El relato donde Gregorio Samsa despierta una mañana transformado en un misterioso insecto.',
+      clue: 'El célebre relato donde Gregorio Samsa despierta una mañana transformado en un misterioso insecto.',
       category: 'Obra Clásica',
       authorOrOrigin: 'Franz Kafka'
     },
     {
-      id: 6,
+      id: 'cb-6',
       word: 'SHERLOCK HOLMES',
-      clue: 'El sagaz detective de Baker Street que resolvía los enigmas más complejos con lógica y observación.',
+      clue: 'El sagaz detective de Baker Street que resolvía los misterios más intrincados con pura deducción lógica.',
       category: 'Personaje Legendario',
       authorOrOrigin: 'Arthur Conan Doyle'
     },
     {
-      id: 7,
+      id: 'cb-7',
       word: 'LA ISLA DEL TESORO',
-      clue: 'Aventura marina en la que Jim Hawkins viaja en la goleta La Española en busca del oro pirata.',
+      clue: 'Inolvidable aventura marítima donde Jim Hawkins navega en La Española tras el oro pirata.',
       category: 'Obra Clásica',
       authorOrOrigin: 'Robert Louis Stevenson'
     },
     {
-      id: 8,
+      id: 'cb-8',
       word: 'PINOCHO',
-      clue: 'La marioneta de madera esculpida por Geppetto que soñaba con ser un niño de verdad.',
+      clue: 'La marioneta de madera esculpida por Geppetto que soñaba de corazón con ser un niño de verdad.',
       category: 'Personaje Legendario',
       authorOrOrigin: 'Carlo Collodi'
     },
     {
-      id: 9,
+      id: 'cb-9',
       word: 'JULIO VERNE',
-      clue: 'Visionario escritor de aventuras extraordinarias como Viaje al Centro de la Tierra y Veinte Mil Leguas.',
+      clue: 'Visionario escritor de prodigiosas aventuras por el centro terrestre y las profundidades oceánicas.',
       category: 'Gran Autor',
       authorOrOrigin: 'Francia'
     },
     {
-      id: 10,
+      id: 'cb-10',
       word: 'FRANKENSTEIN',
-      clue: 'Novela gótica donde un científico da vida a una criatura creada a partir de la ciencia.',
+      clue: 'La cumbre de la novela gótica donde un científico da vida a una criatura nacida de la ciencia.',
       category: 'Obra Clásica',
       authorOrOrigin: 'Mary Shelley'
     },
     {
-      id: 11,
+      id: 'cb-11',
       word: 'SANCHO PANZA',
       clue: 'El leal y sabio escudero que recorre caminos sobre su asno Rucio recordando refranes populares.',
       category: 'Personaje Legendario',
-      authorOrOrigin: 'Don Quijote de la Mancha'
+      authorOrOrigin: 'Miguel de Cervantes'
     },
     {
-      id: 12,
+      id: 'cb-12',
       word: 'ROBIN HOOD',
       clue: 'El legendario arquero del bosque de Sherwood que defendía la justicia y a los desfavorecidos.',
       category: 'Personaje Legendario',
       authorOrOrigin: 'Leyenda inglesa'
     },
     {
-      id: 13,
+      id: 'cb-13',
       word: 'LA ODISEA',
-      clue: 'El milenario poema épico que relata la intrépida travesía de diez años de Ulises hacia Ítaca.',
+      clue: 'El milenario poema épico que relata la intrépida travesía de diez años de Ulises de regreso a Ítaca.',
       category: 'Obra Clásica',
       authorOrOrigin: 'Homero'
     },
     {
-      id: 14,
+      id: 'cb-14',
       word: 'MOBY DICK',
-      clue: 'La intensa expedición marítima del capitán Ahab a través de los océanos persiguiendo a una gran ballena.',
+      clue: 'La obsesiva expedición del capitán Ahab a través de mares tempestuosos en pos del gran leviatán.',
       category: 'Obra Clásica',
       authorOrOrigin: 'Herman Melville'
     },
     {
-      id: 15,
-      word: 'CAMPANITA',
-      clue: 'El hada luminosa y brillante que reparte polvo mágico para que los corazones alegres puedan volar.',
-      category: 'Personaje Legendario',
-      authorOrOrigin: 'Peter Pan'
-    },
-    {
-      id: 16,
+      id: 'cb-15',
       word: 'EL MAGO DE OZ',
-      clue: 'El viaje de Dorothy por el camino de baldosas amarillas en busca de un corazón, cerebro y valor.',
+      clue: 'El camino de baldosas amarillas emprendido por Dorothy en busca de un corazón, cerebro y valor.',
       category: 'Obra Clásica',
       authorOrOrigin: 'L. Frank Baum'
     },
     {
-      id: 17,
-      word: 'MIGUEL DE CERVANTES',
-      clue: 'El Príncipe de los Ingenios, considerado la cumbre de la literatura en lengua española.',
-      category: 'Gran Autor',
-      authorOrOrigin: 'España'
-    },
-    {
-      id: 18,
-      word: 'LOS TRES MOSQUETEROS',
-      clue: 'La historia de cuatro valientes espadachines unidos por el honor: Uno para todos y todos para uno.',
-      category: 'Obra Clásica',
-      authorOrOrigin: 'Alexandre Dumas'
-    },
-    {
-      id: 19,
-      word: 'EL GATO CON BOTAS',
-      clue: 'El astuto felino que con ingenio y elegancia logró convertir a su humilde dueño en marqués.',
-      category: 'Personaje Legendario',
-      authorOrOrigin: 'Charles Perrault'
-    },
-    {
-      id: 20,
+      id: 'cb-16',
       word: 'CANTO DE NAVIDAD',
       clue: 'El relato donde el anciano Scrooge aprende el valor de la compasión gracias a tres espíritus.',
       category: 'Obra Clásica',
@@ -167,7 +148,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // Filas del teclado virtual
+  // Teclado virtual ordenado
   readonly keyboardRows: string[][] = [
     ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
@@ -176,19 +157,54 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
 
   readonly maxMistakes = 5;
   readonly rewardAmount = 15;
-  readonly maxDailyWins = 3;
+  readonly maxDailyWins = 1; // 1 enigma por día
 
   currentWord!: EnigmaWord;
+  wordGroups: EnigmaLetterItem[][] = [];
   guessedLetters = new Set<string>();
   mistakesCount = 0;
   gameStatus: 'playing' | 'won' | 'lost' = 'playing';
 
   userInkBalance = 0;
-  dailyWinsCount = 0;
   isRewardClaimed = false;
   isClaiming = false;
   isLoggedIn = false;
   showRules = false;
+  isLoadingEnigma = true;
+  hasInventoryBooks = false;
+
+  todayDateStr = '';
+  todayDisplayDate = '';
+  nextEnigmaCountdown = '';
+  private countdownTimer?: any;
+  private normalizedSecretWord = '';
+
+  ngOnInit(): void {
+    this.todayDateStr = this.getTodayDateString();
+    this.todayDisplayDate = this.getFormattedToday();
+    this.checkAuthStatus();
+    this.initDailyEnigma();
+    this.startCountdownTimer();
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer);
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    if (this.gameStatus !== 'playing') return;
+    const target = event.target as HTMLElement;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      return;
+    }
+    const key = this.normalizeText(event.key);
+    if (/^[A-ZÑ]$/.test(key)) {
+      this.pressLetter(key);
+    }
+  }
 
   toggleRules(): void {
     this.showRules = !this.showRules;
@@ -196,28 +212,6 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
 
   closeRules(): void {
     this.showRules = false;
-  }
-
-  // Letras normalizadas para mapear acentos automáticamente
-  private normalizedSecretWord = '';
-  private usedWordIds: number[] = [];
-
-  ngOnInit(): void {
-    this.checkAuthStatus();
-    this.loadDailyWins();
-    this.startNewGame();
-  }
-
-  ngOnDestroy(): void {}
-
-  // Listener para capturar pulsaciones de teclado físico
-  @HostListener('window:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent): void {
-    if (this.gameStatus !== 'playing') return;
-    const key = event.key.toUpperCase();
-    if (/^[A-ZÑ]$/.test(key)) {
-      this.pressLetter(key);
-    }
   }
 
   checkAuthStatus(): void {
@@ -239,33 +233,157 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadDailyWins(): void {
-    const todayKey = `enigma_wins_${new Date().toISOString().slice(0, 10)}`;
-    const stored = localStorage.getItem(todayKey);
-    this.dailyWinsCount = stored ? parseInt(stored, 10) : 0;
+  getTodayDateString(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
-  saveDailyWins(): void {
-    const todayKey = `enigma_wins_${new Date().toISOString().slice(0, 10)}`;
-    localStorage.setItem(todayKey, this.dailyWinsCount.toString());
+  getFormattedToday(): string {
+    const months = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const now = new Date();
+    return `${now.getDate()} de ${months[now.getMonth()]}`;
   }
 
-  startNewGame(): void {
-    // Si ya jugamos todas las palabras, reiniciamos la lista de usadas
-    if (this.usedWordIds.length >= this.wordsBank.length) {
-      this.usedWordIds = [];
+  /**
+   * Genera un hash determinista a partir de la fecha para seleccionar
+   * un único enigma al día de manera consistente.
+   */
+  getDailyIndex(dateStr: string, poolLength: number): number {
+    if (poolLength <= 1) return 0;
+    let hash = 0;
+    for (let i = 0; i < dateStr.length; i++) {
+      hash = (hash << 5) - hash + dateStr.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash) % poolLength;
+  }
+
+  /**
+   * Limpia subtítulos y paréntesis de títulos largos para que sean jugables.
+   */
+  cleanBookTitle(title: string): string {
+    if (!title) return '';
+    let clean = title.replace(/\s*[\(\[].*?[\)\]]/g, '').trim();
+    if (clean.includes(':')) {
+      clean = clean.split(':')[0].trim();
+    }
+    return clean;
+  }
+
+  /**
+   * Sanitiza la sinopsis para que no revele directamente el título del libro.
+   */
+  sanitizeClue(synopsis: string, title: string, author: string): string {
+    let text = (synopsis || '').trim();
+    if (!text) {
+      return `Descifra esta destacada obra literaria escrita por ${author || 'un célebre autor'} que forma parte de tu biblioteca.`;
+    }
+    if (title) {
+      const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      text = text.replace(new RegExp(escaped, 'gi'), 'esta obra');
+    }
+    text = text.replace(/\s+/g, ' ').trim();
+    if (text.length > 175) {
+      text = text.slice(0, 172) + '...';
+    }
+    return text;
+  }
+
+  /**
+   * Inicializa el enigma diario. Si el usuario tiene libros adquiridos en su biblioteca,
+   * se construyen los enigmas a partir de ellos.
+   */
+  initDailyEnigma(): void {
+    this.isLoadingEnigma = true;
+
+    // Verificar si ya hay estado guardado para hoy
+    const storageKey = `literatus_daily_enigma_${this.todayDateStr}`;
+    const savedRaw = localStorage.getItem(storageKey);
+    const savedState = savedRaw ? JSON.parse(savedRaw) : null;
+
+    if (this.isLoggedIn) {
+      this.api.get<any[]>('library/inventory/').subscribe({
+        next: (res: any) => {
+          const items: any[] = Array.isArray(res) ? res : (res?.results || []);
+          const acquiredPool: EnigmaWord[] = [];
+
+          items.forEach((item, idx) => {
+            const rawTitle = item.book_title || item.edition?.book?.title || '';
+            const cleanTitle = this.cleanBookTitle(rawTitle);
+            const author = item.edition?.book?.author_name || 'Autor de tu biblioteca';
+            const synopsis = item.edition?.book?.synopsis || '';
+            const slug = item.book_slug || item.edition?.book?.slug || '';
+
+            // Solo incluir títulos jugables (longitud entre 3 y 28 caracteres)
+            if (cleanTitle.length >= 3 && cleanTitle.length <= 28) {
+              acquiredPool.push({
+                id: `inv-${item.id || idx}`,
+                word: cleanTitle.toUpperCase(),
+                clue: this.sanitizeClue(synopsis, cleanTitle, author),
+                category: 'Obra de tu Biblioteca',
+                authorOrOrigin: author,
+                bookSlug: slug,
+                fromInventory: true
+              });
+            }
+          });
+
+          this.hasInventoryBooks = acquiredPool.length > 0;
+          const candidatePool = this.hasInventoryBooks ? acquiredPool : this.wordsBank;
+          this.applyDailyEnigma(candidatePool, savedState);
+        },
+        error: () => {
+          this.hasInventoryBooks = false;
+          this.applyDailyEnigma(this.wordsBank, savedState);
+        }
+      });
+    } else {
+      this.hasInventoryBooks = false;
+      this.applyDailyEnigma(this.wordsBank, savedState);
+    }
+  }
+
+  private applyDailyEnigma(pool: EnigmaWord[], savedState: any): void {
+    if (savedState && savedState.word && savedState.date === this.todayDateStr) {
+      // Restaurar progreso del día
+      this.currentWord = savedState.word;
+      this.guessedLetters = new Set<string>(savedState.guessedLetters || []);
+      this.mistakesCount = savedState.mistakesCount || 0;
+      this.gameStatus = savedState.gameStatus || 'playing';
+      this.isRewardClaimed = !!savedState.isRewardClaimed;
+    } else {
+      // Seleccionar el enigma determinista de hoy
+      const dailyIndex = this.getDailyIndex(this.todayDateStr, pool.length);
+      this.currentWord = pool[dailyIndex];
+      this.guessedLetters.clear();
+      this.mistakesCount = 0;
+      this.gameStatus = 'playing';
+      this.isRewardClaimed = false;
+      this.saveDailyState();
     }
 
-    const availableWords = this.wordsBank.filter(w => !this.usedWordIds.includes(w.id));
-    const selected = availableWords[Math.floor(Math.random() * availableWords.length)];
-    this.currentWord = selected;
-    this.usedWordIds.push(selected.id);
-
     this.normalizedSecretWord = this.normalizeText(this.currentWord.word);
-    this.guessedLetters.clear();
-    this.mistakesCount = 0;
-    this.gameStatus = 'playing';
-    this.isRewardClaimed = false;
+    this.updateWordGroups();
+    this.isLoadingEnigma = false;
+  }
+
+  saveDailyState(): void {
+    if (!this.currentWord) return;
+    const state = {
+      date: this.todayDateStr,
+      word: this.currentWord,
+      guessedLetters: Array.from(this.guessedLetters),
+      mistakesCount: this.mistakesCount,
+      gameStatus: this.gameStatus,
+      isRewardClaimed: this.isRewardClaimed
+    };
+    localStorage.setItem(`literatus_daily_enigma_${this.todayDateStr}`, JSON.stringify(state));
   }
 
   pressLetter(letter: string): void {
@@ -274,9 +392,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
 
     this.guessedLetters.add(letter);
 
-    // Comprobar si la letra normalizada está en la palabra
     if (this.normalizedSecretWord.includes(letter)) {
-      // Verificar si ya completó todas las letras requeridas
       if (this.isWordCompleted()) {
         this.gameStatus = 'won';
         this.onGameWon();
@@ -285,13 +401,16 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
       this.mistakesCount++;
       if (this.mistakesCount >= this.maxMistakes) {
         this.gameStatus = 'lost';
+        this.snackBar.open(`¡Tinta agotada! La solución era: ${this.currentWord.word}`, 'Entendido', { duration: 4000 });
       }
     }
+
+    this.saveDailyState();
+    this.updateWordGroups();
   }
 
   isWordCompleted(): boolean {
     for (const char of this.normalizedSecretWord) {
-      // Ignorar espacios y puntuación
       if (/[A-ZÑ]/.test(char)) {
         if (!this.guessedLetters.has(char)) {
           return false;
@@ -305,12 +424,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
     if (this.isRewardClaimed) return;
 
     if (!this.isLoggedIn) {
-      this.snackBar.open('¡Palabra descifrada! Inicia sesión para sumar Tinta a tu biblioteca.', 'Entendido', { duration: 4000 });
-      return;
-    }
-
-    if (this.dailyWinsCount >= this.maxDailyWins) {
-      this.snackBar.open('¡Victoria! Has alcanzado el límite de 3 recompensas de hoy. ¡Vuelve mañana por más tinta!', 'Cerrar', { duration: 4000 });
+      this.snackBar.open('¡Enigma diario descifrado! Inicia sesión para guardar tu recompensa.', 'Entendido', { duration: 4000 });
       return;
     }
 
@@ -319,8 +433,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isClaiming = false;
         this.isRewardClaimed = true;
-        this.dailyWinsCount++;
-        this.saveDailyWins();
+        this.saveDailyState();
 
         if (res && res.ink_balance !== undefined) {
           this.userInkBalance = res.ink_balance;
@@ -330,34 +443,75 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
           this.chatService.updateInkBalance(this.userInkBalance);
         }
 
-        this.snackBar.open(`¡Enigma descifrado! Has ganado +${this.rewardAmount} Gotas de Tinta.`, 'Excelente', { duration: 4000 });
+        this.snackBar.open(`¡Excelente! Has ganado +${this.rewardAmount} Gotas de Tinta por descifrar el enigma de hoy.`, 'Genial', { duration: 4500 });
       },
       error: () => {
         this.isClaiming = false;
-        this.snackBar.open('Error al sincronizar la Tinta en el servidor.', 'Cerrar', { duration: 3000 });
+        this.isRewardClaimed = true;
+        this.saveDailyState();
       }
     });
   }
 
-  // Desglosa la palabra en caracteres manteniendo espacios para la vista
-  getWordDisplay(): { originalChar: string; isLetter: boolean; isRevealed: boolean }[] {
+  startCountdownTimer(): void {
+    this.updateCountdown();
+    this.countdownTimer = setInterval(() => {
+      this.updateCountdown();
+    }, 1000);
+  }
+
+  updateCountdown(): void {
+    const now = new Date();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+    const diffMs = tomorrow.getTime() - now.getTime();
+
+    if (diffMs <= 0) {
+      this.nextEnigmaCountdown = '00h 00m 00s';
+      const newTodayStr = this.getTodayDateString();
+      if (newTodayStr !== this.todayDateStr) {
+        this.todayDateStr = newTodayStr;
+        this.todayDisplayDate = this.getFormattedToday();
+        this.initDailyEnigma();
+      }
+      return;
+    }
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+    this.nextEnigmaCountdown = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+  }
+
+  updateWordGroups(): void {
+    if (!this.currentWord) {
+      this.wordGroups = [];
+      return;
+    }
+
     const chars = this.currentWord.word.split('');
-    return chars.map(char => {
+    const full: EnigmaLetterItem[] = chars.map((char, index) => {
       const isLetter = /[A-ZÁÉÍÓÚÜÑa-záéíóúüñ]/.test(char);
       if (!isLetter) {
-        return { originalChar: char, isLetter: false, isRevealed: true };
+        return {
+          id: `sep-${index}-${char}`,
+          originalChar: char,
+          isLetter: false,
+          isRevealed: true
+        };
       }
       const normalized = this.normalizeText(char);
       const isRevealed = this.gameStatus === 'lost' || this.guessedLetters.has(normalized);
-      return { originalChar: char, isLetter: true, isRevealed };
+      return {
+        id: `char-${index}-${char}`,
+        originalChar: char,
+        isLetter: true,
+        isRevealed
+      };
     });
-  }
 
-  // Agrupa en palabras para permitir saltos de línea ordenados en pantallas pequeñas
-  getWordGroups(): { originalChar: string; isLetter: boolean; isRevealed: boolean }[][] {
-    const full = this.getWordDisplay();
-    const groups: { originalChar: string; isLetter: boolean; isRevealed: boolean }[][] = [];
-    let currentGroup: { originalChar: string; isLetter: boolean; isRevealed: boolean }[] = [];
+    const groups: EnigmaLetterItem[][] = [];
+    let currentGroup: EnigmaLetterItem[] = [];
 
     for (const item of full) {
       if (item.originalChar === ' ') {
@@ -372,7 +526,15 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
     if (currentGroup.length > 0) {
       groups.push(currentGroup);
     }
-    return groups;
+    this.wordGroups = groups;
+  }
+
+  trackByGroupIndex(index: number): number {
+    return index;
+  }
+
+  trackByItemId(index: number, item: EnigmaLetterItem): string {
+    return item.id;
   }
 
   getLetterState(letter: string): 'unused' | 'correct' | 'wrong' {
@@ -390,10 +552,13 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
     return text
       .toUpperCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, (match) => {
-        // Preservar la virgulilla de la Ñ
-        return match === '\u0303' ? '\u0303' : '';
-      });
+      .replace(/[\u0300-\u036f]/g, (match, offset, str) => {
+        if (match === '\u0303' && offset > 0 && str[offset - 1].toUpperCase() === 'N') {
+          return match;
+        }
+        return '';
+      })
+      .normalize('NFC');
   }
 
   goToLogin(): void {

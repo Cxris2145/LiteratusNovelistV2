@@ -37,6 +37,7 @@ const routes: Routes = [
   { path: 'favorites', component: FavoritesComponent, canActivate: [authGuard] },
   { path: 'achievements', component: AchievementsComponent, canActivate: [authGuard] },
   { path: 'games/enigma', component: EnigmaGameComponent },
+  { path: 'enigma', redirectTo: 'games/enigma', pathMatch: 'full' },
   { path: 'messages', component: MessagesComponent },
   { path: 'cart', component: CartComponent },
   { path: 'tavern', component: TavernComponent },

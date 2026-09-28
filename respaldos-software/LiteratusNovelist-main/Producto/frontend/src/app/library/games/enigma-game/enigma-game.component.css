@@ -1,11 +1,11 @@
 /* ==========================================================================
-   EL ENIGMA DEL TINTERO — ESTILOS DARK PREMIUM LITERATUS NOVELIST
+   EL ENIGMA DEL TINTERO — DARK PREMIUM LAYOUT
+   Diseñado para estar 100% dentro de la pantalla sin requerir scroll
    ========================================================================== */
 
 :host {
   display: block;
   width: 100%;
-  min-height: calc(100vh - 120px);
   color: #f1f5f9;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -13,10 +13,13 @@
 .enigma-wrapper {
   position: relative;
   width: 100%;
-  min-height: 100%;
-  padding: 24px 16px 60px;
-  overflow: hidden;
+  min-height: calc(100vh - var(--navbar-h, 150px));
+  padding: 16px 20px 28px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 /* ── Resplandores ambientales de fondo ── */
@@ -24,35 +27,35 @@
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(100px);
-  opacity: 0.18;
+  filter: blur(110px);
+  opacity: 0.16;
   z-index: 0;
 }
 
 .ambient-glow--1 {
-  width: 450px;
-  height: 450px;
+  width: 420px;
+  height: 420px;
   background: radial-gradient(circle, #0284c7 0%, transparent 70%);
-  top: -80px;
-  left: 10%;
+  top: -40px;
+  left: 12%;
 }
 
 .ambient-glow--2 {
-  width: 500px;
-  height: 500px;
+  width: 440px;
+  height: 440px;
   background: radial-gradient(circle, #4f46e5 0%, transparent 70%);
-  bottom: -100px;
-  right: 10%;
+  bottom: -40px;
+  right: 12%;
 }
 
 .enigma-container {
   position: relative;
   z-index: 1;
   max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -62,53 +65,80 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 16px;
-  padding: 8px 4px;
+  padding: 2px 4px;
 }
 
 .header-main {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .header-icon-badge {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(37, 99, 235, 0.3));
   border: 1px solid rgba(56, 189, 248, 0.4);
   color: #38bdf8;
-  box-shadow: 0 8px 20px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.18);
+  flex-shrink: 0;
 }
 
 .header-icon-badge .material-symbols-rounded {
-  font-size: 28px;
+  font-size: 24px;
 }
 
 .header-titles {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .title-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .header-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1.2;
+}
+
+.daily-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.daily-badge .material-symbols-rounded {
+  font-size: 14px;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 12.5px;
+  color: #94a3b8;
+  line-height: 1.2;
 }
 
 /* ── Botón de Pregunta y Popover de Reglas ── */
@@ -122,14 +152,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #94a3b8;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   padding: 0;
 }
 
@@ -138,39 +168,34 @@
   background: rgba(56, 189, 248, 0.2);
   border-color: #38bdf8;
   color: #38bdf8;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.3);
   transform: scale(1.08);
 }
 
 .rules-help-btn .material-symbols-rounded {
-  font-size: 19px;
+  font-size: 18px;
 }
 
-/* ── Popover flotante con Reglas y Recompensas ── */
 .rules-popover {
   position: absolute;
-  top: calc(100% + 14px);
+  top: calc(100% + 10px);
   left: 0;
-  width: 380px;
+  width: 360px;
   max-width: 90vw;
-  background: rgba(11, 20, 32, 0.96);
+  background: rgba(11, 20, 32, 0.98);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 25px rgba(56, 189, 248, 0.15);
-  padding: 20px 22px;
-  z-index: 100;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.15);
+  padding: 16px 18px;
+  z-index: 1000;
   opacity: 0;
   visibility: hidden;
   transform: translateY(-8px) scale(0.97);
-  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              visibility 0.25s;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
 }
 
-/* Activación por hover del mouse o clase activa por click */
 .rules-tooltip-container:hover .rules-popover,
 .rules-popover.is-visible {
   opacity: 1;
@@ -183,39 +208,34 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .popover-title-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .popover-icon {
-  font-size: 20px;
+  font-size: 19px;
   color: #38bdf8;
 }
 
 .popover-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #f8fafc;
-  letter-spacing: -0.01em;
 }
 
 .popover-close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: transparent;
   border: none;
   color: #64748b;
   cursor: pointer;
+  padding: 3px;
   border-radius: 6px;
-  padding: 4px;
-  transition: all 0.2s ease;
 }
 
 .popover-close-btn:hover {
@@ -223,21 +243,17 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-.popover-close-btn .material-symbols-rounded {
-  font-size: 18px;
-}
-
 .popover-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding-top: 14px;
+  gap: 12px;
+  padding-top: 12px;
 }
 
 .popover-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
 }
 
 .block-heading {
@@ -247,7 +263,7 @@
 }
 
 .block-icon {
-  font-size: 16px;
+  font-size: 15px;
   color: #38bdf8;
 }
 
@@ -256,7 +272,7 @@
 }
 
 .block-title {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -268,12 +284,12 @@
   padding-left: 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .popover-list li {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
   color: #94a3b8;
 }
 
@@ -281,31 +297,32 @@
   color: #f1f5f9;
 }
 
-.header-subtitle {
-  margin: 4px 0 0;
-  font-size: 13.5px;
-  color: #94a3b8;
-}
-
+/* ── Métricas del Header ── */
 .header-metrics {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .metric-pill {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
+  gap: 8px;
+  padding: 6px 14px;
   border-radius: 9999px;
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.metric-pill--completed {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.12);
+}
+
 .pill-icon {
-  font-size: 20px;
+  font-size: 19px;
 }
 
 .pill-icon--cyan {
@@ -316,379 +333,309 @@
   color: #f59e0b;
 }
 
+.pill-icon--green {
+  color: #34d399;
+}
+
 .pill-data {
   display: flex;
   flex-direction: column;
 }
 
 .pill-label {
-  font-size: 10.5px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #64748b;
   font-weight: 600;
+  line-height: 1;
 }
 
 .pill-value {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #f8fafc;
+  line-height: 1.2;
 }
 
 /* ══════════════════════════════════════════════════════════════════
    2. TABLERO GLASS CARD
    ══════════════════════════════════════════════════════════════════ */
 .glass-card {
-  background: rgba(13, 23, 36, 0.75);
+  background: rgba(13, 23, 36, 0.78);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  padding: 32px 28px;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 16px 22px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* ── Tintero y Medidor de Tinta ── */
-.inkwell-section {
+/* ── Barra de Estado Integrada (Tintero + Pista) ── */
+.status-and-clue-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.ink-status-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: rgba(15, 28, 44, 0.55);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  flex-shrink: 0;
+}
+
+.ink-bottle-mini {
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  padding: 12px 20px;
-  border-radius: 16px;
-  background: rgba(15, 28, 44, 0.5);
-  border: 1px solid rgba(56, 189, 248, 0.12);
-  flex-wrap: wrap;
-}
-
-.inkwell-graphic {
-  width: 72px;
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.25s ease;
 }
 
 .inkwell-svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.25));
+  filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.3));
 }
 
-.inkwell-graphic.shake {
+.ink-status-box.shake {
   animation: inkShake 0.4s ease;
 }
 
 @keyframes inkShake {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px) rotate(-4deg); }
-  40%, 80% { transform: translateX(6px) rotate(4deg); }
+  25%, 75% { transform: translateX(-4px) rotate(-3deg); }
+  50% { transform: translateX(4px) rotate(3deg); }
 }
 
-.ink-meter {
+.ink-meter-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
-.ink-meter-header {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.ink-meter-title {
-  font-size: 13.5px;
-  font-weight: 600;
+.ink-meter-text {
+  font-size: 11.5px;
   color: #94a3b8;
+  line-height: 1;
 }
 
-.ink-meter-count {
-  font-size: 12.5px;
-  font-weight: 700;
+.ink-meter-text strong {
   color: #38bdf8;
+  font-weight: 700;
 }
 
 .ink-drops-row {
   display: flex;
-  gap: 8px;
+  gap: 5px;
 }
 
 .ink-drop-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  transition: all 0.25s ease;
 }
 
 .ink-drop-indicator.active {
-  background: rgba(56, 189, 248, 0.15);
-  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.5);
   color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
 }
 
 .ink-drop-indicator.depleted {
-  background: rgba(30, 41, 59, 0.4);
+  background: rgba(30, 41, 59, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.04);
   color: #475569;
-  opacity: 0.4;
-  transform: scale(0.92);
+  opacity: 0.35;
+  transform: scale(0.9);
 }
 
 .ink-drop-indicator .material-symbols-rounded {
-  font-size: 18px;
+  font-size: 15px;
 }
 
-/* ── Tarjeta de Pista ── */
-.clue-card {
+/* ── Tarjeta de Pista Compacta ── */
+.clue-compact-card {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
-  padding: 18px 24px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(20, 32, 50, 0.6) 0%, rgba(15, 24, 40, 0.8) 100%);
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(20, 32, 50, 0.5) 0%, rgba(15, 24, 40, 0.7) 100%);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.clue-top-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .clue-category-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
+  gap: 4px;
+  padding: 2px 9px;
   border-radius: 9999px;
   background: rgba(56, 189, 248, 0.1);
   border: 1px solid rgba(56, 189, 248, 0.25);
   color: #38bdf8;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.clue-category-pill--library {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
 }
 
 .clue-category-pill .material-symbols-rounded {
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .clue-author {
+  font-size: 12px;
   color: #94a3b8;
-  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .clue-text {
   margin: 0;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 17px;
   font-style: italic;
-  line-height: 1.6;
+  font-size: 13.5px;
+  line-height: 1.4;
   color: #e2e8f0;
-  max-width: 680px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-/* ── Casillas de la Palabra Oculta ── */
+/* ══════════════════════════════════════════════════════════════════
+   3. CASILLAS DE LA PALABRA OCULTA
+   ══════════════════════════════════════════════════════════════════ */
 .secret-word-section {
   display: flex;
   justify-content: center;
-  padding: 16px 0;
-  min-height: 80px;
+  align-items: center;
+  padding: 8px 0;
 }
 
 .word-groups-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
+  align-items: center;
+  gap: 16px;
   max-width: 100%;
 }
 
 .word-group {
   display: flex;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 7px;
 }
 
 .letter-tile {
-  width: 44px;
-  height: 54px;
-  border-radius: 12px;
-  background: rgba(20, 35, 55, 0.6);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  width: 40px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(20, 35, 55, 0.7);
+  border: 1.5px solid rgba(56, 189, 248, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
   user-select: none;
 }
 
 .letter-tile.revealed {
-  background: linear-gradient(135deg, rgba(30, 58, 100, 0.8), rgba(15, 30, 55, 0.9));
+  background: linear-gradient(135deg, rgba(30, 58, 100, 0.9), rgba(15, 30, 55, 0.95));
   border-color: #38bdf8;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
   transform: translateY(-2px);
 }
 
 .letter-tile.missed {
   border-color: #f87171;
-  background: rgba(239, 68, 68, 0.15);
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+}
+
+.letter-tile.missed .letter-char {
+  color: #fca5a5 !important;
 }
 
 .letter-char {
   font-size: 22px;
   font-weight: 700;
-  color: #ffffff;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   letter-spacing: 0.02em;
-  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .letter-placeholder {
   width: 18px;
   height: 3px;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(56, 189, 248, 0.5);
   border-radius: 2px;
 }
 
 @keyframes popIn {
-  0% { transform: scale(0.6); opacity: 0; }
+  0% { transform: scale(0.7); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ── Banners de Fin de Juego (Victoria / Derrota) ── */
-.endgame-banner {
+/* ══════════════════════════════════════════════════════════════════
+   4. ZONA INTERACTIVA (TECLADO VIRTUAL / RESULTADO DEL DÍA)
+   ══════════════════════════════════════════════════════════════════ */
+.interactive-zone {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 18px 24px;
-  border-radius: 16px;
-  animation: bannerFade 0.4s ease;
-}
-
-@keyframes bannerFade {
-  0% { opacity: 0; transform: translateY(-10px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-.endgame-banner--won {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.25));
-  border: 1.5px solid rgba(16, 185, 129, 0.5);
-  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
-}
-
-.endgame-banner--lost {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(185, 28, 28, 0.2));
-  border: 1.5px solid rgba(239, 68, 68, 0.4);
-}
-
-.banner-content {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.banner-icon-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-}
-
-.endgame-banner--won .banner-icon-badge {
-  background: rgba(16, 185, 129, 0.25);
-  color: #10b981;
-}
-
-.endgame-banner--lost .banner-icon-badge {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-
-.banner-icon-badge .material-symbols-rounded {
-  font-size: 26px;
-}
-
-.banner-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.banner-subtitle {
-  margin: 4px 0 0;
-  font-size: 13.5px;
-  color: #cbd5e1;
-}
-
-.reward-notice {
-  display: inline-block;
-  margin-left: 6px;
-  color: #38bdf8;
-  font-weight: 700;
-}
-
-.login-notice {
-  display: inline-block;
-  margin-left: 6px;
-  color: #f59e0b;
-  font-weight: 500;
-}
-
-.action-btn {
-  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  border-radius: 12px;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.25s ease;
+  width: 100%;
 }
 
-.action-btn--primary {
-  background: linear-gradient(135deg, #0284c7, #2563eb);
-  color: #ffffff;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
-}
-
-.action-btn--primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
-}
-
-.action-btn--secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f1f5f9;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.action-btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.18);
-  transform: translateY(-2px);
-}
-
-/* ── Teclado Virtual en Pantalla ── */
+/* ── Teclado Virtual ── */
 .virtual-keyboard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
   width: 100%;
-  margin-top: 8px;
 }
 
 .keyboard-row {
@@ -699,17 +646,17 @@
 }
 
 .key-btn {
-  min-width: 38px;
-  height: 48px;
+  min-width: 36px;
+  height: 38px;
   padding: 0 8px;
-  border-radius: 10px;
-  background: rgba(26, 41, 64, 0.7);
+  border-radius: 9px;
+  background: rgba(26, 41, 64, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #f8fafc;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.15s ease;
   user-select: none;
   display: flex;
   align-items: center;
@@ -736,36 +683,191 @@
   background: rgba(16, 185, 129, 0.25);
   border-color: #10b981;
   color: #34d399;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
 .key-btn.key-wrong {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.35);
   color: #64748b;
-  opacity: 0.25;
+  opacity: 0.22;
 }
 
-/* ── Barra Inferior de Acciones ── */
-.board-footer {
+/* ── Tarjetas de Fin de Enigma Diario (Victoria / Derrota) ── */
+.endgame-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 16px;
+  gap: 16px;
+  animation: bannerFade 0.3s ease;
+  box-sizing: border-box;
+}
+
+@keyframes bannerFade {
+  0% { opacity: 0; transform: translateY(-6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.endgame-card--won {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.24));
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+}
+
+.endgame-card--lost {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(185, 28, 28, 0.18));
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.endgame-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  flex-shrink: 0;
+}
+
+.endgame-card--won .endgame-badge {
+  background: rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
+.endgame-card--lost .endgame-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.endgame-badge .material-symbols-rounded {
+  font-size: 26px;
+}
+
+.endgame-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.endgame-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.endgame-subtitle {
+  margin: 0;
+  font-size: 12.5px;
+  color: #cbd5e1;
+}
+
+.reward-tag {
+  display: inline-block;
+  margin-left: 6px;
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.countdown-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 14px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.countdown-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+}
+
+.countdown-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #38bdf8;
+  font-variant-numeric: tabular-nums;
+}
+
+.endgame-actions {
+  flex-shrink: 0;
+}
+
+.endgame-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.endgame-btn--primary {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.endgame-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+}
+
+.endgame-btn--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   5. BARRA INFERIOR DE ACCESOS
+   ══════════════════════════════════════════════════════════════════ */
+.board-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.daily-notice-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.daily-notice-tag .material-symbols-rounded {
+  font-size: 15px;
+  color: #38bdf8;
 }
 
 .glass-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  gap: 6px;
+  padding: 6px 14px;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #94a3b8;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -775,20 +877,45 @@
 .glass-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .glass-btn .material-symbols-rounded {
-  font-size: 17px;
+  font-size: 15px;
+}
+
+/* ── Spinner de Carga ── */
+.enigma-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(56, 189, 248, 0.2);
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   3. RESPONSIVE DESIGN (Móvil y Tablet)
+   6. RESPONSIVE DESIGN (PANTALLAS PEQUEÑAS / MÓVIL)
    ══════════════════════════════════════════════════════════════════ */
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .enigma-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
   }
 
   .header-metrics {
@@ -796,48 +923,31 @@
     justify-content: space-between;
   }
 
-  .glass-card {
-    padding: 20px 16px;
-    gap: 20px;
-    border-radius: 18px;
+  .status-and-clue-bar {
+    flex-direction: column;
+    gap: 8px;
   }
 
   .letter-tile {
     width: 32px;
-    height: 44px;
+    height: 40px;
     border-radius: 8px;
   }
 
   .letter-char {
-    font-size: 18px;
-  }
-
-  .word-groups-container {
-    gap: 12px;
-  }
-
-  .word-group {
-    gap: 5px;
+    font-size: 17px;
   }
 
   .key-btn {
     min-width: 27px;
-    height: 42px;
-    font-size: 13.5px;
+    height: 34px;
+    font-size: 12.5px;
     padding: 0 4px;
   }
 
-  .keyboard-row {
-    gap: 4px;
-  }
-
-  .endgame-banner {
+  .endgame-card {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .action-btn {
-    width: 100%;
-    justify-content: center;
+    gap: 10px;
   }
 }

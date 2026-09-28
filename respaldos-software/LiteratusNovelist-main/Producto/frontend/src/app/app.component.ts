@@ -34,8 +34,8 @@ export class AppComponent implements OnInit {
 
   isListeningSearch = false;
 
-
   isDashboard = false;
+  isEnigma = false;
   isNavBubblesHidden = false;
   private lastScrollTop = 0;
   
@@ -84,10 +84,12 @@ export class AppComponent implements OnInit {
       .subscribe((e: any) => {
         const url = e.urlAfterRedirects as string;
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
+        this.isEnigma = url.includes('enigma');
       });
   }
 
   ngOnInit() {
+    this.isEnigma = this.router.url.includes('enigma');
     // Cargar la configuración global (Tema) apenas inicie
     this.settingsService.loadSettings().subscribe();
 

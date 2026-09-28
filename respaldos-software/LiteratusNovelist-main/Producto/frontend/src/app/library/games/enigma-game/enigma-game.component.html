@@ -1,11 +1,11 @@
 <div class="enigma-wrapper">
-  <!-- Fondo con resplandores ambientales sutiles -->
+  <!-- Resplandores ambientales sutiles -->
   <div class="ambient-glow ambient-glow--1"></div>
   <div class="ambient-glow ambient-glow--2"></div>
 
   <div class="enigma-container">
 
-    <!-- ═══ ENCABEZADO SUPERIOR ═══ -->
+    <!-- ═══ ENCABEZADO SUPERIOR COMPACTO ═══ -->
     <header class="enigma-header">
       <div class="header-main">
         <div class="header-icon-badge">
@@ -14,63 +14,64 @@
         <div class="header-titles">
           <div class="title-row">
             <h1 class="header-title">El Enigma del Tintero</h1>
-            <!-- Botón con ícono de pregunta y Popover de Reglas -->
+            <span class="daily-badge">
+              <span class="material-symbols-rounded">today</span>
+              <span>{{ todayDisplayDate }}</span>
+            </span>
+
+            <!-- Botón de Reglas y Recompensas -->
             <div class="rules-tooltip-container" (mouseenter)="showRules = true" (mouseleave)="showRules = false">
-              <button class="rules-help-btn" (click)="toggleRules()" aria-label="Ver reglas y recompensas del juego" [class.active]="showRules">
+              <button class="rules-help-btn" (click)="toggleRules()" aria-label="Ver reglas del juego" [class.active]="showRules">
                 <span class="material-symbols-rounded">help_outline</span>
               </button>
 
-              <!-- Panel emergente de Reglas y Recompensas (Hover y Click) -->
               <div class="rules-popover" [class.is-visible]="showRules" (click)="$event.stopPropagation()">
                 <div class="popover-header">
                   <div class="popover-title-wrap">
                     <span class="material-symbols-rounded popover-icon">auto_stories</span>
-                    <span class="popover-title">Reglas y Recompensas</span>
+                    <span class="popover-title">El Enigma Diario</span>
                   </div>
-                  <button class="popover-close-btn" (click)="closeRules()" aria-label="Cerrar ventana de reglas">
+                  <button class="popover-close-btn" (click)="closeRules()" aria-label="Cerrar">
                     <span class="material-symbols-rounded">close</span>
                   </button>
                 </div>
 
                 <div class="popover-body">
-                  <!-- Bloque de Reglas -->
                   <div class="popover-block">
                     <div class="block-heading">
                       <span class="material-symbols-rounded block-icon">menu_book</span>
-                      <span class="block-title">Cómo se juega</span>
+                      <span class="block-title">Reglas del Desafío</span>
                     </div>
                     <ul class="popover-list">
-                      <li>Descifra el título, personaje o autor oculto seleccionando una letra a la vez.</li>
-                      <li>Comienzas con <strong>5 gotas de tinta</strong> en tu pluma. Cada letra incorrecta descuenta 1 gota.</li>
-                      <li>Lee la pista literaria en pantalla para deducir de qué obra o personaje se trata.</li>
-                      <li>Los acentos se descubren automáticamente al pulsar la vocal base (por ejemplo, pulsar A revela tanto A como Á).</li>
+                      <li>Cada día se publica <strong>1 único enigma literario</strong> especial.</li>
+                      <li>Si tienes libros en tu biblioteca, ¡los enigmas provendrán de tus propias obras adquiridas!</li>
+                      <li>Cuentas con <strong>5 gotas de tinta</strong>. Cada letra errónea consume una gota.</li>
+                      <li>Las vocales con acento (Á, É, Í, Ó, Ú) se revelan al pulsar la vocal normal.</li>
                     </ul>
                   </div>
 
-                  <!-- Bloque de Recompensas -->
                   <div class="popover-block">
                     <div class="block-heading">
                       <span class="material-symbols-rounded block-icon block-icon--gold">stars</span>
                       <span class="block-title">Premios de Tinta</span>
                     </div>
                     <ul class="popover-list">
-                      <li>Cada victoria te otorga <strong>+15 Gotas de Tinta</strong> añadidas directamente a tu saldo.</li>
-                      <li>Puedes obtener hasta <strong>3 recompensas con premio al día</strong> para cuidar la economía del juego.</li>
-                      <li>Al alcanzar el límite diario, puedes seguir jugando todas las partidas que desees para aprender y practicar.</li>
-                      <li>Inicia sesión con tu cuenta para que la Tinta ganada se guarde en tu perfil.</li>
+                      <li>Descifrar el enigma del día te recompensa con <strong>+15 Gotas de Tinta</strong>.</li>
+                      <li>El progreso del día se guarda automáticamente para que nunca lo pierdas.</li>
+                      <li>Al terminar, la cuenta regresiva te indicará cuándo estará listo el enigma de mañana.</li>
                     </ul>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <p class="header-subtitle">Descifra la obra o personaje antes de que se agote la tinta de la pluma</p>
+          <p class="header-subtitle">Descifra la obra de hoy antes de que se agote la tinta de la pluma</p>
         </div>
       </div>
 
-      <!-- Métricas rápidas: Tinta y Victorias diarias -->
+      <!-- Métricas: Tinta y Reto de Hoy -->
       <div class="header-metrics">
-        <div class="metric-pill" [title]="'Saldo actual de Tinta en tu perfil'">
+        <div class="metric-pill" title="Saldo de Tinta en tu perfil">
           <span class="material-symbols-rounded pill-icon pill-icon--cyan">ink_pen</span>
           <div class="pill-data">
             <span class="pill-label">Tu Tinta</span>
@@ -78,76 +79,75 @@
           </div>
         </div>
 
-        <div class="metric-pill" [title]="'Límite de 3 recompensas de Tinta por día'">
-          <span class="material-symbols-rounded pill-icon pill-icon--gold">stars</span>
+        <div class="metric-pill" [class.metric-pill--completed]="gameStatus === 'won'" title="Enigma del día">
+          <span class="material-symbols-rounded pill-icon" [ngClass]="gameStatus === 'won' ? 'pill-icon--green' : 'pill-icon--gold'">
+            {{ gameStatus === 'won' ? 'task_alt' : 'calendar_today' }}
+          </span>
           <div class="pill-data">
-            <span class="pill-label">Premios de hoy</span>
-            <span class="pill-value">{{ dailyWinsCount }} / {{ maxDailyWins }}</span>
+            <span class="pill-label">Reto Diario</span>
+            <span class="pill-value">{{ gameStatus === 'won' ? 'Descifrado' : (gameStatus === 'lost' ? 'Agotado' : 'En curso') }}</span>
           </div>
         </div>
       </div>
     </header>
 
     <!-- ═══ TABLERO PRINCIPAL ═══ -->
-    <main class="enigma-board glass-card">
+    <main class="enigma-board glass-card" *ngIf="!isLoadingEnigma">
 
-      <!-- SECCIÓN DEL TINTERO Y GOTAS -->
-      <section class="inkwell-section" aria-label="Estado del tintero">
-        <div class="inkwell-graphic" [class.shake]="mistakesCount > 0 && gameStatus === 'playing'">
-          <!-- Tintero estilizado en SVG limpio -->
-          <svg class="inkwell-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="50" cy="85" rx="35" ry="10" fill="#000000" fill-opacity="0.35"/>
-            <!-- Frasco de vidrio -->
-            <path d="M30 35 L70 35 L80 80 C80 86 70 90 50 90 C30 90 20 86 20 80 Z" fill="#0f1f2e" stroke="#2563eb" stroke-width="2.5"/>
-            <!-- Tinta en el interior (se vacía según los errores) -->
-            <path [attr.d]="'M24 78 C24 85 34 88 50 88 C66 88 76 85 76 78 L' + (70 + (maxMistakes - remainingMistakes) * 2) + ' ' + (50 + (maxMistakes - remainingMistakes) * 7) + ' C60 ' + (48 + (maxMistakes - remainingMistakes) * 7) + ' 40 ' + (48 + (maxMistakes - remainingMistakes) * 7) + ' 30 ' + (50 + (maxMistakes - remainingMistakes) * 7) + ' Z'"
-                  fill="url(#inkGradient)"/>
-            <!-- Cuello y tapa del tintero -->
-            <rect x="36" y="24" width="28" height="12" rx="3" fill="#1e3a5f" stroke="#38bdf8" stroke-width="2"/>
-            <rect x="32" y="18" width="36" height="8" rx="2" fill="#2563eb"/>
-            <!-- Pluma estilizada apoyada -->
-            <path d="M62 10 L75 2 C77 0 80 4 78 7 L65 24 Z" fill="#e0f2fe"/>
-            <defs>
-              <linearGradient id="inkGradient" x1="50" y1="50" x2="50" y2="90" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#38bdf8"/>
-                <stop offset="100%" stop-color="#1d4ed8"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-
-        <div class="ink-meter">
-          <div class="ink-meter-header">
-            <span class="ink-meter-title">Tinta en la pluma</span>
-            <span class="ink-meter-count">{{ remainingMistakes }} de {{ maxMistakes }} gotas restantes</span>
+      <!-- FILA DE ESTADO INTEGRADA: TINTERO + PISTA -->
+      <div class="status-and-clue-bar">
+        
+        <!-- Indicador de Tinta y Gotas -->
+        <div class="ink-status-box" [class.shake]="mistakesCount > 0 && gameStatus === 'playing'">
+          <div class="ink-bottle-mini">
+            <svg class="inkwell-svg" viewBox="0 0 100 100" fill="none">
+              <ellipse cx="50" cy="85" rx="35" ry="10" fill="#000000" fill-opacity="0.35"/>
+              <path d="M30 35 L70 35 L80 80 C80 86 70 90 50 90 C30 90 20 86 20 80 Z" fill="#0f1f2e" stroke="#2563eb" stroke-width="2.5"/>
+              <path [attr.d]="'M24 78 C24 85 34 88 50 88 C66 88 76 85 76 78 L' + (70 + (maxMistakes - remainingMistakes) * 2) + ' ' + (50 + (maxMistakes - remainingMistakes) * 7) + ' C60 ' + (48 + (maxMistakes - remainingMistakes) * 7) + ' 40 ' + (48 + (maxMistakes - remainingMistakes) * 7) + ' 30 ' + (50 + (maxMistakes - remainingMistakes) * 7) + ' Z'"
+                    fill="url(#inkGradient)"/>
+              <rect x="36" y="24" width="28" height="12" rx="3" fill="#1e3a5f" stroke="#38bdf8" stroke-width="2"/>
+              <rect x="32" y="18" width="36" height="8" rx="2" fill="#2563eb"/>
+              <path d="M62 10 L75 2 C77 0 80 4 78 7 L65 24 Z" fill="#e0f2fe"/>
+              <defs>
+                <linearGradient id="inkGradient" x1="50" y1="50" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#38bdf8"/>
+                  <stop offset="100%" stop-color="#1d4ed8"/>
+                </linearGradient>
+              </defs>
+            </svg>
           </div>
 
-          <!-- Indicador visual de 5 gotas de tinta -->
-          <div class="ink-drops-row">
-            <div *ngFor="let drop of [1,2,3,4,5]; let i = index" class="ink-drop-indicator"
-                 [class.active]="i < remainingMistakes"
-                 [class.depleted]="i >= remainingMistakes">
-              <span class="material-symbols-rounded">water_drop</span>
+          <div class="ink-meter-info">
+            <span class="ink-meter-text">Tinta: <strong>{{ remainingMistakes }}/{{ maxMistakes }}</strong></span>
+            <div class="ink-drops-row">
+              <div *ngFor="let drop of [1,2,3,4,5]; let i = index" class="ink-drop-indicator"
+                   [class.active]="i < remainingMistakes"
+                   [class.depleted]="i >= remainingMistakes">
+                <span class="material-symbols-rounded">water_drop</span>
+              </div>
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- TARJETA DE PISTA -->
-      <section class="clue-card" aria-label="Pista del enigma">
-        <div class="clue-category-pill">
-          <span class="material-symbols-rounded">menu_book</span>
-          <span>{{ currentWord.category }}</span>
-          <span class="clue-author" *ngIf="currentWord.authorOrOrigin"> • {{ currentWord.authorOrOrigin }}</span>
+        <!-- Tarjeta de Pista Compacta -->
+        <div class="clue-compact-card">
+          <div class="clue-top-line">
+            <span class="clue-category-pill" [class.clue-category-pill--library]="currentWord.fromInventory">
+              <span class="material-symbols-rounded">{{ currentWord.fromInventory ? 'local_library' : 'menu_book' }}</span>
+              <span>{{ currentWord.category }}</span>
+            </span>
+            <span class="clue-author" *ngIf="currentWord.authorOrOrigin">• {{ currentWord.authorOrOrigin }}</span>
+          </div>
+          <p class="clue-text" [title]="currentWord.clue">"{{ currentWord.clue }}"</p>
         </div>
-        <p class="clue-text">"{{ currentWord.clue }}"</p>
-      </section>
+
+      </div>
 
       <!-- CASILLAS DE LA PALABRA OCULTA -->
       <section class="secret-word-section" aria-label="Casillas de la palabra">
         <div class="word-groups-container">
-          <div *ngFor="let group of getWordGroups()" class="word-group">
-            <div *ngFor="let item of group" class="letter-tile"
+          <div *ngFor="let group of wordGroups; trackBy: trackByGroupIndex" class="word-group">
+            <div *ngFor="let item of group; trackBy: trackByItemId" class="letter-tile"
                  [class.revealed]="item.isRevealed"
                  [class.missed]="gameStatus === 'lost' && !guessedLetters.has(normalizeText(item.originalChar))">
               <span class="letter-char" *ngIf="item.isRevealed">{{ item.originalChar }}</span>
@@ -157,81 +157,97 @@
         </div>
       </section>
 
-      <!-- ESTADOS DE FIN DE JUEGO: VICTORIA O DERROTA -->
-      <div *ngIf="gameStatus === 'won'" class="endgame-banner endgame-banner--won">
-        <div class="banner-content">
-          <div class="banner-icon-badge">
-            <span class="material-symbols-rounded">check_circle</span>
+      <!-- SECCIÓN INTERACTIVA: TECLADO VIRTUAL O ESTADO DE FIN DE DÍA -->
+      <div class="interactive-zone">
+
+        <!-- MODO EN JUEGO: TECLADO VIRTUAL -->
+        <section class="virtual-keyboard" *ngIf="gameStatus === 'playing'" aria-label="Teclado interactivo">
+          <div *ngFor="let row of keyboardRows" class="keyboard-row">
+            <button *ngFor="let letter of row"
+                    class="key-btn"
+                    [class.key-correct]="getLetterState(letter) === 'correct'"
+                    [class.key-wrong]="getLetterState(letter) === 'wrong'"
+                    [disabled]="guessedLetters.has(letter) || gameStatus !== 'playing'"
+                    (click)="pressLetter(letter)"
+                    [attr.aria-label]="'Seleccionar letra ' + letter">
+              {{ letter }}
+            </button>
           </div>
-          <div class="banner-texts">
-            <h2 class="banner-title">¡Enigma Descifrado con Éxito!</h2>
-            <p class="banner-subtitle">
-              Has revelado <strong>{{ currentWord.word }}</strong>.
-              <span *ngIf="isLoggedIn && isRewardClaimed" class="reward-notice">
-                +{{ rewardAmount }} Gotas de Tinta añadidas a tu saldo.
-              </span>
-              <span *ngIf="!isLoggedIn" class="login-notice">
-                Inicia sesión para guardar tus recompensas de Tinta.
-              </span>
+        </section>
+
+        <!-- MODO COMPLETADO: VICTORIA -->
+        <div *ngIf="gameStatus === 'won'" class="endgame-card endgame-card--won">
+          <div class="endgame-badge">
+            <span class="material-symbols-rounded">verified</span>
+          </div>
+          <div class="endgame-info">
+            <h2 class="endgame-title">¡Enigma del Día Resuelto!</h2>
+            <p class="endgame-subtitle">
+              Descifraste con éxito <strong>{{ currentWord.word }}</strong>.
+              <span *ngIf="isLoggedIn" class="reward-tag">+{{ rewardAmount }} Gotas de Tinta añadidas</span>
             </p>
           </div>
+          <div class="countdown-box">
+            <span class="countdown-label">Próximo enigma en</span>
+            <span class="countdown-value">{{ nextEnigmaCountdown }}</span>
+          </div>
+          <div class="endgame-actions">
+            <a *ngIf="currentWord.bookSlug" [routerLink]="['/reader', currentWord.bookSlug]" class="endgame-btn endgame-btn--primary">
+              <span class="material-symbols-rounded">auto_stories</span>
+              <span>Leer en Biblioteca</span>
+            </a>
+            <a *ngIf="!currentWord.bookSlug" routerLink="/catalog" class="endgame-btn endgame-btn--primary">
+              <span class="material-symbols-rounded">explore</span>
+              <span>Explorar Libros</span>
+            </a>
+          </div>
         </div>
-        <div class="banner-actions">
-          <button class="action-btn action-btn--primary" (click)="startNewGame()">
-            <span class="material-symbols-rounded">arrow_forward</span>
-            <span>Siguiente Enigma</span>
-          </button>
-        </div>
-      </div>
 
-      <div *ngIf="gameStatus === 'lost'" class="endgame-banner endgame-banner--lost">
-        <div class="banner-content">
-          <div class="banner-icon-badge">
+        <!-- MODO COMPLETADO: DERROTA (TINTA AGOTADA) -->
+        <div *ngIf="gameStatus === 'lost'" class="endgame-card endgame-card--lost">
+          <div class="endgame-badge">
             <span class="material-symbols-rounded">history_edu</span>
           </div>
-          <div class="banner-texts">
-            <h2 class="banner-title">Se ha agotado la Tinta del Tintero</h2>
-            <p class="banner-subtitle">
-              La respuesta oculta era: <strong>{{ currentWord.word }}</strong>. ¡No te rindas!
+          <div class="endgame-info">
+            <h2 class="endgame-title">Tinta Agotada por Hoy</h2>
+            <p class="endgame-subtitle">
+              La obra oculta era: <strong>{{ currentWord.word }}</strong>. ¡Mañana tendrás un nuevo enigma para descifrar!
             </p>
           </div>
+          <div class="countdown-box">
+            <span class="countdown-label">Próximo enigma en</span>
+            <span class="countdown-value">{{ nextEnigmaCountdown }}</span>
+          </div>
+          <div class="endgame-actions">
+            <a routerLink="/library" class="endgame-btn endgame-btn--secondary">
+              <span class="material-symbols-rounded">local_library</span>
+              <span>Ir a Mi Biblioteca</span>
+            </a>
+          </div>
         </div>
-        <div class="banner-actions">
-          <button class="action-btn action-btn--secondary" (click)="startNewGame()">
-            <span class="material-symbols-rounded">restart_alt</span>
-            <span>Intentar con otra palabra</span>
-          </button>
-        </div>
+
       </div>
 
-      <!-- TECLADO VIRTUAL EN PANTALLA -->
-      <section class="virtual-keyboard" aria-label="Teclado interactivo">
-        <div *ngFor="let row of keyboardRows" class="keyboard-row">
-          <button *ngFor="let letter of row"
-                  class="key-btn"
-                  [class.key-correct]="getLetterState(letter) === 'correct'"
-                  [class.key-wrong]="getLetterState(letter) === 'wrong'"
-                  [disabled]="guessedLetters.has(letter) || gameStatus !== 'playing'"
-                  (click)="pressLetter(letter)"
-                  [attr.aria-label]="'Seleccionar letra ' + letter">
-            {{ letter }}
-          </button>
-        </div>
-      </section>
-
-      <!-- BARRA INFERIOR DE ACCIONES -->
+      <!-- BARRA INFERIOR DE ACCESOS RÁPIDOS -->
       <footer class="board-footer">
-        <button class="footer-btn glass-btn" (click)="startNewGame()" [title]="'Cambiar de palabra'">
-          <span class="material-symbols-rounded">sync</span>
-          <span>Cambiar Enigma</span>
-        </button>
-
-        <a routerLink="/learn" class="footer-btn glass-btn" [title]="'Ir a La Senda del Lector'">
-          <span class="material-symbols-rounded">school</span>
-          <span>Ir a La Senda</span>
+        <a routerLink="/library" class="footer-btn glass-btn" title="Ir a Mi Biblioteca">
+          <span class="material-symbols-rounded">local_library</span>
+          <span>Mi Biblioteca</span>
         </a>
+
+        <div class="daily-notice-tag">
+          <span class="material-symbols-rounded">lock_clock</span>
+          <span>1 enigma literario por día</span>
+        </div>
       </footer>
 
     </main>
+
+    <!-- Estado de carga -->
+    <div class="enigma-loading glass-card" *ngIf="isLoadingEnigma">
+      <div class="spinner"></div>
+      <p>Consultando tu biblioteca y preparando el enigma del día...</p>
+    </div>
+
   </div>
 </div>
