@@ -1,0 +1,251 @@
+<!-- Maguito en capas (SVG). Cada parte se anima por separado: ver maguito.component.css.
+     Los id llevan un sufijo por instancia para que varios Maguitos convivan en la página. -->
+<svg class="mg-svg" [attr.viewBox]="viewBox" focusable="false">
+  <defs>
+    <radialGradient [attr.id]="ids['body']" cx="0.34" cy="0.3" r="0.85">
+      <stop offset="0" stop-color="#86a3f7"/>
+      <stop offset="0.3" stop-color="#5373e3"/>
+      <stop offset="0.7" stop-color="#3452c6"/>
+      <stop offset="1" stop-color="#1f3190"/>
+    </radialGradient>
+    <linearGradient [attr.id]="ids['body-shade']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0c1446" stop-opacity="0.55"/>
+      <stop offset="0.16" stop-color="#0c1446" stop-opacity="0"/>
+      <stop offset="0.82" stop-color="#0c1446" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0c1446" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['limb']" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5877e4"/>
+      <stop offset="1" stop-color="#2c43b0"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['lid']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f5ed4"/>
+      <stop offset="1" stop-color="#5373e3"/>
+    </linearGradient>
+    <radialGradient [attr.id]="ids['hat']" cx="0.3" cy="0.3" r="0.95">
+      <stop offset="0" stop-color="#9d5fd8"/>
+      <stop offset="0.45" stop-color="#6d2fad"/>
+      <stop offset="1" stop-color="#3c1068"/>
+    </radialGradient>
+    <linearGradient [attr.id]="ids['brim']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8b4bc9"/>
+      <stop offset="0.55" stop-color="#63259c"/>
+      <stop offset="1" stop-color="#441373"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['brim-under']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a0c60"/>
+      <stop offset="1" stop-color="#5b2090"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['band']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6a2aa6"/>
+      <stop offset="1" stop-color="#4c1880"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['cape']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8bf55"/>
+      <stop offset="0.6" stop-color="#e59a2f"/>
+      <stop offset="1" stop-color="#bf7018"/>
+    </linearGradient>
+    <radialGradient [attr.id]="ids['sclera']" cx="0.45" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.7" stop-color="#f1f3fb"/>
+      <stop offset="1" stop-color="#c9d0ea"/>
+    </radialGradient>
+    <radialGradient [attr.id]="ids['iris']" cx="0.5" cy="0.55" r="0.55">
+      <stop offset="0" stop-color="#e5a864"/>
+      <stop offset="0.45" stop-color="#b06a2d"/>
+      <stop offset="0.85" stop-color="#6a3411"/>
+      <stop offset="1" stop-color="#2f1506"/>
+    </radialGradient>
+    <linearGradient [attr.id]="ids['feather']" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#f2a93a"/>
+      <stop offset="0.5" stop-color="#ffd564"/>
+      <stop offset="1" stop-color="#fff4c4"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['nib']" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a5a1a"/>
+      <stop offset="0.5" stop-color="#f3cd6b"/>
+      <stop offset="1" stop-color="#9b6620"/>
+    </linearGradient>
+    <radialGradient [attr.id]="ids['glow']" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe48a" stop-opacity="0.9"/>
+      <stop offset="0.5" stop-color="#ffbf42" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#ffb938" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient [attr.id]="ids['aura']" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#a855f7" stop-opacity="0.34"/>
+      <stop offset="0.55" stop-color="#f5b73b" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#f5b73b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient [attr.id]="ids['hat-glow']" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#b56cff" stop-opacity="0.38"/>
+      <stop offset="0.6" stop-color="#9b4dff" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#9b4dff" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath [attr.id]="ids['eye-l']"><circle cx="182" cy="215" r="26"/></clipPath>
+    <clipPath [attr.id]="ids['eye-r']"><circle cx="252" cy="215" r="26"/></clipPath>
+    <path [attr.id]="ids['star']" d="M0-10 2.9-3.1 10-3.1 4.3 1.2 6.2 8.1 0 4-6.2 8.1-4.3 1.2-10-3.1-2.9-3.1Z"/>
+    <path [attr.id]="ids['spark']" d="M0-10C1-3 3-1 10 0 3 1 1 3 0 10-1 3-3 1-10 0-3-1-1-3 0-10Z"/>
+  </defs>
+
+  <circle class="mg-aura" cx="225" cy="210" r="175" [attr.fill]="refs['aura']"/>
+  <ellipse class="mg-hat-glow" cx="244" cy="112" rx="160" ry="118" [attr.fill]="refs['hat-glow']"/>
+  <ellipse class="mg-shadow" cx="226" cy="362" rx="70" ry="8" fill="#050816" opacity="0.35"/>
+
+  <!-- Estrellas que orbitan (cargando) -->
+  <g class="mg-orbit" aria-hidden="true">
+    <g transform="translate(62 96) scale(0.9)"><use [attr.href]="hrefs['spark']" class="mg-orbit-star s1" fill="#ffe08a"/></g>
+    <g transform="translate(386 150) scale(0.7)"><use [attr.href]="hrefs['spark']" class="mg-orbit-star s2" fill="#d6b4ff"/></g>
+    <g transform="translate(372 310) scale(0.6)"><use [attr.href]="hrefs['spark']" class="mg-orbit-star s3" fill="#ffe08a"/></g>
+    <g transform="translate(78 330) scale(0.55)"><use [attr.href]="hrefs['spark']" class="mg-orbit-star s4" fill="#d6b4ff"/></g>
+  </g>
+
+  <g class="mg-rig">
+    <g class="mg-hop">
+      <g class="mg-breathe">
+
+        <!-- Capa -->
+        <g class="mg-cape">
+          <path d="M160 246C141 262 131 292 127 334C141 334 151 329 162 320Z" [attr.fill]="refs['cape']"/>
+          <path d="M290 240C319 258 342 298 354 340C335 339 314 331 296 320Z" [attr.fill]="refs['cape']"/>
+          <path d="M296 262C313 282 326 306 334 332" stroke="#b86a14" stroke-width="2" fill="none" opacity="0.45" stroke-linecap="round"/>
+        </g>
+
+        <!-- Cuerpo -->
+        <path class="mg-body" [attr.fill]="refs['body']"
+          d="M150 226C150 181 176 158 225 158C274 158 300 181 300 226L300 322C300 349 290 360 272 360C252 360 241 352 237 341C233 334 217 334 213 341C209 352 198 360 178 360C160 360 150 349 150 322Z"/>
+        <path [attr.fill]="refs['body-shade']"
+          d="M150 226C150 181 176 158 225 158C274 158 300 181 300 226L300 322C300 349 290 360 272 360C252 360 241 352 237 341C233 334 217 334 213 341C209 352 198 360 178 360C160 360 150 349 150 322Z"/>
+        <ellipse cx="170" cy="282" rx="9" ry="34" fill="#ffffff" opacity="0.07"/>
+
+        <!-- Cara: se desplaza un poco hacia donde mira (giro de cabeza) -->
+        <g class="mg-face">
+          <g class="mg-eye" [attr.clip-path]="refs['eye-l']">
+            <circle cx="182" cy="215" r="26" [attr.fill]="refs['sclera']"/>
+            <g class="mg-pupil">
+              <circle cx="186" cy="212" r="15.5" [attr.fill]="refs['iris']"/>
+              <circle cx="186" cy="212" r="8" fill="#150b05"/>
+              <circle cx="190.5" cy="207" r="4.2" fill="#ffffff"/>
+              <circle cx="182.5" cy="216.5" r="1.8" fill="#ffffff" opacity="0.8"/>
+            </g>
+            <rect class="mg-lid" x="152" y="187" width="60" height="58" [attr.fill]="refs['lid']"/>
+            <rect class="mg-lid-low" x="152" y="187" width="60" height="58" [attr.fill]="refs['lid']"/>
+          </g>
+          <g class="mg-eye" [attr.clip-path]="refs['eye-r']">
+            <circle cx="252" cy="215" r="26" [attr.fill]="refs['sclera']"/>
+            <g class="mg-pupil">
+              <circle cx="249" cy="212" r="15.5" [attr.fill]="refs['iris']"/>
+              <circle cx="249" cy="212" r="8" fill="#150b05"/>
+              <circle cx="253.5" cy="207" r="4.2" fill="#ffffff"/>
+              <circle cx="245.5" cy="216.5" r="1.8" fill="#ffffff" opacity="0.8"/>
+            </g>
+            <rect class="mg-lid" x="222" y="187" width="60" height="58" [attr.fill]="refs['lid']"/>
+            <rect class="mg-lid-low" x="222" y="187" width="60" height="58" [attr.fill]="refs['lid']"/>
+          </g>
+
+          <!-- Gafas redondas -->
+          <g class="mg-glasses" fill="none" stroke-linecap="round">
+            <path d="M162 201A22 22 0 0 1 180 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
+            <path d="M232 201A22 22 0 0 1 250 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
+            <circle cx="182" cy="215" r="28" stroke="#18215a" stroke-width="5"/>
+            <circle cx="252" cy="215" r="28" stroke="#18215a" stroke-width="5"/>
+            <circle cx="182" cy="215" r="25.6" stroke="#6576c9" stroke-width="1" opacity="0.55"/>
+            <circle cx="252" cy="215" r="25.6" stroke="#6576c9" stroke-width="1" opacity="0.55"/>
+            <path d="M210 214Q217 207 224 214" stroke="#18215a" stroke-width="4.5"/>
+            <path d="M154 212 150 209" stroke="#18215a" stroke-width="4"/>
+            <path d="M280 212 299 205" stroke="#18215a" stroke-width="4"/>
+          </g>
+
+          <!-- Boca: sonrisa / abierta / concentrada -->
+          <path class="mg-mouth mg-mouth-smile" d="M207 244Q216 252 225 244" stroke="#141c50" stroke-width="3.4" stroke-linecap="round" fill="none"/>
+          <g class="mg-mouth mg-mouth-open">
+            <path d="M204 240Q216 264 228 240Q216 246 204 240Z" fill="#3a0f25"/>
+            <path d="M209 251Q216 257 223 251Q216 247 209 251Z" fill="#ec6f86"/>
+          </g>
+          <ellipse class="mg-mouth mg-mouth-o" cx="216" cy="246" rx="4" ry="5" fill="#3a0f25"/>
+        </g>
+
+        <!-- Sombrero de mago -->
+        <g class="mg-hat">
+          <!-- Ala: gruesa y caída a los lados, apoyada sobre las gafas -->
+          <path d="M104 166C150 180 200 188 250 191C292 193 332 202 362 209C360 217 330 217 298 212C258 206 206 200 160 190C132 184 110 176 104 166Z" [attr.fill]="refs['brim-under']"/>
+          <path class="mg-brim" [attr.fill]="refs['brim']"
+            d="M98 160C104 140 152 128 204 126C262 123 334 146 366 186C374 197 372 208 362 210C330 204 290 194 250 191C200 188 150 181 108 170C99 167 96 164 98 160Z"/>
+          <path d="M106 166C150 178 200 185 250 188C292 190 330 200 360 207" stroke="#b27ae8" stroke-width="2.2" fill="none" opacity="0.4" stroke-linecap="round"/>
+          <!-- Copa: ancha, inclinada y con la punta doblada a la derecha -->
+          <path class="mg-cone" [attr.fill]="refs['hat']"
+            d="M166 146C170 106 196 56 236 24C262 4 302 8 324 28C342 44 352 66 348 86C346 94 340 98 335 95C337 81 329 65 315 59C301 55 294 73 298 97C302 117 310 133 320 152Z"/>
+          <path d="M240 30C262 16 292 16 312 32" stroke="#c592f2" stroke-width="3" fill="none" opacity="0.35" stroke-linecap="round"/>
+          <path d="M298 97C302 117 310 133 320 152L304 150C298 132 292 112 294 90C296 76 302 64 312 60C302 68 297 80 298 97Z" fill="#3a0f66" opacity="0.45"/>
+          <path d="M182 128C188 96 206 66 228 44" stroke="#b983ef" stroke-width="4" fill="none" opacity="0.28" stroke-linecap="round"/>
+          <path d="M164 124Q242 150 322 132L322 155Q242 174 166 148Z" [attr.fill]="refs['band']"/>
+          <g class="mg-runes" stroke="#e9c46a" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+            <path d="M184 137V148M184 137L190 140 184 143 190 148"/>
+            <path d="M212 143V155M212 143L218 147M212 149L218 153"/>
+            <path d="M264 145V156M264 145L270 149 264 152"/>
+            <path d="M290 140V151M290 145H296"/>
+          </g>
+          <use [attr.href]="hrefs['star']" transform="translate(238 148) scale(0.45)" fill="#f1c867"/>
+          <use [attr.href]="hrefs['star']" transform="translate(308 142) scale(0.4)" fill="#f1c867"/>
+          <use [attr.href]="hrefs['star']" transform="translate(238 74) scale(1.3)" fill="none" stroke="#f1c867" stroke-width="1.8"/>
+          <use [attr.href]="hrefs['star']" transform="translate(210 104) scale(0.5)" fill="#f1c867"/>
+          <use [attr.href]="hrefs['star']" transform="translate(272 46) scale(0.55)" fill="#f1c867"/>
+          <use [attr.href]="hrefs['star']" transform="translate(280 104) scale(0.45)" fill="#f1c867"/>
+          <path d="M306 66A12 12 0 1 0 306 90A9 9 0 1 1 306 66Z" fill="none" stroke="#f1c867" stroke-width="1.6"/>
+        </g>
+
+        <!-- Brazo derecho (saluda) -->
+        <g class="mg-arm-r">
+          <g class="mg-arm-r-wave">
+            <path d="M294 262C303 279 308 293 310 306" stroke="#e39a2e" stroke-width="21" stroke-linecap="round" fill="none"/>
+            <path d="M298 270C305 283 308 293 309 300" stroke="#f7c15e" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.45"/>
+            <ellipse cx="303" cy="313" rx="5.5" ry="8" transform="rotate(20 303 313)" [attr.fill]="refs['limb']"/>
+            <ellipse cx="312" cy="320" rx="11.5" ry="13.5" [attr.fill]="refs['limb']"/>
+            <path d="M306 311Q312 306 318 311" stroke="#e39a2e" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+          </g>
+        </g>
+
+        <!-- Brazo izquierdo con la pluma-varita -->
+        <g class="mg-arm-l">
+          <g class="mg-quill" transform="translate(139 281) rotate(-40) scale(0.9)">
+            <ellipse class="mg-quill-glow" cx="-9" cy="-104" rx="42" ry="92" [attr.fill]="refs['glow']"/>
+            <path d="M0 3V-160" stroke="#e8b54a" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M0-22C-26-50-35-118-7-178C11-142 21-82 0-22Z" [attr.fill]="refs['feather']"/>
+            <g stroke="#e59b2f" stroke-width="1.2" stroke-linecap="round" opacity="0.65">
+              <path d="M-3-50-19-66M-4-78-23-96M-5-108-22-128M-5-136-16-155M2-60 10-74M2-92 11-108"/>
+            </g>
+            <path d="M-3.8 4H3.8L0.9 30H-0.9Z" [attr.fill]="refs['nib']"/>
+            <path d="M0 10V24" stroke="#5a3a0c" stroke-width="0.9"/>
+            <g transform="translate(-14 -192) scale(0.7)"><use [attr.href]="hrefs['spark']" class="mg-tip-spark k1" fill="#fff1b8"/></g>
+            <g transform="translate(13 -170) scale(0.45)"><use [attr.href]="hrefs['spark']" class="mg-tip-spark k2" fill="#ffd978"/></g>
+            <g transform="translate(-32 -158) scale(0.42)"><use [attr.href]="hrefs['spark']" class="mg-tip-spark k3" fill="#fff1b8"/></g>
+          </g>
+          <path d="M156 262C150 268 146 273 143 278" [attr.stroke]="refs['limb']" stroke-width="18" stroke-linecap="round" fill="none"/>
+          <circle cx="140" cy="282" r="12.5" [attr.fill]="refs['limb']"/>
+          <ellipse cx="146" cy="277" rx="4.5" ry="6" transform="rotate(-30 146 277)" fill="#5a78e6"/>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- Chispas mágicas (cargando) y estallido de estrellas (éxito) -->
+  <g class="mg-particles" aria-hidden="true">
+    <g transform="translate(36 150)">
+      <circle class="mg-p p1" r="3" fill="#ffe08a"/>
+      <circle class="mg-p p2" r="2.2" fill="#fff4c4"/>
+      <circle class="mg-p p3" r="2.6" fill="#d6b4ff"/>
+      <circle class="mg-p p4" r="1.8" fill="#ffe08a"/>
+      <g transform="scale(0.5)"><use [attr.href]="hrefs['spark']" class="mg-p p5" fill="#fff1b8"/></g>
+      <g transform="scale(0.38)"><use [attr.href]="hrefs['spark']" class="mg-p p6" fill="#d6b4ff"/></g>
+    </g>
+  </g>
+  <g class="mg-burst" aria-hidden="true">
+    <g transform="translate(225 200)">
+      <g transform="scale(0.7)"><use [attr.href]="hrefs['star']" class="mg-b b1" fill="#ffd76a"/></g>
+      <g transform="scale(0.55)"><use [attr.href]="hrefs['star']" class="mg-b b2" fill="#d6b4ff"/></g>
+      <g transform="scale(0.6)"><use [attr.href]="hrefs['star']" class="mg-b b3" fill="#ffd76a"/></g>
+      <g transform="scale(0.5)"><use [attr.href]="hrefs['star']" class="mg-b b4" fill="#fff4c4"/></g>
+      <g transform="scale(0.65)"><use [attr.href]="hrefs['star']" class="mg-b b5" fill="#d6b4ff"/></g>
+      <g transform="scale(0.45)"><use [attr.href]="hrefs['star']" class="mg-b b6" fill="#ffd76a"/></g>
+    </g>
+  </g>
+</svg>

@@ -8,12 +8,16 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { BookListComponent } from './catalog/book-list/book-list.component';
 import { ReaderComponent } from './library/reader/reader.component';
+import { ReaderTabsComponent } from './library/reader/reader-tabs/reader-tabs.component';
+import { VocabularyPanelComponent } from './library/reader/vocabulary-panel/vocabulary-panel.component';
+import { MaguitoComponent } from './core/components/maguito/maguito.component';
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouteReuseStrategy, RouterModule } from '@angular/router';
+import { AppRouteReuseStrategy } from './core/app-route-reuse.strategy';
 import { HomeComponent } from './home/home.component';
 import { BookDetailPageComponent } from './catalog/book-detail-page/book-detail-page.component';
 import { TavernComponent } from './library/tavern/tavern.component';
@@ -32,6 +36,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { A11yModule } from '@angular/cdk/a11y';
 import { ProfileComponent } from './users/profile/profile.component';
 import { AuthorListComponent } from './catalog/author-list/author-list.component';
 import { LucideSparkles, LucideFlame, LucideStar, LucideShoppingCart, LucideBookOpen, LucidePenTool, LucideLock, LucideLandmark, LucideShieldCheck, LucideCreditCard, LucideUser, LucideUsers, LucideLogOut, LucideBarChart2, LucideHome, LucideCheck, LucideX, LucideFileText, LucidePlus, LucidePlay, LucidePause, LucideSquare, LucideInfo, LucideSearch, LucideBookmark, LucideHelpCircle, LucideMessageSquare, LucidePackage, LucideCrown, LucideCheckCircle, LucideLibrary, LucideXCircle, LucideRefreshCcw, LucideMessageCircle, LucideClock, LucideVolume2, LucideEye, LucideEyeOff, LucideDownload, LucideLogIn, LucideVolumeX } from '@lucide/angular';
@@ -58,6 +63,9 @@ import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive
     RegisterComponent,
     BookListComponent,
     ReaderComponent,
+    ReaderTabsComponent,
+    VocabularyPanelComponent,
+    MaguitoComponent,
     HomeComponent,
     BookDetailPageComponent,
     TavernComponent,
@@ -103,6 +111,7 @@ import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive
     MatDividerModule,
     MatDialogModule,
     MatSnackBarModule,
+    A11yModule,
     LucideSparkles, LucideFlame, LucideStar, LucideShoppingCart, LucideBookOpen, LucidePenTool, LucideLock, LucideLandmark, LucideShieldCheck, LucideCreditCard, LucideUser, LucideUsers, LucideLogOut, LucideBarChart2, LucideHome, LucideCheck, LucideX, LucideFileText, LucidePlus, LucidePlay, LucidePause, LucideSquare, LucideInfo, LucideSearch, LucideBookmark, LucideHelpCircle, LucideMessageSquare, LucidePackage, LucideCrown, LucideCheckCircle, LucideLibrary, LucideXCircle, LucideRefreshCcw, LucideMessageCircle, LucideClock, LucideVolume2, LucideEye, LucideEyeOff, LucideDownload, LucideLogIn, LucideVolumeX, ServiceWorkerModule.register('ngsw-worker.js', {
   enabled: !isDevMode(),
   // Register the ServiceWorker as soon as the application is stable
@@ -111,7 +120,8 @@ import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive
 })
   ],
   providers: [
-    provideHttpClient(withInterceptors([authInterceptor]))
+    provideHttpClient(withInterceptors([authInterceptor])),
+    { provide: RouteReuseStrategy, useClass: AppRouteReuseStrategy }
   ],
   bootstrap: [AppComponent]
 })

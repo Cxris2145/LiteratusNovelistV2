@@ -1,0 +1,109 @@
+<div class="vp-overlay" (click)="close()">
+  <section class="vp-card" role="dialog" aria-modal="true" aria-labelledby="vp-title" (click)="$event.stopPropagation()">
+
+    <header class="vp-head">
+      <button *ngIf="selected" type="button" class="vp-icon-btn" (click)="backToList()" aria-label="Volver al vocabulario">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </button>
+      <div class="vp-titles">
+        <h2 id="vp-title">{{ selected ? selected.lemma : 'Vocabulario' }}</h2>
+        <p *ngIf="!selected">{{ bookTitle }}</p>
+        <p *ngIf="selected">
+          <span class="vp-dot" [attr.data-type]="selected.type" aria-hidden="true"></span>
+          {{ typeLabel[selected.type] }} · {{ occurrenceTotal }}{{ occurrencesTruncated ? '+' : '' }}
+          {{ occurrenceTotal === 1 ? 'aparición' : 'apariciones' }}
+        </p>
+      </div>
+      <button type="button" class="vp-icon-btn" (click)="close()" aria-label="Cerrar vocabulario">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <!-- ═══ LISTA DE PALABRAS ═══ -->
+    <ng-container *ngIf="!selected">
+      <div class="vp-toolbar" *ngIf="state === 'ready'">
+        <div class="vp-types" role="group" aria-label="Tipos de palabra">
+          <button type="button" *ngFor="let t of types" class="vp-type"
+                  [class.on]="activeTypes.has(t.code)" [attr.aria-pressed]="activeTypes.has(t.code)"
+                  (click)="toggleType(t.code)">
+            <span class="vp-dot" [attr.data-type]="t.code" aria-hidden="true"></span>{{ t.label }}
+          </button>
+        </div>
+        <div class="vp-tools">
+          <label class="vp-search">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
+            <input type="search" placeholder="Buscar palabra" aria-label="Buscar palabra"
+                   [value]="query" (input)="onQuery($any($event.target).value)">
+          </label>
+          <label class="vp-sort">
+            <span>Ordenar por</span>
+            <select [value]="sortMode" (change)="setSort($any($event.target).value)" aria-label="Ordenar por">
+              <option value="freq">Frecuencia</option>
+              <option value="alpha">Orden alfabético</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div class="vp-body">
+        <div class="vp-state" *ngIf="state === 'loading'">
+          <span class="material-symbols-rounded vp-spin" aria-hidden="true">progress_activity</span>
+          Cargando el vocabulario…
+        </div>
+
+        <div class="vp-state" *ngIf="state === 'unavailable'">
+          <span class="material-symbols-rounded" aria-hidden="true">hourglass_empty</span>
+          <strong>El vocabulario de este libro todavía no está listo.</strong>
+          <span>Se prepara una sola vez por libro; vuelve a mirar más adelante.</span>
+        </div>
+
+        <div class="vp-state" *ngIf="state === 'error'">
+          <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+          <strong>No se pudo cargar el vocabulario.</strong>
+          <span>{{ message || 'Revisa tu conexión e inténtalo de nuevo.' }}</span>
+        </div>
+
+        <ng-container *ngIf="state === 'ready'">
+          <p class="vp-state" *ngIf="filtered.length === 0">No hay palabras que coincidan.</p>
+
+          <div class="vp-table" *ngIf="filtered.length > 0">
+            <div class="vp-col" *ngFor="let column of columns; let ci = index" [class.vp-col-second]="ci === 1">
+              <div class="vp-row vp-row-head" aria-hidden="true">
+                <span>Palabra</span><span class="vp-num">Veces</span><span>Tipo</span>
+              </div>
+              <button type="button" class="vp-row" *ngFor="let entry of column; trackBy: trackEntry"
+                      (click)="select(entry)" [attr.aria-label]="entry.lemma + ', ' + typeLabel[entry.type] + ', ' + entry.count + ' veces. Ver dónde aparece'">
+                <span class="vp-lemma">{{ entry.lemma }}</span>
+                <span class="vp-num">{{ entry.count }}</span>
+                <span class="vp-kind"><span class="vp-dot" [attr.data-type]="entry.type" aria-hidden="true"></span>{{ typeLabel[entry.type] }}</span>
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <footer class="vp-foot" *ngIf="state === 'ready' && filtered.length > 0">
+        <button type="button" class="vp-page-btn" (click)="goToPage(page - 1)" [disabled]="page === 0">« Anterior</button>
+        <span class="vp-page">{{ page + 1 }} / {{ pageCount }} <span class="vp-total">· {{ filtered.length }} palabras</span></span>
+        <button type="button" class="vp-page-btn" (click)="goToPage(page + 1)" [disabled]="page >= pageCount - 1">Siguiente »</button>
+      </footer>
+    </ng-container>
+
+    <!-- ═══ DÓNDE APARECE ═══ -->
+    <div class="vp-body vp-occurrences" *ngIf="selected">
+      <p class="vp-hint" *ngIf="selected.forms.length > 1">
+        Formas: <em>{{ selected.forms.slice(0, 12).join(', ') }}{{ selected.forms.length > 12 ? '…' : '' }}</em>
+      </p>
+      <p class="vp-state" *ngIf="occurrenceGroups.length === 0">No se encontró en el texto del libro.</p>
+
+      <section class="vp-group" *ngFor="let group of occurrenceGroups; trackBy: trackGroup">
+        <h3>{{ group.title }}</h3>
+        <button type="button" class="vp-occ" *ngFor="let occ of group.items; trackBy: trackOccurrence" (click)="goTo(occ)">
+          <span class="vp-occ-page">{{ occ.pageLabel }}</span>
+          <span class="vp-occ-text">…{{ occ.before }} <mark>{{ occ.word }}</mark> {{ occ.after }}…</span>
+        </button>
+      </section>
+      <p class="vp-hint" *ngIf="occurrencesTruncated">Se muestran las primeras {{ occurrenceTotal }} apariciones.</p>
+    </div>
+  </section>
+</div>

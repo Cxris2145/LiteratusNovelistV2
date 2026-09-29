@@ -2,8 +2,10 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from catalog.models import Book
-from library.models import UserFavorite
+import json
+
+from catalog.models import Book, Edition
+from library.models import UserBookmark, UserFavorite, UserInventory
 
 
 User = get_user_model()
@@ -73,3 +75,57 @@ class UserFavoriteAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(UserFavorite.objects.filter(user=self.user).exists())
         self.assertTrue(UserFavorite.objects.filter(user=self.other_user).exists())
+
+
+class UserBookmarkAPITests(APITestCase):
+    """Marcadores de página del lector: GET ?inventory=<id>, POST y DELETE."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='reader-one', email='one@example.com', password='x-pass-123')
+        self.other_user = User.objects.create_user(username='reader-two', email='two@example.com', password='x-pass-123')
+        book = Book.objects.create(title='Marianela', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        other_book = Book.objects.create(title='María', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        self.inventory = UserInventory.objects.create(user=self.user, edition=Edition.objects.create(book=book, price=0))
+        self.second_inventory = UserInventory.objects.create(
+            user=self.user, edition=Edition.objects.create(book=other_book, price=0))
+        self.foreign_inventory = UserInventory.objects.create(user=self.other_user, edition=self.inventory.edition)
+        self.url = '/api/v1/library/bookmarks/'
+        self.position = json.dumps({'v': 1, 'cid': 'c1', 'ch': 0, 'w': 120})
+
+    def test_lists_only_the_bookmarks_of_one_book_without_pagination(self):
+        UserBookmark.objects.create(inventory=self.inventory, position_cfi=self.position)
+        UserBookmark.objects.create(inventory=self.second_inventory, position_cfi=self.position)
+        UserBookmark.objects.create(inventory=self.foreign_inventory, position_cfi=self.position)
+        self.client.force_authenticate(self.user)
+
+        response = self.client.get(self.url, {'inventory': str(self.inventory.pk)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual([b['inventory'] for b in response.data], [self.inventory.pk])
+
+        self.assertEqual(len(self.client.get(self.url).data), 2)  # sin filtro: todos los del usuario
+        self.assertEqual(self.client.get(self.url, {'inventory': 'no-es-un-uuid'}).data, [])
+
+    def test_create_and_delete_a_page_bookmark(self):
+        self.client.force_authenticate(self.user)
+        created = self.client.post(self.url, {
+            'inventory': str(self.inventory.pk), 'position_cfi': self.position,
+            'note': 'Se puso el sol...', 'color': '#b3261e',
+        }, format='json')
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+
+        deleted = self.client.delete(f"{self.url}{created.data['id']}/")
+        self.assertEqual(deleted.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(UserBookmark.objects.filter(pk=created.data['id']).exists())
+
+    def test_cannot_add_or_move_bookmarks_into_someone_elses_library(self):
+        self.client.force_authenticate(self.user)
+        created = self.client.post(self.url, {
+            'inventory': str(self.foreign_inventory.pk), 'position_cfi': self.position,
+        }, format='json')
+        self.assertEqual(created.status_code, status.HTTP_403_FORBIDDEN)
+
+        bookmark = UserBookmark.objects.create(inventory=self.inventory, position_cfi=self.position)
+        moved = self.client.patch(f'{self.url}{bookmark.pk}/', {'inventory': str(self.foreign_inventory.pk)}, format='json')
+        self.assertEqual(moved.status_code, status.HTTP_403_FORBIDDEN)
+        bookmark.refresh_from_db()
+        self.assertEqual(bookmark.inventory_id, self.inventory.pk)

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
@@ -17,6 +17,11 @@ import { StatusBar } from '@capacitor/status-bar';
 import { NavigationBar } from '@hugotomazi/capacitor-navigation-bar';
 import { Capacitor } from '@capacitor/core';
 import { ReadingSessionService } from '../../core/services/reading-session.service';
+import { FavoritesService } from '../../core/services/favorites.service';
+import { ReaderTabsService } from '../../core/services/reader-tabs.service';
+import { ReaderBlock, parseChapterBlocks } from '../../core/utils/chapter-parser.util';
+import { loadFontStylesheet, READER_FONTS_HREF } from '../../core/utils/font-loader.util';
+import { VocabularyJump } from './vocabulary-panel/vocabulary-panel.component';
 
 export interface ProgressData {
   percentage: number;
@@ -25,10 +30,24 @@ export interface ProgressData {
   scrollPercent?: number;
 }
 
+/** Marcador de página guardado en el backend (UserBookmark). */
+interface PageBookmark {
+  id: string;
+  chapterId: string;
+  chapterIndex: number;
+  /** Primera palabra visible de la página marcada (`word-N`). */
+  wordIdx: number;
+  snippet: string;
+  createdAt: string;
+  /** "Pág. 34": se calcula al abrir el índice (medir cada vez que Angular revisa la vista sería caro). */
+  pageLabel?: string;
+}
+
 @Component({
   selector: 'app-reader',
   templateUrl: './reader.component.html',
-  styleUrl: './reader.component.css',
+  // La vista libro (tapa, papel, barras, línea del libro, índice con marcadores) va aparte.
+  styleUrls: ['./reader.component.css', './reader-book.component.css'],
   animations: [
     // Panel TOC (derecha) y Panel de Personajes (izquierda)
     trigger('slideFromRight', [
@@ -57,6 +76,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   public wasmVoice = inject(WasmTtsService);
   public nativeTts = inject(NativeTtsService);
   private readingSession = inject(ReadingSessionService);
+  private favorites = inject(FavoritesService);
+  private readerTabs = inject(ReaderTabsService);
 
   // ── LECTURA ──────────────────────────────────────────────────────
 
@@ -73,7 +94,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   progressId: number | null = null;
 
   // ── VISTA DE DOBLE PÁGINA (LIBRO REAL) ─────────────────────────
-  readonly SPINE_GAP: number = 80;
+  // El texto del capítulo corre en columnas CSS (una por página) y cada pliego es un
+  // desplazamiento horizontal de .reading-canvas; el lomo es el column-gap.
   isDoublePageView: boolean = true;
   currentSpreadIndex: number = 0;
   totalSpreads: number = 1;
@@ -81,13 +103,63 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   currentRightPageNum: number = 2;
   isPageFlipping: boolean = false;
   flipDirection: 'next' | 'prev' = 'next';
+  /** Páginas visibles a la vez: 2 en escritorio, 1 en pantallas angostas. */
+  columnsPerSpread: number = 2;
+  /** Pliego a mostrar cuando termine de renderizarse el capítulo (Infinity = el último). */
+  private pendingSpreadIndex: number | null = null;
+  /** Igual, pero como fracción del capítulo (al reanudar el progreso guardado). */
+  private pendingSpreadFraction: number | null = null;
+
+  // ── LÍNEA DEL LIBRO (deslizador de páginas de todo el libro) ─────
+  // Solo el capítulo abierto está maquetado: sus páginas son exactas y las del resto se
+  // estiman por los renglones de sus párrafos (ver recomputeBookPages).
+  bookPageCurrent: number = 1;
+  bookPageTotal: number = 1;
+  sliderPreviewLabel: string = '';
+  /** Página bajo el dedo mientras se arrastra la línea del libro (null si no se arrastra). */
+  private sliderDragPage: number | null = null;
+  private chapterTextLengths: number[] = [];
+  private chapterParagraphLengths: number[][] = [];
+  private chapterPageEstimates: number[] = [];
+  chapterStartPages: number[] = [];
+  /** Páginas exactas de los capítulos ya maquetados con la letra y el ancho actuales. */
+  private measuredChapterPages = new Map<number, number>();
+  private measuredLayoutKey: string = '';
+
+  // ── MARCADORES DE PÁGINA ─────────────────────────────────────────
+  bookmarks: PageBookmark[] = [];
+  currentSpreadBookmark: PageBookmark | null = null;
+  isBookmarkBusy: boolean = false;
+  tocTab: 'chapters' | 'bookmarks' = 'chapters';
+  bookmarkToastText: string = '';
+  private bookmarkToastTimer: any = null;
+
+  toastIcon: string = '🔖';
+  bookmarkResumeLabel: string = 'Reanudando marcador en';
+  private nextJumpLabel: string = '';
+  /** Primera palabra de la página a la vista: al cambiar la letra se vuelve a ella. */
+  private spreadAnchorWord: number = -1;
+  private flipTimer: any = null;
+  private relayoutTimer: any = null;
+  private visibleRefreshRaf: number | null = null;
+
+  // ── VOCABULARIO, FAVORITO Y PESTAÑA ──────────────────────────────
+  isVocabularyOpen: boolean = false;
+  bookCover: string | null = null;
+
+  /** Pestaña que baja línea a línea por el margen mientras habla la narración. */
+  @ViewChild('narrationMarker') narrationMarkerRef?: ElementRef<HTMLElement>;
+  /** Palabra que está leyendo la narración (-1 si no hay narración en curso). */
+  private narrationWordIdx: number = -1;
 
   // ── UX ───────────────────────────────────────────────────────────
   readonly FONT_MIN = 14;
   readonly FONT_MAX = 32;
-  fontSize: number = 18;
+  readonly DEFAULT_FONT_SIZE = 20;
+  fontSize: number = this.DEFAULT_FONT_SIZE;
   currentTheme: 'dark' | 'light' | 'sepia' | 'nocturno' | 'gris' = 'light';
-  currentFontFamily: 'merriweather' | 'garamond' | 'georgia' | 'palatino' | 'outfit' | 'opensans' | 'atkinson' | 'lexend' | 'opendyslexic' | 'cinzel' = 'merriweather';
+  // Por defecto, el aspecto de un libro impreso: Times, justificado y con sangría.
+  currentFontFamily: 'times' | 'literata' | 'merriweather' | 'garamond' | 'georgia' | 'palatino' | 'outfit' | 'opensans' | 'atkinson' | 'lexend' | 'opendyslexic' | 'cinzel' = 'times';
   isTocOpen: boolean = false;
   lastScrollTop: number = 0;
   isToolbarHidden: boolean = false;
@@ -99,10 +171,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── HOJA "Aa" — Ajustes de lectura ───────────────────────────────
   isSettingsOpen: boolean = false;
   settingsTab: 'texto' | 'apariencia' | 'enfoque' = 'texto';
-  lineHeight: number = 1.75;                                   // 1.5 | 1.75 | 2
+  lineHeight: number = 1.4;                                    // 1.4 (libro) | 1.5 | 1.75 | 2
   readingWidth: 'narrow' | 'medium' | 'wide' = 'medium';
-  textAlign: 'left' | 'justify' = 'left';
-  paraSpacing: 'tight' | 'normal' | 'relaxed' = 'normal';      // 1.1em | 1.5em | 2.2em
+  textAlign: 'left' | 'justify' = 'justify';
+  paraSpacing: 'tight' | 'normal' | 'relaxed' = 'tight';       // sin espacio (con sangría) | 1 renglón | 2 renglones
   letterSpacing: number = 0;                                   // em, -0.01 – 0.08
   highContrast: boolean = false;                               // Accesibilidad
   concentrationMode: boolean = false;                          // Enfoque: oculta cromo secundario
@@ -114,7 +186,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   rulerActive: boolean = false;                                 // regla horizontal que sigue la línea activa
   rulerY: number = -1000;                                       // posición vertical (px, relativa al canvas) de la regla; fuera de vista por defecto
   rulerColumn: 'left' | 'right' | 'full' = 'full';              // columna activa para vista de doble página
-  readonly TOTAL_LINES_PER_PAGE: number = 17;                   // exactamente 17 renglones por página en todos los libros
+  /** Renglones por página en vista libro: los que caben en el alto disponible (ver fitLinesToPage). */
+  linesPerPage: number = 17;
   /** Líneas visibles del capítulo separadas por columna para precisión absoluta */
   private rulerLinesLeft: { top: number; bottom: number; center: number }[] = [];
   private rulerLinesRight: { top: number; bottom: number; center: number }[] = [];
@@ -153,6 +226,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   showBackToReadingBtn: boolean = false;
 
   readonly fontOptions: { id: ReaderComponent['currentFontFamily']; label: string; group: string; note?: string }[] = [
+    { id: 'times', label: 'Times', group: 'Clásicas', note: 'Times New Roman, la de los libros impresos' },
+    { id: 'literata', label: 'Literata', group: 'Clásicas', note: 'Diseñada para leer libros en pantalla' },
     { id: 'merriweather', label: 'Merriweather', group: 'Clásicas' },
     { id: 'garamond', label: 'Garamond', group: 'Clásicas' },
     { id: 'georgia', label: 'Georgia', group: 'Clásicas' },
@@ -270,26 +345,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   isUnlocking: boolean = false;          // Spinner durante transacción
 
   // Renderizado de palabras (para highlighting nativo de Angular)
-  parsedBlocks: Array<{
-    tag: string;
-    tokens: Array<any>;
-    long?: boolean;
-    sentences?: Array<{
-      idx: number;
-      tokens: Array<{
-        text: string;
-        isWord: boolean;
-        isImg: boolean;
-        isBr?: boolean;
-        idx: number;
-        src?: string;
-        alt?: string;
-        bionicBold?: string;
-        bionicNormal?: string;
-      }>;
-    }>;
-  }> = [];
-  renderedBlocks: typeof this.parsedBlocks = [];
+  parsedBlocks: ReaderBlock[] = [];
+  renderedBlocks: ReaderBlock[] = [];
   titleTokens: any[] = [];
   private totalWordCount: number = 0;
 
@@ -345,24 +402,36 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   };
 
-  private _loadingLottieContainer?: ElementRef;
-  @ViewChild('loadingLottie') set loadingLottie(el: ElementRef) {
-    if (el && !this._loadingLottieContainer) {
-      this._loadingLottieContainer = el;
-      lottie.loadAnimation({
-        container: el.nativeElement,
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: 'assets/lottie/right left.json'
-      });
-    }
+  // Maguito en la pantalla de carga: la animación la hace <app-maguito> (state="loading");
+  // aquí solo rotan los textos. Tocar a Maguito pasa al siguiente.
+  mascotPoseIndex = 0;
+  private loadingTipInterval?: any;
+
+  readonly mascotPoses = [
+    { tip: 'Trazando las runas y constelaciones del relato...', sub: 'Dibujando magia en el aire' },
+    { tip: 'Revisando los primeros párrafos en el gran libro...', sub: 'Consultando el manuscrito' },
+    { tip: '¡Hola! Maguito te saluda, casi todo está listo...', sub: 'Saludando al lector' },
+    { tip: 'Invocando los arcanos y la sabiduría literaria...', sub: 'Concentrando energía mágica' },
+  ];
+
+  get currentMascotPose() {
+    return this.mascotPoses[this.mascotPoseIndex];
   }
 
-  // Lottie animations removed
+  onMascotClick(): void {
+    this.mascotPoseIndex = (this.mascotPoseIndex + 1) % this.mascotPoses.length;
+    this.cdr.detectChanges();
+  }
 
   ngOnInit() {
+    // Tipografías del panel "Aa": solo se descargan al abrir el lector.
+    loadFontStylesheet(READER_FONTS_HREF);
     this.inventoryId = this.route.snapshot.paramMap.get('id') || '';
+
+    // Mientras carga, los textos de Maguito van cambiando
+    this.loadingTipInterval = setInterval(() => {
+      if (this.isOverlayActive) this.onMascotClick();
+    }, 3800);
 
     // Pedir Wake Lock para mantener la pantalla encendida
     this.requestWakeLock();
@@ -451,26 +520,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Resaltado: escuchar el word index del AudioService (Nativo y Voz Neural)
     this.audioService.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
       if (this.currentAudioMode === 'native' || this.currentAudioMode === 'pro') {
-        this.currentWordIndex = idx;
-        if (idx !== -1) {
-          this.lastAudioWordIndex = idx;
-          this.saveAudioPosition();
-        }
-        this.cdr.detectChanges(); // Forzar re-render sin borrar el DOM
-        if (idx !== -1) this.scrollWordIntoView(idx);
+        this.onNarrationWord(idx);
       }
     });
 
     // Resaltado: escuchar el word index de WasmTTS (Piper)
     this.wasmVoice.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
       if (this.currentAudioMode === 'wasm') {
-        this.currentWordIndex = idx;
-        if (idx !== -1) {
-          this.lastAudioWordIndex = idx;
-          this.saveAudioPosition();
-        }
-        this.cdr.detectChanges();
-        if (idx !== -1) this.scrollWordIntoView(idx);
+        this.onNarrationWord(idx);
       }
     });
 
@@ -534,26 +591,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Resaltado: escuchar el word index del KokoroVoice
     this.kokoroVoice.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
       if (this.currentAudioMode === 'kokoro' && !this.isChatOpen) {
-        this.currentWordIndex = idx;
-        if (idx !== -1) {
-          this.lastAudioWordIndex = idx;
-          this.saveAudioPosition();
-        }
-        this.cdr.detectChanges();
-        if (idx !== -1) this.scrollWordIntoView(idx);
+        this.onNarrationWord(idx);
       }
     });
 
     // Resaltado: escuchar el word index del NativeTts Capacitor
     this.nativeTts.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
       if (this.currentAudioMode === 'native-android' && !this.isChatOpen) {
-        this.currentWordIndex = idx;
-        if (idx !== -1) {
-          this.lastAudioWordIndex = idx;
-          this.saveAudioPosition();
-        }
-        this.cdr.detectChanges();
-        if (idx !== -1) this.scrollWordIntoView(idx);
+        this.onNarrationWord(idx);
       }
     });
 
@@ -571,6 +616,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.currentPage < this.totalPages) {
         setTimeout(() => {
           this.currentPage++;
+          // El capítulo nuevo empieza en su primera página (en vista libro, no en el
+          // pliego donde terminó el anterior: la voz partiría desde la mitad).
+          this.currentSpreadIndex = 0;
+          this.pendingSpreadIndex = null;
+          this.pendingSpreadFraction = null;
           this.parseAndRenderChapter();
           this.saveProgressSubject.next(this.currentPage - 1);
           // Iniciar narración del siguiente capítulo automáticamente
@@ -613,6 +663,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.currentPage = inventory.progress.current_page || 1;
           this.progressId = inventory.progress.id;
           this.bookSlug = inventory.book_slug;
+          this.bookCover = inventory.book_cover || null;
+          this.readerTabs.open({ id: this.inventoryId, title: this.bookTitle, author: this.authorName, cover: this.bookCover });
 
           if (inventory.progress.current_cfi) {
             try {
@@ -690,6 +742,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.stopThinkingAnimation();
     this.stopAutoScroll();
     this.clearSessionInterval();
+    clearInterval(this.loadingTipInterval);
+    clearTimeout(this.flipTimer);
+    clearTimeout(this.relayoutTimer);
+    clearTimeout(this.bookmarkToastTimer);
+    if (this.loadingTipInterval) clearInterval(this.loadingTipInterval);
+    if (this.visibleRefreshRaf !== null) cancelAnimationFrame(this.visibleRefreshRaf);
 
     // Restaurar las barras del OS al salir del lector
     this.toggleImmersiveMode(false);
@@ -726,6 +784,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isFullyRendered) return; // IGNORAR SCROLL HASTA QUE SE TERMINE DE RENDERIZAR TODO PARA NO SOBRESCRIBIR EL PROGRESO
 
     this.invalidateRulerLines(); // barato (sólo vacía el arreglo); el recálculo real es perezoso
+    // En vista libro el lienzo solo se desplaza al cambiar de pliego, y ese progreso ya lo
+    // guarda updateSpreadProgress(): medirlo aquí como scroll vertical lo pisaría con un 0.
+    if (this.isDoublePageView) return;
+    this.updateNarrationMarker();
+    this.scheduleVisibleRefresh();
     const el = event.target;
     const currentScrollTop = el.scrollTop;
 
@@ -891,6 +954,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.currentFontFamily = font;
     localStorage.setItem('reader-font-family', font);
     this.invalidateRulerLines(); // la tipografía cambia el ancho/alto de cada línea
+    this.scheduleRelayout();
   }
 
   setTheme(theme: ReaderComponent['currentTheme']) {
@@ -916,9 +980,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resetFontSize() {
-    this.fontSize = 18;
+    this.fontSize = this.DEFAULT_FONT_SIZE;
     this.applyFontSize();
-    localStorage.setItem('reader-font-size', '18');
+    localStorage.setItem('reader-font-size', String(this.DEFAULT_FONT_SIZE));
   }
 
   setSettingsTab(t: ReaderComponent['settingsTab']) {
@@ -940,11 +1004,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   applyPreset(name: 'clasico' | 'noche' | 'enfoque' | 'accesible') {
     switch (name) {
       case 'clasico':
-        this.setFontFamily('merriweather');
+        // Como un libro impreso: Times, justificado, sangría y sin espacio entre párrafos.
+        this.setFontFamily('times');
         this.setReadingWidth('medium');
-        this.setLineHeight(1.75);
-        this.setParaSpacing('normal');
-        this.setTextAlign('left');
+        this.setLineHeight(1.4);
+        this.setParaSpacing('tight');
+        this.setTextAlign('justify');
         this.setLetterSpacing(0);
         break;
       case 'noche':
@@ -1067,7 +1132,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isDouble) {
         const relativeY = clientY - canvasRect.top;
         const renglonPx = Math.round(this.fontSize * this.lineHeight) || 32;
-        const lineIdx = Math.max(0, Math.min(this.TOTAL_LINES_PER_PAGE - 1, Math.floor((relativeY - 16) / renglonPx)));
+        const lineIdx = Math.max(0, Math.min(this.linesPerPage - 1, Math.floor((relativeY - 16) / renglonPx)));
         this.rulerLineIndex = lineIdx;
         this.setRulerTop(this.rulerLinesLeft[lineIdx].center, activeCol);
         return;
@@ -1119,7 +1184,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       idx += direction;
     }
 
-    if (direction === 1 && idx >= this.TOTAL_LINES_PER_PAGE) {
+    if (direction === 1 && idx >= this.linesPerPage) {
       if (!isRight) {
         isRight = true;
         idx = 0;
@@ -1129,18 +1194,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           isRight = false;
           idx = 0;
         } else {
-          idx = this.TOTAL_LINES_PER_PAGE - 1;
+          idx = this.linesPerPage - 1;
         }
       }
     } else if (direction === -1 && idx < 0) {
       if (isRight) {
         isRight = false;
-        idx = this.TOTAL_LINES_PER_PAGE - 1;
+        idx = this.linesPerPage - 1;
       } else {
         if (this.currentSpreadIndex > 0) {
           this.turnSpreadPrev();
           isRight = true;
-          idx = this.TOTAL_LINES_PER_PAGE - 1;
+          idx = this.linesPerPage - 1;
         } else {
           idx = 0;
         }
@@ -1166,7 +1231,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /** Reconstruye las líneas de texto visibles dentro del lienzo.
-   *  En doble página, cada hoja tiene exactamente TOTAL_LINES_PER_PAGE (17) renglones matemáticos.
+   *  En doble página, cada hoja tiene exactamente linesPerPage renglones matemáticos.
    *  En vista continua, agrupa por centros de palabras para seguir el flujo con precisión. */
   private rebuildRulerLines(canvas: HTMLElement) {
     const isDouble = this.isDoublePageView && window.innerWidth > 820;
@@ -1175,7 +1240,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isDouble) {
       const lines: { top: number; bottom: number; center: number }[] = [];
       const paddingTop = 16;
-      for (let i = 0; i < this.TOTAL_LINES_PER_PAGE; i++) {
+      for (let i = 0; i < this.linesPerPage; i++) {
         const top = paddingTop + i * renglonPx;
         const bottom = top + renglonPx;
         const center = (top + bottom) / 2;
@@ -1463,11 +1528,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     s.setProperty('--reader-brightness', String(this.brightness));
     const hl = this.highlightColorOptions.find(h => h.id === this.highlightColor);
     if (hl) s.setProperty('--reader-highlight-hex', hl.hex);
+    this.scheduleRelayout();
   }
 
   private loadReaderPrefs() {
     const lh = parseFloat(localStorage.getItem('reader-line-height') || '');
-    if ([1.5, 1.75, 2].includes(lh)) this.lineHeight = lh;
+    if ([1.4, 1.5, 1.75, 2].includes(lh)) this.lineHeight = lh;
 
     const w = localStorage.getItem('reader-width');
     if (w === 'narrow' || w === 'medium' || w === 'wide') this.readingWidth = w;
@@ -1570,16 +1636,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── TOC ───────────────────────────────────────────────────────────
   toggleToc() {
     this.isTocOpen = !this.isTocOpen;
-    if (this.isTocOpen) { this.isCharPanelOpen = false; this.isSettingsOpen = false; }
+    if (this.isTocOpen) {
+      this.isCharPanelOpen = false;
+      this.isSettingsOpen = false;
+      this.refreshBookmarkLabels();
+    }
   }
 
   goToChapter(index: number) {
-    this.currentPage = index + 1;
-    this.renderCurrentChapter();
-    this.saveProgressSubject.next(index);
     this.isTocOpen = false;
-    // Recargar avatares con el nuevo capítulo para actualizar desbloqueos
-    this.loadAvatars();
+    this.openChapter(index);
   }
 
   // ── CAPÍTULOS ─────────────────────────────────────────────────────
@@ -1589,8 +1655,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (res: any) => {
         if (res && res.chapters && res.chapters.length > 0) {
           this.chapters = res.chapters;
+          this.chapterTextLengths = res.chapters.map((c: any) => this.textLength(c.content_html));
+          this.chapterParagraphLengths = res.chapters.map((c: any) => this.paragraphLengths(c.content_html));
           this.hasPremiumNarration = res.has_premium_narration;
           this.totalPages = res.chapters.length;
+          this.loadBookmarks();
           if (this.currentPage > this.totalPages) { this.currentPage = this.totalPages; } else if (this.currentPage < 1) { this.currentPage = 1; }
           this.renderCurrentChapter();
           this.loadAvatars(); // Cargar personajes una vez tenemos el inventario
@@ -1648,7 +1717,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!chapter) return;
 
     this.invalidateRulerLines(); // el capítulo nuevo invalida cualquier línea calculada del anterior
-    this.currentWordIndex = this.getSavedAudioWordIndex();
+    // Se marca la palabra donde quedó la narración; sin posición guardada (0) no se resalta nada.
+    const savedAudioWord = this.getSavedAudioWordIndex();
+    this.currentWordIndex = savedAudioWord > 0 ? savedAudioWord : -1;
 
     this.chapterTitle = chapter.title || `Capítulo ${this.currentPage}`;
 
@@ -1662,105 +1733,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     tempDiv.innerHTML = cleanHtml;
     this.currentChapterPlainText = tempDiv.textContent || '';
 
-    // 3. Parsear el HTML limpio preservando la estructura
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(cleanHtml, 'text/html');
-    const blocks: typeof this.parsedBlocks = [];
-    let wordIdx = 0;
-
-    const tokenizeInline = (node: Node): typeof this.parsedBlocks[0]['tokens'] => {
-      const tokens: typeof this.parsedBlocks[0]['tokens'] = [];
-      node.childNodes.forEach(child => {
-        if (child.nodeType === Node.TEXT_NODE) {
-          const parts = (child.textContent || '').split(/(\s+)/);
-          parts.forEach(part => {
-            if (part.trim().length > 0) {
-              const split = this.getBionicSplit(part);
-              tokens.push({
-                text: part,
-                isWord: true,
-                isImg: false,
-                isBr: false,
-                idx: wordIdx++,
-                bionicBold: split.bold,
-                bionicNormal: split.normal
-              });
-            }
-            else if (part.length > 0) {
-              tokens.push({ text: part, isWord: false, isImg: false, isBr: false, idx: -1 });
-            }
-          });
-        } else if (child.nodeType === Node.ELEMENT_NODE) {
-          const el = child as Element;
-          const tag = el.tagName.toLowerCase();
-          if (tag === 'img') {
-            const img = el as HTMLImageElement;
-            tokens.push({
-              text: '', isWord: false, isImg: true, isBr: false, idx: -1,
-              src: img.src || img.getAttribute('src') || '', alt: img.alt || ''
-            });
-          } else if (tag === 'br') {
-            tokens.push({ text: '', isWord: false, isImg: false, isBr: true, idx: -1 });
-          } else {
-            tokens.push(...tokenizeInline(child));
-          }
-        }
-      });
-      return tokens;
-    };
-
-    const blockTags = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'li', 'ul', 'ol', 'section', 'article', 'figure']);
-
-    // Un bloque solo cuenta si tiene contenido real (palabra, imagen o salto de
-    // línea). Sin este filtro, envoltorios vacíos del HTML fuente (p.ej. spans de
-    // seguimiento de MediaWiki/Wikisource como <span about="#mwt1">\n</span>, que
-    // sólo contienen espacio en blanco) generan un bloque "fantasma" con un token
-    // no-palabra: pasa el chequeo `tokens.length > 0` pero no tiene texto visible.
-    // Si ese fantasma cae ANTES del primer encabezado real, se vuelve
-    // `parsedBlocks[0]` y rompe la extracción del título (ver más abajo), dejando
-    // el encabezado original sin extraer y duplicado en pantalla.
-    const hasMeaningfulContent = (tokens: typeof blocks[0]['tokens']) =>
-      tokens.some(t => t.isWord || t.isImg || t.isBr);
-
-    const parseNode = (node: Node) => {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const el = node as Element;
-        const tag = el.tagName.toLowerCase();
-
-        if (tag === 'img') {
-          const img = el as HTMLImageElement;
-          blocks.push({
-            tag: 'img-block',
-            tokens: [{ text: '', isWord: false, isImg: true, idx: -1, src: img.src || img.getAttribute('src') || '', alt: img.alt || '' }]
-          });
-        } else if (blockTags.has(tag)) {
-          let hasBlockChildren = false;
-          for (let i = 0; i < el.children.length; i++) {
-            if (blockTags.has(el.children[i].tagName.toLowerCase())) {
-              hasBlockChildren = true;
-              break;
-            }
-          }
-
-          if (hasBlockChildren) {
-            el.childNodes.forEach(child => parseNode(child));
-          } else {
-            const tokens = tokenizeInline(el);
-            if (hasMeaningfulContent(tokens)) {
-              blocks.push({ tag: tag === 'div' || tag === 'figure' ? 'p' : tag, tokens });
-            }
-          }
-        } else {
-          const tokens = tokenizeInline(node);
-          if (hasMeaningfulContent(tokens)) blocks.push({ tag: 'p', tokens });
-        }
-      } else if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
-        const tokens = tokenizeInline(node);
-        if (hasMeaningfulContent(tokens)) blocks.push({ tag: 'p', tokens });
-      }
-    };
-
-    doc.body.childNodes.forEach(child => parseNode(child));
+    // 3. Parsear el HTML limpio preservando la estructura (ver core/utils/chapter-parser.util.ts)
+    const { blocks, wordCount } = parseChapterBlocks(cleanHtml, word => this.getBionicSplit(word));
 
     // 4. Agrupar tokens por oraciones (punto a punto) para resaltar como ReadEra
     let globalSentenceIdx = 0;
@@ -1856,7 +1830,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    this.totalWordCount = wordIdx;
+    this.totalWordCount = wordCount;
     this.safeChapterHtml = this.sanitizer.bypassSecurityTrustHtml(''); // vaciar el fallback
 
     // Invalidar cualquier renderizado por chunks todavía en curso de un capítulo anterior
@@ -1868,7 +1842,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastScrollTop = 0;
 
     const viewer = document.querySelector('.reading-canvas');
-    if (viewer) viewer.scrollTop = 0;
+    if (viewer) {
+      viewer.scrollTop = 0;
+      viewer.scrollLeft = 0; // vista libro: primer pliego hasta que recalculateSpreads decida
+      // El alto de página se fija antes de pintar: así un salto a una palabra (marcador,
+      // vocabulario) mide su pliego con la misma maqueta que tendrá al terminar.
+      if (this.isDoublePageView) this.fitLinesToPage(viewer as HTMLElement);
+    }
 
     // Iniciar renderizado progresivo para evitar bloquear el hilo principal
     this.renderedBlocks = [];
@@ -1917,6 +1897,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
               if (this.savedProgressData.wordId) {
                 const idx = parseInt(this.savedProgressData.wordId.split('-')[1]);
                 if (!isNaN(idx)) this.scrollWordIntoView(idx, true);
+              } else if (this.savedProgressData.scrollPercent && this.isDoublePageView) {
+                // Vista libro: el progreso es la fracción del capítulo; el pliego se elige
+                // cuando termina de maquetarse (recalculateSpreads).
+                this.pendingSpreadFraction = this.savedProgressData.scrollPercent;
               } else if (this.savedProgressData.scrollPercent && viewer) {
                 viewer.scrollTop = this.savedProgressData.scrollPercent * (viewer.scrollHeight - viewer.clientHeight);
               }
@@ -1937,7 +1921,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         } else {
           // Finalizado el renderizado total
           this.isFullyRendered = true;
-          if (this.isDoublePageView) setTimeout(() => this.recalculateSpreads(), 60);
+          this.onChapterLaidOut();
         }
       } else {
         if (!lottieDismissed) {
@@ -1947,12 +1931,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.cdr.detectChanges();
         }
         this.isFullyRendered = true;
-        if (this.isDoublePageView) setTimeout(() => this.recalculateSpreads(), 60);
+        this.onChapterLaidOut();
       }
     };
 
     this.isFullyRendered = false; // Bloquear guardado de scroll
     renderChunks(0);
+  }
+
+  /** El capítulo terminó de renderizarse: medir pliegos (y otra vez cuando carguen las fuentes). */
+  private onChapterLaidOut() {
+    if (this.isDoublePageView) {
+      setTimeout(() => this.recalculateSpreads(), 60);
+      // Una fuente web que llega tarde cambia el ancho de cada renglón y con él los pliegos.
+      (document as any).fonts?.ready?.then(() => this.scheduleRelayout());
+    } else {
+      this.recomputeBookPages();
+      this.refreshVisiblePage();
+    }
   }
 
   /**
@@ -2035,34 +2031,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /** Primera palabra que se ve ahora (en vista libro, la de la página izquierda). */
   getFirstVisibleWordIndex(): number {
-    // Obtenemos todas las palabras y buscamos la primera que esté visible
-    // en la pantalla (viewport) debajo del header (aprox 80px).
-    const words = document.querySelectorAll('.word');
-    for (let i = 0; i < words.length; i++) {
-      const w = words[i];
-      const rect = w.getBoundingClientRect();
-      // rect.top es relativo a la pantalla del usuario. 
-      // 80px es un margen seguro para saltarse el toolbar superior fijo.
-      if (rect.top >= 80 && rect.top <= window.innerHeight) {
-        const idStr = w.getAttribute('id');
-        if (idStr) {
-          return parseInt(idStr.replace('word-', ''), 10);
-        }
-      }
-    }
-    return -1;
+    const range = this.visibleWordRange();
+    return range ? range[0] : -1;
   }
 
   resumeAudio() {
     this.isAudioPanelOpen = false;
-    const savedWordEl = document.getElementById(`word-${this.lastAudioWordIndex}`);
-    if (savedWordEl) {
-      const savedRect = savedWordEl.getBoundingClientRect();
-
-      // Si el usuario scrolleó y la palabra pausada ya no se ve en pantalla, 
-      // cancelamos el resume normal y forzamos a que inicie desde el scroll actual.
-      if (savedRect.bottom <= 80 || savedRect.top >= window.innerHeight) {
+    if (document.getElementById(`word-${this.lastAudioWordIndex}`)) {
+      // Si el usuario se movió y la palabra pausada ya no se ve (otro pliego o scroll),
+      // cancelamos el resume normal y forzamos a que inicie desde lo que está viendo.
+      if (!this.isWordVisible(this.lastAudioWordIndex)) {
         this.stopAudio(true);
         // Le damos un pequeño tiempo para que el stop haga efecto antes de iniciar
         setTimeout(() => this.playAudio(), 100);
@@ -2090,12 +2070,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // LÓGICA DE CONTINUACIÓN DE SCROLL: 
     // Si la palabra guardada está fuera de pantalla, reanudar desde lo que el usuario está viendo actualmente.
-    const savedWordEl = document.getElementById(`word-${this.lastAudioWordIndex}`);
-    if (savedWordEl) {
-      const savedRect = savedWordEl.getBoundingClientRect();
-
-      // Si el elemento guardado está completamente fuera del viewport (pantalla real)
-      if (savedRect.bottom <= 80 || savedRect.top >= window.innerHeight) {
+    if (document.getElementById(`word-${this.lastAudioWordIndex}`)) {
+      // Si la palabra guardada no se ve ahora (otro pliego o fuera del scroll)
+      if (!this.isWordVisible(this.lastAudioWordIndex)) {
         const visibleIdx = this.getFirstVisibleWordIndex();
         if (visibleIdx !== -1) {
           this.lastAudioWordIndex = visibleIdx;
@@ -2251,6 +2228,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.kokoroVoice.stop();
     this.nativeTts.stop();
     this.currentWordIndex = -1;
+    this.narrationWordIdx = -1;
+    this.updateNarrationMarker();
 
     if (!preventScroll) {
       // Volver al inicio del texto visualmente (solo cuando se detiene manual y definitivamente)
@@ -2357,19 +2336,26 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     const doScrollAndHighlight = (attemptsLeft: number) => {
       const el = document.getElementById(`word-${idx}`);
       if (el) {
-        const rect = el.getBoundingClientRect();
-        const safeTop = window.innerHeight * 0.2;
-        const safeBottom = window.innerHeight * 0.8;
+        if (this.isDoublePageView) {
+          // Vista libro: se pasa al pliego donde está la palabra. scrollIntoView no sirve
+          // aquí: dejaría el lienzo a medio camino entre dos pliegos.
+          this.showSpreadOf(el, !highlightBookmark);
+        } else {
+          const rect = el.getBoundingClientRect();
+          const safeTop = window.innerHeight * 0.2;
+          const safeBottom = window.innerHeight * 0.8;
 
-        // Auto-scroll para centrar la palabra
-        if (rect.top < safeTop || rect.bottom > safeBottom || highlightBookmark) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          // Auto-scroll para centrar la palabra
+          if (rect.top < safeTop || rect.bottom > safeBottom || highlightBookmark) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+          }
         }
+        const rect = el.getBoundingClientRect();
 
         // Seguimiento automático de la regla de lectura durante la narración y clic.
         // Se sincroniza con el renglón y columna activa de la palabra hablada.
         if (this.rulerActive) {
-          const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+          const canvas = this.canvasEl();
           if (canvas) {
             this.rulerCanvasEl = canvas;
             const canvasRect = canvas.getBoundingClientRect();
@@ -2381,7 +2367,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
               if (this.rulerLinesLeft.length === 0) this.rebuildRulerLines(canvas);
               const renglonPx = Math.round(this.fontSize * this.lineHeight) || 32;
               const relativeY = (rect.top + rect.bottom) / 2 - canvasRect.top;
-              const lineIdx = Math.max(0, Math.min(this.TOTAL_LINES_PER_PAGE - 1, Math.floor((relativeY - 16) / renglonPx)));
+              const lineIdx = Math.max(0, Math.min(this.linesPerPage - 1, Math.floor((relativeY - 16) / renglonPx)));
               this.rulerLineIndex = lineIdx;
               const center = this.rulerLinesLeft[lineIdx]?.center ?? (16 + (lineIdx + 0.5) * renglonPx);
               this.setRulerTop(center, activeCol);
@@ -2410,6 +2396,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeBookmarkEl = el;
     el.classList.add('bookmark-word-highlight');
     this.bookmarkResumeWordText = el.textContent?.trim() || '';
+    this.bookmarkResumeLabel = this.nextJumpLabel || 'Reanudando marcador en';
+    this.nextJumpLabel = '';
     this.showBookmarkResumeBadge = true;
     this.cdr.detectChanges();
 
@@ -2436,16 +2424,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /** Distancia (en "capítulos de página") entre la posición de lectura guardada
-   *  (última palabra narrada, o progreso restaurado) y el scroll actual. Si el
+   *  (última palabra narrada, o progreso restaurado) y lo que se ve ahora. Si el
    *  usuario se aleja para explorar el índice/otra parte del capítulo, se ofrece
    *  un botón para volver de un toque. */
   private checkBackToReadingVisibility() {
     const targetIdx = this.lastAudioWordIndex > 0 ? this.lastAudioWordIndex : this.currentWordIndex;
-    if (targetIdx <= 0) { this.showBackToReadingBtn = false; return; }
-    const el = document.getElementById(`word-${targetIdx}`);
-    if (!el) { this.showBackToReadingBtn = false; return; }
-    const rect = el.getBoundingClientRect();
-    this.showBackToReadingBtn = rect.bottom < 0 || rect.top > window.innerHeight;
+    if (targetIdx <= 0 || !document.getElementById(`word-${targetIdx}`)) {
+      this.showBackToReadingBtn = false;
+      return;
+    }
+    this.showBackToReadingBtn = !this.isWordVisible(targetIdx);
   }
 
   scrollBackToReading() {
@@ -2456,66 +2444,44 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private highlightWord(index: number) {
-    // Quitar clase anterior
-    if (this.currentWordIndex !== -1) {
-      const prevWord = document.getElementById(`word-${this.currentWordIndex}`);
-      if (prevWord) prevWord.classList.remove('active-word', 'kokoro-active');
-    }
-
-    // Añadir clase nueva
-    if (index !== -1) {
-      const currentWord = document.getElementById(`word-${index}`);
-      if (currentWord) {
-        if (this.currentAudioMode === 'kokoro') {
-          currentWord.classList.add('kokoro-active');
-        } else {
-          currentWord.classList.add('active-word');
-        }
-
-        if (this.isDoublePageView) {
-          const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
-          if (canvas) {
-            const isMobile = window.innerWidth <= 820;
-            const gap = isMobile ? 0 : this.SPINE_GAP;
-            const spreadStride = (canvas.clientWidth || 1) + gap;
-            const wordOffsetLeft = currentWord.offsetLeft;
-            const targetSpread = Math.floor((wordOffsetLeft + 10) / spreadStride);
-            if (targetSpread !== this.currentSpreadIndex && targetSpread >= 0 && targetSpread < this.totalSpreads) {
-              this.currentSpreadIndex = targetSpread;
-              canvas.scrollTo({ left: this.currentSpreadIndex * spreadStride, behavior: 'instant' as any });
-              this.updateSpreadPages();
-              this.updateSpreadProgress();
-            }
-          }
-        } else {
-          // Scroll suave si la palabra se sale del viewport
-          currentWord.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        }
-      }
-    }
-  }
-
   nextPage() {
     if (this.currentPage < this.totalPages) {
-      this.currentPage++;
-      this.currentSpreadIndex = 0;
-      this.renderCurrentChapter();
-      this.saveProgressSubject.next(this.currentPage - 1);
-      this.loadAvatars();
-      this.updateSpreadPages();
+      this.openChapter(this.currentPage);
     }
   }
 
   previousPage() {
     if (this.currentPage > 1) {
-      this.currentPage--;
-      this.currentSpreadIndex = 0;
-      this.renderCurrentChapter();
-      this.saveProgressSubject.next(this.currentPage - 1);
-      this.loadAvatars();
-      this.updateSpreadPages();
+      this.openChapter(this.currentPage - 2);
     }
+  }
+
+  /**
+   * Abre otro capítulo y, cuando termina de maquetarse, muestra el pliego pedido (por
+   * número o como fracción del capítulo) o la palabra pedida, resaltada unos segundos.
+   */
+  private openChapter(index: number, target: { spread?: number; fraction?: number; wordIdx?: number } = {}) {
+    if (index < 0 || index >= this.chapters.length) return;
+    this.stopNarrationForChapterChange();
+    if (target.wordIdx !== undefined) {
+      this.savedProgressData = { percentage: 0, wordId: `word-${target.wordIdx}`, timestamp: Date.now() };
+    } else if (target.spread !== undefined && this.isDoublePageView) {
+      this.pendingSpreadIndex = target.spread;
+    } else if (target.fraction !== undefined && this.isDoublePageView) {
+      this.pendingSpreadFraction = target.fraction;
+    }
+    this.currentPage = index + 1;
+    this.currentSpreadIndex = 0;
+    this.renderCurrentChapter();
+    this.saveProgressSubject.next(index);
+    this.loadAvatars(); // los personajes se desbloquean por capítulo
+  }
+
+  /** Cambiar de capítulo a mano detiene la narración: seguiría leyendo el capítulo anterior. */
+  private stopNarrationForChapterChange() {
+    const narrating = this.isAudioLoading || this.audioService.isPlaying || this.audioService.isPaused
+      || this.kokoroVoice.isSpeaking$.value || this.nativeTts.isSpeaking$.value;
+    if (narrating) this.stopAudio(true);
   }
 
   // ── MÉTODOS DE VISTA DE LIBRO REAL (DOBLE PÁGINA) ──────────────────
@@ -2528,37 +2494,69 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleDoublePageView(enabled?: boolean) {
+    // Se conserva la página: la primera palabra visible sigue a la vista en el otro modo.
+    const anchor = this.visibleWordRange()?.[0] ?? -1;
     this.isDoublePageView = enabled !== undefined ? enabled : !this.isDoublePageView;
     localStorage.setItem('reader-double-page', String(this.isDoublePageView));
     this.invalidateRulerLines(); // cambia por completo el layout (columnas vs. continuo)
     this.currentSpreadIndex = 0;
+    this.pendingSpreadIndex = null;
+    this.pendingSpreadFraction = null;
     this.cdr.detectChanges();
     setTimeout(() => {
-      this.recalculateSpreads();
-      const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+      const canvas = this.canvasEl();
       if (canvas) {
         canvas.scrollLeft = 0;
         canvas.scrollTop = 0;
       }
+      this.recalculateSpreads();
+      const el = anchor >= 0 ? document.getElementById(`word-${anchor}`) : null;
+      if (el && this.isDoublePageView) {
+        this.showSpreadOf(el, false);
+      } else if (el) {
+        el.scrollIntoView({ block: 'start' });
+      }
+      this.recomputeBookPages();
     }, 100);
   }
 
-  recalculateSpreads() {
+  /**
+   * Mide el libro maquetado: renglones por página, cantidad de pliegos y página actual.
+   * Con `keepAnchor` (cambio de letra o de ventana) vuelve a la página que se leía.
+   */
+  recalculateSpreads(keepAnchor: boolean = false) {
     if (!this.isDoublePageView) return;
-    const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
+    const canvas = this.canvasEl();
     if (!canvas) return;
     this.invalidateRulerLines(); // el layout de columnas puede haber cambiado
-    const isMobile = window.innerWidth <= 820;
-    const gap = isMobile ? 0 : this.SPINE_GAP;
-    const clientWidth = canvas.clientWidth || 1;
-    const scrollWidth = canvas.scrollWidth || clientWidth;
-    const spreadStride = clientWidth + gap;
-    this.totalSpreads = Math.max(1, Math.ceil((scrollWidth + gap - 10) / spreadStride));
-    if (this.currentSpreadIndex >= this.totalSpreads) {
-      this.currentSpreadIndex = Math.max(0, this.totalSpreads - 1);
+    this.fitLinesToPage(canvas);
+
+    const gap = this.columnGap(canvas);
+    const stride = this.spreadStride(canvas);
+    const scrollWidth = canvas.scrollWidth || canvas.clientWidth || 1;
+    this.columnsPerSpread = Math.max(1, parseInt(getComputedStyle(canvas).columnCount, 10) || 1);
+    this.totalSpreads = Math.max(1, Math.ceil((scrollWidth + gap - 10) / stride));
+
+    const anchorEl = keepAnchor && this.spreadAnchorWord >= 0
+      ? document.getElementById(`word-${this.spreadAnchorWord}`)
+      : null;
+    if (anchorEl) {
+      this.currentSpreadIndex = this.spreadOfElement(anchorEl, canvas);
     }
+    if (this.isFullyRendered && this.pendingSpreadFraction !== null) {
+      this.currentSpreadIndex = Math.round(this.pendingSpreadFraction * this.totalSpreads);
+      this.pendingSpreadFraction = null;
+    }
+    if (this.isFullyRendered && this.pendingSpreadIndex !== null) {
+      this.currentSpreadIndex = this.pendingSpreadIndex;
+      this.pendingSpreadIndex = null;
+    }
+    this.currentSpreadIndex = Math.max(0, Math.min(this.currentSpreadIndex, this.totalSpreads - 1));
+    canvas.scrollLeft = this.currentSpreadIndex * stride; // alinea el pliego tras cualquier reflujo
+
     this.updateSpreadPages();
     this.updateSpreadProgress();
+    this.afterSpreadChange();
     this.cdr.detectChanges();
   }
 
@@ -2578,6 +2576,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   updateSpreadPages() {
     this.currentLeftPageNum = (this.currentSpreadIndex * 2) + 1;
     this.currentRightPageNum = (this.currentSpreadIndex * 2) + 2;
+    this.recomputeBookPages();
   }
 
   turnSpreadNext() {
@@ -2585,30 +2584,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.nextPage();
       return;
     }
-    const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
-    if (!canvas) return;
-
     if (this.currentSpreadIndex < this.totalSpreads - 1) {
-      this.invalidateRulerLines(); // el pliego cambia: las líneas visibles ya no son las mismas
-      this.flipDirection = 'next';
-      this.isPageFlipping = true;
-      this.currentSpreadIndex++;
-      this.updateSpreadPages();
-      this.updateSpreadProgress();
-
-      const isMobile = window.innerWidth <= 820;
-      const gap = isMobile ? 0 : this.SPINE_GAP;
-      const spreadStride = canvas.clientWidth + gap;
-
-      // Volteo suave con corte de página sin deslizar texto por el lomo
-      setTimeout(() => {
-        canvas.scrollTo({ left: this.currentSpreadIndex * spreadStride, behavior: 'instant' as any });
-      }, 130);
-
-      setTimeout(() => {
-        this.isPageFlipping = false;
-        this.cdr.detectChanges();
-      }, 360);
+      this.goToSpread(this.currentSpreadIndex + 1, { animate: true, delayScroll: true });
     } else if (this.currentPage < this.totalPages) {
       this.nextPage();
     }
@@ -2619,48 +2596,141 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.previousPage();
       return;
     }
-    const canvas = document.querySelector('.reading-canvas') as HTMLElement | null;
-    if (!canvas) return;
-
     if (this.currentSpreadIndex > 0) {
-      this.invalidateRulerLines(); // el pliego cambia: las líneas visibles ya no son las mismas
-      this.flipDirection = 'prev';
-      this.isPageFlipping = true;
-      this.currentSpreadIndex--;
-      this.updateSpreadPages();
-      this.updateSpreadProgress();
-
-      const isMobile = window.innerWidth <= 820;
-      const gap = isMobile ? 0 : this.SPINE_GAP;
-      const spreadStride = canvas.clientWidth + gap;
-
-      setTimeout(() => {
-        canvas.scrollTo({ left: this.currentSpreadIndex * spreadStride, behavior: 'instant' as any });
-      }, 130);
-
-      setTimeout(() => {
-        this.isPageFlipping = false;
-        this.cdr.detectChanges();
-      }, 360);
+      this.goToSpread(this.currentSpreadIndex - 1, { animate: true, delayScroll: true });
     } else if (this.currentPage > 1) {
-      this.previousPage();
+      // Como en un libro de papel: al retroceder se llega a la ÚLTIMA página del capítulo anterior.
+      this.openChapter(this.currentPage - 2, { spread: Infinity });
     }
+  }
+
+  /**
+   * Muestra un pliego del capítulo abierto. `animate` activa el volteo de página;
+   * `delayScroll` cambia el texto a mitad del volteo (pasar página a mano) en vez de
+   * al instante (la narración o un salto, que necesitan medir la página nueva ya).
+   */
+  private goToSpread(index: number, opts: { animate?: boolean; delayScroll?: boolean } = {}) {
+    const canvas = this.canvasEl();
+    if (!canvas || !this.isDoublePageView) return;
+    const target = Math.max(0, Math.min(index, this.totalSpreads - 1));
+    const direction: 'next' | 'prev' = target >= this.currentSpreadIndex ? 'next' : 'prev';
+    this.invalidateRulerLines(); // el pliego cambia: las líneas visibles ya no son las mismas
+    this.currentSpreadIndex = target;
+    this.updateSpreadPages();
+    this.updateSpreadProgress();
+
+    const applyScroll = () => {
+      canvas.scrollTo({ left: this.currentSpreadIndex * this.spreadStride(canvas), behavior: 'instant' as any });
+      this.afterSpreadChange();
+    };
+    if (!opts.animate) {
+      applyScroll();
+      return;
+    }
+
+    this.flipDirection = direction;
+    this.isPageFlipping = true;
+    if (opts.delayScroll) {
+      setTimeout(applyScroll, 130); // volteo suave: el texto cambia a mitad del giro
+    } else {
+      applyScroll();
+    }
+    clearTimeout(this.flipTimer);
+    this.flipTimer = setTimeout(() => {
+      this.isPageFlipping = false;
+      this.afterSpreadChange();
+      this.cdr.detectChanges();
+    }, 360);
+  }
+
+  /** Muestra el pliego que contiene un elemento (una palabra) del capítulo abierto. */
+  private showSpreadOf(el: HTMLElement, animate: boolean) {
+    const canvas = this.canvasEl();
+    if (!canvas) return;
+    const spread = this.spreadOfElement(el, canvas);
+    if (spread >= this.totalSpreads) this.recalculateSpreads(); // el capítulo seguía cargando
+    if (spread !== this.currentSpreadIndex) {
+      this.goToSpread(spread, { animate, delayScroll: false });
+    }
+  }
+
+  /** Tras cambiar de pliego: marcador de la página, ancla de lectura y pestaña de la voz. */
+  private afterSpreadChange() {
+    this.refreshVisiblePage();
+    this.updateNarrationMarker();
+    this.checkBackToReadingVisibility(); // con el pliego nuevo ya a la vista
+  }
+
+  private canvasEl(): HTMLElement | null {
+    return document.querySelector('.reading-canvas') as HTMLElement | null;
+  }
+
+  /** Separación entre columnas (el lomo en vista libro; 0 con una sola página). */
+  private columnGap(canvas: HTMLElement): number {
+    const gap = parseFloat(getComputedStyle(canvas).columnGap);
+    return isNaN(gap) ? 0 : gap;
+  }
+
+  /** Desplazamiento horizontal entre un pliego y el siguiente. */
+  private spreadStride(canvas: HTMLElement): number {
+    return (canvas.clientWidth || 1) + this.columnGap(canvas);
+  }
+
+  private spreadOfElement(el: HTMLElement, canvas: HTMLElement): number {
+    const r = el.getBoundingClientRect();
+    const x = (r.left + r.right) / 2 - canvas.getBoundingClientRect().left + canvas.scrollLeft;
+    return Math.max(0, Math.floor(x / this.spreadStride(canvas)));
+  }
+
+  /** Página del capítulo (0 = la primera) en la que cae un elemento, en vista libro. */
+  private pageOfElement(el: HTMLElement, canvas: HTMLElement): number {
+    const stride = this.spreadStride(canvas);
+    const r = el.getBoundingClientRect();
+    const x = (r.left + r.right) / 2 - canvas.getBoundingClientRect().left + canvas.scrollLeft;
+    const spread = Math.max(0, Math.floor(x / stride));
+    const column = Math.floor((x - spread * stride) / (stride / this.columnsPerSpread));
+    return spread * this.columnsPerSpread + Math.min(this.columnsPerSpread - 1, Math.max(0, column));
+  }
+
+  /**
+   * Ajusta el alto de la página a los renglones enteros que caben en el espacio
+   * disponible, así ningún renglón queda cortado y la regla de lectura calza.
+   */
+  private fitLinesToPage(canvas: HTMLElement) {
+    const shell = canvas.parentElement;
+    if (!shell) return;
+    const renglon = Math.round(this.fontSize * this.lineHeight) || 32;
+    const lines = Math.max(6, Math.floor((shell.clientHeight - 32) / renglon)); // 32 = padding vertical del lienzo
+    if (lines !== this.linesPerPage || !canvas.style.getPropertyValue('--reader-lines-per-page')) {
+      this.linesPerPage = lines;
+      canvas.style.setProperty('--reader-lines-per-page', String(lines));
+    }
+  }
+
+  /** La tipografía o el espacio cambió: vuelve a medir los pliegos sin perder la página. */
+  private scheduleRelayout() {
+    if (!this.isDoublePageView || !this.isFullyRendered) return;
+    clearTimeout(this.relayoutTimer);
+    this.relayoutTimer = setTimeout(() => this.recalculateSpreads(true), 80);
   }
 
   @HostListener('window:resize')
   onWindowResize() {
     this.invalidateRulerLines(); // el reflow puede desplazar todas las líneas
     if (this.isDoublePageView) {
-      this.recalculateSpreads();
+      this.recalculateSpreads(true);
+    } else {
+      this.updateNarrationMarker();
     }
   }
 
   @HostListener('window:keydown', ['$event'])
   onReaderKeydown(event: KeyboardEvent) {
     const target = event.target as HTMLElement;
-    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
       return;
     }
+    if (this.isVocabularyOpen) return; // el panel de vocabulario tiene su propio teclado
     // Izquierda/derecha cambian de página o capítulo en cualquier modo de vista:
     // turnSpreadNext/turnSpreadPrev ya delegan a nextPage/previousPage cuando no
     // está activa la doble página, así que no hace falta repetir esa rama aquí.
@@ -2680,6 +2750,497 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       event.preventDefault();
       this.moveRulerByLine(-1);
     }
+  }
+
+  // ── PÁGINA VISIBLE ────────────────────────────────────────────────
+
+  /** ¿La palabra se ve ahora? (en vista libro, las de otros pliegos están ocultas a los lados). */
+  private isWordVisible(idx: number): boolean {
+    const el = document.getElementById(`word-${idx}`);
+    const canvas = this.canvasEl();
+    if (!el || !canvas) return false;
+    const r = el.getBoundingClientRect();
+    const cr = canvas.getBoundingClientRect();
+    const cx = (r.left + r.right) / 2;
+    const cy = (r.top + r.bottom) / 2;
+    return cx >= cr.left && cx <= cr.right && cy >= cr.top && cy <= cr.bottom;
+  }
+
+  /**
+   * Primera y última palabra visibles del capítulo. Las palabras van en orden de lectura
+   * (de arriba abajo y de una columna a la siguiente), así que basta una búsqueda binaria.
+   */
+  private visibleWordRange(): [number, number] | null {
+    const canvas = this.canvasEl();
+    if (!canvas || this.totalWordCount === 0) return null;
+    const cr = canvas.getBoundingClientRect();
+    const place = (i: number): number => { // -1 antes de la vista, 0 visible, 1 después
+      const el = document.getElementById(`word-${i}`);
+      if (!el) return 1; // todavía no renderizada: está más adelante
+      const r = el.getBoundingClientRect();
+      if (this.isDoublePageView) {
+        const cx = (r.left + r.right) / 2;
+        return cx < cr.left ? -1 : cx > cr.right ? 1 : 0;
+      }
+      const cy = (r.top + r.bottom) / 2;
+      return cy < cr.top ? -1 : cy > cr.bottom ? 1 : 0;
+    };
+
+    let lo = 0, hi = this.totalWordCount - 1, first = -1;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (place(mid) >= 0) { first = mid; hi = mid - 1; } else { lo = mid + 1; }
+    }
+    if (first < 0 || place(first) !== 0) return null;
+
+    lo = first; hi = this.totalWordCount - 1;
+    let last = first;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (place(mid) <= 0) { last = mid; lo = mid + 1; } else { hi = mid - 1; }
+    }
+    return [first, last];
+  }
+
+  /** Actualiza lo que depende de la página a la vista: su marcador y el ancla de lectura. */
+  private refreshVisiblePage() {
+    const range = this.visibleWordRange();
+    this.spreadAnchorWord = range ? range[0] : -1;
+    const chapterIndex = this.currentPage - 1;
+    this.currentSpreadBookmark = range
+      ? this.bookmarks.find(b => b.chapterIndex === chapterIndex && b.wordIdx >= range[0] && b.wordIdx <= range[1]) || null
+      : null;
+  }
+
+  /** En lectura continua el scroll es constante: se recalcula como mucho una vez por cuadro. */
+  private scheduleVisibleRefresh() {
+    if (this.visibleRefreshRaf !== null) return;
+    this.visibleRefreshRaf = requestAnimationFrame(() => {
+      this.visibleRefreshRaf = null;
+      this.refreshVisiblePage();
+    });
+  }
+
+  // ── LÍNEA DEL LIBRO ───────────────────────────────────────────────
+
+  private textLength(html: string): number {
+    return (html || '').replace(/<[^>]*>/g, ' ').replace(/&[#\w]+;/g, 'x').replace(/\s+/g, ' ').trim().length;
+  }
+
+  /** Largo en caracteres de cada párrafo (o verso) de un capítulo. */
+  private paragraphLengths(html: string): number[] {
+    return (html || '')
+      .split(/<\/(?:p|div|h[1-6]|blockquote|li)\s*>|<br\s*\/?>/i)
+      .map(part => this.textLength(part))
+      .filter(len => len > 0);
+  }
+
+  /**
+   * Renglones que ocupa un capítulo si caben `charsPerLine` caracteres por renglón.
+   * Se cuenta párrafo a párrafo: un diálogo corto ocupa un renglón entero, así que los
+   * capítulos con mucho diálogo tienen más páginas que las que diría su largo total.
+   */
+  private chapterLines(index: number, charsPerLine: number): number {
+    const gap = this.paraSpacing === 'relaxed' ? 2 : this.paraSpacing === 'normal' ? 1 : 0;
+    let lines = 4; // el título del capítulo, con su aire
+    for (const len of this.chapterParagraphLengths[index] || []) lines += Math.ceil(len / charsPerLine) + gap;
+    return lines;
+  }
+
+  /**
+   * Caracteres por renglón que reproducen las páginas de los capítulos ya maquetados
+   * (búsqueda binaria: a más caracteres por renglón, menos renglones). Sin capítulos
+   * medidos, se deduce del ancho de la columna y del tamaño de letra.
+   */
+  private calibrateCharsPerLine(perSpread: number): number {
+    const measured = [...this.measuredChapterPages.entries()].filter(([, pages]) => pages >= 3 * perSpread);
+    if (!measured.length) {
+      const canvas = this.canvasEl();
+      const columnWidth = canvas && this.isDoublePageView
+        ? (canvas.clientWidth - this.columnGap(canvas) * (perSpread - 1)) / perSpread
+        : 0;
+      return columnWidth ? Math.max(12, columnWidth / (this.fontSize * 0.46)) : 60;
+    }
+    // La última hoja de cada capítulo suele ir a medio llenar: cuenta como media.
+    const target = measured.reduce((sum, [, pages]) => sum + (pages - perSpread / 2) * this.linesPerPage, 0);
+    let lo = 8, hi = 400;
+    for (let step = 0; step < 24; step++) {
+      const mid = (lo + hi) / 2;
+      const lines = measured.reduce((sum, [index]) => sum + this.chapterLines(index, mid), 0);
+      if (lines > target) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  /**
+   * Numera las páginas de todo el libro: las de los capítulos ya maquetados son exactas;
+   * las de los demás se estiman por sus renglones (cada capítulo empieza en página impar).
+   */
+  private recomputeBookPages() {
+    const chapterCount = this.chapterParagraphLengths.length;
+    if (!chapterCount) return;
+    const cur = Math.min(Math.max(this.currentPage - 1, 0), chapterCount - 1);
+    const perSpread = this.isDoublePageView ? this.columnsPerSpread : 1;
+
+    // Otra letra, otro tamaño u otro ancho de página invalidan lo medido.
+    const layoutKey = this.bookLayoutKey();
+    if (layoutKey !== this.measuredLayoutKey) {
+      this.measuredLayoutKey = layoutKey;
+      this.measuredChapterPages.clear();
+    }
+    if (this.isDoublePageView && this.isFullyRendered) {
+      this.measuredChapterPages.set(cur, this.totalSpreads * perSpread);
+    }
+    const charsPerLine = this.calibrateCharsPerLine(perSpread);
+
+    let start = 1;
+    const starts: number[] = [];
+    this.chapterPageEstimates = this.chapterParagraphLengths.map((_, i) => {
+      const measured = this.measuredChapterPages.get(i);
+      const pages = measured !== undefined
+        ? measured
+        : Math.ceil(Math.max(1, Math.ceil(this.chapterLines(i, charsPerLine) / this.linesPerPage)) / perSpread) * perSpread;
+      starts.push(start);
+      start += pages;
+      return pages;
+    });
+    this.chapterStartPages = starts;
+    this.bookPageTotal = Math.max(1, start - 1);
+    this.bookPageCurrent = Math.min(this.bookPageTotal, starts[cur] + this.currentSpreadIndex * perSpread);
+  }
+
+  private bookLayoutKey(): string {
+    const canvas = this.canvasEl();
+    return [this.isDoublePageView, this.columnsPerSpread, this.linesPerPage, canvas?.clientWidth ?? 0,
+      this.fontSize, this.currentFontFamily, this.lineHeight, this.letterSpacing, this.wordSpacing,
+      this.textAlign, this.paraSpacing, this.bionicReadingActive, this.showSceneImages].join('|');
+  }
+
+  private chapterIndexForBookPage(page: number): number {
+    let index = 0;
+    for (let i = 0; i < this.chapterStartPages.length && this.chapterStartPages[i] <= page; i++) index = i;
+    return index;
+  }
+
+  chapterLabel(index: number): string {
+    return this.chapters[index]?.title || `Capítulo ${index + 1}`;
+  }
+
+  /** Parte ya leída de la línea del libro (sigue al dedo mientras se arrastra). */
+  get sliderFillPercent(): number {
+    const page = this.sliderDragPage ?? this.bookPageCurrent;
+    return this.bookPageTotal > 1 ? ((page - 1) / (this.bookPageTotal - 1)) * 100 : 100;
+  }
+
+  /** Mientras se arrastra la línea del libro: muestra a qué página y capítulo se iría. */
+  onBookSliderInput(value: string | number) {
+    const page = Math.round(Number(value));
+    this.sliderDragPage = page;
+    this.sliderPreviewLabel = `Pág. ${page} · ${this.chapterLabel(this.chapterIndexForBookPage(page))}`;
+  }
+
+  onBookSliderChange(value: string | number) {
+    this.sliderDragPage = null;
+    this.sliderPreviewLabel = '';
+    this.goToBookPage(Math.round(Number(value)));
+  }
+
+  goToBookPage(page: number) {
+    if (!this.chapterStartPages.length) return;
+    const index = this.chapterIndexForBookPage(page);
+    const perSpread = this.isDoublePageView ? this.columnsPerSpread : 1;
+    const spread = Math.max(0, Math.floor((page - this.chapterStartPages[index]) / perSpread));
+    if (index === this.currentPage - 1) {
+      this.goToSpread(spread, { animate: true, delayScroll: true });
+    } else {
+      // Las páginas de ese capítulo son estimadas: se va a la misma fracción del capítulo.
+      const estimatedSpreads = Math.max(1, (this.chapterPageEstimates[index] || perSpread) / perSpread);
+      this.openChapter(index, { fraction: Math.min(1, spread / estimatedSpreads) });
+    }
+  }
+
+  /** Página del libro (exacta en el capítulo abierto, estimada en el resto) de una palabra. */
+  bookPageOfWord(chapterIndex: number, wordIdx: number, chapterWordCount?: number): number {
+    if (!this.chapterStartPages.length) this.recomputeBookPages();
+    const start = this.chapterStartPages[chapterIndex] ?? 1;
+    const pages = this.chapterPageEstimates[chapterIndex] ?? 1;
+    if (chapterIndex === this.currentPage - 1 && this.isDoublePageView) {
+      const el = document.getElementById(`word-${wordIdx}`);
+      const canvas = this.canvasEl();
+      if (el && canvas) return start + this.pageOfElement(el, canvas);
+    }
+    const words = chapterWordCount || Math.max(1, Math.round((this.chapterTextLengths[chapterIndex] || 0) / 5.8));
+    return start + Math.min(pages - 1, Math.floor((wordIdx / Math.max(1, words)) * pages));
+  }
+
+  /** Para el panel de vocabulario (función flecha: conserva `this`). */
+  readonly vocabularyPageLabel = (chapterIndex: number, wordIdx: number, wordCount: number): string =>
+    `pág. ${this.bookPageOfWord(chapterIndex, wordIdx, wordCount)}`;
+
+  /** Lleva a una palabra de cualquier capítulo y la resalta unos segundos. */
+  private jumpToWord(chapterIndex: number, wordIdx: number, label: string) {
+    this.nextJumpLabel = label;
+    if (chapterIndex === this.currentPage - 1) {
+      this.scrollWordIntoView(wordIdx, true);
+    } else {
+      this.openChapter(chapterIndex, { wordIdx });
+    }
+  }
+
+  // ── MARCADORES DE PÁGINA ──────────────────────────────────────────
+
+  private loadBookmarks() {
+    if (!this.inventoryId) return;
+    this.api.get<any[]>(`library/bookmarks/?inventory=${this.inventoryId}`).subscribe({
+      next: rows => {
+        this.bookmarks = (Array.isArray(rows) ? rows : [])
+          .map(row => this.toPageBookmark(row))
+          .filter((b): b is PageBookmark => b !== null)
+          .sort((a, b) => a.chapterIndex - b.chapterIndex || a.wordIdx - b.wordIdx);
+        this.refreshVisiblePage();
+        this.refreshBookmarkLabels();
+      },
+      error: err => console.warn('No se pudieron cargar los marcadores', err),
+    });
+  }
+
+  /** Los marcadores de página guardan su posición como {v: 1, cid: capítulo, ch: índice, w: palabra}. */
+  private toPageBookmark(row: any): PageBookmark | null {
+    try {
+      const position = JSON.parse(row?.position_cfi || '');
+      if (position?.v !== 1 || typeof position.w !== 'number') return null;
+      let chapterIndex = this.chapters.findIndex(c => String(c.id) === String(position.cid));
+      if (chapterIndex < 0 && typeof position.ch === 'number') chapterIndex = position.ch;
+      if (chapterIndex < 0 || chapterIndex >= this.chapters.length) return null;
+      return {
+        id: String(row.id),
+        chapterId: String(position.cid || ''),
+        chapterIndex,
+        wordIdx: position.w,
+        snippet: row.note || '',
+        createdAt: row.created_at || '',
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  /** Botón marcador del libro: marca la página a la vista o quita su marcador. */
+  toggleBookmarkHere() {
+    if (this.isBookmarkBusy || !this.inventoryId) return;
+    this.refreshVisiblePage();
+    const existing = this.currentSpreadBookmark;
+    if (existing) {
+      this.removeBookmark(existing);
+      return;
+    }
+
+    const range = this.visibleWordRange();
+    const chapter = this.chapters[this.currentPage - 1];
+    if (!range || !chapter) return;
+    const payload = {
+      inventory: this.inventoryId,
+      position_cfi: JSON.stringify({ v: 1, cid: chapter.id, ch: this.currentPage - 1, w: range[0] }),
+      note: this.snippetFrom(range[0]),
+      color: '#b3261e',
+    };
+    const page = this.bookPageCurrent;
+    this.isBookmarkBusy = true;
+    this.api.post<any>('library/bookmarks/', payload).subscribe({
+      next: row => {
+        const bookmark = this.toPageBookmark(row);
+        if (bookmark) {
+          this.bookmarks = [...this.bookmarks, bookmark]
+            .sort((a, b) => a.chapterIndex - b.chapterIndex || a.wordIdx - b.wordIdx);
+        }
+        this.isBookmarkBusy = false;
+        this.refreshVisiblePage();
+        this.refreshBookmarkLabels();
+        this.flashToast('🔖', this.isDoublePageView ? `Página ${page} marcada` : 'Marcador guardado');
+      },
+      error: () => {
+        this.isBookmarkBusy = false;
+        this.flashToast('⚠️', 'No se pudo guardar el marcador');
+      },
+    });
+  }
+
+  removeBookmark(bookmark: PageBookmark, event?: Event) {
+    event?.stopPropagation();
+    if (this.isBookmarkBusy) return;
+    this.isBookmarkBusy = true;
+    this.api.delete(`library/bookmarks/${bookmark.id}/`).subscribe({
+      next: () => {
+        this.bookmarks = this.bookmarks.filter(b => b.id !== bookmark.id);
+        this.isBookmarkBusy = false;
+        this.refreshVisiblePage();
+        this.flashToast('🔖', 'Marcador quitado');
+      },
+      error: () => {
+        this.isBookmarkBusy = false;
+        this.flashToast('⚠️', 'No se pudo quitar el marcador');
+      },
+    });
+  }
+
+  goToBookmark(bookmark: PageBookmark) {
+    this.isTocOpen = false;
+    this.jumpToWord(bookmark.chapterIndex, bookmark.wordIdx, 'Marcador en');
+  }
+
+  bookmarkPageLabel(bookmark: PageBookmark): string {
+    return `Pág. ${this.bookPageOfWord(bookmark.chapterIndex, bookmark.wordIdx)}`;
+  }
+
+  private refreshBookmarkLabels() {
+    this.bookmarks.forEach(bookmark => bookmark.pageLabel = this.bookmarkPageLabel(bookmark));
+  }
+
+  trackBookmark = (_: number, bookmark: PageBookmark) => bookmark.id;
+
+  /** Las primeras palabras de la página, para reconocer el marcador en la lista. */
+  private snippetFrom(wordIdx: number, count: number = 16): string {
+    const words: string[] = [];
+    for (let i = wordIdx; i < wordIdx + count; i++) {
+      const el = document.getElementById(`word-${i}`);
+      if (!el) break;
+      words.push((el.textContent || '').trim());
+    }
+    return words.join(' ').slice(0, 160);
+  }
+
+  private flashToast(icon: string, text: string) {
+    this.toastIcon = icon;
+    this.bookmarkToastText = text;
+    this.showBookmarkToast = true;
+    clearTimeout(this.bookmarkToastTimer);
+    this.bookmarkToastTimer = setTimeout(() => this.showBookmarkToast = false, 2500);
+  }
+
+  // ── NARRACIÓN DESDE EL LIBRO ──────────────────────────────────────
+
+  get isNarrationPlaying(): boolean {
+    if (this.currentAudioMode === 'kokoro') return this.kokoroVoice.isSpeaking$.value;
+    if (this.currentAudioMode === 'native-android') return this.nativeTts.isSpeaking$.value;
+    return this.audioService.isPlaying;
+  }
+
+  /** Botón de la barra del libro: reproduce, pausa o reanuda sin abrir el panel de voces. */
+  toggleNarration() {
+    if (this.isAudioLoading) return;
+    if (this.isNarrationPlaying) {
+      if (this.currentAudioMode === 'kokoro') this.kokoroVoice.stop();
+      else if (this.currentAudioMode === 'native-android') this.nativeTts.stop();
+      else this.audioService.pause();
+    } else if (this.currentAudioMode !== 'kokoro' && this.currentAudioMode !== 'native-android' && this.audioService.isPaused) {
+      this.resumeAudio();
+    } else {
+      this.playAudio();
+    }
+  }
+
+  /** Narra desde la primera palabra de la página que se está viendo. */
+  narrateFromHere() {
+    const range = this.visibleWordRange();
+    if (range) {
+      this.lastAudioWordIndex = range[0];
+      this.currentWordIndex = range[0];
+      this.saveAudioPosition();
+    }
+    this.stopAudio(true);
+    setTimeout(() => this.playAudio(), 120);
+  }
+
+  /** Palabra que está leyendo la narración (cualquier motor). -1 = se detuvo. */
+  private onNarrationWord(idx: number) {
+    this.currentWordIndex = idx;
+    if (idx !== -1) {
+      this.lastAudioWordIndex = idx;
+      this.saveAudioPosition();
+    }
+    this.cdr.detectChanges(); // Forzar re-render sin borrar el DOM
+    if (idx !== -1) this.scrollWordIntoView(idx);
+    this.narrationWordIdx = idx;
+    this.updateNarrationMarker();
+  }
+
+  /**
+   * Pestaña del margen que acompaña a la voz: se ubica a la altura del renglón que se
+   * está leyendo, en el margen exterior de su página, y baja renglón a renglón.
+   */
+  private updateNarrationMarker() {
+    const marker = this.narrationMarkerRef?.nativeElement;
+    if (!marker) return;
+    const host = marker.offsetParent as HTMLElement | null;
+    const canvas = this.canvasEl();
+    const el = this.narrationWordIdx >= 0 ? document.getElementById(`word-${this.narrationWordIdx}`) : null;
+    if (!el || !host || !canvas) {
+      marker.classList.remove('is-visible');
+      return;
+    }
+
+    const hr = host.getBoundingClientRect();
+    const cr = canvas.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const cx = (r.left + r.right) / 2;
+    const cy = (r.top + r.bottom) / 2;
+    if (cx < cr.left || cx > cr.right || cy < cr.top || cy > cr.bottom) {
+      marker.classList.remove('is-visible'); // la palabra quedó fuera de la vista
+      return;
+    }
+
+    let side: 'left' | 'right' = 'left';
+    let x: number;
+    if (this.isDoublePageView && this.columnsPerSpread > 1) {
+      side = cx > cr.left + cr.width / 2 ? 'right' : 'left';
+      x = side === 'left' ? (cr.left - hr.left) / 2 : (cr.right - hr.left) + (hr.right - cr.right) / 2;
+    } else if (this.isDoublePageView) {
+      x = (cr.left - hr.left) / 2;
+    } else {
+      const block = (el.closest('p, h1, h2, h3, blockquote') as HTMLElement | null) || el;
+      x = Math.max(14, block.getBoundingClientRect().left - hr.left - 22);
+    }
+    const y = cy - hr.top;
+
+    if (marker.dataset['side'] !== side && marker.classList.contains('is-visible')) {
+      // Al pasar a la otra página no cruza el lomo en diagonal: aparece directamente allá.
+      marker.style.transition = 'none';
+      marker.style.left = `${x}px`;
+      marker.style.top = `${y}px`;
+      void marker.offsetWidth;
+      marker.style.transition = '';
+    }
+    marker.dataset['side'] = side;
+    marker.style.left = `${x}px`;
+    marker.style.top = `${y}px`;
+    marker.classList.add('is-visible');
+  }
+
+  // ── FAVORITO Y VOCABULARIO ────────────────────────────────────────
+
+  get isFavoriteBook(): boolean {
+    return !!this._bookIdForSession && this.favorites.isFavorite(this._bookIdForSession, this.bookSlug);
+  }
+
+  toggleFavorite() {
+    const bookId = this._bookIdForSession;
+    if (!bookId) return;
+    const favorite = !this.isFavoriteBook;
+    this.favorites.setFavorite(bookId, favorite).subscribe({
+      next: () => this.flashToast(favorite ? '⭐' : '☆', favorite ? 'Agregado a favoritos' : 'Quitado de favoritos'),
+      error: () => this.flashToast('⚠️', 'No se pudo actualizar tus favoritos'),
+    });
+  }
+
+  openVocabulary() {
+    this.isVocabularyOpen = true;
+    this.isTocOpen = false;
+    this.isSettingsOpen = false;
+  }
+
+  onVocabularyJump(target: VocabularyJump) {
+    this.isVocabularyOpen = false;
+    this.jumpToWord(target.chapterIndex, target.wordIdx, 'Palabra en');
   }
 
   // ── PERSONAJES ────────────────────────────────────────────────────

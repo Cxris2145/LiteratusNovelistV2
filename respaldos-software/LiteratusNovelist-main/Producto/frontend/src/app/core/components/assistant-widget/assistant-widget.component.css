@@ -47,16 +47,87 @@
   pointer-events: none;
 }
 
+/* Anillo orbital con estrella mágica dorada */
+.lit-bubble-orbit-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px dashed rgba(251, 191, 36, 0.35);
+  pointer-events: none;
+  animation: lit-orbit 8s linear infinite;
+}
+
+.lit-orbit-star {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: #fbbf24;
+  text-shadow: 0 0 6px rgba(251, 191, 36, 0.9);
+}
+
 .lit-bubble-avatar {
   position: relative;
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+}
+
+/* Maguito (componente animado por partes) encuadrado en busto */
+.lit-mascot-avatar {
+  width: 50px;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lit-bubble:hover .lit-mascot-avatar {
+    transform: scale(1.06);
+  }
+}
+
+/* Tooltip emergente al posar el cursor sobre la mascota */
+.lit-bubble-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+  background: rgba(15, 23, 42, 0.92);
+  color: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font: 600 12px var(--font-ui, sans-serif);
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.lit-bubble:hover .lit-bubble-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.lit-header-avatar-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.lit-header-mascot {
+  width: 38px;
+}
+
+@keyframes lit-orbit {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .lit-bubble-ping {

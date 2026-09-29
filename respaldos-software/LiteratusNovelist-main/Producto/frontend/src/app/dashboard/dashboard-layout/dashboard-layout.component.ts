@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ApiService } from '../../core/services/api.service';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { loadFontStylesheet, OUTLINED_ICONS_HREF } from '../../core/utils/font-loader.util';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -58,6 +59,7 @@ export class DashboardLayoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    loadFontStylesheet(OUTLINED_ICONS_HREF);
     this.updateTitleFromUrl(this.router.url);
 
     this.router.events.pipe(

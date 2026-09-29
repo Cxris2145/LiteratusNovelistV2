@@ -2,19 +2,22 @@
 library/views.py — Vistas para la Biblioteca del Usuario.
 """
 import re
+import uuid
 
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.files.storage import default_storage
-from django.http import FileResponse, Http404, StreamingHttpResponse
+from django.http import FileResponse, Http404, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from core.pagination import StandardResultsSetPagination
 from catalog import narration
-from catalog.models import Chapter, ChapterAudio
+from catalog import vocabulary as book_vocabulary
+from catalog.models import BookVocabulary, Chapter, ChapterAudio
 
 from .models import (
     UserFavorite, UserInventory, ReadingProgress, UserBookmark,
@@ -194,6 +197,33 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         }.get(result.reason, status.HTTP_429_TOO_MANY_REQUESTS)
         return Response(payload, status=unavailable_status)
 
+    @action(detail=True, methods=['GET'], url_path='vocabulary')
+    def book_vocabulary(self, request, pk=None):
+        """
+        GET /api/v1/library/inventory/{id}/vocabulary/
+        Vocabulario del libro (lemas con tipo, frecuencia y formas), calculado fuera de línea
+        con `manage.py build_vocabulary`.
+          200 → {status: 'ready', entries: [[lema, tipo, frecuencia, [formas]], ...], ...}
+          404 → todavía no se generó para este libro
+        Se envía tal como está guardado (gzip) cuando el navegador lo acepta.
+        """
+        book = self.get_object().edition.book
+        vocabulary = BookVocabulary.objects.filter(book=book).first()
+        if vocabulary is None:
+            return Response(
+                {'status': 'unavailable', 'message': 'El vocabulario de este libro todavía no está disponible.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if 'gzip' in request.META.get('HTTP_ACCEPT_ENCODING', ''):
+            response = HttpResponse(book_vocabulary.compressed_document(vocabulary), content_type='application/json')
+            response['Content-Encoding'] = 'gzip'
+        else:
+            response = HttpResponse(book_vocabulary.document(vocabulary), content_type='application/json')
+        response['Vary'] = 'Accept-Encoding'
+        response['Cache-Control'] = 'private, max-age=3600'
+        return response
+
     @action(detail=False, methods=['GET'], url_path='check')
     def check_ownership(self, request):
         """
@@ -303,22 +333,37 @@ class UserBookmarkViewSet(viewsets.ModelViewSet):
     """
     Control de Notas (Bookmarks).
     Permite CRUD completo. Restringido a que pertenezca al usuario.
+    El lector pide los marcadores de un libro con ?inventory=<id> (sin paginar).
     """
     serializer_class = UserBookmarkSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
 
     def get_queryset(self):
-        return UserBookmark.objects.filter(inventory__user=self.request.user)
+        queryset = UserBookmark.objects.filter(inventory__user=self.request.user)
+        inventory_id = self.request.query_params.get('inventory')
+        if inventory_id:
+            try:
+                queryset = queryset.filter(inventory_id=uuid.UUID(inventory_id))
+            except ValueError:
+                return queryset.none()
+        return queryset.order_by('created_at')
+
+    def _check_owner(self, serializer):
+        """
+        El `inventory` que llega en el cuerpo debe ser del `request.user`: si no, alguien
+        podría crear o mover marcadores a la biblioteca de otra persona.
+        """
+        inventory = serializer.validated_data.get('inventory')
+        if inventory is not None and inventory.user != self.request.user:
+            raise PermissionDenied("No puedes añadir marcadores a una librería que no te pertenece.")
 
     def perform_create(self, serializer):
-        """
-        Almacenar la nota. Validación extra: debemos confirmar que el `inventory` 
-        que entra en la validación del Serializer de verdad es propiedad del `request.user`.
-        """
-        inventory = serializer.validated_data['inventory']
-        if inventory.user != self.request.user:
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("No puedes añadir marcadores a una librería que no te pertenece.")
+        self._check_owner(serializer)
+        serializer.save()
+
+    def perform_update(self, serializer):
+        self._check_owner(serializer)
         serializer.save()
 
 

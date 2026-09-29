@@ -133,6 +133,24 @@ python manage.py prune_bookless --apply     # soft-delete (reversible)
 
 ---
 
+## 6b. Vocabulario de los libros (lector → Índice → Vocabulario)
+
+Lista de sustantivos, nombres, verbos y adjetivos de cada libro, agrupados por lema
+(`pudo`, `puede` → PODER). Lo calcula spaCy **una sola vez por libro, en tu equipo**;
+Render solo lee lo guardado (tabla `catalog_bookvocabulary`, JSON comprimido, ~40 KB por libro).
+
+```bash
+pip install -r requirements-vocabulary.txt          # spaCy + modelo es_core_news_sm (no va en Render)
+python manage.py build_vocabulary el-principito     # un libro
+python manage.py build_vocabulary --missing          # los que falten (todo el catálogo: una hora o más)
+python manage.py build_vocabulary --all              # recalcular todos
+```
+
+Corre `migrate` antes (migración `catalog.0023_book_vocabulary`). Los libros sin
+vocabulario muestran "todavía no está listo" en el lector.
+
+---
+
 ## 7. Verificar
 
 ```bash
@@ -173,3 +191,4 @@ Luego mueve cada EPUB a `respaldos-software/books/<slug>/<slug>.epub` y corre
 | `upload_covers_supabase` | `scripts/sync_covers_supabase.py` | Sube portadas a Supabase Storage |
 | `rebuild_catalog` | nuevo | Orquesta import_epubs + import_api_backup |
 | `prune_bookless` | nuevo | Borra (soft) libros sin capítulos |
+| `build_vocabulary` | nuevo | Vocabulario por libro con spaCy (lemas, tipo, frecuencia) |

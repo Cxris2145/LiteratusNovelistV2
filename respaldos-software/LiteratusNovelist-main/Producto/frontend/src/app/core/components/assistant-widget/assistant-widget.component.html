@@ -1,7 +1,6 @@
 <div class="lit-assistant-root">
 
-  <!-- BURBUJA FLOTANTE: permanece siempre en el DOM (oculta con [hidden], no *ngIf)
-       para no perder ni tener que recargar la animación Lottie de la mascota. -->
+  <!-- BURBUJA FLOTANTE -->
   <button
     type="button"
     class="lit-bubble"
@@ -10,7 +9,14 @@
     (click)="toggle()"
     aria-label="Abrir el Asistente de Literatus">
     <span class="lit-bubble-glow"></span>
-    <div class="lit-bubble-avatar" #bubbleLottie></div>
+    <span class="lit-bubble-orbit-ring" aria-hidden="true">
+      <span class="lit-orbit-star">✦</span>
+    </span>
+    <div class="lit-bubble-avatar">
+      <!-- Siempre a la vista: modo calmado (parpadea y te sigue con la mirada) -->
+      <app-maguito class="lit-mascot-avatar" crop="bust" [calm]="true" [interactive]="false"></app-maguito>
+    </div>
+    <span class="lit-bubble-tooltip" aria-hidden="true">¡Hola! ¿Leemos algo? ✨</span>
     <span class="lit-bubble-ping" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
   </button>
 
@@ -24,8 +30,10 @@
 
     <header class="lit-panel-header">
       <div class="lit-header-identity">
+        <!-- Saluda al abrir, agita la pluma mientras piensa y celebra cuando llega la respuesta -->
         <div class="lit-header-avatar-wrap">
-          <span class="material-symbols-rounded lit-header-avatar-icon">auto_awesome</span>
+          <app-maguito class="lit-header-mascot" crop="bust" [interactive]="false"
+                       [state]="isSending ? 'loading' : mascotState"></app-maguito>
         </div>
         <div class="lit-header-texts">
           <span class="lit-header-title">Asistente Literatus</span>

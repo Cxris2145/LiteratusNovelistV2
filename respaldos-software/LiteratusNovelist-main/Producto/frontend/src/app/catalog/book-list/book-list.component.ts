@@ -219,6 +219,10 @@ export class BookListComponent implements OnInit {
         this.searchTerm = params['search'] || '';
         this.currentPage = 1;
       }
+      if (params['genre'] !== undefined) {
+        this.activeGenreSlug = params['genre'] || null;
+        this.currentPage = 1;
+      }
       this.fetchBooks();
     });
   }

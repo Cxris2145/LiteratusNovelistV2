@@ -3,6 +3,7 @@ import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDe
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { LearningService, ExerciseSession, ExerciseSubmitResult } from '../../core/services/learning.service';
+import { loadFontStylesheet, MERRIWEATHER_HREF } from '../../core/utils/font-loader.util';
 
 type GameState = 'reading' | 'quiz' | 'victory' | 'game_over';
 
@@ -47,6 +48,7 @@ export class PlayLevelComponent implements OnInit, OnDestroy {
   result: ExerciseSubmitResult | null = null;
 
   ngOnInit(): void {
+    loadFontStylesheet(MERRIWEATHER_HREF);
     this.levelId = this.route.snapshot.paramMap.get('id') || '';
     if (!this.levelId) {
       this.router.navigate(['/learn']);

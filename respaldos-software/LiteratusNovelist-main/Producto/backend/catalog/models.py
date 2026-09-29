@@ -513,6 +513,27 @@ class Chapter(TimeStampedModel):
         return f"{self.book.title} - {self.title or f'Chapter {self.order}'}"
 
 
+class BookVocabulary(TimeStampedModel):
+    """
+    Vocabulario del libro: sus lemas con tipo de palabra, frecuencia y formas.
+    Se calcula fuera de línea con spaCy (`manage.py build_vocabulary`, ver catalog/vocabulary.py)
+    y se guarda como un JSON comprimido con gzip: un libro largo pesa unos 70 KB en vez de 300.
+    """
+    book = models.OneToOneField(Book, on_delete=models.CASCADE, related_name='vocabulary')
+    data = models.BinaryField(help_text="JSON del vocabulario comprimido con gzip.")
+    lemma_count = models.PositiveIntegerField(default=0, help_text="Palabras distintas (lemas).")
+    word_count = models.PositiveIntegerField(default=0, help_text="Apariciones contadas en el libro.")
+    engine = models.CharField(max_length=80, blank=True, default='', help_text="Modelo que hizo el análisis.")
+    format_version = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        verbose_name = 'Book Vocabulary'
+        verbose_name_plural = 'Book Vocabularies'
+
+    def __str__(self):
+        return f"Vocabulario de {self.book.title} ({self.lemma_count} lemas)"
+
+
 class Review(TimeStampedModel):
     """
     Reseña de un libro escrita por un usuario.

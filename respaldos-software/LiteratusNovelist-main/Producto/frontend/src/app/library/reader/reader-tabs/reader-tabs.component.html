@@ -1,0 +1,32 @@
+<nav class="rt-bar" aria-label="Libros abiertos">
+  <a class="rt-home" routerLink="/library" title="Volver a mi biblioteca" aria-label="Volver a mi biblioteca">
+    <span class="material-symbols-rounded">arrow_back</span>
+  </a>
+
+  <div class="rt-strip" #strip role="tablist">
+    <div class="rt-tab" *ngFor="let tab of tabsService.tabs$ | async; trackBy: trackTab"
+         [class.active]="tab.id === activeId" (auxclick)="onAuxClick(tab, $event)">
+      <button type="button" class="rt-tab-main" role="tab"
+              [attr.aria-selected]="tab.id === activeId"
+              [title]="tab.author ? tab.title + ' — ' + tab.author : tab.title"
+              (click)="select(tab)">
+        <img *ngIf="tab.cover && !brokenCovers.has(tab.id)" class="rt-cover" [src]="tab.cover" alt="" loading="lazy"
+             (error)="brokenCovers.add(tab.id)">
+        <span *ngIf="!tab.cover || brokenCovers.has(tab.id)" class="rt-cover rt-cover-empty material-symbols-rounded" aria-hidden="true">menu_book</span>
+        <span class="rt-title">{{ tab.title }}</span>
+      </button>
+      <button type="button" class="rt-close" (click)="close(tab, $event)"
+              [attr.aria-label]="'Cerrar ' + tab.title" title="Cerrar pestaña">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </div>
+  </div>
+
+  <a class="rt-add" routerLink="/library" title="Abrir otro libro" aria-label="Abrir otro libro">
+    <span class="material-symbols-rounded">add</span>
+  </a>
+
+  <div class="rt-actions">
+    <ng-content></ng-content>
+  </div>
+</nav>

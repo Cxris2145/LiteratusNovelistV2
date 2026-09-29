@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 import json
-from .models import Author, Genre, Book, Edition, BookAuthor, Chapter, ChapterAudio, Tag
+from .models import Author, Genre, Book, BookVocabulary, Edition, BookAuthor, Chapter, ChapterAudio, Tag
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -156,4 +156,14 @@ class ChapterAudioAdmin(admin.ModelAdmin):
         )
         return format_html('<code style="font-size:0.8em;">{}</code>...', preview)
     alignment_data_preview.short_description = 'Vista Previa de Alineación'
+
+
+@admin.register(BookVocabulary)
+class BookVocabularyAdmin(admin.ModelAdmin):
+    """Vocabularios generados con `manage.py build_vocabulary` (el contenido va comprimido)."""
+    list_display = ['book', 'lemma_count', 'word_count', 'engine', 'updated_at']
+    search_fields = ['book__title', 'book__slug']
+    ordering = ['book__title']
+    exclude = ['data']
+    readonly_fields = ['book', 'lemma_count', 'word_count', 'engine', 'format_version']
 

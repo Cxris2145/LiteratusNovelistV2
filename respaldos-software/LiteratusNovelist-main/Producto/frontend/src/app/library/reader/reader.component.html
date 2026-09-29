@@ -1,50 +1,52 @@
-﻿<div class="workbench-container" [ngClass]="'theme-' + currentTheme" [class.immersive]="isToolbarHidden"
+<div class="workbench-container" [ngClass]="'theme-' + currentTheme" [class.immersive]="isToolbarHidden"
+     [class.book-view]="isDoublePageView"
      [class.rc-high-contrast]="highContrast" [class.rc-concentration]="concentrationMode">
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- TOOLBAR SUPERIOR (FIJO)                                         -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <header class="toolbar glass-panel" [class.hidden]="isToolbarHidden">
-
-    <!-- Izquierda: Volver + contexto del capítulo -->
-    <div class="toolbar-left">
-      <button class="back-btn" routerLink="/library" title="Volver a mi biblioteca" aria-label="Volver a mi biblioteca">
-        <span class="material-symbols-rounded" style="font-size:1.35rem;">arrow_back</span>
-      </button>
-      <div class="book-info">
-        <span class="chapter-label">{{ chapterTitle }}</span>
-        <span class="progress-label">{{ currentPage - 1 > 0 ? 'Capítulo ' + (currentPage - 1) : 'Prólogo' }} · {{ currentPage }}/{{ totalPages }}</span>
+  <header class="toolbar" [class.hidden]="isToolbarHidden && !isDoublePageView" [class.book-mode]="isDoublePageView">
+    <!-- Pestañas de libros abiertos (como en un navegador) + acciones del lector.
+         En vista libro las acciones viven dentro del libro; aquí quedan las que faltan. -->
+    <app-reader-tabs [activeId]="inventoryId">
+      <div class="reader-settings">
+        <button class="char-trigger-btn hdr-book-dup" (click)="toggleCharPanel()" title="Personajes IA" aria-label="Personajes"
+                [attr.aria-pressed]="isCharPanelOpen" [class.active]="isCharPanelOpen">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;">group</span>
+        </button>
+        <button class="toc-trigger-btn hdr-book-dup" (click)="toggleAudioPanel()" title="Escuchar (narración por voz)" aria-label="Escuchar"
+                [attr.aria-pressed]="isAudioPanelOpen" [class.active]="isAudioPanelOpen">
+          <svg lucideVolume2 [size]="20" class="lucide-icon"></svg>
+        </button>
+        <button class="toc-trigger-btn hdr-book-dup hdr-optional" (click)="toggleBookmarkHere()" [disabled]="isBookmarkBusy"
+                [title]="currentSpreadBookmark ? 'Quitar el marcador' : 'Guardar un marcador aquí'"
+                [attr.aria-label]="currentSpreadBookmark ? 'Quitar el marcador' : 'Guardar un marcador aquí'"
+                [attr.aria-pressed]="!!currentSpreadBookmark" [class.active]="!!currentSpreadBookmark">
+          <span class="material-symbols-rounded icon-fillable" [class.filled]="!!currentSpreadBookmark" style="font-size:1.3rem;">bookmark</span>
+        </button>
+        <button class="toc-trigger-btn hdr-book-dup hdr-optional" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;">dictionary</span>
+        </button>
+        <button class="toc-trigger-btn" (click)="toggleDoublePageView()"
+                [title]="isDoublePageView ? 'Cambiar a lectura continua' : 'Cambiar a libro abierto (doble página)'"
+                [attr.aria-label]="isDoublePageView ? 'Cambiar a lectura continua' : 'Cambiar a libro abierto'"
+                [attr.aria-pressed]="isDoublePageView" [class.active]="isDoublePageView">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;">auto_stories</span>
+        </button>
+        <button class="toc-trigger-btn hdr-book-dup" (click)="toggleToc()" title="Índice y marcadores" aria-label="Índice y marcadores"
+                [attr.aria-pressed]="isTocOpen" [class.active]="isTocOpen">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;">menu</span>
+        </button>
+        <button class="toc-trigger-btn aa-btn hdr-book-dup" (click)="toggleSettings()" title="Ajustes de lectura" aria-label="Ajustes de lectura"
+                [attr.aria-pressed]="isSettingsOpen" [class.active]="isSettingsOpen">
+          <span class="aa-glyph">Aa</span>
+        </button>
       </div>
-    </div>
-
-    <!-- Derecha: sólo acciones esenciales — el resto vive en "Aa" -->
-    <div class="reader-settings">
-      <button class="char-trigger-btn" (click)="toggleCharPanel()" title="Personajes IA" aria-label="Personajes"
-              [attr.aria-pressed]="isCharPanelOpen" [class.active]="isCharPanelOpen">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">group</span>
-      </button>
-      <button class="toc-trigger-btn" (click)="toggleAudioPanel()" title="Escuchar (narración por voz)" aria-label="Escuchar"
-              [attr.aria-pressed]="isAudioPanelOpen" [class.active]="isAudioPanelOpen">
-        <svg lucideVolume2 [size]="20" class="lucide-icon"></svg>
-      </button>
-      <button class="toc-trigger-btn" (click)="toggleDoublePageView()"
-              [title]="isDoublePageView ? 'Cambiar a lectura continua' : 'Cambiar a libro abierto (doble página)'"
-              [attr.aria-pressed]="isDoublePageView" [class.active]="isDoublePageView">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">auto_stories</span>
-      </button>
-      <button class="toc-trigger-btn" (click)="toggleToc()" title="Índice de capítulos" aria-label="Índice de capítulos"
-              [attr.aria-pressed]="isTocOpen" [class.active]="isTocOpen">
-        <span class="material-symbols-rounded" style="font-size:1.3rem;">menu</span>
-      </button>
-      <button class="toc-trigger-btn aa-btn" (click)="toggleSettings()" title="Ajustes de lectura" aria-label="Ajustes de lectura"
-              [attr.aria-pressed]="isSettingsOpen" [class.active]="isSettingsOpen">
-        <span class="aa-glyph">Aa</span>
-      </button>
-    </div>
+    </app-reader-tabs>
   </header>
 
   <!-- Barra de progreso de lectura (Wattpad style) fuera del header para que no se oculte forzosamente -->
-  <div class="reading-progress-container"
+  <div class="reading-progress-container" *ngIf="!isDoublePageView"
        [class.toolbar-hidden]="isToolbarHidden"
        [class.hide-on-scroll]="hideProgressOnScroll">
     <div class="reading-progress-bar" [style.width.%]="chapterScrollPercent"></div>
@@ -128,6 +130,7 @@
         <div class="sheet-block">
           <span class="sheet-label">Interlineado</span>
           <div class="segmented" role="group" aria-label="Interlineado">
+            <button [class.on]="lineHeight === 1.4"  (click)="setLineHeight(1.4)">Libro</button>
             <button [class.on]="lineHeight === 1.5"  (click)="setLineHeight(1.5)">Compacto</button>
             <button [class.on]="lineHeight === 1.75" (click)="setLineHeight(1.75)">Normal</button>
             <button [class.on]="lineHeight === 2"    (click)="setLineHeight(2)">Amplio</button>
@@ -531,19 +534,60 @@
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- PANEL DERECHO: ÍNDICE (TOC)                                      -->
   <!-- ═══════════════════════════════════════════════════════════════ -->
-  <aside class="toc-sidebar glass-panel" [@slideFromRight]="isTocOpen ? 'in' : 'out'">
+  <aside class="toc-sidebar glass-panel" [@slideFromRight]="isTocOpen ? 'in' : 'out'" aria-label="Índice del libro">
     <div class="toc-header">
       <h3>Índice</h3>
-      <button class="close-btn" (click)="toggleToc()">✕</button>
+      <button class="close-btn" (click)="toggleToc()" aria-label="Cerrar índice">✕</button>
     </div>
-    <ul class="toc-list">
+
+    <div class="toc-tabs" role="tablist" aria-label="Contenido del índice">
+      <button type="button" role="tab" [class.on]="tocTab === 'chapters'" [attr.aria-selected]="tocTab === 'chapters'"
+              (click)="tocTab = 'chapters'">Contenido</button>
+      <button type="button" role="tab" [class.on]="tocTab === 'bookmarks'" [attr.aria-selected]="tocTab === 'bookmarks'"
+              (click)="tocTab = 'bookmarks'">
+        Marcadores <span class="toc-count" *ngIf="bookmarks.length">{{ bookmarks.length }}</span>
+      </button>
+    </div>
+
+    <ul class="toc-list" *ngIf="tocTab === 'chapters'">
       <li *ngFor="let chapter of chapters; let i = index"
           [class.active]="i === (currentPage - 1)"
           (click)="goToChapter(i)">
         <span class="chapter-number">{{ i }}.</span>
         <span class="chapter-name">{{ chapter.title || 'Capítulo ' + i }}</span>
+        <span class="chapter-page" *ngIf="isDoublePageView && chapterStartPages[i]">{{ chapterStartPages[i] }}</span>
       </li>
     </ul>
+
+    <div class="toc-bookmarks" *ngIf="tocTab === 'bookmarks'">
+      <button type="button" class="toc-add-bm" (click)="toggleBookmarkHere()" [disabled]="isBookmarkBusy">
+        <span class="material-symbols-rounded icon-fillable" [class.filled]="!!currentSpreadBookmark" aria-hidden="true">bookmark_add</span>
+        {{ currentSpreadBookmark ? 'Quitar el marcador de esta página' : 'Marcar la página actual' }}
+      </button>
+      <p class="toc-empty" *ngIf="bookmarks.length === 0">
+        Para marcar una página toca el marcador
+        <span class="material-symbols-rounded" aria-hidden="true">bookmark</span>
+        en la parte de arriba del libro abierto.
+      </p>
+      <ul class="toc-list" *ngIf="bookmarks.length > 0">
+        <li *ngFor="let bookmark of bookmarks; trackBy: trackBookmark" class="bm-item" (click)="goToBookmark(bookmark)">
+          <span class="material-symbols-rounded bm-icon icon-fillable filled" aria-hidden="true">bookmark</span>
+          <span class="bm-body">
+            <span class="bm-meta">{{ bookmark.pageLabel }} · {{ chapterLabel(bookmark.chapterIndex) }}</span>
+            <span class="bm-snippet">{{ bookmark.snippet }}</span>
+          </span>
+          <button type="button" class="bm-remove" (click)="removeBookmark(bookmark, $event)"
+                  aria-label="Quitar este marcador" title="Quitar marcador">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <button type="button" class="toc-vocab-btn" (click)="openVocabulary()">
+      <span class="material-symbols-rounded" aria-hidden="true">dictionary</span>
+      Vocabulario del libro
+    </button>
   </aside>
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -736,42 +780,82 @@
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <div class="real-book-stage" [class.double-page-stage]="isDoublePageView" [class.flipping]="isPageFlipping">
 
-    <!-- Botón lateral izquierdo para hojear hacia atrás -->
-    <button *ngIf="isDoublePageView"
-            type="button"
-            class="book-page-turn-btn turn-prev"
-            (click)="turnSpreadPrev()"
-            [disabled]="isFirstSpread && currentPage <= 1"
-            [class.faded]="isFirstSpread && currentPage <= 1"
-            title="Página anterior (o pulsa flecha izquierda)"
-            aria-label="Página anterior">
-      <span class="material-symbols-rounded">chevron_left</span>
-    </button>
-
     <!-- Estructura del libro físico abierto -->
     <div class="real-book-wrapper" [class.book-open-mode]="isDoublePageView"
+         [class.single-page]="isDoublePageView && columnsPerSpread === 1"
          [class.flipping-next]="isPageFlipping && flipDirection === 'next'"
          [class.flipping-prev]="isPageFlipping && flipDirection === 'prev'">
 
-      <!-- Efecto de barrido / sombra de página en 3D durante el hojeo -->
-      <div class="page-flip-sweep sweep-next" *ngIf="isPageFlipping && flipDirection === 'next'" aria-hidden="true"></div>
-      <div class="page-flip-sweep sweep-prev" *ngIf="isPageFlipping && flipDirection === 'prev'" aria-hidden="true"></div>
+      <ng-container *ngIf="isDoublePageView">
+        <!-- El libro abierto: tapa, cantos de las hojas a cada lado y el papel con el lomo al centro.
+             Tocar los cantos pasa la página, como en un libro de verdad. -->
+        <div class="lb-cover" aria-hidden="true"></div>
+        <div class="lb-edge lb-edge-left" (click)="turnSpreadPrev()" aria-hidden="true" title="Página anterior"></div>
+        <div class="lb-edge lb-edge-right" (click)="turnSpreadNext()" aria-hidden="true" title="Página siguiente"></div>
+        <div class="lb-paper" aria-hidden="true"></div>
 
-      <!-- Efecto de lomo, pliegue central y costura cuando está en doble página -->
-      <div class="book-spine-crease" *ngIf="isDoublePageView" aria-hidden="true">
-        <div class="book-spine-shadow left-shadow"></div>
-        <div class="book-spine-seam"></div>
-        <div class="book-spine-shadow right-shadow"></div>
-      </div>
+        <!-- Efecto de barrido / sombra de página en 3D durante el hojeo -->
+        <div class="page-flip-sweep sweep-next" *ngIf="isPageFlipping && flipDirection === 'next'" aria-hidden="true"></div>
+        <div class="page-flip-sweep sweep-prev" *ngIf="isPageFlipping && flipDirection === 'prev'" aria-hidden="true"></div>
 
-      <!-- Cinta marcapáginas decorativa en el lomo superior -->
-      <div class="book-ribbon-bookmark" *ngIf="isDoublePageView" aria-hidden="true"></div>
+        <!-- Barra de la página izquierda: cerrar, escuchar, voz y personajes -->
+        <div class="lb-bar lb-bar-left">
+          <a class="lb-btn" routerLink="/library" title="Cerrar el libro" aria-label="Cerrar el libro">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </a>
+          <button type="button" class="lb-btn" (click)="toggleNarration()" [class.on]="isNarrationPlaying"
+                  [disabled]="isAudioLoading"
+                  [title]="isNarrationPlaying ? 'Pausar la narración' : 'Escuchar el libro'"
+                  [attr.aria-label]="isNarrationPlaying ? 'Pausar la narración' : 'Escuchar el libro'">
+            <span class="material-symbols-rounded" [class.lb-spin]="isAudioLoading" aria-hidden="true">{{ isAudioLoading ? 'progress_activity' : (isNarrationPlaying ? 'pause' : 'volume_up') }}</span>
+          </button>
+          <button type="button" class="lb-btn" (click)="toggleAudioPanel()" [class.on]="isAudioPanelOpen"
+                  title="Voz de la narración" aria-label="Elegir la voz de la narración">
+            <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+          </button>
+          <button type="button" class="lb-btn" (click)="toggleCharPanel()" [class.on]="isCharPanelOpen"
+                  title="Personajes IA" aria-label="Personajes">
+            <span class="material-symbols-rounded" aria-hidden="true">group</span>
+          </button>
+        </div>
 
-      <!-- Encabezado sutil del libro físico (autor a la izquierda, título de capítulo a la derecha) -->
-      <header class="book-spread-header" *ngIf="isDoublePageView" aria-hidden="true">
-        <span class="spread-header-left">{{ authorName || 'Literatus Novelist' }}</span>
-        <span class="spread-header-right">{{ chapterTitle }}</span>
-      </header>
+        <!-- Cabecera de la página izquierda: título y autor, como en un libro impreso -->
+        <div class="lb-running-head" aria-hidden="true">
+          <span class="lb-rh-title">{{ bookTitle }}</span>
+          <span class="lb-rh-author" *ngIf="authorName">{{ authorName }}</span>
+        </div>
+
+        <!-- Barra de la página derecha: índice, letra, favorito, marcador y vocabulario -->
+        <div class="lb-bar lb-bar-right">
+          <button type="button" class="lb-btn" (click)="toggleToc()" [class.on]="isTocOpen"
+                  title="Índice y marcadores" aria-label="Índice y marcadores">
+            <span class="material-symbols-rounded" aria-hidden="true">format_list_bulleted</span>
+          </button>
+          <button type="button" class="lb-btn lb-aa" (click)="toggleSettings()" [class.on]="isSettingsOpen"
+                  title="Letra y apariencia" aria-label="Letra y apariencia">
+            <span class="lb-aa-small">a</span>A
+          </button>
+          <button type="button" class="lb-btn" (click)="toggleFavorite()" [class.on]="isFavoriteBook"
+                  [title]="isFavoriteBook ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                  [attr.aria-label]="isFavoriteBook ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                  [attr.aria-pressed]="isFavoriteBook">
+            <span class="material-symbols-rounded icon-fillable" [class.filled]="isFavoriteBook" aria-hidden="true">star</span>
+          </button>
+          <button type="button" class="lb-btn" (click)="toggleBookmarkHere()" [class.on]="!!currentSpreadBookmark"
+                  [disabled]="isBookmarkBusy"
+                  [title]="currentSpreadBookmark ? 'Quitar el marcador de esta página' : 'Marcar esta página'"
+                  [attr.aria-label]="currentSpreadBookmark ? 'Quitar el marcador de esta página' : 'Marcar esta página'"
+                  [attr.aria-pressed]="!!currentSpreadBookmark">
+            <span class="material-symbols-rounded icon-fillable" [class.filled]="!!currentSpreadBookmark" aria-hidden="true">bookmark</span>
+          </button>
+          <button type="button" class="lb-btn" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
+            <span class="material-symbols-rounded" aria-hidden="true">dictionary</span>
+          </button>
+        </div>
+
+        <!-- Cinta roja: esta página tiene marcador -->
+        <div class="lb-ribbon" *ngIf="currentSpreadBookmark" aria-hidden="true"></div>
+      </ng-container>
 
       <!-- Lienzo de lectura donde corre el texto.
            El contenedor "-shell" ancla la regla de lectura FUERA de .reading-canvas:
@@ -889,27 +973,42 @@
          [style.top.px]="rulerY" aria-hidden="true"></div>
   </div><!-- /.reading-canvas-shell -->
 
-      <!-- Pie de pliego con numeración física izquierda y derecha -->
-      <footer class="book-spread-footer" *ngIf="isDoublePageView" aria-hidden="true">
-        <span class="spread-footer-page left-page-num">{{ currentLeftPageNum }}</span>
-        <span class="spread-footer-progress">Capítulo {{ currentPage }} · Páginas {{ currentLeftPageNum }}-{{ currentRightPageNum }} (Pliego {{ currentSpreadIndex + 1 }}/{{ totalSpreads }})</span>
-        <span class="spread-footer-page right-page-num">{{ currentRightPageNum }}</span>
-      </footer>
+      <!-- Pestaña de la narración: baja por el margen renglón a renglón mientras la voz lee -->
+      <div class="narration-marker" #narrationMarker aria-hidden="true">
+        <span class="material-symbols-rounded">graphic_eq</span>
+      </div>
+
+      <ng-container *ngIf="isDoublePageView">
+        <!-- Pie de la página izquierda: la línea del libro para moverse entre páginas -->
+        <div class="lb-foot lb-foot-left">
+          <input type="range" class="lb-slider" min="1" step="1"
+                 [max]="bookPageTotal" [value]="bookPageCurrent"
+                 [style.--lb-progress]="sliderFillPercent + '%'"
+                 (input)="onBookSliderInput($any($event.target).value)"
+                 (change)="onBookSliderChange($any($event.target).value)"
+                 aria-label="Ir a una página del libro"
+                 [attr.aria-valuetext]="'Página ' + bookPageCurrent + ' de ' + bookPageTotal">
+          <span class="lb-page-label" aria-live="polite">{{ sliderPreviewLabel || (bookPageCurrent + ' de ' + bookPageTotal) }}</span>
+        </div>
+
+        <!-- Pie de la página derecha: capítulo y "escuchar desde aquí" -->
+        <div class="lb-foot lb-foot-right">
+          <span class="lb-chapter-name">{{ chapterTitle }}</span>
+          <button type="button" class="lb-btn" (click)="narrateFromHere()"
+                  title="Escuchar desde esta página" aria-label="Escuchar desde esta página">
+            <span class="material-symbols-rounded" aria-hidden="true">record_voice_over</span>
+          </button>
+        </div>
+
+        <!-- Esquinas dobladas: pasan la página -->
+        <button type="button" class="lb-corner lb-corner-prev" (click)="turnSpreadPrev()"
+                [disabled]="isFirstSpread && currentPage <= 1" title="Página anterior" aria-label="Página anterior"></button>
+        <button type="button" class="lb-corner lb-corner-next" (click)="turnSpreadNext()"
+                [disabled]="isLastSpread && currentPage >= totalPages" [class.pulse-turn]="isNearEnd && currentPage < totalPages"
+                title="Página siguiente" aria-label="Página siguiente"></button>
+      </ng-container>
 
     </div><!-- /.real-book-wrapper -->
-
-    <!-- Botón lateral derecho para hojear hacia adelante -->
-    <button *ngIf="isDoublePageView"
-            type="button"
-            class="book-page-turn-btn turn-next"
-            (click)="turnSpreadNext()"
-            [disabled]="isLastSpread && currentPage >= totalPages"
-            [class.faded]="isLastSpread && currentPage >= totalPages"
-            [class.pulse-turn]="isNearEnd"
-            title="Página siguiente (o pulsa flecha derecha)"
-            aria-label="Página siguiente">
-      <span class="material-symbols-rounded">chevron_right</span>
-    </button>
 
   </div><!-- /.real-book-stage -->
 
@@ -991,14 +1090,14 @@
     </div>
   </div>
   <!-- TOAST DE MARCADOR GUARDADO -->
-  <div class="bookmark-toast glass-panel" [class.show]="showBookmarkToast">
-    <span class="animated-emoji">🔖</span> Marcador guardado
+  <div class="bookmark-toast glass-panel" [class.show]="showBookmarkToast" role="status" aria-live="polite">
+    <span class="animated-emoji">{{ toastIcon }}</span> {{ bookmarkToastText || 'Marcador guardado' }}
   </div>
 
   <!-- TOAST DE REANUDACIÓN DE MARCADOR (DESAPARECE EN 5S) -->
   <div class="bookmark-resume-toast glass-panel" [class.show]="showBookmarkResumeBadge">
     <span class="animated-emoji">🔖</span>
-    <span>Reanudando marcador en: <strong>"{{ bookmarkResumeWordText }}"</strong></span>
+    <span>{{ bookmarkResumeLabel }}: <strong>"{{ bookmarkResumeWordText }}"</strong></span>
   </div>
 
   <!-- TOAST DE VOZ NEURAL (progreso de generación del capítulo y avisos) -->
@@ -1029,11 +1128,35 @@
     </div>
   </div>
 
-  <!-- OVERLAY DE CARGA (Lottie) -->
+  <!-- VOCABULARIO DEL LIBRO -->
+  <app-vocabulary-panel *ngIf="isVocabularyOpen"
+                        [inventoryId]="inventoryId"
+                        [bookTitle]="bookTitle"
+                        [chapters]="chapters"
+                        [pageLabel]="vocabularyPageLabel"
+                        (jump)="onVocabularyJump($event)"
+                        (closed)="isVocabularyOpen = false">
+  </app-vocabulary-panel>
+
+  <!-- OVERLAY DE CARGA (Maguito animado por partes) -->
   <div class="reader-loading-overlay glass-panel" [class.hidden]="!isOverlayActive">
     <div class="reader-loading-content">
-      <div class="loading-lottie-container" #loadingLottie></div>
-      <p class="loading-text">Cargando...</p>
+      <!-- Maguito en capas: agita la pluma y suelta chispas mientras carga; al tocarlo reacciona -->
+      <app-maguito class="loading-maguito" state="loading" [aura]="true" [paused]="!isOverlayActive"
+                   label="Maguito prepara tu libro" (poked)="onMascotClick()"></app-maguito>
+
+      <!-- Textos dinámicos de carga con efecto de brillo metálico -->
+      <div class="loading-caption-block">
+        <p class="loading-text">
+          <span class="loading-shimmer-text">Cargando...</span>
+        </p>
+        <p class="loading-subtext">{{ currentMascotPose.tip }}</p>
+        <button type="button" class="loading-action-pill" (click)="onMascotClick()">
+          <span class="action-sparkle-dot" aria-hidden="true"></span>
+          <span class="action-name">{{ currentMascotPose.sub }}</span>
+          <span class="action-tap-hint">· toca a Maguito</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1074,7 +1197,7 @@
   </button>
 
   <!-- BOTONES DE NAVEGACIÓN (TIPO FLECHA) -->
-  <div class="autoscroll-fab-container" *ngIf="isFullyRendered">
+  <div class="autoscroll-fab-container" *ngIf="isFullyRendered && (!isDoublePageView || rulerActive)">
     <button class="autoscroll-fab glass-btn" 
             (click)="scrollStepUp()" 
             title="Subir"

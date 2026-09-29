@@ -36,6 +36,8 @@ export class AppComponent implements OnInit {
 
   isDashboard = false;
   isEnigma = false;
+  /** En la portada el header toma los colores de la colección. */
+  isHome = false;
   isNavBubblesHidden = false;
   private lastScrollTop = 0;
   
@@ -85,13 +87,17 @@ export class AppComponent implements OnInit {
         const url = e.urlAfterRedirects as string;
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
         this.isEnigma = url.includes('enigma');
+        this.isHome = /^\/(home)?([?#]|$)/.test(url);
       });
   }
 
   ngOnInit() {
     this.isEnigma = this.router.url.includes('enigma');
     // Cargar la configuración global (Tema) apenas inicie
-    this.settingsService.loadSettings().subscribe();
+    // Sin sesión el perfil responde 401 y el interceptor enviaría al visitante a /login.
+    if (this.authService.isLoggedIn()) {
+      this.settingsService.loadSettings().subscribe();
+    }
 
     // El contador refleja la colección persistida del usuario autenticado.
     this.favoritesService.count$.subscribe(count => this.favoritesCount = count);

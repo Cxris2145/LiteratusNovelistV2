@@ -1,0 +1,5 @@
+# Solo para generar el vocabulario de los libros (manage.py build_vocabulary).
+# No se instala en Render: el servidor solo lee el vocabulario ya guardado.
+#   pip install -r requirements-vocabulary.txt
+spacy==3.8.16
+es_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.8.0/es_core_news_sm-3.8.0-py3-none-any.whl

@@ -4,6 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 import { slideUpPanelAnimation } from '../../animations';
 import { AssistantService, AssistantConversation, AssistantMessage } from '../../services/assistant.service';
 import { SpeechRecognitionService } from '../../services/speech-recognition.service';
+import { MaguitoState } from '../maguito/maguito.component';
 
 @Component({
   selector: 'app-assistant-widget',
@@ -30,6 +31,8 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   draft = '';
 
   isBouncing = false;
+  /** Maguito en la cabecera: saluda al abrir y celebra cuando llega una respuesta. */
+  mascotState: MaguitoState = 'chat';
   private lastUnreadCount = 0;
   private shouldScrollOnNextCheck = false;
   private lottieAnim?: any;
@@ -39,11 +42,17 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   ngOnInit(): void {
-    this.assistant.isOpen$.pipe(takeUntil(this.destroy$)).subscribe(v => this.isOpen = v);
+    this.assistant.isOpen$.pipe(takeUntil(this.destroy$)).subscribe(v => {
+      if (v && !this.isOpen) this.mascotState = 'chat';
+      this.isOpen = v;
+    });
     this.assistant.isHistoryOpen$.pipe(takeUntil(this.destroy$)).subscribe(v => this.isHistoryOpen = v);
     this.assistant.conversations$.pipe(takeUntil(this.destroy$)).subscribe(v => this.conversations = v);
     this.assistant.activeConversationId$.pipe(takeUntil(this.destroy$)).subscribe(v => this.activeConversationId = v);
-    this.assistant.isSending$.pipe(takeUntil(this.destroy$)).subscribe(v => this.isSending = v);
+    this.assistant.isSending$.pipe(takeUntil(this.destroy$)).subscribe(v => {
+      if (this.isSending && !v) this.mascotState = 'success';
+      this.isSending = v;
+    });
     this.assistant.messages$.pipe(takeUntil(this.destroy$)).subscribe(v => {
       this.messages = v;
       this.shouldScrollOnNextCheck = true;
