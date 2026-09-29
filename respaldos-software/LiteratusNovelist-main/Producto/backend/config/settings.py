@@ -267,6 +267,19 @@ FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:4200')
 ELEVENLABS_API_KEY = env('ELEVENLABS_API_KEY', default='PLACEHOLDER_KEY')
 
 # ---------------------------------------------------------------------------
+# Voz: Azure AI Speech (plan gratuito F0 = 500.000 caracteres al mes)
+# ---------------------------------------------------------------------------
+
+AZURE_SPEECH_KEY = env('AZURE_SPEECH_KEY', default='')
+AZURE_SPEECH_REGION = env('AZURE_SPEECH_REGION', default='')
+# Voz con la que se narran los capítulos (cada capítulo se genera una sola vez y se reutiliza).
+AZURE_TTS_NARRATOR_VOICE = env('AZURE_TTS_NARRATOR_VOICE', default='es-CL-CatalinaNeural')
+# Tope mensual de caracteres para narrar capítulos; el resto del cupo queda para el chat.
+AZURE_TTS_MONTHLY_BOOK_CHARS = env.int('AZURE_TTS_MONTHLY_BOOK_CHARS', default=400000)
+# Capítulos nuevos que un lector puede mandar a generar por día (el staff no tiene este tope).
+AZURE_TTS_USER_DAILY_CHAPTERS = env.int('AZURE_TTS_USER_DAILY_CHAPTERS', default=5)
+
+# ---------------------------------------------------------------------------
 # Correos / SMTP (Resend o SendGrid)
 # ---------------------------------------------------------------------------
 

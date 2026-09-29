@@ -148,9 +148,9 @@
     </div>
 
     <!-- GRILLA REAL DE CATEGORÍAS -->
-    <div class="categories-grid" *ngIf="!isLoading && filteredCategories.length > 0">
+    <div class="categories-grid stagger-group" *ngIf="!isLoading && filteredCategories.length > 0">
       <article
-        class="category-card"
+        class="category-card has-enter-sheen"
         *ngFor="let cat of filteredCategories; trackBy: trackBySlug"
         (click)="goToCategory(cat.slug)"
         role="link"

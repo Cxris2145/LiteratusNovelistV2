@@ -49,6 +49,7 @@ import { AssistantWidgetComponent } from './core/components/assistant-widget/ass
 import { AchievementsComponent } from './library/achievements/achievements.component';
 import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
+import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive';
 
 @NgModule({
   declarations: [
@@ -82,7 +83,8 @@ import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialo
     AssistantWidgetComponent,
     AchievementsComponent,
     EnigmaGameComponent,
-    GuideDialogComponent
+    GuideDialogComponent,
+    ScrollRevealDirective
   ],
 
 

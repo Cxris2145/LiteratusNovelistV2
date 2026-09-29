@@ -11,6 +11,7 @@ import { GamificationService } from '../core/services/gamification.service';
 import { AchievementsService } from '../core/services/achievements.service';
 import { ChatService } from '../core/services/chat.service';
 import { FavoritesService } from '../core/services/favorites.service';
+import { ScrollRevealService } from '../core/services/scroll-reveal.service';
 import { getBookPages } from '../core/utils/book-pages.util';
 import { coverThumb } from '../core/utils/cover-thumb.util';
 
@@ -75,6 +76,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   getBookPages = getBookPages;
 
   public favoritesService = inject(FavoritesService, { optional: true });
+  private scrollRevealService = inject(ScrollRevealService);
 
   // ─── Libros y Catálogo ───────────────────────────────────────────────────
   allBooks: Book[] = [];
@@ -101,6 +103,18 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   livingAIBooks: any[] = [];
   quickReads: Book[] = [];
   popularTreasures: Book[] = [];
+  adventureBooks: Book[] = [];
+  philosophyBooks: Book[] = [];
+
+  // ─── Carrusel Destacado de Joyas y Tendencias ─────────────────────────────
+  trendingCarouselBooks: Book[] = [];
+  trendingIndex = 0;
+  private trendingAutoplayTimer: any = null;
+
+  // ─── Oráculo Literario / Lectura al Azar ─────────────────────────────────
+  randomBookModalOpen = false;
+  randomBook: Book | null = null;
+  isSpinningOracle = false;
 
   // ─── Gran Escenario 3D (El Gran Atril) ──────────────────────────────────
   heroTiltX: number = 0;
@@ -250,6 +264,7 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.destroy$.complete();
     this.readingAnimation?.destroy();
     this.stopHeroAutoRotate();
+    this.stopTrendingAutoplay();
     if (this.audioInterval) clearInterval(this.audioInterval);
   }
 
@@ -671,6 +686,31 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
       ? this.forYouBooks.slice(0, 16) 
       : this.allBooks.slice(0, 16);
 
+    // Estantería 5: Filosofía, Pensamiento & Tratados Inmortales
+    this.philosophyBooks = this.allBooks.filter(b => 
+      b.genres?.some(g => g.slug.includes('filosofia') || g.name.toLowerCase().includes('filosofía') || g.slug.includes('politica') || g.slug.includes('clasica')) ||
+      b.tags?.some(t => t.slug.includes('filosofia') || t.slug.includes('pensamiento')) ||
+      ['platón', 'aristóteles', 'maquiavelo', 'marco aurelio', 'séneca', 'sócrates', 'dante', 'thoreau', 'nietzsche'].some(auth => (b.author_name || '').toLowerCase().includes(auth))
+    ).slice(0, 16);
+    if (this.philosophyBooks.length === 0) {
+      this.philosophyBooks = this.allBooks.filter(b => (b.page_count || 0) > 160).slice(8, 24);
+    }
+
+    // Estantería 6: Aventuras Legendarias, Misterio y Épica
+    this.adventureBooks = this.allBooks.filter(b =>
+      b.genres?.some(g => g.slug.includes('aventura') || g.slug.includes('ficcion') || g.slug.includes('misterio') || g.name.toLowerCase().includes('aventura')) ||
+      b.tags?.some(t => t.slug.includes('aventura') || t.slug.includes('viaje')) ||
+      ['verne', 'conan doyle', 'stevenson', 'homero', 'salgari', 'wells', 'london', 'cervantes', 'galdós', 'stoker'].some(auth => (b.author_name || '').toLowerCase().includes(auth))
+    ).slice(0, 16);
+    if (this.adventureBooks.length === 0) {
+      this.adventureBooks = this.allBooks.slice(6, 22);
+    }
+
+    // Carrusel Destacado de Tendencias / Obras Magistrales
+    const candidates = this.allBooks.filter(b => (b.ai_character_count || 0) > 0 || b.is_featured);
+    this.trendingCarouselBooks = (candidates.length >= 4 ? candidates : this.allBooks).slice(0, 6);
+    this.startTrendingAutoplay();
+
     this.applyCatalogFilters();
   }
 
@@ -794,34 +834,121 @@ export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/book', slug]);
   }
 
+  /** Desplaza suavemente la estantería de libros en la dirección indicada (-1 izq, 1 der).
+   * Al llegar al final de la estantería, vuelve suavemente al inicio para navegación cíclica continua.
+   * Si está al inicio y retrocede, se desplaza hacia el final. */
+  scrollShelf(track: HTMLElement, direction: number): void {
+    if (!track) return;
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+    const scrollAmount = Math.max(280, Math.floor(track.clientWidth * 0.75));
+    const tolerance = 24; // Margen de holgura para sub-píxeles o redondeo
+
+    if (direction > 0) {
+      // Si ya está prácticamente al final, vuelve al principio de forma fluida
+      if (track.scrollLeft >= maxScroll - tolerance) {
+        track.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const nextScroll = track.scrollLeft + scrollAmount;
+        if (nextScroll >= maxScroll) {
+          track.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      }
+    } else {
+      // Si ya está en el inicio, navega hacia el final
+      if (track.scrollLeft <= tolerance) {
+        track.scrollTo({ left: maxScroll, behavior: 'smooth' });
+      } else {
+        const prevScroll = track.scrollLeft - scrollAmount;
+        if (prevScroll <= 0) {
+          track.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        }
+      }
+    }
+  }
+
+  // ─── Carrusel Destacado de Joyas y Tendencias ─────────────────────────────
+  startTrendingAutoplay(): void {
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    this.stopTrendingAutoplay();
+    this.trendingAutoplayTimer = setInterval(() => {
+      this.nextTrendingBook();
+    }, 7500);
+  }
+
+  stopTrendingAutoplay(): void {
+    if (this.trendingAutoplayTimer) {
+      clearInterval(this.trendingAutoplayTimer);
+      this.trendingAutoplayTimer = null;
+    }
+  }
+
+  nextTrendingBook(): void {
+    if (this.trendingCarouselBooks.length === 0) return;
+    this.trendingIndex = (this.trendingIndex + 1) % this.trendingCarouselBooks.length;
+    this.cdr.detectChanges();
+  }
+
+  prevTrendingBook(): void {
+    if (this.trendingCarouselBooks.length === 0) return;
+    this.trendingIndex = (this.trendingIndex - 1 + this.trendingCarouselBooks.length) % this.trendingCarouselBooks.length;
+    this.cdr.detectChanges();
+  }
+
+  setTrendingBook(index: number): void {
+    if (index >= 0 && index < this.trendingCarouselBooks.length) {
+      this.trendingIndex = index;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // ─── Oráculo Literario / Lectura al Azar ─────────────────────────────────
+  openOracleRandomBook(): void {
+    if (this.allBooks.length === 0) return;
+    this.isSpinningOracle = true;
+    setTimeout(() => {
+      const candidates = this.allBooks.filter(b => b.is_featured || (b.page_count && b.page_count > 0));
+      const pool = candidates.length > 0 ? candidates : this.allBooks;
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      this.randomBook = pool[randomIndex];
+      this.isSpinningOracle = false;
+      this.randomBookModalOpen = true;
+      this.cdr.detectChanges();
+    }, 400);
+  }
+
+  closeOracleModal(): void {
+    this.randomBookModalOpen = false;
+    this.cdr.detectChanges();
+  }
+
+  getReadingTime(book: Book): string {
+    const pages = this.getBookPages(book);
+    if (!pages || pages <= 0) return 'Lectura libre';
+    if (pages <= 60) return `${Math.max(12, Math.round(pages * 1.3))} min`;
+    if (pages <= 180) return `${Math.round(pages * 1.4)} min`;
+    const hours = (pages / 45).toFixed(1);
+    return `~${hours} h`;
+  }
+
   // ─── Reveal Observer y Animaciones ───────────────────────────────────────
   private initRevealObserver(): void {
-    const revealObserver = new IntersectionObserver(
-      (entries) => entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          revealObserver.unobserve(e.target);
-        }
-      }),
-      // rootMargin inferior: la sección empieza a aparecer ANTES de entrar en
-      // pantalla. Sin esto, con scroll rápido se ve el hueco en blanco durante
-      // los 0.6s de la transición.
-      { threshold: 0, rootMargin: '0px 0px 240px 0px' }
-    );
-    document.querySelectorAll('.reveal-section:not(.visible)').forEach(el => revealObserver.observe(el));
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Escanear y sincronizar elementos con scroll animations
+    this.scrollRevealService.scan();
 
     const statsEl = document.querySelector('.stats-section');
-    if (statsEl) {
-      const statsObserver = new IntersectionObserver(
-        (entries) => entries.forEach(e => {
-          if (e.isIntersecting) {
-            this.animateCounters();
-            statsObserver.unobserve(e.target);
-          }
-        }),
-        { threshold: 0.3 }
-      );
-      statsObserver.observe(statsEl);
+    if (statsEl && !this.hasAnimatedStats) {
+      this.scrollRevealService.observe(statsEl);
+      statsEl.addEventListener('revealed', () => {
+        if (!this.hasAnimatedStats) {
+          this.animateCounters();
+        }
+      }, { once: true });
     }
   }
 

@@ -10,6 +10,20 @@ export interface AudioAlignment {
   character_end_times_seconds: number[];
 }
 
+/** Tiempos de la narración neural: la posición i corresponde a la palabra `word-i` del lector. */
+export interface WordTimesAlignment {
+  format: 'word-times-v1';
+  word_count: number;
+  word_starts_ms: number[];
+  word_ends_ms: number[];
+}
+
+export type NarrationAlignment = AudioAlignment | WordTimesAlignment;
+
+function isWordTimes(alignment: NarrationAlignment): alignment is WordTimesAlignment {
+  return (alignment as WordTimesAlignment).format === 'word-times-v1';
+}
+
 export interface SpanishVoice {
   name: string;
   lang: string;
@@ -49,7 +63,7 @@ export class AudioService {
   // ── Internos ────────────────────────────────────────────────────
   private utterance:   SpeechSynthesisUtterance | null = null;
   private proAudio:    HTMLAudioElement | null = null;
-  private proAlign:    AudioAlignment | null = null;
+  private proAlign:    NarrationAlignment | null = null;
   private currentMode: 'native' | 'pro' | 'wasm' = 'native';
   private lastCharIndex: number = 0;  // Para reanudar desde posición
   private currentText:   string = '';
@@ -317,9 +331,9 @@ export class AudioService {
   }
 
   // ── MODO GRABADO (Reemplaza a PRO) ────────────────────────────────
-  playRecorded(audioUrl: string, alignment?: AudioAlignment): Observable<any> {
+  playRecorded(audioUrl: string, alignment?: NarrationAlignment | null, startWordIndex: number = 0): Observable<any> {
     this.cancelAll();
-    this.currentMode = 'pro'; 
+    this.currentMode = 'pro';
     this.currentText = '';
 
     return new Observable(observer => {
@@ -330,9 +344,19 @@ export class AudioService {
       this.proAudio.playbackRate = this.playbackRate;
       this.proAlign = alignment || null;
 
+      // La narración neural sabe dónde empieza cada palabra: se retoma donde va el lector.
+      if (startWordIndex > 0 && this.proAlign && isWordTimes(this.proAlign)) {
+        this.proAudio.currentTime = (this.proAlign.word_starts_ms[startWordIndex] ?? 0) / 1000;
+      }
+
       this.proAudio.ontimeupdate = () => {
         if (this.proAudio && this.proAlign) {
           const currentTime = this.proAudio.currentTime;
+          if (isWordTimes(this.proAlign)) {
+            const wordIdx = this.lastWordStartedAt(this.proAlign.word_starts_ms, currentTime * 1000);
+            if (wordIdx !== -1) this.wordIndexSubject.next(wordIdx);
+            return;
+          }
           const starts = this.proAlign.character_start_times_seconds;
           
           // Encontrar el último carácter que haya empezado antes de currentTime
@@ -385,20 +409,39 @@ export class AudioService {
 
   seekToWord(wordIndex: number, fullText: string) {
     if (!this.proAudio || !this.proAlign) return;
-    
-    // Encontrar el índice del carácter donde empieza la palabra N
-    const words = fullText.split(/\s+/);
-    let charIdx = 0;
-    for (let i = 0; i < wordIndex && i < words.length; i++) {
-      charIdx += words[i].length + 1; // +1 por el espacio
-    }
 
-    const seekTime = this.proAlign.character_start_times_seconds[charIdx] ?? 0;
+    let seekTime: number;
+    if (isWordTimes(this.proAlign)) {
+      seekTime = (this.proAlign.word_starts_ms[wordIndex] ?? 0) / 1000;
+    } else {
+      // Encontrar el índice del carácter donde empieza la palabra N
+      const words = fullText.split(/\s+/);
+      let charIdx = 0;
+      for (let i = 0; i < wordIndex && i < words.length; i++) {
+        charIdx += words[i].length + 1; // +1 por el espacio
+      }
+      seekTime = this.proAlign.character_start_times_seconds[charIdx] ?? 0;
+    }
     this.proAudio.currentTime = seekTime;
     
     if (this.isPausedSubject.getValue()) {
       this.resume();
     }
+  }
+
+  /** Última palabra que ya empezó a sonar (búsqueda binaria: los inicios vienen ordenados). */
+  private lastWordStartedAt(startsMs: number[], nowMs: number): number {
+    let low = 0, high = startsMs.length - 1, found = -1;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (startsMs[mid] <= nowMs) {
+        found = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+    return found;
   }
 
   // ── MODO WASM (Local Avanzado) ──────────────────────────────────

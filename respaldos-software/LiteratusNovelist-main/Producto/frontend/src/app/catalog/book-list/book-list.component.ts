@@ -6,6 +6,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import { FavoritesService } from '../../core/services/favorites.service';
+import { ScrollRevealService } from '../../core/services/scroll-reveal.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
 import { coverThumb } from '../../core/utils/cover-thumb.util';
 
@@ -58,6 +59,7 @@ export class BookListComponent implements OnInit {
   private api = inject(ApiService);
   private authService = inject(AuthService);
   private favoritesService = inject(FavoritesService);
+  private scrollRevealService = inject(ScrollRevealService);
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -667,6 +669,7 @@ export class BookListComponent implements OnInit {
     }
 
     this.books = list;
+    this.scrollRevealService.debouncedScan();
   }
 
   onSearch(event: any): void {

@@ -142,11 +142,11 @@
       <span class="rec-badge">Curaduría Editorial</span>
     </div>
 
-    <div class="rec-cards-row">
+    <div class="rec-cards-row stagger-group">
       <div class="glass-panel rec-card"
            *ngFor="let rec of recommendedBooks; trackBy: trackBook"
            [routerLink]="['/book', rec.slug]">
-        <div class="rec-card-cover">
+        <div class="rec-card-cover has-enter-sheen">
           <img [src]="rec.coverThumb" [alt]="rec.title" loading="lazy">
           <button class="rec-heart-btn"
                   [class.is-fav]="isFavorite(rec)"
@@ -237,11 +237,10 @@
   </div>
 
   <!-- Grilla Principal Centrada (4 columnas escritorio, 3 mediano, 3 tablet, 3 móvil) -->
-  <div class="grid-container" *ngIf="books.length > 0">
-    <div class="glass-panel book-card"
+  <div class="grid-container stagger-group" *ngIf="books.length > 0">
+    <div class="glass-panel book-card has-enter-sheen"
          *ngFor="let book of books; let i = index; trackBy: trackBook"
-         [routerLink]="['/book', book.slug]"
-         [style.animation-delay]="(i * 30) + 'ms'">
+         [routerLink]="['/book', book.slug]">
 
       <!-- Portada Cuadrada con badges e interacción -->
       <div class="card-image">

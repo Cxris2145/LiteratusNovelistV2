@@ -243,6 +243,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   currentAudioMode: 'native' | 'pro' | 'kokoro' | 'wasm' | 'native-android' = 'native';
   currentWordIndex: number = -1;
   isAudioLoading: boolean = false;
+  // Voz neural: aviso visible mientras el servidor genera el capítulo (o si no está disponible)
+  narrationNotice: string = '';
+  private narrationNoticeTimer: any = null;
+  private narrationPollTimer: any = null;
+  private narrationRequestId = 0;
+  private readonly NARRATION_POLL_MS = 3000;
+  private readonly NARRATION_MAX_POLLS = 200; // ~10 minutos
   // WasmTTS (Piper) Voces - Solo dejamos MMS porque Piper no tiene port oficial Web
   wasmVoices = [
     { id: 'Xenova/mms-tts-spa', name: 'MMS Español (Meta) - Pesado' }
@@ -441,9 +448,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Resaltado: escuchar el word index del AudioService (Nativo)
+    // Resaltado: escuchar el word index del AudioService (Nativo y Voz Neural)
     this.audioService.currentWordIndex$.pipe(takeUntil(this.destroy$)).subscribe(idx => {
-      if (this.currentAudioMode === 'native') {
+      if (this.currentAudioMode === 'native' || this.currentAudioMode === 'pro') {
         this.currentWordIndex = idx;
         if (idx !== -1) {
           this.lastAudioWordIndex = idx;
@@ -674,6 +681,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.clearBookmarkHighlight();
     this.releaseWakeLock();
     document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    this.cancelNarrationRequest();
+    clearTimeout(this.narrationNoticeTimer);
     this.audioService.stop();
     this.stopCallMode();
     this.kokoroVoice.stop();
@@ -2115,71 +2124,129 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       // MODO NATIVO CAPACITOR
       this.nativeTts.speak(this.currentChapterPlainText, startWord);
     } else {
-      // MODO GRABADO
-      if (!this.hasPremiumNarration) {
-        this.proErrorMessage = '🔒 Debes desbloquear "Otras opciones" para escuchar la voz grabada.';
-        this.currentAudioMode = 'native';
-        return;
-      }
+      // MODO VOZ NEURAL: audio del capítulo grabado o generado una sola vez en el servidor (Azure)
+      this.playChapterNarration(chapter, startWord);
+    }
+  }
 
-      this.isAudioLoading = true;
+  /**
+   * Pide al servidor la narración del capítulo. Si todavía no existe, el servidor la genera
+   * una sola vez para todos los lectores y aquí se consulta cada pocos segundos hasta que esté.
+   */
+  private playChapterNarration(chapter: any, startWord: number) {
+    if (!chapter?.id || !this.inventoryId) {
+      this.playLegacyRecording(chapter);
+      return;
+    }
 
-      // 1. Intentar obtener audio de la base de datos (ChapterAudio)
-      if (chapter && chapter.audios && chapter.audios.length > 0) {
-        const audio = chapter.audios[0];
-        console.log('Reproduciendo audio desde base de datos:', audio.voice_name);
+    this.cancelNarrationRequest();
+    const requestId = this.narrationRequestId;
+    const url = `library/inventory/${this.inventoryId}/chapters/${chapter.id}/narration/`;
+    let polls = 0;
+    this.isAudioLoading = true;
 
-        this.audioService.playRecorded(audio.audio_url, audio.alignment_data).subscribe({
-          next: () => this.isAudioLoading = false,
-          error: (err) => {
-            this.isAudioLoading = false;
-            console.error('Error en AudioService (DB):', err);
-            this.proErrorMessage = 'Error al reproducir el audio de la base de datos.';
+    const request = () => {
+      this.api.post<any>(url, {}).subscribe({
+        next: (res) => {
+          if (requestId !== this.narrationRequestId) return; // el lector detuvo el audio o cambió de capítulo
+
+          if (res.status === 'generating') {
+            if (++polls > this.NARRATION_MAX_POLLS) {
+              this.isAudioLoading = false;
+              this.showNarrationNotice('La narración está tardando más de lo normal. Intenta de nuevo en unos minutos.', 7000);
+              return;
+            }
+            this.showNarrationNotice(`🎙️ Preparando la narración del capítulo… ${Math.round((res.progress || 0) * 100)}%`);
+            this.narrationPollTimer = setTimeout(request, this.NARRATION_POLL_MS);
+            return;
           }
-        });
-        return;
-      }
 
-      // 2. Fallbacks temporales sin JSON (MP3 crudo) para no complicar el modelo por ahora
-      const backendUrl = environment.apiUrl.split('/api/v1/')[0];
-      // Usamos el order real del capítulo en la BD, no el índice de página del lector
-      const chapterOrder = chapter?.order ?? this.currentPage;
-      const capNumStr = chapterOrder.toString().padStart(2, '0');
-      let fallbackAudioUrl = '';
-
-      console.log(`[Audio] Capítulo DB: order=${chapterOrder}, Construyendo URL con: Capitulo_${capNumStr}.mp3`);
-
-      if (this.bookSlug === 'el-extrano-caso-del-dr-jekyll-y-mr-hyde' || this.bookSlug?.includes('jekyll')) {
-        fallbackAudioUrl = `${backendUrl}/media/audio_narrations/El_extraño_caso/Capitulo_${capNumStr}.mp3`;
-      } else if (this.bookSlug === 'el-principe-feliz' || this.bookSlug?.includes('principe')) {
-        fallbackAudioUrl = `${backendUrl}/media/audio_narrations/Principe_Feliz/Capitulo_${capNumStr}.mp3`;
-      } else if (this.bookSlug === 'el-principito' || this.bookSlug?.includes('principito')) {
-        fallbackAudioUrl = `${backendUrl}/media/audio_narrations/principito/Capitulo_${capNumStr}.mp3`;
-      }
-
-      if (fallbackAudioUrl) {
-        console.log('Usando fallback hardcodeado MP3:', fallbackAudioUrl);
-        this.audioService.playRecorded(fallbackAudioUrl).subscribe({
-          next: () => {
-            this.isAudioLoading = false;
-            // Modo fallback sin JSON: Limpiamos el resaltado ya que ahora usaremos Whisper para sincronizar de verdad.
-            this.currentWordIndex = -1;
-          },
-          error: (err) => {
-            this.isAudioLoading = false;
-            this.proErrorMessage = '🔒 Audio no disponible o no encontrado para este capítulo.';
-            this.currentAudioMode = 'native';
+          this.narrationNotice = '';
+          this.audioService.playRecorded(res.audio_url, res.alignment, startWord).subscribe({
+            next: () => this.isAudioLoading = false,
+            error: (err) => {
+              this.isAudioLoading = false;
+              console.error('Error reproduciendo la narración:', err);
+              this.showNarrationNotice('No se pudo reproducir la narración. Usa la voz estándar.', 6000);
+              this.currentAudioMode = 'native';
+            }
+          });
+        },
+        error: (err) => {
+          if (requestId !== this.narrationRequestId) return;
+          this.isAudioLoading = false;
+          const body = err?.error || {};
+          if (body.reason === 'not_configured') {
+            this.narrationNotice = '';
+            this.playLegacyRecording(chapter);
+            return;
           }
-        });
-      } else {
-        this.isAudioLoading = false;
-        this.proErrorMessage = '🔒 La voz grabada no está disponible para este libro aún.';
-        this.currentAudioMode = 'native';
-      }
+          this.showNarrationNotice(body.message || 'La voz neural no está disponible ahora. Usa la voz estándar.', 7000);
+          this.currentAudioMode = 'native';
+        }
+      });
+    };
+    request();
+  }
+
+  private showNarrationNotice(message: string, autoHideMs: number = 0) {
+    this.narrationNotice = message;
+    clearTimeout(this.narrationNoticeTimer);
+    if (autoHideMs) {
+      this.narrationNoticeTimer = setTimeout(() => this.narrationNotice = '', autoHideMs);
+    }
+  }
+
+  private cancelNarrationRequest() {
+    this.narrationRequestId++;
+    clearTimeout(this.narrationPollTimer);
+    this.narrationPollTimer = null;
+  }
+
+  /** MP3 antiguos de tres libros; solo se usan si el servidor no tiene la voz neural configurada. */
+  private playLegacyRecording(chapter: any) {
+    this.isAudioLoading = true;
+    const backendUrl = environment.apiUrl.split('/api/v1/')[0];
+    // Usamos el order real del capítulo en la BD, no el índice de página del lector
+    const chapterOrder = chapter?.order ?? this.currentPage;
+    const capNumStr = chapterOrder.toString().padStart(2, '0');
+    let fallbackAudioUrl = '';
+
+    console.log(`[Audio] Capítulo DB: order=${chapterOrder}, Construyendo URL con: Capitulo_${capNumStr}.mp3`);
+
+    if (this.bookSlug === 'el-extrano-caso-del-dr-jekyll-y-mr-hyde' || this.bookSlug?.includes('jekyll')) {
+      fallbackAudioUrl = `${backendUrl}/media/audio_narrations/El_extraño_caso/Capitulo_${capNumStr}.mp3`;
+    } else if (this.bookSlug === 'el-principe-feliz' || this.bookSlug?.includes('principe')) {
+      fallbackAudioUrl = `${backendUrl}/media/audio_narrations/Principe_Feliz/Capitulo_${capNumStr}.mp3`;
+    } else if (this.bookSlug === 'el-principito' || this.bookSlug?.includes('principito')) {
+      fallbackAudioUrl = `${backendUrl}/media/audio_narrations/principito/Capitulo_${capNumStr}.mp3`;
+    }
+
+    if (fallbackAudioUrl) {
+      console.log('Usando fallback hardcodeado MP3:', fallbackAudioUrl);
+      this.audioService.playRecorded(fallbackAudioUrl).subscribe({
+        next: () => {
+          this.isAudioLoading = false;
+          // Modo fallback sin JSON: Limpiamos el resaltado ya que ahora usaremos Whisper para sincronizar de verdad.
+          this.currentWordIndex = -1;
+        },
+        error: (err) => {
+          this.isAudioLoading = false;
+          this.showNarrationNotice('Audio no disponible para este capítulo. Usa la voz estándar.', 6000);
+          this.currentAudioMode = 'native';
+        }
+      });
+    } else {
+      this.isAudioLoading = false;
+      this.showNarrationNotice('La voz neural no está disponible en este servidor. Usa la voz estándar.', 6000);
+      this.currentAudioMode = 'native';
     }
   }
 
   stopAudio(preventScroll: boolean = false) {
+    this.cancelNarrationRequest();
+    this.isAudioLoading = false;
+    this.narrationNotice = '';
     this.audioService.stop();
     this.kokoroVoice.stop();
     this.nativeTts.stop();

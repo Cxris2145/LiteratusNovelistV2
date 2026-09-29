@@ -20,25 +20,8 @@ from django.db import transaction
 from django.core.files.base import ContentFile
 
 from catalog.models import Author, Book, BookAuthor, Edition, Chapter, Tag, Genre
+from core.storage import upload_to_supabase_if_configured
 from django.conf import settings
-import requests
-
-def upload_to_supabase_if_configured(file_data, upload_path, content_type):
-    supabase_url = getattr(settings, 'SUPABASE_URL', os.getenv('SUPABASE_URL'))
-    supabase_key = getattr(settings, 'SUPABASE_KEY', os.getenv('SUPABASE_KEY'))
-    if not supabase_url or not supabase_key:
-        return
-        
-    url = f"{supabase_url}/storage/v1/object/literatus-media/{upload_path}"
-    headers = {
-        "apikey": supabase_key,
-        "Authorization": f"Bearer {supabase_key}",
-        "Content-Type": content_type
-    }
-    try:
-        requests.post(url, headers=headers, data=file_data)
-    except Exception as e:
-        print(f"Error subiendo a Supabase: {e}")
 
 def backup_book_to_media(book):
     book_dir = os.path.join(settings.MEDIA_ROOT, 'books', str(book.pk))

@@ -1,6 +1,9 @@
 """
 ai_engine/views.py — Controladores de interacciones AI (Roleplay Inmersivo)
 """
+import base64
+
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, permissions, status
@@ -24,6 +27,7 @@ from .serializers import (
 from .services import AIService, AssistantAIService
 from .tts_service import TTSService
 from .kokoro_service import KokoroTTSService
+from . import azure_tts
 from core.decorators import consume_ink
 from django.utils.decorators import method_decorator
 
@@ -448,11 +452,13 @@ class TTSGenerateView(APIView):
 
     """
     POST /api/v1/ai/audio/generate/
-    Genera audio con Kokoro-82M (via Hugging Face Space).
+    Genera la voz de un personaje en MP3 (base64). Usa Azure AI Speech si está
+    configurado y, si no, Kokoro-82M (via Hugging Face Space).
     Acepta texto + avatar_id para usar la voz asignada al personaje.
     Costo: 2 créditos de tinta por frase.
     """
     permission_classes = [permissions.IsAuthenticated]
+    MAX_AZURE_CHARS = 1000  # una respuesta del chat cabe completa en una sola llamada
 
     def post(self, request):
         text = request.data.get("text", "").strip()
@@ -470,37 +476,52 @@ class TTSGenerateView(APIView):
                 "message": f"Necesitas {COST} créditos de tinta para la narración."
             }, status=status.HTTP_402_PAYMENT_REQUIRED)
 
-        # Recuperar voz del personaje si se proporciona avatar_id
-        voice_id = 'af_bella'  # voz por defecto
+        # Recuperar el personaje si se proporciona avatar_id (ids inválidos usan la voz por defecto)
+        avatar = None
         if avatar_id:
             try:
                 avatar = AIAvatar.objects.get(pk=avatar_id)
-                voice_id = avatar.kokoro_voice_id or 'af_bella'
-            except AIAvatar.DoesNotExist:
-                pass  # Usar voz por defecto
+            except (AIAvatar.DoesNotExist, ValueError, DjangoValidationError):
+                pass
 
-        try:
-            tts = KokoroTTSService()
-            audio_b64 = tts.generate_audio_base64(text, voice_id)
+        if azure_tts.is_configured():
+            voice_id = azure_tts.voice_for_avatar(avatar)
+            clean_text = azure_tts.clean_text_for_speech(text)[:self.MAX_AZURE_CHARS]
+            if not clean_text:
+                return Response({"error": "El texto no tiene nada que leer."}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                audio_b64 = base64.b64encode(azure_tts.synthesize_mp3(clean_text, voice_id)).decode('ascii')
+            except azure_tts.AzureTTSQuotaError as e:
+                return Response({"error": "TTS_QUOTA_EXCEEDED", "message": str(e)},
+                                status=status.HTTP_429_TOO_MANY_REQUESTS)
+            except azure_tts.AzureTTSError as e:
+                return Response({"error": "TTS_UNAVAILABLE", "message": str(e)},
+                                status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            engine = 'azure'
+        else:
+            voice_id = (avatar.kokoro_voice_id if avatar else None) or 'af_bella'
+            try:
+                audio_b64 = KokoroTTSService().generate_audio_base64(text, voice_id)
+            except Exception as e:
+                err_str = str(e)
+                if "cold start" in err_str.lower() or "timeout" in err_str.lower():
+                    return Response({
+                        "error": "KOKORO_COLD_START",
+                        "message": "El servicio de voz está iniciando. Intenta de nuevo en 30 segundos."
+                    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                return Response({"error": err_str}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            engine = 'kokoro'
 
-            # Descontar tinta
-            profile.ink_balance = max(0, profile.ink_balance - COST)
-            profile.save()
+        # Descontar tinta
+        profile.ink_balance = max(0, profile.ink_balance - COST)
+        profile.save()
 
-            return Response({
-                "audio_base64": audio_b64,
-                "ink_balance": profile.ink_balance,
-                "voice_used": voice_id,
-            })
-
-        except Exception as e:
-            err_str = str(e)
-            if "cold start" in err_str.lower() or "timeout" in err_str.lower():
-                return Response({
-                    "error": "KOKORO_COLD_START",
-                    "message": "El servicio de voz está iniciando. Intenta de nuevo en 30 segundos."
-                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-            return Response({"error": err_str}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({
+            "audio_base64": audio_b64,
+            "ink_balance": profile.ink_balance,
+            "voice_used": voice_id,
+            "engine": engine,
+        })
 
 
 # ═══════════════════════════════════════════════════════════════════════════

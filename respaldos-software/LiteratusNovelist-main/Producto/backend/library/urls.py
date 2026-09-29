@@ -14,6 +14,7 @@ from .views import (
     InkHistoryViewSet,
     UserMissionViewSet,
     DailyRewardViewSet,
+    NarrationAudioView,
 )
 
 router = DefaultRouter()
@@ -40,4 +41,6 @@ router.register(r'daily-reward', DailyRewardViewSet, basename='daily-reward')
 
 urlpatterns = [
     path('', include(router.urls)),
+    # /api/v1/library/narration-audio/<id>/ (MP3 de narraciones guardadas solo en disco)
+    path('narration-audio/<uuid:pk>/', NarrationAudioView.as_view(), name='narration-audio'),
 ]

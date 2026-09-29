@@ -566,14 +566,14 @@
         <span class="ink-cost">Gratis</span>
       </div>
 
-      <!-- VOZ PREMIUM AI (KOKORO) - DESHABILITADO -->
-        <div class="voice-option disabled-option" style="opacity: 0.5; pointer-events: none; filter: grayscale(100%);">
-          <div class="voice-info">
-            <span>Voz Kokoro 80M</span>
-            <small>Voz Neuronal (Mantenimiento)</small>
-          </div>
-          <span class="ink-cost unlocked-badge" style="background: #6b7280; color: white; border: none;">BETA</span>
+      <!-- VOZ NEURAL (AZURE): cada capítulo se narra una vez en el servidor y queda guardado -->
+      <div class="voice-option" [class.active]="currentAudioMode === 'pro'" (click)="setAudioMode('pro')">
+        <div class="voice-info">
+          <span>Voz Neural</span>
+          <small>Narración natural con resaltado exacto</small>
         </div>
+        <span class="ink-cost unlocked-badge" style="background: #7c3aed;">HD</span>
+      </div>
 
       <!-- VOZ WASM (PIPER) -->
       <div class="voice-option" [class.active]="currentAudioMode === 'wasm'" (click)="setAudioMode('wasm')">
@@ -1001,6 +1001,11 @@
     <span>Reanudando marcador en: <strong>"{{ bookmarkResumeWordText }}"</strong></span>
   </div>
 
+  <!-- TOAST DE VOZ NEURAL (progreso de generación del capítulo y avisos) -->
+  <div class="bookmark-resume-toast glass-panel" [class.show]="!!narrationNotice" role="status" aria-live="polite">
+    <span>{{ narrationNotice }}</span>
+  </div>
+
   <!-- LIGHTBOX PARA IMÁGENES -->
   <div class="image-lightbox-overlay" *ngIf="showImageModal" (click)="closeImageModal()">
     <button class="close-lightbox-btn" (click)="closeImageModal()">✕</button>
@@ -1042,6 +1047,9 @@
             (click)="toggleAudioFromFab()"
             [disabled]="isAudioLoading || isKokoroProcessing"
             style="position: relative; overflow: hidden;">
+      <!-- Cargando (ej. el servidor está generando la voz neural del capítulo) -->
+      <span *ngIf="isAudioLoading || isKokoroProcessing" class="loader-spin">◷</span>
+
       <!-- Icono Play: Si no está cargando y NO está reproduciendo -->
       <span class="material-symbols-rounded" *ngIf="!isAudioLoading && !isKokoroProcessing && (
         (currentAudioMode === 'kokoro' && !(kokoroVoice.isSpeaking$ | async)) ||

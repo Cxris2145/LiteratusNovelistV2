@@ -1,13 +1,20 @@
 """
 library/views.py — Vistas para la Biblioteca del Usuario.
 """
+import re
+
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.http import FileResponse, Http404
+from rest_framework.views import APIView
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.files.storage import default_storage
+from django.http import FileResponse, Http404, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from core.pagination import StandardResultsSetPagination
+from catalog import narration
+from catalog.models import Chapter, ChapterAudio
 
 from .models import (
     UserFavorite, UserInventory, ReadingProgress, UserBookmark,
@@ -126,22 +133,26 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         """
         SERVICIO DE LECTURA HTML BROWSER-NATIVE.
         Devuelve el contenido en HTML de los capítulos y sus audios asociados.
+        Los tiempos de sincronización no van aquí (pesan mucho por capítulo):
+        el lector los pide con `chapter_narration` al reproducir.
         """
         inventory_item = self.get_object()
         book = inventory_item.edition.book
         chapters = book.chapters.all().order_by('order').prefetch_related('audios')
-        
+
         data = []
         for c in chapters:
             chapter_audios = []
             for audio in c.audios.all():
+                if not narration.is_ready(audio):
+                    continue  # narración en generación, fallida o sin archivo
                 chapter_audios.append({
                     'id': audio.id,
                     'voice_name': audio.voice_name,
-                    'audio_url': request.build_absolute_uri(audio.audio_file.url) if audio.audio_file else None,
-                    'alignment_data': audio.alignment_data
+                    'audio_url': narration.audio_url(request, audio),
+                    'has_alignment': bool(audio.alignment_data),
                 })
-                
+
             data.append({
                 'id': c.id, 
                 'title': c.title, 
@@ -154,6 +165,34 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             'has_premium_narration': inventory_item.has_premium_narration or request.user.is_staff or request.user.is_superuser,
             'chapters': data
         })
+
+    @action(detail=True, methods=['POST'], url_path=r'chapters/(?P<chapter_id>[0-9a-f-]+)/narration')
+    def chapter_narration(self, request, pk=None, chapter_id=None):
+        """
+        POST /api/v1/library/inventory/{id}/chapters/{chapter_id}/narration/
+        Narración con voz neural de un capítulo: la devuelve si ya existe o empieza a
+        generarla una sola vez para todos los lectores.
+          200 → lista: audio_url + alignment (tiempos por palabra)
+          202 → generándose: el lector vuelve a preguntar hasta que esté lista
+          429 / 503 / 422 → no disponible (el lector usa la voz estándar)
+        """
+        inventory_item = self.get_object()
+        try:
+            chapter = inventory_item.edition.book.chapters.get(pk=chapter_id)
+        except (Chapter.DoesNotExist, ValueError, DjangoValidationError):
+            raise Http404("El capítulo no pertenece a este libro.")
+
+        result = narration.request_chapter_narration(chapter, request.user)
+        payload = narration.narration_payload(request, result)
+        if result.status == narration.READY:
+            return Response(payload)
+        if result.status == narration.GENERATING:
+            return Response(payload, status=status.HTTP_202_ACCEPTED)
+        unavailable_status = {
+            'not_configured': status.HTTP_503_SERVICE_UNAVAILABLE,
+            'empty': status.HTTP_422_UNPROCESSABLE_ENTITY,
+        }.get(result.reason, status.HTTP_429_TOO_MANY_REQUESTS)
+        return Response(payload, status=unavailable_status)
 
     @action(detail=False, methods=['GET'], url_path='check')
     def check_ownership(self, request):
@@ -186,6 +225,64 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
                 "inventory_id": inventory_item.id
             })
         return Response({"owned": False})
+
+
+class NarrationAudioView(APIView):
+    """
+    GET /api/v1/library/narration-audio/{id}/
+    Sirve el MP3 de una narración que quedó solo en el disco del backend (sin SUPABASE_KEY).
+    Es pública porque <audio> no envía el token JWT; solo expone narraciones generadas.
+    Responde peticiones Range (206): sin ellas el navegador no puede saltar dentro del audio.
+    """
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    CHUNK_SIZE = 64 * 1024
+
+    def get(self, request, pk):
+        audio = get_object_or_404(ChapterAudio, pk=pk)
+        if not (narration.is_azure(audio) and narration.is_ready(audio)):
+            raise Http404("Narración no disponible.")
+
+        name = audio.audio_file.name
+        size = default_storage.size(name)
+        byte_range = self._parse_range(request.META.get('HTTP_RANGE', ''), size)
+        if byte_range is None:
+            response = FileResponse(default_storage.open(name, 'rb'), content_type='audio/mpeg')
+        else:
+            start, end = byte_range
+            response = StreamingHttpResponse(
+                self._read(default_storage.open(name, 'rb'), start, end - start + 1),
+                status=status.HTTP_206_PARTIAL_CONTENT, content_type='audio/mpeg')
+            response['Content-Range'] = f'bytes {start}-{end}/{size}'
+            response['Content-Length'] = str(end - start + 1)
+        response['Accept-Ranges'] = 'bytes'
+        response['Cache-Control'] = 'public, max-age=86400'
+        return response
+
+    @staticmethod
+    def _parse_range(header, size):
+        """'bytes=100-199', 'bytes=100-' o 'bytes=-500' -> (inicio, fin); None si no aplica."""
+        match = re.fullmatch(r'bytes=(\d*)-(\d*)', header.strip())
+        if not match or size == 0 or not (match.group(1) or match.group(2)):
+            return None
+        if match.group(1):
+            start = int(match.group(1))
+            end = min(int(match.group(2)), size - 1) if match.group(2) else size - 1
+        else:
+            start, end = max(size - int(match.group(2)), 0), size - 1
+        return (start, end) if start <= end else None
+
+    def _read(self, file, start, length):
+        try:
+            file.seek(start)
+            while length > 0:
+                data = file.read(min(self.CHUNK_SIZE, length))
+                if not data:
+                    break
+                length -= len(data)
+                yield data
+        finally:
+            file.close()
 
 
 

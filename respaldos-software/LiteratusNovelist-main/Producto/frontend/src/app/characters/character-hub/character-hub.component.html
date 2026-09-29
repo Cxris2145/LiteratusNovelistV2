@@ -83,12 +83,12 @@
   <ng-container *ngIf="!isSearching">
 
     <!-- RECIENTES -->
-    <section class="hub-section" *ngIf="recentCharacters.length > 0">
+    <section class="hub-section reveal-section" *ngIf="recentCharacters.length > 0">
       <div class="section-header">
         <h2 class="section-title"><span class="icon"><svg lucideClock [size]="20" class="lucide-icon"></svg></span> Continuar conversación</h2>
       </div>
-      <div class="horizontal-scroll">
-        <div class="char-card mini-card" *ngFor="let char of recentCharacters; trackBy: trackById"
+      <div class="horizontal-scroll stagger-group">
+        <div class="char-card mini-card has-enter-sheen" *ngFor="let char of recentCharacters; trackBy: trackById"
           (click)="openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
@@ -104,14 +104,14 @@
     </section>
 
     <!-- DESTACADOS (Por popularidad) -->
-    <section class="hub-section">
+    <section class="hub-section reveal-section">
       <div class="section-header">
         <h2 class="section-title"><span class="icon"><svg lucideFlame [size]="20" class="lucide-icon"></svg></span> Más Destacados</h2>
         <p class="section-subtitle">Los personajes que más cautivan a la comunidad.</p>
       </div>
 
-      <div class="horizontal-scroll" *ngIf="!isLoading">
-        <div class="char-card premium-card" *ngFor="let char of featuredCharacters; trackBy: trackById"
+      <div class="horizontal-scroll stagger-group" *ngIf="!isLoading">
+        <div class="char-card premium-card has-enter-sheen" *ngFor="let char of featuredCharacters; trackBy: trackById"
           (click)="openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
@@ -145,15 +145,15 @@
     </section>
 
     <!-- EXPLORAR TODOS -->
-    <section class="hub-section">
+    <section class="hub-section reveal-section">
       <div class="section-header">
         <h2 class="section-title"><span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Todos los Personajes</h2>
         <p class="section-subtitle" *ngIf="totalCount">
           Mostrando {{ allCharacters.length }} de {{ totalCount }}.
         </p>
       </div>
-      <div class="character-grid">
-        <div class="char-card premium-card" *ngFor="let char of allCharacters; trackBy: trackById"
+      <div class="character-grid stagger-group">
+        <div class="char-card premium-card has-enter-sheen" *ngFor="let char of allCharacters; trackBy: trackById"
           (click)="openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"

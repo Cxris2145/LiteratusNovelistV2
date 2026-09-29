@@ -1,6 +1,9 @@
 ﻿import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { ApiService } from './api.service';
 import { AudioCacheService } from './audio-cache.service';
+import { AuthService } from './auth.service';
 
 export interface KokoroSentence {
   text: string;
@@ -72,17 +75,16 @@ export class KokoroTtsService {
   // Instancia Local de KokoroTTS (cargada dinámicamente)
   private ttsInstance: any = null;
   private audioCache = inject(AudioCacheService);
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
   private downloadPromise: Promise<void> | null = null;
-  
-  constructor() {
-    localStorage.setItem('kokoro-engine-mode', 'local');
-    const savedMode = 'local';
-    if (savedMode === 'local') {
-      // Si el usuario tenía "local" guardado, iniciamos la descarga en background sin bloquear
-      this.engineMode$.next('remote');
-      this.downloadLocalEngine().catch(err => console.error("Fallo auto-load local:", err));
-    }
 
+  // En modo remoto cada llamada al backend cuesta Tinta: se agrupan frases hasta ~600 caracteres.
+  private readonly REMOTE_GROUP_CHARS = 600;
+
+  constructor() {
+    // El motor remoto (Azure vía backend) es el predeterminado. El modelo local de Kokoro
+    // (~90 MB) solo se descarga si el usuario lo activa a mano, no al abrir la app.
     const savedMute = localStorage.getItem('literatus_tts_muted');
     if (savedMute === 'true') {
       this.isMuted$.next(true);
@@ -155,6 +157,12 @@ export class KokoroTtsService {
   async speak(fullText: string, avatarId: string | number | null, startWordIdx: number = 0, voiceId?: string): Promise<void> {
     if (this.isMuted$.value) return;
 
+    // La voz remota exige sesión: sin token, el 401 haría que el interceptor mande al login.
+    if (this.engineMode$.value === 'remote' && !this.auth.getAccessToken()) {
+      this.error$.next('Inicia sesión para escuchar la voz de los personajes.');
+      return;
+    }
+
     if (!this.audioCtx || this.audioCtx.state === 'closed') {
       this.audioCtx = new AudioContext();
     }
@@ -172,7 +180,8 @@ export class KokoroTtsService {
     this.avatarId = avatarId;
     this.error$.next(null);
 
-    const allSentences = this.buildSentences(fullText);
+    const groupChars = this.engineMode$.value === 'remote' ? this.REMOTE_GROUP_CHARS : 0;
+    const allSentences = this.buildSentences(fullText, groupChars);
     if (allSentences.length === 0) return;
 
     const startIndex = allSentences.findIndex(s => s.baseWordIdx + s.wordCount > startWordIdx);
@@ -396,15 +405,16 @@ export class KokoroTtsService {
         await this.downloadLocalEngine();
       }
       const useLocal = this.engineMode$.value === 'local' && this.ttsInstance;
-      const hfApiUrl = 'http://localhost:8880/v1/audio/speech';
 
       for (let attempt = 1; attempt <= retries; attempt++) {
       if (this.isStopped) return null;
-      
+
       try {
         const textToSpeak = sentence.text.replace(/[*_\[\]]/g, '');
         const voiceId = (this.overrideVoiceId || this.selectedVoiceId);
-        
+        // En remoto la voz la elige el backend según el personaje: la caché va por personaje.
+        const cacheVoice = useLocal ? voiceId : `azure:${this.avatarId ?? 'narrador'}`;
+
         let audioBuffer: AudioBuffer;
 
         if (!this.audioCtx || this.audioCtx.state === 'closed') {
@@ -412,7 +422,7 @@ export class KokoroTtsService {
         }
 
         // 1. Revisar Caché (IndexedDB)
-        const cachedArrayBuffer = await this.audioCache.getAudio(voiceId, textToSpeak);
+        const cachedArrayBuffer = await this.audioCache.getAudio(cacheVoice, textToSpeak);
         if (cachedArrayBuffer) {
            audioBuffer = await this.audioCtx.decodeAudioData(cachedArrayBuffer);
            return { buffer: audioBuffer, sentence };
@@ -442,38 +452,25 @@ export class KokoroTtsService {
            // Por ahora, en local es tan rápido que no es crítico cachear en DB, 
            // pero el modo remoto sí.
         } else {
-           // MODO REMOTO HF API
-           const response = await fetch(hfApiUrl, {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({
-               model: "kokoro",
-               input: textToSpeak.replace(/[áÁ]/g, 'a')
-                                 .replace(/[éÉ]/g, 'e')
-                                 .replace(/[íÍ]/g, 'i')
-                                 .replace(/[óÓ]/g, 'o')
-                                 .replace(/[úÚüÜ]/g, 'u'), 
-               voice: voiceId, 
-               response_format: "mp3",
-               speed: 1.0
-             })
-           });
-
-           if (!response.ok) throw new Error(`HF API error: ${response.status}`);
+           // MODO REMOTO: voz de Azure a través del backend (cuesta Tinta, por eso se cachea)
+           const arrayBuffer = await this.fetchRemoteAudio(textToSpeak);
            if (this.isStopped) return null;
 
-           const arrayBuffer = await response.arrayBuffer();
-           
            // Guardar copia exacta en caché
-           const bufferToCache = arrayBuffer.slice(0);
-           this.audioCache.saveAudio(voiceId, textToSpeak, bufferToCache);
+           this.audioCache.saveAudio(cacheVoice, textToSpeak, arrayBuffer.slice(0));
 
            audioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
         }
 
         return { buffer: audioBuffer, sentence };
-        
+
       } catch (err) {
+        // Sin Tinta, sin cupo o sin servicio: reintentar no sirve y cada intento podría cobrar.
+        if (err instanceof HttpErrorResponse && [401, 402, 429, 503].includes(err.status)) {
+          this.error$.next(err.error?.message || 'La voz del personaje no está disponible ahora.');
+          this.stop();
+          return null;
+        }
         console.warn(`[KokoroTTS] Error en frase ${useLocal ? '(LOCAL)' : '(REMOTO)'} (Intento ${attempt}/${retries}):`, err);
         
         // Fallback automático si estamos en local y falla
@@ -491,22 +488,40 @@ export class KokoroTtsService {
     return null;
   }
 
-  private buildSentences(text: string): KokoroSentence[] {
+  /** Pide la voz del personaje al backend (Azure) y devuelve el MP3. */
+  private async fetchRemoteAudio(text: string): Promise<ArrayBuffer> {
+    const res = await firstValueFrom(this.api.post<{ audio_base64: string }>('ai/audio/generate/', {
+      text,
+      avatar_id: this.avatarId,
+    }));
+    const binary = atob(res.audio_base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer as ArrayBuffer;
+  }
+
+  /**
+   * Parte el texto en frases para empezar a hablar rápido. Con `groupChars` > 0 junta
+   * frases hasta ese largo (en remoto cada fragmento es una llamada que cuesta Tinta).
+   */
+  private buildSentences(text: string, groupChars: number = 0): KokoroSentence[] {
     const rawWords = text.split(/\s+/).filter(w => w.length > 0);
     const sentences: KokoroSentence[] = [];
-    
+
     let currentWords: string[] = [];
     let baseIdx = 0;
     let sentenceIdxCounter = 0;
-    
+
     for (let i = 0; i < rawWords.length; i++) {
       currentWords.push(rawWords[i]);
-      
+
       const currentText = currentWords.join(' ');
-      const isPunctuation = /[.!?¿¡"]$/.test(rawWords[i]);
-      const isTooLong = currentText.length > 150 && /[,;]$/.test(rawWords[i]);
-      const isExtremelyLong = currentText.length > 250; 
-      
+      const isPunctuation = /[.!?¿¡"]$/.test(rawWords[i]) && currentText.length >= groupChars;
+      const isTooLong = currentText.length > Math.max(150, groupChars) && /[,;]$/.test(rawWords[i]);
+      const isExtremelyLong = currentText.length > Math.max(250, groupChars * 1.5);
+
       if (isPunctuation || isTooLong || isExtremelyLong || i === rawWords.length - 1) {
         if (currentWords.length < 4 && i !== rawWords.length - 1 && !isExtremelyLong) {
           continue;

@@ -36,9 +36,11 @@ services:
       - key: DATABASE_URL
         sync: false                       # Supabase -> Project Settings -> Database -> URI (pooler)
 
-      # --- Storage de portadas (TU Supabase) ---
+      # --- Storage de portadas y narraciones (TU Supabase) ---
       - key: SUPABASE_URL
         sync: false                       # ej: https://xxxxxxxx.supabase.co
+      - key: SUPABASE_KEY
+        sync: false                       # Supabase -> Project Settings -> API -> service_role (sin ella, las narraciones se pierden al reiniciar)
 
       # --- Inteligencia Artificial (tus propias claves) ---
       - key: GOOGLE_API_KEY
@@ -61,6 +63,10 @@ services:
         sync: false                       # https://tu-frontend.vercel.app
 
       # --- Voz / correo (opcionales, la app funciona sin esto) ---
+      - key: AZURE_SPEECH_KEY
+        sync: false                       # Azure -> recurso de Speech (plan F0) -> Claves y punto de conexion
+      - key: AZURE_SPEECH_REGION
+        sync: false                       # ej: westus
       - key: ELEVENLABS_API_KEY
         sync: false
       - key: KOKORO_API_URL
