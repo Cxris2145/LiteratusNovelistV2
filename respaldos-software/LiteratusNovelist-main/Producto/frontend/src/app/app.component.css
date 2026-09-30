@@ -22,9 +22,10 @@
 }
 
 .header-top-container {
-  max-width: 1440px;
+  /* Alineado con el margen de la portada y del pie (--home-gutter). */
+  max-width: none;
   margin: 0 auto;
-  padding: 10px 24px;
+  padding: 10px var(--home-gutter, 24px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -788,7 +789,7 @@
 @media (max-width: 900px) {
   .brand-literatus, .brand-novelist,
   .literatus, .novelist { font-size: 1.35rem; }
-  .header-top-container { padding: 8px 16px; gap: 12px; }
+  .header-top-container { padding: 8px var(--home-gutter, 16px); gap: 12px; }
   .bubbles-container { gap: 1.2rem; }
 }
 
