@@ -1,351 +1,1915 @@
-<div class="home">
+<div class="home-wrapper">
 
-  <!-- 1. Portada -->
-  <section class="hero" aria-labelledby="hero-title" [attr.data-family]="heroFamily.id">
-    <div class="resume-bar" *ngIf="continueReading">
-      <p class="resume-text">
-        Vas en el {{ continuePercent }} % de <strong>{{ continueTitle }}</strong>
-        <span class="resume-streak" *ngIf="userStreak > 0">{{ userStreak }} {{ userStreak === 1 ? 'día' : 'días' }} de racha</span>
-      </p>
-      <a class="btn btn-small" [routerLink]="['/reader', continueReading.id]">Seguir leyendo</a>
-    </div>
-
-    <div class="hero-inner">
-      <div class="hero-copy">
-        <h1 class="hero-title" id="hero-title">Clásicos completos, gratis y en español.</h1>
-        <p class="hero-lede">Léelos, escúchalos con voz y conversa con sus personajes.</p>
-
-        <div class="hero-actions">
-          <a *ngIf="heroBook; else catalogOnly" class="btn btn-primary" [routerLink]="['/book', heroBook.slug]">Leer {{ heroBook.title }}</a>
-          <ng-template #catalogOnly>
-            <a class="btn btn-primary" routerLink="/catalog">Ver catálogo</a>
-          </ng-template>
-          <a *ngIf="heroBook" class="btn btn-quiet" routerLink="/catalog">Ver catálogo</a>
+  <!-- ═══════════════════════════════════════════════════════════
+       0. BARRA SUPERIOR DEL REFUGIO LECTOR (Usuarios Logueados)
+  ═══════════════════════════════════════════════════════════ -->
+  <aside class="user-strip-bar" *ngIf="auth.isLoggedIn()" aria-label="Estado y actividad de lectura del usuario">
+    <div class="user-strip-inner">
+      
+      <!-- 1. Perfil e Identidad del Lector -->
+      <div class="strip-user-zone">
+        <div class="strip-greeting-lockup">
+          <span class="strip-greeting">{{ greetingText }},</span>
+          <strong class="strip-username">{{ auth.currentUser()?.username || userProfile?.username || 'Lector' }}</strong>
         </div>
 
-        <ul class="hero-facts">
-          <li *ngIf="totalBooksCount"><strong>{{ fmt(totalBooksCount) }}</strong> obras íntegras</li>
-          <li *ngIf="totalCharactersCount"><strong>{{ fmt(totalCharactersCount) }}</strong> personajes para conversar</li>
-          <li>Modos para TDAH y dislexia</li>
-        </ul>
+        <div class="strip-rank-chip" [title]="'Rango actual: ' + userLevelTitle + ' · Nivel ' + userLevel">
+          <span class="material-symbols-rounded rank-icon" aria-hidden="true">workspace_premium</span>
+          <span class="rank-name">{{ userLevelTitle }}</span>
+          <span class="rank-level-tag">Nv. {{ userLevel }}</span>
+        </div>
       </div>
 
-      <div class="hero-stage" id="hero-panel" role="tabpanel" aria-live="polite" [attr.aria-label]="heroBook?.title || 'Libro destacado'">
-        <figure class="hero-book" *ngIf="heroBook; else heroPlaceholder">
-          <button type="button" class="hero-cover" (click)="openQuickView(heroBook, $event)" [attr.aria-label]="'Vista previa de ' + heroBook.title">
-            <img *ngIf="heroBook.cover_image && !heroCoverFailed"
-                 [src]="thumbUrl(heroBook.cover_image, 520, 780, 75)"
-                 alt=""
-                 width="520" height="780"
-                 fetchpriority="high"
-                 (error)="heroCoverFailed = true">
-            <span class="cover-fallback" *ngIf="!heroBook.cover_image || heroCoverFailed">
-              <span class="cover-fallback-title">{{ heroBook.title }}</span>
-              <span class="cover-fallback-author">{{ heroBook.author_name }}</span>
-            </span>
-          </button>
-          <figcaption class="hero-caption">
-            <span class="hero-book-title">{{ heroBook.title }}</span>
-            <span class="hero-book-author" *ngIf="heroBook.author_name">{{ heroBook.author_name }}</span>
-            <span class="hero-book-meta">
-              <span>Colección {{ heroFamily.label }}</span>
-              <span>{{ getBookPages(heroBook) }} págs.</span>
-              <span *ngIf="(heroBook.ai_character_count || 0) > 0">
-                {{ heroBook.ai_character_count }} {{ heroBook.ai_character_count === 1 ? 'personaje' : 'personajes' }}
-              </span>
-            </span>
-          </figcaption>
-        </figure>
-
-        <ng-template #heroPlaceholder>
-          <div class="hero-book hero-book--empty">
-            <div class="hero-error" *ngIf="loadFailed; else heroSkeleton" role="alert">
-              <p>No pudimos cargar el catálogo. Revisa tu conexión e inténtalo otra vez.</p>
-              <button type="button" class="btn btn-primary" (click)="retryLoad()">Reintentar</button>
-            </div>
-            <ng-template #heroSkeleton>
-              <div class="hero-skeleton" aria-hidden="true"></div>
-            </ng-template>
+      <!-- 2. Dock Central: Métricas de Vitalidad, Economía y Rango -->
+      <div class="strip-metrics-dock" role="group" aria-label="Métricas de lectura y recursos">
+        
+        <!-- Racha activa -->
+        <div class="dock-metric dock-metric--streak" [title]="'Racha de lectura: ' + userStreak + ' ' + (userStreak === 1 ? 'día consecutivo' : 'días consecutivos')">
+          <span class="dock-icon-wrapper dock-icon-wrapper--coral" aria-hidden="true">
+            <span class="material-symbols-rounded dock-icon">local_fire_department</span>
+          </span>
+          <div class="dock-metric-content">
+            <span class="dock-val">{{ userStreak }}</span>
+            <span class="dock-lbl">{{ userStreak === 1 ? 'día de racha' : 'días de racha' }}</span>
           </div>
+        </div>
+
+        <div class="dock-divider" aria-hidden="true"></div>
+
+        <!-- Tinta (Moneda) -->
+        <a routerLink="/tavern" class="dock-metric dock-metric--ink" title="Visitar La Taberna de Tinta para recargar o canjear">
+          <span class="dock-icon-wrapper dock-icon-wrapper--amber" aria-hidden="true">
+            <span class="material-symbols-rounded dock-icon">ink_pen</span>
+          </span>
+          <div class="dock-metric-content">
+            <span class="dock-val">{{ userInkBalance | number:'1.0-0' }}</span>
+            <span class="dock-lbl">Tinta</span>
+          </div>
+          <span class="dock-plus-btn" aria-hidden="true" title="Recargar Tinta">
+            <span class="material-symbols-rounded">add</span>
+          </span>
+        </a>
+
+        <div class="dock-divider" aria-hidden="true"></div>
+
+        <!-- Progreso hacia el siguiente nivel -->
+        <div class="dock-metric dock-metric--progress" [title]="xpPercent + '% acumulado para ascender al Nivel ' + (userLevel + 1)">
+          <span class="dock-icon-wrapper dock-icon-wrapper--teal" aria-hidden="true">
+            <span class="material-symbols-rounded dock-icon">trending_up</span>
+          </span>
+          <div class="dock-progress-wrapper">
+            <div class="dock-progress-track">
+              <div class="dock-progress-fill" [style.width]="xpPercent + '%'"></div>
+            </div>
+            <div class="dock-progress-meta">
+              <span class="progress-pct">{{ xpPercent }}%</span>
+              <span class="progress-target">al Nv. {{ userLevel + 1 }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 3. Marcador de Lectura Rápida / Continuar -->
+      <div class="strip-action-zone">
+        <a *ngIf="continueReadingItems.length > 0; else exploreCatalogLink"
+           [routerLink]="['/reader', continueReadingItems[0].id]" 
+           class="strip-resume-btn" 
+           [title]="'Reanudar lectura: ' + (continueReadingItems[0].book_title || continueReadingItems[0].edition?.book?.title)">
+          <span class="resume-icon-pill" aria-hidden="true">
+            <span class="material-symbols-rounded">auto_stories</span>
+          </span>
+          <div class="resume-details">
+            <span class="resume-hint">Reanudar</span>
+            <span class="resume-title">{{ continueReadingItems[0].book_title || continueReadingItems[0].edition?.book?.title }}</span>
+          </div>
+          <span class="resume-arrow-pill" aria-hidden="true">
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </span>
+        </a>
+
+        <ng-template #exploreCatalogLink>
+          <a routerLink="/catalog" class="strip-resume-btn strip-resume-btn--explore" title="Explorar catálogo de obras maestras">
+            <span class="resume-icon-pill" aria-hidden="true">
+              <span class="material-symbols-rounded">explore</span>
+            </span>
+            <div class="resume-details">
+              <span class="resume-hint">Biblioteca</span>
+              <span class="resume-title">Explorar catálogo</span>
+            </div>
+            <span class="resume-arrow-pill" aria-hidden="true">
+              <span class="material-symbols-rounded">arrow_forward</span>
+            </span>
+          </a>
         </ng-template>
       </div>
+
     </div>
+  </aside>
 
-    <div class="hero-switcher" role="tablist" aria-label="Libros destacados" *ngIf="heroBooks.length > 1">
-      <button *ngFor="let b of heroBooks; let i = index; trackBy: trackBySlug"
-              type="button"
-              role="tab"
-              class="spine"
-              [attr.data-family]="bookFamily(b).id"
-              [style.flex-basis.px]="spineWidth(b)"
-              [style.max-width.px]="spineWidth(b) * 1.6"
-              [style.min-height.px]="spineHeight(b)"
-              [attr.aria-selected]="i === heroBookIndex"
-              aria-controls="hero-panel"
-              [tabindex]="i === heroBookIndex ? 0 : -1"
-              (click)="selectHeroBook(i)"
-              (keydown)="onSpineKeydown($event, i)">
-        <span class="spine-title">{{ b.title }}</span>
-        <span class="spine-author" *ngIf="b.author_name">{{ spineAuthor(b) }}</span>
-      </button>
-    </div>
-  </section>
+  <!-- ═══════════════════════════════════════════════════════════
+       1. EL GRAN ESCENARIO 3D: "EL GRAN ATRIL DEL CATÁLOGO"
+  ═══════════════════════════════════════════════════════════ -->
+  <header class="hero-stage-section" aria-labelledby="catalog-stage-title">
+    <div class="stage-ambient-glow" aria-hidden="true"></div>
 
-  <!-- 2. Géneros -->
-  <section class="band collections" aria-labelledby="collections-title" *ngIf="genres.length">
-    <div class="band-head">
-      <h2 class="band-title" id="collections-title">Explora por género</h2>
-      <a class="band-link" routerLink="/catalog">Todo el catálogo</a>
-    </div>
-    <ul class="collection-list">
-      <li *ngFor="let g of genres; trackBy: trackByGenreSlug">
-        <a class="collection" [routerLink]="['/catalog']" [queryParams]="{ genre: g.slug }" [attr.data-family]="g.family.id">
-          <span class="collection-name">{{ g.name }}</span>
-          <span class="collection-count">{{ fmt(g.book_count) }}</span>
-        </a>
-      </li>
-    </ul>
-  </section>
-
-  <!-- 3. Para empezar -->
-  <ng-container *ngTemplateOutlet="shelf; context: {
-    id: 'starter',
-    title: 'Para empezar',
-    lede: 'Obras destacadas del catálogo, un buen punto de partida.',
-    books: starterBooks,
-    link: '/catalog',
-    linkLabel: 'Ver más clásicos'
-  }"></ng-container>
-
-  <!-- 4. Reparto -->
-  <section class="band cast" aria-labelledby="cast-title" *ngIf="castAvatars.length">
-    <div class="band-head">
-      <h2 class="band-title" id="cast-title">Reparto</h2>
-      <p class="band-lede">Cada obra trae a sus personajes. Pregúntales por qué hicieron lo que hicieron.</p>
-    </div>
-
-    <div class="cast-body">
-      <article class="cast-feature" *ngIf="characterOfTheDay as star">
-        <img class="cast-portrait"
-             [src]="star.avatar_image_url || 'assets/images/default-avatar.svg'"
-             alt=""
-             width="240" height="240"
-             loading="lazy"
-             onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
-        <div class="cast-feature-text">
-          <h3 class="cast-feature-name">{{ star.name }}</h3>
-          <p class="cast-feature-book" *ngIf="star.book_title">{{ star.book_title }}</p>
-          <p class="cast-feature-desc" *ngIf="star.description">{{ star.description }}</p>
-          <button type="button" class="btn btn-primary cast-feature-cta" (click)="goToCharacterChat(star)" [attr.aria-label]="'Conversar con ' + star.name">Conversar</button>
+    <div class="stage-grid">
+      <!-- Columna Izquierda: Información de la Obra en Atril y Controles -->
+      <div class="stage-info-col">
+        <div class="stage-badge-pill">
+          <span class="material-symbols-rounded badge-pill-icon">auto_stories</span>
+          <span>El Gran Catálogo Imperial</span>
+          <span class="stage-badge-count">{{ totalBooksCount.toLocaleString('es-CL') }}+ Clásicos</span>
         </div>
-      </article>
 
-      <ol class="cast-list" (mouseleave)="focusCast(null)">
-        <li *ngFor="let a of castAvatars | slice:1; trackBy: trackById"
-            class="cast-row"
-            [class.is-dimmed]="focusedCastId !== null && focusedCastId !== a.id">
-          <button type="button" class="cast-row-btn"
-                  (mouseenter)="focusCast(a)" (focus)="focusCast(a)" (blur)="focusCast(null)"
-                  (click)="goToCharacterChat(a)"
-                  [attr.aria-label]="'Conversar con ' + a.name + (a.book_title ? ', de ' + a.book_title : '')">
-            <span class="cast-name">{{ a.name }}</span>
-            <span class="cast-role" *ngIf="a.description">{{ a.description }}</span>
-            <span class="cast-book" *ngIf="a.book_title">{{ a.book_title }}</span>
-          </button>
-        </li>
-      </ol>
-    </div>
-    <a class="band-link" routerLink="/characters">Ver todos los personajes</a>
-  </section>
+        <h1 class="stage-main-title" id="catalog-stage-title">
+          Una biblioteca sin fronteras.<br>
+          <span class="title-highlight">Donde las páginas cobran vida.</span>
+        </h1>
 
-  <!-- 5. Lectura asistida -->
-  <section class="band assist" id="lectura-asistida" aria-labelledby="assist-title">
-    <div class="band-head">
-      <h2 class="band-title" id="assist-title">Lee a tu manera</h2>
-      <p class="band-lede">Los mismos modos que tiene el lector, probados con el comienzo del Quijote.</p>
-    </div>
+        <!-- Presentación del Libro en Atril -->
+        <div class="stage-book-feature" *ngIf="heroBook; else loadingHero">
+          <h2 class="featured-book-name">{{ heroBook.title }}</h2>
+          <p class="featured-author" *ngIf="heroBook.author_name">
+            <span class="material-symbols-rounded author-icon">history_edu</span>
+            {{ heroBook.author_name }}
+          </p>
 
-    <div class="assist-controls">
-      <div class="segmented" role="group" aria-label="Modo de lectura">
-        <button type="button" [attr.aria-pressed]="assistiveMode === 'normal'" (click)="setAssistiveMode('normal')">Normal</button>
-        <button type="button" [attr.aria-pressed]="assistiveMode === 'focus'" (click)="setAssistiveMode('focus')">Enfoque</button>
-        <button type="button" [attr.aria-pressed]="assistiveMode === 'bionic'" (click)="setAssistiveMode('bionic')">Biónica</button>
-        <button type="button" [attr.aria-pressed]="assistiveMode === 'dyslexia'" (click)="setAssistiveMode('dyslexia')">Dislexia</button>
-      </div>
-      <button *ngIf="canNarrate" type="button" class="btn btn-quiet listen-btn" [attr.aria-pressed]="isNarrating" (click)="toggleNarration()">
-        <span class="material-symbols-rounded" aria-hidden="true">{{ isNarrating ? 'stop' : 'play_arrow' }}</span>
-        {{ isNarrating ? 'Detener' : 'Escuchar' }}
-      </button>
-    </div>
-
-    <article class="assist-page" [ngClass]="'mode-' + assistiveMode" [class.is-narrating]="isNarrating">
-      <header class="assist-page-head">
-        <span class="assist-page-title">{{ demoTitle }}</span>
-        <span class="assist-page-author">{{ demoAuthor }}</span>
-      </header>
-      <p *ngFor="let words of demoWords; let pi = index"
-         class="assist-paragraph"
-         [class.is-current]="assistiveMode === 'focus' && (narratedWord < 0 ? pi === 0 : words[0].index <= narratedWord && narratedWord <= words[words.length - 1].index)">
-        <ng-container *ngFor="let w of words; let last = last"><span class="w" [class.is-spoken]="w.index === narratedWord"><ng-container *ngIf="assistiveMode === 'bionic'; else plainWord"><b>{{ w.head }}</b>{{ w.tail }}</ng-container><ng-template #plainWord>{{ w.text }}</ng-template></span>{{ last ? '' : ' ' }}</ng-container>
-      </p>
-      <p class="assist-note" [ngSwitch]="assistiveMode">
-        <ng-container *ngSwitchCase="'normal'">Tipografía de lectura con interlineado amplio.</ng-container>
-        <ng-container *ngSwitchCase="'focus'">Atenúa todo menos el párrafo que estás leyendo.</ng-container>
-        <ng-container *ngSwitchCase="'bionic'">Marca el inicio de cada palabra para guiar la vista.</ng-container>
-        <ng-container *ngSwitchCase="'dyslexia'">Letra pensada para dislexia, con más espacio entre letras y líneas.</ng-container>
-      </p>
-    </article>
-  </section>
-
-  <!-- 6. Menos de una hora -->
-  <ng-container *ngTemplateOutlet="shelf; context: {
-    id: 'quick',
-    title: 'Menos de una hora',
-    lede: 'Cuentos y obras breves que se leen de una sentada.',
-    books: quickReads,
-    link: '/catalog',
-    linkLabel: 'Ver más obras breves'
-  }"></ng-container>
-
-  <!-- 7. ¿Qué leer hoy? -->
-  <section class="band mood" aria-labelledby="mood-title">
-    <div class="band-head">
-      <h2 class="band-title" id="mood-title">¿No sabes qué leer?</h2>
-      <p class="band-lede">Elige qué te apetece o deja que elijamos por ti.</p>
-    </div>
-    <div class="mood-controls">
-      <div class="chip-row" role="group" aria-label="Qué te apetece leer">
-        <button *ngFor="let m of moodOptions; trackBy: trackByMoodId" type="button" class="chip"
-                [attr.aria-pressed]="selectedMood === m.id" (click)="selectMood(m.id)">{{ m.label }}</button>
-      </div>
-      <button type="button" class="btn btn-quiet" (click)="surpriseMe($event)" [disabled]="!allBooks.length">Sorpréndeme</button>
-    </div>
-    <ng-container *ngTemplateOutlet="bookTrack; context: { id: 'mood', books: filteredMoodBooks }"></ng-container>
-  </section>
-
-  <!-- 8. Recomendados (solo con sesión: se calculan con los géneros de tu biblioteca) -->
-  <ng-container *ngTemplateOutlet="shelf; context: {
-    id: 'popular',
-    title: 'Recomendados para ti',
-    lede: 'Según los géneros de los libros que ya tienes.',
-    books: popularBooks,
-    link: '/catalog',
-    linkLabel: 'Ver catálogo'
-  }"></ng-container>
-
-  <!-- 9. Tinta y cierre -->
-  <section class="band ink" aria-labelledby="ink-title">
-    <div class="ink-text">
-      <h2 class="band-title" id="ink-title">Leer siempre es gratis</h2>
-      <p class="band-lede">La Tinta es la moneda de Literatus. Se usa para conversar con los personajes y escuchar la narración con voz.</p>
-      <ul class="ink-ways">
-        <li>Ganas Tinta cada día que mantienes tu racha de lectura.</li>
-        <li>Las misiones y los logros también dan Tinta.</li>
-      </ul>
-    </div>
-    <div class="ink-actions">
-      <ng-container *ngIf="auth.isLoggedIn(); else guestClose">
-        <a class="btn btn-primary" routerLink="/tavern">Conseguir Tinta</a>
-      </ng-container>
-      <ng-template #guestClose>
-        <a class="btn btn-primary" routerLink="/register">Crear cuenta gratis</a>
-        <a class="btn btn-quiet" routerLink="/login">Ya tengo cuenta</a>
-      </ng-template>
-    </div>
-  </section>
-
-  <!-- Estantería reutilizable -->
-  <ng-template #shelf let-id="id" let-title="title" let-lede="lede" let-books="books" let-link="link" let-linkLabel="linkLabel">
-    <section class="band shelf" *ngIf="books?.length" [attr.aria-labelledby]="id + '-title'">
-      <div class="band-head">
-        <h2 class="band-title" [id]="id + '-title'">{{ title }}</h2>
-        <p class="band-lede">{{ lede }}</p>
-        <a class="band-link" [routerLink]="link">{{ linkLabel }}</a>
-      </div>
-      <ng-container *ngTemplateOutlet="bookTrack; context: { id: id, books: books }"></ng-container>
-    </section>
-  </ng-template>
-
-  <ng-template #bookTrack let-id="id" let-books="books">
-    <div class="track-wrap">
-      <button type="button" class="track-nav track-nav--prev" (click)="scrollShelf(track, -1)" aria-label="Ver libros anteriores">
-        <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
-      </button>
-      <ul class="track" #track [attr.aria-label]="'Libros'">
-        <li class="book" *ngFor="let b of books; trackBy: trackBySlug" [attr.data-family]="bookFamily(b).id">
-          <a class="book-cover" [routerLink]="['/book', b.slug]" tabindex="-1" aria-hidden="true">
-            <span class="book-cover-fallback">
-              <span class="book-cover-fallback-title">{{ b.title }}</span>
-              <span class="book-cover-fallback-author" *ngIf="b.author_name">{{ b.author_name }}</span>
+          <!-- Badges de la obra -->
+          <div class="featured-badges-row">
+            <span class="stage-book-badge page-badge" *ngIf="getBookPages(heroBook) > 0">
+              <span class="material-symbols-rounded">menu_book</span>
+              {{ getBookPages(heroBook) }} págs.
             </span>
-            <img *ngIf="b.cover_image && !brokenCovers.has(b.slug)" [src]="thumbUrl(b.cover_image)" alt="" width="360" height="540" loading="lazy" (error)="markCoverBroken(b)">
-          </a>
-          <div class="book-meta">
-            <h3 class="book-title"><a [routerLink]="['/book', b.slug]">{{ b.title }}</a></h3>
-            <p class="book-author" *ngIf="b.author_name">{{ b.author_name }}</p>
-            <p class="book-facts">
-              <span>{{ getBookPages(b) }} págs.</span>
-              <span *ngIf="getReadingTime(b)">{{ getReadingTime(b) }}</span>
-            </p>
+            <span class="stage-book-badge ai-badge" *ngIf="(heroBook.ai_character_count || 0) > 0">
+              <span class="ai-live-dot"></span>
+              {{ heroBook.ai_character_count }} personajes IA
+            </span>
+            <span class="stage-book-badge classic-badge">
+              <span class="material-symbols-rounded">verified</span>
+              Texto íntegro
+            </span>
           </div>
-          <div class="book-actions">
-            <button type="button" class="book-action" (click)="openQuickView(b, $event)">Vista previa</button>
-            <button type="button" class="book-action book-action--icon"
-                    [attr.aria-pressed]="isBookFavorite(b)"
-                    [attr.aria-label]="(isBookFavorite(b) ? 'Quitar de favoritos: ' : 'Guardar en favoritos: ') + b.title"
-                    (click)="toggleFavorite(b, $event)">
-              <span class="material-symbols-rounded" aria-hidden="true">{{ isBookFavorite(b) ? 'favorite' : 'favorite_border' }}</span>
+
+          <p class="featured-synopsis">
+            {{ heroBook.synopsis || 'Sumérgete en una de las mayores hazañas de la literatura universal. Descubre su narrativa completa o entabla un diálogo directo con sus protagonistas.' }}
+          </p>
+
+          <!-- Botones de Acción Inmediata -->
+          <div class="stage-actions-row">
+            <a [routerLink]="['/book', heroBook.slug]" class="cta-read-hero">
+              <span class="material-symbols-rounded">auto_stories</span>
+              <span>Comenzar a leer</span>
+              <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
+            </a>
+
+            <button type="button" class="cta-quickview-hero" (click)="openQuickView(heroBook, $event)">
+              <span class="material-symbols-rounded">visibility</span>
+              <span>Vista rápida 3D</span>
+            </button>
+
+            <button type="button" class="cta-fav-hero" (click)="toggleFavorite(heroBook, $event)" [class.active]="isBookFavorite(heroBook)" title="Guardar en favoritos">
+              <span class="material-symbols-rounded">{{ isBookFavorite(heroBook) ? 'favorite' : 'favorite_border' }}</span>
             </button>
           </div>
-        </li>
-      </ul>
-      <button type="button" class="track-nav track-nav--next" (click)="scrollShelf(track, 1)" aria-label="Ver más libros">
-        <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
-      </button>
-    </div>
-  </ng-template>
-
-  <!-- Vista previa -->
-  <div class="qv-backdrop" *ngIf="selectedQuickViewBook as qv" (click)="closeQuickView()">
-    <div class="qv" role="dialog" aria-modal="true" aria-labelledby="qv-title"
-         cdkTrapFocus [cdkTrapFocusAutoCapture]="true"
-         [attr.data-family]="bookFamily(qv).id"
-         (click)="$event.stopPropagation()">
-      <button type="button" class="qv-close" (click)="closeQuickView()" aria-label="Cerrar vista previa">
-        <span class="material-symbols-rounded" aria-hidden="true">close</span>
-      </button>
-      <div class="qv-cover">
-        <span class="book-cover-fallback">
-          <span class="book-cover-fallback-title">{{ qv.title }}</span>
-          <span class="book-cover-fallback-author" *ngIf="qv.author_name">{{ qv.author_name }}</span>
-        </span>
-        <img *ngIf="qv.cover_image && !brokenCovers.has(qv.slug)" [src]="thumbUrl(qv.cover_image, 440, 660, 75)" alt="" width="440" height="660" (error)="markCoverBroken(qv)">
-      </div>
-      <div class="qv-body">
-        <h2 class="qv-title" id="qv-title">{{ qv.title }}</h2>
-        <p class="qv-author" *ngIf="qv.author_name">{{ qv.author_name }}</p>
-
-        <div class="segmented segmented--small" role="group" aria-label="Contenido de la vista previa">
-          <button type="button" [attr.aria-pressed]="quickViewTab === 'synopsis'" (click)="setQuickViewTab('synopsis')">Sinopsis</button>
-          <button type="button" [attr.aria-pressed]="quickViewTab === 'details'" (click)="setQuickViewTab('details')">Ficha</button>
         </div>
 
-        <p class="qv-synopsis" *ngIf="quickViewTab === 'synopsis'">
-          {{ qv.synopsis || 'Esta obra todavía no tiene sinopsis. Puedes abrirla y empezar a leer.' }}
-        </p>
-        <dl class="qv-details" *ngIf="quickViewTab === 'details'">
-          <div><dt>Colección</dt><dd>{{ bookFamily(qv).label }}</dd></div>
-          <div><dt>Extensión</dt><dd>{{ getBookPages(qv) }} páginas aprox.</dd></div>
-          <div *ngIf="getReadingTime(qv)"><dt>Tiempo de lectura</dt><dd>{{ getReadingTime(qv) }}</dd></div>
-          <div *ngIf="qv.genres?.length"><dt>Géneros</dt><dd>{{ genreNames(qv) }}</dd></div>
-          <div *ngIf="(qv.ai_character_count || 0) > 0"><dt>Personajes</dt><dd>{{ qv.ai_character_count }} para conversar</dd></div>
-        </dl>
+        <ng-template #loadingHero>
+          <div class="stage-book-feature-skeleton">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line skeleton-author"></div>
+            <div class="skeleton-line skeleton-desc"></div>
+          </div>
+        </ng-template>
 
-        <div class="qv-actions">
-          <a class="btn btn-primary" [routerLink]="['/book', qv.slug]" (click)="closeQuickView()">Leer</a>
-          <button type="button" class="btn btn-quiet" [attr.aria-pressed]="isBookFavorite(qv)" (click)="toggleFavorite(qv, $event)">
-            {{ isBookFavorite(qv) ? 'Guardado' : 'Guardar' }}
+        <!-- Carrusel de Miniaturas del Atril -->
+        <div class="stage-carousel-nav" *ngIf="heroBooks.length > 1">
+          <button type="button" class="carousel-arrow prev-btn" (click)="prevHeroBook()" aria-label="Libro anterior en atril">
+            <span class="material-symbols-rounded">chevron_left</span>
           </button>
+
+          <div class="stage-thumbnails-track">
+            <button
+              *ngFor="let hb of heroBooks; let i = index; trackBy: trackBySlug"
+              type="button"
+              class="stage-thumb-item"
+              [class.active]="heroBookIndex === i"
+              (click)="selectHeroBook(i)"
+              [attr.aria-label]="'Ver ' + hb.title"
+            >
+              <img [src]="thumbUrl(hb.cover_image, 200, 300, 58)" [alt]="hb.title" class="thumb-img" loading="lazy">
+              <span class="thumb-glow" *ngIf="heroBookIndex === i"></span>
+            </button>
+          </div>
+
+          <button type="button" class="carousel-arrow next-btn" (click)="nextHeroBook()" aria-label="Siguiente libro en atril">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+
+          <span class="carousel-counter" aria-live="polite">
+            {{ heroBookIndex + 1 }} / {{ heroBooks.length }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Atril 3D Interactivo con Inclinación Dinámica -->
+      <div class="stage-visual-col">
+        <div
+          #heroStage
+          class="book-3d-stand"
+          (mousemove)="onHeroMouseMove($event, heroStage)"
+          (mouseenter)="onHeroMouseEnter()"
+          (mouseleave)="onHeroMouseLeave()"
+        >
+          <div
+            class="book-3d-viewport"
+            [style.transform]="'perspective(1100px) rotateX(' + heroTiltX + 'deg) rotateY(' + heroTiltY + 'deg)'"
+          >
+            <!-- Sombra de proyección en el atril -->
+            <div class="book-3d-shadow" aria-hidden="true"></div>
+
+            <!-- Pedestal de caoba y bronce -->
+            <div class="lectern-base" aria-hidden="true">
+              <div class="lectern-ledge"></div>
+              <div class="lectern-brass-rail">
+                <span class="brass-screw left"></span>
+                <span class="brass-label">BIBLIOTHECA NOVELIST</span>
+                <span class="brass-screw right"></span>
+              </div>
+            </div>
+
+            <!-- El Tomo 3D Monumental -->
+            <article class="book-3d-object" *ngIf="heroBook">
+              <!-- Lomo del libro -->
+              <div class="book-spine-3d" aria-hidden="true">
+                <span class="spine-ribs"></span>
+                <span class="spine-title-gold">{{ heroBook.title }}</span>
+                <span class="spine-ribs"></span>
+              </div>
+
+              <!-- Bloque de páginas de pergamino (grosor) -->
+              <div class="book-pages-stack" aria-hidden="true">
+                <div class="stack-layer stack-top"></div>
+                <div class="stack-layer stack-side"></div>
+                <div class="stack-layer stack-bottom"></div>
+              </div>
+
+              <!-- Cubierta frontal con textura de cuero y relieve -->
+              <div class="book-cover-front">
+                <img
+                  *ngIf="heroBook.cover_image && !heroCoverFailed"
+                  [src]="thumbUrl(heroBook.cover_image, 500, 720, 72)"
+                  [alt]="heroBook.title"
+                  class="cover-front-image"
+                  fetchpriority="high"
+                  (error)="heroCoverFailed = true"
+                />
+
+                <!-- Fallback artístico si no hay imagen -->
+                <div class="cover-front-fallback" *ngIf="!heroBook.cover_image || heroCoverFailed">
+                  <span class="material-symbols-rounded fallback-icon">auto_stories</span>
+                  <strong class="fallback-title">{{ heroBook.title }}</strong>
+                  <span class="fallback-author">{{ heroBook.author_name }}</span>
+                </div>
+
+                <!-- Capa de brillo dinámico (sheen) -->
+                <div class="cover-front-sheen" aria-hidden="true"></div>
+
+                <!-- Marco dorado perimetral -->
+                <div class="cover-gold-border" aria-hidden="true"></div>
+
+                <!-- Cinta de lectura de terciopelo -->
+                <div class="book-velvet-ribbon" aria-hidden="true">
+                  <span class="ribbon-tail"></span>
+                </div>
+
+                <!-- Overlay interactivo al posar el cursor -->
+                <div class="cover-hover-overlay">
+                  <button type="button" class="quickview-pill-btn" (click)="openQuickView(heroBook, $event)">
+                    <span class="material-symbols-rounded">visibility</span>
+                    <span>Explorar tomo</span>
+                  </button>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <!-- Guía Literario: vive fuera del viewport 3D para no heredar su
+               inclinación ni tapar la portada. -->
+          <div class="stage-mascot-companion">
+            <!-- Maguito saluda al aparecer; al tocarlo reacciona y cambia el consejo -->
+            <app-maguito class="companion-maguito" [greetOnEnter]="true" (poked)="cycleMascotTip()"
+                         title="¡Toca a Maguito para otro consejo!"></app-maguito>
+            <button
+              type="button"
+              class="companion-bubble"
+              [class.bubble-refreshing]="isMascotCheering"
+              (click)="cycleMascotTip()"
+              aria-label="Tu cómplice de lectura. Pulsa para ver otro consejo"
+            >
+              <span class="bubble-speaker">
+                <span class="bubble-spark-icon">✨</span>
+                Cómplice literario
+              </span>
+              <span class="bubble-text">{{ currentMascotTip }}</span>
+              <span class="material-symbols-rounded bubble-cycle-icon" aria-hidden="true">refresh</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       2. DOCK DE CONTROL Y BÚSQUEDA EN VIVO DEL GRAN CATÁLOGO
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="catalog-dock-section" aria-label="Controles del catálogo">
+    <div class="catalog-dock-card">
+      <!-- Fila 1: Buscador en Tiempo Real + Selector de Modo de Vista -->
+      <div class="dock-main-row">
+        <div class="dock-search-wrap">
+          <span class="material-symbols-rounded dock-search-icon" aria-hidden="true">search</span>
+          <input
+            type="text"
+            class="dock-search-input"
+            [(ngModel)]="catalogSearchTerm"
+            (ngModelChange)="onCatalogSearchChange($event)"
+            placeholder="Buscar por título, autor, saga o sinopsis..."
+            aria-label="Buscar en el catálogo"
+          />
+          <button
+            *ngIf="catalogSearchTerm"
+            type="button"
+            class="dock-clear-btn"
+            (click)="clearCatalogSearch()"
+            aria-label="Limpiar búsqueda"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+
+        <!-- Conmutador de Modo de Vista -->
+        <div class="dock-view-mode-group" role="group" aria-label="Modo de visualización">
+          <button
+            type="button"
+            class="dock-view-btn"
+            [class.active]="catalogViewMode === 'shelves'"
+            (click)="setCatalogViewMode('shelves')"
+            title="Vista de Estanterías 3D"
+          >
+            <span class="material-symbols-rounded">shelves</span>
+            <span class="view-btn-label">Estanterías 3D</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-view-btn"
+            [class.active]="catalogViewMode === 'grid'"
+            (click)="setCatalogViewMode('grid')"
+            title="Vista Gran Muro de Libros"
+          >
+            <span class="material-symbols-rounded">grid_view</span>
+            <span class="view-btn-label">Gran Muro</span>
+          </button>
+        </div>
+
+        <!-- Botón de Descubrimiento al Azar (Oráculo) -->
+        <button
+          type="button"
+          class="dock-oracle-btn"
+          (click)="openOracleRandomBook()"
+          title="Descubrir un libro al azar según el Oráculo Literario"
+        >
+          <span class="material-symbols-rounded oracle-dice-icon" [class.spinning]="isSpinningOracle">casino</span>
+          <span class="oracle-btn-label">Lectura al Azar</span>
+        </button>
+      </div>
+
+      <!-- Fila 2: Píldoras de Filtros Rápidos -->
+      <div class="dock-filters-row">
+        <div class="quick-filters-track">
+          <button
+            type="button"
+            class="dock-filter-pill"
+            [class.active]="activeQuickFilter === 'all'"
+            (click)="setQuickFilter('all')"
+          >
+            <span class="material-symbols-rounded pill-icon">library_books</span>
+            <span>Todos los tomos</span>
+            <span class="pill-count" *ngIf="totalBooksCount">{{ totalBooksCount }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-filter-pill"
+            [class.active]="activeQuickFilter === 'featured'"
+            (click)="setQuickFilter('featured')"
+          >
+            <span class="material-symbols-rounded pill-icon pill-icon--gold">star</span>
+            <span>Obras Maestras</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-filter-pill"
+            [class.active]="activeQuickFilter === 'ai'"
+            (click)="setQuickFilter('ai')"
+          >
+            <span class="pill-pulse-dot"></span>
+            <span>Con Personajes IA</span>
+            <span class="pill-count pill-count--ai" *ngIf="livingAIBooks.length">{{ livingAIBooks.length }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-filter-pill"
+            [class.active]="activeQuickFilter === 'short'"
+            (click)="setQuickFilter('short')"
+          >
+            <span class="material-symbols-rounded pill-icon pill-icon--cyan">bolt</span>
+            <span>Lecturas Breves</span>
+          </button>
+
+          <button
+            type="button"
+            class="dock-filter-pill"
+            [class.active]="activeQuickFilter === 'popular'"
+            (click)="setQuickFilter('popular')"
+          >
+            <span class="material-symbols-rounded pill-icon pill-icon--amber">local_fire_department</span>
+            <span>Populares</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fila 3: Barra Horizontal de Géneros Literarios -->
+      <div class="dock-genres-strip" *ngIf="categories.length > 0">
+        <button
+          type="button"
+          class="dock-genre-tag"
+          [class.active]="!activeGenreSlug"
+          (click)="selectGenre(null)"
+        >
+          <span>Todos los géneros</span>
+        </button>
+        <button
+          *ngFor="let cat of categories; trackBy: trackByGenreSlug"
+          type="button"
+          class="dock-genre-tag"
+          [class.active]="activeGenreSlug === cat.slug"
+          (click)="selectGenre(cat.slug)"
+        >
+          <span>{{ cat.name }}</span>
+          <span class="genre-count" *ngIf="cat.book_count">({{ cat.book_count }})</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       3. VISTA 1: LAS GRANDES ESTANTERÍAS TEMÁTICAS 3D
+       (Se muestra si no hay filtro de texto o género activo y modo 'shelves')
+  ═══════════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="catalogViewMode === 'shelves' && !catalogSearchTerm && !activeGenreSlug && activeQuickFilter === 'all'">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         A. CARRUSEL PANORÁMICO DESTACADO: TESOROS DE ORO & TENDENCIAS
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="trending-showcase-section reveal-section" *ngIf="trendingCarouselBooks.length > 0" aria-label="Tesoros y Tendencias Literarias">
+      <div class="trending-showcase-header">
+        <div class="showcase-badge">
+          <span class="material-symbols-rounded showcase-badge-icon">auto_awesome</span>
+          <span>Tesoros de Oro & Obras Destacadas</span>
+        </div>
+        <div class="trending-nav-controls">
+          <button type="button" class="trending-ctrl-btn" (click)="prevTrendingBook()" aria-label="Obra anterior">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <div class="trending-dots-nav">
+            <button
+              *ngFor="let item of trendingCarouselBooks; let idx = index; trackBy: trackBySlug"
+              type="button"
+              class="trending-dot"
+              [class.active]="trendingIndex === idx"
+              (click)="setTrendingBook(idx)"
+              [attr.aria-label]="'Ir a ' + item.title"
+            ></button>
+          </div>
+          <button type="button" class="trending-ctrl-btn" (click)="nextTrendingBook()" aria-label="Siguiente obra">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="trending-banner-stage" (mouseenter)="stopTrendingAutoplay()" (mouseleave)="startTrendingAutoplay()">
+        <article class="trending-slide-card" *ngIf="trendingCarouselBooks[trendingIndex] as trend">
+          <div class="trending-bg-glow" aria-hidden="true"></div>
+
+          <div class="trending-content-grid">
+            <!-- Portada 3D del Carrusel -->
+            <div class="trending-cover-col">
+              <div class="trending-cover-stage" (click)="openQuickView(trend, $event)">
+                <div class="trending-cover-book has-enter-sheen">
+                  <img [src]="thumbUrl(trend.cover_image, 400, 600, 75)" [alt]="trend.title" class="trend-cover-img" loading="eager" />
+                  <div class="trending-cover-sheen"></div>
+                  <div class="trending-spine-fold"></div>
+                  <span class="trending-ribbon-tag">Obra Magistral</span>
+                </div>
+                <div class="trending-reflection"></div>
+              </div>
+            </div>
+
+            <!-- Información Editorial y Acciones -->
+            <div class="trending-info-col">
+              <div class="trending-kicker-row">
+                <span class="trending-genre-pill" *ngIf="trend.genres && trend.genres.length > 0">
+                  {{ trend.genres[0].name }}
+                </span>
+                <span class="trending-time-pill">
+                  <span class="material-symbols-rounded">schedule</span>
+                  {{ getReadingTime(trend) }}
+                </span>
+                <span class="trending-ai-pill" *ngIf="(trend.ai_character_count || 0) > 0">
+                  <span class="ai-live-dot"></span>
+                  {{ trend.ai_character_count }} personajes IA
+                </span>
+              </div>
+
+              <h3 class="trending-book-title">{{ trend.title }}</h3>
+              <p class="trending-book-author" *ngIf="trend.author_name">
+                <span class="material-symbols-rounded author-feather">history_edu</span>
+                De <strong>{{ trend.author_name }}</strong>
+              </p>
+
+              <p class="trending-synopsis">
+                {{ trend.synopsis || 'Una de las narrativas cumbre de nuestra biblioteca imperial. Disfruta de su edición completa anotada y entabla diálogo en tiempo real con sus protagonistas.' }}
+              </p>
+
+              <div class="trending-actions-row">
+                <a [routerLink]="['/book', trend.slug]" class="trending-cta-read">
+                  <span class="material-symbols-rounded">menu_book</span>
+                  <span>Comenzar lectura</span>
+                  <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
+                </a>
+
+                <button type="button" class="trending-cta-quick" (click)="openQuickView(trend, $event)">
+                  <span class="material-symbols-rounded">visibility</span>
+                  <span>Vista Rápida 3D</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="trending-cta-fav"
+                  (click)="toggleFavorite(trend, $event)"
+                  [class.active]="isBookFavorite(trend)"
+                  [title]="isBookFavorite(trend) ? 'En Favoritos' : 'Guardar en Favoritos'"
+                >
+                  <span class="material-symbols-rounded">{{ isBookFavorite(trend) ? 'favorite' : 'favorite_border' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ESTANTERÍA 1: OBRAS MAESTRAS INMORTALES
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="book-shelf-section reveal-section" aria-label="Grandes Clásicos Inmortales">
+      <div class="shelf-header">
+        <div class="shelf-title-wrap">
+          <div class="shelf-icon-badge badge--gold has-glow-enter">
+            <span class="material-symbols-rounded">history_edu</span>
+          </div>
+          <div class="shelf-title-group">
+            <h2 class="shelf-title">Grandes Clásicos Inmortales</h2>
+            <span class="shelf-subtitle">Obras cumbres de la literatura universal</span>
+          </div>
+        </div>
+
+        <div class="shelf-header-controls">
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(classicsTrack, -1)" title="Anterior">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(classicsTrack, 1)" title="Siguiente">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+          <a routerLink="/catalog" class="shelf-view-all-btn">
+            <span>Ver todas ({{ immortalClassics.length }})</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="shelf-stage">
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-prev"
+          (click)="scrollShelf(classicsTrack, -1)"
+          aria-label="Desplazar estantería hacia la izquierda"
+          title="Ver libros anteriores"
+        >
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+
+        <div class="shelf-books-track stagger-group" #classicsTrack>
+          <article
+            class="shelf-book-item"
+            *ngFor="let book of immortalClassics; trackBy: trackBySlug"
+          >
+            <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
+              <div class="shelf-book-cover has-enter-sheen">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
+                <div class="shelf-cover-sheen"></div>
+                <span class="shelf-ribbon" *ngIf="book.is_featured">Clásico</span>
+                <div class="shelf-hover-actions">
+                  <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
+                    <span class="material-symbols-rounded">visibility</span>
+                  </button>
+                  <a [routerLink]="['/book', book.slug]" class="shelf-btn-read" title="Leer libro" (click)="$event.stopPropagation()">
+                    <span class="material-symbols-rounded">menu_book</span>
+                  </a>
+                  <button type="button" class="shelf-btn-fav" (click)="toggleFavorite(book, $event)" [class.active]="isBookFavorite(book)" title="Guardar favorito">
+                    <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+                  </button>
+                </div>
+              </div>
+              <div class="shelf-book-meta">
+                <h3 class="shelf-book-name" [title]="book.title">{{ book.title }}</h3>
+                <p class="shelf-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+                <div class="shelf-meta-badges">
+                  <span class="pages-chip">{{ getBookPages(book) }} págs.</span>
+                  <span class="time-chip">{{ getReadingTime(book) }}</span>
+                  <span class="ai-chip" *ngIf="(book.ai_character_count || 0) > 0">
+                    <span class="ai-dot"></span> {{ book.ai_character_count }} IA
+                  </span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-next"
+          (click)="scrollShelf(classicsTrack, 1)"
+          aria-label="Desplazar estantería hacia la derecha"
+          title="Ver más libros"
+        >
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+
+        <!-- Riel de Obsidiana Iluminada -->
+        <div class="wooden-shelf-rail" aria-hidden="true">
+          <div class="shelf-lip"></div>
+          <div class="shelf-shadow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ESTANTERÍA 2: HISTORIAS VIVAS CON IA (Personajes Interactivos)
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="book-shelf-section shelf-ai-theme reveal-section" aria-label="Historias Vivas con Inteligencia Artificial">
+      <div class="shelf-header">
+        <div class="shelf-title-wrap">
+          <div class="shelf-icon-badge badge--magic has-glow-enter">
+            <span class="material-symbols-rounded">psychology</span>
+          </div>
+          <div class="shelf-title-group">
+            <h2 class="shelf-title">Libros con Personajes de Inteligencia Artificial</h2>
+            <span class="shelf-subtitle">Conversa en tiempo real con sus protagonistas y autores</span>
+          </div>
+        </div>
+
+        <div class="shelf-header-controls">
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(aiTrack, -1)" title="Anterior">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(aiTrack, 1)" title="Siguiente">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+          <a routerLink="/characters" class="shelf-view-all-btn">
+            <span>Explorar personajes</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="shelf-stage">
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-prev"
+          (click)="scrollShelf(aiTrack, -1)"
+          aria-label="Desplazar estantería hacia la izquierda"
+          title="Ver libros anteriores"
+        >
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+
+        <div class="shelf-books-track stagger-group" #aiTrack>
+          <article
+            class="shelf-book-item"
+            *ngFor="let book of livingAIBooks; trackBy: trackBySlug"
+          >
+            <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
+              <div class="shelf-book-cover cover--ai-active has-enter-sheen">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
+                <div class="ai-live-halo"></div>
+                <div class="ai-character-badge">
+                  <span class="pulse-point"></span>
+                  <span>{{ book.ai_character_count }} personajes listos</span>
+                </div>
+                <div class="shelf-hover-actions">
+                  <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
+                    <span class="material-symbols-rounded">visibility</span>
+                  </button>
+                  <a [routerLink]="['/book', book.slug]" class="shelf-btn-read" title="Entrar al libro" (click)="$event.stopPropagation()">
+                    <span class="material-symbols-rounded">forum</span>
+                  </a>
+                  <button type="button" class="shelf-btn-fav" (click)="toggleFavorite(book, $event)" [class.active]="isBookFavorite(book)">
+                    <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+                  </button>
+                </div>
+              </div>
+              <div class="shelf-book-meta">
+                <h3 class="shelf-book-name" [title]="book.title">{{ book.title }}</h3>
+                <p class="shelf-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+                <div class="shelf-meta-badges">
+                  <span class="ai-pill-active">
+                    <span class="material-symbols-rounded chat-icon">chat</span>
+                    Diálogos vivos
+                  </span>
+                  <span class="time-chip">{{ getReadingTime(book) }}</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-next"
+          (click)="scrollShelf(aiTrack, 1)"
+          aria-label="Desplazar estantería hacia la derecha"
+          title="Ver más libros"
+        >
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+
+        <div class="wooden-shelf-rail" aria-hidden="true">
+          <div class="shelf-lip"></div>
+          <div class="shelf-shadow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         B. SELECTOR SENSORIAL: "¿QUÉ TE APETECE LEER HOY?"
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="sensory-mood-section reveal-section" aria-label="Selector de Lectura por Estado de Ánimo">
+      <div class="sensory-mood-card">
+        <div class="sensory-header">
+          <div class="sensory-header-text">
+            <div class="sensory-kicker">
+              <span class="material-symbols-rounded">psychology_alt</span>
+              <span>Exploración Sensorial</span>
+            </div>
+            <h2 class="sensory-title">¿Qué te apetece leer hoy?</h2>
+            <p class="sensory-subtitle">Selecciona una intención de lectura para ver recomendaciones a tu medida:</p>
+          </div>
+
+          <button type="button" class="oracle-magic-btn" (click)="openOracleRandomBook()" title="Elegir una lectura aleatoria">
+            <span class="material-symbols-rounded oracle-icon" [class.spinning]="isSpinningOracle">casino</span>
+            <span>Sorpréndeme al azar</span>
+          </button>
+        </div>
+
+        <!-- Píldoras de estado de ánimo -->
+        <div class="sensory-pills-grid">
+          <button
+            *ngFor="let mood of moodOptions; trackBy: trackByMoodId"
+            type="button"
+            class="sensory-pill-btn"
+            [class.active]="selectedMood === mood.id"
+            (click)="selectMood(mood.id)"
+          >
+            <span class="material-symbols-rounded mood-icon">{{ mood.icon }}</span>
+            <div class="mood-text">
+              <span class="mood-label">{{ mood.label }}</span>
+              <span class="mood-sub">{{ mood.subtitle }}</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Carrusel dinámico de libros para el estado de ánimo seleccionado -->
+        <div class="sensory-results-stage" *ngIf="filteredMoodBooks.length > 0">
+          <div class="shelf-stage">
+            <button
+              type="button"
+              class="shelf-nav-arrow shelf-nav-prev"
+              (click)="scrollShelf(moodTrack, -1)"
+              aria-label="Ver anteriores"
+              title="Anterior"
+            >
+              <span class="material-symbols-rounded">chevron_left</span>
+            </button>
+
+            <div class="shelf-books-track stagger-group" #moodTrack>
+              <article
+                class="shelf-book-item"
+                *ngFor="let book of filteredMoodBooks; trackBy: trackBySlug"
+              >
+                <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
+                  <div class="shelf-book-cover has-enter-sheen">
+                    <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
+                    <div class="shelf-cover-sheen"></div>
+                    <span class="shelf-ribbon" *ngIf="book.is_featured">Recomendado</span>
+                    <div class="shelf-hover-actions">
+                      <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
+                        <span class="material-symbols-rounded">visibility</span>
+                      </button>
+                      <a [routerLink]="['/book', book.slug]" class="shelf-btn-read" title="Leer libro" (click)="$event.stopPropagation()">
+                        <span class="material-symbols-rounded">menu_book</span>
+                      </a>
+                      <button type="button" class="shelf-btn-fav" (click)="toggleFavorite(book, $event)" [class.active]="isBookFavorite(book)" title="Guardar favorito">
+                        <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="shelf-book-meta">
+                    <h3 class="shelf-book-name" [title]="book.title">{{ book.title }}</h3>
+                    <p class="shelf-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+                    <div class="shelf-meta-badges">
+                      <span class="pages-chip">{{ getBookPages(book) }} págs.</span>
+                      <span class="time-chip">{{ getReadingTime(book) }}</span>
+                      <span class="ai-chip" *ngIf="(book.ai_character_count || 0) > 0">
+                        <span class="ai-dot"></span> {{ book.ai_character_count }} IA
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <button
+              type="button"
+              class="shelf-nav-arrow shelf-nav-next"
+              (click)="scrollShelf(moodTrack, 1)"
+              aria-label="Ver más"
+              title="Siguiente"
+            >
+              <span class="material-symbols-rounded">chevron_right</span>
+            </button>
+
+            <div class="wooden-shelf-rail" aria-hidden="true">
+              <div class="shelf-lip"></div>
+              <div class="shelf-shadow"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ESTANTERÍA 3: LECTURAS BREVES Y CUENTOS MAGISTRALES
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="book-shelf-section reveal-section" aria-label="Lecturas Breves y Cuentos">
+      <div class="shelf-header">
+        <div class="shelf-title-wrap">
+          <div class="shelf-icon-badge badge--sage has-glow-enter">
+            <span class="material-symbols-rounded">bolt</span>
+          </div>
+          <div class="shelf-title-group">
+            <h2 class="shelf-title">Lecturas Breves y Cuentos Magistrales</h2>
+            <span class="shelf-subtitle">Historias completas para disfrutar en menos de una hora</span>
+          </div>
+        </div>
+
+        <div class="shelf-header-controls">
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(quickTrack, -1)" title="Anterior">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(quickTrack, 1)" title="Siguiente">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+          <a routerLink="/catalog" class="shelf-view-all-btn">
+            <span>Ver relatos cortos</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="shelf-stage">
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-prev"
+          (click)="scrollShelf(quickTrack, -1)"
+          aria-label="Desplazar estantería hacia la izquierda"
+          title="Ver libros anteriores"
+        >
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+
+        <div class="shelf-books-track stagger-group" #quickTrack>
+          <article
+            class="shelf-book-item"
+            *ngFor="let book of quickReads; trackBy: trackBySlug"
+          >
+            <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
+              <div class="shelf-book-cover has-enter-sheen">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
+                <div class="shelf-cover-sheen"></div>
+                <div class="shelf-hover-actions">
+                  <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
+                    <span class="material-symbols-rounded">visibility</span>
+                  </button>
+                  <a [routerLink]="['/book', book.slug]" class="shelf-btn-read" title="Leer libro" (click)="$event.stopPropagation()">
+                    <span class="material-symbols-rounded">menu_book</span>
+                  </a>
+                  <button type="button" class="shelf-btn-fav" (click)="toggleFavorite(book, $event)" [class.active]="isBookFavorite(book)">
+                    <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+                  </button>
+                </div>
+              </div>
+              <div class="shelf-book-meta">
+                <h3 class="shelf-book-name" [title]="book.title">{{ book.title }}</h3>
+                <p class="shelf-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+                <div class="shelf-meta-badges">
+                  <span class="pages-chip chip--green">{{ getBookPages(book) }} págs.</span>
+                  <span class="time-chip">{{ getReadingTime(book) }}</span>
+                  <span class="quick-chip-tag">Lectura rápida</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-next"
+          (click)="scrollShelf(quickTrack, 1)"
+          aria-label="Desplazar estantería hacia la derecha"
+          title="Ver más libros"
+        >
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+
+        <div class="wooden-shelf-rail" aria-hidden="true">
+          <div class="shelf-lip"></div>
+          <div class="shelf-shadow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ESTANTERÍA 4: FILOSOFÍA, PENSAMIENTO & TRATADOS INMORTALES
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="book-shelf-section reveal-section" aria-label="Filosofía y Sabiduría Universal">
+      <div class="shelf-header">
+        <div class="shelf-title-wrap">
+          <div class="shelf-icon-badge badge--philosophy has-glow-enter">
+            <span class="material-symbols-rounded">menu_book</span>
+          </div>
+          <div class="shelf-title-group">
+            <h2 class="shelf-title">Filosofía, Pensamiento & Dilemas Morales</h2>
+            <span class="shelf-subtitle">Reflexiones que moldearon el pensamiento humano</span>
+          </div>
+        </div>
+
+        <div class="shelf-header-controls">
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(philosophyTrack, -1)" title="Anterior">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(philosophyTrack, 1)" title="Siguiente">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+          <a routerLink="/catalog" class="shelf-view-all-btn">
+            <span>Ver colección</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="shelf-stage">
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-prev"
+          (click)="scrollShelf(philosophyTrack, -1)"
+          aria-label="Desplazar estantería hacia la izquierda"
+          title="Ver libros anteriores"
+        >
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+
+        <div class="shelf-books-track stagger-group" #philosophyTrack>
+          <article
+            class="shelf-book-item"
+            *ngFor="let book of philosophyBooks; trackBy: trackBySlug"
+          >
+            <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
+              <div class="shelf-book-cover has-enter-sheen">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
+                <div class="shelf-cover-sheen"></div>
+                <div class="shelf-hover-actions">
+                  <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
+                    <span class="material-symbols-rounded">visibility</span>
+                  </button>
+                  <a [routerLink]="['/book', book.slug]" class="shelf-btn-read" title="Leer libro" (click)="$event.stopPropagation()">
+                    <span class="material-symbols-rounded">menu_book</span>
+                  </a>
+                  <button type="button" class="shelf-btn-fav" (click)="toggleFavorite(book, $event)" [class.active]="isBookFavorite(book)">
+                    <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+                  </button>
+                </div>
+              </div>
+              <div class="shelf-book-meta">
+                <h3 class="shelf-book-name" [title]="book.title">{{ book.title }}</h3>
+                <p class="shelf-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+                <div class="shelf-meta-badges">
+                  <span class="pages-chip">{{ getBookPages(book) }} págs.</span>
+                  <span class="time-chip">{{ getReadingTime(book) }}</span>
+                  <span class="ai-chip" *ngIf="(book.ai_character_count || 0) > 0">
+                    <span class="ai-dot"></span> {{ book.ai_character_count }} IA
+                  </span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-next"
+          (click)="scrollShelf(philosophyTrack, 1)"
+          aria-label="Desplazar estantería hacia la derecha"
+          title="Ver más libros"
+        >
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+
+        <div class="wooden-shelf-rail" aria-hidden="true">
+          <div class="shelf-lip"></div>
+          <div class="shelf-shadow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ESTANTERÍA 5: MISTERIO, AVENTURAS ÉPICAS Y HORIZONTES LEJANOS
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="book-shelf-section reveal-section" aria-label="Aventuras Épicas y Misterios">
+      <div class="shelf-header">
+        <div class="shelf-title-wrap">
+          <div class="shelf-icon-badge badge--adventure has-glow-enter">
+            <span class="material-symbols-rounded">explore</span>
+          </div>
+          <div class="shelf-title-group">
+            <h2 class="shelf-title">Misterio, Aventuras Épicas y Horizontes Lejanos</h2>
+            <span class="shelf-subtitle">Expediciones míticas, enigmas y viajes a lo desconocido</span>
+          </div>
+        </div>
+
+        <div class="shelf-header-controls">
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(adventureTrack, -1)" title="Anterior">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(adventureTrack, 1)" title="Siguiente">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+          <a routerLink="/catalog" class="shelf-view-all-btn">
+            <span>Ver aventuras</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="shelf-stage">
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-prev"
+          (click)="scrollShelf(adventureTrack, -1)"
+          aria-label="Desplazar estantería hacia la izquierda"
+          title="Ver libros anteriores"
+        >
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+
+        <div class="shelf-books-track stagger-group" #adventureTrack>
+          <article
+            class="shelf-book-item"
+            *ngFor="let book of adventureBooks; trackBy: trackBySlug"
+          >
+            <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
+              <div class="shelf-book-cover has-enter-sheen">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
+                <div class="shelf-cover-sheen"></div>
+                <div class="shelf-hover-actions">
+                  <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
+                    <span class="material-symbols-rounded">visibility</span>
+                  </button>
+                  <a [routerLink]="['/book', book.slug]" class="shelf-btn-read" title="Leer libro" (click)="$event.stopPropagation()">
+                    <span class="material-symbols-rounded">menu_book</span>
+                  </a>
+                  <button type="button" class="shelf-btn-fav" (click)="toggleFavorite(book, $event)" [class.active]="isBookFavorite(book)">
+                    <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+                  </button>
+                </div>
+              </div>
+              <div class="shelf-book-meta">
+                <h3 class="shelf-book-name" [title]="book.title">{{ book.title }}</h3>
+                <p class="shelf-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+                <div class="shelf-meta-badges">
+                  <span class="pages-chip">{{ getBookPages(book) }} págs.</span>
+                  <span class="time-chip">{{ getReadingTime(book) }}</span>
+                  <span class="ai-chip" *ngIf="(book.ai_character_count || 0) > 0">
+                    <span class="ai-dot"></span> {{ book.ai_character_count }} IA
+                  </span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-next"
+          (click)="scrollShelf(adventureTrack, 1)"
+          aria-label="Desplazar estantería hacia la derecha"
+          title="Ver más libros"
+        >
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+
+        <div class="wooden-shelf-rail" aria-hidden="true">
+          <div class="shelf-lip"></div>
+          <div class="shelf-shadow"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ESTANTERÍA 6: JOYAS POPULARES ENTRE LECTORES
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="book-shelf-section reveal-section" aria-label="Joyas y Favoritos">
+      <div class="shelf-header">
+        <div class="shelf-title-wrap">
+          <div class="shelf-icon-badge badge--coral has-glow-enter">
+            <span class="material-symbols-rounded">local_fire_department</span>
+          </div>
+          <div class="shelf-title-group">
+            <h2 class="shelf-title">Joyas Populares entre Lectores</h2>
+            <span class="shelf-subtitle">Las obras más leídas y comentadas de la comunidad</span>
+          </div>
+        </div>
+
+        <div class="shelf-header-controls">
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(popularTrack, -1)" title="Anterior">
+            <span class="material-symbols-rounded">chevron_left</span>
+          </button>
+          <button type="button" class="shelf-ctrl-btn" (click)="scrollShelf(popularTrack, 1)" title="Siguiente">
+            <span class="material-symbols-rounded">chevron_right</span>
+          </button>
+          <a routerLink="/catalog" class="shelf-view-all-btn">
+            <span>Ver catálogo abierto</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="shelf-stage">
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-prev"
+          (click)="scrollShelf(popularTrack, -1)"
+          aria-label="Desplazar estantería hacia la izquierda"
+          title="Ver libros anteriores"
+        >
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+
+        <div class="shelf-books-track stagger-group" #popularTrack>
+          <article
+            class="shelf-book-item"
+            *ngFor="let book of popularTreasures; trackBy: trackBySlug"
+          >
+            <div class="shelf-book-3d" (click)="openQuickView(book, $event)">
+              <div class="shelf-book-cover has-enter-sheen">
+                <img [src]="thumbUrl(book.cover_image)" [alt]="book.title" loading="lazy" class="book-img">
+                <div class="shelf-cover-sheen"></div>
+                <div class="shelf-hover-actions">
+                  <button type="button" class="shelf-btn-quick" (click)="openQuickView(book, $event)" title="Vista Rápida 3D">
+                    <span class="material-symbols-rounded">visibility</span>
+                  </button>
+                  <a [routerLink]="['/book', book.slug]" class="shelf-btn-read" title="Leer libro" (click)="$event.stopPropagation()">
+                    <span class="material-symbols-rounded">menu_book</span>
+                  </a>
+                  <button type="button" class="shelf-btn-fav" (click)="toggleFavorite(book, $event)" [class.active]="isBookFavorite(book)">
+                    <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+                  </button>
+                </div>
+              </div>
+              <div class="shelf-book-meta">
+                <h3 class="shelf-book-name" [title]="book.title">{{ book.title }}</h3>
+                <p class="shelf-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+                <div class="shelf-meta-badges">
+                  <span class="pages-chip">{{ getBookPages(book) }} págs.</span>
+                  <span class="time-chip">{{ getReadingTime(book) }}</span>
+                  <span class="ai-chip" *ngIf="(book.ai_character_count || 0) > 0">
+                    <span class="ai-dot"></span> {{ book.ai_character_count }} IA
+                  </span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <button
+          type="button"
+          class="shelf-nav-arrow shelf-nav-next"
+          (click)="scrollShelf(popularTrack, 1)"
+          aria-label="Desplazar estantería hacia la derecha"
+          title="Ver más libros"
+        >
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+
+        <div class="wooden-shelf-rail" aria-hidden="true">
+          <div class="shelf-lip"></div>
+          <div class="shelf-shadow"></div>
+        </div>
+      </div>
+    </section>
+
+  </ng-container>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       4. VISTA 2: EL GRAN MURO DE LIBROS (Cuadrícula Interactiva)
+       (Se muestra si modo es 'grid' O si hay búsqueda / filtros activos)
+  ═══════════════════════════════════════════════════════════ -->
+  <section
+    class="grand-grid-section reveal-section"
+    *ngIf="catalogViewMode === 'grid' || catalogSearchTerm || activeGenreSlug || activeQuickFilter !== 'all'"
+    aria-label="Gran Muro de Libros"
+  >
+    <div class="section-header">
+      <div class="section-header-titles">
+        <h2 class="section-title">
+          {{ catalogSearchTerm ? 'Resultados para tu búsqueda' : 'El Gran Muro de Libros' }}
+        </h2>
+        <p class="section-sub">
+          Explora los tomos disponibles con filtros en tiempo real. Toca cualquier obra para abrir su ficha o comenzar a leer de inmediato.
+        </p>
+      </div>
+
+      <div class="grid-stats-counter">
+        <span class="counter-num">{{ filteredCatalogBooks.length }}</span>
+        <span class="counter-lbl">obras encontradas</span>
+      </div>
+    </div>
+
+    <!-- Cuadrícula Monumental de Libros -->
+    <div class="grand-catalog-grid stagger-group" *ngIf="filteredCatalogBooks.length > 0; else noBooksFound">
+      <article
+        class="grid-book-card"
+        *ngFor="let book of filteredCatalogBooks; trackBy: trackBySlug"
+      >
+        <div class="card-cover-container has-enter-sheen" (click)="openQuickView(book, $event)">
+          <img
+            [src]="thumbUrl(book.cover_image)"
+            [alt]="book.title"
+            class="card-cover-img"
+            loading="lazy"
+          />
+
+          <!-- Capas de relieve 3D y brillo -->
+          <div class="card-spine-edge" aria-hidden="true"></div>
+          <div class="card-sheen-layer" aria-hidden="true"></div>
+
+          <!-- Badges de esquina -->
+          <span class="card-corner-badge badge--gold" *ngIf="book.is_featured">Destacado</span>
+          <span class="card-corner-badge badge--ai" *ngIf="(book.ai_character_count || 0) > 0">
+            <span class="ai-dot"></span> IA
+          </span>
+
+          <!-- Botón de favorito flotante -->
+          <button
+            type="button"
+            class="card-fav-btn"
+            [class.is-fav]="isBookFavorite(book)"
+            (click)="toggleFavorite(book, $event)"
+            title="Añadir a favoritos"
+          >
+            <span class="material-symbols-rounded">{{ isBookFavorite(book) ? 'favorite' : 'favorite_border' }}</span>
+          </button>
+
+          <!-- Overlay con acciones rápidas -->
+          <div class="card-action-overlay">
+            <button type="button" class="overlay-quick-btn" (click)="openQuickView(book, $event)">
+              <span class="material-symbols-rounded">visibility</span>
+              <span>Vista Rápida</span>
+            </button>
+            <a [routerLink]="['/book', book.slug]" class="overlay-read-btn" (click)="$event.stopPropagation()">
+              <span class="material-symbols-rounded">menu_book</span>
+              <span>Leer Obra</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="card-info-container">
+          <span class="card-category-tag" *ngIf="book.genres && book.genres.length > 0">
+            {{ book.genres[0].name }}
+          </span>
+
+          <h3 class="card-book-title" [title]="book.title">
+            <a [routerLink]="['/book', book.slug]">{{ book.title }}</a>
+          </h3>
+
+          <p class="card-book-author" *ngIf="book.author_name">{{ book.author_name }}</p>
+
+          <div class="card-footer-row">
+            <span class="card-page-chip">
+              <span class="material-symbols-rounded">auto_stories</span>
+              {{ getBookPages(book) }} págs.
+            </span>
+
+            <span class="card-ai-chip" *ngIf="(book.ai_character_count || 0) > 0">
+              <span class="material-symbols-rounded">psychology</span>
+              {{ book.ai_character_count }} personajes
+            </span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Estado vacío si no hay resultados -->
+    <ng-template #noBooksFound>
+      <div class="catalog-empty-state">
+        <span class="material-symbols-rounded empty-icon">menu_book</span>
+        <h3 class="empty-title">Ningún tomo coincide con tu búsqueda</h3>
+        <p class="empty-desc">
+          Intenta cambiar el término de búsqueda o quitar los filtros de género seleccionados.
+        </p>
+        <button type="button" class="empty-reset-btn" (click)="clearCatalogSearch(); selectCatalogGenre(null); setQuickFilter('all')">
+          Ver todo el catálogo
+        </button>
+      </div>
+    </ng-template>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       5. MODAL INTERACTIVO 3D: "LIBRO ABIERTO" (Quick View)
+  ═══════════════════════════════════════════════════════════ -->
+  <div
+    class="open-book-modal-backdrop"
+    *ngIf="selectedQuickViewBook"
+    (click)="closeQuickView()"
+    aria-modal="true"
+    role="dialog"
+  >
+    <div class="open-book-modal-stage" (click)="$event.stopPropagation()">
+      <!-- Botón de Cerrar -->
+      <button type="button" class="modal-close-btn" (click)="closeQuickView()" aria-label="Cerrar vista previa">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+
+      <!-- El Tomo Abierto en Dos Páginas -->
+      <div class="tome-two-pages">
+
+        <!-- Página Izquierda: Carátula, Portada y Acciones Principales -->
+        <div class="tome-page tome-page--left">
+          <div class="page-paper-texture"></div>
+          <div class="page-inner-content">
+            <div class="tome-cover-wrap">
+              <img
+                [src]="thumbUrl(selectedQuickViewBook.cover_image, 500, 720, 75)"
+                [alt]="selectedQuickViewBook.title"
+                class="tome-cover-img"
+              />
+              <div class="tome-spine-binding"></div>
+            </div>
+
+            <div class="tome-left-meta">
+              <span class="tome-meta-badge" *ngIf="selectedQuickViewBook.is_featured">Obra Magistral</span>
+              <h2 class="tome-book-title">{{ selectedQuickViewBook.title }}</h2>
+              <p class="tome-book-author" *ngIf="selectedQuickViewBook.author_name">
+                De <strong>{{ selectedQuickViewBook.author_name }}</strong>
+              </p>
+
+              <div class="tome-stats-pills">
+                <span class="tome-pill">
+                  <span class="material-symbols-rounded">menu_book</span>
+                  {{ getBookPages(selectedQuickViewBook) }} páginas
+                </span>
+                <span class="tome-pill tome-pill--ai" *ngIf="(selectedQuickViewBook.ai_character_count || 0) > 0">
+                  <span class="ai-dot"></span>
+                  {{ selectedQuickViewBook.ai_character_count }} personajes IA
+                </span>
+              </div>
+
+              <!-- Botones de Acción Directa -->
+              <div class="tome-actions-list">
+                <a [routerLink]="['/book', selectedQuickViewBook.slug]" class="tome-cta-read" (click)="closeQuickView()">
+                  <span class="material-symbols-rounded">auto_stories</span>
+                  <span>Comenzar lectura</span>
+                  <span class="material-symbols-rounded">arrow_forward</span>
+                </a>
+
+                <button
+                  type="button"
+                  class="tome-cta-fav"
+                  [class.is-fav]="isBookFavorite(selectedQuickViewBook)"
+                  (click)="toggleFavorite(selectedQuickViewBook, $event)"
+                >
+                  <span class="material-symbols-rounded">{{ isBookFavorite(selectedQuickViewBook) ? 'favorite' : 'favorite_border' }}</span>
+                  <span>{{ isBookFavorite(selectedQuickViewBook) ? 'En Favoritos' : 'Guardar en Favoritos' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pliegue Central de Encuadernación con Sombra -->
+        <div class="tome-center-crease" aria-hidden="true"></div>
+
+        <!-- Página Derecha: Sinopsis, Párrafo Inicial y Personajes IA -->
+        <div class="tome-page tome-page--right">
+          <div class="page-paper-texture"></div>
+          <div class="page-inner-content">
+
+            <!-- Pestañas de la Página Derecha -->
+            <div class="tome-page-tabs">
+              <button
+                type="button"
+                class="tome-tab-btn"
+                [class.active]="quickViewTab === 'synopsis'"
+                (click)="setQuickViewTab('synopsis')"
+              >
+                Sinopsis y Trama
+              </button>
+
+              <button
+                type="button"
+                class="tome-tab-btn"
+                *ngIf="(selectedQuickViewBook.ai_character_count || 0) > 0"
+                [class.active]="quickViewTab === 'ai'"
+                (click)="setQuickViewTab('ai')"
+              >
+                Personajes IA ({{ selectedQuickViewBook.ai_character_count }})
+              </button>
+
+              <button
+                type="button"
+                class="tome-tab-btn"
+                [class.active]="quickViewTab === 'details'"
+                (click)="setQuickViewTab('details')"
+              >
+                Ficha Editorial
+              </button>
+            </div>
+
+            <!-- Contenido Pestaña 1: Sinopsis -->
+            <div class="tome-tab-body" *ngIf="quickViewTab === 'synopsis'">
+              <span class="tome-chapter-heading">Argumento de la Obra</span>
+              <p class="tome-synopsis-text">
+                {{ selectedQuickViewBook.synopsis || 'Esta clásica obra maestra de la literatura universal te sumerge en una aventura inolvidable de conocimiento, pasiones y reflexiones que han trascendido los siglos.' }}
+              </p>
+              <div class="tome-quote-box" *ngIf="selectedQuickViewBook.genres && selectedQuickViewBook.genres.length > 0">
+                <span class="quote-label">Géneros destacados:</span>
+                <div class="quote-tags">
+                  <span class="genre-tag-item" *ngFor="let gn of selectedQuickViewBook.genres">
+                    {{ gn.name }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contenido Pestaña 2: Personajes IA -->
+            <div class="tome-tab-body" *ngIf="quickViewTab === 'ai'">
+              <span class="tome-chapter-heading">Diálogos Vivos Disponibles</span>
+              <p class="tome-tab-intro">
+                Esta obra cuenta con Inteligencia Artificial activa. Puedes entablar una conversación directa con los protagonistas de la trama para hacerles preguntas, debatir sus decisiones o pedirles explicaciones sobre el contexto de la historia.
+              </p>
+              <div class="tome-ai-actions-wrap">
+                <a [routerLink]="['/book', selectedQuickViewBook.slug]" class="tome-ai-start-btn" (click)="closeQuickView()">
+                  <span class="material-symbols-rounded">chat</span>
+                  <span>Ver personajes y conversar</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Contenido Pestaña 3: Ficha Editorial -->
+            <div class="tome-tab-body" *ngIf="quickViewTab === 'details'">
+              <span class="tome-chapter-heading">Datos de Edición</span>
+              <ul class="tome-details-list">
+                <li>
+                  <span class="detail-label">Título:</span>
+                  <span class="detail-val">{{ selectedQuickViewBook.title }}</span>
+                </li>
+                <li *ngIf="selectedQuickViewBook.author_name">
+                  <span class="detail-label">Autoría:</span>
+                  <span class="detail-val">{{ selectedQuickViewBook.author_name }}</span>
+                </li>
+                <li>
+                  <span class="detail-label">Extensión:</span>
+                  <span class="detail-val">{{ getBookPages(selectedQuickViewBook) }} páginas (aprox.)</span>
+                </li>
+                <li *ngIf="selectedQuickViewBook.word_count">
+                  <span class="detail-label">Palabras:</span>
+                  <span class="detail-val">{{ selectedQuickViewBook.word_count | number:'1.0-0' }}</span>
+                </li>
+                <li>
+                  <span class="detail-label">Tipo de edición:</span>
+                  <span class="detail-val">Texto integral anotado para lectura inmersiva</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Número de Página Clásico al Pie -->
+            <div class="tome-page-footer">
+              <span class="page-number-ornament">~ Ex Libris Literatus Novelist ~</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       6. SPOTLIGHT: PERSONAJE DEL DÍA
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="spotlight-character-section reveal-section" *ngIf="characterOfTheDay" aria-label="Personaje del día">
+    <div class="spotlight-character-card">
+      <div class="spotlight-aura" aria-hidden="true"></div>
+
+      <div class="spotlight-image-col">
+        <div class="spotlight-avatar-frame has-glow-enter">
+          <img
+            [src]="characterOfTheDay.avatar_image_url || 'assets/images/default-avatar.svg'"
+            [alt]="characterOfTheDay.name"
+            class="spotlight-avatar-img"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='assets/default_cover.jpg'"
+          />
+          <div class="spotlight-live-pulse">
+            <span class="live-dot"></span>
+            <span>IA en línea</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="spotlight-info-col">
+        <div class="spotlight-tag">
+          <span class="material-symbols-rounded sparkle-icon">auto_awesome</span>
+          <span>Personaje del Día</span>
+        </div>
+
+        <h2 class="spotlight-name">{{ characterOfTheDay.name }}</h2>
+        <p class="spotlight-book" *ngIf="characterOfTheDay.book_title">
+          De la obra: <strong>{{ characterOfTheDay.book_title }}</strong>
+        </p>
+
+        <blockquote class="spotlight-quote">
+          «{{ characterQuote }}»
+        </blockquote>
+
+        <p class="spotlight-desc">
+          {{ characterOfTheDay.description || 'Una de las mentes más fascinantes de la literatura universal. Conversa sobre sus motivos, dilemas y secretos directamente en tiempo real.' }}
+        </p>
+
+        <div class="spotlight-actions">
+          <button type="button" class="cta-coral" (click)="goToCharacterChat(characterOfTheDay)">
+            <span class="material-symbols-rounded" style="font-size:20px;">chat</span>
+            <span>Hablar con {{ characterOfTheDay.name }}</span>
+          </button>
+          <a routerLink="/characters" class="cta-ghost">
+            <span>Explorar todos los personajes ({{ showcaseAvatars.length }}+)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       7. SIMULADOR DE LECTURA ASISTIDA & NEURODIVERGENCIA
+  ═══════════════════════════════════════════════════════════ -->
+  <section id="lectura-asistida" class="accessibility-interactive-section reveal-section" aria-label="Lectura asistida y neurodivergencia">
+    <div class="section-header section-header--center">
+      <h2 class="section-title">Lectura pensada para tu cerebro</h2>
+      <p class="section-sub">Prueba en vivo las herramientas creadas para lectores con TDAH, dislexia o fatiga visual. Toca cada modo para ver el cambio inmediato:</p>
+    </div>
+
+    <div class="interactive-reader-preview">
+      <div class="reader-toolbar-demo stagger-group">
+        <button
+          type="button"
+          class="demo-mode-btn"
+          [class.active]="assistiveMode === 'normal'"
+          (click)="setAssistiveMode('normal')"
+        >
+          <span class="material-symbols-rounded">article</span>
+          <span>Normal</span>
+        </button>
+
+        <button
+          type="button"
+          class="demo-mode-btn"
+          [class.active]="assistiveMode === 'focus'"
+          (click)="setAssistiveMode('focus')"
+        >
+          <span class="material-symbols-rounded">center_focus_strong</span>
+          <span>Modo Enfoque (TDAH)</span>
+        </button>
+
+        <button
+          type="button"
+          class="demo-mode-btn"
+          [class.active]="assistiveMode === 'bionic'"
+          (click)="setAssistiveMode('bionic')"
+        >
+          <span class="material-symbols-rounded">speed</span>
+          <span>Lectura Biónica</span>
+        </button>
+
+        <button
+          type="button"
+          class="demo-mode-btn"
+          [class.active]="assistiveMode === 'dyslexia'"
+          (click)="setAssistiveMode('dyslexia')"
+        >
+          <span class="material-symbols-rounded">text_fields</span>
+          <span>Fuente Dislexia</span>
+        </button>
+
+        <button
+          type="button"
+          class="demo-audio-btn"
+          [class.playing]="isAudioPlaying"
+          (click)="toggleDemoAudio()"
+          title="Simular narración por voz"
+        >
+          <span class="material-symbols-rounded">{{ isAudioPlaying ? 'pause_circle' : 'volume_up' }}</span>
+          <span>{{ isAudioPlaying ? 'Pausar audio' : 'Escuchar narración' }}</span>
+        </button>
+      </div>
+
+      <div class="demo-book-page" [ngClass]="'mode-' + assistiveMode">
+        <div class="demo-page-header">
+          <span class="demo-book-title">Don Quijote de la Mancha — Miguel de Cervantes</span>
+          <span class="demo-page-tag">Demostración en vivo</span>
+        </div>
+
+        <div class="demo-text-body">
+          <p class="demo-paragraph demo-p1" [class.focused-paragraph]="assistiveMode === 'focus'">
+            <ng-container *ngIf="assistiveMode !== 'bionic'">
+              {{ sampleParagraph1 }}
+            </ng-container>
+            <span *ngIf="assistiveMode === 'bionic'" [innerHTML]="bionicHtml1"></span>
+          </p>
+
+          <p class="demo-paragraph demo-p2" [class.dimmed-paragraph]="assistiveMode === 'focus'">
+            <ng-container *ngIf="assistiveMode !== 'bionic'">
+              {{ sampleParagraph2 }}
+            </ng-container>
+            <span *ngIf="assistiveMode === 'bionic'" [innerHTML]="bionicHtml2"></span>
+          </p>
+        </div>
+
+        <div class="demo-audio-bar" *ngIf="isAudioPlaying">
+          <div class="audio-wave-anim">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span class="audio-status-text">Voz neuronal asistida narrando a 1.0x</span>
+          <div class="audio-track-progress">
+            <div class="audio-track-fill" [style.width]="audioProgress + '%'"></div>
+          </div>
+        </div>
+
+        <div class="demo-mode-explanation">
+          <span class="explanation-icon material-symbols-rounded">info</span>
+          <span *ngIf="assistiveMode === 'normal'">
+            <strong>Modo Clásico:</strong> Tipografía literaria tradicional con proporción áurea para lectura continua.
+          </span>
+          <span *ngIf="assistiveMode === 'focus'">
+            <strong>Modo Enfoque:</strong> Atenúa todo el texto alrededor para evitar distracciones visuales y sostener la concentración en lectores con TDAH.
+          </span>
+          <span *ngIf="assistiveMode === 'bionic'">
+            <strong>Lectura Biónica:</strong> Resalta las primeras letras de cada palabra guiando el ojo del lector y acelerando la comprensión neurocognitiva.
+          </span>
+          <span *ngIf="assistiveMode === 'dyslexia'">
+            <strong>Tipografía para Dislexia:</strong> Mayor peso en la base de las letras y espaciado generoso para evitar saltos o inversiones visuales.
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       8. LA TABERNA Y LA TINTA
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="tavern-hub-section reveal-section" aria-label="La Taberna y la Tinta">
+    <div class="tavern-banner-card">
+      <div class="tavern-banner-info">
+        <div class="tavern-tag">
+          <span class="material-symbols-rounded">sports_bar</span>
+          <span>Punto de Encuentro Literario</span>
+        </div>
+        <h2 class="tavern-title">La Taberna de Literatus</h2>
+        <p class="tavern-desc">
+          La <strong>Tinta</strong> es el recurso mágico de la plataforma. Con ella das vida a las conversaciones con los personajes de IA, accedes a narraciones con voces neuronales y desbloqueas secretos en las historias.
+        </p>
+        <div class="tavern-free-ink-tips">
+          <div class="ink-tip-item">
+            <span class="material-symbols-rounded">check_circle</span>
+            <span>Gana Tinta gratis con tu racha de lectura diaria.</span>
+          </div>
+          <div class="ink-tip-item">
+            <span class="material-symbols-rounded">check_circle</span>
+            <span>Completa misiones y desbloquea logros literarios.</span>
+          </div>
+        </div>
+        <div class="tavern-cta-wrap">
+          <a routerLink="/tavern" class="cta-amber">
+            <span>Visitar La Taberna</span>
+            <span class="material-symbols-rounded">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="tavern-chests-col stagger-group">
+        <div class="chest-card" *ngFor="let chest of tavernChests">
+          <div class="chest-icon-wrap" [style.color]="chest.color">
+            <span class="material-symbols-rounded">{{ chest.icon }}</span>
+          </div>
+          <div class="chest-details">
+            <span class="chest-tag">{{ chest.tag }}</span>
+            <h3 class="chest-title">{{ chest.title }}</h3>
+            <span class="chest-ink">{{ chest.ink }} de Tinta</span>
+          </div>
+          <div class="chest-price-col">
+            <span class="chest-price">{{ chest.price }}</span>
+            <a routerLink="/tavern" class="chest-btn">Ver cofre</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       9. ESTADÍSTICAS DE LA GRAN BIBLIOTECA
+  ═══════════════════════════════════════════════════════════ -->
+  <section class="stats-section reveal-section" aria-label="Estadísticas en vivo de Literatus Novelist">
+    <div class="stats-container">
+      
+      <!-- Insignia superior del registro imperial -->
+      <div class="stats-header-badge has-glow-enter">
+        <span class="material-symbols-rounded stats-kicker-icon" aria-hidden="true">auto_awesome</span>
+        <span>El Registro Vivo de la Biblioteca</span>
+      </div>
+
+      <div class="stats-grid stagger-group">
+        
+        <!-- 1. Libros Clásicos Digitalizados -->
+        <div class="stat-item stat-item--books">
+          <div class="stat-icon-halo stat-icon-halo--teal" aria-hidden="true">
+            <span class="material-symbols-rounded">menu_book</span>
+          </div>
+          <div class="stat-num-row">
+            <span class="stat-number" id="stat-books">{{ totalBooksCount.toLocaleString('es-CL') }}</span>
+            <span class="stat-plus">+</span>
+          </div>
+          <strong class="stat-title">Libros Clásicos</strong>
+          <span class="stat-label">Digitalizados e íntegros</span>
+        </div>
+
+        <div class="stat-divider" aria-hidden="true"></div>
+
+        <!-- 2. Personajes Vivos con IA -->
+        <div class="stat-item stat-item--chars">
+          <div class="stat-icon-halo stat-icon-halo--coral" aria-hidden="true">
+            <span class="material-symbols-rounded">psychology</span>
+            <span class="stat-live-pulse" title="IA conversacional activa"></span>
+          </div>
+          <div class="stat-num-row">
+            <span class="stat-number" id="stat-chars">{{ totalCharactersCount.toLocaleString('es-CL') }}</span>
+            <span class="stat-plus">+</span>
+          </div>
+          <strong class="stat-title">Personajes Vivos con IA</strong>
+          <span class="stat-label">Avatares conversacionales</span>
+        </div>
+
+        <div class="stat-divider" aria-hidden="true"></div>
+
+        <!-- 3. Diálogos Literarios -->
+        <div class="stat-item stat-item--convs">
+          <div class="stat-icon-halo stat-icon-halo--amber" aria-hidden="true">
+            <span class="material-symbols-rounded">forum</span>
+          </div>
+          <div class="stat-num-row">
+            <span class="stat-number" id="stat-convs">{{ totalDialoguesCount.toLocaleString('es-CL') }}</span>
+            <span class="stat-plus">+</span>
+          </div>
+          <strong class="stat-title">Diálogos Literarios</strong>
+          <span class="stat-label">Interacciones registradas</span>
+        </div>
+
+        <div class="stat-divider" aria-hidden="true"></div>
+
+        <!-- 4. Autores Inmortales -->
+        <div class="stat-item stat-item--authors">
+          <div class="stat-icon-halo stat-icon-halo--azure" aria-hidden="true">
+            <span class="material-symbols-rounded">workspace_premium</span>
+          </div>
+          <div class="stat-num-row">
+            <span class="stat-number" id="stat-authors">{{ totalAuthorsCount.toLocaleString('es-CL') }}</span>
+            <span class="stat-plus">+</span>
+          </div>
+          <strong class="stat-title">Autores Inmortales</strong>
+          <span class="stat-label">Grandes plumas de la historia</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       10. MODAL ORÁCULO LITERARIO: LECTURA AL AZAR
+  ═══════════════════════════════════════════════════════════ -->
+  <div
+    class="oracle-modal-backdrop"
+    *ngIf="randomBookModalOpen && randomBook"
+    (click)="closeOracleModal()"
+    aria-modal="true"
+    role="dialog"
+  >
+    <div class="oracle-modal-card" (click)="$event.stopPropagation()">
+      <button type="button" class="modal-close-btn" (click)="closeOracleModal()" aria-label="Cerrar modal">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+
+      <div class="oracle-modal-kicker">
+        <span class="material-symbols-rounded kicker-icon">casino</span>
+        <span>El Oráculo Literario ha hablado</span>
+      </div>
+
+      <h2 class="oracle-modal-heading">Tu próxima lectura recomendada</h2>
+
+      <div class="oracle-book-content">
+        <div class="oracle-cover-wrap" (click)="openQuickView(randomBook, $event)">
+          <img [src]="thumbUrl(randomBook.cover_image, 380, 560, 75)" [alt]="randomBook.title" class="oracle-cover-img" />
+          <div class="oracle-cover-glow"></div>
+        </div>
+
+        <div class="oracle-details-wrap">
+          <span class="oracle-genre" *ngIf="randomBook.genres && randomBook.genres.length > 0">
+            {{ randomBook.genres[0].name }}
+          </span>
+          <h3 class="oracle-title">{{ randomBook.title }}</h3>
+          <p class="oracle-author" *ngIf="randomBook.author_name">
+            <span class="material-symbols-rounded author-icon">history_edu</span>
+            De <strong>{{ randomBook.author_name }}</strong>
+          </p>
+
+          <div class="oracle-stats-row">
+            <span class="oracle-stat-chip">
+              <span class="material-symbols-rounded">auto_stories</span>
+              {{ getBookPages(randomBook) }} págs.
+            </span>
+            <span class="oracle-stat-chip">
+              <span class="material-symbols-rounded">schedule</span>
+              {{ getReadingTime(randomBook) }}
+            </span>
+            <span class="oracle-stat-chip chip--ai" *ngIf="(randomBook.ai_character_count || 0) > 0">
+              <span class="ai-dot"></span>
+              {{ randomBook.ai_character_count }} personajes IA
+            </span>
+          </div>
+
+          <p class="oracle-synopsis">
+            {{ randomBook.synopsis || 'Una lectura extraordinaria aguarda en sus páginas. Déjate atrapar por su universo narrativo o entabla diálogo en directo con sus protagonistas.' }}
+          </p>
+
+          <div class="oracle-actions-row">
+            <a [routerLink]="['/book', randomBook.slug]" class="oracle-read-cta" (click)="closeOracleModal()">
+              <span class="material-symbols-rounded">menu_book</span>
+              <span>Comenzar a leer</span>
+              <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
+            </a>
+
+            <button type="button" class="oracle-quick-btn" (click)="openQuickView(randomBook, $event)">
+              <span class="material-symbols-rounded">visibility</span>
+              <span>Vista Rápida</span>
+            </button>
+
+            <button type="button" class="oracle-reroll-btn" (click)="openOracleRandomBook()" title="Probar con otra obra aleatoria">
+              <span class="material-symbols-rounded">refresh</span>
+              <span>Girar de nuevo</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

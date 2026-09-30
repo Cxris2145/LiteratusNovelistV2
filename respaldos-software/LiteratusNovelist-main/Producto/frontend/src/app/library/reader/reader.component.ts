@@ -20,7 +20,6 @@ import { ReadingSessionService } from '../../core/services/reading-session.servi
 import { FavoritesService } from '../../core/services/favorites.service';
 import { ReaderTabsService } from '../../core/services/reader-tabs.service';
 import { ReaderBlock, parseChapterBlocks } from '../../core/utils/chapter-parser.util';
-import { loadFontStylesheet, READER_FONTS_HREF } from '../../core/utils/font-loader.util';
 import { VocabularyJump } from './vocabulary-panel/vocabulary-panel.component';
 
 export interface ProgressData {
@@ -424,8 +423,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Tipografías del panel "Aa": solo se descargan al abrir el lector.
-    loadFontStylesheet(READER_FONTS_HREF);
     this.inventoryId = this.route.snapshot.paramMap.get('id') || '';
 
     // Mientras carga, los textos de Maguito van cambiando

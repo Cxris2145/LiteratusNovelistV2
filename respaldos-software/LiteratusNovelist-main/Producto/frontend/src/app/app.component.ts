@@ -36,8 +36,6 @@ export class AppComponent implements OnInit {
 
   isDashboard = false;
   isEnigma = false;
-  /** En la portada el header toma los colores de la colección. */
-  isHome = false;
   isNavBubblesHidden = false;
   private lastScrollTop = 0;
   
@@ -87,7 +85,6 @@ export class AppComponent implements OnInit {
         const url = e.urlAfterRedirects as string;
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
         this.isEnigma = url.includes('enigma');
-        this.isHome = /^\/(home)?([?#]|$)/.test(url);
       });
   }
 

@@ -1,15 +1,19 @@
-import { Component, OnInit, OnDestroy, PLATFORM_ID, inject, ChangeDetectorRef, HostListener, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, inject, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import type { AnimationItem } from 'lottie-web';
 
 import { ApiService } from '../core/services/api.service';
 import { AuthService } from '../core/services/auth.service';
+import { GamificationService } from '../core/services/gamification.service';
+import { AchievementsService } from '../core/services/achievements.service';
 import { ChatService } from '../core/services/chat.service';
 import { FavoritesService } from '../core/services/favorites.service';
+import { ScrollRevealService } from '../core/services/scroll-reveal.service';
 import { getBookPages } from '../core/utils/book-pages.util';
 import { coverThumb } from '../core/utils/cover-thumb.util';
-import { bookFamily, FAMILY_ORDER, genreFamily, GenreFamily } from './genre-family';
 
 export interface Book {
   id: string;
@@ -42,336 +46,534 @@ export interface GenreCount {
   name: string;
   slug: string;
   book_count: number;
-  family: GenreFamily;
 }
 
 export interface MoodOption {
   id: string;
   label: string;
+  icon: string;
+  subtitle: string;
 }
-
-/** Palabra de la demo de lectura: `head` va en negrita en lectura biónica. */
-interface DemoWord {
-  text: string;
-  head: string;
-  tail: string;
-  start: number;
-  index: number;
-}
-
-type AssistiveMode = 'normal' | 'focus' | 'bionic' | 'dyslexia';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, OnDestroy, AfterViewInit {
   private api = inject(ApiService);
   public auth = inject(AuthService);
+  private gamification = inject(GamificationService);
+  private achievementsService = inject(AchievementsService);
   private chatService = inject(ChatService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-  private zone = inject(NgZone);
   private platformId = inject(PLATFORM_ID);
+  private sanitizer = inject(DomSanitizer);
   private destroy$ = new Subject<void>();
-  public favoritesService = inject(FavoritesService, { optional: true });
 
+  // Utilidades
   getBookPages = getBookPages;
-  bookFamily = bookFamily;
 
-  // ─── Libros ──────────────────────────────────────────────────────────────
+  public favoritesService = inject(FavoritesService, { optional: true });
+  private scrollRevealService = inject(ScrollRevealService);
+
+  // ─── Libros y Catálogo ───────────────────────────────────────────────────
   allBooks: Book[] = [];
-  forYouBooks: Book[] = [];
-  starterBooks: Book[] = [];
-  quickReads: Book[] = [];
-  popularBooks: Book[] = [];
-  isLoading = true;
-  loadFailed = false;
-
-  // ─── Portada ─────────────────────────────────────────────────────────────
-  heroBooks: Book[] = [];
-  heroBookIndex = 0;
+  featuredBooks: Book[] = [];          // Curados (is_featured)
+  forYouBooks: Book[] = [];            // catalog/books/recommendations/
+  featuredWithCharacters: any[] = []; // Libros con IA activa
   heroBook: Book | null = null;
+  heroBooks: Book[] = [];
   heroCoverFailed = false;
-  totalBooksCount = 0;
-  totalCharactersCount = 0;
+  heroBookIndex = 0;
+  totalBooksCount: number = 1046;
+  totalCharactersCount: number = 4477;
+  totalDialoguesCount: number = 27;
+  totalAuthorsCount: number = 313;
+  private hasAnimatedStats = false;
 
-  // ─── Colecciones (géneros) ───────────────────────────────────────────────
-  genres: GenreCount[] = [];
+  // ─── Gran Catálogo de Libros y Filtros Reactivos ─────────────────────────
+  catalogSearchTerm: string = '';
+  activeQuickFilter: 'all' | 'featured' | 'ai' | 'short' | 'popular' = 'all';
+  activeGenreSlug: string | null = null;
+  catalogViewMode: 'shelves' | 'grid' = 'shelves';
+  filteredCatalogBooks: Book[] = [];
+  immortalClassics: Book[] = [];
+  livingAIBooks: any[] = [];
+  quickReads: Book[] = [];
+  popularTreasures: Book[] = [];
+  adventureBooks: Book[] = [];
+  philosophyBooks: Book[] = [];
 
-  // ─── Reparto (personajes con IA) ─────────────────────────────────────────
-  castAvatars: DemoAvatar[] = [];
+  // ─── Carrusel Destacado de Joyas y Tendencias ─────────────────────────────
+  trendingCarouselBooks: Book[] = [];
+  trendingIndex = 0;
+  private trendingAutoplayTimer: any = null;
+
+  // ─── Oráculo Literario / Lectura al Azar ─────────────────────────────────
+  randomBookModalOpen = false;
+  randomBook: Book | null = null;
+  isSpinningOracle = false;
+
+  // ─── Gran Escenario 3D (El Gran Atril) ──────────────────────────────────
+  heroTiltX: number = 0;
+  heroTiltY: number = 0;
+  isHeroHovered: boolean = false;
+  private heroAutoRotateTimer: any = null;
+
+  // ─── Modal Interactivo 3D "Libro Abierto" (Quick View) ───────────────────
+  selectedQuickViewBook: Book | null = null;
+  quickViewTab: 'synopsis' | 'ai' | 'details' = 'synopsis';
+
+  // ─── Personajes IA y Personaje del Día ───────────────────────────────────
+  showcaseAvatars: DemoAvatar[] = [];
+  avatarsLoading = false;
   characterOfTheDay: DemoAvatar | null = null;
-  focusedCastId: number | null = null;
+  characterQuote: string = '';
 
-  // ─── ¿Qué leer hoy? ──────────────────────────────────────────────────────
-  moodOptions: MoodOption[] = [
-    { id: 'adventure', label: 'Aventura' },
-    { id: 'thinking', label: 'Algo para pensar' },
-    { id: 'drama', label: 'Teatro' },
-    { id: 'mystery', label: 'Misterio' },
-    { id: 'quick', label: 'Algo corto' }
+  private readonly characterQuotesMap: Record<string, string> = {
+    'Capitán Nemo': 'El mar no pertenece a los déspotas. En su superficie rigen leyes inicuas, pero a treinta pies de profundidad su poder se desvanece.',
+    'Sócrates': 'Una vida sin examen no merece la pena ser vivida.',
+    'Alicia': '¡Es inútil volver al ayer, porque entonces era una persona diferente!',
+    'Sherlock Holmes': 'Cuando has eliminado lo imposible, lo que queda, por improbable que parezca, debe ser la verdad.',
+    'Dante Alighieri': 'En medio del camino de nuestra vida, me encontré en una selva oscura donde la recta vía era perdida.',
+    'Don Quijote': 'La libertad, Sancho, es uno de los más preciosos dones que a los hombres dieron los cielos.',
+    'El Gato con Botas': 'Un poco de ingenio y unas buenas botas valen más que cien títulos nobiliarios.',
+    'Ellen': 'En el vaivén de las olas de la ciudad flotante, el destino siempre guarda una sorpresa inesperada.',
+    'El Fiel Devoto': 'La lealtad no se proclama con palabras vanas, sino con la perseverancia del alma en silencio.'
+  };
+
+  // ─── Mascota Interactiva ─────────────────────────────────────────────────
+  mascotTipIndex = 0;
+  mascotTips: string[] = [
+    'Tú eliges el libro. Yo te acompaño al otro lado.',
+    'Los personajes también tienen algo que contarte. Acércate a conversar con ellos.',
+    'Cada mente lee distinto. Prueba los modos de lectura asistida y encuentra el tuyo.',
+    'La Taberna es una pausa entre aventuras: descubre sus retos de lectura.'
   ];
-  selectedMood = 'adventure';
+  currentMascotTip: string = this.mascotTips[0];
+
+  // ─── Selector Sensorial: "¿Qué quieres leer hoy?" ────────────────────────
+  moodOptions: MoodOption[] = [
+    { id: 'all', label: 'Todos', icon: 'auto_stories', subtitle: 'Exploración abierta' },
+    { id: 'quick', label: 'Lecturas breves', icon: 'bolt', subtitle: '< 20 páginas' },
+    { id: 'ai', label: 'Con Personajes IA', icon: 'psychology', subtitle: 'Diálogos vivos' },
+    { id: 'adventure', label: 'Aventuras y Viajes', icon: 'explore', subtitle: 'Acción épica' },
+    { id: 'philosophy', label: 'Filosofía y Mente', icon: 'menu_book', subtitle: 'Reflexión profunda' },
+    { id: 'drama', label: 'Teatro y Pasión', icon: 'theater_comedy', subtitle: 'Clásicos universales' }
+  ];
+  selectedMood: string = 'all';
   filteredMoodBooks: Book[] = [];
 
-  // ─── Lectura asistida ────────────────────────────────────────────────────
-  assistiveMode: AssistiveMode = 'normal';
-  readonly demoTitle = 'Don Quijote de la Mancha';
-  readonly demoAuthor = 'Miguel de Cervantes';
-  readonly demoParagraphs = [
-    'En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor.',
-    'Una olla de algo más vaca que carnero, salpicón las más noches, duelos y quebrantos los sábados, lantejas los viernes, algún palomino de añadidura los domingos, consumían las tres partes de su hacienda.'
-  ];
-  demoWords: DemoWord[][] = [];
-  canNarrate = false;
-  isNarrating = false;
-  narratedWord = -1;
-  private narrationTimer: any = null;
-  private gotBoundary = false;
+  // ─── Simulador de Lectura Asistida & Neurodivergencia ────────────────────
+  assistiveMode: 'normal' | 'focus' | 'bionic' | 'dyslexia' = 'normal';
+  isAudioPlaying = false;
+  audioProgress = 0;
+  private audioInterval: any;
 
-  // ─── Sesión ──────────────────────────────────────────────────────────────
-  continueReading: any | null = null;
+  sampleParagraph1 = 'En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor.';
+  sampleParagraph2 = 'Una olla de algo más vaca que carnero, salpicón las más noches, duelos y quebrantos los sábados, lantejas los viernes, algún palomino de añadidura los domingos, consumían las tres partes de su hacienda.';
+
+  bionicHtml1: SafeHtml = '';
+  bionicHtml2: SafeHtml = '';
+
+  // ─── Gamificación & Perfil Personal (Usuarios logueados) ─────────────────
+  userProfile: any = null;
+  greetingText: string = 'Bienvenido';
+  userLevel = 1;
+  userLevelTitle = 'Lector Curioso';
+  userXp = 0;
+  nextLevelXp = 100;
+  xpPercent = 25;
   userStreak = 0;
+  userInkBalance = 50;
+  activeMission: any = null;
+  userAchievements: any[] = [];
 
-  // ─── Vista previa ────────────────────────────────────────────────────────
-  selectedQuickViewBook: Book | null = null;
-  quickViewTab: 'synopsis' | 'details' = 'synopsis';
-  private lastFocused: HTMLElement | null = null;
+  // ─── La Taberna: Cofres y Perks ──────────────────────────────────────────
+  tavernChests = [
+    { title: 'Cofre de Aprendiz', ink: 500, price: '$2.000', icon: 'redeem', tag: 'Comienzo', color: '#A3C9A7' },
+    { title: 'Cofre de Erudito', ink: 1500, price: '$5.000', icon: 'auto_awesome', tag: 'Popular', color: '#FFB353' },
+    { title: 'Cofre de Maestro', ink: 5000, price: '$14.990', icon: 'military_tech', tag: 'Coleccionista', color: '#FF6E4A' }
+  ];
 
+  // ─── Categorías ──────────────────────────────────────────────────────────
+  genres: GenreCount[] = [];
+  get categories(): GenreCount[] {
+    return this.genres;
+  }
+
+  // ─── Continuar leyendo ───────────────────────────────────────────────────
+  continueReadingItems: any[] = [];
+  continueReadingLoading = false;
+
+  // ─── Estados y Animaciones ───────────────────────────────────────────────
+  isLoading = true;
   prefersReducedMotion = false;
+  isMascotCheering = false;
+  @ViewChild('avatarsCarousel') avatarsCarousel!: ElementRef;
+
+  private _readingContainer?: ElementRef;
+  private readingAnimation?: AnimationItem;
+  @ViewChild('readingContainer') set readingContainer(el: ElementRef) {
+    if (el && !this._readingContainer && isPlatformBrowser(this.platformId)) {
+      this._readingContainer = el;
+      import('lottie-web').then(({ default: lottie }) => {
+        if (this.destroy$.isStopped) return;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.readingAnimation = lottie.loadAnimation({
+          container: el.nativeElement,
+          renderer: 'svg',
+          loop: false,
+          autoplay: !reduced,
+          path: 'assets/lottie/magic.json'
+        });
+        if (reduced) {
+          this.readingAnimation.addEventListener('DOMLoaded', () => {
+            this.readingAnimation?.goToAndStop(this.readingAnimation.totalFrames / 2, true);
+          });
+        }
+      });
+    }
+  }
 
   ngOnInit(): void {
-    this.buildDemoWords();
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (isPlatformBrowser(this.platformId)) {
+      this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.calculateGreeting();
+      this.initBionicSample();
+      this.loadStats();
+      this.loadBooks();
+      this.loadAIBooks();
+      this.loadShowcaseAvatars();
+      this.loadGenres();
 
-    this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.canNarrate = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
-    this.loadStats();
-    this.loadBooks();
-    this.loadCast();
-    this.loadGenres();
-
-    if (this.auth.isLoggedIn()) {
-      this.loadContinueReading();
-      this.loadProfile();
+      if (this.auth.isLoggedIn()) {
+        this.loadContinueReading();
+        this.loadUserProfileAndGamification();
+      }
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.initRevealObserver();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.stopNarration();
+    this.readingAnimation?.destroy();
+    this.stopHeroAutoRotate();
+    this.stopTrendingAutoplay();
+    if (this.audioInterval) clearInterval(this.audioInterval);
   }
 
-  // ─── Portada ─────────────────────────────────────────────────────────────
-  get heroFamily(): GenreFamily {
-    return bookFamily(this.heroBook);
+  // ─── Saludo y Tips de la Mascota ─────────────────────────────────────────
+  private calculateGreeting(): void {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) {
+      this.greetingText = 'Buenos días';
+    } else if (hour >= 12 && hour < 20) {
+      this.greetingText = 'Buenas tardes';
+    } else {
+      this.greetingText = 'Buenas noches';
+    }
+  }
+
+  cycleMascotTip(): void {
+    this.mascotTipIndex = (this.mascotTipIndex + 1) % this.mascotTips.length;
+    this.currentMascotTip = this.mascotTips[this.mascotTipIndex];
+    this.isMascotCheering = true;
+    setTimeout(() => {
+      this.isMascotCheering = false;
+      this.cdr.detectChanges();
+    }, 650);
+    this.cdr.detectChanges();
+  }
+
+  nextHeroBook(): void {
+    if (this.heroBooks.length < 2) return;
+    this.heroBookIndex = (this.heroBookIndex + 1) % this.heroBooks.length;
+    this.heroCoverFailed = false;
+    this.heroBook = this.heroBooks[this.heroBookIndex];
+    this.cdr.detectChanges();
+  }
+
+  prevHeroBook(): void {
+    if (this.heroBooks.length < 2) return;
+    this.heroBookIndex = (this.heroBookIndex - 1 + this.heroBooks.length) % this.heroBooks.length;
+    this.heroCoverFailed = false;
+    this.heroBook = this.heroBooks[this.heroBookIndex];
+    this.cdr.detectChanges();
   }
 
   selectHeroBook(index: number): void {
-    if (index < 0 || index >= this.heroBooks.length || index === this.heroBookIndex) return;
-    const apply = () => {
+    if (index >= 0 && index < this.heroBooks.length) {
       this.heroBookIndex = index;
       this.heroCoverFailed = false;
       this.heroBook = this.heroBooks[index];
       this.cdr.detectChanges();
-    };
-    type ViewTransition = { ready: Promise<void>; finished: Promise<void>; updateCallbackDone: Promise<void> };
-    const doc = document as Document & { startViewTransition?: (cb: () => void) => ViewTransition };
-    if (this.prefersReducedMotion || typeof doc.startViewTransition !== 'function' || document.visibilityState !== 'visible') {
-      apply();
-      return;
     }
-    // Si el navegador cancela la animación (pestaña oculta, clics seguidos), el cambio ya quedó aplicado.
-    const transition = doc.startViewTransition(apply);
-    const ignore = () => undefined;
-    transition.ready.catch(ignore);
-    transition.finished.catch(ignore);
-    transition.updateCallbackDone.catch(ignore);
   }
 
-  /** El grosor del lomo sigue la extensión del libro: un cuento es delgado, una novela río, gruesa. */
-  spineWidth(book: Book): number {
-    const pages = Math.min(this.getBookPages(book) || 0, 900);
-    return Math.round(34 + (pages / 900) * 30);
+  onHeroMouseMove(event: MouseEvent, stageEl: HTMLElement): void {
+    if (this.prefersReducedMotion) return;
+    const rect = stageEl.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    this.heroTiltX = -((y / (rect.height / 2)) * 14);
+    this.heroTiltY = ((x / (rect.width / 2)) * 16);
   }
 
-  /** Los libros largos también son un poco más altos, como en una repisa real. */
-  spineHeight(book: Book): number {
-    const pages = Math.min(this.getBookPages(book) || 0, 900);
-    return Math.round(184 + (pages / 900) * 36);
+  onHeroMouseEnter(): void {
+    this.isHeroHovered = true;
   }
 
-  /** En el lomo solo cabe el apellido: "H. P. Lovecraft" pasa a "Lovecraft". */
-  spineAuthor(book: Book): string {
-    const parts = (book.author_name || '').trim().split(/\s+/);
-    return parts[parts.length - 1] || '';
+  onHeroMouseLeave(): void {
+    this.isHeroHovered = false;
+    this.heroTiltX = 0;
+    this.heroTiltY = 0;
   }
 
-  /** Flechas izquierda/derecha entre los lomos, como en un grupo de pestañas. */
-  onSpineKeydown(event: KeyboardEvent, index: number): void {
-    const delta = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
-    if (!delta) return;
-    event.preventDefault();
-    const next = (index + delta + this.heroBooks.length) % this.heroBooks.length;
-    this.selectHeroBook(next);
-    const spines = (event.currentTarget as HTMLElement).parentElement?.querySelectorAll<HTMLElement>('[role="tab"]');
-    spines?.[next]?.focus();
+  startHeroAutoRotate(): void {
+    if (this.prefersReducedMotion || !isPlatformBrowser(this.platformId)) return;
+    this.stopHeroAutoRotate();
+    this.heroAutoRotateTimer = setInterval(() => {
+      if (!this.isHeroHovered && this.heroBooks.length > 1) {
+        this.nextHeroBook();
+      }
+    }, 6500);
   }
 
-  retryLoad(): void {
-    this.loadFailed = false;
-    this.loadBooks();
+  stopHeroAutoRotate(): void {
+    if (this.heroAutoRotateTimer) {
+      clearInterval(this.heroAutoRotateTimer);
+      this.heroAutoRotateTimer = null;
+    }
   }
 
-  // ─── Carga de datos ──────────────────────────────────────────────────────
+  // ─── Gamificación y Perfil ───────────────────────────────────────────────
+  private loadUserProfileAndGamification(): void {
+    this.api.get<any>('users/profile/').subscribe({
+      next: (profile: any) => {
+        if (!profile) return;
+        this.userProfile = profile;
+        this.userInkBalance = profile.ink_balance ?? 50;
+        this.userLevel = profile.level ?? 1;
+        this.userXp = profile.xp ?? 0;
+        this.userStreak = profile.streak_current ?? 0;
+        this.userLevelTitle = this.getLevelTitle(this.userLevel);
+        this.nextLevelXp = this.userLevel * 100;
+        this.xpPercent = Math.min(100, Math.round((this.userXp % 100)));
+        this.chatService.updateInkBalance(this.userInkBalance);
+        this.cdr.detectChanges();
+      },
+      error: () => { /* conserva fallback */ }
+    });
+
+    this.api.get<any[]>('library/missions/').subscribe({
+      next: (res: any) => {
+        const missions = Array.isArray(res) ? res : (res?.results || []);
+        this.activeMission = missions.find((m: any) => !m.completed_at) || missions[0] || null;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.activeMission = null; }
+    });
+
+    this.api.get<any[]>('library/achievements/me/').subscribe({
+      next: (res: any) => {
+        const achs = Array.isArray(res) ? res : (res?.results || []);
+        this.userAchievements = achs.slice(0, 4);
+        this.cdr.detectChanges();
+      },
+      error: () => { this.userAchievements = []; }
+    });
+  }
+
+  private getLevelTitle(level: number): string {
+    if (level >= 10) return 'Archimago de las Letras';
+    if (level >= 7) return 'Maestro Lector';
+    if (level >= 5) return 'Erudito Ilustrado';
+    if (level >= 3) return 'Viajero Literario';
+    if (level >= 2) return 'Explorador de Historias';
+    return 'Lector Curioso';
+  }
+
+  // ─── Selector Sensorial de Lectura ───────────────────────────────────────
+  selectMood(moodId: string): void {
+    this.selectedMood = moodId;
+    if (moodId === 'all') {
+      this.filteredMoodBooks = this.allBooks.slice(0, 10);
+    } else if (moodId === 'quick') {
+      this.filteredMoodBooks = this.allBooks.filter(b => (b.page_count && b.page_count <= 200) || b.tags?.some(t => t.slug === 'cuentos')).slice(0, 10);
+    } else if (moodId === 'ai') {
+      this.filteredMoodBooks = this.allBooks.filter(b => (b.ai_character_count || 0) > 0).slice(0, 10);
+    } else if (moodId === 'adventure') {
+      this.filteredMoodBooks = this.allBooks.filter(b => b.genres?.some(g => g.slug.includes('aventura') || g.slug.includes('accion')) || b.tags?.some(t => t.slug.includes('aventura'))).slice(0, 10);
+    } else if (moodId === 'philosophy') {
+      this.filteredMoodBooks = this.allBooks.filter(b => b.genres?.some(g => g.slug.includes('filosofia')) || b.tags?.some(t => t.slug.includes('filosofia'))).slice(0, 10);
+    } else if (moodId === 'drama') {
+      this.filteredMoodBooks = this.allBooks.filter(b => b.genres?.some(g => g.slug.includes('teatro') || g.slug.includes('clasica'))).slice(0, 10);
+    }
+    if (this.filteredMoodBooks.length === 0) {
+      this.filteredMoodBooks = this.allBooks.slice(0, 10);
+    }
+    this.cdr.detectChanges();
+  }
+
+  // ─── Simulador de Lectura Asistida ───────────────────────────────────────
+  setAssistiveMode(mode: 'normal' | 'focus' | 'bionic' | 'dyslexia'): void {
+    this.assistiveMode = mode;
+    this.cdr.detectChanges();
+  }
+
+  toggleDemoAudio(): void {
+    this.isAudioPlaying = !this.isAudioPlaying;
+    if (this.isAudioPlaying) {
+      this.audioProgress = 0;
+      if (this.audioInterval) clearInterval(this.audioInterval);
+      this.audioInterval = setInterval(() => {
+        this.audioProgress = (this.audioProgress + 4) % 100;
+        this.cdr.detectChanges();
+      }, 300);
+    } else {
+      if (this.audioInterval) clearInterval(this.audioInterval);
+      this.audioProgress = 0;
+    }
+    this.cdr.detectChanges();
+  }
+
+  private initBionicSample(): void {
+    this.bionicHtml1 = this.sanitizer.bypassSecurityTrustHtml(this.convertToBionic(this.sampleParagraph1));
+    this.bionicHtml2 = this.sanitizer.bypassSecurityTrustHtml(this.convertToBionic(this.sampleParagraph2));
+  }
+
+  private convertToBionic(text: string): string {
+    return text.split(' ').map(word => {
+      if (word.length <= 3) {
+        return `<strong class="bionic-part">${word}</strong>`;
+      }
+      const mid = Math.ceil(word.length / 2);
+      const first = word.substring(0, mid);
+      const second = word.substring(mid);
+      return `<strong class="bionic-part">${first}</strong>${second}`;
+    }).join(' ');
+  }
+
+  // ─── Estadísticas y Contadores ───────────────────────────────────────────
   private loadStats(): void {
     this.api.getCached<any>('catalog/stats/', undefined, 5 * 60 * 1000).subscribe({
       next: (res: any) => {
-        if (typeof res?.total_books === 'number') this.totalBooksCount = res.total_books;
-        if (typeof res?.total_characters === 'number') this.totalCharactersCount = res.total_characters;
+        if (!res) return;
+        if (typeof res.total_books === 'number') this.totalBooksCount = res.total_books;
+        if (typeof res.total_characters === 'number') this.totalCharactersCount = res.total_characters;
+        if (typeof res.total_dialogues === 'number') this.totalDialoguesCount = res.total_dialogues;
+        if (typeof res.total_authors === 'number') this.totalAuthorsCount = res.total_authors;
+
+        if (this.hasAnimatedStats || this.prefersReducedMotion) {
+          this.renderStatTexts();
+        }
         this.cdr.detectChanges();
       },
-      error: () => { /* la portada funciona sin cifras */ }
+      error: () => { /* conserva fallback */ }
     });
   }
 
-  private loadBooks(): void {
-    this.isLoading = true;
-    this.api.getCached<any>('catalog/books/?ordering=-is_featured,-created_at&page_size=50', undefined, 5 * 60 * 1000).subscribe({
-      next: (response: any) => {
-        if (this.destroy$.isStopped) return;
-        this.allBooks = response.results || response;
-        this.buildSections();
-        this.selectMood(this.selectedMood);
-        const featured = this.allBooks.filter(b => b.is_featured);
-        this.heroBooks = (featured.length ? featured : this.allBooks).slice(0, 20);
-        this.heroBookIndex = 0;
-        this.heroCoverFailed = false;
-        this.heroBook = this.heroBooks[0] || null;
-        this.isLoading = false;
-        this.loadFailed = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        if (this.destroy$.isStopped) return;
-        this.isLoading = false;
-        this.loadFailed = true;
-        this.cdr.detectChanges();
-      }
-    });
-
-    this.api.get<any>('catalog/books/recommendations/').subscribe({
-      next: (response) => {
-        this.forYouBooks = response.results || response;
-        this.buildPopular();
-        this.cdr.detectChanges();
-      },
-      error: () => { this.forYouBooks = []; }
+  private renderStatTexts(): void {
+    const counters = [
+      { id: 'stat-books', target: this.totalBooksCount },
+      { id: 'stat-chars', target: this.totalCharactersCount },
+      { id: 'stat-convs', target: this.totalDialoguesCount },
+      { id: 'stat-authors', target: this.totalAuthorsCount }
+    ];
+    counters.forEach(({ id, target }) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = target.toLocaleString('es-CL');
     });
   }
 
-  private buildSections(): void {
-    this.starterBooks = this.allBooks.filter(b => b.is_featured || this.getBookPages(b) >= 220).slice(0, 16);
-    this.quickReads = this.allBooks.filter(b => this.isUnderAnHour(b)).slice(0, 16);
-    this.buildPopular();
-  }
-
-  /**
-   * Recomendados: la API los calcula con los géneros de la biblioteca del lector.
-   * Sin sesión devuelve los destacados, que ya están en "Para empezar", así que
-   * la estantería se oculta en vez de repetirse.
-   */
-  private buildPopular(): void {
-    const shown = new Set(this.starterBooks.map(b => b.slug));
-    const fresh = this.forYouBooks.filter(b => !shown.has(b.slug));
-    this.popularBooks = this.auth.isLoggedIn() && fresh.length >= 6 ? fresh.slice(0, 16) : [];
-  }
-
-  /** Coincide con getReadingTime: 1,4 min por página. */
-  private isUnderAnHour(book: Book): boolean {
-    const pages = this.getBookPages(book);
-    return pages > 0 && pages * 1.4 < 60;
-  }
-
+  // ─── Categorías ──────────────────────────────────────────────────────────
   private loadGenres(): void {
     this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000).subscribe({
       next: (res: any) => {
-        this.genres = (res?.results ?? res ?? [])
-          .map((g: any) => ({ id: g.id, name: g.name, slug: g.slug, book_count: g.book_count ?? 0, family: genreFamily(g.slug) }))
+        const list: GenreCount[] = (res?.results ?? res ?? [])
+          .map((g: any) => ({ id: g.id, name: g.name, slug: g.slug, book_count: g.book_count ?? 0 }))
           .filter((g: GenreCount) => g.book_count > 0)
-          .sort((a: GenreCount, b: GenreCount) => b.book_count - a.book_count)
-          .slice(0, 14)
-          // Como en una estantería ordenada por colección: los colores quedan juntos.
-          .sort((a: GenreCount, b: GenreCount) => FAMILY_ORDER.indexOf(a.family.id) - FAMILY_ORDER.indexOf(b.family.id) || b.book_count - a.book_count);
-        this.cdr.detectChanges();
+          .sort((a: GenreCount, b: GenreCount) => b.book_count - a.book_count);
+        this.genres = list.slice(0, 12);
+        setTimeout(() => this.initRevealObserver(), 0);
       },
       error: () => { this.genres = []; }
     });
   }
 
+  goToCategory(slug: string): void {
+    this.router.navigate(['/categories', slug]);
+  }
+
+  // ─── Continuar Leyendo ───────────────────────────────────────────────────
   private loadContinueReading(): void {
+    this.continueReadingLoading = true;
     this.api.get<any[]>('library/inventory/').subscribe({
       next: (res: any) => {
         const items = Array.isArray(res) ? res : (res.results || []);
-        this.continueReading = items
-          .filter((item: any) => {
-            const pct = item.progress?.completion_percentage || 0;
-            return pct > 0 && pct < 100;
-          })
-          .sort((a: any, b: any) => (b.progress?.completion_percentage || 0) - (a.progress?.completion_percentage || 0))[0] || null;
-        this.cdr.detectChanges();
+        this.continueReadingItems = items
+          .map((item: any) => ({ ...item, coverThumb: this.thumbUrl(item.book_cover || item.edition?.book?.cover_image) }))
+          .filter((item: any) => (item.progress?.completion_percentage || 0) > 0 && (item.progress?.completion_percentage || 0) < 100)
+          .sort((a: any, b: any) => (b.progress?.completion_percentage || 0) - (a.progress?.completion_percentage || 0))
+          .slice(0, 8);
+        this.continueReadingLoading = false;
+        setTimeout(() => this.initRevealObserver(), 0);
       },
-      error: () => { this.continueReading = null; }
+      error: () => { this.continueReadingLoading = false; }
     });
   }
 
-  private loadProfile(): void {
-    this.api.get<any>('users/profile/').subscribe({
-      next: (profile: any) => {
-        if (!profile) return;
-        this.userStreak = profile.streak_current ?? 0;
-        if (typeof profile.ink_balance === 'number') this.chatService.updateInkBalance(profile.ink_balance);
-        this.cdr.detectChanges();
-      },
-      error: () => { /* sin racha visible */ }
-    });
+  thumbUrl(url: string | null | undefined, width = 360, height = 540, quality = 62): string {
+    return coverThumb(url, width, height, quality);
   }
 
-  get continueTitle(): string {
-    return this.continueReading?.book_title || this.continueReading?.edition?.book?.title || '';
+  goToReader(inventoryId: string): void {
+    this.router.navigate(['/reader', inventoryId]);
   }
 
-  get continuePercent(): number {
-    return Math.round(this.continueReading?.progress?.completion_percentage || 0);
-  }
-
-  // ─── Reparto ─────────────────────────────────────────────────────────────
-  private loadCast(): void {
+  // ─── Personajes y Avatares ───────────────────────────────────────────────
+  private loadShowcaseAvatars(): void {
+    this.avatarsLoading = true;
     this.api.get<any>('ai/hub/avatars/?sort=popularity').subscribe({
       next: (response: any) => {
-        const avatars: DemoAvatar[] = Array.isArray(response) ? response : (response.results || []);
-        this.castAvatars = avatars.slice(0, 7);
-        this.characterOfTheDay = this.castAvatars[0] || null;
+        const avatars = Array.isArray(response) ? response : (response.results || []);
+        this.showcaseAvatars = avatars.slice(0, 10);
+        if (this.showcaseAvatars.length > 0) {
+          const chosen = this.showcaseAvatars.find(a => a.name.includes('Nemo') || a.name.includes('Sócrates') || a.name.includes('Alicia')) || this.showcaseAvatars[0];
+          this.characterOfTheDay = chosen;
+          this.characterQuote = this.characterQuotesMap[chosen.name] || 'Las historias nos transforman; cada respuesta abre un camino desconocido en el libro.';
+        }
+        this.avatarsLoading = false;
         this.cdr.detectChanges();
       },
-      error: () => { this.castAvatars = []; }
+      error: () => { this.avatarsLoading = false; }
     });
   }
 
-  /** El personaje en foco se destaca y el resto del reparto queda atenuado. */
-  focusCast(avatar: DemoAvatar | null): void {
-    this.focusedCastId = avatar ? avatar.id : null;
+  goToCharactersHub(): void {
+    this.router.navigate(['/characters']);
   }
 
   goToCharacterChat(avatar: DemoAvatar | null): void {
     if (!avatar) return;
-    if (!this.auth.isLoggedIn() || !avatar.book_slug) {
+
+    if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/demo-chat', avatar.id]);
       return;
     }
+
+    if (!avatar.book_slug) {
+      this.router.navigate(['/demo-chat', avatar.id]);
+      return;
+    }
+
     this.api.get<any>(`library/inventory/check/?slug=${avatar.book_slug}`).subscribe({
       next: (res: any) => {
         if (res.owned) {
@@ -384,158 +586,247 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── ¿Qué leer hoy? ──────────────────────────────────────────────────────
-  selectMood(moodId: string): void {
-    this.selectedMood = moodId;
-    const inFamily = (b: Book, id: string) => b.genres?.some(g => genreFamily(g.slug).id === id);
-    const pick: Record<string, (b: Book) => boolean> = {
-      quick: b => this.isUnderAnHour(b),
-      adventure: b => !!inFamily(b, 'aventura'),
-      thinking: b => !!inFamily(b, 'pensamiento'),
-      drama: b => !!b.genres?.some(g => g.slug === 'teatro'),
-      mystery: b => !!inFamily(b, 'misterio')
-    };
-    const filter = pick[moodId];
-    const result = filter ? this.allBooks.filter(filter) : this.allBooks;
-    // Primero lo que no aparece en las estanterías de arriba, para que la sugerencia sume.
-    const shown = new Set([...this.starterBooks, ...this.quickReads].map(b => b.slug));
-    const fresh = result.filter(b => !shown.has(b.slug));
-    const pool = fresh.length >= 6 ? fresh : result;
-    this.filteredMoodBooks = (pool.length ? pool : this.allBooks).slice(0, 12);
-    this.cdr.detectChanges();
+  scrollCarousel(direction: number): void {
+    if (this.avatarsCarousel) {
+      const el = this.avatarsCarousel.nativeElement;
+      el.scrollBy({ left: 320 * direction, behavior: 'smooth' });
+    }
   }
 
-  /** Abre la vista previa de un libro al azar del catálogo cargado. */
-  surpriseMe(event?: MouseEvent): void {
-    const pool = this.allBooks.filter(b => b.synopsis);
-    const list = pool.length ? pool : this.allBooks;
-    if (!list.length) return;
-    this.openQuickView(list[Math.floor(Math.random() * list.length)], event);
+  goToRegister(): void {
+    this.router.navigate(['/register']);
   }
 
-  // ─── Lectura asistida ────────────────────────────────────────────────────
-  setAssistiveMode(mode: AssistiveMode): void {
-    this.assistiveMode = mode;
+  goToTavern(): void {
+    this.router.navigate(['/tavern']);
   }
 
-  private buildDemoWords(): void {
-    let offset = 0;
-    let index = 0;
-    this.demoWords = this.demoParagraphs.map(paragraph => {
-      const words = paragraph.split(' ').map(text => {
-        const letters = text.replace(/[^\p{L}]/gu, '').length;
-        const cut = letters <= 3 ? text.length : Math.ceil(text.length / 2);
-        const word: DemoWord = { text, head: text.slice(0, cut), tail: text.slice(cut), start: offset, index: index++ };
-        offset += text.length + 1;
-        return word;
-      });
-      return words;
+  // ─── Carga de Libros ─────────────────────────────────────────────────────
+  private loadBooks(): void {
+    this.isLoading = true;
+    this.api.getCached<any>('catalog/books/?ordering=-is_featured,-created_at&page_size=50', undefined, 5 * 60 * 1000).subscribe({
+      next: (response: any) => {
+        if (this.destroy$.isStopped) return;
+        this.allBooks = response.results || response;
+        this.buildSections();
+        this.filteredMoodBooks = this.allBooks.slice(0, 10);
+        this.heroBooks = this.featuredBooks.slice(0, 6);
+        this.heroBookIndex = 0;
+        this.heroCoverFailed = false;
+        this.heroBook = this.heroBooks[0] || null;
+        this.startHeroAutoRotate();
+        this.isLoading = false;
+        setTimeout(() => {
+          if (this.destroy$.isStopped) return;
+          this.initRevealObserver();
+        }, 100);
+      },
+      error: (error) => {
+        if (this.destroy$.isStopped) return;
+        console.error('Error cargando libros', error);
+        this.isLoading = false;
+      }
+    });
+
+    this.api.get<any>('catalog/books/recommendations/').subscribe({
+      next: (response) => {
+        this.forYouBooks = response.results || response;
+        if (this.forYouBooks.length > 0) {
+          this.popularTreasures = this.forYouBooks.slice(0, 16);
+        }
+        setTimeout(() => {
+          if (!this.destroy$.isStopped) {
+            this.initRevealObserver();
+          }
+        }, 100);
+      },
+      error: () => { this.forYouBooks = []; }
     });
   }
 
-  get demoText(): string {
-    return this.demoParagraphs.join(' ');
-  }
-
-  toggleNarration(): void {
-    if (this.isNarrating) {
-      this.stopNarration();
-      return;
-    }
-    if (!this.canNarrate) return;
-
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    const utterance = new SpeechSynthesisUtterance(this.demoText);
-    const voices = synth.getVoices().filter(v => v.lang?.toLowerCase().startsWith('es'));
-    const voice = voices.find(v => /es[-_](cl|419|mx|us)/i.test(v.lang)) || voices.find(v => /es[-_]es/i.test(v.lang)) || voices[0];
-    if (voice) utterance.voice = voice;
-    utterance.lang = voice?.lang || 'es-CL';
-    utterance.rate = 0.95;
-
-    const allWords = this.demoWords.flat();
-    this.gotBoundary = false;
-
-    utterance.onboundary = (event: SpeechSynthesisEvent) => {
-      if (event.name && event.name !== 'word') return;
-      this.gotBoundary = true;
-      const word = allWords.filter(w => w.start <= event.charIndex).pop();
-      this.zone.run(() => {
-        this.narratedWord = word ? word.index : -1;
+  private loadAIBooks(): void {
+    this.api.getCached<any>('catalog/books/?has_ai_avatars=true&ordering=-ai_character_count&page_size=12', undefined, 5 * 60 * 1000).subscribe({
+      next: (response: any) => {
+        if (this.destroy$.isStopped) return;
+        const booksWithCharacters = response.results || response;
+        this.featuredWithCharacters = booksWithCharacters.map((b: any) => ({
+          slug: b.slug,
+          title: b.title,
+          author: b.author_name || 'Desconocido',
+          cover: b.cover_image || 'assets/default_cover.jpg',
+          genre: (b.genres && b.genres.length > 0) ? b.genres[0].name : 'Ficción',
+          characterCount: b.ai_character_count || 0,
+          page_count: b.page_count
+        })).sort((a: any, b: any) => b.characterCount - a.characterCount);
         this.cdr.detectChanges();
+        setTimeout(() => this.initRevealObserver(), 0);
+      },
+      error: (error) => { console.error('Error cargando libros con IA', error); }
+    });
+  }
+
+  private buildSections(): void {
+    this.featuredBooks = this.allBooks.filter(b => b.is_featured);
+    if (this.featuredBooks.length === 0) {
+      this.featuredBooks = this.allBooks.slice(0, 20);
+    }
+
+    // Estantería 1: Clásicos Inmortales (obras extensas o destacadas)
+    this.immortalClassics = this.allBooks.filter(b => {
+      const pages = this.getBookPages(b);
+      return pages >= 220 || b.is_featured;
+    }).slice(0, 16);
+
+    // Estantería 2: Historias Vivas con IA
+    this.livingAIBooks = this.allBooks.filter(b => (b.ai_character_count || 0) > 0).slice(0, 16);
+
+    // Estantería 3: Lecturas Rápidas y Cuentos
+    this.quickReads = this.allBooks.filter(b => {
+      const pages = this.getBookPages(b);
+      return (pages > 0 && pages <= 180) || b.tags?.some(t => t.slug === 'cuentos');
+    }).slice(0, 16);
+
+    // Estantería 4: Joyas y Tesoros Populares
+    this.popularTreasures = this.forYouBooks.length > 0 
+      ? this.forYouBooks.slice(0, 16) 
+      : this.allBooks.slice(0, 16);
+
+    // Estantería 5: Filosofía, Pensamiento & Tratados Inmortales
+    this.philosophyBooks = this.allBooks.filter(b => 
+      b.genres?.some(g => g.slug.includes('filosofia') || g.name.toLowerCase().includes('filosofía') || g.slug.includes('politica') || g.slug.includes('clasica')) ||
+      b.tags?.some(t => t.slug.includes('filosofia') || t.slug.includes('pensamiento')) ||
+      ['platón', 'aristóteles', 'maquiavelo', 'marco aurelio', 'séneca', 'sócrates', 'dante', 'thoreau', 'nietzsche'].some(auth => (b.author_name || '').toLowerCase().includes(auth))
+    ).slice(0, 16);
+    if (this.philosophyBooks.length === 0) {
+      this.philosophyBooks = this.allBooks.filter(b => (b.page_count || 0) > 160).slice(8, 24);
+    }
+
+    // Estantería 6: Aventuras Legendarias, Misterio y Épica
+    this.adventureBooks = this.allBooks.filter(b =>
+      b.genres?.some(g => g.slug.includes('aventura') || g.slug.includes('ficcion') || g.slug.includes('misterio') || g.name.toLowerCase().includes('aventura')) ||
+      b.tags?.some(t => t.slug.includes('aventura') || t.slug.includes('viaje')) ||
+      ['verne', 'conan doyle', 'stevenson', 'homero', 'salgari', 'wells', 'london', 'cervantes', 'galdós', 'stoker'].some(auth => (b.author_name || '').toLowerCase().includes(auth))
+    ).slice(0, 16);
+    if (this.adventureBooks.length === 0) {
+      this.adventureBooks = this.allBooks.slice(6, 22);
+    }
+
+    // Carrusel Destacado de Tendencias / Obras Magistrales
+    const candidates = this.allBooks.filter(b => (b.ai_character_count || 0) > 0 || b.is_featured);
+    this.trendingCarouselBooks = (candidates.length >= 4 ? candidates : this.allBooks).slice(0, 6);
+    this.startTrendingAutoplay();
+
+    this.applyCatalogFilters();
+  }
+
+  // ─── Control del Gran Catálogo y Filtros Reactivos ───────────────────────
+  applyCatalogFilters(): void {
+    const term = this.catalogSearchTerm.trim().toLowerCase();
+    let result = [...this.allBooks];
+
+    if (term) {
+      result = result.filter(b => 
+        (b.title && b.title.toLowerCase().includes(term)) ||
+        (b.author_name && b.author_name.toLowerCase().includes(term)) ||
+        (b.synopsis && b.synopsis.toLowerCase().includes(term)) ||
+        (b.genres && b.genres.some(g => g.name.toLowerCase().includes(term)))
+      );
+    }
+
+    if (this.activeGenreSlug) {
+      result = result.filter(b => 
+        b.genres?.some(g => g.slug === this.activeGenreSlug) ||
+        b.tags?.some(t => t.slug === this.activeGenreSlug)
+      );
+    }
+
+    if (this.activeQuickFilter === 'featured') {
+      result = result.filter(b => b.is_featured);
+    } else if (this.activeQuickFilter === 'ai') {
+      result = result.filter(b => (b.ai_character_count || 0) > 0);
+    } else if (this.activeQuickFilter === 'short') {
+      result = result.filter(b => {
+        const pages = this.getBookPages(b);
+        return (pages > 0 && pages <= 180) || b.tags?.some(t => t.slug === 'cuentos');
       });
-    };
-    utterance.onstart = () => {
-      // Algunas voces no emiten límites de palabra: se estima el avance.
-      const startedAt = performance.now();
-      this.narrationTimer = setInterval(() => {
-        if (this.gotBoundary) return;
-        const estimate = Math.floor(((performance.now() - startedAt) / 1000) * 2.5);
-        this.zone.run(() => {
-          this.narratedWord = Math.min(estimate, allWords.length - 1);
-          this.cdr.detectChanges();
-        });
-      }, 200);
-    };
-    utterance.onend = () => this.zone.run(() => this.stopNarration());
-    utterance.onerror = () => this.zone.run(() => this.stopNarration());
-
-    this.isNarrating = true;
-    this.narratedWord = -1;
-    synth.speak(utterance);
-  }
-
-  private stopNarration(): void {
-    if (this.narrationTimer) {
-      clearInterval(this.narrationTimer);
-      this.narrationTimer = null;
+    } else if (this.activeQuickFilter === 'popular') {
+      result = result.filter(b => b.is_featured || (b.ai_character_count || 0) > 0);
     }
-    if (isPlatformBrowser(this.platformId) && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    this.isNarrating = false;
-    this.narratedWord = -1;
+
+    this.filteredCatalogBooks = result;
     this.cdr.detectChanges();
+    setTimeout(() => this.initRevealObserver(), 50);
   }
 
-  // ─── Vista previa ────────────────────────────────────────────────────────
-  openQuickView(book: Book, event?: Event): void {
+  setQuickFilter(filter: 'all' | 'featured' | 'ai' | 'short' | 'popular'): void {
+    this.activeQuickFilter = this.activeQuickFilter === filter && filter !== 'all' ? 'all' : filter;
+    this.applyCatalogFilters();
+  }
+
+  selectCatalogGenre(slug: string | null): void {
+    this.activeGenreSlug = this.activeGenreSlug === slug ? null : slug;
+    this.applyCatalogFilters();
+  }
+
+  selectGenre(slug: string | null): void {
+    this.selectCatalogGenre(slug);
+  }
+
+  onCatalogSearchChange(_term?: string): void {
+    this.applyCatalogFilters();
+  }
+
+  onCatalogSearchInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.catalogSearchTerm = target?.value || '';
+    this.applyCatalogFilters();
+  }
+
+  clearCatalogSearch(): void {
+    this.catalogSearchTerm = '';
+    this.applyCatalogFilters();
+  }
+
+  setViewMode(mode: 'shelves' | 'grid'): void {
+    this.catalogViewMode = mode;
+    this.cdr.detectChanges();
+    setTimeout(() => this.initRevealObserver(), 50);
+  }
+
+  setCatalogViewMode(mode: 'shelves' | 'grid'): void {
+    this.setViewMode(mode);
+  }
+
+  // ─── Modal 3D Libro Abierto (Vista Rápida) ───────────────────────────────
+  openQuickView(book: Book, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
       event.preventDefault();
     }
-    this.lastFocused = isPlatformBrowser(this.platformId) ? document.activeElement as HTMLElement : null;
     this.selectedQuickViewBook = book;
     this.quickViewTab = 'synopsis';
     this.cdr.detectChanges();
   }
 
   closeQuickView(): void {
-    if (!this.selectedQuickViewBook) return;
     this.selectedQuickViewBook = null;
     this.cdr.detectChanges();
-    this.lastFocused?.focus?.();
-    this.lastFocused = null;
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    this.closeQuickView();
-  }
-
-  setQuickViewTab(tab: 'synopsis' | 'details'): void {
+  setQuickViewTab(tab: 'synopsis' | 'ai' | 'details'): void {
     this.quickViewTab = tab;
+    this.cdr.detectChanges();
   }
 
-  // ─── Favoritos ───────────────────────────────────────────────────────────
-  toggleFavorite(book: Book, event: Event): void {
+  toggleFavorite(book: Book, event: MouseEvent): void {
     event.stopPropagation();
     event.preventDefault();
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login']);
       return;
     }
-    this.favoritesService?.setFavorite(book.id, !this.isBookFavorite(book)).subscribe({
+    const isFav = this.isBookFavorite(book);
+    this.favoritesService?.setFavorite(book.id, !isFav).subscribe({
       error: (err: any) => console.warn('Error al actualizar favorito:', err)
     });
   }
@@ -544,41 +835,160 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.favoritesService?.isFavorite(book.id, book.slug) ?? false;
   }
 
-  // ─── Utilidades ──────────────────────────────────────────────────────────
-  /** Portadas que no cargaron: se muestra la ficha tipográfica en su lugar. */
-  brokenCovers = new Set<string>();
-
-  markCoverBroken(book: Book): void {
-    this.brokenCovers.add(book.slug);
+  goToBook(slug: string): void {
+    this.router.navigate(['/book', slug]);
   }
 
-  fmt(value: number): string {
-    return value.toLocaleString('es-CL');
+  /** Desplaza suavemente la estantería de libros en la dirección indicada (-1 izq, 1 der).
+   * Al llegar al final de la estantería, vuelve suavemente al inicio para navegación cíclica continua.
+   * Si está al inicio y retrocede, se desplaza hacia el final. */
+  scrollShelf(track: HTMLElement, direction: number): void {
+    if (!track) return;
+    const maxScroll = Math.max(0, track.scrollWidth - track.clientWidth);
+    const scrollAmount = Math.max(280, Math.floor(track.clientWidth * 0.75));
+    const tolerance = 24; // Margen de holgura para sub-píxeles o redondeo
+
+    if (direction > 0) {
+      // Si ya está prácticamente al final, vuelve al principio de forma fluida
+      if (track.scrollLeft >= maxScroll - tolerance) {
+        track.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const nextScroll = track.scrollLeft + scrollAmount;
+        if (nextScroll >= maxScroll) {
+          track.scrollTo({ left: maxScroll, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+      }
+    } else {
+      // Si ya está en el inicio, navega hacia el final
+      if (track.scrollLeft <= tolerance) {
+        track.scrollTo({ left: maxScroll, behavior: 'smooth' });
+      } else {
+        const prevScroll = track.scrollLeft - scrollAmount;
+        if (prevScroll <= 0) {
+          track.scrollTo({ left: 0, behavior: 'smooth' });
+        } else {
+          track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        }
+      }
+    }
   }
 
-  genreNames(book: Book): string {
-    return (book.genres || []).map(g => g.name).join(', ');
+  // ─── Carrusel Destacado de Joyas y Tendencias ─────────────────────────────
+  startTrendingAutoplay(): void {
+    if (!isPlatformBrowser(this.platformId) || this.prefersReducedMotion) return;
+    this.stopTrendingAutoplay();
+    this.trendingAutoplayTimer = setInterval(() => {
+      this.nextTrendingBook();
+    }, 7500);
   }
 
-  thumbUrl(url: string | null | undefined, width = 360, height = 540, quality = 62): string {
-    return coverThumb(url, width, height, quality);
+  stopTrendingAutoplay(): void {
+    if (this.trendingAutoplayTimer) {
+      clearInterval(this.trendingAutoplayTimer);
+      this.trendingAutoplayTimer = null;
+    }
+  }
+
+  nextTrendingBook(): void {
+    if (this.trendingCarouselBooks.length === 0) return;
+    this.trendingIndex = (this.trendingIndex + 1) % this.trendingCarouselBooks.length;
+    this.cdr.detectChanges();
+  }
+
+  prevTrendingBook(): void {
+    if (this.trendingCarouselBooks.length === 0) return;
+    this.trendingIndex = (this.trendingIndex - 1 + this.trendingCarouselBooks.length) % this.trendingCarouselBooks.length;
+    this.cdr.detectChanges();
+  }
+
+  setTrendingBook(index: number): void {
+    if (index >= 0 && index < this.trendingCarouselBooks.length) {
+      this.trendingIndex = index;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // ─── Oráculo Literario / Lectura al Azar ─────────────────────────────────
+  openOracleRandomBook(): void {
+    if (this.allBooks.length === 0) return;
+    this.isSpinningOracle = true;
+    setTimeout(() => {
+      const candidates = this.allBooks.filter(b => b.is_featured || (b.page_count && b.page_count > 0));
+      const pool = candidates.length > 0 ? candidates : this.allBooks;
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      this.randomBook = pool[randomIndex];
+      this.isSpinningOracle = false;
+      this.randomBookModalOpen = true;
+      this.cdr.detectChanges();
+    }, 400);
+  }
+
+  closeOracleModal(): void {
+    this.randomBookModalOpen = false;
+    this.cdr.detectChanges();
   }
 
   getReadingTime(book: Book): string {
     const pages = this.getBookPages(book);
-    if (!pages || pages <= 0) return '';
-    const minutes = Math.round(pages * 1.4);
-    if (minutes < 60) return `${Math.max(5, minutes)} min`;
-    const hours = minutes / 60;
-    return hours < 10 ? `${hours.toFixed(1).replace('.', ',')} h` : `${Math.round(hours)} h`;
+    if (!pages || pages <= 0) return 'Lectura libre';
+    if (pages <= 60) return `${Math.max(12, Math.round(pages * 1.3))} min`;
+    if (pages <= 180) return `${Math.round(pages * 1.4)} min`;
+    const hours = (pages / 45).toFixed(1);
+    return `~${hours} h`;
   }
 
-  scrollShelf(track: HTMLElement, direction: number): void {
-    if (!track) return;
-    const amount = Math.max(280, Math.floor(track.clientWidth * 0.8));
-    track.scrollBy({ left: amount * direction, behavior: this.prefersReducedMotion ? 'auto' : 'smooth' });
+  // ─── Reveal Observer y Animaciones ───────────────────────────────────────
+  private initRevealObserver(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Escanear y sincronizar elementos con scroll animations
+    this.scrollRevealService.scan();
+
+    const statsEl = document.querySelector('.stats-section');
+    if (statsEl && !this.hasAnimatedStats) {
+      this.scrollRevealService.observe(statsEl);
+      statsEl.addEventListener('revealed', () => {
+        if (!this.hasAnimatedStats) {
+          this.animateCounters();
+        }
+      }, { once: true });
+    }
   }
 
+  private animateCounters(): void {
+    this.hasAnimatedStats = true;
+    const counters = [
+      { id: 'stat-books', target: this.totalBooksCount },
+      { id: 'stat-chars', target: this.totalCharactersCount },
+      { id: 'stat-convs', target: this.totalDialoguesCount },
+      { id: 'stat-authors', target: this.totalAuthorsCount }
+    ];
+    if (this.prefersReducedMotion) {
+      this.renderStatTexts();
+      return;
+    }
+    counters.forEach(({ id, target }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const duration = 1800;
+      const start = performance.now();
+      const update = (now: number) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(ease * target).toLocaleString('es-CL');
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        } else {
+          el.textContent = target.toLocaleString('es-CL');
+        }
+      };
+      requestAnimationFrame(update);
+    });
+  }
+
+  // ─── TrackBy ─────────────────────────────────────────────────────────────
   trackBySlug(_: number, book: Book): string {
     return book.slug;
   }
@@ -589,6 +999,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   trackByGenreSlug(_: number, genre: GenreCount): string {
     return genre.slug;
+  }
+
+  trackByItemId(_: number, item: any): string {
+    return item.id;
   }
 
   trackByMoodId(_: number, mood: MoodOption): string {

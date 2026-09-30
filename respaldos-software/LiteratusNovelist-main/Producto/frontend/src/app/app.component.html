@@ -4,7 +4,7 @@
      HEADER PRINCIPAL: LOGO (IZQ), BUSCADOR GRANDE (CENTRO), ACCESOS (DER)
      Y FILA DE BURBUJAS CIRCULARES ABAJO DEL SEARCH
 ═════════════════════════════════════════════════════════════════════ -->
-<header class="main-header glass-navbar" [class.shell--home]="isHome" *ngIf="!isDashboard" aria-label="Navegación principal">
+<header class="main-header glass-navbar" *ngIf="!isDashboard" aria-label="Navegación principal">
   
   <!-- Fila 1: Logo + Buscador grande + Accesos Rápidos -->
   <div class="header-top-bar">
@@ -247,7 +247,7 @@
 </header>
 
 <!-- ═══ SITE BODY: Contenido a ancho completo ═══ -->
-<div class="site-body" [class.site-body--home]="isHome" *ngIf="!isDashboard">
+<div class="site-body" *ngIf="!isDashboard">
   <div class="site-content">
     <!-- DEBUGGING: Global Error Banner -->
     <div *ngIf="globalError" style="background: red; color: white; padding: 20px; font-weight: bold; z-index: 9999; position: relative;">
