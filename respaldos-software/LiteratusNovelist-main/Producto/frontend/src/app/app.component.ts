@@ -14,6 +14,8 @@ import { GamificationService, GamificationNotification } from './core/services/g
 import { MatDialog } from '@angular/material/dialog';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
 import { SpeechRecognitionService } from './core/services/speech-recognition.service';
+import { QUICK_GENRES } from './core/components/main-nav/nav-genres';
+import { firstTimeThisSession } from './core/components/main-nav/main-nav.component';
 
 @Component({
   selector: 'app-root',
@@ -36,6 +38,8 @@ export class AppComponent implements OnInit {
 
   isDashboard = false;
   isEnigma = false;
+  /** Partida de La Senda en modo concentración: sin header ni asistente (tapaba la bandeja). */
+  isPlayingLevel = false;
   isNavBubblesHidden = false;
   private lastScrollTop = 0;
   
@@ -45,6 +49,13 @@ export class AppComponent implements OnInit {
 
   // Buscador global del navbar
   globalSearchTerm = '';
+  readonly quickGenres = QUICK_GENRES;
+
+  /** Maguito saluda la primera vez por sesión; después solo parpadea y mira. */
+  greetMascot = firstTimeThisSession('lit-maguito-greet');
+  profileMenuOpen = false;
+  private readonly reducedMotion =
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Contadores de accesos rápidos
   cartCount = 0;
@@ -85,6 +96,7 @@ export class AppComponent implements OnInit {
         const url = e.urlAfterRedirects as string;
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
         this.isEnigma = url.includes('enigma');
+        this.isPlayingLevel = url.startsWith('/learn/play') || url.startsWith('/learn/skip');
       });
   }
 
@@ -96,8 +108,14 @@ export class AppComponent implements OnInit {
       this.settingsService.loadSettings().subscribe();
     }
 
+    // Si el header se vuelve a montar (al salir del lector) Maguito no repite el saludo.
+    setTimeout(() => this.greetMascot = false, 6000);
+
     // El contador refleja la colección persistida del usuario autenticado.
-    this.favoritesService.count$.subscribe(count => this.favoritesCount = count);
+    this.favoritesService.count$.subscribe(count => {
+      if (this.favoritesCount > 0 && count > this.favoritesCount) this.bumpBadge('favorites');
+      this.favoritesCount = count;
+    });
 
     // Sincronizar contador de carrito
     this.updateCartCount();
@@ -324,6 +342,7 @@ export class AppComponent implements OnInit {
   }
 
   updateCartCount(): void {
+    const previous = this.cartCount;
     try {
       const raw = localStorage.getItem('literatus_cart');
       const list = raw ? JSON.parse(raw) : [];
@@ -331,6 +350,22 @@ export class AppComponent implements OnInit {
     } catch {
       this.cartCount = 0;
     }
+    if (previous > 0 && this.cartCount > previous) this.bumpBadge('cart');
+  }
+
+  /**
+   * Confirma que el contador subió: la insignia crece un instante y vuelve (WAAPI, sin
+   * librería). La primera aparición la anima el CSS; esto es solo para los aumentos.
+   */
+  private bumpBadge(name: 'favorites' | 'cart'): void {
+    if (this.reducedMotion) return;
+    // Espera a que Angular pinte el número nuevo antes de animarlo.
+    setTimeout(() => {
+      document.querySelector<HTMLElement>(`[data-badge="${name}"]`)?.animate(
+        [{ transform: 'scale(1.3)' }, { transform: 'scale(1)' }],
+        { duration: 240, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' },
+      );
+    });
   }
 
   prepareRoute(outlet: RouterOutlet) {

@@ -1,4 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
@@ -11,6 +12,7 @@ import { coverThumb } from '../../core/utils/cover-thumb.util';
 })
 export class LibraryListComponent implements OnInit {
   private api = inject(ApiService);
+  private route = inject(ActivatedRoute);
   public auth = inject(AuthService);
   getBookPages = getBookPages;
 
@@ -85,6 +87,15 @@ export class LibraryListComponent implements OnInit {
 
 
   ngOnInit(): void {
+    // Los accesos del menú de Mi Biblioteca llegan con ?estado=leyendo|completados|pendientes.
+    this.route.queryParamMap.subscribe(params => {
+      const estado = params.get('estado');
+      this.activeFilter = estado === 'leyendo' ? 'reading'
+        : estado === 'completados' ? 'completed'
+        : estado === 'pendientes' ? 'unread'
+        : 'all';
+    });
+
     if (!this.auth.isLoggedIn()) {
       this.isAnonymous = true;
       this.isLoading = false;

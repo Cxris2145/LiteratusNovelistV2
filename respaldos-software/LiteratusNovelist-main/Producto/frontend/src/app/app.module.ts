@@ -11,6 +11,7 @@ import { ReaderComponent } from './library/reader/reader.component';
 import { ReaderTabsComponent } from './library/reader/reader-tabs/reader-tabs.component';
 import { VocabularyPanelComponent } from './library/reader/vocabulary-panel/vocabulary-panel.component';
 import { MaguitoComponent } from './core/components/maguito/maguito.component';
+import { MainNavComponent } from './core/components/main-nav/main-nav.component';
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -65,6 +66,7 @@ import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive
     ReaderTabsComponent,
     VocabularyPanelComponent,
     MaguitoComponent,
+    MainNavComponent,
     HomeComponent,
     BookDetailPageComponent,
     TavernComponent,

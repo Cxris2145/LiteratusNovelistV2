@@ -1,26 +1,32 @@
 <a *ngIf="!isDashboard" class="skip-link" href="#main-content">Saltar al contenido</a>
 
 <!-- ═════════════════════════════════════════════════════════════════════
-     HEADER PRINCIPAL: LOGO (IZQ), BUSCADOR GRANDE (CENTRO), ACCESOS (DER)
-     Y FILA DE BURBUJAS CIRCULARES ABAJO DEL SEARCH
+     HEADER PRINCIPAL: Maguito y la marca (izq), buscador con filtros
+     rápidos (centro), accesos con avisos (der) y, abajo, la navegación
+     con menús amplios y el botón "Sé parte de Literatus".
 ═════════════════════════════════════════════════════════════════════ -->
-<header class="main-header glass-navbar" *ngIf="!isDashboard" aria-label="Navegación principal">
-  
-  <!-- Fila 1: Logo + Buscador grande + Accesos Rápidos -->
+<header class="main-header glass-navbar" *ngIf="!isDashboard && !isPlayingLevel" aria-label="Navegación principal">
+
+  <!-- Fila 1: Marca + Buscador + Accesos rápidos -->
   <div class="header-top-bar">
     <div class="header-top-container">
 
-      <!-- Izquierda: Logo principal completo -->
+      <!-- Izquierda: Maguito (se deja tocar) y la marca -->
       <div class="header-left">
-        <a routerLink="/" class="brand-logo logo" title="Literatus Novelist - Inicio" aria-label="Literatus Novelist">
-          <span class="brand-literatus literatus">Literatus</span>
-          <span class="brand-novelist novelist">Novelist</span>
+        <app-maguito class="brand-mascot" [calm]="true" [greetOnEnter]="greetMascot"
+                     title="¡Hola! Soy Maguito"></app-maguito>
+        <a routerLink="/" class="brand-logo" aria-label="Literatus Novelist, ir al inicio">
+          <span class="brand-literatus">Literatus</span>
+          <span class="brand-novelist">Novelist</span>
         </a>
+        <span class="brand-sparkle brand-sparkle--1" aria-hidden="true">✦</span>
+        <span class="brand-sparkle brand-sparkle--2" aria-hidden="true">✦</span>
+        <span class="brand-sparkle brand-sparkle--3" aria-hidden="true">✦</span>
       </div>
 
-      <!-- Centro: Buscador Grande -->
+      <!-- Centro: Buscador destacado y filtros rápidos -->
       <div class="header-center">
-        <form class="nav-search-form" (ngSubmit)="onGlobalSearch()">
+        <form class="nav-search-form" role="search" (ngSubmit)="onGlobalSearch()">
           <span class="search-icon material-symbols-rounded" aria-hidden="true">search</span>
           <input
             type="text"
@@ -30,57 +36,70 @@
             [(ngModel)]="globalSearchTerm"
             autocomplete="off"
             aria-label="Buscar en Literatus Novelist">
-          <button
-            *ngIf="globalSearchTerm"
-            type="button"
-            class="search-clear-btn"
-            (click)="clearGlobalSearch()"
-            aria-label="Borrar búsqueda">
-            ✕
-          </button>
-          <button 
-            type="button" 
-            class="search-mic-btn" 
-            [class.listening]="isListeningSearch"
-            (click)="toggleVoiceSearch()" 
-            [title]="isListeningSearch ? 'Escuchando... Haz clic para detener' : 'Buscar por voz'">
-            <span class="material-symbols-rounded">{{ isListeningSearch ? 'mic' : 'mic_none' }}</span>
-          </button>
-          <button type="submit" class="search-submit-btn" aria-label="Ejecutar búsqueda">
-            <span class="material-symbols-rounded">arrow_forward</span>
+          <span class="search-tools">
+            <button
+              *ngIf="globalSearchTerm"
+              type="button"
+              class="search-tool-btn search-clear-btn"
+              (click)="clearGlobalSearch()"
+              aria-label="Borrar búsqueda">
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            </button>
+            <button
+              type="button"
+              class="search-tool-btn search-mic-btn"
+              [class.listening]="isListeningSearch"
+              (click)="toggleVoiceSearch()"
+              [attr.aria-label]="isListeningSearch ? 'Detener búsqueda por voz' : 'Buscar por voz'"
+              [title]="isListeningSearch ? 'Escuchando... Haz clic para detener' : 'Buscar por voz'">
+              <span class="material-symbols-rounded" aria-hidden="true">{{ isListeningSearch ? 'mic' : 'mic_none' }}</span>
+            </button>
+            <a routerLink="/catalog" class="search-tool-btn" title="Filtros del catálogo" aria-label="Abrir el catálogo con filtros"
+               [queryParams]="globalSearchTerm.trim() ? { search: globalSearchTerm.trim() } : null">
+              <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+            </a>
+          </span>
+          <button type="submit" class="search-submit-btn" aria-label="Buscar">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
           </button>
         </form>
+
+        <nav class="quick-filters" aria-label="Filtros rápidos">
+          <a *ngFor="let genre of quickGenres" class="quick-filter"
+             [routerLink]="['/categories', genre.slug]" routerLinkActive="is-active">
+            <span class="material-symbols-rounded" aria-hidden="true">{{ genre.icon }}</span>{{ genre.label }}
+          </a>
+        </nav>
       </div>
 
-
-      <!-- Derecha: Accesos rápidos -->
+      <!-- Derecha: Accesos rápidos con avisos -->
       <div class="header-right">
 
-        <!-- 1. Favoritos -->
-        <button type="button" class="quick-action-btn" (click)="goToFavorites()" title="Mis Favoritos" aria-label="Favoritos">
-          <div class="action-icon-wrap">
-            <span class="material-symbols-rounded">favorite</span>
-            <span class="action-badge" *ngIf="favoritesCount > 0">{{ favoritesCount }}</span>
-          </div>
-          <span class="action-label">Favoritos</span>
+        <button type="button" class="quick-action-btn" (click)="goToFavorites()" title="Mis Favoritos"
+                [attr.aria-label]="favoritesCount > 0 ? 'Favoritos, ' + favoritesCount : 'Favoritos'">
+          <span class="action-icon-wrap">
+            <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
+            <span class="action-badge" data-badge="favorites" *ngIf="favoritesCount > 0" aria-hidden="true">{{ favoritesCount }}</span>
+          </span>
+          <span class="action-label" aria-hidden="true">Favoritos</span>
         </button>
 
-        <!-- 2. Mensajes / Correo -->
-        <button type="button" class="quick-action-btn" (click)="goToMessages()" title="Mensajes con Personajes IA" aria-label="Mensajes">
-          <div class="action-icon-wrap">
-            <span class="material-symbols-rounded">mail</span>
-            <span class="action-badge action-badge--dot" *ngIf="unreadMessagesCount > 0"></span>
-          </div>
-          <span class="action-label">Mensajes</span>
+        <button type="button" class="quick-action-btn" (click)="goToMessages()" title="Mensajes con Personajes IA"
+                [attr.aria-label]="unreadMessagesCount > 0 ? 'Mensajes, hay mensajes nuevos' : 'Mensajes'">
+          <span class="action-icon-wrap">
+            <span class="material-symbols-rounded" aria-hidden="true">mail</span>
+            <span class="action-badge action-badge--dot" *ngIf="unreadMessagesCount > 0" aria-hidden="true"></span>
+          </span>
+          <span class="action-label" aria-hidden="true">Mensajes</span>
         </button>
 
-        <!-- 3. Carrito -->
-        <button type="button" class="quick-action-btn" (click)="goToCart()" title="Carrito de compras" aria-label="Carrito">
-          <div class="action-icon-wrap">
-            <span class="material-symbols-rounded">shopping_cart</span>
-            <span class="action-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
-          </div>
-          <span class="action-label">Carrito</span>
+        <button type="button" class="quick-action-btn" (click)="goToCart()" title="Carrito de compras"
+                [attr.aria-label]="cartCount > 0 ? 'Carrito, ' + cartCount : 'Carrito'">
+          <span class="action-icon-wrap">
+            <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
+            <span class="action-badge action-badge--accent" data-badge="cart" *ngIf="cartCount > 0" aria-hidden="true">{{ cartCount }}</span>
+          </span>
+          <span class="action-label" aria-hidden="true">Carrito</span>
         </button>
 
         <!-- Saldo de Tinta (Widget si está autenticado) -->
@@ -91,65 +110,68 @@
           <span class="ink-reward-dot" *ngIf="dailyRewardClaimable$ | async" title="¡Recompensa diaria disponible!"></span>
         </div>
 
-        <!-- 4. Iniciar sesión / Perfil -->
+        <!-- Iniciar sesión / Perfil -->
         <div class="auth-action-wrap">
           <ng-container *ngIf="!isLoggedIn">
             <a routerLink="/login" class="user-account-btn">
               <span class="material-symbols-rounded account-icon">account_circle</span>
-              <div class="account-texts">
+              <span class="account-texts">
                 <span class="account-sub">Bienvenido</span>
                 <span class="account-main">Ingresar</span>
-              </div>
+              </span>
             </a>
           </ng-container>
 
           <ng-container *ngIf="isLoggedIn">
-            <div class="profile-dropdown-container">
-              <button type="button" [matMenuTriggerFor]="profileMenu" class="avatar-btn" aria-label="Abrir menú de perfil">
-                <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="Avatar" class="user-avatar"
+            <button type="button" class="profile-trigger" [matMenuTriggerFor]="profileMenu"
+                    [class.is-open]="profileMenuOpen"
+                    (menuOpened)="profileMenuOpen = true" (menuClosed)="profileMenuOpen = false"
+                    aria-label="Abrir menú de perfil">
+              <span class="avatar-circle">
+                <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="" class="user-avatar"
                   onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
-                <div *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</div>
+                <span *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</span>
+              </span>
+              <span class="profile-caret material-symbols-rounded" aria-hidden="true">expand_more</span>
+            </button>
+            <mat-menu #profileMenu="matMenu" class="dark-premium-menu" xPosition="before">
+              <div class="menu-header">
+                <span class="user-name">{{ userName }}</span>
+              </div>
+              <mat-divider></mat-divider>
+              <button mat-menu-item routerLink="/profile">
+                <span class="mat-symbol">manage_accounts</span>
+                <span>Editar Perfil</span>
               </button>
-              <mat-menu #profileMenu="matMenu" class="dark-premium-menu">
-                <div class="menu-header">
-                  <span class="user-name">{{ userName }}</span>
-                </div>
+              <button mat-menu-item routerLink="/learn">
+                <span class="mat-symbol">school</span>
+                <span>La Senda del Lector</span>
+              </button>
+              <button mat-menu-item routerLink="/games/enigma">
+                <span class="mat-symbol">draw</span>
+                <span>El Enigma del Tintero</span>
+              </button>
+              <button mat-menu-item routerLink="/achievements">
+                <span class="mat-symbol">emoji_events</span>
+                <span>Mis Logros y Nivel</span>
+              </button>
+              <button mat-menu-item (click)="openGuideDialog()">
+                <span class="mat-symbol">help_outline</span>
+                <span>Guía de Literatus</span>
+              </button>
+              <ng-container *ngIf="isAdmin">
                 <mat-divider></mat-divider>
-                <button mat-menu-item routerLink="/profile">
-                  <span class="mat-symbol">manage_accounts</span>
-                  <span>Editar Perfil</span>
+                <button mat-menu-item routerLink="/dashboard/overview">
+                  <span class="mat-symbol">dashboard</span>
+                  <span>Panel de Control</span>
                 </button>
-                <button mat-menu-item routerLink="/learn">
-                  <span class="mat-symbol">school</span>
-                  <span>La Senda del Lector</span>
-                </button>
-                <button mat-menu-item routerLink="/games/enigma">
-                  <span class="mat-symbol">draw</span>
-                  <span>El Enigma del Tintero</span>
-                </button>
-                <button mat-menu-item routerLink="/achievements">
-                  <span class="mat-symbol">emoji_events</span>
-                  <span>Mis Logros y Nivel</span>
-                </button>
-                <button mat-menu-item (click)="openGuideDialog()">
-                  <span class="mat-symbol">help_outline</span>
-                  <span>Guía de Literatus</span>
-                </button>
-                <ng-container *ngIf="isAdmin">
-
-                  <mat-divider></mat-divider>
-                  <button mat-menu-item routerLink="/dashboard/overview">
-                    <span class="mat-symbol">dashboard</span>
-                    <span>Panel de Control</span>
-                  </button>
-                </ng-container>
-                <mat-divider></mat-divider>
-                <button mat-menu-item (click)="logout()" class="logout-btn">
-                  <span class="mat-symbol">logout</span>
-                  <span>Cerrar Sesión</span>
-                </button>
-              </mat-menu>
-            </div>
+              </ng-container>
+              <mat-divider></mat-divider>
+              <button mat-menu-item (click)="logout()" class="logout-btn">
+                <span class="mat-symbol">logout</span>
+                <span>Cerrar Sesión</span>
+              </button>
+            </mat-menu>
           </ng-container>
         </div>
 
@@ -157,92 +179,15 @@
     </div>
   </div>
 
-  <!-- ═════════════════════════════════════════════════════════════
-       FILA 2: SECCIONES TIPO BURBUJA (CÍRCULO) ABAJO DEL SEARCH
-  ═════════════════════════════════════════════════════════════ -->
-  <nav class="nav-bubbles-bar" aria-label="Secciones rápidas principales" [class.hidden-on-scroll]="isNavBubblesHidden">
-    <div class="bubbles-container">
+  <!-- Fila 2: Secciones con menús amplios y botón destacado -->
+  <nav class="nav-bubbles-bar" aria-label="Secciones principales" [class.hidden-on-scroll]="isNavBubblesHidden">
+    <app-main-nav [isLoggedIn]="isLoggedIn" [rewardReady]="dailyRewardClaimable$ | async"
+                  [collapsed]="isNavBubblesHidden"></app-main-nav>
+  </nav>
 
-      <!-- 1. Explorar -->
-      <a routerLink="/catalog" routerLinkActive="active-bubble" class="nav-bubble-item">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">explore</span>
-        </div>
-        <span class="bubble-label">Explorar</span>
-      </a>
-
-      <!-- 2. Categorías -->
-      <a routerLink="/categories" routerLinkActive="active-bubble" class="nav-bubble-item">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">grid_view</span>
-        </div>
-        <span class="bubble-label">Categorías</span>
-      </a>
-
-      <!-- 3. Autores -->
-      <a routerLink="/authors" routerLinkActive="active-bubble" class="nav-bubble-item">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">history_edu</span>
-        </div>
-        <span class="bubble-label">Autores</span>
-      </a>
-
-      <!-- 4. Personajes -->
-      <a routerLink="/characters" routerLinkActive="active-bubble" class="nav-bubble-item">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">theater_comedy</span>
-        </div>
-        <span class="bubble-label">Personajes</span>
-      </a>
-
-      <!-- 5. La Taberna -->
-      <a routerLink="/tavern" routerLinkActive="active-bubble" class="nav-bubble-item">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">local_bar</span>
-        </div>
-        <span class="bubble-label">La Taberna</span>
-      </a>
-
-      <!-- 6. Mi Biblioteca -->
-      <a routerLink="/library" routerLinkActive="active-bubble" class="nav-bubble-item">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">menu_book</span>
-        </div>
-        <span class="bubble-label">Mi Biblioteca</span>
-      </a>
-
-      <!-- 7. La Senda (Comprensión y Aprendizaje) -->
-      <a routerLink="/learn" routerLinkActive="active-bubble" class="nav-bubble-item">
-        <div class="bubble-circle bubble-circle--learn">
-          <span class="material-symbols-rounded">school</span>
-        </div>
-        <span class="bubble-label">La Senda</span>
-      </a>
-
-      <!-- 8. El Enigma del Tintero (Minijuego Literario) -->
-      <a routerLink="/games/enigma" routerLinkActive="active-bubble" class="nav-bubble-item" title="El Enigma del Tintero">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">draw</span>
-        </div>
-        <span class="bubble-label">El Enigma</span>
-      </a>
-
-      <!-- 9. Logros / Gamificación -->
-      <a routerLink="/achievements" routerLinkActive="active-bubble" class="nav-bubble-item" [title]="(dailyRewardClaimable$ | async) ? '¡Recompensa diaria disponible!' : 'Logros y Nivel'">
-        <div class="bubble-circle">
-          <span class="material-symbols-rounded">emoji_events</span>
-          <span class="bubble-badge-gift" *ngIf="dailyRewardClaimable$ | async" title="¡Recompensa diaria disponible!">
-            🎁
-          </span>
-        </div>
-        <span class="bubble-label">Logros</span>
-      </a>
-
-    </div>
-    </nav>
-  
-  <button class="nav-toggle-btn glass-btn" (click)="toggleNavBubbles()" [class.flipped]="isNavBubblesHidden" aria-label="Alternar menú rápido">
-    <span class="material-symbols-rounded">keyboard_arrow_up</span>
+  <button class="nav-toggle-btn" (click)="toggleNavBubbles()" [class.flipped]="isNavBubblesHidden"
+          [attr.aria-expanded]="!isNavBubblesHidden" aria-label="Mostrar u ocultar las secciones">
+    <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_up</span>
   </button>
 </header>
 
@@ -276,7 +221,7 @@
 
 <!-- Asistente global de la plataforma: solo para usuarios con sesión iniciada,
      oculto en el panel de administración. -->
-<app-assistant-widget *ngIf="isLoggedIn && !isDashboard"></app-assistant-widget>
+<app-assistant-widget *ngIf="isLoggedIn && !isDashboard && !isPlayingLevel"></app-assistant-widget>
 
 <!-- ═════════════════════════════════════════════════════════════════════
      GAMIFICATION TOASTS
