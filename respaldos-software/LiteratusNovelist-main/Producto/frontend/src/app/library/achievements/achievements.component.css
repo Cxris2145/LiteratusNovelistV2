@@ -248,7 +248,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(8, 16, 17, 0.7);
+  background: rgba(8, 14, 26, 0.7);
   border-radius: 50%;
 }
 
@@ -423,7 +423,7 @@
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(8, 16, 17, 0.06);
+  box-shadow: 0 4px 20px rgba(8, 14, 26, 0.06);
 }
 
 .level-badge-container {
@@ -471,7 +471,7 @@
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--text-main);
-  text-shadow: 0 2px 4px rgba(8, 16, 17, 0.1);
+  text-shadow: 0 2px 4px rgba(8, 14, 26, 0.1);
 }
 
 .gamification-stats-container {
@@ -670,7 +670,7 @@
 
 .level-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(8, 16, 17, 0.08);
+  box-shadow: 0 8px 24px rgba(8, 14, 26, 0.08);
 }
 
 .level-card.current-level {

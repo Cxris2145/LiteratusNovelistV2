@@ -19,7 +19,7 @@
   border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--color-500) 45%, transparent);
   background: linear-gradient(135deg, var(--color-surface, #14291F) 0%, var(--color-bg-primary, #0A1914) 100%);
-  box-shadow: 0 10px 28px rgba(8, 16, 17, 0.13), 0 0 0 1px color-mix(in srgb, var(--color-500) 8%, transparent);
+  box-shadow: 0 10px 28px rgba(8, 14, 26, 0.13), 0 0 0 1px color-mix(in srgb, var(--color-500) 8%, transparent);
   cursor: pointer;
   padding: 0;
   z-index: 3000;
@@ -31,7 +31,7 @@
 
 .lit-bubble:hover {
   border-color: var(--color-primary, #D4AF37);
-  box-shadow: 0 12px 32px rgba(8, 16, 17, 0.15), 0 0 22px color-mix(in srgb, var(--color-500) 25%, transparent);
+  box-shadow: 0 12px 32px rgba(8, 14, 26, 0.15), 0 0 22px color-mix(in srgb, var(--color-500) 25%, transparent);
 }
 
 .lit-bubble.bouncing {
@@ -191,7 +191,7 @@
   background: var(--color-surface, #14291F);
   border: 1px solid color-mix(in srgb, var(--color-500) 22%, transparent);
   border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(8, 16, 17, 0.14);
+  box-shadow: 0 24px 60px rgba(8, 14, 26, 0.14);
   z-index: 3000;
   display: flex;
   flex-direction: column;

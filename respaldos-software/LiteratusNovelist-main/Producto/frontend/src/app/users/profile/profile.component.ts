@@ -26,7 +26,7 @@ export class ProfileComponent implements OnInit {
   
   settingsService = inject(SettingsService);
   availableThemes = [
-    { id: 'default', label: 'Obsidian Teal (Original / Predeterminado)' },
+    { id: 'default', label: 'Azul Tinta (Original / Predeterminado)' },
     { id: 'high-contrast-dark', label: 'Alto Contraste Nocturno (Fácil Lectura)' },
     { id: 'high-contrast-light', label: 'Alto Contraste Diurno (Máxima Nitidez)' },
     { id: 'sepia', label: 'Sepia Cálido (Descanso Visual)' },

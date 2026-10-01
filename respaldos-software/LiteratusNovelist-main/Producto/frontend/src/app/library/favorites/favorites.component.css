@@ -167,7 +167,7 @@
 }
 
 .secondary-btn {
-  background: rgba(8, 16, 17, 0.8);
+  background: rgba(8, 14, 26, 0.8);
   border: 1px solid var(--color-border, #1F3A2E);
   color: var(--text-main, #FCFAF2);
 }
@@ -246,7 +246,7 @@
 .book-card:hover {
   transform: translateY(-6px);
   border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
-  box-shadow: 0 12px 30px rgba(8, 16, 17, 0.14);
+  box-shadow: 0 12px 30px rgba(8, 14, 26, 0.14);
 }
 
 .card-image {
@@ -271,7 +271,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(8, 16, 17, 0.75);
+  background: rgba(8, 14, 26, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
@@ -294,7 +294,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(8, 16, 17, 0.88);
+  background: rgba(8, 14, 26, 0.88);
   padding: 4px 8px;
   backdrop-filter: blur(4px);
   z-index: 4;

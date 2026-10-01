@@ -14,18 +14,18 @@
    ──────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Escala azul petróleo compartida por todas las secciones. */
-  --color-50:  #EEF5F7;
-  --color-100: #CFE3E8;
-  --color-200: #B0D1D9;
-  --color-300: #91BFCA;
-  --color-400: #72AEBB;
-  --color-500: #539CAC;
-  --color-600: #417A87;
-  --color-700: #35646E;
-  --color-800: #26484F;
-  --color-900: #172C30;
-  --color-950: #081011;
+  /* Escala azul tinta (#15233B) compartida por todas las secciones. */
+  --color-50:  #F1F5FB;
+  --color-100: #DEE7F4;
+  --color-200: #C2D2EA;
+  --color-300: #9FB6D9;
+  --color-400: #7D9BC8;
+  --color-500: #5E80B3;
+  --color-600: #466699;
+  --color-700: #34507F;
+  --color-800: #263B61;
+  --color-900: #1E3050;
+  --color-950: #15233B;
 
   --color-bg-primary:       var(--color-950);
   --color-bg-secondary:     var(--color-900);
@@ -56,7 +56,7 @@
   --color-error-bg:         rgba(248, 113, 113, 0.18);
   --color-selection-bg:     var(--color-700);
   --color-selection-text:   var(--color-50);
-  --color-image-overlay:    rgba(8, 16, 17, 0.85);
+  --color-image-overlay:    rgba(8, 14, 26, 0.85);
   --color-shadow:           rgba(0, 0, 0, 0.55);
   --color-skeleton:         var(--color-900);
   --color-skeleton-shine:   var(--color-800);
@@ -96,24 +96,24 @@
   --reader-brightness:     1;
   --reader-highlight-hex:  #eab308;
 
-  /* ── Paleta "Boutique Literaria" — Sincronizada con Obsidian Teal ── */
-  --home-bg:               #081011;
-  --home-bg-surface:       #172C30;
-  --home-parchment:        #26484F;
-  --home-ink:              #D6E6E9;
-  --home-ink-muted:        #8FAEB5;
-  --home-ink-subtle:       #55757E;
+  /* ── Paleta "Boutique Literaria" — Sincronizada con el azul tinta ── */
+  --home-bg:               #15233B;
+  --home-bg-surface:       #1E3050;
+  --home-parchment:        #263B61;
+  --home-ink:              #DEE7F4;
+  --home-ink-muted:        #9AAFCF;
+  --home-ink-subtle:       #7089B0;
   --home-ink-strong:       #FFFFFF;
   --home-accent-amber:     #FFB353;
   --home-accent-coral:     #FF6E4A;
-  --home-accent-sage:      #417A87;
+  --home-accent-sage:      #466699;
   --home-amber-ink:        #FFB353;
   --home-coral-ink:        #FF8A65;
-  --home-sage-ink:         #68B7C5;
-  --home-sage-surface:     #172C30;
+  --home-sage-ink:         #7FA6DE;
+  --home-sage-surface:     #1E3050;
   --home-coral-surface:    rgba(255, 110, 74, 0.16);
-  --home-glass-bg:         rgba(23, 44, 48, 0.92);
-  --home-glass-border:     #26484F;
+  --home-glass-bg:         rgba(30, 48, 80, 0.92);
+  --home-glass-border:     #263B61;
   --home-shadow:           rgba(0, 0, 0, 0.50);
   /* Portada, header y pie usan todo el ancho: solo un margen proporcional
      (16 px en móvil, hasta 80 px en pantallas grandes). */
@@ -453,8 +453,8 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
   overflow-x: clip; /* Usar clip en vez de hidden impide la creación de un contexto de scroll en Windows */
   overflow-y: visible !important;
-  /*
-   * FONDO ARTESANAL — Obsidian Teal:
+/*
+   * FONDO ARTESANAL — Azul tinta:
    */
   background-image: var(--color-page-background);
   background-attachment: fixed;
@@ -857,6 +857,8 @@ body:has(.container.dashboard-mode) {
   --ease-gentle:    cubic-bezier(0.22, 1, 0.36, 1);
   /* Movimiento sobre la pantalla (morph, cortinas con clip-path). */
   --ease-in-out:    cubic-bezier(0.77, 0, 0.175, 1);
+  /* Entradas y salidas de UI (menús, paneles, insignias). */
+  --ease-out:       cubic-bezier(0.23, 1, 0.32, 1);
   --reveal-duration: 0.65s;
   --reveal-distance: 24px;
 }
@@ -1126,5 +1128,6 @@ body:has(.container.dashboard-mode) {
   }
 }
 
-
-
+/* Cosméticos de Maestro: el servidor controla su vigencia. */
+.frame-maestro { outline: 3px double var(--color-warning); outline-offset: 5px; border-radius: 50%; }
+.maestro-insignia { display: inline-flex; align-items: center; padding: .25rem .65rem; border: 1px solid var(--color-warning); border-radius: 2rem; color: var(--color-warning); font: 600 .8rem var(--font-ui); }

@@ -556,9 +556,9 @@
   margin-right: 10px;
 }
 
-.rank-badge.gold { background: #FFB353; color: #172C30; }
-.rank-badge.silver { background: #91BFCA; color: #172C30; }
-.rank-badge.bronze { background: #539CAC; color: #172C30; }
+.rank-badge.gold { background: #FFB353; color: #1E3050; }
+.rank-badge.silver { background: #9FB6D9; color: #1E3050; }
+.rank-badge.bronze { background: #5E80B3; color: #1E3050; }
 
 .top-info {
   flex: 1;

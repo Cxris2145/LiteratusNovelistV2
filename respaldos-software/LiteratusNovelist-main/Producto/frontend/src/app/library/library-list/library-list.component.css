@@ -311,9 +311,9 @@
 }
 
 .message-banner.info {
-  background: var(--color-surface, #172C30);
-  border: 1px solid var(--color-border, #26484F);
-  color: var(--color-text-primary, #D6E6E9);
+  background: var(--color-surface, #1E3050);
+  border: 1px solid var(--color-border, #263B61);
+  color: var(--color-text-primary, #DEE7F4);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
 }
 
@@ -325,8 +325,8 @@
 
 /* Unauthenticated State */
 .unauth-banner {
-  background: radial-gradient(circle at 50% 0%, rgba(65, 122, 135, 0.22), transparent 70%), var(--color-surface, #172C30) !important;
-  border: 1.5px solid var(--color-border-strong, #35646E) !important;
+  background: radial-gradient(circle at 50% 0%, rgba(70, 102, 153, 0.22), transparent 70%), var(--color-surface, #1E3050) !important;
+  border: 1.5px solid var(--color-border-strong, #34507F) !important;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
 }
 
@@ -335,8 +335,8 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: var(--color-surface-elevated, #26484F);
-  border: 1px solid var(--color-border-strong, #35646E);
+  background: var(--color-surface-elevated, #263B61);
+  border: 1px solid var(--color-border-strong, #34507F);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -347,7 +347,7 @@
 .unauth-icon-wrap .material-symbols-rounded,
 .empty-icon-wrap .material-symbols-rounded {
   font-size: 36px;
-  color: var(--color-primary, #417A87);
+  color: var(--color-primary, #466699);
 }
 
 .unauth-title,
@@ -365,7 +365,7 @@
   font-family: var(--font-ui, sans-serif);
   font-size: 15px;
   line-height: 1.65;
-  color: var(--color-text-secondary, #8FAEB5);
+  color: var(--color-text-secondary, #9AAFCF);
   max-width: 520px;
   margin: 0 auto 28px;
 }
@@ -383,21 +383,21 @@
   align-items: center;
   gap: 8px;
   padding: 11px 26px;
-  background: var(--color-primary, #417A87);
+  background: var(--color-primary, #466699);
   color: #FFFFFF !important;
   font-family: var(--font-ui, sans-serif);
   font-weight: 600;
   font-size: 14.5px;
   border-radius: 999px;
   text-decoration: none !important;
-  box-shadow: 0 4px 16px rgba(65, 122, 135, 0.4);
+  box-shadow: 0 4px 16px rgba(70, 102, 153, 0.4);
   transition: all 0.2s ease;
 }
 
 .cta-login-btn:hover {
-  background: #4F93A3;
+  background: #5A7DB5;
   transform: translateY(-2px);
-  box-shadow: 0 6px 22px rgba(65, 122, 135, 0.55);
+  box-shadow: 0 6px 22px rgba(70, 102, 153, 0.55);
 }
 
 .cta-catalog-btn {
@@ -405,9 +405,9 @@
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  background: var(--color-surface-elevated, #26484F);
-  color: #D6E6E9 !important;
-  border: 1px solid var(--color-border-strong, #35646E);
+  background: var(--color-surface-elevated, #263B61);
+  color: #DEE7F4 !important;
+  border: 1px solid var(--color-border-strong, #34507F);
   font-family: var(--font-ui, sans-serif);
   font-weight: 600;
   font-size: 14px;
@@ -417,7 +417,7 @@
 }
 
 .cta-catalog-btn:hover {
-  background: var(--color-border-strong, #35646E);
+  background: var(--color-border-strong, #34507F);
   color: #FFFFFF !important;
   transform: translateY(-2px);
 }
@@ -465,8 +465,8 @@
 }
 
 .library-search-input:focus {
-  border-color: var(--color-primary, #417A87);
-  box-shadow: 0 0 0 3px rgba(65, 122, 135, 0.25);
+  border-color: var(--color-primary, #466699);
+  box-shadow: 0 0 0 3px rgba(70, 102, 153, 0.25);
   background: var(--color-hover, rgba(255, 255, 255, 0.05));
 }
 
@@ -525,14 +525,14 @@
 .filter-pill:hover {
   background: var(--color-hover, rgba(255, 255, 255, 0.08));
   color: var(--color-text-primary, #ffffff);
-  border-color: var(--color-primary, #417A87);
+  border-color: var(--color-primary, #466699);
 }
 
 .filter-pill.active {
-  background: var(--color-primary, #417A87);
+  background: var(--color-primary, #466699);
   color: #ffffff;
-  border-color: var(--color-primary, #417A87);
-  box-shadow: 0 4px 14px rgba(65, 122, 135, 0.4);
+  border-color: var(--color-primary, #466699);
+  box-shadow: 0 4px 14px rgba(70, 102, 153, 0.4);
 }
 
 .pill-count {
@@ -592,9 +592,9 @@
 .clear-filter-btn {
   padding: 8px 20px;
   border-radius: 999px;
-  border: 1px solid var(--color-primary, #417A87);
+  border: 1px solid var(--color-primary, #466699);
   background: transparent;
-  color: var(--color-primary, #417A87);
+  color: var(--color-primary, #466699);
   font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
@@ -602,7 +602,7 @@
 }
 
 .clear-filter-btn:hover {
-  background: var(--color-primary, #417A87);
+  background: var(--color-primary, #466699);
   color: #ffffff;
 }
 

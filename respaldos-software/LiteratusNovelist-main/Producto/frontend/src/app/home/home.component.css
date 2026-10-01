@@ -21,10 +21,10 @@
 
 :host {
   display: block;
-  /* En el tema por defecto --home-amber-ink apunta a --color-primary (petróleo
+  /* En el tema por defecto --home-amber-ink apunta a --color-primary (azul
      oscuro), así que el ámbar se fija aquí y los demás temas usan su primario. */
   --accent: #FFB353;
-  --on-accent: #081011;
+  --on-accent: #15233B;
   --accent-ink: #FFB353;
   --line: var(--color-border);
   --fill-muted: var(--color-border);
@@ -178,15 +178,15 @@
    HERO
    ═════════════════════════════════════════════════════════════════════════ */
 .hero {
-  --hero-bg: #081011;
-  --hero-ink: #F2F7F8;
-  --hero-muted: #B7CCD1;
-  --hero-line: rgba(242, 247, 248, 0.16);
-  --hero-glass: rgba(10, 22, 24, 0.66);
+  --hero-bg: #15233B;
+  --hero-ink: #F2F5FA;
+  --hero-muted: #B8C8DE;
+  --hero-line: rgba(242, 245, 250, 0.16);
+  --hero-glass: rgba(13, 22, 38, 0.66);
   --accent: #FFB353;
-  --on-accent: #081011;
+  --on-accent: #15233B;
   --ghost-ink: var(--hero-ink);
-  --ghost-line: rgba(242, 247, 248, 0.34);
+  --ghost-line: rgba(242, 245, 250, 0.34);
 
   position: relative;
   isolation: isolate;
@@ -499,8 +499,8 @@
 }
 
 .float-icon--voice {
-  background: rgba(104, 183, 197, 0.18);
-  color: #9ADAE5;
+  background: rgba(127, 166, 222, 0.18);
+  color: #A9C6F0;
 }
 
 .float-text {
@@ -1148,8 +1148,8 @@
   gap: 14px;
   padding: 12px 16px;
   border-radius: 14px;
-  background: #172C30;
-  color: #F2F7F8;
+  background: #1E3050;
+  color: #F2F5FA;
 }
 
 .player-play {
@@ -1160,7 +1160,7 @@
   place-items: center;
   border-radius: 50%;
   background: #FFB353;
-  color: #081011;
+  color: #15233B;
   font-size: 22px;
   font-variation-settings: 'FILL' 1;
 }
@@ -1188,7 +1188,7 @@
   width: 3px;
   height: 100%;
   border-radius: 2px;
-  background: #68B7C5;
+  background: #7FA6DE;
   transform: scaleY(0.35);
 }
 
@@ -1204,8 +1204,8 @@
   gap: 6px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: #172C30;
-  color: #F2F7F8;
+  background: #1E3050;
+  color: #F2F5FA;
   font: 600 12.5px/1 var(--font-ui);
 }
 
@@ -1217,14 +1217,14 @@
   gap: 10px;
   padding: 16px;
   border-radius: 16px;
-  background: #172C30;
-  color: #F2F7F8;
+  background: #1E3050;
+  color: #F2F5FA;
   box-shadow: 0 -18px 40px -20px rgba(0, 0, 0, 0.5);
 }
 
 .chat-note {
   margin: 0;
-  color: #9DB8BF;
+  color: #A2B5D2;
   font: 500 12px/1 var(--font-ui);
 }
 
@@ -1240,13 +1240,13 @@
   justify-self: end;
   border-bottom-right-radius: 4px;
   background: #FFB353;
-  color: #081011;
+  color: #15233B;
 }
 
 .bubble--them {
   justify-self: start;
   border-bottom-left-radius: 4px;
-  background: #26484F;
+  background: #263B61;
 }
 
 .bubble-name {
@@ -1436,7 +1436,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(8, 16, 17, 0.9) 0%, rgba(8, 16, 17, 0.4) 42%, transparent 72%);
+  background: linear-gradient(to top, rgba(8, 14, 26, 0.9) 0%, rgba(8, 14, 26, 0.4) 42%, transparent 72%);
 }
 
 .genre-meta {
@@ -1752,7 +1752,7 @@
 .enigma-drops {
   display: flex;
   gap: 4px;
-  color: #68B7C5;
+  color: #7FA6DE;
 }
 
 .drop {

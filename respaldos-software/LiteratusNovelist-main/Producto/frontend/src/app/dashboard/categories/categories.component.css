@@ -153,7 +153,7 @@
 .genre-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(8, 16, 17, 0.85) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(8, 14, 26, 0.85) 100%);
   display: flex;
   align-items: flex-end;
   padding: 12px;
@@ -163,7 +163,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(8, 16, 17, 0.7);
+  background: rgba(8, 14, 26, 0.7);
   color: var(--color-accent);
   padding: 4px 10px;
   border-radius: 6px;

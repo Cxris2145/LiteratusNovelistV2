@@ -27,9 +27,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--color-hover, rgba(65, 122, 135, 0.18));
-  color: var(--color-primary-text, #72AEBB);
-  border: 1px solid var(--color-border-strong, rgba(65, 122, 135, 0.4));
+  background: var(--color-hover, rgba(70, 102, 153, 0.18));
+  color: var(--color-primary-text, #7D9BC8);
+  border: 1px solid var(--color-border-strong, rgba(70, 102, 153, 0.4));
   padding: 4px 12px;
   border-radius: 999px;
   font-size: 0.78rem;
@@ -83,7 +83,7 @@
   width: 64px;
   height: 64px;
   border-radius: 18px;
-  background: linear-gradient(135deg, var(--color-primary, #417A87), var(--color-800, #26484F));
+  background: linear-gradient(135deg, var(--color-primary, #466699), var(--color-800, #263B61));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,7 +102,7 @@
   position: absolute;
   inset: -6px;
   border-radius: 24px;
-  background: radial-gradient(circle, var(--color-primary, #417A87) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--color-primary, #466699) 0%, transparent 70%);
   opacity: 0.4;
   animation: pulseGlow 2.5s infinite ease-in-out;
 }
@@ -136,7 +136,7 @@
   background: var(--bg-color, rgba(0, 0, 0, 0.2));
   padding: 0.75rem 1rem;
   border-radius: 10px;
-  border-left: 3px solid var(--color-primary, #417A87);
+  border-left: 3px solid var(--color-primary, #466699);
 }
 
 .guide-points-list {
@@ -188,8 +188,8 @@
   align-items: center;
   gap: 6px;
   background: transparent;
-  border: 1px dashed var(--color-border-strong, #417A87);
-  color: var(--color-primary-text, #72AEBB);
+  border: 1px dashed var(--color-border-strong, #466699);
+  color: var(--color-primary-text, #7D9BC8);
   padding: 6px 16px;
   border-radius: 999px;
   font-size: 0.82rem;
@@ -199,7 +199,7 @@
 }
 
 .quick-nav-btn:hover {
-  background: var(--color-hover, rgba(65, 122, 135, 0.15));
+  background: var(--color-hover, rgba(70, 102, 153, 0.15));
   border-style: solid;
   color: #ffffff;
 }
@@ -236,8 +236,8 @@
 .guide-dot.active {
   width: 26px;
   border-radius: 999px;
-  background: var(--color-primary, #417A87);
-  box-shadow: 0 0 10px rgba(65, 122, 135, 0.5);
+  background: var(--color-primary, #466699);
+  box-shadow: 0 0 10px rgba(70, 102, 153, 0.5);
 }
 
 .guide-dot.passed {
@@ -263,7 +263,7 @@
 }
 
 .guide-checkbox-label input[type="checkbox"] {
-  accent-color: var(--color-primary, #417A87);
+  accent-color: var(--color-primary, #466699);
   width: 15px;
   height: 15px;
   cursor: pointer;
@@ -299,7 +299,7 @@
 }
 
 .guide-btn-next {
-  background: linear-gradient(135deg, var(--color-primary, #417A87), var(--color-700, #35646E));
+  background: linear-gradient(135deg, var(--color-primary, #466699), var(--color-700, #34507F));
   color: #ffffff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }

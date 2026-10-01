@@ -253,7 +253,7 @@
 .conv-card:hover {
   transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--color-500) 50%, transparent);
-  box-shadow: 0 10px 24px rgba(8, 16, 17, 0.13);
+  box-shadow: 0 10px 24px rgba(8, 14, 26, 0.13);
 }
 
 .conv-card.unread {

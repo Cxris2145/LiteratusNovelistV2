@@ -45,20 +45,20 @@ export class ReportsComponent implements OnInit {
       const dateStr = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
       // Portada y Cabecera Editorial
-      doc.setFillColor(8, 16, 17); // Obsidian Teal oscuro
+      doc.setFillColor(21, 35, 59); // Azul tinta
       doc.rect(0, 0, 210, 40, 'F');
 
       doc.setTextColor(255, 179, 83); // Ámbar de Literatus
       doc.setFontSize(22);
       doc.text('LITERATUS NOVELIST', 14, 20);
 
-      doc.setTextColor(207, 227, 232);
+      doc.setTextColor(222, 231, 244);
       doc.setFontSize(11);
       doc.text('CENTRO DE CONTROL NEXUS — REPORTE EJECUTIVO DE PLATAFORMA', 14, 28);
       doc.text(`Fecha de emisión: ${dateStr}`, 14, 34);
 
       // Kpis Generales
-      doc.setTextColor(23, 44, 48);
+      doc.setTextColor(30, 48, 80);
       doc.setFontSize(14);
       doc.text('1. Métricas de Rendimiento General', 14, 52);
 

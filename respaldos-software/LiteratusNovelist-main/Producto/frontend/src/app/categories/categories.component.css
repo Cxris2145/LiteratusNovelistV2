@@ -69,7 +69,7 @@
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
   border-radius: 40px;
-  box-shadow: 0 8px 24px rgba(8, 16, 17, 0.25);
+  box-shadow: 0 8px 24px rgba(8, 14, 26, 0.25);
 }
 
 .metric-pill {
@@ -294,7 +294,7 @@
   cursor: pointer;
   background: var(--color-surface, #14291F);
   border: 1px solid color-mix(in srgb, var(--color-500) 16%, transparent);
-  box-shadow: 0 8px 24px rgba(8, 16, 17, 0.1);
+  box-shadow: 0 8px 24px rgba(8, 14, 26, 0.1);
   transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1),
               border-color 0.3s ease,
               box-shadow 0.35s ease;
@@ -303,7 +303,7 @@
 .category-card:hover {
   transform: translateY(-5px);
   border-color: var(--color-border-strong, #D4AF37);
-  box-shadow: 0 16px 36px rgba(8, 16, 17, 0.15), 0 0 20px color-mix(in srgb, var(--color-500) 15%, transparent);
+  box-shadow: 0 16px 36px rgba(8, 14, 26, 0.15), 0 0 20px color-mix(in srgb, var(--color-500) 15%, transparent);
 }
 
 .category-card:focus-visible {
@@ -343,10 +343,10 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(8, 16, 17, 0.45) 0%,
-    rgba(8, 16, 17, 0.15) 30%,
-    rgba(8, 16, 17, 0.88) 75%,
-    rgba(8, 16, 17, 0.98) 100%
+    rgba(8, 14, 26, 0.45) 0%,
+    rgba(8, 14, 26, 0.15) 30%,
+    rgba(8, 14, 26, 0.88) 75%,
+    rgba(8, 14, 26, 0.98) 100%
   );
   pointer-events: none;
 }
@@ -388,7 +388,7 @@
 }
 
 .card-family-tag {
-  background: rgba(8, 16, 17, 0.72);
+  background: rgba(8, 14, 26, 0.72);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
@@ -403,7 +403,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(8, 16, 17, 0.72);
+  background: rgba(8, 14, 26, 0.72);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 179, 83, 0.28);
   border-radius: 20px;
@@ -559,7 +559,7 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(8, 16, 17, 0.7);
+  background: rgba(8, 14, 26, 0.7);
   border: 1px solid rgba(255, 179, 83, 0.25);
   color: var(--color-primary-text);
   display: flex;
