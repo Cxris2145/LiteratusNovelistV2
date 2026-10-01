@@ -20,6 +20,7 @@ from .serializers import (
     LearningUnitListSerializer,
     ExerciseSessionSerializer,
     ExerciseSubmitSerializer,
+    ExerciseCheckSerializer,
     ShopItemSerializer
 )
 from .services import (
@@ -28,10 +29,19 @@ from .services import (
     ensure_streak,
     get_streak_details,
     evaluate_and_record_attempt,
+    check_answer,
+    playable_questions,
+    reset_locked_answers,
+    open_unit_ids,
+    is_level_unlocked,
+    start_skip_test,
+    check_skip_answer,
+    submit_skip_test,
     purchase_shop_item,
     equip_cosmetic_item
 )
 from .ai_generator import ReadingComprehensionAIGenerator
+from .content.builder import build_fallback_exercise
 
 
 class LearningPathView(APIView):
@@ -47,8 +57,15 @@ class LearningPathView(APIView):
         calculate_and_sync_hearts(profile)
         streak_info = get_streak_details(request.user)
 
-        units = LearningUnit.objects.prefetch_related('levels').order_by('order')
-        serializer = LearningUnitListSerializer(units, many=True, context={'request': request})
+        units = list(LearningUnit.objects.prefetch_related('levels__exercise').order_by('order'))
+        progress_map = {
+            p.level_id: p for p in UserLevelProgress.objects.filter(user=request.user)
+        }
+        serializer = LearningUnitListSerializer(units, many=True, context={
+            'request': request,
+            'progress_map': progress_map,
+            'open_unit_ids': open_unit_ids(units, progress_map),
+        })
 
         return Response({
             'user_status': {
@@ -79,6 +96,12 @@ class LevelSessionView(APIView):
 
     def get(self, request, pk):
         level = get_object_or_404(LearningLevel.objects.select_related('unit'), pk=pk)
+        if not is_level_unlocked(request.user, level):
+            return Response({
+                'error': 'LEVEL_LOCKED',
+                'message': 'Este nivel aún está bloqueado: completa los anteriores para abrirlo.',
+            }, status=status.HTTP_403_FORBIDDEN)
+
         profile = request.user.profile
         calculate_and_sync_hearts(profile)
 
@@ -89,31 +112,41 @@ class LevelSessionView(APIView):
                 'hearts': 0
             }, status=status.HTTP_403_FORBIDDEN)
 
-        # Buscar o generar ejercicio
+        # Buscar o generar ejercicio: primero con IA; si falla o devuelve poco jugable,
+        # con los juegos del banco propio para que el nivel nunca quede roto.
         exercise = getattr(level, 'exercise', None)
-        if not exercise or not exercise.questions_data:
-            generator = ReadingComprehensionAIGenerator()
-            unit_focus_map = {
-                1: 'comprension_basica',
-                2: 'vocabulario',
-                3: 'personajes_y_relaciones',
-                4: 'secuencia_narrativa',
-                5: 'inferencia_y_subtexto',
-                6: 'analisis_literario'
-            }
-            focus = unit_focus_map.get(level.unit.unit_number, 'comprension_general')
-            generated = generator.generate_exercise(difficulty=level.difficulty, unit_focus=focus)
+        if not exercise or not playable_questions(exercise):
+            generated = None
+            try:
+                generator = ReadingComprehensionAIGenerator()
+                unit_focus_map = {
+                    1: 'comprension_basica',
+                    2: 'vocabulario',
+                    3: 'personajes_y_relaciones',
+                    4: 'secuencia_narrativa',
+                    5: 'inferencia_y_subtexto',
+                    6: 'analisis_literario'
+                }
+                focus = unit_focus_map.get(level.unit.unit_number, 'comprension_general')
+                generated = generator.generate_exercise(
+                    difficulty=level.difficulty, unit_focus=focus, seed=str(level.id))
+            except Exception as exc:  # noqa: BLE001 — cualquier fallo de la IA cae al banco propio
+                print(f"[LevelSession] IA no disponible para {level}: {exc}")
 
-            exercise, _ = LearningExercise.objects.update_or_create(
-                level=level,
-                defaults={
+            if generated and len(generated.get('questions', [])) >= 3:
+                defaults = {
                     'title': generated.get('title', level.title),
                     'author_name': generated.get('author_name', ''),
                     'source_type': generated.get('source_type', 'classic_book'),
                     'content_pages': generated.get('pages', []),
-                    'questions_data': generated.get('questions', [])
+                    'questions_data': generated.get('questions', []),
                 }
-            )
+            else:
+                defaults = build_fallback_exercise(level)
+            exercise, _ = LearningExercise.objects.update_or_create(level=level, defaults=defaults)
+
+        # Partida nueva: las respuestas fijadas de una partida anterior no cuentan.
+        reset_locked_answers(request.user, level)
 
         data = {
             'level_id': str(level.id),
@@ -143,6 +176,8 @@ class LevelSubmitView(APIView):
 
     def post(self, request, pk):
         level = get_object_or_404(LearningLevel, pk=pk)
+        if not is_level_unlocked(request.user, level):
+            return Response({'error': 'LEVEL_LOCKED'}, status=status.HTTP_403_FORBIDDEN)
         serializer = ExerciseSubmitSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -160,6 +195,87 @@ class LevelSubmitView(APIView):
             return Response(result, status=status.HTTP_403_FORBIDDEN)
 
         return Response(result, status=status.HTTP_200_OK)
+
+
+class LevelCheckView(APIView):
+    """
+    POST /api/v1/learning/levels/{pk}/check/
+    Body: { "question_id": "q1", "answer": <respuesta según el tipo> }
+    Corrige una actividad al momento (sin gastar corazones) y devuelve si acertó, la
+    explicación y la solución. La primera respuesta queda fijada para la nota final.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        level = get_object_or_404(LearningLevel, pk=pk)
+        if not is_level_unlocked(request.user, level):
+            return Response({'error': 'LEVEL_LOCKED'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = ExerciseCheckSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = check_answer(
+            request.user, level,
+            str(serializer.validated_data['question_id']),
+            serializer.validated_data.get('answer'),
+        )
+        if result is None:
+            return Response({'error': 'QUESTION_NOT_FOUND'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(result)
+
+
+class UnitSkipSessionView(APIView):
+    """
+    GET /api/v1/learning/units/{pk}/skip/session/
+    Arma una prueba de salto nueva (14 desafíos muy difíciles, 90 % para aprobar) con el
+    material de las unidades anteriores sin terminar. Cada intento es distinto.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        unit = get_object_or_404(LearningUnit, pk=pk)
+        data = start_skip_test(request.user, unit)
+        if data.get('error') == 'NO_HEARTS':
+            return Response(data, status=status.HTTP_403_FORBIDDEN)
+        if data.get('error'):
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        return Response(ExerciseSessionSerializer(data).data)
+
+
+class UnitSkipCheckView(APIView):
+    """POST /api/v1/learning/units/{pk}/skip/check/ — corrección inmediata de la prueba de salto."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        unit = get_object_or_404(LearningUnit, pk=pk)
+        serializer = ExerciseCheckSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = check_skip_answer(request.user, unit, str(serializer.validated_data['question_id']),
+                                   serializer.validated_data.get('answer'))
+        if result is None:
+            return Response({'error': 'QUESTION_NOT_FOUND'}, status=status.HTTP_404_NOT_FOUND)
+        if result.get('error'):
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        return Response(result)
+
+
+class UnitSkipSubmitView(APIView):
+    """
+    POST /api/v1/learning/units/{pk}/skip/submit/
+    Califica la prueba de salto. Si aprueba, completa las unidades saltadas y abre esta;
+    si no, pierde un corazón.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        unit = get_object_or_404(LearningUnit, pk=pk)
+        serializer = ExerciseSubmitSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        result = submit_skip_test(request.user, unit, serializer.validated_data['answers'],
+                                  serializer.validated_data.get('duration_seconds', 0))
+        if result.get('error') == 'NO_HEARTS':
+            return Response(result, status=status.HTTP_403_FORBIDDEN)
+        if result.get('error'):
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        return Response(result)
 
 
 class StreakStatusView(APIView):

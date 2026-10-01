@@ -1,0 +1,137 @@
+/* Estilos compartidos por los juegos de La Senda.
+   Curvas: --ease-out (styles.css) para entradas y presiones; colores del tema activo.
+   Verde = correcto, rojo = incorrecto, azul = elegido por el lector. */
+
+:host {
+  display: block;
+  --g-surface: var(--color-surface, #1e293b);
+  --g-surface-2: var(--color-surface-elevated, #263b61);
+  --g-border: color-mix(in srgb, var(--color-text-primary, #e2e8f0) 14%, transparent);
+  --g-text: var(--color-text-primary, #e2e8f0);
+  --g-strong: var(--color-text-strong, #fff);
+  --g-muted: var(--color-text-secondary, #94a3b8);
+  --g-select: #3b82f6;
+  --g-select-soft: rgba(59, 130, 246, 0.16);
+  --g-ok: #10b981;
+  --g-ok-soft: rgba(16, 185, 129, 0.16);
+  --g-bad: #ef4444;
+  --g-bad-soft: rgba(239, 68, 68, 0.14);
+  --g-radius: 14px;
+}
+
+.g-help {
+  margin: 0 0 14px;
+  font: 500 0.9rem/1.45 var(--font-ui);
+  color: var(--g-muted);
+}
+
+.g-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  font: 600 0.82rem var(--font-ui);
+  color: var(--g-muted);
+}
+
+.g-hint .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--color-accent-text, #ffb353);
+}
+
+/* Botón base de cualquier pieza tocable: se hunde un poco al presionarlo. */
+.g-press {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.g-press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.g-press:disabled {
+  cursor: default;
+}
+
+.g-press:focus-visible {
+  outline: 2px solid var(--color-focus, #93c5fd);
+  outline-offset: 2px;
+}
+
+.is-selected {
+  background: var(--g-select-soft) !important;
+  border-color: var(--g-select) !important;
+  color: var(--g-strong);
+}
+
+.is-correct {
+  background: var(--g-ok-soft) !important;
+  border-color: var(--g-ok) !important;
+  color: var(--g-strong);
+}
+
+.is-wrong {
+  background: var(--g-bad-soft) !important;
+  border-color: var(--g-bad) !important;
+}
+
+/* Solución que aparece al fallar: entra con un fundido corto. */
+.g-solution {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--g-ok) 60%, transparent);
+  background: var(--g-ok-soft);
+  font: 500 0.9rem/1.5 var(--font-ui);
+  color: var(--g-text);
+  animation: g-fade-in 200ms var(--ease-out);
+}
+
+.g-solution strong {
+  color: var(--g-strong);
+}
+
+.g-mark {
+  font-size: 18px;
+  font-variation-settings: 'FILL' 1, 'wght' 600;
+}
+
+.g-mark--ok { color: var(--g-ok); }
+.g-mark--bad { color: var(--g-bad); }
+
+@keyframes g-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .g-press:hover:not(:disabled):not(.is-selected):not(.is-correct):not(.is-wrong) {
+    border-color: color-mix(in srgb, var(--g-text) 35%, transparent);
+    background: var(--g-surface-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .g-press {
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+
+  .g-press:active:not(:disabled) {
+    transform: none;
+  }
+
+  .g-solution {
+    animation: none;
+  }
+}

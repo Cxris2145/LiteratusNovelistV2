@@ -7,6 +7,10 @@ from .views import (
     LearningPathView,
     LevelSessionView,
     LevelSubmitView,
+    LevelCheckView,
+    UnitSkipSessionView,
+    UnitSkipCheckView,
+    UnitSkipSubmitView,
     StreakStatusView,
     StreakRepairView,
     HeartsStatusView,
@@ -22,6 +26,12 @@ urlpatterns = [
     path('path/', LearningPathView.as_view(), name='learning-path'),
     path('levels/<uuid:pk>/session/', LevelSessionView.as_view(), name='level-session'),
     path('levels/<uuid:pk>/submit/', LevelSubmitView.as_view(), name='level-submit'),
+    path('levels/<uuid:pk>/check/', LevelCheckView.as_view(), name='level-check'),
+
+    # Prueba de salto: saltarse unidades con un examen muy difícil
+    path('units/<uuid:pk>/skip/session/', UnitSkipSessionView.as_view(), name='unit-skip-session'),
+    path('units/<uuid:pk>/skip/check/', UnitSkipCheckView.as_view(), name='unit-skip-check'),
+    path('units/<uuid:pk>/skip/submit/', UnitSkipSubmitView.as_view(), name='unit-skip-submit'),
 
     # Racha y calendario
     path('streak/', StreakStatusView.as_view(), name='learning-streak'),

@@ -52,7 +52,7 @@
   <!-- ── CONTENEDOR PRINCIPAL DEL SENDERO ── -->
   <main class="path-container" *ngIf="!isLoading">
     
-    <div class="unit-section" *ngFor="let unit of units; let uIdx = index">
+    <div class="unit-section" *ngFor="let unit of units; let uIdx = index" [class.unit-locked]="unit.is_locked">
       
       <!-- ENCABEZADO DE UNIDAD (BANNER EDITORIAL) -->
       <section class="unit-banner glass-panel" [style.border-top-color]="unit.banner_color">
@@ -63,6 +63,17 @@
           </div>
           <h2 class="unit-title">{{ unit.title }}</h2>
           <p class="unit-desc">{{ unit.description }}</p>
+          <div class="unit-lock-row" *ngIf="unit.is_locked">
+            <p class="unit-lock-note">
+              <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+              Aprueba la prueba de la unidad {{ unit.unit_number - 1 }} para abrir esta unidad.
+            </p>
+            <button type="button" class="skip-unit-btn" (click)="openSkipModal(unit)"
+                    [attr.aria-label]="'Saltar a la unidad ' + unit.unit_number + ' con una prueba difícil'">
+              <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
+              Saltar aquí
+            </button>
+          </div>
           
           <!-- BARRA DE PROGRESO DE LA UNIDAD -->
           <div class="unit-progress-wrap">
@@ -92,7 +103,7 @@
             <!-- CARTEL FLOTANTE DE "EMPEZAR" PARA EL NIVEL ACTIVO -->
             <div 
               class="active-prompt-bubble" 
-              *ngIf="level.is_unlocked && !level.is_completed"
+              *ngIf="level.id === currentLevelId"
             >
               <span>¡EMPEZAR!</span>
               <div class="bubble-arrow"></div>
@@ -100,6 +111,7 @@
 
             <button 
               type="button" 
+              [attr.data-level-id]="level.id"
               class="path-node-btn"
               [class.node-completed]="level.is_completed"
               [class.node-current]="level.is_unlocked && !level.is_completed"
@@ -159,6 +171,10 @@
         <h3 class="modal-level-title">{{ selectedLevel?.title }}</h3>
         <p class="modal-level-desc">{{ selectedLevel?.description }}</p>
 
+        <ul class="modal-activities" *ngIf="selectedLevel?.activities?.length">
+          <li *ngFor="let activity of selectedLevel?.activities" class="modal-activity">{{ activity.label }}</li>
+        </ul>
+
         <div class="modal-rewards-box">
           <div class="reward-item">
             <span class="reward-icon">⚡</span>
@@ -179,6 +195,38 @@
         <button type="button" class="action-btn start-btn" (click)="startLevel()">
           <span class="material-symbols-rounded">play_arrow</span>
           <span>{{ selectedLevel?.is_completed ? 'Practicar de nuevo' : 'Comenzar Nivel' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: PRUEBA DE SALTO ── -->
+  <div class="modal-backdrop" *ngIf="showSkipModal && skipUnit" (click)="closeSkipModal()">
+    <div class="modal-panel skip-modal-panel glass-panel zoom-in" (click)="$event.stopPropagation()"
+         role="dialog" aria-modal="true" aria-labelledby="skip-modal-title">
+      <div class="modal-header">
+        <div class="modal-header-icon">⚡</div>
+        <h3 class="modal-title" id="skip-modal-title">¿Saltar a la Unidad {{ skipUnit.unit_number }}?</h3>
+        <button type="button" class="close-btn" (click)="closeSkipModal()" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-level-desc">
+          Demuestra que dominas {{ skippedLabel(skipUnit) }} con una prueba muy difícil.
+          Si la apruebas, todo lo saltado queda completado y se abre «{{ skipUnit.title }}».
+        </p>
+        <ul class="skip-modal-rules">
+          <li><span class="material-symbols-rounded" aria-hidden="true">quiz</span>14 desafíos mezclados de todo lo que te saltas</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">target</span>Necesitas 90 % de acierto</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">bolt</span>Relámpago con solo 4 segundos por afirmación</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">heart_broken</span>Si fallas, pierdes 1 corazón</li>
+        </ul>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="action-btn start-btn skip-start-btn" (click)="startSkip()">
+          <span class="material-symbols-rounded">bolt</span>
+          <span>Empezar la prueba</span>
         </button>
       </div>
     </div>

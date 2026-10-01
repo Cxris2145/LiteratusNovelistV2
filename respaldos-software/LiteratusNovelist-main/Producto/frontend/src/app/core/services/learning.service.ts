@@ -36,6 +36,8 @@ export interface LearningLevel {
   best_score: number;
   is_completed: boolean;
   is_unlocked: boolean;
+  /** Qué trae el nivel: Lectura, Une las parejas, Anagrama... */
+  activities?: { kind: string; label: string }[];
 }
 
 export interface LearningUnit {
@@ -49,6 +51,8 @@ export interface LearningUnit {
   banner_color: string;
   min_user_level: number;
   progress_percentage: number;
+  /** La unidad abre al aprobar la prueba de la anterior. */
+  is_locked?: boolean;
   levels: LearningLevel[];
 }
 
@@ -64,6 +68,19 @@ export interface ExerciseSession {
   source_type: string;
   pages: string[];
   questions: any[];
+  /** Solo en la prueba de salto: unidades que se saltan. */
+  skipped_units?: number[];
+}
+
+/** Corrección inmediata de una actividad (la primera respuesta queda fijada). */
+export interface CheckResult {
+  question_id: string;
+  is_correct: boolean;
+  /** 0 a 1: los juegos con varias piezas dan crédito parcial. */
+  fraction: number;
+  explanation: string;
+  solution: any;
+  recorded_answer: any;
 }
 
 export interface ExerciseSubmitResult {
@@ -80,6 +97,9 @@ export interface ExerciseSubmitResult {
   feedback: any[];
   error?: string;
   message?: string;
+  /** Prueba de salto aprobada: unidades completadas y unidad que se abrió. */
+  skipped_units?: number[];
+  unlocked_unit?: number | null;
 }
 
 export interface ShopItem {
@@ -123,6 +143,13 @@ export class LearningService {
     return this.http.get<ExerciseSession>(`${this.baseUrl}levels/${levelId}/session/`);
   }
 
+  checkAnswer(levelId: string, questionId: string, answer: any): Observable<CheckResult> {
+    return this.http.post<CheckResult>(`${this.baseUrl}levels/${levelId}/check/`, {
+      question_id: questionId,
+      answer,
+    });
+  }
+
   submitLevel(levelId: string, payload: { answers: any; duration_seconds: number }): Observable<ExerciseSubmitResult> {
     return this.http.post<ExerciseSubmitResult>(`${this.baseUrl}levels/${levelId}/submit/`, payload).pipe(
       tap(res => {
@@ -140,6 +167,35 @@ export class LearningService {
           this.userStatusSubject.next({
             ...current,
             hearts: res.hearts_remaining
+          });
+        }
+      })
+    );
+  }
+
+  // ── Prueba de salto ──
+
+  getSkipSession(unitId: string): Observable<ExerciseSession> {
+    return this.http.get<ExerciseSession>(`${this.baseUrl}units/${unitId}/skip/session/`);
+  }
+
+  checkSkipAnswer(unitId: string, questionId: string, answer: any): Observable<CheckResult> {
+    return this.http.post<CheckResult>(`${this.baseUrl}units/${unitId}/skip/check/`, {
+      question_id: questionId,
+      answer,
+    });
+  }
+
+  submitSkip(unitId: string, payload: { answers: any; duration_seconds: number }): Observable<ExerciseSubmitResult> {
+    return this.http.post<ExerciseSubmitResult>(`${this.baseUrl}units/${unitId}/skip/submit/`, payload).pipe(
+      tap(res => {
+        const current = this.userStatusSubject.value;
+        if (current) {
+          this.userStatusSubject.next({
+            ...current,
+            hearts: res.hearts_remaining,
+            ink_balance: res.ink_balance ?? current.ink_balance,
+            streak_current: res.streak_current ?? current.streak_current,
           });
         }
       })

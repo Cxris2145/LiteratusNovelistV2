@@ -12,6 +12,7 @@ from .models import (
     ShopItem,
     UserInventoryItem
 )
+from . import games
 
 
 class LearningLevelListSerializer(serializers.ModelSerializer):
@@ -19,6 +20,7 @@ class LearningLevelListSerializer(serializers.ModelSerializer):
     best_score = serializers.IntegerField(default=0)
     is_completed = serializers.BooleanField(default=False)
     is_unlocked = serializers.BooleanField(default=False)
+    activities = serializers.SerializerMethodField()
 
     class Meta:
         model = LearningLevel
@@ -26,34 +28,60 @@ class LearningLevelListSerializer(serializers.ModelSerializer):
             'id', 'level_number', 'order', 'title', 'description',
             'difficulty', 'required_score', 'xp_reward', 'ink_reward',
             'is_exam', 'is_chest', 'icon', 'stars', 'best_score',
-            'is_completed', 'is_unlocked'
+            'is_completed', 'is_unlocked', 'activities'
         ]
+
+    def get_activities(self, obj):
+        """Qué trae el nivel (Lectura, Une las parejas, Anagrama...), para el mapa."""
+        try:
+            exercise = obj.exercise
+        except LearningExercise.DoesNotExist:
+            return []
+        kinds = games.activity_kinds(exercise.questions_data)
+        if exercise.content_pages:
+            kinds.insert(0, 'reading')
+        return [{'kind': kind, 'label': games.ACTIVITY_LABELS.get(kind, kind)} for kind in kinds]
 
 
 class LearningUnitListSerializer(serializers.ModelSerializer):
+    """
+    Contexto opcional (lo arma LearningPathView para no consultar por unidad):
+    - progress_map: {level_id: UserLevelProgress} del usuario.
+    - open_unit_ids: unidades cuyo primer nivel ya se puede jugar.
+    """
     levels = serializers.SerializerMethodField()
     progress_percentage = serializers.SerializerMethodField()
+    is_locked = serializers.SerializerMethodField()
 
     class Meta:
         model = LearningUnit
         fields = [
             'id', 'unit_number', 'slug', 'title', 'description',
             'order', 'icon', 'banner_color', 'min_user_level',
-            'progress_percentage', 'levels'
+            'progress_percentage', 'is_locked', 'levels'
         ]
 
-    def get_levels(self, obj):
+    def _progress_map(self, obj) -> dict:
+        if 'progress_map' in self.context:
+            return self.context['progress_map']
         user = self.context.get('request').user if 'request' in self.context else None
-        levels_qs = obj.levels.all().order_by('order')
-        
-        user_progress_map = {}
         if user and user.is_authenticated:
-            progs = UserLevelProgress.objects.filter(user=user, level__unit=obj)
-            user_progress_map = {p.level_id: p for p in progs}
+            return {p.level_id: p for p in UserLevelProgress.objects.filter(user=user, level__unit=obj)}
+        return {}
 
-        # Determinar desbloqueos de forma secuencial
+    def get_is_locked(self, obj):
+        open_units = self.context.get('open_unit_ids')
+        return open_units is not None and obj.id not in open_units
+
+    def get_levels(self, obj):
+        user_progress_map = self._progress_map(obj)
+        # El orden ya viene de Meta.ordering; sin reordenar se aprovecha el prefetch.
+        levels_qs = obj.levels.all()
+
+        # Desbloqueo secuencial. La unidad abre cuando se aprobó la prueba de la
+        # anterior (lo decide LearningPathView); sin ese dato, abre siempre.
         data = []
-        is_previous_completed = True # El primer nivel siempre arranca desbloqueado (si cumple nivel)
+        is_previous_completed = not self.get_is_locked(obj)
 
         for lvl in levels_qs:
             prog = user_progress_map.get(lvl.id)
@@ -80,11 +108,12 @@ class LearningUnitListSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user if 'request' in self.context else None
         if not user or not user.is_authenticated:
             return 0
-        total = obj.levels.count()
-        if total == 0:
+        levels = list(obj.levels.all())
+        if not levels:
             return 0
-        completed = UserLevelProgress.objects.filter(user=user, level__unit=obj, is_completed=True).count()
-        return min(100, int((completed / total) * 100))
+        progress = self._progress_map(obj)
+        completed = sum(1 for lvl in levels if progress.get(lvl.id) and progress[lvl.id].is_completed)
+        return min(100, int((completed / len(levels)) * 100))
 
 
 class ExerciseSessionSerializer(serializers.Serializer):
@@ -101,39 +130,25 @@ class ExerciseSessionSerializer(serializers.Serializer):
     book_title = serializers.CharField(allow_blank=True)
     author_name = serializers.CharField(allow_blank=True)
     source_type = serializers.CharField()
-    pages = serializers.ListField(child=serializers.CharField())
+    pages = serializers.ListField(child=serializers.CharField(), allow_empty=True)
     questions = serializers.SerializerMethodField()
+    # Solo en la prueba de salto: números de las unidades que se saltan.
+    skipped_units = serializers.ListField(child=serializers.IntegerField(), required=False)
 
     def get_questions(self, obj):
-        safe_questions = []
-        for q in obj.get('questions_data', []):
-            safe_q = {
-                'id': q.get('id'),
-                'type': q.get('type'),
-                'prompt': q.get('prompt'),
-                'target_word': q.get('target_word', ''),
-            }
-            if 'options' in q:
-                # Omitir is_correct
-                safe_q['options'] = [
-                    {'id': opt.get('id'), 'text': opt.get('text')}
-                    for opt in q.get('options', [])
-                ]
-            if 'order_items' in q:
-                # Mezclar o listar items para ordenar
-                import random
-                items = list(q.get('order_items', []))
-                # Barajamos para que no venga resuelto
-                random.shuffle(items)
-                safe_q['order_items'] = items
-
-            safe_questions.append(safe_q)
-        return safe_questions
+        # games.public_question quita respuestas, soluciones y el orden correcto de cada tipo.
+        return [games.public_question(q) for q in obj.get('questions_data', []) if games.validate(q)]
 
 
 class ExerciseSubmitSerializer(serializers.Serializer):
-    answers = serializers.DictField(help_text="Mapa de question_id a opción seleccionada o lista ordenada.")
+    answers = serializers.DictField(help_text="Mapa de question_id a la respuesta de cada actividad.")
     duration_seconds = serializers.IntegerField(default=0)
+
+
+class ExerciseCheckSerializer(serializers.Serializer):
+    question_id = serializers.CharField()
+    # Cada juego responde con su propia forma: id, texto, lista, índice o mapa.
+    answer = serializers.JSONField(allow_null=True)
 
 
 class DailyActivityLogSerializer(serializers.ModelSerializer):

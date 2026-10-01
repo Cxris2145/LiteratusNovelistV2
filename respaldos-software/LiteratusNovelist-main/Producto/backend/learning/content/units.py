@@ -1,0 +1,301 @@
+"""
+Mapa de La Senda: 20 unidades × 5 niveles = 100 niveles.
+
+Cada unidad sigue el mismo ritmo:
+  1 y 2 → lectura con preguntas y juegos
+  3     → cofre: sala de juegos (sin lectura), recompensa mayor
+  4     → lectura con preguntas y juegos
+  5     → prueba de maestría: abre la unidad siguiente
+
+Las unidades 1 a 6 conservan números, títulos y recompensas de la versión anterior
+para no alterar el progreso guardado de nadie.
+"""
+
+READING, GAMES, EXAM = 'reading', 'games', 'exam'
+
+
+def _level(number, title, description, difficulty, required, xp, ink, kind, icon=None):
+    return {
+        'level_number': number,
+        'order': number,
+        'title': title,
+        'description': description,
+        'difficulty': difficulty,
+        'required_score': required,
+        'xp_reward': xp,
+        'ink_reward': ink,
+        'is_exam': kind == EXAM,
+        'is_chest': kind == GAMES,
+        'icon': icon or {READING: {1: 'star', 2: 'psychology'}.get(number, 'auto_stories'),
+                         GAMES: 'redeem', EXAM: 'military_tech'}[kind],
+        'kind': kind,
+    }
+
+
+def _new_unit(number, slug, title, description, icon, color, min_level, theme, difficulty, names, descriptions):
+    """Unidades 7-20: recompensas y exigencia crecen con el número de unidad."""
+    step = number - 7
+    xp, ink = 55 + step * 5, 20 + step * 2
+    required = 75 if number < 15 else 80
+    hard = 'dificil' if difficulty == 'dificil' else 'intermedio'
+    levels = [
+        _level(1, f'Nivel 1: {names[0]}', descriptions[0], difficulty, required, xp, ink, READING),
+        _level(2, f'Nivel 2: {names[1]}', descriptions[1], hard, required, xp + 5, ink, READING),
+        _level(3, f'Nivel 3: {names[2]}', descriptions[2], 'intermedio', 60, xp + 30, ink + 25, GAMES),
+        _level(4, f'Nivel 4: {names[3]}', descriptions[3], hard, required + 5, xp + 10, ink + 5, READING),
+        _level(5, f'Nivel 5: {names[4]}', descriptions[4], hard, 85 if number >= 15 else 80,
+               xp * 2 + 20, ink * 2, EXAM, 'workspace_premium' if number == 20 else None),
+    ]
+    return {
+        'unit_number': number, 'slug': slug, 'title': f'Unidad {number} — {title}',
+        'description': description, 'order': number, 'icon': icon, 'banner_color': color,
+        'min_user_level': min_level, 'theme': theme, 'levels': levels,
+    }
+
+
+_GAMES_DESC = 'Sala de juegos: une parejas, resuelve anagramas y gana el relámpago para abrir el cofre.'
+
+UNITS = [
+    {
+        'unit_number': 1, 'slug': 'unidad-1-comprension-basica',
+        'title': 'Unidad 1 — Comprensión Básica',
+        'description': 'Identifica la idea principal, detalles explícitos y personajes protagónicos en relatos clásicos.',
+        'order': 1, 'icon': 'menu_book', 'banner_color': '#3b82f6', 'min_user_level': 1,
+        'theme': 'comprension',
+        'levels': [
+            _level(1, 'Nivel 1: Primeras Luces', 'Aprende a reconocer el tema central y al protagonista de un relato.', 'facil', 70, 30, 10, READING, 'star'),
+            _level(2, 'Nivel 2: La Idea Central', 'Distingue entre detalles secundarios y el mensaje principal de la obra.', 'facil', 70, 35, 10, READING, 'psychology'),
+            _level(3, 'Nivel 3: El Cofre del Aprendiz', _GAMES_DESC, 'facil', 50, 50, 30, GAMES),
+            _level(4, 'Nivel 4: Hechos y Opiniones', 'Separa las acciones objetivas de los juicios de valor de los personajes.', 'facil', 75, 40, 15, READING, 'auto_stories'),
+            _level(5, 'Nivel 5: Prueba de Maestría de Unidad', 'Demuestra tu comprensión total de la Unidad 1 para desbloquear la siguiente etapa.', 'facil', 80, 80, 25, EXAM),
+        ],
+    },
+    {
+        'unit_number': 2, 'slug': 'unidad-2-vocabulario-y-contexto',
+        'title': 'Unidad 2 — Vocabulario y Contexto',
+        'description': 'Domina el arte de deducir el significado de palabras arcaicas y sofisticadas por su contexto.',
+        'order': 2, 'icon': 'spellcheck', 'banner_color': '#10b981', 'min_user_level': 1,
+        'theme': 'vocabulario',
+        'levels': [
+            _level(1, 'Nivel 1: Sinónimos Pertinentes', 'Elige la palabra que puede reemplazar a otra sin cambiar el sentido.', 'facil', 70, 35, 10, READING, 'star'),
+            _level(2, 'Nivel 2: Palabras Polisémicas', 'Una misma palabra, muchos significados: el contexto decide.', 'intermedio', 70, 40, 15, READING, 'psychology'),
+            _level(3, 'Nivel 3: Cofre del Léxico', _GAMES_DESC, 'facil', 50, 60, 35, GAMES),
+            _level(4, 'Nivel 4: Giros Lingüísticos Clásicos', 'Descifra expresiones antiguas como «vuestra merced» o «de hito en hito».', 'intermedio', 75, 45, 15, READING, 'auto_stories'),
+            _level(5, 'Nivel 5: Prueba de Maestría Léxica', 'Demuestra tu dominio del vocabulario para abrir la Unidad 3.', 'intermedio', 80, 90, 30, EXAM),
+        ],
+    },
+    {
+        'unit_number': 3, 'slug': 'unidad-3-personajes-y-motivaciones',
+        'title': 'Unidad 3 — Personajes y Motivaciones',
+        'description': 'Distingue protagonistas, antagonistas, arquetipos y dilemas morales.',
+        'order': 3, 'icon': 'theater_comedy', 'banner_color': '#f59e0b', 'min_user_level': 2,
+        'theme': 'personajes',
+        'levels': [
+            _level(1, 'Nivel 1: El Espejo del Héroe', 'Descubre qué empuja a un protagonista a actuar.', 'intermedio', 70, 40, 15, READING, 'star'),
+            _level(2, 'Nivel 2: La Sombra del Antagonista', 'Analiza a quien se opone al héroe y sus razones.', 'intermedio', 75, 45, 15, READING, 'psychology'),
+            _level(3, 'Nivel 3: Cofre de las Máscaras', _GAMES_DESC, 'intermedio', 50, 65, 40, GAMES),
+            _level(4, 'Nivel 4: Secundarios Inolvidables', 'Valora a los personajes que acompañan y cambian la historia.', 'intermedio', 75, 50, 20, READING, 'auto_stories'),
+            _level(5, 'Nivel 5: Prueba de Maestría de Personajes', 'Demuestra que sabes leer a los personajes para abrir la Unidad 4.', 'intermedio', 80, 100, 35, EXAM),
+        ],
+    },
+    {
+        'unit_number': 4, 'slug': 'unidad-4-secuencia-narrativa',
+        'title': 'Unidad 4 — Secuencia Narrativa',
+        'description': 'Orden cronológico, analepsis (flashbacks), causa y efecto en la trama.',
+        'order': 4, 'icon': 'schedule', 'banner_color': '#8b5cf6', 'min_user_level': 2,
+        'theme': 'secuencia',
+        'levels': [
+            _level(1, 'Nivel 1: Antes y Después', 'Ordena los hechos y reconoce los marcadores de tiempo.', 'intermedio', 70, 45, 15, READING, 'star'),
+            _level(2, 'Nivel 2: El Detonante y el Clímax', 'Encuentra dónde empieza el conflicto y su momento de mayor tensión.', 'intermedio', 75, 50, 15, READING, 'psychology'),
+            _level(3, 'Nivel 3: Cofre del Cronista', _GAMES_DESC, 'intermedio', 50, 70, 40, GAMES),
+            _level(4, 'Nivel 4: Causa y Efecto Trágico', 'Sigue la cadena de causas y consecuencias de una historia.', 'dificil', 75, 55, 20, READING, 'auto_stories'),
+            _level(5, 'Nivel 5: Prueba de Maestría Narrativa', 'Demuestra tu dominio de la secuencia para abrir la Unidad 5.', 'dificil', 80, 110, 40, EXAM),
+        ],
+    },
+    {
+        'unit_number': 5, 'slug': 'unidad-5-inferencias-y-subtexto',
+        'title': 'Unidad 5 — Inferencia y Subtexto',
+        'description': 'Lee entre líneas. Deduce emociones no dichas, ironías y desenlaces implícitos.',
+        'order': 5, 'icon': 'visibility', 'banner_color': '#ec4899', 'min_user_level': 3,
+        'theme': 'inferencia',
+        'levels': [
+            _level(1, 'Nivel 1: Lo que las Palabras Ocultan', 'Descubre las emociones que el texto no nombra.', 'dificil', 75, 55, 20, READING, 'star'),
+            _level(2, 'Nivel 2: La Mirada del Narrador', 'Aprende a desconfiar de un narrador con prejuicios.', 'dificil', 75, 60, 20, READING, 'psychology'),
+            _level(3, 'Nivel 3: Cofre del Subtexto', _GAMES_DESC, 'intermedio', 50, 80, 45, GAMES),
+            _level(4, 'Nivel 4: Deducción y Desenlaces', 'Reúne las pistas y resuelve el caso antes que nadie.', 'dificil', 80, 65, 25, READING, 'auto_stories'),
+            _level(5, 'Nivel 5: Prueba de Maestría en Inferencias', 'Demuestra que sabes leer entre líneas para abrir la Unidad 6.', 'dificil', 85, 130, 50, EXAM),
+        ],
+    },
+    {
+        'unit_number': 6, 'slug': 'unidad-6-analisis-critico-y-literario',
+        'title': 'Unidad 6 — Análisis Crítico y Literario',
+        'description': 'La cumbre de la comprensión: símbolos, crítica social, estilo y contexto histórico.',
+        'order': 6, 'icon': 'history_edu', 'banner_color': '#eab308', 'min_user_level': 4,
+        'theme': 'analisis',
+        'levels': [
+            _level(1, 'Nivel 1: Metáforas y Figuras Retóricas', 'Reconoce las imágenes con que el autor transforma lo cotidiano.', 'dificil', 75, 65, 25, READING, 'star'),
+            _level(2, 'Nivel 2: Simbolismo Universal', 'Descubre qué ideas se esconden detrás de un objeto.', 'dificil', 80, 70, 25, READING, 'psychology'),
+            _level(3, 'Nivel 3: Cofre de la Sabiduría', _GAMES_DESC, 'intermedio', 50, 100, 60, GAMES),
+            _level(4, 'Nivel 4: Tono y Filosofía de Obra', 'Percibe la actitud del autor y la idea que defiende.', 'dificil', 80, 75, 30, READING, 'auto_stories'),
+            _level(5, 'Nivel 5: Gran Juicio Literario (Examen Final)', 'Demuestra tu capacidad de análisis para abrir la Unidad 7.', 'dificil', 85, 200, 100, EXAM, 'workspace_premium'),
+        ],
+    },
+    _new_unit(
+        7, 'unidad-7-generos-literarios', 'Géneros Literarios',
+        'Narrativo, lírico y dramático: tres maneras de contar, sentir y representar el mundo.',
+        'category', '#0ea5e9', 4, 'generos', 'intermedio',
+        ['El Arte de Contar', 'La Voz del Poema', 'Cofre de los Géneros', 'Sobre el Escenario', 'Prueba de Maestría de Géneros'],
+        ['Reconoce los rasgos del género narrativo en un relato de viaje.',
+         'Escucha al hablante lírico y descubre qué siente.',
+         _GAMES_DESC,
+         'Lee una escena teatral y aprende a interpretar sus acotaciones.',
+         'Demuestra que distingues los tres grandes géneros para abrir la Unidad 8.'],
+    ),
+    _new_unit(
+        8, 'unidad-8-figuras-retoricas', 'Figuras Retóricas',
+        'Metáforas, símiles, personificaciones e hipérboles: el lenguaje que pinta imágenes.',
+        'auto_awesome', '#f97316', 4, 'figuras', 'intermedio',
+        ['Comparaciones y Metáforas', 'Cosas que Cobran Vida', 'Cofre de las Figuras', 'Exagerar y Repetir', 'Prueba de Maestría Retórica'],
+        ['Distingue el símil de la metáfora en un recuerdo junto al mar.',
+         'Descubre la personificación en objetos que hablan y sienten.',
+         _GAMES_DESC,
+         'Reconoce la hipérbole y la anáfora en el día más largo del mundo.',
+         'Demuestra tu dominio de las figuras para abrir la Unidad 9.'],
+    ),
+    _new_unit(
+        9, 'unidad-9-poesia-verso-rima-estrofa', 'Poesía: Verso, Rima y Estrofa',
+        'Cuenta sílabas, distingue rimas y conoce las estrofas más famosas de la lengua.',
+        'music_note', '#a855f7', 5, 'poesia', 'intermedio',
+        ['Contar Sílabas', 'Rima Consonante y Asonante', 'Cofre del Poeta', 'Estrofas Famosas', 'Prueba de Maestría Poética'],
+        ['Aprende la sinalefa y la regla de las palabras agudas y esdrújulas.',
+         'Distingue la rima que repite todo de la que repite solo vocales.',
+         _GAMES_DESC,
+         'Conoce el soneto, el romance y la redondilla.',
+         'Demuestra que sabes medir y rimar para abrir la Unidad 10.'],
+    ),
+    _new_unit(
+        10, 'unidad-10-teatro-y-dialogo', 'Teatro y Diálogo',
+        'Actos, escenas, acotaciones, monólogos y apartes: la literatura hecha para el escenario.',
+        'record_voice_over', '#ef4444', 5, 'teatro', 'intermedio',
+        ['Actos, Escenas y Acotaciones', 'El Conflicto en Escena', 'Cofre del Telón', 'Monólogos y Apartes', 'Prueba de Maestría Teatral'],
+        ['Descubre cómo se organiza una obra de teatro.',
+         'Encuentra el conflicto que enfrenta a dos hermanos.',
+         _GAMES_DESC,
+         'Escucha lo que los personajes solo le cuentan al público.',
+         'Demuestra que sabes leer teatro para abrir la Unidad 11.'],
+    ),
+    _new_unit(
+        11, 'unidad-11-mitos-y-leyendas', 'Mitos y Leyendas',
+        'Relatos que explicaron el mundo y se contaron de generación en generación.',
+        'account_balance', '#14b8a6', 6, 'mitos', 'intermedio',
+        ['El Origen de Todo', 'Leyendas de Pueblo', 'Cofre del Olimpo', 'Héroes y Castigos', 'Prueba de Maestría Mítica'],
+        ['Lee un mito sobre el nacimiento de las estrellas.',
+         'Descubre la leyenda de un lago donde suenan campanas.',
+         _GAMES_DESC,
+         'Revive el vuelo de Ícaro y su advertencia.',
+         'Demuestra que conoces mitos y leyendas para abrir la Unidad 12.'],
+    ),
+    _new_unit(
+        12, 'unidad-12-fabulas-y-moralejas', 'Fábulas y Moralejas',
+        'Animales que hablan para enseñarnos algo sobre nosotros mismos.',
+        'pets', '#84cc16', 6, 'fabulas', 'intermedio',
+        ['Animales que Enseñan', 'La Moraleja Escondida', 'Cofre del Fabulista', 'Fabulistas Clásicos', 'Prueba de Maestría de Fábulas'],
+        ['Relee una fábula clásica con un final distinto.',
+         'Descubre la enseñanza que la fábula no dice en voz alta.',
+         _GAMES_DESC,
+         'Conoce a Esopo, La Fontaine, Samaniego e Iriarte.',
+         'Demuestra que sabes encontrar moralejas para abrir la Unidad 13.'],
+    ),
+    _new_unit(
+        13, 'unidad-13-lo-fantastico-y-el-terror', 'Lo Fantástico y el Terror',
+        'Lo imposible en lo cotidiano, el suspenso y los grandes maestros del miedo.',
+        'dark_mode', '#6366f1', 7, 'fantastico', 'dificil',
+        ['Lo Imposible Cotidiano', 'El Arte del Suspenso', 'Cofre de las Sombras', 'Maestros del Miedo', 'Prueba de Maestría Fantástica'],
+        ['Un espejo que se atrasa tres segundos: lo fantástico en casa.',
+         'Aprende cómo se construye la tensión paso a paso.',
+         _GAMES_DESC,
+         'Conoce a Mary Shelley, Poe, Bécquer y Bram Stoker.',
+         'Demuestra que dominas lo fantástico para abrir la Unidad 14.'],
+    ),
+    _new_unit(
+        14, 'unidad-14-viajes-y-aventuras', 'Viajes y Aventuras',
+        'Mapas, naufragios y exploradores de papel: la literatura que nos saca de casa.',
+        'sailing', '#0891b2', 7, 'aventuras', 'dificil',
+        ['El Llamado de la Aventura', 'Travesías y Peligros', 'Cofre del Explorador', 'Exploradores de Papel', 'Prueba de Maestría Aventurera'],
+        ['Un mapa en una botella invita a partir.',
+         'Tres náufragos, una balsa y una idea que los salva.',
+         _GAMES_DESC,
+         'Viaja con Defoe, Verne y Stevenson.',
+         'Demuestra tu espíritu aventurero para abrir la Unidad 15.'],
+    ),
+    _new_unit(
+        15, 'unidad-15-narrador-y-punto-de-vista', 'Narrador y Punto de Vista',
+        'Quién cuenta la historia cambia la historia: protagonista, testigo u omnisciente.',
+        'person_pin', '#e11d48', 8, 'narrador', 'dificil',
+        ['Yo lo Cuento', 'El Ojo que Todo lo Ve', 'Cofre de las Voces', 'Testigos y Protagonistas', 'Prueba de Maestría del Narrador'],
+        ['Escucha a un narrador que cuenta su propia historia.',
+         'Conoce al narrador que sabe lo que piensan todos.',
+         _GAMES_DESC,
+         'Distingue al que vivió los hechos del que solo los vio.',
+         'Demuestra que reconoces cada voz para abrir la Unidad 16.'],
+    ),
+    _new_unit(
+        16, 'unidad-16-tiempo-y-espacio', 'Tiempo y Espacio Narrativo',
+        'Ambientes que hablan, saltos al pasado y el ritmo con que avanza un relato.',
+        'hourglass_top', '#d97706', 8, 'tiempo', 'dificil',
+        ['Ambientes que Hablan', 'Saltos en el Tiempo', 'Cofre del Reloj', 'Ritmo y Pausa', 'Prueba de Maestría del Tiempo'],
+        ['Descubre cómo un lugar transmite emociones.',
+         'Sigue una analepsis y ordena los hechos como ocurrieron.',
+         _GAMES_DESC,
+         'Reconoce el resumen, la escena y la elipsis.',
+         'Demuestra que dominas el tiempo del relato para abrir la Unidad 17.'],
+    ),
+    _new_unit(
+        17, 'unidad-17-hechos-opiniones-argumentos', 'Hechos, Opiniones y Argumentos',
+        'Tesis, argumentos, falacias y reseñas: aprende a leer (y a pensar) con espíritu crítico.',
+        'forum', '#2563eb', 9, 'argumentacion', 'dificil',
+        ['Tesis y Argumentos', 'Trampas del Razonamiento', 'Cofre del Debate', 'La Reseña Literaria', 'Prueba de Maestría Argumentativa'],
+        ['Encuentra la tesis y los argumentos de un texto de opinión.',
+         'Desenmascara tres falacias en una discusión.',
+         _GAMES_DESC,
+         'Descubre cómo se informa y se valora un libro.',
+         'Demuestra tu pensamiento crítico para abrir la Unidad 18.'],
+    ),
+    _new_unit(
+        18, 'unidad-18-epocas-y-movimientos', 'Épocas y Movimientos Literarios',
+        'Del Siglo de Oro al Modernismo: cómo cambió la literatura con los siglos.',
+        'history', '#b45309', 9, 'epocas', 'dificil',
+        ['El Siglo de Oro', 'El Romanticismo', 'Cofre de las Épocas', 'Del Realismo al Modernismo', 'Prueba de Maestría Histórica'],
+        ['Recorre el esplendor de Cervantes, Lope y Calderón.',
+         'Siente la revolución de las emociones del siglo XIX.',
+         _GAMES_DESC,
+         'De Galdós y Clarín a Rubén Darío.',
+         'Demuestra que conoces las épocas para abrir la Unidad 19.'],
+    ),
+    _new_unit(
+        19, 'unidad-19-grandes-autores', 'Grandes Autores y sus Obras',
+        'Cervantes, Mistral, Neruda, Homero, Dante, Shakespeare: las voces que no envejecen.',
+        'local_library', '#be185d', 10, 'autores', 'dificil',
+        ['Voces de España', 'Voces de América', 'Cofre de los Autores', 'Clásicos Universales', 'Prueba de Maestría de Autores'],
+        ['La vida de Cervantes y las andanzas de don Quijote.',
+         'Gabriela Mistral y Pablo Neruda, dos Nobel chilenos.',
+         _GAMES_DESC,
+         'Homero, Dante, Shakespeare y Tolstói.',
+         'Demuestra que conoces a los grandes para abrir la Unidad 20.'],
+    ),
+    _new_unit(
+        20, 'unidad-20-la-gran-travesia', 'La Gran Travesía',
+        'El repaso final: relato, poema y ensayo para demostrar todo lo aprendido en La Senda.',
+        'explore', '#facc15', 10, 'maestria', 'dificil',
+        ['Lectura Integral: El Relato', 'Lectura Integral: El Poema', 'Cofre del Maestro Lector', 'Lectura Integral: El Ensayo', 'Gran Examen Final de La Senda'],
+        ['Aplica todo lo aprendido a un relato completo.',
+         'Analiza un poema: figuras, rima y sentido.',
+         _GAMES_DESC,
+         'Encuentra la tesis y los recursos de un ensayo.',
+         'El último desafío: supéralo y conviértete en Maestro Lector.'],
+    ),
+]
+
+
+def unit_by_number(number: int) -> dict | None:
+    return next((u for u in UNITS if u['unit_number'] == number), None)

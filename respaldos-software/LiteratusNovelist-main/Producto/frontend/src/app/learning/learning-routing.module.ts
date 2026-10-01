@@ -5,7 +5,9 @@ import { PlayLevelComponent } from './play-level/play-level.component';
 
 const routes: Routes = [
   { path: '', component: LearningPathComponent },
-  { path: 'play/:id', component: PlayLevelComponent }
+  { path: 'play/:id', component: PlayLevelComponent },
+  // Prueba de salto: el mismo reproductor, con el examen de la unidad a la que se salta.
+  { path: 'skip/:id', component: PlayLevelComponent, data: { mode: 'skip' } }
 ];
 
 @NgModule({
