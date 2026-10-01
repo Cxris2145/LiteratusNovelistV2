@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, Subject } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { SubscriptionService } from './subscription.service';
 
 /** Tamaño de página del hub de personajes (el backend admite hasta 50). */
 export const HUB_PAGE_SIZE = 48;
@@ -52,7 +53,9 @@ export class ChatService {
   private messagesSubject = new BehaviorSubject<ChatMessage[]>([]);
   public messages$ = this.messagesSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private subscriptions: SubscriptionService) {
+    this.subscriptions.usage$.subscribe(usage => { if (usage) this.updateInkBalance(usage.ink_balance); });
+  }
 
   notifyProfileUpdate() {
     this.profileUpdatedSubject.next();
@@ -174,7 +177,7 @@ export class ChatService {
     const tempAssistantMsg: ChatMessage = { role: 'assistant', content: '', isTyping: true };
     this.messagesSubject.next([...this.messagesSubject.value, tempAssistantMsg]);
 
-    return this.http.post(`${this.API_URL}/chat/`, { session_id: sessionId, message: text }).pipe(
+    return this.subscriptions.sendChat(sessionId, text).pipe(
       tap((res: any) => {
         // Actualizar tinta
         if (res.ink_balance !== undefined) {
@@ -195,7 +198,7 @@ export class ChatService {
         // Eliminar mensaje temporal en caso de error
         const currentMessages = this.messagesSubject.value;
         currentMessages.pop();
-        this.messagesSubject.next([...currentMessages]);
+        this.messagesSubject.next(currentMessages.filter(message => message !== userMsg));
 
         if (err.status === 402) {
           // Manejo específico de falta de tinta

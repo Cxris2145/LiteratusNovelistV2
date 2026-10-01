@@ -24,6 +24,7 @@
 
   <!-- PANEL CENTRAL: EL CHAT -->
   <main class="main-chat-area">
+    <app-ai-usage-meter [sessionId]="session?.id"></app-ai-usage-meter>
     <header class="chat-header">
       <div class="chat-info" *ngIf="avatar">
         <h2 class="chat-title">{{ avatar.name }}</h2>

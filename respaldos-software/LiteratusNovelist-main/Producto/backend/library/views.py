@@ -537,6 +537,7 @@ class DailyRewardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['POST'], url_path='claim')
     def claim(self, request):
+        from django.db import transaction
         from .models import InkTransaction
         from django.utils import timezone
         from django.conf import settings
@@ -544,6 +545,8 @@ class DailyRewardViewSet(viewsets.ViewSet):
 
         today = timezone.localdate()
         with transaction.atomic():
+            from users.models import Profile
+            profile = Profile.objects.select_for_update().get(user=request.user)
             already_claimed = InkTransaction.objects.filter(
                 user=request.user,
                 concept='daily_reward',
@@ -557,7 +560,7 @@ class DailyRewardViewSet(viewsets.ViewSet):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             reward_config = getattr(settings, 'GAMIFICATION_REWARDS', {}).get('daily_reward', {'ink': 20, 'xp': 15})
-            user_level = request.user.profile.level if hasattr(request.user, 'profile') else 1
+            user_level = profile.level
             level_bonus_ink = max(0, (user_level - 1) * 5)
             total_ink = reward_config.get('ink', 20) + level_bonus_ink
             total_xp = reward_config.get('xp', 15)

@@ -8,6 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, permissions, status
 from django.db.models import Q
+from django.db import transaction
+from users.models import Profile
 from django.shortcuts import get_object_or_404
 
 from core.pagination import StandardResultsSetPagination
@@ -229,105 +231,6 @@ class ChatHistoryView(APIView):
         return Response(serializer.data)
 
 
-class ChatInteractionView(APIView):
-    """
-    POST /api/v1/ai/chat/
-    Orquesta la validación de propiedad, descuento de tinta, inyección de
-    historial y entrega de la respuesta del LLM.
-    """
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        serializer = ChatInteractionSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        session_id = serializer.validated_data['session_id']
-        message_content = serializer.validated_data['message']
-
-        session = get_object_or_404(ChatSession, id=session_id)
-
-        # Verificar pertenencia de sesión
-        if session.user != request.user:
-            return Response(
-                {"error": "No tienes permiso sobre esta sesión de chat."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        # 1. Validación de Tinta Base (Mínimo 1 para DeepSeek)
-        profile = request.user.profile
-        if profile.ink_balance < 1:
-            return Response({
-                "error": "INSUFFICIENT_INK",
-                "message": "No tienes tinta suficiente para chatear."
-            }, status=status.HTTP_402_PAYMENT_REQUIRED)
-
-        # Guardar mensaje del usuario
-        user_msg = ChatMessage.objects.create(
-            session=session,
-            role=ChatMessage.RoleChoices.USER,
-            content=message_content
-        )
-
-        try:
-            ai_service = AIService(avatar=session.avatar, session=session)
-            ai_result = ai_service.generate_reply(message_content)
-            
-            ai_response_text = ai_result["text"]
-            provider = ai_result["provider"]
-            cost = ai_result["cost"]
-            ai_status = ai_result["status"]
-
-            # 2. Descuento Dinámico de Tinta
-            if profile.ink_balance < cost:
-                # Si falló Gemini pero no tiene para Gemini, y DeepSeek no está disponible...
-                # El servicio ya debería haber devuelto un mensaje de error o haber intentado DeepSeek.
-                # Si el costo es 2 pero solo tiene 1, y el servicio devolvió Gemini, forzamos error o ajustamos.
-                # Pero la lógica del servicio ya intenta DeepSeek si Gemini falla.
-                pass 
-            
-            profile.ink_balance = max(0, profile.ink_balance - cost)
-            profile.save()
-
-            # Registrar transacción de Tinta por consumo de chat
-            from library.models import InkTransaction
-            InkTransaction.objects.create(
-                user=request.user,
-                amount=-cost,
-                concept='ai_chat',
-                reference_id=str(session.id),
-                balance_after=profile.ink_balance
-            )
-
-            # Recompensar interacción con IA (XP y progreso de misión semanal)
-            from library.achievement_engine import reward_activity, evaluate_for_user
-            reward_activity(request.user, 'ai_interaction', reference_id=str(session.id))
-            
-            # Evaluar logros sociales
-            evaluate_for_user(request.user, trigger='chat', chat_session_id=session.id)
-
-            assistant_msg = ChatMessage.objects.create(
-                session=session,
-                role=ChatMessage.RoleChoices.ASSISTANT,
-                content=ai_response_text
-            )
-
-            return Response({
-                "reply": assistant_msg.content,
-                "timestamp": assistant_msg.created_at,
-                "ink_balance": profile.ink_balance,
-                "ai_provider": provider,
-                "ai_status": ai_status,
-                "cost": cost
-            }, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            user_msg.delete()
-            return Response(
-                {"error": f"Error del motor de IA: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
 class DemoChatView(APIView):
     """
     POST /api/v1/ai/demo-chat/
@@ -382,6 +285,9 @@ class DemoChatView(APIView):
     def post(self, request):
         from django.core.cache import cache
 
+        if request.user.is_authenticated:
+            return Response({'error': 'USE_ACCOUNT_CHAT', 'message': 'Usa el chat de tu cuenta para aplicar tu plan o una cotización de Tinta.'}, status=403)
+
         ip = self._get_client_ip(request)
         cache_key = f'demo_chat_ip_{ip}'
         msg_count = cache.get(cache_key, 0)
@@ -389,7 +295,7 @@ class DemoChatView(APIView):
         if msg_count >= self.DEMO_MSG_LIMIT:
             return Response({
                 'error': 'DEMO_LIMIT_REACHED',
-                'message': f'Has usado tus {self.DEMO_MSG_LIMIT} mensajes de prueba de hoy. ¡Regístrate gratis para chatear sin límites!',
+                'message': f'Has usado tus {self.DEMO_MSG_LIMIT} mensajes de prueba de hoy. Regístrate y elige un plan o continúa con Tinta.',
                 'remaining': 0,
             }, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
@@ -513,8 +419,15 @@ class TTSGenerateView(APIView):
             engine = 'kokoro'
 
         # Descontar tinta
-        profile.ink_balance = max(0, profile.ink_balance - COST)
-        profile.save()
+        with transaction.atomic():
+            profile = Profile.objects.select_for_update().get(user=request.user)
+            if profile.ink_balance < COST:
+                return Response({'error': 'INSUFFICIENT_INK', 'message': 'Tu saldo cambió durante la generación. No se realizó el cargo de audio.'}, status=402)
+            profile.ink_balance -= COST
+            profile.save(update_fields=['ink_balance'])
+            from library.models import InkTransaction
+            InkTransaction.objects.create(user=request.user, amount=-COST, concept='ai_audio',
+                reference_id=str(avatar.pk) if avatar else '', balance_after=profile.ink_balance)
 
         return Response({
             "audio_base64": audio_b64,

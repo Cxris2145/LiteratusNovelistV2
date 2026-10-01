@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { GamificationService } from '../../core/services/gamification.service';
+import { ApiService } from '../../core/services/api.service';
 
 export interface CartItem {
   id: string;
@@ -23,6 +24,7 @@ export interface CartItem {
 })
 export class CartComponent implements OnInit {
   private router = inject(Router);
+  private api = inject(ApiService);
   private authService = inject(AuthService);
   private gamificationService = inject(GamificationService);
 
@@ -38,32 +40,7 @@ export class CartComponent implements OnInit {
   userInkBalance = 0;
   redeemInkAmount = 0;
 
-  readonly POPULAR_INK_PACKAGES = [
-    {
-      reference: '200',
-      amount: 200,
-      title: '200 Gotas de Tinta',
-      price: 990,
-      badge: 'Básico',
-      description: 'Ideal para dialogar y explorar capítulos con personajes IA.'
-    },
-    {
-      reference: '500',
-      amount: 500,
-      title: '500 Gotas de Tinta',
-      price: 1990,
-      badge: 'Más Popular',
-      description: 'El paquete preferido para lecturas continuas y debates profundos.'
-    },
-    {
-      reference: '1200',
-      amount: 1200,
-      title: '1.200 Gotas de Tinta',
-      price: 3990,
-      badge: 'Mayor Ahorro',
-      description: 'Acceso ilimitado a personajes y análisis literarios avanzados.'
-    }
-  ];
+  POPULAR_INK_PACKAGES: { reference: string; amount: number; title: string; price: number; badge: string; description: string }[] = [];
 
   get subtotal(): number {
     return this.cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -106,12 +83,24 @@ export class CartComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCart();
+    this.api.get<any[]>('finance/ink-packages/').subscribe({ next: packages => {
+      this.POPULAR_INK_PACKAGES = packages.map(pack => ({ reference: String(pack.amount), amount: pack.amount,
+        title: `${pack.amount.toLocaleString('es-CL')} Tinta`, price: Number(pack.price), badge: 'Webpay',
+        description: 'Saldo acumulable para el Bazar y conversaciones cuyo precio aceptes.' }));
+      for (const item of this.cartItems) {
+        if (item.type === 'ink') {
+          const pack = this.POPULAR_INK_PACKAGES.find(value => value.reference === item.reference);
+          if (pack) item.price = pack.price;
+        }
+      }
+      this.saveCart();
+    }, error: () => {} });
     if (this.authService.isLoggedIn()) {
       this.gamificationService.profile$.subscribe(profile => {
         if (profile) {
           this.userLevel = profile.level || 1;
           this.userLevelName = profile.level_name || 'Lector Novato';
-          this.levelDiscountPercent = profile.discount_percent || 0;
+          this.levelDiscountPercent = 0; // El servidor no aplica descuentos a estos cofres.
           this.userInkBalance = profile.ink_balance || 0;
         }
       });

@@ -4,6 +4,8 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { SubscriptionService } from '../../core/services/subscription.service';
+import { switchMap } from 'rxjs/operators';
 import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
 import { SpeechRecognitionService } from '../../core/services/speech-recognition.service';
 
@@ -22,6 +24,9 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private api = inject(ApiService);
   public auth = inject(AuthService);
+  private subscriptions = inject(SubscriptionService);
+  sessionId: string | null = null;
+  chatError = '';
   private destroy$ = new Subject<void>();
   public kokoroVoice = inject(KokoroTtsService);
   public speechService = inject(SpeechRecognitionService);
@@ -65,6 +70,21 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   private loadAvatar(): void {
+    if (this.auth.isLoggedIn() && !this.avatarId) {
+      this.api.get<any>('ai/demo-chat/').pipe(takeUntil(this.destroy$)).subscribe({ next: avatar => {
+        this.avatarId = avatar.id; this.loadAvatar();
+      }, error: () => { this.avatarLoading = false; this.router.navigate(['/characters']); } });
+      return;
+    }
+    if (this.auth.isLoggedIn() && this.avatarId) {
+      this.api.get<any>(`ai/avatars/${this.avatarId}/`).pipe(
+        switchMap(avatar => { this.avatar = avatar; return this.api.get<any>(`ai/sessions/?avatar_id=${this.avatarId}`); }),
+        switchMap(session => { this.sessionId = session.id; return this.api.get<any[]>(`ai/sessions/${session.id}/messages/`); }),
+        takeUntil(this.destroy$)
+      ).subscribe({ next: messages => { this.messages = messages; this.avatarLoading = false; },
+        error: err => { this.avatarLoading = false; this.chatError = err.error?.detail || err.error?.error || 'No se pudo abrir esta conversación.'; } });
+      return;
+    }
     const url = this.avatarId
       ? `ai/demo-chat/?avatar_id=${this.avatarId}`
       : `ai/demo-chat/`;
@@ -89,7 +109,8 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
 
   sendMessage(): void {
     const msg = this.inputText.trim();
-    if (!msg || this.isSending || this.limitReached) return;
+    if (!msg || this.isSending || this.limitReached || (this.auth.isLoggedIn() && !this.sessionId)) return;
+    this.chatError = '';
 
     this.messages.push({ role: 'user', content: msg });
     this.inputText = '';
@@ -98,11 +119,11 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
     const payload: any = { message: msg };
     if (this.avatarId) payload.avatar_id = this.avatarId;
 
-    this.api.post<any>('ai/demo-chat/', payload).subscribe({
+    const request = this.sessionId ? this.subscriptions.sendChat(this.sessionId, msg) : this.api.post<any>('ai/demo-chat/', payload);
+    request.subscribe({
       next: (res) => {
         this.messages.push({ role: 'assistant', content: res.reply });
-        this.remainingMessages = res.remaining_messages ?? 0;
-        if (this.remainingMessages <= 0) this.limitReached = true;
+        if (!this.sessionId) { this.remainingMessages = res.remaining_messages ?? 0; this.limitReached = this.remainingMessages <= 0; }
         this.isSending = false;
         setTimeout(() => this.scrollToBottom(), 60);
 
@@ -111,6 +132,11 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
+        if (this.sessionId) {
+          this.messages.pop(); this.inputText = msg; this.isSending = false;
+          if (!err.cancelled) this.chatError = err.error?.message || 'No se pudo confirmar la respuesta. Intenta de nuevo; no se duplicará el cargo.';
+          return;
+        }
         const errData = err?.error;
         if (errData?.error === 'DEMO_LIMIT_REACHED') {
           this.limitReached = true;

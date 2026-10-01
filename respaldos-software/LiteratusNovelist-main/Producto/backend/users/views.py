@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Profile
+from django.db import transaction
 from .serializers import MyTokenObtainPairSerializer, UserWriteSerializer, UserReadSerializer, ProfileSerializer
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -64,7 +65,15 @@ class ProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         # Asegura que siempre devolvemos el perfil del usuario logueado
         profile, _ = Profile.objects.get_or_create(user=self.request.user)
+        from finance.subscriptions import cosmetics
+        cosmetics(self.request.user)
+        profile.refresh_from_db()
         return profile
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            serializer.instance = Profile.objects.select_for_update().get(user=self.request.user)
+            serializer.save()
 
 class AddInkView(APIView):
     """
@@ -74,17 +83,7 @@ class AddInkView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        # En una app real aquí se validaría un token de recompensa del anuncio
-        amount = int(request.data.get('amount', 10))
-        
-        profile = request.user.profile
-        profile.ink_balance += amount
-        profile.save()
-        
-        return Response({
-            'message': f'¡Has ganado {amount} de Tinta!',
-            'ink_balance': profile.ink_balance
-        }, status=status.HTTP_200_OK)
+        return Response({'message': 'Obtén recompensas en Logros y La Senda.'}, status=status.HTTP_410_GONE)
 
 
 class SpendInkView(APIView):
@@ -100,8 +99,12 @@ class SpendInkView(APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
 
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
-        amount = int(request.data.get('amount', 0))
+        try:
+            amount = int(request.data.get('amount', 0))
+        except (ValueError, TypeError):
+            return Response({'error': 'El monto debe ser un número entero.'}, status=400)
         concept = request.data.get('concept', 'generic')
 
         if amount <= 0:
@@ -110,7 +113,7 @@ class SpendInkView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        profile = request.user.profile
+        profile = Profile.objects.select_for_update().get(user=request.user)
 
         if profile.ink_balance < amount:
             return Response(
@@ -122,7 +125,10 @@ class SpendInkView(APIView):
             )
 
         profile.ink_balance -= amount
-        profile.save()
+        profile.save(update_fields=['ink_balance'])
+        from library.models import InkTransaction
+        InkTransaction.objects.create(user=request.user, amount=-amount, concept='legacy_spend',
+            reference_id=str(concept)[:100], balance_after=profile.ink_balance)
 
         return Response({
             'message': f'✓ {amount} de Tinta descontada por: {concept}.',

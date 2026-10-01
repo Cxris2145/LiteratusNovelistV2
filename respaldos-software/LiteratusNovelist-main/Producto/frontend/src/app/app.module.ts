@@ -22,6 +22,7 @@ import { AppRouteReuseStrategy } from './core/app-route-reuse.strategy';
 import { HomeComponent } from './home/home.component';
 import { BookDetailPageComponent } from './catalog/book-detail-page/book-detail-page.component';
 import { TavernComponent } from './library/tavern/tavern.component';
+import { AIUsageMeterComponent } from './core/components/ai-usage-meter/ai-usage-meter.component';
 import { AuthorDetailPageComponent } from './catalog/author-detail-page/author-detail-page.component';
 import { CheckoutComponent } from './catalog/checkout/checkout.component';
 import { PaymentSuccessComponent } from './catalog/payment-success/payment-success.component';
@@ -98,6 +99,7 @@ import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive
 
 
   imports: [
+    AIUsageMeterComponent,
     BrowserModule,
     BrowserAnimationsModule,
     CommonModule,

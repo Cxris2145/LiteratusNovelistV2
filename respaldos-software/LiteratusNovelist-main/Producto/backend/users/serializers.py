@@ -29,6 +29,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     all_levels = serializers.SerializerMethodField()
     seconds_to_next_heart = serializers.SerializerMethodField()
     current_hearts = serializers.SerializerMethodField()
+    subscription_cosmetics = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
@@ -38,8 +39,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             'xp_to_next_level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',
             'equipped_frame', 'equipped_title', 'discount_percent', 
-            'level_perks', 'all_levels'
+            'level_perks', 'all_levels', 'subscription_cosmetics'
         ]
+        read_only_fields = ['ink_balance', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
+            'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title']
+
+    def get_subscription_cosmetics(self, obj):
+        from finance.subscriptions import cosmetics
+        return cosmetics(obj.user)
 
     def get_current_hearts(self, obj):
         from django.utils import timezone

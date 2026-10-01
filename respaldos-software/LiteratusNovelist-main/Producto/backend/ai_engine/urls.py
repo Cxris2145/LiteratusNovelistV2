@@ -2,6 +2,7 @@
 ai_engine/urls.py — Enrutador de IA
 """
 from django.urls import path
+from . import usage_views
 from .views import (
     AvatarListView,
     AvatarDetailView,
@@ -9,7 +10,6 @@ from .views import (
     RecentChatsView,
     ChatSessionView,
     ChatHistoryView,
-    ChatInteractionView,
     TTSGenerateView,
     DemoChatView,
     AssistantConversationListView,
@@ -44,7 +44,10 @@ urlpatterns = [
 
     # Enviar mensaje al LLM (consume tinta)
     # POST /api/v1/ai/chat/
-    path('chat/', ChatInteractionView.as_view(), name='ai-chat'),
+    path('chat/', usage_views.MeteredChatView.as_view(), name='ai-chat'),
+    path('chat/quote/', usage_views.ink_quote, name='ai-chat-quote'),
+    path('usage/', usage_views.daily_usage, name='ai-usage'),
+    path('usage/heartbeat/', usage_views.activity, name='ai-usage-heartbeat'),
 
     # Chat de demostración público (sin auth, rate limiting por IP)
     # POST /api/v1/ai/demo-chat/

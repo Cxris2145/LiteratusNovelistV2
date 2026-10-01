@@ -17,12 +17,6 @@ export class CheckoutComponent implements OnInit {
   bookInfo: any = null;
   inkPackage: any = null;
   
-  readonly INK_PACKAGES: Record<string, { amount: number; price: string; label: string }> = {
-    '200':  { amount: 200,  price: '$990',  label: 'Paquete Básico' },
-    '500':  { amount: 500,  price: '$1.990', label: 'Paquete Estándar' },
-    '1200': { amount: 1200, price: '$3.990', label: 'Paquete Premium' },
-  };
-
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(ApiService);
@@ -35,10 +29,13 @@ export class CheckoutComponent implements OnInit {
       if (this.itemType === 'book') {
         this.loadBookInfo();
       } else if (this.itemType === 'ink') {
-        this.inkPackage = this.INK_PACKAGES[this.itemReference];
-        if (!this.inkPackage) {
-          this.errorMsg = 'Paquete de tinta no válido.';
-        }
+        this.inkPackage = null;
+        this.api.get<any[]>('finance/ink-packages/').subscribe({ next: packages => {
+          const pack = packages.find(value => String(value.amount) === this.itemReference);
+          if (!pack) { this.errorMsg = 'Paquete de Tinta no válido.'; return; }
+          this.inkPackage = { ...pack, label: `${pack.amount.toLocaleString('es-CL')} Tinta`,
+            price: `$${Number(pack.price).toLocaleString('es-CL')}` };
+        }, error: () => this.errorMsg = 'No se pudo consultar el precio del cofre.' });
       } else {
         this.errorMsg = 'Tipo de compra no reconocido.';
       }
@@ -53,6 +50,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   confirmPurchase(): void {
+    if (this.isLoading || (this.itemType === 'ink' && !this.inkPackage)) return;
     this.isLoading = true;
     this.errorMsg = '';
     

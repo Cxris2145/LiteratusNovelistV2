@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db import transaction as db_transaction
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from catalog.models import Book, Edition
@@ -26,6 +26,12 @@ INK_PACKAGES = {
     '500':  Decimal('1990'),
     '1200': Decimal('3990'),
 }
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def ink_packages(request):
+    return Response([{'amount': int(amount), 'price': str(price), 'currency': 'CLP'} for amount, price in INK_PACKAGES.items()])
 
 
 @api_view(['POST'])
@@ -76,21 +82,22 @@ def initiate_payment(request):
 
     # --- Lógica de COMPRA GRATUITA ---
     if final_amount == 0:
-        # 1. Crear transacción "exitosa" localmente
-        txn = Transaction.objects.create(
-            user=request.user,
-            buy_order=buy_order,
-            session_id=session_id,
-            token=f"FREE-{uuid.uuid4().hex[:8]}", # token dummy único
-            amount=0,
-            status='exitosa',
-            item_type=item_type,
-            item_reference=item_reference,
-            response_code='0',
-            metadata={'note': 'Free purchase'}
-        )
-        # 2. Entregar ítem
-        _deliver_item(txn)
+        with db_transaction.atomic():
+            # 1. Crear transacción "exitosa" localmente
+            txn = Transaction.objects.create(
+                user=request.user,
+                buy_order=buy_order,
+                session_id=session_id,
+                token=f"FREE-{uuid.uuid4().hex[:8]}", # token dummy único
+                amount=0,
+                status='exitosa',
+                item_type=item_type,
+                item_reference=item_reference,
+                response_code='0',
+                metadata={'note': 'Free purchase'}
+            )
+            # 2. Entregar ítem
+            _deliver_item(txn)
         # 3. Retornar éxito inmediato
         return Response({
             'status': 'FREE_PURCHASE_SUCCESS',
@@ -108,7 +115,7 @@ def initiate_payment(request):
     except Exception as e:
         return Response({'error': f'Error al contactar Transbank: {str(e)}'}, status=502)
 
-    return_base_url = request.data.get('return_base_url')
+    return_base_url = settings.FRONTEND_URL.rstrip('/')
 
     # --- Guardar transacción en DB ---
     Transaction.objects.create(
@@ -130,6 +137,7 @@ def initiate_payment(request):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
 @db_transaction.atomic
 def confirm_payment(request):
     """
@@ -150,8 +158,11 @@ def confirm_payment(request):
         return _redirect_to_frontend(settings.FRONTEND_URL, 'failure', 'Transacción no encontrada.')
 
     frontend_url = settings.FRONTEND_URL
-    if isinstance(local_txn.metadata, dict) and local_txn.metadata.get('return_base_url'):
+    if isinstance(local_txn.metadata, dict) and local_txn.metadata.get('return_base_url', '').rstrip('/') == settings.FRONTEND_URL.rstrip('/'):
         frontend_url = local_txn.metadata.get('return_base_url')
+
+    if local_txn.status == 'exitosa':
+        return _redirect_to_frontend(frontend_url, 'success', buy_order=local_txn.buy_order)
 
     # Confirmar con Transbank
     try:
@@ -167,9 +178,14 @@ def confirm_payment(request):
     local_txn.metadata = wb_response
 
     # response_code == 0 significa ÉXITO en Transbank
+    if response_code == 0 and (str(wb_response.get('buy_order')) != local_txn.buy_order or str(wb_response.get('session_id')) != local_txn.session_id or Decimal(str(wb_response.get('amount', -1))) != local_txn.amount):
+        local_txn.status = 'fallida'
+        local_txn.save()
+        return _redirect_to_frontend(frontend_url, 'failure', 'El pago recibido no coincide con la compra.')
     if response_code == 0:
         try:
-            _deliver_item(local_txn)
+            with db_transaction.atomic():
+                _deliver_item(local_txn)
             local_txn.status = 'exitosa'
             local_txn.save()
         except Exception as e:
@@ -197,7 +213,10 @@ def _deliver_item(local_txn: Transaction):
         ink_amount = int(local_txn.item_reference)
         profile = Profile.objects.select_for_update().get(user=local_txn.user)
         profile.ink_balance += ink_amount
-        profile.save()
+        profile.save(update_fields=['ink_balance'])
+        from library.models import InkTransaction
+        InkTransaction.objects.create(user=local_txn.user, amount=ink_amount, concept='ink_purchase',
+            reference_id=local_txn.buy_order, balance_after=profile.ink_balance)
 
 
 def _redirect_to_frontend(base_url: str, result: str, message: str = '', buy_order: str = ''):

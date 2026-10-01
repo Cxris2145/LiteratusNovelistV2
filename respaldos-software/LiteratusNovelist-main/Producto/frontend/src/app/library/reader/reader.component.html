@@ -403,6 +403,7 @@
     <!-- ESTADO 3: CHAT ACTIVO (estilo c.ai)     -->
     <!-- ════════════════════════════════════════ -->
     <ng-container *ngIf="isChatOpen && chatSession">
+      <app-ai-usage-meter [sessionId]="chatSession.id"></app-ai-usage-meter>
 
       <!-- Header del chat -->
       <div class="chat-topbar">

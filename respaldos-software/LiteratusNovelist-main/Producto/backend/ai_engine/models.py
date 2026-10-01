@@ -26,6 +26,7 @@ DISEÑO 3NF:
 """
 
 from django.db import models
+import uuid
 from core.models import TimeStampedModel
 from users.models import User
 from catalog.models import Edition
@@ -180,6 +181,66 @@ class ChatSession(TimeStampedModel):
 
     def __str__(self):
         return f"[{self.user.username}] {self.title} — {self.avatar.name}"
+
+
+class DailyAIUsage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField()
+    tokens_used = models.PositiveIntegerField(default=0)
+    tokens_reserved = models.PositiveIntegerField(default=0)
+    active_seconds = models.PositiveIntegerField(default=0)
+    quota_exhausted_at = models.DateTimeField(null=True, blank=True)
+    accounted_at = models.DateTimeField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'date'], name='unique_daily_ai_usage')]
+
+
+class AIActivityLease(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    client_id = models.UUIDField()
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'client_id'], name='unique_ai_activity_client')]
+
+
+class InkChatQuote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE)
+    message_hash = models.CharField(max_length=64)
+    ink_cost = models.PositiveSmallIntegerField()
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+
+class AIUsageEvent(models.Model):
+    request_id = models.UUIDField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    session = models.ForeignKey(ChatSession, on_delete=models.CASCADE)
+    usage = models.ForeignKey(DailyAIUsage, on_delete=models.PROTECT)
+    message_hash = models.CharField(max_length=64)
+    mode = models.CharField(max_length=10)
+    subscription_plan = models.ForeignKey('finance.SubscriptionPlan', on_delete=models.PROTECT, null=True, blank=True)
+    status = models.CharField(max_length=20, default='reserved')
+    reserved_tokens = models.PositiveIntegerField(default=0)
+    ink_cost = models.PositiveSmallIntegerField(default=0)
+    provider = models.CharField(max_length=30, blank=True)
+    model = models.CharField(max_length=100, blank=True)
+    input_tokens = models.PositiveIntegerField(default=0)
+    output_tokens = models.PositiveIntegerField(default=0)
+    reasoning_tokens = models.PositiveIntegerField(default=0)
+    total_tokens = models.PositiveIntegerField(default=0)
+    estimated_cost = models.DecimalField(max_digits=12, decimal_places=8, default=0)
+    attempts = models.JSONField(default=list)
+    result = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        indexes = [models.Index(fields=['user', 'created_at']), models.Index(fields=['status', 'expires_at'])]
 
 
 class ChatMessage(TimeStampedModel):

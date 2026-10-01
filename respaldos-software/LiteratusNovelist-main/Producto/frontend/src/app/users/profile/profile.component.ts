@@ -37,6 +37,7 @@ export class ProfileComponent implements OnInit {
 
   equippedFrame: string = '';
   equippedTitle: string = '';
+  maestroActive = false;
 
   constructor() {
     this.profileForm = this.fb.group({
@@ -65,6 +66,7 @@ export class ProfileComponent implements OnInit {
           this.selectedTheme = profile.theme || 'default';
           this.equippedFrame = profile.equipped_frame || '';
           this.equippedTitle = profile.equipped_title || '';
+          this.maestroActive = !!profile.subscription_cosmetics?.maestro;
           this.updateInitials();
           if (profile.ink_balance !== undefined) {
             this.chatService.updateInkBalance(profile.ink_balance);

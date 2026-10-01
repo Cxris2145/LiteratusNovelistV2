@@ -9,6 +9,7 @@ import lottie from 'lottie-web';
 import { environment } from '../../../environments/environment';
 import { KokoroTtsService } from '../../core/services/kokoro-tts.service';
 import { ChatService } from '../../core/services/chat.service';
+import { SubscriptionService } from '../../core/services/subscription.service';
 import { SpeechRecognitionService } from '../../core/services/speech-recognition.service';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { WasmTtsService } from '../../core/services/wasm-tts.service';
@@ -71,6 +72,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private ngZone = inject(NgZone);
   public kokoroVoice = inject(KokoroTtsService);
   public chatService = inject(ChatService);
+  public subscriptions = inject(SubscriptionService);
   public speechService = inject(SpeechRecognitionService);
   public wasmVoice = inject(WasmTtsService);
   public nativeTts = inject(NativeTtsService);
@@ -3316,7 +3318,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   sendMessage() {
     if (!this.chatInput.trim() || this.isSendingMessage || !this.chatSession) return;
-    if (this.inkBalance <= 0) return;
 
     const content = this.chatInput.trim();
     this.chatInput = '';
@@ -3332,10 +3333,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       created_at: new Date().toISOString()
     });
 
-    this.api.post('ai/chat/', {
-      session_id: this.chatSession.id,
-      message: content
-    }).subscribe({
+    this.subscriptions.sendChat(this.chatSession.id, content).subscribe({
       next: (res: any) => {
         this.chatMessages.push({
           role: 'assistant',

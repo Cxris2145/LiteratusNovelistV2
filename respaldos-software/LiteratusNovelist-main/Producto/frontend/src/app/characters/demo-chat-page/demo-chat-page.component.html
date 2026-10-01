@@ -51,7 +51,7 @@
       <div class="dchat-sidebar-cta" *ngIf="!auth.isLoggedIn()">
         <p>¿Te gustó la experiencia?</p>
         <button class="dchat-register-btn" (click)="goToRegister()" id="dchat-sidebar-register">
-          Regístrate gratis — chatea sin límites
+          Regístrate gratis y elige cómo conversar
         </button>
       </div>
     </aside>
@@ -163,6 +163,8 @@
       </div>
 
       <!-- Limit reached banner -->
+      <app-ai-usage-meter *ngIf="sessionId" [sessionId]="sessionId"></app-ai-usage-meter>
+      <p role="alert" *ngIf="chatError">{{ chatError }}</p>
       <div class="dchat-limit-banner" *ngIf="limitReached">
         <span class="material-symbols-rounded">lock</span>
         <div>
@@ -203,7 +205,7 @@
         <p class="dchat-hint" *ngIf="!auth.isLoggedIn()">
           <span class="material-symbols-rounded" style="font-size:13px; color:var(--glow-gold);">info</span>
           {{ remainingMessages }} mensaje{{ remainingMessages !== 1 ? 's' : '' }} restante{{ remainingMessages !== 1 ? 's' : '' }} ·
-          <a (click)="goToRegister()" style="color: #a855f7; cursor: pointer; text-decoration: underline;">Regístrate gratis</a> para chatear sin límites
+          <a (click)="goToRegister()" style="color:var(--home-amber-ink); cursor:pointer; text-decoration:underline;">Regístrate gratis</a> y elige cómo continuar tus conversaciones
         </p>
       </footer>
 

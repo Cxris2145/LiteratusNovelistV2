@@ -1,266 +1,60 @@
-<div class="tavern-wrapper">
-
-
-  <!-- PARTÍCULAS MÁGICAS -->
-  <div class="particles-field" aria-hidden="true">
-    <span class="particle p1"></span>
-    <span class="particle p2"></span>
-    <span class="particle p3"></span>
-    <span class="particle p4"></span>
-    <span class="particle p5"></span>
-    <span class="particle p6"></span>
-    <span class="particle p7"></span>
-    <span class="particle p8"></span>
-  </div>
-
-  <!-- ═══════════ HERO ═══════════ -->
-  <header class="hero-section reveal">
-    <div class="hero-eyebrow">
-      <span class="eyebrow-dot"></span>
-      <span>Bienvenido a la taberna</span>
-      <span class="eyebrow-dot"></span>
-    </div>
-    <div class="hero-title-row">
-      <div class="ink-factory-sprite" aria-hidden="true"></div>
-      <h1 class="hero-title">La Taberna de Tinta</h1>
-      <div class="ink-factory-sprite ink-factory-sprite--mirror" aria-hidden="true"></div>
-    </div>
-    <p class="hero-subtitle">
-      Cada conversación escribe una historia distinta.<br>
-      Obtén tinta y continúa tu aventura junto a personajes inolvidables.
-    </p>
-  </header>
-
-  <!-- ═══════════ CARRUSEL NARRATIVO ═══════════ -->
-  <section class="carousel-section reveal" aria-label="¿Qué puedes hacer con la tinta?">
-    <p class="carousel-label">¿Qué puedes hacer con la tinta?</p>
-    <div class="carousel-track">
-      <div class="carousel-slide slide-1">
-        <div class="carousel-icon">✦</div>
-        <h3>Conversa con personajes únicos</h3>
-        <p>Interactúa con figuras literarias que recuerdan tu historia y evolucionan contigo.</p>
-      </div>
-      <div class="carousel-slide slide-2">
-        <div class="carousel-icon">⟡</div>
-        <h3>Descubre rutas alternativas</h3>
-        <p>Cada decisión abre un camino diferente. La tinta te permite explorarlos todos.</p>
-      </div>
-      <div class="carousel-slide slide-3">
-        <div class="carousel-icon">◈</div>
-        <h3>Desbloquea secretos narrativos</h3>
-        <p>Algunos personajes guardan secretos que solo comparten cuando los conoces de verdad.</p>
-      </div>
-      <div class="carousel-slide slide-4">
-        <div class="carousel-icon">❋</div>
-        <h3>Crea historias irrepetibles</h3>
-        <p>Tu aventura nunca será idéntica a la de otro lector. Cada gota de tinta es única.</p>
-      </div>
-    </div>
-    <div class="carousel-dots">
-      <span class="cdot cdot-1"></span>
-      <span class="cdot cdot-2"></span>
-      <span class="cdot cdot-3"></span>
-      <span class="cdot cdot-4"></span>
-    </div>
+<main class="tavern">
+  <header class="tavern-hero"><div class="hero-art" aria-hidden="true"></div><div>
+    <h1>La Taberna de Tinta</h1><p class="hero-lead">Elige cómo quieres vivir tus historias.</p>
+    <p>Leer sigue siendo gratis. La suscripción amplía la forma en que interactúas con las historias.</p></div></header>
+  <p class="notice" role="alert" *ngIf="error">{{ error }}</p>
+  <section aria-labelledby="plans-title"><div class="section-heading"><h2 id="plans-title">Un plan para tus conversaciones</h2><span>Pago mensual en USD · Cancela la renovación cuando quieras</span></div>
+    <p *ngIf="loading" role="status">Cargando planes…</p>
+    <div class="plans-grid"><article *ngFor="let plan of plans" class="plan" [class.plan-maestro]="plan.code === 'maestro'">
+      <div class="plan-heading"><span class="material-symbols-rounded" aria-hidden="true">{{ plan.code === 'maestro' ? 'workspace_premium' : 'auto_stories' }}</span><span class="plan-badge" *ngIf="plan.monthly_ink_bonus">Incluye {{ plan.monthly_ink_bonus }} Tinta cada mes</span></div>
+      <h3>{{ plan.name }}</h3><p class="plan-price">{{ price(plan) }} <span>/ mes</span></p>
+      <p class="plan-quota" *ngIf="plan.daily_time_limit === null">Sin límite de tiempo de conversación, sujeto a un cupo diario de {{ formatAmount(plan.daily_token_limit) }} tokens.</p>
+      <p class="plan-description">{{ plan.code === 'maestro' ? 'Para quienes quieren seguir conversando.' : 'Para acompañar tus lecturas de cada día.' }}</p>
+      <ul><li><strong>{{ plan.daily_time_limit === null ? 'Sin límite de tiempo de conversación' : 'Hasta 5 horas activas al día' }}</strong></li><li>Personajes y autores según tu progreso de lectura</li><li>Asistente general gratuito, fuera del cupo</li><li *ngIf="plan.monthly_ink_bonus">{{ plan.monthly_ink_bonus }} Tinta por mensualidad pagada</li><li *ngFor="let benefit of extraBenefits(plan)">{{ benefit }}</li></ul>
+      <p class="plan-quota" *ngIf="plan.daily_time_limit !== null">Incluye hasta {{ formatAmount(plan.daily_token_limit) }} tokens al día. Termina al alcanzar primero el cupo o las 5 horas.</p>
+      <button type="button" class="button plan-button" (click)="choosePlan(plan)" [disabled]="busy || (isLoggedIn() && (!plan.purchasable || (account?.subscription?.active && (account?.subscription?.plan?.code === plan.code || account?.subscription?.cancel_at_period_end))))">{{ account?.subscription?.active && account?.subscription?.plan?.code === plan.code ? 'Tu plan actual' : (account?.subscription?.active ? 'Cambiar a ' : 'Elegir ') + plan.name }}</button>
+      <p class="payment-note" *ngIf="!plan.purchasable">Disponible cuando se habiliten los pagos PayPal.</p>
+    </article></div>
+    <p class="plans-footnote">Los créditos de IA se renuevan cada día y no se acumulan. La Tinta es tu moneda para canjes y extras.</p>
   </section>
-
-  <!-- ═══════════ BALANCE + ANUNCIO ═══════════ -->
-  <section class="top-row reveal">
-
-    <!-- BALANCE CARD -->
-    <div class="balance-card glass-panel">
-      <div class="balance-inner">
-        <span class="balance-label">Tu Reserva de Tinta</span>
-        <div class="balance-counter">
-          <span class="ink-glyph" aria-hidden="true">🖋</span>
-          <span class="balance-number">{{ formatAmount(displayBalance) }}</span>
-          <span class="balance-unit">tinta</span>
-        </div>
-        <p class="balance-hint" *ngIf="isLoggedIn()">
-          Utiliza tinta para conversar con personajes y desbloquear nuevas historias.
-        </p>
-        <p class="balance-hint hint-login" *ngIf="!isLoggedIn()">
-          <a routerLink="/login">Inicia sesión</a> para ver tu reserva de tinta.
-        </p>
-      </div>
+  <section aria-labelledby="account-title"><h2 id="account-title">Tu cuenta en la Taberna</h2>
+    <div class="login-panel" *ngIf="!isLoggedIn()"><p>Inicia sesión para consultar tu plan, tu consumo y tu Tinta.</p><a class="button" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">Iniciar sesión</a></div>
+    <div class="account-grid" *ngIf="isLoggedIn()">
+      <article class="account-panel"><h3>Tu suscripción</h3><ng-container *ngIf="account as current">
+        <p class="account-value">{{ current.subscription?.plan?.name || 'Sin plan' }} <span class="maestro-insignia" *ngIf="current.cosmetics.maestro">✦ Maestro</span></p><p>{{ statusLabel }}</p>
+        <p *ngIf="current.subscription?.cancel_at_period_end">Disponible hasta {{ date(current.subscription?.paid_until) }}</p><p *ngIf="current.subscription && !current.subscription.cancel_at_period_end">Próxima renovación: {{ date(current.subscription.renews_at) }}</p>
+        <p *ngIf="current.subscription?.pending_plan">Cambio solicitado: {{ current.subscription?.pending_plan }}. Pendiente de aprobación o del próximo pago en PayPal.</p>
+        <div class="account-actions"><a href="#plans-title">Administrar plan</a><button type="button" class="text-button" (click)="loadHistory()">{{ showHistory ? 'Ocultar historial' : 'Ver historial' }}</button></div>
+        <details *ngIf="current.subscription?.active && !current.subscription?.cancel_at_period_end"><summary>Cancelar renovación</summary><p>Detendrás futuros cobros. Conservas tus beneficios hasta {{ date(current.subscription?.paid_until) }} y toda tu Tinta.</p><button class="button secondary" type="button" (click)="cancelRenewal()" [disabled]="busy">Confirmar cancelación de renovación</button></details>
+        <button class="button secondary" type="button" *ngIf="current.cosmetics.maestro" (click)="equipFrame()">Equipar marco Maestro</button>
+      </ng-container></article>
+      <article class="account-panel" *ngIf="usage as current"><h3>Tu uso de hoy</h3><ng-container *ngIf="current.has_plan; else noPlan">
+        <div class="meter-heading"><span>Cupo diario de IA</span><strong>{{ percent }}%</strong></div><progress [value]="current.tokens_used" [max]="current.token_limit" aria-label="Cupo diario de IA utilizado"></progress>
+        <p>{{ formatAmount(current.tokens_used) }} / {{ formatAmount(current.token_limit) }} tokens</p><p>{{ current.time_limit === null ? 'Sin límite horario' : 'Tiempo utilizado: ' + elapsed }}</p><p>Reinicio diario: 00:00 de Santiago · en {{ resetIn }}</p>
+        <div class="quota-rest" *ngIf="!current.plan_available"><strong>Tu magia necesita descansar</strong><p>Has utilizado el cupo incluido de hoy. En tu chat puedes aceptar continuar usando Tinta.</p><div class="account-actions"><a routerLink="/characters">Continuar usando Tinta</a><a routerLink="/library">Volver a mi biblioteca</a></div></div>
+      </ng-container><ng-template #noPlan><p>Elige un plan para incluir conversaciones diarias. Puedes seguir conversando con Tinta.</p></ng-template></article>
+      <article class="account-panel ink-panel"><h3>Tu reserva de Tinta</h3><p class="ink-balance"><span aria-hidden="true">✒</span> {{ formatAmount(inkBalance) }} <span>Tinta</span></p><p>Tu saldo se acumula. Úsalo en el Bazar, extras o conversaciones cuyo precio aceptes.</p><a href="#ink-packages">Recargar Tinta</a></article>
     </div>
-
-    <!-- AD CARD -->
-    <div class="ad-card glass-panel" [class.is-loading]="adLoading">
-      <div class="ad-inner">
-        <div class="ad-icon-wrap" aria-hidden="true">📜</div>
-        <h3 class="ad-title">Pergamino de Recompensa</h3>
-        <p class="ad-text">Observa un anuncio breve y recibe tinta adicional para continuar tu aventura.</p>
-
-        <button class="btn-premium" (click)="watchAd()" [disabled]="adLoading" id="watch-ad-btn">
-          <span class="btn-glow"></span>
-          <span *ngIf="!adLoading">✦ Ver Anuncio <em>(+10 Tinta)</em></span>
-          <span *ngIf="adLoading">Visualizando... ({{ adTimer }}s)</span>
-        </button>
-
-        <div class="progress-track" *ngIf="adLoading" role="progressbar">
-          <div class="progress-fill" [style.width.%]="(5 - adTimer) * 20"></div>
-        </div>
-      </div>
-    </div>
-
+    <div class="history" *ngIf="showHistory"><h3>Historial de pagos</h3><p *ngIf="!history.length">Todavía no hay pagos registrados.</p><div class="table-scroll" *ngIf="history.length"><table><thead><tr><th>Fecha</th><th>Compra</th><th>Monto</th><th>Estado</th></tr></thead><tbody><tr *ngFor="let payment of history"><td>{{ date(payment.created_at) }}</td><td>{{ purchaseLabel(payment) }}</td><td>{{ payment.amount }} {{ payment.currency }}</td><td>{{ payment.status }}</td></tr></tbody></table></div>
+      <h3>Movimientos de Tinta</h3><p *ngIf="!inkHistory.length">Todavía no hay movimientos.</p><ul class="ink-movements"><li *ngFor="let entry of inkHistory"><span>{{ date(entry.created_at) }} · {{ inkLabel(entry.concept) }}</span><strong>{{ entry.amount > 0 ? '+' : '' }}{{ entry.amount }} Tinta</strong></li></ul></div>
   </section>
-
-  <!-- ═══════════ SELECTOR DE PESTAÑAS: BAZAR VS COFRES ═══════════ -->
-  <div class="tavern-tab-bar reveal">
-    <button 
-      type="button" 
-      class="tab-switch-btn" 
-      [class.active]="activeTab === 'bazar'"
-      (click)="activeTab = 'bazar'"
-    >
-      <span class="tab-emoji">🏺</span>
-      <span>El Bazar Literario (Canjear Tinta)</span>
-    </button>
-    <button 
-      type="button" 
-      class="tab-switch-btn" 
-      [class.active]="activeTab === 'chests'"
-      (click)="activeTab = 'chests'"
-    >
-      <span class="tab-emoji">👑</span>
-      <span>Cofres de Tinta (Webpay)</span>
-    </button>
-  </div>
-
-  <!-- ═══════════ SECCIÓN 1: EL BAZAR LITERARIO (CANJEAR TINTA) ═══════════ -->
-  <section class="bazar-section reveal" *ngIf="activeTab === 'bazar'">
-    <h2 class="section-title">Artículos de Gamificación y Cosméticos</h2>
-    <p class="section-subtitle">Gasta la tinta que has ganado leyendo y jugando para potenciar tu aventura.</p>
-
-    <div class="bazar-grid">
-      <div 
-        class="bazar-card glass-panel" 
-        *ngFor="let item of shopItems"
-        [class.item-equipped]="item.is_equipped"
-      >
-        <div class="bazar-badge" *ngIf="item.is_equipped">Equipado</div>
-        <div class="bazar-quantity-badge" *ngIf="item.quantity > 0 && !item.is_equipped">Tienes x{{ item.quantity }}</div>
-
-        <div class="bazar-icon-box">
-          <span class="material-symbols-rounded item-glyph">{{ item.icon || 'shopping_bag' }}</span>
-        </div>
-
-        <div class="bazar-info">
-          <h3 class="bazar-item-name">{{ item.name }}</h3>
-          <p class="bazar-item-desc">{{ item.description }}</p>
-        </div>
-
-        <div class="bazar-footer">
-          <div class="bazar-cost">
-            <span class="cost-val">{{ item.cost_ink }}</span>
-            <span class="cost-unit">🖋️ Tinta</span>
-          </div>
-
-          <!-- BOTONES: CANJEAR / EQUIPAR -->
-          <div class="bazar-actions">
-            <button 
-              type="button" 
-              class="btn-bazar-buy"
-              (click)="buyShopItem(item)"
-              [disabled]="inkBalance < item.cost_ink"
-              *ngIf="item.item_type === 'streak_shield' || item.item_type === 'streak_repair' || item.item_type === 'hearts_refill' || !item.is_owned"
-            >
-              Canjear
-            </button>
-
-            <button 
-              type="button" 
-              class="btn-bazar-equip"
-              (click)="equipShopItem(item)"
-              [disabled]="item.is_equipped"
-              *ngIf="item.is_owned && (item.item_type === 'profile_frame' || item.item_type === 'title' || item.item_type === 'theme')"
-            >
-              {{ item.is_equipped ? 'Equipado' : 'Equipar' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <section aria-labelledby="bazar-title"><div class="section-heading"><h2 id="bazar-title">El Bazar Literario</h2><span>Canjea la Tinta que has ganado leyendo y jugando</span></div><p *ngIf="loadingShop" role="status">Preparando el Bazar…</p><p *ngIf="shopError" role="status">{{ shopError }}</p>
+    <div class="shop-grid"><article class="shop-item" *ngFor="let item of shopItems"><span class="material-symbols-rounded item-icon" aria-hidden="true">{{ item.icon || 'shopping_bag' }}</span><div><h3>{{ item.name }}</h3><p>{{ item.description }}</p><small *ngIf="item.quantity > 0">{{ item.is_equipped ? 'Equipado' : 'Tienes ' + item.quantity }}</small></div>
+      <div class="item-footer"><strong>{{ formatAmount(item.cost_ink) }} Tinta</strong><button class="button secondary" type="button" (click)="buyShopItem(item)" [disabled]="busy || (isLoggedIn() && inkBalance < item.cost_ink)" *ngIf="!item.is_owned || item.item_type === 'streak_shield' || item.item_type === 'streak_repair' || item.item_type === 'hearts_refill'">Canjear</button><button class="button secondary" type="button" *ngIf="item.is_owned && (item.item_type === 'profile_frame' || item.item_type === 'title' || item.item_type === 'theme')" (click)="equipShopItem(item)" [disabled]="item.is_equipped">{{ item.is_equipped ? 'Equipado' : 'Equipar' }}</button></div></article></div>
   </section>
-
-  <!-- ═══════════ SECCIÓN 2: COFRES DE MONEDA REAL (WEBPAY) ═══════════ -->
-  <section class="chests-section reveal" *ngIf="activeTab === 'chests'">
-    <h2 class="section-title">Escoge tu cofre de tinta</h2>
-
-    <div class="chests-grid">
-      <div
-        *ngFor="let chest of chests; let i = index"
-        class="chest-card glass-panel"
-        [class.chest-featured]="i === 1"
-        [class.chest-master]="i === 2"
-        [attr.id]="'chest-' + i">
-
-        <!-- Badge -->
-        <span class="chest-badge" *ngIf="i === 1">✦ Más popular</span>
-        <span class="chest-badge chest-badge--value" *ngIf="i === 2">Mejor valor</span>
-
-        <!-- Icono -->
-        <div class="chest-icon-wrap" [ngSwitch]="chest.icon">
-          <svg *ngSwitchCase="'package'" lucidePackage [size]="i === 1 ? 56 : 44" class="lucide-icon"></svg>
-          <svg *ngSwitchCase="'landmark'" lucideLandmark [size]="i === 1 ? 56 : 44" class="lucide-icon"></svg>
-          <svg *ngSwitchCase="'crown'" lucideCrown [size]="i === 1 ? 56 : 44" class="lucide-icon"></svg>
-        </div>
-
-        <!-- Info -->
-        <div class="chest-body">
-          <h3 class="chest-name">{{ chest.title }}</h3>
-          <div class="chest-amount-row">
-            <span class="chest-amount">{{ formatAmount(chest.amount) }}</span>
-            <span class="chest-amount-label">Tinta</span>
-          </div>
-          <p class="chest-tagline" [ngSwitch]="i">
-            <span *ngSwitchCase="0">Ideal para comenzar una nueva aventura.</span>
-            <span *ngSwitchCase="1">La elección favorita de los lectores.</span>
-            <span *ngSwitchCase="2">La mejor relación entre valor y contenido.</span>
-          </p>
-        </div>
-
-        <!-- Botón compra -->
-        <button
-          class="btn-buy"
-          [class.btn-buy--featured]="i === 1"
-          (click)="buyChest(chest)"
-          [attr.id]="'buy-chest-' + i">
-          <span class="btn-glow"></span>
-          Obtener por {{ chest.price }}
-        </button>
-
-      </div>
-    </div>
+  <section aria-labelledby="rewards-title" class="rewards-section"><h2 id="rewards-title">Historias que dan recompensas</h2><div class="rewards-grid">
+    <article><span class="material-symbols-rounded" aria-hidden="true">redeem</span><h3>Recompensa diaria</h3><p>{{ dailyReward?.can_claim ? 'Tu recompensa de hoy está lista: ' + dailyReward.ink_reward + ' Tinta.' : 'Vuelve cada día y consulta tu recompensa en Logros.' }}</p><button class="button secondary" *ngIf="dailyReward?.can_claim" type="button" (click)="claimReward()" [disabled]="busy">Reclamar recompensa</button><a routerLink="/achievements" *ngIf="!dailyReward?.can_claim">Ver recompensas</a></article>
+    <article><span class="material-symbols-rounded" aria-hidden="true">route</span><h3>Misiones y rachas</h3><p>Continúa tu recorrido y descubre las recompensas de La Senda.</p><a routerLink="/learn">Ir a La Senda</a></article>
+    <article><span class="material-symbols-rounded" aria-hidden="true">emoji_events</span><h3>Tus logros</h3><p>Encuentra nuevos desafíos y consulta lo que has conseguido.</p><a routerLink="/achievements">Ver mis logros</a></article></div>
   </section>
-
-  <!-- ═══════════ PERCEPCIÓN DE VALOR ═══════════ -->
-  <section class="value-section reveal">
-    <h2 class="section-title">Con tu tinta podrás:</h2>
-    <ul class="value-list">
-      <li class="value-item vi-1">
-        <svg lucideMessageCircle [size]="20" class="lucide-icon value-icon"></svg>
-        <span>Conversar con personajes que recuerdan tu historia.</span>
-      </li>
-      <li class="value-item vi-2">
-        <svg lucideBookOpen [size]="20" class="lucide-icon value-icon"></svg>
-        <span>Continuar historias donde el tiempo se detuvo.</span>
-      </li>
-      <li class="value-item vi-3">
-        <svg lucideSearch [size]="20" class="lucide-icon value-icon"></svg>
-        <span>Explorar nuevas decisiones y rutas narrativas.</span>
-      </li>
-      <li class="value-item vi-4">
-        <svg lucideStar [size]="20" class="lucide-icon value-icon"></svg>
-        <span>Descubrir finales alternativos que cambian todo.</span>
-      </li>
-    </ul>
+  <section id="ink-packages" aria-labelledby="ink-title"><div class="section-heading"><h2 id="ink-title">Cofres de Tinta</h2><span>Compra puntual en CLP mediante Webpay</span></div><div class="ink-packages"><article *ngFor="let pack of packages"><span class="material-symbols-rounded" aria-hidden="true">inventory_2</span><h3>{{ formatAmount(pack.amount) }} Tinta</h3><p>Se añade a tu saldo y se acumula.</p><button class="button secondary" type="button" (click)="buyInk(pack.amount)">Obtener por ${{ formatAmount(+pack.price) }} CLP</button></article></div></section>
+  <section class="faq" aria-labelledby="faq-title"><h2 id="faq-title">Antes de seguir tu historia</h2>
+    <details><summary>¿Necesito pagar para leer?</summary><p>No. Leer los libros sigue siendo gratis. Los planes amplían las conversaciones con personajes y autores.</p></details>
+    <details><summary>¿En qué se diferencian el cupo de IA y la Tinta?</summary><p>El cupo cubre las conversaciones de tu plan y se renueva cada día. La Tinta es un saldo que se acumula para canjes, extras y conversaciones adicionales.</p></details>
+    <details><summary>¿Cómo se cuentan mis horas y créditos?</summary><p>El tiempo cuenta con el chat visible y actividad reciente; se pausa al salir o tras dos minutos sin interacción. Los tokens incluyen tu mensaje, el contexto y la respuesta. El consumo es compartido por todos tus dispositivos y se reinicia a las 00:00 de Santiago.</p></details>
+    <details><summary>¿Qué ocurre cuando termino mi cupo?</summary><p>Puedes esperar al reinicio diario o aceptar el precio de una respuesta en Tinta. No se descuenta Tinta automáticamente. El asistente general sigue gratuito.</p></details>
+    <details><summary>¿Puedo cancelar o cambiar mi plan?</summary><p>Puedes detener la renovación y conservar tu período pagado y la Tinta recibida. Los cambios de plan se aplican en la siguiente renovación, sin prorrateo.</p></details>
+    <details><summary>¿Maestro incluye audio o desbloquea todos los personajes?</summary><p>Los planes incluyen chat escrito y respetan los desbloqueos por lectura. El audio mantiene sus reglas actuales. La insignia y el marco Maestro están disponibles durante el período pagado.</p></details>
   </section>
-
-  <!-- FOOTER -->
-  <footer class="tavern-footer">
-    <button class="btn-secondary" routerLink="/catalog">← Volver al Catálogo</button>
-  </footer>
-
-</div>
+  <footer class="tavern-footer"><a routerLink="/catalog">Volver al catálogo</a><p>Tu próxima historia comienza con una página.</p></footer>
+</main>
