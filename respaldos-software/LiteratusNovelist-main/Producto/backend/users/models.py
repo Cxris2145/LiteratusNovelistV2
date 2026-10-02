@@ -73,6 +73,7 @@ class Profile(TimeStampedModel):
         on_delete=models.CASCADE,
         related_name='profile'
     ) # Relación 1:1 con el modelo User. Vincula los datos extendidos del perfil a la cuenta principal.
+    avatar = models.TextField(blank=True, default='', help_text="Foto de perfil del usuario (URL o imagen codificada).")
     avatar_color = models.CharField(max_length=20, default='#3b82f6') # Color de fondo para el avatar de iniciales
     bio = models.TextField(blank=True, default='') # Biografía o descripción corta escrita por el usuario.
     country = models.CharField(max_length=100, blank=True, default='') # País de origen o residencia del usuario. Útil para métricas.

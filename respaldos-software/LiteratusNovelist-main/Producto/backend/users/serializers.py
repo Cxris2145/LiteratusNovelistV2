@@ -34,7 +34,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'id', 'avatar_color', 'bio', 'country', 'preferred_language', 
+            'id', 'avatar', 'avatar_color', 'bio', 'country', 'preferred_language', 
             'ink_balance', 'theme', 'xp', 'level', 'level_name', 
             'xp_to_next_level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',

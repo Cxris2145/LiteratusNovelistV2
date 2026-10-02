@@ -80,6 +80,7 @@ export class ProfileComponent implements OnInit {
   equippedFrame: string = '';
   equippedTitle: string = '';
   maestroActive = false;
+  avatarUrl: string | null = null;
 
   constructor() {
     this.profileForm = this.fb.group({
@@ -104,6 +105,7 @@ export class ProfileComponent implements OnInit {
             bio: profile.bio,
             country: profile.country
           });
+          this.avatarUrl = profile.avatar || null;
           this.avatarColor = profile.avatar_color || '#3b82f6';
           this.selectedTheme = profile.theme || 'default';
           this.equippedFrame = profile.equipped_frame || '';
@@ -129,7 +131,59 @@ export class ProfileComponent implements OnInit {
   }
 
   onFileSelected(event: any) {
-    // Se ha deshabilitado la subida de avatares temporalmente.
+    const file: File = event.target?.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Por favor selecciona una imagen válida (JPG, PNG, WEBP).', 'Cerrar', { duration: 3500 });
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      this.snackBar.open('La imagen es demasiado pesada (máx 8MB).', 'Cerrar', { duration: 3500 });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.onload = () => {
+        // Redimensionar para optimizar resolución de avatar a máx 320x320
+        const maxDim = 320;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          this.avatarUrl = canvas.toDataURL('image/jpeg', 0.88);
+          this.profileForm.markAsDirty();
+          this.snackBar.open('Foto cargada en la vista previa. Haz clic en "Guardar Cambios" para confirmar.', 'Entendido', { duration: 4500 });
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeAvatar() {
+    this.avatarUrl = null;
+    this.profileForm.markAsDirty();
+    this.snackBar.open('Foto eliminada. Haz clic en "Guardar Cambios" para confirmar.', 'Entendido', { duration: 4000 });
   }
 
   previewTheme(themeId: string) {
@@ -144,6 +198,7 @@ export class ProfileComponent implements OnInit {
     const payload = {
       bio: this.profileForm.get('bio')?.value || '',
       country: this.profileForm.get('country')?.value || '',
+      avatar: this.avatarUrl || '',
       avatar_color: this.avatarColor,
       theme: this.selectedTheme
     };

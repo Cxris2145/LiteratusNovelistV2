@@ -3,9 +3,28 @@
     <div class="profile-header">
       <div class="avatar-section">
         <div class="avatar-wrapper" [class]="equippedFrame">
-          <div class="initials-avatar-large" [style.background-color]="avatarColor">{{ userInitials }}</div>
+          <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Foto de perfil" class="profile-avatar-img">
+          <div *ngIf="!avatarUrl" class="initials-avatar-large" [style.background-color]="avatarColor">{{ userInitials }}</div>
+          
+          <button type="button" class="avatar-edit-badge" (click)="fileInput.click()" title="Subir o cambiar foto">
+            <span class="material-symbols-rounded">photo_camera</span>
+          </button>
+        </div>
+
+        <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/webp, image/gif" style="display: none;">
+
+        <div class="avatar-actions-row">
+          <button type="button" class="avatar-action-btn" (click)="fileInput.click()">
+            <span class="material-symbols-rounded">cloud_upload</span>
+            <span>{{ avatarUrl ? 'Cambiar foto' : 'Subir foto' }}</span>
+          </button>
+          <button type="button" class="avatar-action-btn remove-photo-btn" *ngIf="avatarUrl" (click)="removeAvatar()" title="Quitar foto y usar color">
+            <span class="material-symbols-rounded">delete</span>
+            <span>Quitar foto</span>
+          </button>
         </div>
       </div>
+
       <h2>Tu Perfil</h2>
       <span class="maestro-insignia" *ngIf="maestroActive">✦ Maestro</span>
       <span class="profile-equipped-title" *ngIf="equippedTitle">📜 {{ equippedTitle }}</span>
@@ -40,7 +59,6 @@
 
         <div class="form-actions">
           <button type="submit" class="glass-btn save-btn" [disabled]="profileForm.invalid || loading">
-            <mat-icon *ngIf="!loading">save</mat-icon>
             <span *ngIf="!loading">Guardar Cambios</span>
             <span *ngIf="loading" class="spinner"></span>
             <span *ngIf="loading">Guardando...</span>
