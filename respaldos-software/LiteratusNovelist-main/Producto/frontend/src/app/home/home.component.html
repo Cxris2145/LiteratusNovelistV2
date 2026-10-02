@@ -349,7 +349,13 @@
       </ul>
       <ng-template #shelfSkeleton>
         <ul class="shelf-row">
-          <li class="shelf-item" *ngFor="let s of [1,2,3,4,5,6]"><span class="book-cover book-cover--ghost"></span></li>
+          <li class="shelf-item" *ngFor="let s of [1,2,3,4,5,6]">
+            <div class="book-card">
+              <span class="book-cover book-cover--ghost"></span>
+              <span class="book-title" style="min-height: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; display: block;"></span>
+              <span class="book-author" style="min-height: 18px; width: 65%; background: rgba(255, 255, 255, 0.03); border-radius: 4px; display: block;"></span>
+            </div>
+          </li>
         </ul>
       </ng-template>
     </div>
