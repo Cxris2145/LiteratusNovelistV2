@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Subject, Observable, BehaviorSubject } from 'rxjs';
+import { Subject, Observable, BehaviorSubject, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ChatService } from './chat.service';
 
 export interface GamificationNotification {
   type: 'ink' | 'xp' | 'level_up' | 'achievement';
@@ -24,7 +25,10 @@ export class GamificationService {
 
   private lastProfile: any = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private chatService: ChatService
+  ) {}
 
   notifyInk(amount: number, concept: string = 'Tinta obtenida') {
     this.notificationsSource.next({ type: 'ink', amount, message: concept });
@@ -81,31 +85,28 @@ export class GamificationService {
 
   getDailyRewardStatus(): Observable<any> {
     return this.http.get<any>(environment.apiUrl + 'library/daily-reward/status/').pipe(
-      // Actualizar automáticamente si se puede reclamar
-      (source$) => new Observable(observer => {
-        source$.subscribe({
-          next: (val) => {
-            this.dailyRewardClaimableSource.next(!!val?.can_claim);
-            observer.next(val);
-          },
-          error: (err) => observer.error(err),
-          complete: () => observer.complete()
-        });
+      tap((val) => {
+        this.dailyRewardClaimableSource.next(!!val?.can_claim);
       })
     );
   }
 
   claimDailyReward(): Observable<any> {
     return this.http.post<any>(environment.apiUrl + 'library/daily-reward/claim/', {}).pipe(
-      (source$) => new Observable(observer => {
-        source$.subscribe({
-          next: (val) => {
-            this.dailyRewardClaimableSource.next(false);
-            observer.next(val);
-          },
-          error: (err) => observer.error(err),
-          complete: () => observer.complete()
-        });
+      tap((val) => {
+        this.dailyRewardClaimableSource.next(false);
+        if (val?.new_ink_balance !== undefined) {
+          this.chatService.updateInkBalance(val.new_ink_balance);
+        }
+        if (this.lastProfile && val?.new_ink_balance !== undefined) {
+          this.lastProfile = {
+            ...this.lastProfile,
+            ink_balance: val.new_ink_balance,
+            xp: val.new_xp !== undefined ? val.new_xp : this.lastProfile.xp,
+            level: val.new_level !== undefined ? val.new_level : this.lastProfile.level
+          };
+          this.profileSource.next(this.lastProfile);
+        }
       })
     );
   }

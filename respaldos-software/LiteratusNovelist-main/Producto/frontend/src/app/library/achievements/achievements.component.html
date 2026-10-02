@@ -55,9 +55,9 @@
         </div>
 
         <!-- RECOMPENSA DIARIA (DAILY REWARD) -->
-        <div class="metric-box daily-reward-box" *ngIf="dailyReward">
-          <span class="metric-icon material-symbols-rounded daily-gift-icon" [class.bounce]="dailyReward.can_claim">
-            featured_seasonal_and_gifts
+        <div class="metric-box daily-reward-box" *ngIf="dailyReward" [class.claimed-box]="!dailyReward.can_claim">
+          <span class="metric-icon material-symbols-rounded daily-gift-icon" [class.bounce]="dailyReward.can_claim" [class.claimed-icon]="!dailyReward.can_claim">
+            {{ dailyReward.can_claim ? 'featured_seasonal_and_gifts' : 'verified' }}
           </span>
           <div class="metric-info">
             <span class="metric-value">+{{ dailyReward.ink_reward }} Tinta</span>
@@ -69,10 +69,14 @@
             [class.claimable]="dailyReward.can_claim"
             [disabled]="!dailyReward.can_claim || isClaimingReward"
             (click)="claimDailyReward()"
+            [attr.aria-label]="dailyReward.can_claim ? 'Reclamar recompensa diaria de tinta' : 'Recompensa diaria ya reclamada'"
           >
-            <span *ngIf="isClaimingReward">...</span>
+            <span *ngIf="isClaimingReward" class="claim-btn-loading">
+              <span class="material-symbols-rounded spin-anim">sync</span>
+              Reclamando...
+            </span>
             <span *ngIf="!isClaimingReward && dailyReward.can_claim">Reclamar</span>
-            <span *ngIf="!isClaimingReward && !dailyReward.can_claim">Reclamado</span>
+            <span *ngIf="!isClaimingReward && !dailyReward.can_claim">✓ Reclamado</span>
           </button>
         </div>
 

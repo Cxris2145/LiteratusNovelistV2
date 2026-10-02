@@ -7,12 +7,14 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { Subject, takeUntil, combineLatest } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   AchievementsService,
   UserAchievement,
   Achievement,
 } from '../../core/services/achievements.service';
 import { GamificationService } from '../../core/services/gamification.service';
+import { ChatService } from '../../core/services/chat.service';
 
 type CategoryFilter = 'all' | 'reading' | 'streak' | 'exploration' | 'time' | 'social';
 
@@ -57,6 +59,8 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   constructor(
     private achievementsService: AchievementsService,
     private gamificationService: GamificationService,
+    private chatService: ChatService,
+    private snack: MatSnackBar,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -81,26 +85,59 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     if (!this.dailyReward?.can_claim || this.isClaimingReward) return;
 
     this.isClaimingReward = true;
+    this.cdr.markForCheck();
+
     this.gamificationService.claimDailyReward()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
           this.isClaimingReward = false;
           this.rewardClaimedSuccess = true;
+          if (this.dailyReward) {
+            this.dailyReward.can_claim = false;
+          }
+
+          // Actualizar inmediatamente el perfil local en pantalla
+          if (this.profile && res.new_ink_balance !== undefined) {
+            this.profile = {
+              ...this.profile,
+              ink_balance: res.new_ink_balance,
+              xp: res.new_xp !== undefined ? res.new_xp : this.profile.xp,
+              level: res.new_level !== undefined ? res.new_level : this.profile.level
+            };
+          }
+
+          // Actualizar el saldo global de tinta en la barra de navegación
+          if (res.new_ink_balance !== undefined) {
+            this.chatService.updateInkBalance(res.new_ink_balance);
+          }
+
+          // Notificaciones flotantes
           this.gamificationService.notifyInk(res.ink_reward, 'Recompensa Diaria');
           this.gamificationService.notifyXP(res.xp_reward, 'Recompensa Diaria');
-          this.dailyReward.can_claim = false;
-          // Recargar perfil e historial
-          this.gamificationService.loadInitialProfile();
+
+          const toastMessage = res.message || `¡Has recibido +${res.ink_reward} Gotas de Tinta y +${res.xp_reward} XP!`;
+          this.snack.open(toastMessage, '¡Genial!', {
+            duration: 4500,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom'
+          });
+
+          // Actualizar historial de tinta
           this.gamificationService.getInkHistory().pipe(takeUntil(this.destroy$)).subscribe(h => {
             this.inkHistory = h;
             this.cdr.markForCheck();
           });
+
           this.cdr.markForCheck();
         },
         error: (err) => {
           this.isClaimingReward = false;
-          console.error('Error al reclamar recompensa diaria:', err);
+          const msg = err.error?.message || err.error?.error || 'No se pudo reclamar la recompensa en este momento.';
+          this.snack.open(msg, 'Cerrar', { duration: 4000 });
+          if (err.status === 400 && (err.error?.error === 'ALREADY_CLAIMED' || err.error?.message?.includes('Ya has reclamado'))) {
+            if (this.dailyReward) this.dailyReward.can_claim = false;
+          }
           this.cdr.markForCheck();
         }
       });

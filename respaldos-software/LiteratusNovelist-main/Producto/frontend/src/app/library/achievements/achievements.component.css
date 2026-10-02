@@ -838,3 +838,29 @@
   animation: giftBounce 1.5s infinite ease-in-out;
 }
 
+.claim-btn-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.spin-anim {
+  animation: spinDaily 1s linear infinite;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+@keyframes spinDaily {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.daily-reward-box.claimed-box {
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.daily-gift-icon.claimed-icon {
+  color: #10b981 !important;
+}
+

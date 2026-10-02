@@ -114,7 +114,19 @@ export class TavernComponent implements OnInit, OnDestroy {
   claimReward(): void {
     if (this.busy) return;
     this.busy = true;
-    this.rewards.claimDailyReward().subscribe({ next: v => { this.busy = false; this.snack.open(v.message, 'Cerrar', { duration: 4000 }); this.refreshAccount(); this.loadReward(); }, error: err => this.operationError(err) });
+    this.rewards.claimDailyReward().subscribe({
+      next: v => {
+        this.busy = false;
+        if (v?.new_ink_balance !== undefined) {
+          this.inkBalance = v.new_ink_balance;
+          this.chat.updateInkBalance(v.new_ink_balance);
+        }
+        this.snack.open(v.message || '¡Recompensa diaria reclamada con éxito!', 'Cerrar', { duration: 4000 });
+        this.refreshAccount();
+        this.loadReward();
+      },
+      error: err => this.operationError(err)
+    });
   }
   private operationError(err: any): void { this.busy = false; this.snack.open(err.error?.message || err.error?.error || 'No se pudo completar la operación. Intenta nuevamente.', 'Cerrar', { duration: 6000 }); }
   ngOnDestroy(): void { if (this.timer) clearInterval(this.timer); this.destroy$.next(); this.destroy$.complete(); }
