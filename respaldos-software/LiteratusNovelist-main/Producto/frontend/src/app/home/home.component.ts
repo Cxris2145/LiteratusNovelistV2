@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, inject, ChangeDetectorRef, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, inject, ChangeDetectorRef, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
@@ -186,6 +186,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   starterBooks: StarterBook[] = [];
   private allBooks: Book[] = [];
 
+  // ─── Carrusel de libros (Clásicos para empezar) ──────────────────────────
+  @ViewChild('shelfTrack') shelfTrack?: ElementRef<HTMLDivElement>;
+  private shelfObserver?: ResizeObserver;
+  shelfCurrentPage = 0;
+  shelfTotalPages = 1;
+  shelfDots: number[] = [];
+  canShelfPrev = false;
+  canShelfNext = true;
+
   // Ilustración del Enigma: "LA ODISEA" con algunas letras aún ocultas.
   readonly enigmaLetters = [
     { ch: 'L', shown: true }, { ch: 'A', shown: true }, { ch: ' ', shown: true },
@@ -235,6 +244,13 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.whenNear('[data-how-step="listen"]', () => this.loadCast());
     this.whenNear('.shelf-section', () => this.loadStarterBooks());
     this.runStatsCounter();
+
+    if (this.shelfTrack?.nativeElement && 'ResizeObserver' in window) {
+      this.shelfObserver = new ResizeObserver(() => {
+        this.zone.run(() => this.updateShelfPagination());
+      });
+      this.shelfObserver.observe(this.shelfTrack.nativeElement);
+    }
   }
 
   ngOnDestroy(): void {
@@ -242,6 +258,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.destroy$.complete();
     this.observers.forEach(o => o.disconnect());
     this.headerObserver?.disconnect();
+    this.shelfObserver?.disconnect();
     this.timers.forEach(t => clearTimeout(t));
     this.stopNarration();
   }
@@ -293,6 +310,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           cover: this.thumb(b.cover_image)
         }));
       this.rescan();
+      setTimeout(() => this.updateShelfPagination(), 100);
     });
   }
 
@@ -460,6 +478,60 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   scrollShelf(track: HTMLElement, direction: number): void {
     const amount = Math.max(260, Math.floor(track.clientWidth * 0.8)) * direction;
     track.scrollBy({ left: amount, behavior: this.prefersReducedMotion ? 'auto' : 'smooth' });
+  }
+
+  onShelfScroll(): void {
+    if (!this.shelfTrack?.nativeElement) return;
+    const el = this.shelfTrack.nativeElement;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 5) {
+      this.canShelfPrev = false;
+      this.canShelfNext = false;
+      this.shelfCurrentPage = 0;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.canShelfPrev = el.scrollLeft > 10;
+    this.canShelfNext = el.scrollLeft < maxScroll - 10;
+
+    const cardWidth = 184 + 22;
+    const visibleCards = Math.max(1, Math.floor(el.clientWidth / cardWidth));
+    const pageFraction = el.scrollLeft / (visibleCards * cardWidth);
+    this.shelfCurrentPage = Math.min(Math.max(0, this.shelfDots.length - 1), Math.max(0, Math.round(pageFraction)));
+    this.cdr.markForCheck();
+  }
+
+  updateShelfPagination(): void {
+    if (!this.shelfTrack?.nativeElement || !this.starterBooks.length) return;
+    const el = this.shelfTrack.nativeElement;
+    const cardWidth = 184 + 22;
+    const visibleCards = Math.max(1, Math.floor(el.clientWidth / cardWidth));
+    const pages = Math.ceil(this.starterBooks.length / visibleCards);
+    this.shelfTotalPages = Math.max(1, pages);
+    this.shelfDots = Array.from({ length: this.shelfTotalPages }, (_, i) => i);
+    this.onShelfScroll();
+    this.cdr.markForCheck();
+  }
+
+  scrollShelfPage(direction: number): void {
+    if (!this.shelfTrack?.nativeElement) return;
+    const el = this.shelfTrack.nativeElement;
+    const cardWidth = 184 + 22;
+    const visibleCards = Math.max(1, Math.floor(el.clientWidth / cardWidth));
+    const scrollAmount = visibleCards * cardWidth * direction;
+    el.scrollBy({ left: scrollAmount, behavior: this.prefersReducedMotion ? 'auto' : 'smooth' });
+    setTimeout(() => this.onShelfScroll(), 350);
+  }
+
+  goToShelfPage(pageIndex: number): void {
+    if (!this.shelfTrack?.nativeElement) return;
+    const el = this.shelfTrack.nativeElement;
+    const cardWidth = 184 + 22;
+    const visibleCards = Math.max(1, Math.floor(el.clientWidth / cardWidth));
+    const targetScroll = pageIndex * visibleCards * cardWidth;
+    el.scrollTo({ left: targetScroll, behavior: this.prefersReducedMotion ? 'auto' : 'smooth' });
+    this.shelfCurrentPage = pageIndex;
+    setTimeout(() => this.onShelfScroll(), 350);
   }
 
   // ─── Cómo funciona: pasos que cambian el panel ──────────────────────────

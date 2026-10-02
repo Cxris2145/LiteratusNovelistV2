@@ -1620,6 +1620,50 @@
   }
 }
 
+.shelf-carousel-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.shelf-carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 4px 0;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--line, rgba(255, 255, 255, 0.22));
+  cursor: pointer;
+  padding: 0;
+  transition: all 260ms var(--ease-editorial, ease);
+}
+
+.carousel-dot:hover {
+  background: var(--home-ink, rgba(255, 255, 255, 0.7));
+  transform: scale(1.25);
+}
+
+.carousel-dot.active {
+  width: 26px;
+  border-radius: 12px;
+  background: var(--accent, #d4af37);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.45);
+}
+
+.round-btn:disabled,
+.round-btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ─── Leer también suma ───────────────────────────────────────────────── */
 .play-grid {
   display: grid;

@@ -324,40 +324,67 @@
         <p class="section-lede">Obras conocidas, completas y con sus personajes listos para conversar.</p>
       </div>
       <div class="head-actions">
-        <button type="button" class="round-btn" (click)="scrollShelf(shelfTrack, -1)" aria-label="Libros anteriores">
+        <button 
+          type="button" 
+          class="round-btn" 
+          [class.disabled]="!canShelfPrev"
+          [disabled]="!canShelfPrev"
+          (click)="scrollShelfPage(-1)" 
+          aria-label="Libros anteriores">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
         </button>
-        <button type="button" class="round-btn" (click)="scrollShelf(shelfTrack, 1)" aria-label="Más libros">
+        <button 
+          type="button" 
+          class="round-btn" 
+          [class.disabled]="!canShelfNext"
+          [disabled]="!canShelfNext"
+          (click)="scrollShelfPage(1)" 
+          aria-label="Más libros">
           <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
         </button>
-        <a routerLink="/catalog" class="text-link">Ver el catálogo completo</a>
+        <a routerLink="/catalog" class="text-link">Ver catálogo completo</a>
       </div>
     </header>
 
-    <div class="shelf-track" #shelfTrack>
-      <ul class="shelf-row" *ngIf="starterBooks.length; else shelfSkeleton" data-scroll-reveal>
-        <li *ngFor="let b of starterBooks; let i = index; trackBy: trackBySlug" class="shelf-item" [style.--i]="i">
-          <a [routerLink]="['/book', b.slug]" class="book-card">
-            <span class="book-cover">
-              <img [src]="b.cover" alt="" loading="lazy" decoding="async" width="360" height="480">
-            </span>
-            <span class="book-title">{{ b.title }}</span>
-            <span class="book-author">{{ b.author || 'Autor desconocido' }}</span>
-            <span class="book-genre" *ngIf="b.genre">{{ b.genre }}</span>
-          </a>
-        </li>
-      </ul>
-      <ng-template #shelfSkeleton>
-        <ul class="shelf-row">
-          <li class="shelf-item" *ngFor="let s of [1,2,3,4,5,6]">
-            <div class="book-card">
-              <span class="book-cover book-cover--ghost"></span>
-              <span class="book-title" style="min-height: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; display: block;"></span>
-              <span class="book-author" style="min-height: 18px; width: 65%; background: rgba(255, 255, 255, 0.03); border-radius: 4px; display: block;"></span>
-            </div>
+    <div class="shelf-carousel-wrap">
+      <div class="shelf-track" #shelfTrack (scroll)="onShelfScroll()">
+        <ul class="shelf-row" *ngIf="starterBooks.length; else shelfSkeleton" data-scroll-reveal>
+          <li *ngFor="let b of starterBooks; let i = index; trackBy: trackBySlug" class="shelf-item" [style.--i]="i">
+            <a [routerLink]="['/book', b.slug]" class="book-card">
+              <span class="book-cover">
+                <img [src]="b.cover" alt="" loading="lazy" decoding="async" width="360" height="480">
+              </span>
+              <span class="book-title">{{ b.title }}</span>
+              <span class="book-author">{{ b.author || 'Autor desconocido' }}</span>
+              <span class="book-genre" *ngIf="b.genre">{{ b.genre }}</span>
+            </a>
           </li>
         </ul>
-      </ng-template>
+        <ng-template #shelfSkeleton>
+          <ul class="shelf-row">
+            <li class="shelf-item" *ngFor="let s of [1,2,3,4,5,6]">
+              <div class="book-card">
+                <span class="book-cover book-cover--ghost"></span>
+                <span class="book-title" style="min-height: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; display: block;"></span>
+                <span class="book-author" style="min-height: 18px; width: 65%; background: rgba(255, 255, 255, 0.03); border-radius: 4px; display: block;"></span>
+              </div>
+            </li>
+          </ul>
+        </ng-template>
+      </div>
+
+      <!-- Indicadores de paginación interactivos (Dots) -->
+      <nav class="shelf-carousel-dots" *ngIf="starterBooks.length && shelfDots.length > 1" aria-label="Páginas del carrusel de libros">
+        <button 
+          *ngFor="let page of shelfDots; let idx = index" 
+          type="button" 
+          class="carousel-dot" 
+          [class.active]="shelfCurrentPage === idx"
+          (click)="goToShelfPage(idx)"
+          [attr.aria-label]="'Ir a la página ' + (idx + 1) + ' de libros'"
+          [attr.aria-current]="shelfCurrentPage === idx ? 'true' : null">
+        </button>
+      </nav>
     </div>
   </section>
 
