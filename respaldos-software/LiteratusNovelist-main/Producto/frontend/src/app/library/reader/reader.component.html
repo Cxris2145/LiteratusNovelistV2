@@ -1080,7 +1080,7 @@
           <div *ngFor="let meaning of dictionaryResult.meanings" class="dict-meaning">
             <span class="dict-pos">{{ $any(meaning).partOfSpeech }}</span>
             <ul>
-              <li *ngFor="let def of $any(meaning).definitions | slice:0:2">
+              <li *ngFor="let def of $any(meaning).definitions | slice:0:3">
                 {{ $any(def).definition }}
                 <em class="dict-example" *ngIf="$any(def).example">"{{ $any(def).example }}"</em>
               </li>

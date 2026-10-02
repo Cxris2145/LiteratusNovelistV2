@@ -3678,6 +3678,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  // Caché de definiciones en memoria para evitar consultas repetitivas en la misma sesión
+  private dictionaryCache = new Map<string, any>();
+
   defineWord() {
     if (!this.selectedText) return;
 
@@ -3687,24 +3690,167 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isDictionaryLoading = true;
     this.dictionaryResult = null;
 
-    // Obtener primera palabra limpia
-    const wordToSearch = this.selectedText.split(/\s+/)[0].replace(/[^\w\sáéíóúÁÉÍÓÚñÑ]/g, '');
+    // Obtener primera palabra limpia (sin signos de puntuación, mayúsculas normalizadas)
+    const rawWord = this.selectedText.trim().split(/\s+/)[0];
+    const wordToSearch = rawWord.replace(/^[^\wáéíóúÁÉÍÓÚñÑ]+|[^\wáéíóúÁÉÍÓÚñÑ]+$/g, '').toLowerCase();
 
-    // Llamada a API de diccionario abierta (Wiktionary / Google / Diccionario abierto)
-    // Usamos la API pública de Free Dictionary API (español soportado de forma limitada, pero sirve de mockup/demo funcional)
-    fetch(`https://api.dictionaryapi.dev/api/v2/entries/es/${encodeURIComponent(wordToSearch.toLowerCase())}`)
+    if (!wordToSearch) {
+      this.dictionaryResult = { error: 'Por favor, selecciona una palabra válida.' };
+      this.isDictionaryLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Verificar en caché local en memoria
+    if (this.dictionaryCache.has(wordToSearch)) {
+      this.dictionaryResult = this.dictionaryCache.get(wordToSearch);
+      this.isDictionaryLoading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // 1. Consultar API oficial de Wikcionario en español (MediaWiki REST extract)
+    const wiktionaryUrl = `https://es.wiktionary.org/w/api.php?action=query&format=json&prop=extracts&explaintext=true&origin=*&titles=${encodeURIComponent(wordToSearch)}`;
+
+    fetch(wiktionaryUrl)
+      .then(res => res.json())
+      .then(json => {
+        const pages = json.query?.pages || {};
+        const firstKey = Object.keys(pages)[0];
+        const page = pages[firstKey];
+
+        if (page && page.missing === undefined && page.extract) {
+          const parsed = this.parseWiktionaryExtract(wordToSearch, page.extract);
+          if (parsed && parsed.meanings.length > 0) {
+            this.dictionaryResult = parsed;
+            this.dictionaryCache.set(wordToSearch, parsed);
+            this.isDictionaryLoading = false;
+            this.cdr.detectChanges();
+            return;
+          }
+        }
+
+        // 2. Si no se halló en Wikcionario, consultar Wikipedia en español (nombres propios, conceptos, mitología)
+        return this.fetchWikipediaFallback(rawWord, wordToSearch);
+      })
+      .catch(() => {
+        this.fetchWikipediaFallback(rawWord, wordToSearch);
+      });
+  }
+
+  private fetchWikipediaFallback(rawWord: string, cleanWord: string): void {
+    const wikiUrl = `https://es.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanWord)}`;
+    fetch(wikiUrl)
       .then(res => {
         if (!res.ok) throw new Error('No encontrado');
         return res.json();
       })
-      .then(data => {
-        this.dictionaryResult = data[0];
+      .then(wikiData => {
+        if (wikiData.extract) {
+          const result = {
+            word: wikiData.title || rawWord,
+            meanings: [
+              {
+                partOfSpeech: wikiData.description || 'Definición enciclopédica',
+                definitions: [
+                  { definition: wikiData.extract }
+                ]
+              }
+            ]
+          };
+          this.dictionaryResult = result;
+          this.dictionaryCache.set(cleanWord, result);
+        } else {
+          this.dictionaryResult = { 
+            error: `No se encontró una definición exacta para "${rawWord}".` 
+          };
+        }
         this.isDictionaryLoading = false;
+        this.cdr.detectChanges();
       })
-      .catch(err => {
-        this.dictionaryResult = { error: 'No se encontró una definición exacta para esta palabra.' };
+      .catch(() => {
+        this.dictionaryResult = { 
+          error: `No se encontró una definición exacta para "${rawWord}".` 
+        };
         this.isDictionaryLoading = false;
+        this.cdr.detectChanges();
       });
+  }
+
+  private parseWiktionaryExtract(word: string, text: string): any {
+    let section = text;
+    const espIdx = text.indexOf('== Español ==');
+    if (espIdx !== -1) {
+      const after = text.substring(espIdx + '== Español =='.length);
+      const nextLang = after.search(/\n== [^=]+ ==/);
+      section = nextLang !== -1 ? after.substring(0, nextLang) : after;
+    }
+
+    const meanings: Array<{ partOfSpeech: string; definitions: Array<{ definition: string }> }> = [];
+    const headerRegex = /(?:={3,4})\s*([^=\n]+)\s*(?:={3,4})/g;
+    let match;
+    const headers: Array<{ title: string; index: number }> = [];
+    while ((match = headerRegex.exec(section)) !== null) {
+      headers.push({ title: match[1].trim(), index: match.index + match[0].length });
+    }
+
+    for (let i = 0; i < headers.length; i++) {
+      const current = headers[i];
+      const next = headers[i + 1];
+      const block = section.substring(current.index, next ? next.index - headers[i + 1].title.length - 8 : undefined);
+
+      if (!/(sustantivo|adjetivo|verbo|adverbio|pronombre|interjección)/i.test(current.title)) {
+        continue;
+      }
+
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+      const defs: string[] = [];
+      for (let j = 0; j < lines.length; j++) {
+        const line = lines[j];
+        if (/^(sinónimos|antónimos|hipónimos|hiperónimos|derivados|uso|ejemplo|relacionados|análisis|cognado)/i.test(line)) continue;
+        if (/^a este lema le falta/i.test(line)) continue;
+        if (/^(\d+)(\s+[A-Za-zÀ-ÿ]+)?$/.test(line)) {
+          if (j + 1 < lines.length && !/^(\d+)/.test(lines[j + 1])) {
+            defs.push(lines[j + 1]);
+            j++;
+          }
+        } else if (/^\d+\s+(.*)/.test(line)) {
+          const m = line.match(/^\d+\s+(.*)/);
+          if (m && m[1].length > 8) defs.push(m[1]);
+        }
+      }
+
+      if (defs.length === 0) {
+        for (const line of lines) {
+          if (line.length > 15 && !/^(etimología|véase|traducciones|enlaces|referencias)/i.test(line)) {
+            defs.push(line);
+            if (defs.length >= 2) break;
+          }
+        }
+      }
+
+      if (defs.length > 0) {
+        meanings.push({
+          partOfSpeech: current.title,
+          definitions: defs.slice(0, 3).map(d => ({ definition: d }))
+        });
+      }
+    }
+
+    // Si no se encontraron secciones formales pero hay texto en español
+    if (meanings.length === 0 && section.trim().length > 20) {
+      const fallbackLines = section.split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 20 && !l.startsWith('=') && !/^(etimología|traducciones|referencias)/i.test(l));
+      if (fallbackLines.length > 0) {
+        meanings.push({
+          partOfSpeech: 'Definición',
+          definitions: fallbackLines.slice(0, 2).map(d => ({ definition: d }))
+        });
+      }
+    }
+
+    return { word, meanings };
   }
 
   closeDictionary() {
