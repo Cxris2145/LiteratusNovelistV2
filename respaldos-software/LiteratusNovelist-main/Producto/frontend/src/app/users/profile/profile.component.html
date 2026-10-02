@@ -9,63 +9,93 @@
       <h2>Tu Perfil</h2>
       <span class="maestro-insignia" *ngIf="maestroActive">✦ Maestro</span>
       <span class="profile-equipped-title" *ngIf="equippedTitle">📜 {{ equippedTitle }}</span>
-      <p class="subtitle">Gestiona tu identidad en Literatus Novelist</p>
+      <p class="subtitle">Gestiona tu identidad, paleta visual y accesibilidad en Literatus Novelist</p>
     </div>
 
-    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
-      <div class="form-group">
-        <label>Nombre de Usuario</label>
-        <input type="text" formControlName="username" class="glass-input" placeholder="Tu alias de escritor">
-      </div>
-
-      <div class="form-group">
-        <label>Correo Electrónico (No modificable)</label>
-        <input type="email" formControlName="email" class="glass-input locked-input">
-        <mat-icon class="lock-icon">lock</mat-icon>
-      </div>
-
-      <div class="form-group color-picker-group">
-        <label>Color de Avatar</label>
-        <div class="color-options">
-          <button type="button" *ngFor="let color of availableColors"
-                  class="color-circle" 
-                  [style.background-color]="color"
-                  [class.selected]="color === avatarColor"
-                  (click)="avatarColor = color"
-                  [attr.aria-label]="'Seleccionar color ' + color"></button>
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-layout-grid">
+      
+      <!-- ═══ COLUMNA PRINCIPAL (IZQUIERDA): DATOS PERSONALES ═══ -->
+      <div class="profile-main-col">
+        <div class="col-section-header">
+          <span class="material-symbols-rounded col-header-icon">badge</span>
+          <h3>Información del Lector</h3>
         </div>
-      </div>
 
-      <div class="form-group theme-picker-group">
-        <label>Apariencia, Contraste y Accesibilidad</label>
-        <p class="field-hint" style="font-size: 0.8rem; color: var(--text-muted); margin-top: -4px; margin-bottom: 8px;">
-          Elige la paleta que mejor se adapte a tu comodidad visual y lectura.
-        </p>
-        <div class="theme-options">
-          <button type="button" *ngFor="let theme of availableThemes"
-                  class="theme-btn" 
-                  [class.selected]="theme.id === selectedTheme"
-                  (click)="previewTheme(theme.id)">
-            {{ theme.label }}
+        <div class="form-group">
+          <label>Nombre de Usuario</label>
+          <input type="text" formControlName="username" class="glass-input" placeholder="Tu alias de escritor" (input)="updateInitials()">
+        </div>
+
+        <div class="form-group">
+          <label>Correo Electrónico (No modificable)</label>
+          <input type="email" formControlName="email" class="glass-input locked-input">
+          <mat-icon class="lock-icon">lock</mat-icon>
+        </div>
+
+        <div class="form-group">
+          <label>Biografía Breve</label>
+          <textarea formControlName="bio" class="glass-input textarea" rows="4"
+            placeholder="Cuéntanos un poco sobre ti, tus autores favoritos o tus lecturas en curso..."></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="glass-btn save-btn" [disabled]="profileForm.invalid || loading">
+            <mat-icon *ngIf="!loading">save</mat-icon>
+            <span *ngIf="!loading">Guardar Cambios</span>
+            <span *ngIf="loading" class="spinner"></span>
+            <span *ngIf="loading">Guardando...</span>
           </button>
         </div>
       </div>
 
+      <!-- ═══ COLUMNA LATERAL (DERECHA): PALETA DE COLORES Y ACCESIBILIDAD ═══ -->
+      <aside class="profile-side-col">
+        <div class="col-section-header">
+          <span class="material-symbols-rounded col-header-icon">palette</span>
+          <h3>Paleta de Colores & Temas</h3>
+        </div>
 
-      <div class="form-group">
-        <label>Biografía Breve</label>
-        <textarea formControlName="bio" class="glass-input textarea" rows="4"
-          placeholder="Cuéntanos un poco sobre ti..."></textarea>
-      </div>
+        <!-- 1. Color de Avatar -->
+        <div class="side-panel-card color-picker-group">
+          <label class="side-label">Color de Avatar</label>
+          <p class="field-hint">Personaliza el tono con el que te identificas en la plataforma:</p>
+          <div class="color-options">
+            <button type="button" *ngFor="let color of availableColors"
+                    class="color-circle" 
+                    [style.background-color]="color"
+                    [class.selected]="color === avatarColor"
+                    (click)="avatarColor = color"
+                    [attr.aria-label]="'Seleccionar color ' + color"></button>
+          </div>
+        </div>
 
-      <div class="form-actions">
-        <button type="submit" class="glass-btn save-btn" [disabled]="profileForm.invalid || loading">
-          <mat-icon *ngIf="!loading">save</mat-icon>
-          <span *ngIf="!loading">Guardar Cambios</span>
-          <span *ngIf="loading" class="spinner"></span>
-          <span *ngIf="loading">Guardando...</span>
-        </button>
-      </div>
+        <!-- 2. Paletas de Contraste y Accesibilidad -->
+        <div class="side-panel-card theme-picker-group">
+          <div class="theme-header-row">
+            <label class="side-label">Paleta de Interfaz</label>
+            <span class="active-theme-tag">Activo: {{ getSelectedThemeLabel() }}</span>
+          </div>
+          <p class="field-hint">
+            Elige la paleta visual que mejor se adapte a tu comodidad de lectura y descanso visual:
+          </p>
+          <div class="theme-cards-list">
+            <button type="button" *ngFor="let theme of availableThemes"
+                    class="theme-card-item" 
+                    [class.selected]="theme.id === selectedTheme"
+                    (click)="previewTheme(theme.id)">
+              <div class="theme-swatch-box" [style.background]="theme.previewBg" [style.border-color]="theme.previewBorder">
+                <span class="theme-swatch-dot" [style.background]="theme.previewAccent"></span>
+              </div>
+              <div class="theme-text-info">
+                <span class="theme-title-text">{{ theme.label }}</span>
+                <span class="theme-desc-text">{{ theme.desc }}</span>
+              </div>
+              <span class="material-symbols-rounded theme-check" *ngIf="theme.id === selectedTheme">check_circle</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
     </form>
   </div>
 </div>

@@ -26,12 +26,54 @@ export class ProfileComponent implements OnInit {
   
   settingsService = inject(SettingsService);
   availableThemes = [
-    { id: 'default', label: 'Azul Tinta (Original / Predeterminado)' },
-    { id: 'high-contrast-dark', label: 'Alto Contraste Nocturno (Fácil Lectura)' },
-    { id: 'high-contrast-light', label: 'Alto Contraste Diurno (Máxima Nitidez)' },
-    { id: 'sepia', label: 'Sepia Cálido (Descanso Visual)' },
-    { id: 'light-gallery', label: 'Galería Minimalista' },
-    { id: 'neon', label: 'Cyber Neon' }
+    { 
+      id: 'default', 
+      label: 'Azul Tinta', 
+      desc: 'Predeterminado · Azul profundo y detalles dorados',
+      previewBg: '#15233B',
+      previewAccent: '#5E80B3',
+      previewBorder: '#263B61'
+    },
+    { 
+      id: 'high-contrast-dark', 
+      label: 'Alto Contraste Oscuro', 
+      desc: 'Accesible · Negro puro (#000000) y texto blanco',
+      previewBg: '#000000',
+      previewAccent: '#FCD34D',
+      previewBorder: '#FFFFFF'
+    },
+    { 
+      id: 'high-contrast-light', 
+      label: 'Alto Contraste Diurno', 
+      desc: 'Accesible · Blanco puro (#FFFFFF) y tinta carbón',
+      previewBg: '#FFFFFF',
+      previewAccent: '#000000',
+      previewBorder: '#9CA3AF'
+    },
+    { 
+      id: 'sepia', 
+      label: 'Modo Lectura Sepia', 
+      desc: 'Cálido · Pergamino suave y descanso visual',
+      previewBg: '#FBF0D9',
+      previewAccent: '#92400E',
+      previewBorder: '#D7BA89'
+    },
+    { 
+      id: 'light-gallery', 
+      label: 'Galería Minimalista', 
+      desc: 'Claro · Gris luminoso y acento azul zafiro',
+      previewBg: '#F8F9FA',
+      previewAccent: '#2563EB',
+      previewBorder: '#E5E7EB'
+    },
+    { 
+      id: 'neon', 
+      label: 'Cyber Neon', 
+      desc: 'Nocturno · Negro espacial y cian vibrante',
+      previewBg: '#0D0F18',
+      previewAccent: '#00FFCC',
+      previewBorder: '#1F293D'
+    }
   ];
   selectedTheme: string = 'default';
 
@@ -75,6 +117,10 @@ export class ProfileComponent implements OnInit {
         }
       }
     });
+  }
+
+  getSelectedThemeLabel(): string {
+    return this.availableThemes.find(t => t.id === this.selectedTheme)?.label || 'Azul Tinta';
   }
 
   updateInitials() {
