@@ -102,6 +102,8 @@
 /* ── BANNERS DE UNIDAD ── */
 .unit-section {
   margin-bottom: 48px;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 450px;
 }
 
 .unit-banner {

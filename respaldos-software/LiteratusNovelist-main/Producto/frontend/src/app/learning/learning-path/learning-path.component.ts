@@ -209,4 +209,12 @@ export class LearningPathComponent implements OnInit, OnDestroy {
   goToTavern(): void {
     this.router.navigate(['/tavern']);
   }
+
+  trackByUnit(index: number, unit: LearningUnit): string {
+    return unit.id || `${unit.unit_number}-${index}`;
+  }
+
+  trackByLevel(index: number, level: LearningLevel): string {
+    return level.id || `${level.level_number}-${index}`;
+  }
 }

@@ -75,11 +75,8 @@ class LearningUnitListSerializer(serializers.ModelSerializer):
 
     def get_levels(self, obj):
         user_progress_map = self._progress_map(obj)
-        # El orden ya viene de Meta.ordering; sin reordenar se aprovecha el prefetch.
         levels_qs = obj.levels.all()
 
-        # Desbloqueo secuencial. La unidad abre cuando se aprobó la prueba de la
-        # anterior (lo decide LearningPathView); sin ese dato, abre siempre.
         data = []
         is_previous_completed = not self.get_is_locked(obj)
 
@@ -88,18 +85,39 @@ class LearningUnitListSerializer(serializers.ModelSerializer):
             is_comp = prog.is_completed if prog else False
             stars = prog.stars if prog else 0
             best_score = prog.best_score if prog else 0
-            
-            # Desbloqueado si el anterior fue completado o si ya se completó este
             unlocked = is_previous_completed or is_comp
 
-            serialized_lvl = LearningLevelListSerializer(lvl).data
-            serialized_lvl['stars'] = stars
-            serialized_lvl['best_score'] = best_score
-            serialized_lvl['is_completed'] = is_comp
-            serialized_lvl['is_unlocked'] = unlocked
-            data.append(serialized_lvl)
+            activities = []
+            try:
+                exercise = getattr(lvl, 'exercise', None)
+                if exercise and exercise.questions_data:
+                    kinds = games.activity_kinds(exercise.questions_data)
+                    if exercise.content_pages:
+                        kinds.insert(0, 'reading')
+                    activities = [{'kind': k, 'label': games.ACTIVITY_LABELS.get(k, k)} for k in kinds]
+            except Exception:
+                activities = []
 
-            # Para el siguiente nivel, actualizamos la condición
+            data.append({
+                'id': str(lvl.id),
+                'level_number': lvl.level_number,
+                'order': lvl.order,
+                'title': lvl.title,
+                'description': lvl.description,
+                'difficulty': lvl.difficulty,
+                'required_score': lvl.required_score,
+                'xp_reward': lvl.xp_reward,
+                'ink_reward': lvl.ink_reward,
+                'is_exam': lvl.is_exam,
+                'is_chest': lvl.is_chest,
+                'icon': lvl.icon,
+                'stars': stars,
+                'best_score': best_score,
+                'is_completed': is_comp,
+                'is_unlocked': unlocked,
+                'activities': activities
+            })
+
             is_previous_completed = is_comp
 
         return data

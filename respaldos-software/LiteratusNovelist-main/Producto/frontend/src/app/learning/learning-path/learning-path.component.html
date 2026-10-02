@@ -52,7 +52,7 @@
   <!-- ── CONTENEDOR PRINCIPAL DEL SENDERO ── -->
   <main class="path-container" *ngIf="!isLoading">
     
-    <div class="unit-section" *ngFor="let unit of units; let uIdx = index" [class.unit-locked]="unit.is_locked">
+    <div class="unit-section" *ngFor="let unit of units; let uIdx = index; trackBy: trackByUnit" [class.unit-locked]="unit.is_locked">
       
       <!-- ENCABEZADO DE UNIDAD (BANNER EDITORIAL) -->
       <section class="unit-banner glass-panel" [style.border-top-color]="unit.banner_color">
@@ -94,7 +94,7 @@
         
         <div 
           class="node-row" 
-          *ngFor="let level of unit.levels; let lIdx = index"
+          *ngFor="let level of unit.levels; let lIdx = index; trackBy: trackByLevel"
           [style.transform]="'translateX(' + getNodeOffset(lIdx) + ')'"
         >
           <!-- BOTÓN NODO -->
