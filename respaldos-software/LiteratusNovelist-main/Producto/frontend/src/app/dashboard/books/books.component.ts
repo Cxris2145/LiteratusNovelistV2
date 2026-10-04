@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-books',
@@ -24,7 +25,10 @@ export class BooksComponent implements OnInit {
 
   actionToast = '';
 
-  constructor(private bookService: DashboardBooksService) {}
+  constructor(
+    private bookService: DashboardBooksService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadBooks();
@@ -123,9 +127,10 @@ export class BooksComponent implements OnInit {
       next: (res) => {
         book.is_published = res.is_published;
         this.actionToast = res.message;
+        this.notificationService.success(res.message, 'Catálogo');
         setTimeout(() => this.actionToast = '', 3500);
       },
-      error: () => alert('No se pudo cambiar el estado de publicación.')
+      error: () => this.notificationService.error('No se pudo cambiar el estado de publicación.', 'Error')
     });
   }
 
@@ -137,10 +142,12 @@ export class BooksComponent implements OnInit {
         next: () => {
           this.books = this.books.filter(b => b.id !== book.id);
           this.applyFilters();
-          this.actionToast = `Libro "${book.title}" eliminado.`;
+          const msg = `Libro "${book.title}" eliminado.`;
+          this.actionToast = msg;
+          this.notificationService.success(msg, 'Libro Eliminado');
           setTimeout(() => this.actionToast = '', 3500);
         },
-        error: () => alert('No se pudo eliminar el libro.')
+        error: () => this.notificationService.error('No se pudo eliminar el libro.', 'Error')
       });
     }
   }

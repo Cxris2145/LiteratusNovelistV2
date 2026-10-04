@@ -49,6 +49,11 @@ urlpatterns = [
     path('api/v1/dashboard/', include('dashboard.urls')),
     path('api/v1/learning/', include('learning.urls')),
     path('api/v1/core/', include('core.urls')),
+
+    # Endpoint alias directo para abandono del enigma
+    path('api/enigma/abandon/', include([
+        path('', lambda req: __import__('library.views', fromlist=['DailyRewardViewSet']).views.DailyRewardViewSet.as_view({'post': 'abandon_enigma'})(req), name='enigma-abandon')
+    ])),
 ]
 
 from django.conf import settings

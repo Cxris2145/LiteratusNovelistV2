@@ -49,20 +49,34 @@ class AdminCurationView(APIView):
 
     def get(self, request):
         pending_books = (
-            Book.objects.filter(Q(is_published=False) | Q(status=Book.StatusChoices.DRAFT))
+            Book.objects.filter(
+                Q(is_published=False) |
+                Q(status=Book.StatusChoices.DRAFT) |
+                Q(status=Book.StatusChoices.PENDING_REVIEW)
+            )
             .annotate(
                 anno_chapters_count=Count('chapters', distinct=True)
             )
+            .select_related('submitted_by')
             .prefetch_related('authors', 'genres')
             .order_by('-updated_at')
         )
 
-        data = [
-            {
+        data = []
+        for b in pending_books:
+            has_cover = bool(b.cover_image)
+            has_synopsis = bool(b.synopsis and len(b.synopsis.strip()) >= 50)
+            has_genres = b.genres.count() > 0
+            has_content = b.anno_chapters_count > 0 or bool(b.pdf_file)
+            has_declaration = bool(b.submission_declaration)
+            meets_all = has_cover and has_synopsis and has_genres and has_content
+
+            data.append({
                 'id': str(b.pk),
                 'title': b.title,
                 'slug': b.slug,
                 'status': b.status,
+                'status_label': b.get_status_display(),
                 'is_published': b.is_published,
                 'difficulty_level': b.difficulty_level,
                 'authors': [a.full_name for a in b.authors.all()],
@@ -72,10 +86,34 @@ class AdminCurationView(APIView):
                 'word_count': b.word_count,
                 'created_at': b.created_at,
                 'updated_at': b.updated_at,
-                'synopsis': b.synopsis[:300] if b.synopsis else '',
-            }
-            for b in pending_books
-        ]
+                'synopsis': b.synopsis or '',
+                'submitted_by': {
+                    'username': b.submitted_by.username,
+                    'full_name': (f"{b.submitted_by.first_name} {b.submitted_by.last_name}".strip() or b.submitted_by.username),
+                    'email': b.submitted_by.email
+                } if b.submitted_by else None,
+                'submitted_by_name': (f"{b.submitted_by.first_name} {b.submitted_by.last_name}".strip() or b.submitted_by.username) if b.submitted_by else None,
+                'submitted_by_email': b.submitted_by.email if b.submitted_by else None,
+                'editorial_notes': b.editorial_notes,
+                'submission_declaration': b.submission_declaration,
+                'requirements_checklist': {
+                    'cover': has_cover,
+                    'synopsis': has_synopsis,
+                    'genres': has_genres,
+                    'content': has_content,
+                    'declaration': has_declaration,
+                    'title': len(b.title.strip()) >= 3,
+                },
+                'requirements_details': {
+                    'cover': {'passed': has_cover, 'label': 'Portada en formato válido'},
+                    'synopsis': {'passed': has_synopsis, 'label': 'Sinopsis descriptiva (mínimo 50 caracteres)'},
+                    'genres': {'passed': has_genres, 'label': 'Al menos una categoría o género literario'},
+                    'content': {'passed': has_content, 'label': 'Manuscrito adjunto (capítulos o archivo PDF/EPUB)'},
+                    'declaration': {'passed': has_declaration, 'label': 'Declaración jurada de autoría y derechos'}
+                },
+                'meets_minimum_requirements': meets_all,
+            })
+
         return Response({
             'total_pending': len(data),
             'books': data
@@ -111,22 +149,55 @@ class AdminBookTogglePublishView(APIView):
 class AdminBookApproveView(APIView):
     """
     POST /api/dashboard/books/<uuid:pk>/approve/
-    Aprueba y publica formalmente un libro.
+    Aprueba y publica formalmente un libro que cumple con los requisitos mínimos.
     """
     permission_classes = [IsAdminUser]
 
     def post(self, request, pk):
         book = get_object_or_404(Book, pk=pk)
+        notes = request.data.get('notes', request.data.get('editorial_notes', ''))
+
         book.is_published = True
         book.status = Book.StatusChoices.PUBLISHED
-        book.save(update_fields=['is_published', 'status', 'updated_at'])
+        update_fields = ['is_published', 'status', 'updated_at']
+        if notes:
+            book.editorial_notes = notes
+            update_fields.append('editorial_notes')
+        book.save(update_fields=update_fields)
 
         return Response({
             'success': True,
             'id': str(book.pk),
             'is_published': True,
             'status': 'published',
-            'message': f'Libro "{book.title}" aprobado y publicado exitosamente.'
+            'editorial_notes': book.editorial_notes,
+            'message': f'Libro "{book.title}" aprobado y publicado exitosamente en el catálogo.'
+        })
+
+
+class AdminBookRejectView(APIView):
+    """
+    POST /api/dashboard/books/<uuid:pk>/reject/
+    Rechaza una obra con observaciones editoriales para el autor remitente.
+    """
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, pk):
+        book = get_object_or_404(Book, pk=pk)
+        notes = request.data.get('notes', request.data.get('editorial_notes', 'La obra no cumple con los requisitos mínimos editoriales para su publicación.'))
+
+        book.is_published = False
+        book.status = Book.StatusChoices.REJECTED
+        book.editorial_notes = notes
+        book.save(update_fields=['is_published', 'status', 'editorial_notes', 'updated_at'])
+
+        return Response({
+            'success': True,
+            'id': str(book.pk),
+            'is_published': False,
+            'status': 'rejected',
+            'editorial_notes': notes,
+            'message': f'La obra "{book.title}" ha sido rechazada con observaciones editoriales.'
         })
 
 

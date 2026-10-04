@@ -6,6 +6,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
+import { OnboardingComponent } from './auth/onboarding/onboarding.component';
 import { BookListComponent } from './catalog/book-list/book-list.component';
 import { ReaderComponent } from './library/reader/reader.component';
 import { ReaderTabsComponent } from './library/reader/reader-tabs/reader-tabs.component';
@@ -28,6 +29,7 @@ import { CheckoutComponent } from './catalog/checkout/checkout.component';
 import { PaymentSuccessComponent } from './catalog/payment-success/payment-success.component';
 import { PaymentFailureComponent } from './catalog/payment-failure/payment-failure.component';
 import { LibraryListComponent } from './library/library-list/library-list.component';
+import { AuthorSubmitBookComponent } from './catalog/author-submit-book/author-submit-book.component';
 import { CharacterHubComponent } from './characters/character-hub/character-hub.component';
 import { DemoChatPageComponent } from './characters/demo-chat-page/demo-chat-page.component';
 import { AudioVisualizerComponent } from './core/components/audio-visualizer/audio-visualizer.component';
@@ -54,6 +56,7 @@ import { CartComponent } from './catalog/cart/cart.component';
 import { AssistantWidgetComponent } from './core/components/assistant-widget/assistant-widget.component';
 import { AchievementsComponent } from './library/achievements/achievements.component';
 import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
+import { BlindInterrogationComponent } from './library/games/blind-interrogation/blind-interrogation.component';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
 import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive';
 import { CountUpDirective } from './core/directives/count-up.directive';
@@ -100,7 +103,10 @@ import { InkwellComponent } from './library/tavern/inkwell/inkwell.component';
     ScrollRevealDirective,
     CountUpDirective,
     TiltDirective,
-    InkwellComponent
+    InkwellComponent,
+    AuthorSubmitBookComponent,
+    OnboardingComponent,
+    BlindInterrogationComponent
   ],
 
 

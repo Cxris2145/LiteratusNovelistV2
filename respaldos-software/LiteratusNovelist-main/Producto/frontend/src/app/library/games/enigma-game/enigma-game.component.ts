@@ -3,6 +3,11 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { ChatService } from '../../../core/services/chat.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../core/services/notification.service';
+import { Observable, Subject } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+
+import { CanComponentDeactivate } from '../../../core/guards/enigma-exit.guard';
 
 export interface EnigmaLetterItem {
   id: string;
@@ -26,10 +31,11 @@ export interface EnigmaWord {
   templateUrl: './enigma-game.component.html',
   styleUrls: ['./enigma-game.component.css']
 })
-export class EnigmaGameComponent implements OnInit, OnDestroy {
+export class EnigmaGameComponent implements OnInit, OnDestroy, CanComponentDeactivate {
   private api = inject(ApiService);
   private chatService = inject(ChatService);
   private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
   private router = inject(Router);
 
   // Banco curado de respaldo con obras clásicas universales
@@ -173,6 +179,12 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
   isLoadingEnigma = true;
   hasInventoryBooks = false;
 
+  // Estado del modal de advertencia de salida y penalización
+  showExitModal = false;
+  isAbandoning = false;
+  private hasConfirmedExit = false;
+  private exitSubject?: Subject<boolean>;
+
   todayDateStr = '';
   todayDisplayDate = '';
   nextEnigmaCountdown = '';
@@ -190,6 +202,127 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.countdownTimer) {
       clearInterval(this.countdownTimer);
+    }
+  }
+
+  /**
+   * Router Guard: CanDeactivate
+   * Si el juego está en curso ('playing') y el usuario intenta cambiar de ruta,
+   * se abre el modal de advertencia y se bloquea la navegación hasta que decida.
+   */
+  canDeactivate(): Observable<boolean> | boolean {
+    if (this.gameStatus !== 'playing' || this.hasConfirmedExit) {
+      return true;
+    }
+
+    if (!this.isLoggedIn) {
+      return true;
+    }
+
+    this.showExitModal = true;
+    this.exitSubject = new Subject<boolean>();
+    return this.exitSubject.asObservable();
+  }
+
+  /**
+   * Cancela la salida: mantiene al usuario exactamente donde estaba en la partida.
+   */
+  cancelExit(): void {
+    this.showExitModal = false;
+    if (this.exitSubject) {
+      this.exitSubject.next(false);
+      this.exitSubject.complete();
+      this.exitSubject = undefined;
+    }
+  }
+
+  /**
+   * Confirma la salida y ejecuta la penalización en el backend:
+   * Registra el enigma como no descubierto (score 0), bloquea nuevos intentos y redirige.
+   */
+  confirmExitAndPenalize(): void {
+    if (this.isAbandoning) return;
+    this.isAbandoning = true;
+
+    this.api.post<any>('library/daily-reward/abandon-enigma/', {}).pipe(
+      finalize(() => {
+        this.isAbandoning = false;
+      })
+    ).subscribe({
+      next: (res) => {
+        this.gameStatus = 'lost';
+        this.isRewardClaimed = true;
+        this.saveDailyState();
+        this.hasConfirmedExit = true;
+        this.showExitModal = false;
+
+        this.notificationService.warning(
+          'Has salido del enigma de hoy. Se ha registrado como no descubierto (0 puntos) y se han inhabilitado nuevos intentos hoy.',
+          'Enigma Abandonado'
+        );
+
+        if (this.exitSubject) {
+          this.exitSubject.next(true);
+          this.exitSubject.complete();
+          this.exitSubject = undefined;
+        } else {
+          this.router.navigate(['/home']);
+        }
+      },
+      error: () => {
+        // En caso de fallo de red, se penaliza localmente para preservar la regla de negocio
+        this.gameStatus = 'lost';
+        this.isRewardClaimed = true;
+        this.saveDailyState();
+        this.hasConfirmedExit = true;
+        this.showExitModal = false;
+
+        if (this.exitSubject) {
+          this.exitSubject.next(true);
+          this.exitSubject.complete();
+          this.exitSubject = undefined;
+        } else {
+          this.router.navigate(['/home']);
+        }
+      }
+    });
+  }
+
+  /**
+   * Cierre o recarga de pestaña forzada (F5 o cerrar ventana):
+   * Dispara advertencia nativa del navegador y envía señal de abandono al backend de emergencia.
+   */
+  @HostListener('window:beforeunload', ['$event'])
+  handleBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.gameStatus === 'playing' && this.isLoggedIn && !this.hasConfirmedExit) {
+      const token = localStorage.getItem('access_token');
+      const url = '/api/v1/library/daily-reward/abandon-enigma/';
+
+      try {
+        if (token) {
+          fetch(url, {
+            method: 'POST',
+            keepalive: true,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ reason: 'beforeunload', token })
+          }).catch(() => {});
+        } else if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify({ reason: 'beforeunload', token })], { type: 'application/json' });
+          navigator.sendBeacon(url, blob);
+        }
+      } catch (e) {
+        // Fallback silencioso
+      }
+
+      this.gameStatus = 'lost';
+      this.isRewardClaimed = true;
+      this.saveDailyState();
+
+      event.preventDefault();
+      event.returnValue = '';
     }
   }
 
@@ -308,6 +441,23 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
     const savedState = savedRaw ? JSON.parse(savedRaw) : null;
 
     if (this.isLoggedIn) {
+      this.api.get<any>('library/daily-reward/enigma-status/').subscribe({
+        next: (status) => {
+          if (status) {
+            if (status.status === 'unsolved' || (status.attempted && status.score === 0)) {
+              this.gameStatus = 'lost';
+              this.isRewardClaimed = true;
+              this.saveDailyState();
+              this.updateWordGroups();
+            } else if (status.can_claim === false || status.status === 'solved') {
+              this.isRewardClaimed = true;
+              this.saveDailyState();
+            }
+          }
+        },
+        error: () => {}
+      });
+
       this.api.get<any[]>('library/inventory/').subscribe({
         next: (res: any) => {
           const items: any[] = Array.isArray(res) ? res : (res?.results || []);
@@ -401,7 +551,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
       this.mistakesCount++;
       if (this.mistakesCount >= this.maxMistakes) {
         this.gameStatus = 'lost';
-        this.snackBar.open(`¡Tinta agotada! La solución era: ${this.currentWord.word}`, 'Entendido', { duration: 4000 });
+        this.notificationService.warning(`La palabra oculta era: «${this.currentWord.word}». ¡Vuelve a intentarlo mañana!`, 'Tinta Agotada');
       }
     }
 
@@ -424,31 +574,35 @@ export class EnigmaGameComponent implements OnInit, OnDestroy {
     if (this.isRewardClaimed) return;
 
     if (!this.isLoggedIn) {
-      this.snackBar.open('¡Enigma diario descifrado! Inicia sesión para guardar tu recompensa.', 'Entendido', { duration: 4000 });
+      this.notificationService.info('¡Enigma diario descifrado! Inicia sesión para registrar tu recompensa.', 'Enigma Completado');
       return;
     }
 
     this.isClaiming = true;
-    this.api.post<any>('users/me/add_ink/', { amount: this.rewardAmount }).subscribe({
+    this.api.post<any>('library/daily-reward/claim-enigma/', {}).subscribe({
       next: (res) => {
         this.isClaiming = false;
         this.isRewardClaimed = true;
         this.saveDailyState();
 
+        const earned = res?.ink_reward || this.rewardAmount;
         if (res && res.ink_balance !== undefined) {
           this.userInkBalance = res.ink_balance;
           this.chatService.updateInkBalance(this.userInkBalance);
         } else {
-          this.userInkBalance += this.rewardAmount;
+          this.userInkBalance += earned;
           this.chatService.updateInkBalance(this.userInkBalance);
         }
 
-        this.snackBar.open(`¡Excelente! Has ganado +${this.rewardAmount} Gotas de Tinta por descifrar el enigma de hoy.`, 'Genial', { duration: 4500 });
+        this.notificationService.gamify('ink', earned, `¡Has ganado +${earned} Gotas de Tinta y +${res?.xp_reward || 20} XP por descifrar el enigma de hoy!`, 'Enigma Descifrado');
       },
-      error: () => {
+      error: (err) => {
         this.isClaiming = false;
         this.isRewardClaimed = true;
         this.saveDailyState();
+        if (err?.error?.error === 'ALREADY_CLAIMED') {
+          this.notificationService.info('Ya has reclamado la recompensa del enigma de hoy. ¡Vuelve mañana para un nuevo reto!', 'Enigma Diario');
+        }
       }
     });
   }

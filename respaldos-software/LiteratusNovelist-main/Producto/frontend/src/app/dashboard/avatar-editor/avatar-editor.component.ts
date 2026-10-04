@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-avatar-editor',
@@ -55,7 +56,8 @@ export class AvatarEditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     public router: Router,
-    private bookService: DashboardBooksService
+    private bookService: DashboardBooksService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -208,12 +210,12 @@ export class AvatarEditorComponent implements OnInit {
       this.bookService.deleteAvatar(this.avatarId).subscribe({
         next: () => {
           this.saving = false;
-          alert('Personaje eliminado correctamente.');
+          this.notificationService.success('Personaje eliminado correctamente.', 'Personajes');
           this.goBack();
         },
         error: (err) => {
           this.saving = false;
-          alert('Error al eliminar: ' + (err.error?.error || 'Desconocido'));
+          this.notificationService.error('Error al eliminar: ' + (err.error?.error || 'Desconocido'), 'Error');
         }
       });
     }

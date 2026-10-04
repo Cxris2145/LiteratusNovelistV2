@@ -755,6 +755,46 @@
 /* ────────────────────────────────────────────────────────
    MODAL STYLES (Responsive)
    ──────────────────────────────────────────────────────── */
+.avatar-modal-overlay,
+.mini-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.secondary-btn {
+  background: var(--home-bg-surface);
+  border: 1px solid var(--home-glass-border);
+  color: var(--home-ink);
+}
+
+.secondary-btn:hover {
+  background: var(--home-parchment);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--home-shadow);
+}
+
+.spinner-small {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spinSmall 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spinSmall {
+  to { transform: rotate(360deg); }
+}
+
 .avatar-modal {
   text-align: center;
   padding: 3rem;

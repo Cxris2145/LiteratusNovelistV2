@@ -541,3 +541,494 @@ class AssistantChatView(APIView):
             "conversation_id": str(conversation.id),
             "conversation_title": conversation.title,
         }, status=status.HTTP_200_OK)
+
+
+# ==============================================================================
+# MINIJUEGO: EL INTERROGATORIO A CIEGAS (BLIND INTERROGATION)
+# ==============================================================================
+import random
+from django.utils import timezone
+from library.models import InkTransaction
+from library.achievement_engine import reward_activity
+from .models import BlindInterrogationSession
+from .services import BlindInterrogationAIService
+
+
+def _format_interrogation_session(session, include_secret=False):
+    """Auxiliar para formatear los datos públicos de una sesión de interrogatorio con trazabilidad de biblioteca."""
+    from .models import AIAvatar
+    from library.models import UserInventory, Edition
+
+    avatar_ids = session.candidate_order or []
+    avatars_by_id = {str(a.id): a for a in AIAvatar.objects.filter(id__in=avatar_ids).select_related('edition__book')}
+    
+    # Conjunto de ediciones y libros adquiridos por el usuario
+    user_inventory_editions = set(UserInventory.objects.filter(
+        user=session.user,
+        deleted_at__isnull=True
+    ).values_list('edition_id', flat=True))
+
+    user_book_ids = set(Edition.objects.filter(
+        id__in=user_inventory_editions
+    ).values_list('book_id', flat=True))
+
+    suspects = []
+    discarded_set = set(session.discarded_avatar_ids or [])
+    for aid in avatar_ids:
+        av = avatars_by_id.get(str(aid))
+        if av:
+            book = av.edition.book if av.edition else None
+            book_title = book.title if book else "Obra literaria"
+            book_id = book.id if book else None
+            first_author = book.authors.first() if book else None
+            author_name = first_author.full_name if first_author else ""
+            img_url = av.avatar_image.url if av.avatar_image else ""
+
+            # Determinar explícitamente si el libro está en la biblioteca del usuario
+            is_in_library = bool(
+                av.edition_id in user_inventory_editions or 
+                (book_id and book_id in user_book_ids)
+            )
+
+            suspects.append({
+                "id": str(av.id),
+                "name": av.name,
+                "book_title": book_title,
+                "book_id": book_id,
+                "author_name": author_name,
+                "image": img_url,
+                "is_discarded": str(av.id) in discarded_set,
+                "is_in_library": is_in_library
+            })
+
+    owned_suspects_count = sum(1 for s in suspects if s.get("is_in_library"))
+    catalog_suspects_count = len(suspects) - owned_suspects_count
+
+    sec = session.avatar
+    sec_book = sec.edition.book if sec.edition else None
+    sec_book_id = sec_book.id if sec_book else None
+    secret_is_in_library = bool(
+        sec.edition_id in user_inventory_editions or 
+        (sec_book_id and sec_book_id in user_book_ids)
+    )
+
+    data = {
+        "id": str(session.id),
+        "status": session.status,
+        "questions_allowed": session.questions_allowed,
+        "questions_used": session.questions_used,
+        "questions_left": max(0, session.questions_allowed - session.questions_used),
+        "extra_questions_bought": session.extra_questions_bought,
+        "clues_bought": session.clues_bought,
+        "discarded_avatar_ids": session.discarded_avatar_ids or [],
+        "dialogue_history": session.dialogue_history or [],
+        "suspects": suspects,
+        "is_secret_in_library": secret_is_in_library,
+        "owned_suspects_count": owned_suspects_count,
+        "catalog_suspects_count": catalog_suspects_count,
+        "ink_earned": session.ink_earned,
+        "xp_earned": session.xp_earned,
+        "is_official_daily": session.is_official_daily,
+        "created_at": session.created_at,
+    }
+
+    if include_secret or session.status in ['won', 'lost', 'abandoned']:
+        sec = session.avatar
+        sec_book = sec.edition.book if sec.edition else None
+        sec_author = sec_book.authors.first() if sec_book else None
+        sec_book_id = sec_book.id if sec_book else None
+        sec_in_library = bool(
+            sec.edition_id in user_inventory_editions or 
+            (sec_book_id and sec_book_id in user_book_ids)
+        )
+
+        data["secret_avatar"] = {
+            "id": str(sec.id),
+            "name": sec.name,
+            "book_title": sec_book.title if sec_book else "",
+            "book_id": sec_book_id,
+            "author_name": sec_author.full_name if sec_author else "",
+            "image": sec.avatar_image.url if sec.avatar_image else "",
+            "description": sec.description or sec.behavioral_context or "",
+            "is_in_library": sec_in_library
+        }
+
+    return data
+
+
+class InterrogationStatusView(APIView):
+    """
+    GET /api/v1/ai/games/interrogation/status/
+    Consulta el estado del interrogatorio del usuario: si hay partida activa,
+    si ya jugó el reto oficial de hoy y su saldo de tinta.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        today = timezone.localdate()
+        profile = getattr(request.user, 'profile', None)
+        user_ink = profile.ink_balance if profile else 0
+
+        # Buscar si tiene una sesión 'playing' activa
+        active_session = BlindInterrogationSession.objects.filter(
+            user=request.user,
+            status='playing'
+        ).first()
+
+        # Verificar si ya completó el interrogatorio oficial de hoy
+        daily_completed = BlindInterrogationSession.objects.filter(
+            user=request.user,
+            game_date=today,
+            status__in=['won', 'lost', 'abandoned'],
+            is_official_daily=True
+        ).exists()
+
+        last_session = BlindInterrogationSession.objects.filter(
+            user=request.user,
+            game_date=today,
+            status__in=['won', 'lost', 'abandoned']
+        ).first()
+
+        return Response({
+            "user_ink": user_ink,
+            "has_active_session": active_session is not None,
+            "active_session": _format_interrogation_session(active_session) if active_session else None,
+            "daily_completed": daily_completed,
+            "last_result": _format_interrogation_session(last_session, include_secret=True) if last_session else None
+        }, status=status.HTTP_200_OK)
+
+
+class InterrogationStartView(APIView):
+    """
+    POST /api/v1/ai/games/interrogation/start/
+    Inicia una nueva partida de Interrogatorio a Ciegas. Si el usuario ya tiene
+    una partida activa en curso, la retoma.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        today = timezone.localdate()
+        from library.models import UserInventory, Edition
+
+        # 1. Retomar partida activa si existe
+        active_session = BlindInterrogationSession.objects.filter(
+            user=request.user,
+            status='playing'
+        ).first()
+        if active_session:
+            return Response(_format_interrogation_session(active_session), status=status.HTTP_200_OK)
+
+        # 2. Comprobar si es oficial del día
+        already_official = BlindInterrogationSession.objects.filter(
+            user=request.user,
+            game_date=today,
+            status__in=['won', 'lost', 'abandoned'],
+            is_official_daily=True
+        ).exists()
+        is_official = not already_official
+
+        # 3. Extraer avatares de la biblioteca del usuario
+        owned_editions = set(UserInventory.objects.filter(
+            user=request.user,
+            deleted_at__isnull=True
+        ).values_list('edition_id', flat=True))
+
+        owned_book_ids = set(Edition.objects.filter(
+            id__in=owned_editions
+        ).values_list('book_id', flat=True))
+
+        owned_avatars = list(AIAvatar.objects.filter(
+            Q(edition_id__in=owned_editions) | Q(edition__book_id__in=owned_book_ids),
+            is_author=False
+        ).exclude(avatar_image='').select_related('edition__book'))
+
+        fallback_avatars = list(AIAvatar.objects.filter(
+            is_major_character=True,
+            is_author=False
+        ).exclude(avatar_image='').select_related('edition__book')[:60])
+
+        if owned_avatars:
+            # PRIORIZAR que el sospechoso secreto incógnito SEA DE LA BIBLIOTECA DEL USUARIO
+            secret_avatar = random.choice(owned_avatars)
+            other_owned = [a for a in owned_avatars if a.id != secret_avatar.id]
+            distractors = []
+
+            if len(other_owned) >= 3:
+                distractors = random.sample(other_owned, 3)
+            else:
+                distractors.extend(other_owned)
+                owned_ids = {a.id for a in owned_avatars}
+                catalog_pool = [a for a in fallback_avatars if a.id not in owned_ids and a.id != secret_avatar.id]
+                needed = 3 - len(distractors)
+                if len(catalog_pool) >= needed:
+                    distractors.extend(random.sample(catalog_pool, needed))
+                else:
+                    distractors.extend(catalog_pool)
+        else:
+            # Si el usuario no tiene avatares en su biblioteca, usar catálogo general
+            if len(fallback_avatars) < 4:
+                return Response(
+                    {"error": "No hay suficientes personajes registrados para iniciar el interrogatorio."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            secret_avatar = random.choice(fallback_avatars)
+            distractor_pool = [a for a in fallback_avatars if a.id != secret_avatar.id]
+            distractors = random.sample(distractor_pool, 3)
+
+        distractor_ids = [str(d.id) for d in distractors]
+
+        candidates = [secret_avatar] + distractors
+        random.shuffle(candidates)
+        candidate_order = [str(c.id) for c in candidates]
+
+        greeting = (
+            "Te observo desde los márgenes de una historia que crees conocer. "
+            "Tienes tres preguntas para deducir quién soy antes de que la tinta se desvanezca..."
+        )
+
+        session = BlindInterrogationSession.objects.create(
+            user=request.user,
+            avatar=secret_avatar,
+            distractor_avatar_ids=distractor_ids,
+            candidate_order=candidate_order,
+            questions_allowed=3,
+            questions_used=0,
+            extra_questions_bought=0,
+            clues_bought=0,
+            discarded_avatar_ids=[],
+            dialogue_history=[
+                {"role": "character", "content": greeting}
+            ],
+            status='playing',
+            is_official_daily=is_official
+        )
+
+        return Response(_format_interrogation_session(session), status=status.HTTP_201_CREATED)
+
+
+class InterrogationAskView(APIView):
+    """
+    POST /api/v1/ai/games/interrogation/ask/
+    Formula una pregunta libre al personaje incógnito.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get('session_id')
+        question = (request.data.get('question') or '').strip()
+
+        if not session_id or not question:
+            return Response({"error": "Se requieren 'session_id' y 'question'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        session = get_object_or_404(BlindInterrogationSession, id=session_id, user=request.user)
+        if session.status != 'playing':
+            return Response({"error": "Esta partida ya ha concluido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if session.questions_used >= session.questions_allowed:
+            return Response({
+                "error": "QUESTIONS_EXHAUSTED",
+                "message": "Has agotado tus preguntas. Puedes adquirir una pregunta extra con Tinta o intentar adivinar."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Generar respuesta con IA
+        ai_service = BlindInterrogationAIService(session.avatar, session)
+        reply = ai_service.generate_reply(question)
+
+        history = session.dialogue_history or []
+        history.append({"role": "user", "content": question})
+        history.append({"role": "character", "content": reply})
+
+        session.dialogue_history = history
+        session.questions_used += 1
+        session.save(update_fields=['dialogue_history', 'questions_used', 'updated_at'])
+
+        return Response({
+            "reply": reply,
+            "questions_used": session.questions_used,
+            "questions_allowed": session.questions_allowed,
+            "questions_left": max(0, session.questions_allowed - session.questions_used)
+        }, status=status.HTTP_200_OK)
+
+
+class InterrogationBuyPerkView(APIView):
+    """
+    POST /api/v1/ai/games/interrogation/buy-perk/
+    Adquiere una ventaja usando Gotas de Tinta:
+    - 'extra_question': 3 Tinta (+1 pregunta, máx 2 compras)
+    - 'clue': 5 Tinta (confidencia íntima reveladora del personaje)
+    - 'discard_two': 4 Tinta (elimina 2 de los 4 sospechosos)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get('session_id')
+        perk = request.data.get('perk')
+
+        if not session_id or perk not in ['extra_question', 'clue', 'discard_two']:
+            return Response({"error": "Parámetros inválidos."}, status=status.HTTP_400_BAD_REQUEST)
+
+        session = get_object_or_404(BlindInterrogationSession, id=session_id, user=request.user)
+        if session.status != 'playing':
+            return Response({"error": "La partida ya ha concluido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        costs = {'extra_question': 3, 'clue': 5, 'discard_two': 4}
+        cost = costs[perk]
+
+        with transaction.atomic():
+            profile = Profile.objects.select_for_update().get(user=request.user)
+            if profile.ink_balance < cost:
+                return Response({
+                    "error": "INSUFFICIENT_INK",
+                    "message": f"Necesitas {cost} Gotas de Tinta. Tu saldo actual es de {profile.ink_balance}."
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            clue_text = None
+
+            if perk == 'extra_question':
+                if session.extra_questions_bought >= 2:
+                    return Response({"error": "Límite de preguntas adicionales alcanzado (máx 2)."}, status=status.HTTP_400_BAD_REQUEST)
+                session.questions_allowed += 1
+                session.extra_questions_bought += 1
+
+            elif perk == 'clue':
+                if session.clues_bought >= 1:
+                    return Response({"error": "Ya has solicitado una pista en esta sesión."}, status=status.HTTP_400_BAD_REQUEST)
+                ai_service = BlindInterrogationAIService(session.avatar, session)
+                clue_text = ai_service.generate_clue()
+                history = session.dialogue_history or []
+                history.append({"role": "clue", "content": f"Confidencia del Tintero: \"{clue_text}\""})
+                session.dialogue_history = history
+                session.clues_bought += 1
+
+            elif perk == 'discard_two':
+                if session.discarded_avatar_ids:
+                    return Response({"error": "Ya has utilizado el descarte 50/50."}, status=status.HTTP_400_BAD_REQUEST)
+                distractors = list(session.distractor_avatar_ids or [])
+                to_discard = random.sample(distractors, min(2, len(distractors)))
+                session.discarded_avatar_ids = to_discard
+
+            # Descontar tinta
+            profile.ink_balance -= cost
+            profile.save(update_fields=['ink_balance'])
+
+            InkTransaction.objects.create(
+                user=request.user,
+                amount=-cost,
+                concept='interrogation_perk',
+                reference_id=str(session.id),
+                balance_after=profile.ink_balance
+            )
+
+            session.save()
+
+            return Response({
+                "message": f"Ventaja activada exitosamente (-{cost} Gotas de Tinta).",
+                "perk": perk,
+                "new_ink_balance": profile.ink_balance,
+                "session": _format_interrogation_session(session),
+                "clue_text": clue_text
+            }, status=status.HTTP_200_OK)
+
+
+class InterrogationGuessView(APIView):
+    """
+    POST /api/v1/ai/games/interrogation/guess/
+    Valida la deducción del usuario sobre la identidad del personaje misterioso.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get('session_id')
+        avatar_id = request.data.get('avatar_id')
+
+        if not session_id or not avatar_id:
+            return Response({"error": "Se requieren 'session_id' y 'avatar_id'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        session = get_object_or_404(BlindInterrogationSession, id=session_id, user=request.user)
+        if session.status != 'playing':
+            return Response({"error": "La partida ya ha concluido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_won = (str(avatar_id) == str(session.avatar.id))
+
+        with transaction.atomic():
+            profile = Profile.objects.select_for_update().get(user=request.user)
+
+            if is_won:
+                session.status = 'won'
+                # Cálculo de recompensa armónica
+                if session.questions_used <= 1:
+                    ink_reward = 15
+                    xp_reward = 25
+                elif session.questions_used == 2:
+                    ink_reward = 10
+                    xp_reward = 20
+                elif session.questions_used == 3 and session.extra_questions_bought == 0:
+                    ink_reward = 7
+                    xp_reward = 15
+                else:
+                    ink_reward = 5
+                    xp_reward = 10
+
+                # Modo práctica (no oficial) otorga recompensa simbólica
+                if not session.is_official_daily:
+                    ink_reward = 2
+                    xp_reward = 5
+
+                reward_activity(
+                    user=request.user,
+                    activity_type='interrogation_win',
+                    custom_ink=ink_reward,
+                    custom_xp=xp_reward
+                )
+                session.ink_earned = ink_reward
+                session.xp_earned = xp_reward
+            else:
+                session.status = 'lost'
+                ink_reward = 0
+                xp_reward = 5
+                reward_activity(
+                    user=request.user,
+                    activity_type='interrogation_loss',
+                    custom_ink=0,
+                    custom_xp=xp_reward
+                )
+                session.ink_earned = 0
+                session.xp_earned = xp_reward
+
+            session.save()
+            profile.refresh_from_db()
+
+            return Response({
+                "won": is_won,
+                "ink_earned": ink_reward,
+                "xp_earned": xp_reward,
+                "new_ink_balance": profile.ink_balance,
+                "session": _format_interrogation_session(session, include_secret=True)
+            }, status=status.HTTP_200_OK)
+
+
+class InterrogationAbandonView(APIView):
+    """
+    POST /api/v1/ai/games/interrogation/abandon/
+    Registra el abandono de la partida penalizando con 0 puntos.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        session_id = request.data.get('session_id')
+        if not session_id:
+            return Response({"error": "Se requiere 'session_id'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        session = get_object_or_404(BlindInterrogationSession, id=session_id, user=request.user)
+        if session.status == 'playing':
+            session.status = 'abandoned'
+            session.ink_earned = 0
+            session.xp_earned = 0
+            session.save(update_fields=['status', 'ink_earned', 'xp_earned', 'updated_at'])
+
+        return Response({
+            "status": "abandoned",
+            "message": "Partida registrada como abandonada.",
+            "session": _format_interrogation_session(session, include_secret=True)
+        }, status=status.HTTP_200_OK)
+

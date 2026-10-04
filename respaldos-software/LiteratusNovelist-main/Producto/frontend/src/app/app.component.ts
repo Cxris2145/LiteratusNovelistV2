@@ -11,6 +11,7 @@ import { SettingsService } from './core/services/settings.service';
 import { environment } from '../environments/environment';
 import { FavoritesService } from './core/services/favorites.service';
 import { GamificationService, GamificationNotification } from './core/services/gamification.service';
+import { NotificationService, AppNotification } from './core/services/notification.service';
 import { MatDialog } from '@angular/material/dialog';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
 import { SpeechRecognitionService } from './core/services/speech-recognition.service';
@@ -30,6 +31,7 @@ export class AppComponent implements OnInit {
   settingsService = inject(SettingsService);
   favoritesService = inject(FavoritesService);
   gamificationService = inject(GamificationService);
+  notificationService = inject(NotificationService);
   dialog = inject(MatDialog);
   speechService = inject(SpeechRecognitionService);
   router = inject(Router);
@@ -43,9 +45,12 @@ export class AppComponent implements OnInit {
   isNavBubblesHidden = false;
   private lastScrollTop = 0;
   
-  // Gamification Toasts
+  // Unified Notifications & Toasts
+  notifications: AppNotification[] = [];
+  private toastTimers = new Map<string, { timeoutId: any; remaining: number; startedAt: number }>();
+
+  // Deprecated backwards-compatibility alias
   gamificationToasts: (GamificationNotification & { id: number })[] = [];
-  private toastIdCounter = 0;
 
   // Buscador global del navbar
   globalSearchTerm = '';
@@ -143,15 +148,10 @@ export class AppComponent implements OnInit {
       this.loadUserProfile();
     });
 
-    // Suscribirse a notificaciones de gamificación
-    this.gamificationService.notifications$.subscribe(notification => {
-      const id = this.toastIdCounter++;
-      this.gamificationToasts.push({ ...notification, id });
-      
-      // Auto remover después de la animación (3.5s)
-      setTimeout(() => {
-        this.gamificationToasts = this.gamificationToasts.filter(t => t.id !== id);
-      }, 3500);
+    // Suscribirse al flujo unificado de notificaciones
+    this.notificationService.notifications$.subscribe(list => {
+      this.notifications = list;
+      this.syncToastTimers(list);
     });
 
     // Añadir listener global de errores
@@ -370,5 +370,92 @@ export class AppComponent implements OnInit {
 
   prepareRoute(outlet: RouterOutlet) {
     return outlet && outlet.activatedRouteData && outlet.activatedRouteData['animation'];
+  }
+
+  /* ── Control de Notificaciones Unificadas (Pop-up Central) ── */
+  get currentNotification(): AppNotification | null {
+    return this.notifications.length > 0 ? this.notifications[0] : null;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handlePopupKeyboard(event: KeyboardEvent): void {
+    if (this.currentNotification && (event.key === 'Escape' || event.key === 'Enter')) {
+      this.dismissNotification(this.currentNotification.id);
+    }
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget && this.currentNotification) {
+      this.dismissNotification(this.currentNotification.id);
+    }
+  }
+
+  trackNotification(index: number, item: AppNotification): string {
+    return item.id;
+  }
+
+  private syncToastTimers(list: AppNotification[]): void {
+    const currentIds = new Set(list.map(t => t.id));
+
+    // Limpiar temporizadores de elementos ya retirados
+    for (const [id, timer] of this.toastTimers.entries()) {
+      if (!currentIds.has(id)) {
+        clearTimeout(timer.timeoutId);
+        this.toastTimers.delete(id);
+      }
+    }
+
+    // Programar temporizadores para elementos nuevos
+    for (const toast of list) {
+      if (!this.toastTimers.has(toast.id) && toast.duration && toast.duration > 0) {
+        const duration = toast.duration;
+        const timeoutId = setTimeout(() => {
+          this.dismissNotification(toast.id);
+        }, duration);
+
+        this.toastTimers.set(toast.id, {
+          timeoutId,
+          remaining: duration,
+          startedAt: Date.now()
+        });
+      }
+    }
+  }
+
+  pauseToastTimer(id: string): void {
+    const timer = this.toastTimers.get(id);
+    if (!timer) return;
+    clearTimeout(timer.timeoutId);
+    const elapsed = Date.now() - timer.startedAt;
+    timer.remaining = Math.max(0, timer.remaining - elapsed);
+  }
+
+  resumeToastTimer(id: string): void {
+    const timer = this.toastTimers.get(id);
+    if (!timer || timer.remaining <= 0) return;
+    timer.startedAt = Date.now();
+    timer.timeoutId = setTimeout(() => {
+      this.dismissNotification(id);
+    }, timer.remaining);
+  }
+
+  dismissNotification(id: string): void {
+    const timer = this.toastTimers.get(id);
+    if (timer) {
+      clearTimeout(timer.timeoutId);
+      this.toastTimers.delete(id);
+    }
+    this.notificationService.dismiss(id);
+  }
+
+  executeToastAction(toast: AppNotification): void {
+    if (toast.action?.run) {
+      try {
+        toast.action.run();
+      } catch (err) {
+        console.error('Error executing toast action:', err);
+      }
+    }
+    this.dismissNotification(toast.id);
   }
 }

@@ -40,8 +40,21 @@ def evaluate_session_achievements(sender, instance, created, **kwargs):
             pass
 
         if getattr(instance, 'chapters_read', 0) > 0:
-            from .achievement_engine import reward_activity
-            reward_activity(instance.user, 'chapter_read', str(instance.id))
+            from .models import InkTransaction
+            from django.utils import timezone
+            today = timezone.localdate()
+            # Capping saludable: máximo 3 capítulos recompensados por día
+            today_rewards_count = InkTransaction.objects.filter(
+                user=instance.user,
+                concept='chapter_read',
+                created_at__date=today
+            ).count()
+
+            if today_rewards_count < 3:
+                # Idempotencia: no recompensar dos veces la misma sesión
+                if not InkTransaction.objects.filter(user=instance.user, concept='chapter_read', reference_id=str(instance.id)).exists():
+                    from .achievement_engine import reward_activity
+                    reward_activity(instance.user, 'chapter_read', str(instance.id))
 
 
 @receiver(post_save, sender=ReadingProgress)

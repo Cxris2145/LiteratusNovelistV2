@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-book-editor',
@@ -39,7 +40,8 @@ export class BookEditorComponent implements OnInit {
     private bookService: DashboardBooksService,
     private route: ActivatedRoute,
     public router: Router,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private notificationService: NotificationService
   ) {
     this.bookForm = this.fb.group({
       title: ['', Validators.required],
@@ -135,7 +137,7 @@ export class BookEditorComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        alert('Error al procesar el EPUB. Intenta con otro archivo.');
+        this.notificationService.error('Error al procesar el archivo EPUB. Intenta con otro archivo.', 'Error EPUB');
       }
     });
   }
@@ -169,12 +171,12 @@ export class BookEditorComponent implements OnInit {
       this.bookService.deleteBook(this.bookId).subscribe({
         next: () => {
           this.loading = false;
-          alert('Libro eliminado correctamente.');
+          this.notificationService.success('Libro eliminado correctamente.', 'Libro Eliminado');
           this.router.navigate(['/dashboard/books']);
         },
         error: (err) => {
           this.loading = false;
-          alert('Error al eliminar: ' + (err.error?.error || 'Desconocido'));
+          this.notificationService.error('Error al eliminar: ' + (err.error?.error || 'Desconocido'), 'Error');
         }
       });
     }
@@ -226,7 +228,7 @@ export class BookEditorComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        alert('Error al subir la imagen de escena.');
+        this.notificationService.error('Error al subir la imagen de escena.', 'Error');
       }
     });
   }
@@ -237,7 +239,7 @@ export class BookEditorComponent implements OnInit {
       return;
     }
     if (!this.isEditing && !this.epubFile) {
-      alert('Se requiere el archivo EPUB para crear un nuevo libro.');
+      this.notificationService.warning('Se requiere el archivo EPUB para crear un nuevo libro.', 'Archivo Requerido');
       return;
     }
 
@@ -256,12 +258,12 @@ export class BookEditorComponent implements OnInit {
     ).subscribe({
       next: () => {
         localStorage.removeItem('book_editor_draft');
-        alert('¡Libro guardado con éxito!');
+        this.notificationService.success('¡Libro guardado con éxito!', 'Editor de Libros');
         this.router.navigate(['/dashboard/books']);
       },
       error: (err) => {
         this.saving = false;
-        alert('Error al guardar: ' + (err.error?.error || 'Desconocido'));
+        this.notificationService.error('Error al guardar: ' + (err.error?.error || 'Desconocido'), 'Error');
       }
     });
   }
@@ -320,7 +322,7 @@ export class BookEditorComponent implements OnInit {
 
   saveAvatar(): void {
     if (!this.editionId) {
-      alert('Debes guardar el libro primero para poder añadir personajes.');
+      this.notificationService.warning('Debes guardar el libro primero para poder añadir personajes.', 'Aviso');
       return;
     }
     
@@ -333,13 +335,13 @@ export class BookEditorComponent implements OnInit {
     ).subscribe({
       next: (res) => {
         this.loading = false;
-        alert('Personaje guardado.');
+        this.notificationService.success('Personaje guardado con éxito.', 'Personajes');
         this.loadBookData(); // Recargar datos para ver el personaje actualizado
         this.editingAvatar = null;
       },
       error: (err) => {
         this.loading = false;
-        alert('Error al guardar el personaje.');
+        this.notificationService.error('Error al guardar el personaje.', 'Error');
       }
     });
   }
@@ -357,11 +359,12 @@ export class BookEditorComponent implements OnInit {
       this.bookService.deleteAvatar(avatarId).subscribe({
         next: () => {
           this.loading = false;
+          this.notificationService.success('Personaje eliminado correctamente.', 'Personajes');
           this.loadBookData();
         },
         error: () => {
           this.loading = false;
-          alert('Error al eliminar personaje.');
+          this.notificationService.error('Error al eliminar personaje.', 'Error');
         }
       });
     }

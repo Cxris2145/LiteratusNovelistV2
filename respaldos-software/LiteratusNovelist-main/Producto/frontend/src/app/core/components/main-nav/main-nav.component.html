@@ -1,30 +1,25 @@
 <div class="mn-row">
   <div class="mn-items" (mouseenter)="warmUp()">
     <!-- Una sola pieza que se desliza a la sección activa: fondo + subrayado. -->
-    <span class="mn-indicator" aria-hidden="true"
-          [class.is-visible]="indicatorVisible"
-          [class.is-instant]="indicatorInstant"
-          [style.transform]="'translateX(' + indicatorIndex * 100 + '%)'"></span>
+    <span class="mn-indicator" aria-hidden="true" [class.is-visible]="indicatorVisible"
+      [class.is-instant]="indicatorInstant" [style.transform]="'translateX(' + indicatorIndex * 100 + '%)'"></span>
 
     <div *ngFor="let item of items; let i = index" #trigger class="mn-item"
-         [class.is-active]="indicatorVisible && i === indicatorIndex"
-         [class.is-open]="item.panel && openPanel === item.panel"
-         (mouseenter)="onItemEnter(item, trigger)"
-         (mouseleave)="onItemLeave()">
+      [class.is-active]="indicatorVisible && i === indicatorIndex"
+      [class.is-open]="item.panel && openPanel === item.panel" (mouseenter)="onItemEnter(item, trigger)"
+      (mouseleave)="onItemLeave()">
       <span class="mn-icon material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
       <span class="mn-label-row">
         <a class="mn-link" [routerLink]="item.link"
-           [attr.aria-current]="indicatorVisible && i === indicatorIndex ? 'page' : null">{{ item.label }}</a>
-        <button *ngIf="item.panel" type="button" class="mn-caret"
-                [attr.aria-expanded]="openPanel === item.panel"
-                [attr.aria-controls]="'mn-panel-' + item.panel"
-                [attr.aria-label]="'Abrir menú de ' + item.label"
-                (click)="toggle(item, trigger, $event)">
+          [attr.aria-current]="indicatorVisible && i === indicatorIndex ? 'page' : null">{{ item.label }}</a>
+        <button *ngIf="item.panel" type="button" class="mn-caret" [attr.aria-expanded]="openPanel === item.panel"
+          [attr.aria-controls]="'mn-panel-' + item.panel" [attr.aria-label]="'Abrir menú de ' + item.label"
+          (click)="toggle(item, trigger, $event)">
           <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
         </button>
       </span>
       <span *ngIf="item.link === '/achievements' && rewardReady" class="mn-gift"
-            title="¡Recompensa diaria disponible!">🎁</span>
+        title="¡Recompensa diaria disponible!">🎁</span>
     </div>
   </div>
 
@@ -41,14 +36,13 @@
 
   <!-- Categorías -->
   <section id="mn-panel-categories" class="mn-panel" aria-label="Categorías"
-           [class.is-open]="openPanel === 'categories'"
-           [style.left.px]="pos.categories.left"
-           [style.transform-origin]="pos.categories.origin"
-           (mouseenter)="onPanelEnter()" (mouseleave)="onPanelLeave()"
-           (keydown)="onPanelKeydown($event, 'categories')">
+    [class.is-open]="openPanel === 'categories'" [style.left.px]="pos.categories.left"
+    [style.transform-origin]="pos.categories.origin" (mouseenter)="onPanelEnter()" (mouseleave)="onPanelLeave()"
+    (keydown)="onPanelKeydown($event, 'categories')">
     <header class="mn-panel-head">
       <h2>Categorías</h2>
-      <a routerLink="/categories" class="mn-see-all">Ver todas <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>
+      <a routerLink="/categories" class="mn-see-all">Ver todas <span class="material-symbols-rounded"
+          aria-hidden="true">arrow_forward</span></a>
     </header>
     <div class="mn-split">
       <ul class="mn-list">
@@ -66,7 +60,8 @@
       <div class="mn-features">
         <a *ngFor="let feature of featuredGenres" class="mn-feature" [routerLink]="['/categories', feature.slug]">
           <span class="mn-feature-media">
-            <img *ngIf="feature.cover" [src]="feature.cover" alt="" loading="lazy" decoding="async" (load)="onImageLoad($event)">
+            <img *ngIf="feature.cover" [src]="feature.cover" alt="" loading="lazy" decoding="async"
+              (load)="onImageLoad($event)">
           </span>
           <span class="mn-feature-text">
             <strong>{{ feature.title }}</strong>
@@ -79,54 +74,68 @@
 
   <!-- Autores -->
   <section id="mn-panel-authors" class="mn-panel" aria-label="Autores destacados"
-           [class.is-open]="openPanel === 'authors'"
-           [style.left.px]="pos.authors.left"
-           [style.transform-origin]="pos.authors.origin"
-           (mouseenter)="onPanelEnter()" (mouseleave)="onPanelLeave()"
-           (keydown)="onPanelKeydown($event, 'authors')">
+    [class.is-open]="openPanel === 'authors'" [style.left.px]="pos.authors.left"
+    [style.transform-origin]="pos.authors.origin" (mouseenter)="onPanelEnter()" (mouseleave)="onPanelLeave()"
+    (keydown)="onPanelKeydown($event, 'authors')">
     <header class="mn-panel-head">
       <h2>Autores destacados</h2>
-      <a routerLink="/authors" class="mn-see-all">Ver todos <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>
+      <a routerLink="/authors" class="mn-see-all">Ver todos <span class="material-symbols-rounded"
+          aria-hidden="true">arrow_forward</span></a>
     </header>
     <ul class="mn-authors">
       <li *ngFor="let author of authors">
         <a class="mn-author" [routerLink]="['/author', author.slug]">
           <span class="mn-author-photo">
-            <img *ngIf="author.photo; else initial" [src]="author.photo" alt="" loading="lazy" decoding="async" (load)="onImageLoad($event)">
-            <ng-template #initial><span class="mn-author-initial" aria-hidden="true">{{ author.name.charAt(0) }}</span></ng-template>
+            <img *ngIf="author.photo; else initial" [src]="author.photo" alt="" loading="lazy" decoding="async"
+              (load)="onImageLoad($event)">
+            <ng-template #initial><span class="mn-author-initial" aria-hidden="true">{{ author.name.charAt(0)
+                }}</span></ng-template>
           </span>
           <span class="mn-author-name">{{ author.name }}</span>
         </a>
       </li>
     </ul>
     <a routerLink="/authors" class="mn-banner"
-       [style.background-image]="authorsBanner ? 'url(' + authorsBanner + ')' : null">
+      [style.background-image]="authorsBanner ? 'url(' + authorsBanner + ')' : null">
       <span class="mn-banner-text">
         <strong>Conoce a los grandes autores</strong>
         <span>que han dado vida a estos mundos.</span>
       </span>
-      <span class="mn-banner-btn">Explorar autores <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></span>
+      <span class="mn-banner-btn">Explorar autores <span class="material-symbols-rounded"
+          aria-hidden="true">arrow_forward</span></span>
+    </a>
+    <a routerLink="/publish-book" class="mn-banner"
+      style="margin-top: 8px; border-color: rgba(212, 175, 55, 0.4); background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(15, 23, 42, 0.7));">
+      <span class="mn-banner-text">
+        <strong style="color: #D4AF37;">¿Escribes novelas o cuentos?</strong>
+        <span>Publica tu manuscrito y certifícalo con Curaduría.</span>
+      </span>
+      <span class="mn-banner-btn" style="color: #D4AF37;">Publicar mi Obra <span class="material-symbols-rounded"
+          aria-hidden="true">edit_note</span></span>
     </a>
   </section>
 
   <!-- Mi Biblioteca -->
-  <section id="mn-panel-library" class="mn-panel" aria-label="Mi Biblioteca"
-           [class.is-open]="openPanel === 'library'"
-           [style.left.px]="pos.library.left"
-           [style.transform-origin]="pos.library.origin"
-           (mouseenter)="onPanelEnter()" (mouseleave)="onPanelLeave()"
-           (keydown)="onPanelKeydown($event, 'library')">
+  <section id="mn-panel-library" class="mn-panel" aria-label="Mi Biblioteca" [class.is-open]="openPanel === 'library'"
+    [style.left.px]="pos.library.left" [style.transform-origin]="pos.library.origin" (mouseenter)="onPanelEnter()"
+    (mouseleave)="onPanelLeave()" (keydown)="onPanelKeydown($event, 'library')">
     <header class="mn-panel-head">
       <h2>Mi Biblioteca</h2>
-      <a routerLink="/library" class="mn-see-all">Ver todo <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span></a>
+      <a routerLink="/library" class="mn-see-all">Ver todo <span class="material-symbols-rounded"
+          aria-hidden="true">arrow_forward</span></a>
     </header>
     <div class="mn-split">
       <ul class="mn-list">
-        <li><a class="mn-list-link" routerLink="/library"><span class="material-symbols-rounded" aria-hidden="true">library_books</span>Mis libros</a></li>
-        <li><a class="mn-list-link" routerLink="/library" [queryParams]="{ estado: 'leyendo' }"><span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>En progreso</a></li>
-        <li><a class="mn-list-link" routerLink="/library" [queryParams]="{ estado: 'completados' }"><span class="material-symbols-rounded" aria-hidden="true">task_alt</span>Completados</a></li>
-        <li><a class="mn-list-link" routerLink="/library" [queryParams]="{ estado: 'pendientes' }"><span class="material-symbols-rounded" aria-hidden="true">bookmark</span>Por empezar</a></li>
-        <li><a class="mn-list-link" routerLink="/favorites"><span class="material-symbols-rounded" aria-hidden="true">favorite</span>Favoritos</a></li>
+        <li><a class="mn-list-link" routerLink="/library"><span class="material-symbols-rounded"
+              aria-hidden="true">library_books</span>Mis libros</a></li>
+        <li><a class="mn-list-link" routerLink="/library" [queryParams]="{ estado: 'leyendo' }"><span
+              class="material-symbols-rounded" aria-hidden="true">auto_stories</span>En progreso</a></li>
+        <li><a class="mn-list-link" routerLink="/library" [queryParams]="{ estado: 'completados' }"><span
+              class="material-symbols-rounded" aria-hidden="true">task_alt</span>Completados</a></li>
+        <li><a class="mn-list-link" routerLink="/library" [queryParams]="{ estado: 'pendientes' }"><span
+              class="material-symbols-rounded" aria-hidden="true">bookmark</span>Por empezar</a></li>
+        <li><a class="mn-list-link" routerLink="/favorites"><span class="material-symbols-rounded"
+              aria-hidden="true">favorite</span>Favoritos</a></li>
       </ul>
 
       <div class="mn-library">
@@ -135,12 +144,13 @@
             <div *ngSwitchCase="'ready'" class="mn-library-ready">
               <ng-container *ngIf="library.current as book; else libraryEmpty">
                 <a class="mn-continue" [routerLink]="['/reader', book.id]">
-                  <img class="mn-continue-cover" [src]="book.cover" alt="" (load)="onImageLoad($event)" (error)="onCoverError($event)">
+                  <img class="mn-continue-cover" [src]="book.cover" alt="" (load)="onImageLoad($event)"
+                    (error)="onCoverError($event)">
                   <span class="mn-continue-info">
                     <span class="mn-eyebrow">{{ book.pct > 0 ? 'Continúa leyendo' : 'Empieza a leer' }}</span>
                     <strong class="mn-continue-title">{{ book.title }}</strong>
-                    <span class="mn-progress" role="progressbar" aria-label="Progreso de lectura"
-                          aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="book.pct">
+                    <span class="mn-progress" role="progressbar" aria-label="Progreso de lectura" aria-valuemin="0"
+                      aria-valuemax="100" [attr.aria-valuenow]="book.pct">
                       <span class="mn-progress-fill" [style.width.%]="book.pct"></span>
                     </span>
                     <span class="mn-continue-meta">{{ book.meta }}</span>
@@ -149,11 +159,13 @@
                 </a>
                 <div class="mn-shelf" *ngIf="library.shelf.length">
                   <a *ngFor="let shelfBook of library.shelf" class="mn-shelf-book"
-                     [routerLink]="['/reader', shelfBook.id]" [attr.aria-label]="shelfBook.title" [title]="shelfBook.title">
-                    <img [src]="shelfBook.cover" alt="" loading="lazy" decoding="async" (load)="onImageLoad($event)" (error)="onCoverError($event)">
+                    [routerLink]="['/reader', shelfBook.id]" [attr.aria-label]="shelfBook.title"
+                    [title]="shelfBook.title">
+                    <img [src]="shelfBook.cover" alt="" loading="lazy" decoding="async" (load)="onImageLoad($event)"
+                      (error)="onCoverError($event)">
                   </a>
                   <a *ngIf="library.more > 0" class="mn-shelf-more" routerLink="/library"
-                     [attr.aria-label]="'Ver ' + library.more + ' libros más'">
+                    [attr.aria-label]="'Ver ' + library.more + ' libros más'">
                     <strong>+{{ library.more }}</strong><span>más</span>
                   </a>
                 </div>

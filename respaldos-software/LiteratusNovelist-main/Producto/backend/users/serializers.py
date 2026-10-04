@@ -7,20 +7,51 @@ from .models import User, Profile
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
+        profile = getattr(self.user, 'profile', None)
+        has_onboarding = profile.has_completed_onboarding if profile else False
         data['user'] = {
             'id': str(self.user.id),
             'email': self.user.email,
             'username': self.user.username,
+            'role': self.user.role,
             'is_staff': self.user.is_staff,
             'is_superuser': self.user.is_superuser,
+            'has_completed_onboarding': has_onboarding,
         }
         return data
+
+
+class OnboardingSerializer(serializers.Serializer):
+    """
+    Serializador para validar el flujo de onboarding inicial de rol y gustos literarios.
+    """
+    role = serializers.ChoiceField(
+        choices=['reader', 'author'],
+        required=True,
+        error_messages={
+            'invalid_choice': 'Debes seleccionar un rol válido: Lector ("reader") o Autor ("author").'
+        }
+    )
+    favorite_genres = serializers.ListField(
+        child=serializers.CharField(),
+        min_length=3,
+        required=True,
+        error_messages={
+            'min_length': 'Debes seleccionar al menos 3 géneros literarios preferidos.',
+            'required': 'Debes seleccionar tus géneros literarios preferidos.'
+        }
+    )
+    followed_authors = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        default=list
+    )
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     """
     Serializador del perfil del usuario.
-    Solo expone datos no-sensibles de visualización como Avatar y Biografía, además de gamificación.
+    Expone datos de visualización, gamificación y preferencias literarias del onboarding.
     """
     level_name = serializers.SerializerMethodField()
     xp_to_next_level = serializers.SerializerMethodField()
@@ -30,6 +61,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     seconds_to_next_heart = serializers.SerializerMethodField()
     current_hearts = serializers.SerializerMethodField()
     subscription_cosmetics = serializers.SerializerMethodField()
+    favorite_genres = serializers.SerializerMethodField()
+    followed_authors = serializers.SerializerMethodField()
     
     class Meta:
         model = Profile
@@ -39,10 +72,17 @@ class ProfileSerializer(serializers.ModelSerializer):
             'xp_to_next_level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',
             'equipped_frame', 'equipped_title', 'discount_percent', 
-            'level_perks', 'all_levels', 'subscription_cosmetics'
+            'level_perks', 'all_levels', 'subscription_cosmetics',
+            'has_completed_onboarding', 'favorite_genres', 'followed_authors'
         ]
         read_only_fields = ['ink_balance', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
-            'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title']
+            'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title', 'has_completed_onboarding']
+
+    def get_favorite_genres(self, obj):
+        return [{'id': str(g.id), 'name': g.name, 'slug': g.slug} for g in obj.favorite_genres.all()]
+
+    def get_followed_authors(self, obj):
+        return [{'id': str(a.id), 'full_name': a.full_name, 'slug': a.slug} for a in obj.followed_authors.all()]
 
     def get_subscription_cosmetics(self, obj):
         from finance.subscriptions import cosmetics

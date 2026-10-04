@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subject, Observable, BehaviorSubject, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ChatService } from './chat.service';
+import { NotificationService } from './notification.service';
 
 export interface GamificationNotification {
   type: 'ink' | 'xp' | 'level_up' | 'achievement';
@@ -27,19 +28,24 @@ export class GamificationService {
 
   constructor(
     private http: HttpClient,
-    private chatService: ChatService
+    private chatService: ChatService,
+    private notificationService: NotificationService
   ) {}
 
   notifyInk(amount: number, concept: string = 'Tinta obtenida') {
     this.notificationsSource.next({ type: 'ink', amount, message: concept });
+    this.notificationService.gamify('ink', amount, concept, 'Gotas de Tinta');
   }
 
   notifyXP(amount: number, concept: string = 'XP obtenida') {
     this.notificationsSource.next({ type: 'xp', amount, message: concept });
+    this.notificationService.gamify('xp', amount, concept, 'Experiencia Ganada');
   }
 
   notifyLevelUp(level: number, name: string) {
-    this.notificationsSource.next({ type: 'level_up', amount: level, message: `¡Nivel ${level}: ${name}!` });
+    const msg = `¡Nivel ${level}: ${name}!`;
+    this.notificationsSource.next({ type: 'level_up', amount: level, message: msg });
+    this.notificationService.gamify('level_up', level, `Has alcanzado el rango ${name}.`, `¡Subida a Nivel ${level}!`);
   }
 
   loadInitialProfile() {

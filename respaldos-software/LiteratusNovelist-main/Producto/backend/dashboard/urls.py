@@ -19,6 +19,7 @@ from .views_admin_extended import (
     AdminCurationView,
     AdminBookTogglePublishView,
     AdminBookApproveView,
+    AdminBookRejectView,
     AdminUserToggleActiveView,
     AdminUserRoleView,
     AdminUserAdjustInkView,
@@ -45,6 +46,7 @@ urlpatterns = [
     path('books/<uuid:pk>/', BookDetailAdminView.as_view(), name='dashboard-book-detail'),
     path('books/<uuid:pk>/toggle-publish/', AdminBookTogglePublishView.as_view(), name='dashboard-book-toggle-publish'),
     path('books/<uuid:pk>/approve/', AdminBookApproveView.as_view(), name='dashboard-book-approve'),
+    path('books/<uuid:pk>/reject/', AdminBookRejectView.as_view(), name='dashboard-book-reject'),
 
     # ─── Curaduría y Aprobaciones ───
     path('curation/', AdminCurationView.as_view(), name='dashboard-curation'),

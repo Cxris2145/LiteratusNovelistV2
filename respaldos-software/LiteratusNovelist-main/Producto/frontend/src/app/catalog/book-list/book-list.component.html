@@ -136,10 +136,10 @@
   <section class="recommendations-section" *ngIf="!isHome && recommendedBooks.length > 0 && !searchTerm && !activeGenreSlug && !activeQuickFilter && currentPage === 1">
     <div class="rec-section-header">
       <div class="rec-title-group">
-        <span class="rec-icon">✨</span>
         <h2 class="rec-title">Recomendados para ti</h2>
       </div>
-      <span class="rec-badge">Curaduría Editorial</span>
+      <span class="rec-badge" *ngIf="hasPersonalizedRecommendations">Según tus preferencias</span>
+      <span class="rec-badge" *ngIf="!hasPersonalizedRecommendations">Curaduría Editorial</span>
     </div>
 
     <div class="rec-cards-row stagger-group">
@@ -571,12 +571,6 @@
 
       </div>
     </div>
-  </div>
-
-  <!-- Toast de Notificación de Favoritos -->
-  <div class="favorite-toast" *ngIf="favoriteToast">
-    <span>✨</span>
-    <span>{{ favoriteToast }}</span>
   </div>
 
 </div>

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -18,6 +19,7 @@ export class OverviewComponent implements OnInit {
 
   private api = inject(ApiService);
   private dashboardService = inject(DashboardBooksService);
+  private notificationService = inject(NotificationService);
 
   constructor() {}
 
@@ -49,10 +51,13 @@ export class OverviewComponent implements OnInit {
   publishBookQuick(book: any): void {
     this.dashboardService.approveBook(book.id).subscribe({
       next: (res) => {
-        this.actionToast = res.message || 'Libro publicado con éxito.';
+        const msg = res.message || 'Libro publicado con éxito.';
+        this.actionToast = msg;
+        this.notificationService.success(msg, 'Libro Publicado');
         this.loadStats();
         setTimeout(() => this.actionToast = '', 4000);
-      }
+      },
+      error: () => this.notificationService.error('No se pudo publicar el libro.', 'Error')
     });
   }
 

@@ -1,0 +1,253 @@
+<div class="onboarding-container">
+  
+  <!-- BARRA SUPERIOR DE PROGRESO -->
+  <header class="onboarding-progress-header">
+    <div class="stepper-track">
+      <div class="stepper-fill" [style.width.%]="currentStep === 1 ? 50 : 100"></div>
+    </div>
+    <div class="stepper-labels">
+      <div class="step-label-item" [class.active]="currentStep >= 1" (click)="currentStep = 1">
+        <span class="step-bubble">{{ currentStep > 1 ? '✓' : '1' }}</span>
+        <span>Vocación Literaria</span>
+      </div>
+      <div class="step-label-item" [class.active]="currentStep >= 2">
+        <span class="step-bubble">2</span>
+        <span>Preferencias & Autores</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MENSAJE DE ERROR -->
+  <div class="error-banner" *ngIf="errorMessage">
+    <span class="material-symbols-outlined">info</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       PASO 1: SELECCIÓN DE ROL (Lector vs Autor)
+  ════════════════════════════════════════════════════════════════════ -->
+  <main class="onboarding-step-view" *ngIf="currentStep === 1">
+    <div class="step-headline">
+      <span class="headline-badge">
+        <span class="material-symbols-outlined">waving_hand</span>
+        Primeros Pasos en Literatus
+      </span>
+      <h1 class="headline-title">¿Cómo deseas vivir tu experiencia literaria?</h1>
+      <p class="headline-subtitle">
+        Selecciona tu vocación inicial en la plataforma. Ambos perfiles tienen acceso completo a la lectura y exploración del catálogo.
+      </p>
+    </div>
+
+    <div class="roles-cards-grid">
+      
+      <!-- TARJETA: LECTOR -->
+      <article class="role-selection-card" 
+               [class.selected]="selectedRole === 'reader'" 
+               (click)="selectRole('reader')"
+               tabindex="0"
+               (keydown.enter)="selectRole('reader')">
+        <div class="card-radio-indicator">
+          <span class="material-symbols-outlined">{{ selectedRole === 'reader' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+        </div>
+        
+        <div class="role-icon-wrap icon-reader">
+          <span class="material-symbols-outlined">auto_stories</span>
+        </div>
+
+        <div class="role-badge">Explorador & Coleccionista</div>
+        <h2 class="role-title">Lector</h2>
+        <p class="role-description">
+          Sumérgete en miles de obras literarias clásicas y universales, organiza tu estantería personal, dialoga con avatares de IA y gana Tinta en desafíos interactivos.
+        </p>
+
+        <ul class="role-perks-list">
+          <li>
+            <span class="material-symbols-outlined perk-check">check</span>
+            <span>Lectura inmersiva libre de distracciones</span>
+          </li>
+          <li>
+            <span class="material-symbols-outlined perk-check">check</span>
+            <span>Chat con personajes y autores clásicos</span>
+          </li>
+          <li>
+            <span class="material-symbols-outlined perk-check">check</span>
+            <span>Seguimiento de progreso y estantería personal</span>
+          </li>
+        </ul>
+      </article>
+
+      <!-- TARJETA: AUTOR -->
+      <article class="role-selection-card" 
+               [class.selected]="selectedRole === 'author'" 
+               (click)="selectRole('author')"
+               tabindex="0"
+               (keydown.enter)="selectRole('author')">
+        <div class="card-radio-indicator">
+          <span class="material-symbols-outlined">{{ selectedRole === 'author' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+        </div>
+
+        <div class="role-icon-wrap icon-author">
+          <span class="material-symbols-outlined">history_edu</span>
+        </div>
+
+        <div class="role-badge badge-gold">Creador & Narrador</div>
+        <h2 class="role-title">Autor</h2>
+        <p class="role-description">
+          Publica tus propias novelas, ensayos o cuentos, remítelos a Curaduría Editorial para su certificación oficial y comparte tus historias con toda la comunidad.
+        </p>
+
+        <ul class="role-perks-list">
+          <li>
+            <span class="material-symbols-outlined perk-check">check</span>
+            <span>Portal exclusivo de envío a Curaduría</span>
+          </li>
+          <li>
+            <span class="material-symbols-outlined perk-check">check</span>
+            <span>Subida de manuscritos (EPUB, PDF o capítulos)</span>
+          </li>
+          <li>
+            <span class="material-symbols-outlined perk-check">check</span>
+            <span>Incluye todos los beneficios y lecturas de Lector</span>
+          </li>
+        </ul>
+      </article>
+
+    </div>
+
+    <!-- BOTÓN DE ACCIÓN PASO 1 -->
+    <div class="step-footer-actions">
+      <button class="primary-continue-btn" (click)="goToStep2()" [disabled]="!selectedRole">
+        <span>Continuar a Preferencias</span>
+        <span class="material-symbols-outlined">arrow_forward</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       PASO 2: PREFERENCIAS DE GUSTOS (Géneros y Autores)
+  ════════════════════════════════════════════════════════════════════ -->
+  <main class="onboarding-step-view" *ngIf="currentStep === 2">
+    <div class="step-headline">
+      <span class="headline-badge">
+        <span class="material-symbols-outlined">palette</span>
+        Paso 2 de 2: Gustos Literarios
+      </span>
+      <h1 class="headline-title">¿Qué historias despiertan tu curiosidad?</h1>
+      <p class="headline-subtitle">
+        Selecciona tus géneros favoritos y sigue a los autores que más te cautivan para personalizar tus estanterías y recomendaciones.
+      </p>
+    </div>
+
+    <!-- SECCIÓN 1: GÉNEROS LITERARIOS -->
+    <section class="pref-section-card">
+      <div class="pref-card-header">
+        <div class="pref-header-info">
+          <h2 class="pref-title">
+            <span class="material-symbols-outlined section-icon">category</span>
+            Géneros Literarios Favoritos
+          </h2>
+          <p class="pref-desc">Selecciona al menos 3 categorías para calibrar tu catálogo inicial.</p>
+        </div>
+
+        <div class="genre-counter-pill" [class.counter-pass]="selectedGenres.length >= 3">
+          <span class="material-symbols-outlined">{{ selectedGenres.length >= 3 ? 'verified' : 'pending' }}</span>
+          <span>{{ selectedGenres.length }} de 3 mínimos seleccionados</span>
+        </div>
+      </div>
+
+      <!-- CHIPS DE GÉNEROS -->
+      <div class="genres-grid">
+        <button type="button" 
+                *ngFor="let genre of availableGenres" 
+                class="onboarding-genre-chip" 
+                [class.selected]="isGenreSelected(genre)"
+                (click)="toggleGenre(genre)">
+          <span class="material-symbols-outlined chip-check">{{ isGenreSelected(genre) ? 'check' : 'add' }}</span>
+          <span class="chip-text">{{ genre.name }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: AUTORES RECOMENDADOS / FAVORITOS -->
+    <section class="pref-section-card">
+      <div class="pref-card-header">
+        <div class="pref-header-info">
+          <h2 class="pref-title">
+            <span class="material-symbols-outlined section-icon">group</span>
+            Autores Predilectos <small class="optional-tag">(Opcional)</small>
+          </h2>
+          <p class="pref-desc">Encuentra o selecciona los autores cuyas obras disfrutas leer.</p>
+        </div>
+      </div>
+
+      <!-- BUSCADOR CON AUTOCOMPLETADO -->
+      <div class="author-search-box">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" 
+               [value]="authorSearchTerm" 
+               (input)="onAuthorSearchInput($event)"
+               placeholder="Busca por nombre de autor (ej. Oscar Wilde, Julio Verne, Mary Shelley...)" 
+               class="search-input">
+        <div class="search-spinner" *ngIf="isSearchingAuthors"></div>
+
+        <!-- LISTA DESPLEGABLE DE RESULTADOS -->
+        <div class="autocomplete-dropdown" *ngIf="authorSearchResults.length > 0">
+          <div class="autocomplete-item" 
+               *ngFor="let item of authorSearchResults" 
+               (click)="selectAuthor(item)">
+            <span class="material-symbols-outlined">person</span>
+            <div class="item-author-info">
+              <strong>{{ item.full_name }}</strong>
+              <small *ngIf="item.nationality">{{ item.nationality }}</small>
+            </div>
+            <span class="material-symbols-outlined add-icon">add</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUTORES YA SELECCIONADOS -->
+      <div class="selected-authors-container" *ngIf="selectedAuthors.length > 0">
+        <span class="selected-label">Autores que seguirás:</span>
+        <div class="selected-chips-wrap">
+          <span class="selected-author-chip" *ngFor="let a of selectedAuthors">
+            <span class="material-symbols-outlined">verified</span>
+            {{ a.full_name }}
+            <button type="button" class="btn-remove-chip" (click)="removeAuthor(a)">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </span>
+        </div>
+      </div>
+
+      <!-- SUGERENCIAS RÁPIDAS DE AUTORES DESTACADOS -->
+      <div class="quick-authors-section" *ngIf="popularAuthors.length > 0">
+        <span class="quick-label">Sugerencias populares:</span>
+        <div class="quick-authors-grid">
+          <button type="button" 
+                  *ngFor="let author of popularAuthors" 
+                  class="quick-author-btn"
+                  [class.is-following]="isAuthorSelected(author)"
+                  (click)="isAuthorSelected(author) ? removeAuthor(author) : selectAuthor(author)">
+            <span class="material-symbols-outlined">{{ isAuthorSelected(author) ? 'check' : 'add' }}</span>
+            <span>{{ author.full_name }}</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTONES DE ACCIÓN PASO 2 -->
+    <div class="step-footer-actions step-2-actions">
+      <button class="secondary-back-btn" (click)="goToStep1()" [disabled]="isSubmitting">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Atrás</span>
+      </button>
+
+      <button class="primary-continue-btn" (click)="completeOnboarding()" [disabled]="!isStep2Valid || isSubmitting">
+        <span class="spinner-inline" *ngIf="isSubmitting"></span>
+        <span class="material-symbols-outlined" *ngIf="!isSubmitting">check_circle</span>
+        <span>{{ isSubmitting ? 'Guardando preferencias...' : 'Completar y Entrar a Literatus' }}</span>
+      </button>
+    </div>
+  </main>
+
+</div>

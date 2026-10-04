@@ -80,6 +80,7 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
     { label: 'Mi Biblioteca', icon: 'menu_book', link: '/library', match: ['/library', '/favorites'], panel: 'library' },
     { label: 'La Senda', icon: 'map', link: '/learn', match: ['/learn'] },
     { label: 'El Enigma', icon: 'extension', link: '/games/enigma', match: ['/games/enigma'] },
+    { label: 'Interrogatorio', icon: 'visibility_off', link: '/games/interrogatorio', match: ['/games/interrogatorio', '/games/blind-interrogation', '/interrogatorio'] },
     { label: 'Logros', icon: 'emoji_events', link: '/achievements', match: ['/achievements'] },
   ];
 

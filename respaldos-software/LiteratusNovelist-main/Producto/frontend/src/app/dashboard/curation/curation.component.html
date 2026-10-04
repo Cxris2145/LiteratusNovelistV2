@@ -1,17 +1,39 @@
 <div class="curation-container">
   <header class="section-header">
     <div class="header-titles">
-      <div class="header-badge">Control Editorial</div>
-      <h1 class="header-title">Curaduría & Aprobación de Libros</h1>
-      <p class="header-desc">Revisa obras en borrador, títulos enviados por autores y contenidos pendientes de publicación.</p>
+      <div class="header-badge">Control & Curaduría Editorial</div>
+      <h1 class="header-title">Aprobación de Obras Literarias</h1>
+      <p class="header-desc">
+        Supervisión de manuscritos enviados por autores y títulos en borrador. Verifica el cumplimiento de los criterios mínimos editoriales antes de autorizar su publicación en el catálogo.
+      </p>
     </div>
     <div class="header-stats" *ngIf="!loading">
       <div class="stat-pill">
         <span class="stat-num">{{ pendingBooks.length }}</span>
-        <span class="stat-label">Pendientes</span>
+        <span class="stat-label">Total Pendientes</span>
+      </div>
+      <div class="stat-pill author-stat" *ngIf="authorSubmissionsCount > 0">
+        <span class="stat-num text-gold">{{ authorSubmissionsCount }}</span>
+        <span class="stat-label">Autores Nuevos</span>
       </div>
     </div>
   </header>
+
+  <!-- PESTAÑAS DE FILTRO -->
+  <div class="filter-tabs" *ngIf="!loading && pendingBooks.length > 0">
+    <button class="filter-tab-btn" [class.active]="activeFilter === 'all'" (click)="activeFilter = 'all'">
+      <span class="material-symbols-outlined">dataset</span>
+      Todas las Obras ({{ pendingBooks.length }})
+    </button>
+    <button class="filter-tab-btn" [class.active]="activeFilter === 'authors'" (click)="activeFilter = 'authors'">
+      <span class="material-symbols-outlined">history_edu</span>
+      Envíos de Autores ({{ authorSubmissionsCount }})
+    </button>
+    <button class="filter-tab-btn" [class.active]="activeFilter === 'drafts'" (click)="activeFilter = 'drafts'">
+      <span class="material-symbols-outlined">draft</span>
+      Borradores de Sistema ({{ draftsCount }})
+    </button>
+  </div>
 
   <!-- NOTIFICACIÓN DE ACCIÓN -->
   <div class="toast-banner" *ngIf="actionMessage">
@@ -22,110 +44,303 @@
   <!-- LOADING -->
   <div class="loading-state" *ngIf="loading">
     <div class="spinner"></div>
-    <p>Examinando obras pendientes de aprobación...</p>
+    <p>Examinando obras y validando requisitos editoriales...</p>
   </div>
 
   <!-- LISTADO DE LIBROS PENDIENTES -->
   <div *ngIf="!loading">
-    <div class="cards-grid" *ngIf="pendingBooks.length > 0; else emptyState">
-      <div class="curation-card" *ngFor="let book of pendingBooks">
-        <div class="card-cover-wrap">
-          <img [src]="book.cover || 'assets/no-cover.jpg'" alt="Portada" onerror="this.src='assets/no-cover.jpg'">
-          <span class="status-tag" [class.draft]="book.status === 'draft'">
-            {{ book.status === 'draft' ? 'Borrador' : (book.is_published ? 'Publicado' : 'Oculto') }}
+    <div class="cards-grid" *ngIf="filteredBooks.length > 0; else emptyFiltered">
+      <div class="curation-card" *ngFor="let book of filteredBooks" [class.card-author-submission]="book.submitted_by">
+        
+        <!-- Header de la tarjeta con badge de Autor si aplica -->
+        <div class="card-author-banner" *ngIf="book.submitted_by">
+          <span class="material-symbols-outlined icon-author">verified_user</span>
+          <span class="author-sub-text">
+            <strong>Envío de Autor:</strong> {{ book.submitted_by.full_name }} (&#64;{{ book.submitted_by.username }})
           </span>
         </div>
+
+        <div class="card-cover-wrap">
+          <img [src]="book.cover || 'assets/no-cover.jpg'" alt="Portada" onerror="this.src='assets/no-cover.jpg'">
+          
+          <div class="card-badges-overlay">
+            <span class="status-tag" [class.status-author]="book.submitted_by" [class.draft]="!book.submitted_by">
+              {{ book.submitted_by ? 'En Revisión Editorial' : 'Borrador' }}
+            </span>
+
+            <span class="req-indicator" [class.req-pass]="book.meets_minimum_requirements" [class.req-fail]="!book.meets_minimum_requirements">
+              <span class="material-symbols-outlined">{{ book.meets_minimum_requirements ? 'check_circle' : 'warning' }}</span>
+              {{ book.meets_minimum_requirements ? 'Cumple Requisitos' : 'Revisar Criterios' }}
+            </span>
+          </div>
+        </div>
+
         <div class="card-body">
           <div class="book-meta">
             <span class="difficulty-badge">{{ book.difficulty_level }}</span>
             <span class="chapters-count">{{ book.chapters_count }} capítulos</span>
+            <span class="words-count" *ngIf="book.word_count">{{ book.word_count | number }} palabras</span>
           </div>
+
           <h2 class="book-title">{{ book.title }}</h2>
+
           <p class="book-authors">
             <span class="material-symbols-outlined">person</span>
             {{ book.authors.join(', ') || 'Autor sin asignar' }}
           </p>
+
           <p class="book-synopsis" *ngIf="book.synopsis">{{ book.synopsis }}</p>
+
+          <!-- MINI CHECKLIST DE CRITERIOS -->
+          <div class="checklist-preview" *ngIf="book.requirements_checklist">
+            <div class="crit-chip" [class.crit-ok]="book.requirements_checklist.cover" [class.crit-bad]="!book.requirements_checklist.cover" title="Portada gráfica de calidad">
+              <span class="material-symbols-outlined">{{ book.requirements_checklist.cover ? 'check' : 'close' }}</span> Portada
+            </div>
+            <div class="crit-chip" [class.crit-ok]="book.requirements_checklist.synopsis" [class.crit-bad]="!book.requirements_checklist.synopsis" title="Sinopsis min. 50 caracteres">
+              <span class="material-symbols-outlined">{{ book.requirements_checklist.synopsis ? 'check' : 'close' }}</span> Sinopsis
+            </div>
+            <div class="crit-chip" [class.crit-ok]="book.requirements_checklist.genres" [class.crit-bad]="!book.requirements_checklist.genres" title="Al menos 1 género clasificado">
+              <span class="material-symbols-outlined">{{ book.requirements_checklist.genres ? 'check' : 'close' }}</span> Género
+            </div>
+            <div class="crit-chip" [class.crit-ok]="book.requirements_checklist.content" [class.crit-bad]="!book.requirements_checklist.content" title="Capítulos o manuscrito válido">
+              <span class="material-symbols-outlined">{{ book.requirements_checklist.content ? 'check' : 'close' }}</span> Contenido
+            </div>
+            <div class="crit-chip" [class.crit-ok]="book.requirements_checklist.declaration" [class.crit-bad]="!book.requirements_checklist.declaration" title="Declaración jurada de autoría">
+              <span class="material-symbols-outlined">{{ book.requirements_checklist.declaration ? 'check' : 'close' }}</span> Derechos
+            </div>
+          </div>
 
           <div class="card-actions">
             <button class="action-btn review-btn" (click)="selectBookForReview(book)">
               <span class="material-symbols-outlined">visibility</span>
               Inspeccionar
             </button>
-            <button class="action-btn approve-btn" (click)="approve(book)">
-              <span class="material-symbols-outlined">check</span>
+            <button class="action-btn approve-btn" (click)="openApproveModal(book)" [disabled]="!book.meets_minimum_requirements">
+              <span class="material-symbols-outlined">task_alt</span>
               Aprobar
             </button>
-            <button class="action-btn reject-btn" (click)="rejectBook(book)" title="Rechazar y descartar obra">
-              <span class="material-symbols-outlined">delete</span>
-              Rechazar
+            <button class="action-btn reject-btn" (click)="openRejectModal(book)" title="Rechazar con observaciones">
+              <span class="material-symbols-outlined">rate_review</span>
+              Observar
             </button>
-            <a [routerLink]="['/dashboard/books', book.id, 'edit']" class="action-btn edit-btn">
-              <span class="material-symbols-outlined">edit</span>
-              Editar
-            </a>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- EMPTY STATE -->
-    <ng-template #emptyState>
+    <!-- EMPTY FILTER STATE -->
+    <ng-template #emptyFiltered>
       <div class="empty-state-panel">
         <div class="empty-icon-wrap">
           <span class="material-symbols-outlined">verified</span>
         </div>
-        <h2 class="empty-title">Todo el catálogo está al día</h2>
-        <p class="empty-desc">No hay libros en borrador ni obras pendientes de revisión editorial en este momento. Todos los 1.046 títulos se encuentran publicados y disponibles para lectura.</p>
+        <h2 class="empty-title">Sin obras en este filtro</h2>
+        <p class="empty-desc" *ngIf="activeFilter === 'authors'">No hay propuestas de autores pendientes de revisión editorial en este momento.</p>
+        <p class="empty-desc" *ngIf="activeFilter === 'drafts'">No hay borradores locales del sistema pendientes de aprobación.</p>
+        <p class="empty-desc" *ngIf="activeFilter === 'all'">Todo el catálogo se encuentra auditado y publicado.</p>
         <div class="empty-actions">
-          <a routerLink="/dashboard/books/new" class="primary-btn">
-            <span class="material-symbols-outlined">add</span>
-            Cargar Nueva Obra
-          </a>
-          <a routerLink="/dashboard/books" class="secondary-btn">
-            <span class="material-symbols-outlined">library_books</span>
-            Explorar Biblioteca
+          <button class="secondary-btn" (click)="activeFilter = 'all'" *ngIf="activeFilter !== 'all'">
+            Ver Todas las Obras
+          </button>
+          <a routerLink="/publish-book" class="primary-btn">
+            <span class="material-symbols-outlined">post_add</span>
+            Formulario de Autores
           </a>
         </div>
       </div>
     </ng-template>
   </div>
 
-  <!-- MODAL DE INSPECCIÓN -->
+  <!-- MODAL DE INSPECCIÓN DETALLADA -->
   <div class="modal-backdrop" *ngIf="selectedBook" (click)="closeReview()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-box modal-box-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>Detalles de Curaduría: {{ selectedBook.title }}</h2>
+        <div class="modal-header-meta">
+          <span class="modal-eyebrow">{{ selectedBook.submitted_by ? 'Revisión de Obra de Autor' : 'Borrador Editorial' }}</span>
+          <h2>{{ selectedBook.title }}</h2>
+        </div>
         <button class="close-btn" (click)="closeReview()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
+
       <div class="modal-body">
         <div class="modal-grid">
-          <img [src]="selectedBook.cover || 'assets/no-cover.jpg'" class="modal-cover" alt="Portada">
+          <div class="modal-sidebar">
+            <img [src]="selectedBook.cover || 'assets/no-cover.jpg'" class="modal-cover" alt="Portada">
+            
+            <div class="author-dossier" *ngIf="selectedBook.submitted_by">
+              <div class="dossier-title">
+                <span class="material-symbols-outlined">badge</span>
+                Datos del Autor
+              </div>
+              <p><strong>Nombre:</strong> {{ selectedBook.submitted_by.full_name }}</p>
+              <p><strong>Usuario:</strong> &#64;{{ selectedBook.submitted_by.username }}</p>
+              <p><strong>Email:</strong> {{ selectedBook.submitted_by.email }}</p>
+            </div>
+
+            <div class="legal-badge" [class.legal-verified]="selectedBook.submission_declaration">
+              <span class="material-symbols-outlined">{{ selectedBook.submission_declaration ? 'verified' : 'gavel' }}</span>
+              <span>
+                {{ selectedBook.submission_declaration ? 'Declaración Jurada Aceptada (Ley N° 17.336)' : 'Declaración de Derechos no registrada' }}
+              </span>
+            </div>
+          </div>
+
           <div class="modal-info">
-            <p><strong>Autores:</strong> {{ selectedBook.authors.join(', ') || 'N/A' }}</p>
-            <p><strong>Géneros:</strong> {{ selectedBook.genres.join(', ') || 'N/A' }}</p>
-            <p><strong>Capítulos:</strong> {{ selectedBook.chapters_count }}</p>
-            <p><strong>Palabras estimadas:</strong> {{ selectedBook.word_count || 'Sin recalcular' }}</p>
-            <p><strong>Nivel:</strong> {{ selectedBook.difficulty_level }}</p>
-            <p><strong>Última actualización:</strong> {{ selectedBook.updated_at | date:'medium' }}</p>
+            <!-- LISTA DE VERIFICACIÓN DE REQUISITOS MÍNIMOS -->
+            <div class="curation-checklist-card">
+              <h3>
+                <span class="material-symbols-outlined">fact_check</span>
+                Auditoría de Requisitos Mínimos
+              </h3>
+              <ul class="checklist-items">
+                <li [class.item-pass]="selectedBook.requirements_checklist?.title" [class.item-fail]="!selectedBook.requirements_checklist?.title">
+                  <span class="material-symbols-outlined">{{ selectedBook.requirements_checklist?.title ? 'check_circle' : 'cancel' }}</span>
+                  <span><strong>Título de la Obra:</strong> Longitud válida (mínimo 3 caracteres).</span>
+                </li>
+                <li [class.item-pass]="selectedBook.requirements_checklist?.synopsis" [class.item-fail]="!selectedBook.requirements_checklist?.synopsis">
+                  <span class="material-symbols-outlined">{{ selectedBook.requirements_checklist?.synopsis ? 'check_circle' : 'cancel' }}</span>
+                  <span><strong>Sinopsis Editorial:</strong> Longitud mínima de 50 caracteres (actual: {{ selectedBook.synopsis?.length || 0 }} car.).</span>
+                </li>
+                <li [class.item-pass]="selectedBook.requirements_checklist?.cover" [class.item-fail]="!selectedBook.requirements_checklist?.cover">
+                  <span class="material-symbols-outlined">{{ selectedBook.requirements_checklist?.cover ? 'check_circle' : 'cancel' }}</span>
+                  <span><strong>Portada Gráfica:</strong> Imagen portada presente y apta para la biblioteca.</span>
+                </li>
+                <li [class.item-pass]="selectedBook.requirements_checklist?.genres" [class.item-fail]="!selectedBook.requirements_checklist?.genres">
+                  <span class="material-symbols-outlined">{{ selectedBook.requirements_checklist?.genres ? 'check_circle' : 'cancel' }}</span>
+                  <span><strong>Categorización:</strong> Al menos 1 género literario clasificado ({{ selectedBook.genres?.join(', ') || 'Ninguno' }}).</span>
+                </li>
+                <li [class.item-pass]="selectedBook.requirements_checklist?.content" [class.item-fail]="!selectedBook.requirements_checklist?.content">
+                  <span class="material-symbols-outlined">{{ selectedBook.requirements_checklist?.content ? 'check_circle' : 'cancel' }}</span>
+                  <span><strong>Manuscrito / Capítulos:</strong> {{ selectedBook.chapters_count }} capítulos procesados (aprox. {{ selectedBook.word_count || 0 }} palabras).</span>
+                </li>
+                <li [class.item-pass]="selectedBook.requirements_checklist?.declaration" [class.item-fail]="!selectedBook.requirements_checklist?.declaration">
+                  <span class="material-symbols-outlined">{{ selectedBook.requirements_checklist?.declaration ? 'check_circle' : 'cancel' }}</span>
+                  <span><strong>Declaración de Titularidad:</strong> Autoría exclusiva y original declarada por el remitente.</span>
+                </li>
+              </ul>
+
+              <div class="checklist-summary" [class.summary-pass]="selectedBook.meets_minimum_requirements" [class.summary-fail]="!selectedBook.meets_minimum_requirements">
+                <span class="material-symbols-outlined">{{ selectedBook.meets_minimum_requirements ? 'verified' : 'error' }}</span>
+                <span>
+                  {{ selectedBook.meets_minimum_requirements ? 'Esta obra cumple con todos los requisitos mínimos para publicación.' : 'Atención: Existen criterios sin cumplir. Puedes solicitar correcciones al autor.' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- METADATOS TÉCNICOS -->
+            <div class="technical-meta-grid">
+              <div class="meta-item">
+                <span class="meta-label">Nivel de Lectura</span>
+                <span class="meta-value">{{ selectedBook.difficulty_level }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Capítulos</span>
+                <span class="meta-value">{{ selectedBook.chapters_count }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Palabras Estimadas</span>
+                <span class="meta-value">{{ (selectedBook.word_count | number) || 'N/A' }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Fecha de Envío</span>
+                <span class="meta-value">{{ selectedBook.created_at | date:'short' }}</span>
+              </div>
+            </div>
+
             <div class="synopsis-box">
-              <strong>Sinopsis:</strong>
+              <strong>Sinopsis Registrada:</strong>
               <p>{{ selectedBook.synopsis || 'Sin sinopsis registrada.' }}</p>
+            </div>
+
+            <div class="notes-history-box" *ngIf="selectedBook.editorial_notes">
+              <strong>Observaciones Editoriales Previas:</strong>
+              <p>{{ selectedBook.editorial_notes }}</p>
             </div>
           </div>
         </div>
       </div>
+
       <div class="modal-footer">
         <button class="secondary-btn" (click)="closeReview()">Cerrar</button>
-        <button class="danger-btn" (click)="rejectBook(selectedBook)">
-          <span class="material-symbols-outlined">delete</span>
-          Rechazar Borrador
+        <button class="danger-btn" (click)="openRejectModal(selectedBook)">
+          <span class="material-symbols-outlined">rate_review</span>
+          Rechazar / Solicitar Cambios
         </button>
-        <button class="primary-btn" (click)="approve(selectedBook); closeReview()">
+        <button class="primary-btn" (click)="openApproveModal(selectedBook)" [disabled]="!selectedBook.meets_minimum_requirements">
           <span class="material-symbols-outlined">publish</span>
-          Aprobar & Publicar
+          Aprobar & Publicar Obra
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN DE APROBACIÓN CON NOTA EDITORIAL -->
+  <div class="modal-backdrop" *ngIf="approveModalOpen" (click)="closeApproveModal()">
+    <div class="modal-box modal-box-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-meta">
+          <span class="modal-eyebrow text-success">Aprobación Editorial</span>
+          <h2>Aprobar "{{ bookToApprove?.title }}"</h2>
+        </div>
+        <button class="close-btn" (click)="closeApproveModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-instructions">
+          Al autorizar esta obra, su estado pasará a <strong>Publicado</strong>, haciéndola visible en el catálogo de Literatus Novelist y disponible para todos los lectores.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="approvalNotesInput">Nota de felicitación o comentarios editoriales (opcional):</label>
+          <textarea id="approvalNotesInput" class="form-textarea" rows="3" [(ngModel)]="approvalNotes" placeholder="Escribe un mensaje de bienvenida al catálogo o comentarios para el autor..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="secondary-btn" (click)="closeApproveModal()" [disabled]="submittingApprove">Cancelar</button>
+        <button class="primary-btn btn-success" (click)="confirmApprove()" [disabled]="submittingApprove">
+          <span class="material-symbols-outlined" *ngIf="!submittingApprove">check_circle</span>
+          <span class="spinner-inline" *ngIf="submittingApprove"></span>
+          {{ submittingApprove ? 'Publicando...' : 'Confirmar & Publicar Obra' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE RECHAZO CON OBSERVACIONES DETALLADAS -->
+  <div class="modal-backdrop" *ngIf="rejectModalOpen" (click)="closeRejectModal()">
+    <div class="modal-box modal-box-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-meta">
+          <span class="modal-eyebrow text-danger">Revisión Requerida</span>
+          <h2>Observaciones para "{{ bookToReject?.title }}"</h2>
+        </div>
+        <button class="close-btn" (click)="closeRejectModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-instructions">
+          Indica claramente al autor los motivos del rechazo o las correcciones que debe realizar para que la obra cumpla con los estándares editoriales mínimos.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="rejectionNotesInput">Motivo del Rechazo / Observaciones Editoriales (* obligatorio):</label>
+          <textarea id="rejectionNotesInput" class="form-textarea" rows="4" [(ngModel)]="rejectionNotes" placeholder="Ejemplo: La sinopsis requiere mayor desarrollo argumental y los capítulos carecen de numeración estándar..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="secondary-btn" (click)="closeRejectModal()" [disabled]="submittingReject">Cancelar</button>
+        <button class="danger-btn" (click)="confirmReject()" [disabled]="submittingReject || !rejectionNotes.trim()">
+          <span class="material-symbols-outlined" *ngIf="!submittingReject">send</span>
+          <span class="spinner-inline" *ngIf="submittingReject"></span>
+          {{ submittingReject ? 'Enviando observaciones...' : 'Registrar Observaciones' }}
         </button>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { ApiService } from '../../core/services/api.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface CartItem {
   id: string;
@@ -27,6 +28,7 @@ export class CartComponent implements OnInit {
   private api = inject(ApiService);
   private authService = inject(AuthService);
   private gamificationService = inject(GamificationService);
+  private notificationService = inject(NotificationService);
 
   cartItems: CartItem[] = [];
   couponCode = '';
@@ -180,8 +182,9 @@ export class CartComponent implements OnInit {
     if (code === 'LITERATUS' || code === 'NOVELIST' || code === 'TINTA10') {
       this.couponApplied = true;
       this.couponDiscount = 0.15; // 15% de descuento
+      this.notificationService.success('¡Cupón del 15% de descuento aplicado con éxito!', 'Cupón Válido');
     } else {
-      alert('Cupón no válido o expirado.');
+      this.notificationService.error('El cupón ingresado no es válido o ha expirado.', 'Cupón no Válido');
     }
   }
 

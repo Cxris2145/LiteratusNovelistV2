@@ -53,7 +53,7 @@ export class LibraryListComponent implements OnInit {
     if (q) {
       items = items.filter(item => {
         const title = (item.book_title || item.edition?.book?.title || '').toLowerCase();
-        const author = (item.edition?.book?.author_name || '').toLowerCase();
+        const author = (item.author_name || item.edition?.book?.author_name || '').toLowerCase();
         return title.includes(q) || author.includes(q);
       });
     }

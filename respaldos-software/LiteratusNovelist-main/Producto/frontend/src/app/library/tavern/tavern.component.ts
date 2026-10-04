@@ -1,6 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '../../core/services/notification.service';
 import { ApiService } from '../../core/services/api.service';
 import { ChatService } from '../../core/services/chat.service';
 import { LearningService, ShopItem } from '../../core/services/learning.service';
@@ -24,6 +25,7 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   private rewards = inject(GamificationService);
   private subscriptions = inject(SubscriptionService);
   private snack = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private zone = inject(NgZone);
@@ -76,7 +78,26 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   extraBenefits(plan: SubscriptionPlan): string[] { return plan.benefits.filter(value => !value.startsWith('Personajes y autores') && !value.startsWith('Asistente general')); }
   purchaseLabel(payment: any): string { return payment.item_type === 'plan' ? 'Plan ' + (this.plans.find(p => p.code === payment.item_reference)?.name || 'Literatus') : payment.item_type === 'ink' ? payment.item_reference + ' Tinta' : 'Libro'; }
   inkLabel(concept: string): string {
-    const labels: Record<string, string> = { ai_chat: 'Conversación', ai_audio: 'Narración de audio', legacy_spend: 'Canje de Tinta', ink_purchase: 'Recarga de Tinta', subscription_bonus: 'Bono mensual de Maestro', daily_reward: 'Recompensa diaria', mission_completed: 'Misión completada', achievement_unlocked: 'Logro desbloqueado', ai_interaction: 'Recompensa de conversación', streak_bonus_day: 'Recompensa de racha', reading_session: 'Recompensa de lectura' };
+    const labels: Record<string, string> = {
+      ai_chat: 'Conversación',
+      ai_audio: 'Narración de audio',
+      legacy_spend: 'Canje de Tinta',
+      ink_purchase: 'Recarga de Tinta',
+      subscription_bonus: 'Bono mensual de Maestro',
+      daily_reward: 'Recompensa diaria',
+      daily_enigma: 'Enigma literario',
+      quiz_passed: 'Nivel superado (La Senda)',
+      quiz_practice: 'Práctica de nivel',
+      mission_completed: 'Misión completada',
+      achievement_unlocked: 'Logro desbloqueado',
+      ai_interaction: 'Recompensa de conversación',
+      streak_bonus_day: 'Recompensa de racha',
+      streak_milestone: 'Hito de racha alcanzado',
+      reading_session: 'Recompensa de lectura',
+      chapter_read: 'Capítulo leído',
+      book_completed: 'Obra completada',
+      review_written: 'Reseña de obra'
+    };
     return labels[concept] || (concept.startsWith('shop_purchase_') ? 'Canje en el Bazar' : 'Movimiento de Tinta');
   }
   get statusLabel(): string {
@@ -166,9 +187,9 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   cancelRenewal(): void {
     if (this.busy) return;
     this.busy = true;
-    this.subscriptions.manage('cancel').subscribe({ next: value => { this.account = value; this.busy = false; this.snack.open('Renovación cancelada. Conservas tu período pagado y tu Tinta.', 'Cerrar', { duration: 6000 }); }, error: err => this.operationError(err) });
+    this.subscriptions.manage('cancel').subscribe({ next: value => { this.account = value; this.busy = false; this.notification.info('Renovación cancelada. Conservas tu período pagado y tu Tinta.', 'Suscripción'); }, error: err => this.operationError(err) });
   }
-  equipFrame(): void { this.subscriptions.equipFrame().subscribe({ next: () => { this.chat.notifyProfileUpdate(); this.snack.open('Marco Maestro equipado', 'Cerrar', { duration: 3000 }); }, error: err => this.operationError(err) }); }
+  equipFrame(): void { this.subscriptions.equipFrame().subscribe({ next: () => { this.chat.notifyProfileUpdate(); this.notification.success('Marco Maestro equipado correctamente.', 'Cosméticos'); }, error: err => this.operationError(err) }); }
   loadHistory(): void {
     this.showHistory = !this.showHistory;
     if (!this.showHistory) return;
@@ -200,13 +221,13 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
     this.learning.buyShopItem(item.code).subscribe({
       next: value => {
         this.busy = false; this.markBought(item.code);
-        this.snack.open(value.message, 'Cerrar', { duration: 4000 }); this.refreshAccount(); this.loadShop();
+        this.notification.success(value.message || 'Artículo adquirido.', 'Bazar'); this.refreshAccount(); this.loadShop();
       },
       error: err => this.operationError(err)
     });
   }
   equipShopItem(item: ShopItem): void {
-    this.learning.equipShopItem(item.code).subscribe({ next: value => { this.snack.open(value.message, 'Cerrar', { duration: 3000 }); this.chat.notifyProfileUpdate(); this.loadShop(); }, error: err => this.operationError(err) });
+    this.learning.equipShopItem(item.code).subscribe({ next: value => { this.notification.success(value.message || 'Artículo equipado.', 'Bazar'); this.chat.notifyProfileUpdate(); this.loadShop(); }, error: err => this.operationError(err) });
   }
   buyInk(amount: number): void { this.router.navigate(this.isLoggedIn() ? ['/checkout', 'ink', amount] : ['/login']); }
   loadReward(): void { this.rewards.getDailyRewardStatus().subscribe({ next: v => this.dailyReward = v, error: () => {} }); }
@@ -222,7 +243,7 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
             this.inkBalance = v.new_ink_balance;
             this.chat.updateInkBalance(v.new_ink_balance);
           }
-          this.snack.open(v.message || '¡Recompensa diaria reclamada con éxito!', 'Cerrar', { duration: 4000 });
+          this.notification.gamify('ink', v?.reward_amount, v.message || '¡Recompensa diaria reclamada con éxito!', 'Recompensa Diaria');
           this.refreshAccount();
           this.loadReward();
         };
@@ -251,7 +272,7 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
     clearTimeout(this.boughtTimer);
     this.boughtTimer = setTimeout(() => this.justBought = null, 2400);
   }
-  private operationError(err: any): void { this.busy = false; this.snack.open(err.error?.message || err.error?.error || 'No se pudo completar la operación. Intenta nuevamente.', 'Cerrar', { duration: 6000 }); }
+  private operationError(err: any): void { this.busy = false; this.notification.error(err.error?.message || err.error?.error || 'No se pudo completar la operación. Intenta nuevamente.', 'Atención'); }
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
     clearTimeout(this.boughtTimer);

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-avatars',
@@ -24,7 +25,10 @@ export class AvatarsComponent implements OnInit {
 
   actionToast = '';
 
-  constructor(private dashboardService: DashboardBooksService) {}
+  constructor(
+    private dashboardService: DashboardBooksService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadAvatars();
@@ -126,10 +130,12 @@ export class AvatarsComponent implements OnInit {
       next: () => {
         this.avatars = this.avatars.filter(a => a.id !== avatar.id);
         this.applyFilters();
-        this.actionToast = `Personaje "${avatar.name}" eliminado con éxito.`;
+        const msg = `Personaje "${avatar.name}" eliminado con éxito.`;
+        this.actionToast = msg;
+        this.notificationService.success(msg, 'Personaje Eliminado');
         setTimeout(() => this.actionToast = '', 3500);
       },
-      error: () => alert('No se pudo eliminar el personaje.')
+      error: () => this.notificationService.error('No se pudo eliminar el personaje.', 'Error')
     });
   }
 

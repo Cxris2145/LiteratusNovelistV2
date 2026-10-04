@@ -5,6 +5,7 @@ import { ApiService } from '../../core/services/api.service';
 import { ChatService } from '../../core/services/chat.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-profile',
@@ -18,6 +19,7 @@ export class ProfileComponent implements OnInit {
   chatService = inject(ChatService);
   fb = inject(FormBuilder);
   snackBar = inject(MatSnackBar);
+  notificationService = inject(NotificationService);
 
   loading = false;
   userInitials = 'V';
@@ -135,12 +137,12 @@ export class ProfileComponent implements OnInit {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      this.snackBar.open('Por favor selecciona una imagen válida (JPG, PNG, WEBP).', 'Cerrar', { duration: 3500 });
+      this.notificationService.warning('Por favor selecciona una imagen válida (JPG, PNG, WEBP).', 'Formato no Válido');
       return;
     }
 
     if (file.size > 8 * 1024 * 1024) {
-      this.snackBar.open('La imagen es demasiado pesada (máx 8MB).', 'Cerrar', { duration: 3500 });
+      this.notificationService.warning('La imagen es demasiado pesada (máximo 8MB).', 'Tamaño Excedido');
       return;
     }
 
@@ -172,7 +174,7 @@ export class ProfileComponent implements OnInit {
           ctx.drawImage(img, 0, 0, width, height);
           this.avatarUrl = canvas.toDataURL('image/jpeg', 0.88);
           this.profileForm.markAsDirty();
-          this.snackBar.open('Foto cargada en la vista previa. Haz clic en "Guardar Cambios" para confirmar.', 'Entendido', { duration: 4500 });
+          this.notificationService.info('Foto cargada en la vista previa. Haz clic en "Guardar Cambios" para confirmar.', 'Foto Actualizada');
         }
       };
       img.src = e.target.result;
@@ -183,7 +185,7 @@ export class ProfileComponent implements OnInit {
   removeAvatar() {
     this.avatarUrl = null;
     this.profileForm.markAsDirty();
-    this.snackBar.open('Foto eliminada. Haz clic en "Guardar Cambios" para confirmar.', 'Entendido', { duration: 4000 });
+    this.notificationService.info('Foto eliminada. Haz clic en "Guardar Cambios" para confirmar.', 'Foto Removida');
   }
 
   previewTheme(themeId: string) {
@@ -206,10 +208,7 @@ export class ProfileComponent implements OnInit {
     this.api.patch('users/profile/', payload).subscribe({
       next: (res) => {
         this.loading = false;
-        this.snackBar.open('Perfil actualizado exitosamente', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
+        this.notificationService.success('Perfil actualizado exitosamente.', 'Perfil');
         // Actualizar el estado global
         this.chatService.notifyProfileUpdate();
         this.loadProfile();
@@ -217,7 +216,7 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         console.error("Error actualizando perfil", err);
-        this.snackBar.open('Error al guardar los cambios', 'Cerrar', { duration: 3000 });
+        this.notificationService.error('Error al guardar los cambios.', 'Error');
       }
     });
   }

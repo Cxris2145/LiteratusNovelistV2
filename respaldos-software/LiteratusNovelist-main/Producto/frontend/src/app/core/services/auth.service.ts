@@ -6,8 +6,10 @@ export interface UserProfile {
   id: string;
   email: string;
   username?: string;
+  role?: string;
   is_staff: boolean;
   is_superuser: boolean;
+  has_completed_onboarding?: boolean;
 }
 
 @Injectable({
@@ -67,6 +69,18 @@ export class AuthService {
   setUser(user: UserProfile): void {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this._currentUser.set(user);
+  }
+
+  updateUserOnboarding(role: string, hasCompleted: boolean = true): void {
+    const user = this._currentUser();
+    if (user) {
+      const updated: UserProfile = {
+        ...user,
+        role,
+        has_completed_onboarding: hasCompleted
+      };
+      this.setUser(updated);
+    }
   }
 
   getAccessToken(): string | null {

@@ -1141,3 +1141,48 @@ html.tv-vt::view-transition-group(*) { animation-duration: .45s; animation-timin
 /* La barra fija también se captura como grupo propio: como se pinta después que el contenido,
    su grupo queda encima y las tarjetas no la atraviesan mientras se mueven. */
 html.tv-vt header.main-header { view-transition-name: tv-header; }
+
+/* ═════════════════════════════════════════════════════════════════════
+   NORMALIZED MAT-SNACKBAR THEME (LITERATUS BOUTIQUE)
+   ═════════════════════════════════════════════════════════════════════ */
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color: transparent !important;
+  --mdc-snackbar-supporting-text-color: var(--color-100, #DEE7F4) !important;
+  margin-bottom: 24px !important;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  background: linear-gradient(135deg, rgba(27, 43, 73, 0.96) 0%, rgba(17, 28, 48, 0.98) 100%) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-left: 4px solid var(--color-primary-text, #9FB6D9) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(59, 130, 246, 0.2) !important;
+  padding: 12px 18px !important;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__label {
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif) !important;
+  font-size: 0.9rem !important;
+  color: var(--color-100, #DEE7F4) !important;
+  line-height: 1.45 !important;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-button {
+  color: var(--home-accent-amber, #FFB353) !important;
+  font-family: var(--font-ui, 'Plus Jakarta Sans', sans-serif) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.4px !important;
+}
+
+.mat-mdc-snack-bar-container.success-snackbar .mdc-snackbar__surface {
+  border-left-color: #34D399 !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(52, 211, 153, 0.25) !important;
+}
+
+.mat-mdc-snack-bar-container.error-snackbar .mdc-snackbar__surface {
+  border-left-color: #F87171 !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(248, 113, 113, 0.25) !important;
+}
+

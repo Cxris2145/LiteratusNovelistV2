@@ -140,7 +140,7 @@
       
       <div class="card-content">
         <h3 class="book-title">{{ item.book_title || item.edition?.book?.title || 'Sin Título' }}</h3>
-        <p class="edition-info">{{ item.edition?.book?.author_name || 'Autor Desconocido' }}</p>
+        <p class="edition-info">{{ item.author_name || item.edition?.book?.author_name || 'Autor Desconocido' }}</p>
         
         <div class="progress-section">
           <div class="progress-label">

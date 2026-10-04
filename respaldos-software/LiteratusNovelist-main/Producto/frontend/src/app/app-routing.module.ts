@@ -17,6 +17,9 @@ import { CheckoutComponent } from './catalog/checkout/checkout.component';
 import { PaymentSuccessComponent } from './catalog/payment-success/payment-success.component';
 import { PaymentFailureComponent } from './catalog/payment-failure/payment-failure.component';
 import { LibraryListComponent } from './library/library-list/library-list.component';
+import { AuthorSubmitBookComponent } from './catalog/author-submit-book/author-submit-book.component';
+import { OnboardingComponent } from './auth/onboarding/onboarding.component';
+import { onboardingGuard } from './core/guards/onboarding.guard';
 
 import { HomeComponent } from './home/home.component';
 
@@ -31,24 +34,32 @@ import { MessagesComponent } from './characters/messages/messages.component';
 import { CartComponent } from './catalog/cart/cart.component';
 import { AchievementsComponent } from './library/achievements/achievements.component';
 import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
+import { BlindInterrogationComponent } from './library/games/blind-interrogation/blind-interrogation.component';
+import { enigmaExitGuard } from './core/guards/enigma-exit.guard';
 
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'favorites', component: FavoritesComponent, canActivate: [authGuard] },
   { path: 'achievements', component: AchievementsComponent, canActivate: [authGuard] },
-  { path: 'games/enigma', component: EnigmaGameComponent },
+  { path: 'games/enigma', component: EnigmaGameComponent, canDeactivate: [enigmaExitGuard] },
   { path: 'enigma', redirectTo: 'games/enigma', pathMatch: 'full' },
+  { path: 'games/interrogatorio', component: BlindInterrogationComponent, canDeactivate: [enigmaExitGuard] },
+  { path: 'games/blind-interrogation', redirectTo: 'games/interrogatorio', pathMatch: 'full' },
+  { path: 'interrogatorio', redirectTo: 'games/interrogatorio', pathMatch: 'full' },
   { path: 'messages', component: MessagesComponent },
   { path: 'cart', component: CartComponent },
   { path: 'tavern', component: TavernComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'onboarding', component: OnboardingComponent, canActivate: [onboardingGuard] },
   { path: 'verify-email', component: VerifyEmailComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'catalog', component: BookListComponent },
   { path: 'authors', component: AuthorListComponent },
+  { path: 'publish-book', component: AuthorSubmitBookComponent, canActivate: [authGuard] },
+  { path: 'authors/publish', redirectTo: 'publish-book', pathMatch: 'full' },
   { path: 'characters', component: CharacterHubComponent },
   { path: 'demo-chat/:avatarId', component: DemoChatPageComponent },
   { path: 'demo-chat', component: DemoChatPageComponent },

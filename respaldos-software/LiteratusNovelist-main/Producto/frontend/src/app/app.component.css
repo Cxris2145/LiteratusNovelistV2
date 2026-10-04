@@ -940,118 +940,369 @@
   }
 }
 
-/* Movimiento reducido: se quitan desplazamientos y presiones; los cambios de color quedan. */
-@media (prefers-reduced-motion: reduce) {
-  .header-left:hover .brand-sparkle,
-  .action-badge,
-  .search-mic-btn.listening {
-    animation: none;
-  }
-  .search-submit-btn,
-  .quick-filter,
-  .quick-action-btn,
-  .user-account-btn,
-  .ink-widget,
-  .profile-trigger,
-  .profile-caret,
-  .nav-toggle-btn .material-symbols-rounded {
-    transition: none;
-  }
-  .search-submit-btn:active,
-  .quick-filter:active,
-  .quick-action-btn:active,
-  .user-account-btn:active,
-  .ink-widget:active,
-  .profile-trigger:active {
-    transform: none;
-  }
-  .nav-bubbles-bar {
-    transition: opacity 200ms ease;
-  }
+/* ═════════════════════════════════════════════════════════════════════
+   SISTEMA UNIFICADO DE NOTIFICACIONES (POP-UP CENTRAL BOUTIQUE)
+   ═════════════════════════════════════════════════════════════════════ */
+.unified-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  background: rgba(8, 14, 26, 0.68);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: popupBackdropFadeIn 0.28s ease-out forwards;
 }
 
-/* Gamification Toasts */
-.gamification-toast-container {
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  z-index: 9999;
+.unified-popup-backdrop.backdrop-closing {
+  animation: popupBackdropFadeOut 0.22s ease-in forwards;
+}
+
+.unified-popup-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(27, 43, 73, 0.98) 0%, rgba(16, 26, 46, 0.99) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 24px 60px -10px rgba(0, 0, 0, 0.7),
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 40px -8px var(--popup-glow, rgba(59, 130, 246, 0.3));
+  color: var(--color-100, #DEE7F4);
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 32px 28px 26px 28px;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  animation: popupScaleIn 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.unified-popup-card:hover {
+  box-shadow:
+    0 28px 70px -10px rgba(0, 0, 0, 0.75),
+    0 10px 28px rgba(0, 0, 0, 0.45),
+    0 0 50px -6px var(--popup-glow, rgba(59, 130, 246, 0.45));
+}
+
+.unified-popup-card.popup-closing {
+  animation: popupScaleOut 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* ── Temas por Tipo de Notificación ── */
+.unified-popup-card.popup-success {
+  --popup-accent: #34D399;
+  --popup-glow: rgba(52, 211, 153, 0.45);
+  --popup-bg-accent: rgba(52, 211, 153, 0.16);
+}
+
+.unified-popup-card.popup-error {
+  --popup-accent: #F87171;
+  --popup-glow: rgba(248, 113, 113, 0.45);
+  --popup-bg-accent: rgba(248, 113, 113, 0.18);
+}
+
+.unified-popup-card.popup-warning {
+  --popup-accent: #FFB353;
+  --popup-glow: rgba(255, 179, 83, 0.45);
+  --popup-bg-accent: rgba(255, 179, 83, 0.16);
+}
+
+.unified-popup-card.popup-info {
+  --popup-accent: #60A5FA;
+  --popup-glow: rgba(96, 165, 250, 0.45);
+  --popup-bg-accent: rgba(96, 165, 250, 0.16);
+}
+
+.unified-popup-card.popup-ink {
+  --popup-accent: #A78BFA;
+  --popup-glow: rgba(167, 139, 250, 0.5);
+  --popup-bg-accent: rgba(167, 139, 250, 0.2);
+}
+
+.unified-popup-card.popup-xp {
+  --popup-accent: #38BDF8;
+  --popup-glow: rgba(56, 189, 248, 0.5);
+  --popup-bg-accent: rgba(56, 189, 248, 0.2);
+}
+
+.unified-popup-card.popup-level_up {
+  --popup-accent: #FBBF24;
+  --popup-glow: rgba(251, 191, 36, 0.55);
+  --popup-bg-accent: rgba(251, 191, 36, 0.22);
+}
+
+.unified-popup-card.popup-achievement {
+  --popup-accent: #F59E0B;
+  --popup-glow: rgba(245, 158, 11, 0.55);
+  --popup-bg-accent: rgba(245, 158, 11, 0.22);
+}
+
+/* ── Halo Ambiental Superior ── */
+.popup-ambient-glow {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 180px;
+  background: radial-gradient(circle, var(--popup-bg-accent) 0%, transparent 70%);
   pointer-events: none;
 }
 
-.gamification-toast {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-left: 4px solid var(--primary);
-  border-radius: 8px;
-  padding: 12px 16px;
+/* ── Botón de Cierre Superior Derecho ── */
+.popup-close-corner {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  animation: slideInBottom 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease 3s forwards;
-  pointer-events: auto;
-  color: var(--text-main);
-  min-width: 250px;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+  z-index: 2;
 }
 
-.gamification-toast.toast-ink { border-left-color: #8b5cf6; } /* Purple for Ink */
-.gamification-toast.toast-xp { border-left-color: #3b82f6; } /* Blue for XP */
-.gamification-toast.toast-level_up { border-left-color: #f59e0b; } /* Amber for Level Up */
-.gamification-toast.toast-achievement { border-left-color: var(--color-primary); } /* Acento del tema para logros */
+.popup-close-corner .material-symbols-rounded {
+  font-size: 19px;
+}
 
-.gamification-toast .toast-icon {
+.popup-close-corner:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  transform: rotate(90deg);
+}
+
+/* ── Emblema Central con Icono ── */
+.popup-emblem-wrap {
+  position: relative;
+  margin-bottom: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.gamification-toast.toast-ink .toast-icon { color: #8b5cf6; }
-.gamification-toast.toast-xp .toast-icon { color: #3b82f6; }
-.gamification-toast.toast-level_up .toast-icon { color: #f59e0b; }
-.gamification-toast.toast-achievement .toast-icon { color: var(--color-primary-text); }
-
-.gamification-toast .toast-icon .material-symbols-rounded {
-  font-size: 24px;
+.popup-emblem-aura {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--popup-glow);
+  filter: blur(14px);
+  opacity: 0.75;
+  animation: popupPulse 2.4s ease-in-out infinite alternate;
 }
 
-.gamification-toast .toast-content {
+.popup-emblem-disc {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(30, 48, 80, 0.95), rgba(18, 30, 52, 0.98));
+  border: 2px solid var(--popup-accent);
+  box-shadow: 0 4px 20px var(--popup-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--popup-accent);
+}
+
+.popup-symbol {
+  font-size: 32px;
+  line-height: 1;
+}
+
+/* ── Contenido ── */
+.popup-body {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
-.gamification-toast .toast-amount {
+.popup-title {
+  margin: 0;
+  font-family: var(--font-brand, 'Cinzel'), Georgia, serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.6px;
+  color: #FFFFFF;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
-.gamification-toast.toast-ink .toast-amount { color: #8b5cf6; }
-.gamification-toast.toast-xp .toast-amount { color: #3b82f6; }
-.gamification-toast.toast-level_up .toast-amount { color: #f59e0b; }
-.gamification-toast.toast-achievement .toast-amount { color: var(--color-primary-text); }
-
-.gamification-toast .toast-message {
-  font-size: 0.85rem;
-  color: var(--text-muted);
+.popup-reward-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: var(--popup-bg-accent);
+  border: 1px solid var(--popup-accent);
+  color: var(--popup-accent);
+  font-family: var(--font-ui, 'Plus Jakarta Sans'), sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  box-shadow: 0 2px 12px var(--popup-glow);
 }
 
-@keyframes slideInBottom {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.badge-sparkle {
+  font-size: 17px;
 }
 
-@keyframes fadeOut {
+.popup-message {
+  margin: 4px 0 0 0;
+  font-family: var(--font-ui, 'Plus Jakarta Sans'), sans-serif;
+  font-size: 0.96rem;
+  line-height: 1.55;
+  color: #DEE7F4;
+  max-width: 380px;
+  word-break: break-word;
+}
+
+.popup-queue-indicator {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--color-300, #9FB6D9);
+  font-family: var(--font-ui, sans-serif);
+  letter-spacing: 0.4px;
+}
+
+/* ── Botones de Acción ── */
+.popup-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 22px;
+  width: 100%;
+}
+
+.popup-btn {
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-family: var(--font-ui, 'Plus Jakarta Sans'), sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.popup-btn-primary {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--popup-accent) 85%, white), var(--popup-accent));
+  color: #0B132B;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px var(--popup-glow);
+  font-weight: 700;
+  min-width: 140px;
+}
+
+.popup-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--popup-glow);
+  filter: brightness(1.08);
+}
+
+.popup-btn-primary:active {
+  transform: translateY(0);
+}
+
+.popup-btn-action {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.popup-btn-action:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ── Barra de Progreso ── */
+.popup-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.popup-progress-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--popup-accent);
+  transform-origin: left;
+  animation-name: popupProgressShrink;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.unified-popup-card:hover .popup-progress-fill {
+  animation-play-state: paused;
+}
+
+/* ── Animaciones ── */
+@keyframes popupBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popupBackdropFadeOut {
   from { opacity: 1; }
   to { opacity: 0; }
+}
+
+@keyframes popupScaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateY(20px);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popupScaleOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.88) translateY(14px);
+  }
+}
+
+@keyframes popupPulse {
+  0% { transform: scale(0.9); opacity: 0.55; }
+  100% { transform: scale(1.15); opacity: 0.85; }
+}
+
+@keyframes popupProgressShrink {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 /* Botón para plegar la fila de secciones */

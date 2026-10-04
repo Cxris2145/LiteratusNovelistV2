@@ -127,6 +127,24 @@ class Profile(TimeStampedModel):
     
     theme = models.CharField(max_length=50, default='default', help_text="Tema visual preferido del usuario.")
 
+    # Flujo de Onboarding & Preferencias de Lectura
+    has_completed_onboarding = models.BooleanField(
+        default=False,
+        help_text="Indica si el usuario completó la configuración inicial de rol y gustos literarios."
+    )
+    favorite_genres = models.ManyToManyField(
+        'catalog.Genre',
+        blank=True,
+        related_name='favorited_by_profiles',
+        help_text="Géneros literarios seleccionados durante el onboarding o en perfil."
+    )
+    followed_authors = models.ManyToManyField(
+        'catalog.Author',
+        blank=True,
+        related_name='followed_by_profiles',
+        help_text="Autores literarios que el usuario sigue para recibir novedades."
+    )
+
     class Meta:
         verbose_name = 'Profile'
         verbose_name_plural = 'Profiles'

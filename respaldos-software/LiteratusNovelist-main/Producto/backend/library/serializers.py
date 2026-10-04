@@ -71,12 +71,13 @@ class UserInventorySerializer(serializers.ModelSerializer):
     book_title = serializers.SerializerMethodField()
     book_cover = serializers.SerializerMethodField()
     book_slug = serializers.SerializerMethodField()
+    author_name = serializers.SerializerMethodField()
     page_count = serializers.IntegerField(source='edition.book.page_count', read_only=True)
     word_count = serializers.IntegerField(source='edition.book.word_count', read_only=True)
 
     class Meta:
         model = UserInventory
-        fields = ['id', 'book_title', 'book_cover', 'book_slug', 'page_count', 'word_count', 'edition', 'acquired_at', 'progress']
+        fields = ['id', 'book_title', 'book_cover', 'book_slug', 'author_name', 'page_count', 'word_count', 'edition', 'acquired_at', 'progress']
         read_only_fields = fields
 
     def get_book_title(self, obj):
@@ -84,6 +85,16 @@ class UserInventorySerializer(serializers.ModelSerializer):
 
     def get_book_slug(self, obj):
         return obj.edition.book.slug
+
+    def get_author_name(self, obj):
+        book = obj.edition.book
+        book_authors = list(book.book_authors.all())
+        if not book_authors:
+            return None
+        main_author = next((ba for ba in book_authors if ba.role == 'author'), None)
+        if not main_author:
+            main_author = book_authors[0]
+        return main_author.author.full_name
 
     def get_book_cover(self, obj):
         if obj.edition.book.cover_image:

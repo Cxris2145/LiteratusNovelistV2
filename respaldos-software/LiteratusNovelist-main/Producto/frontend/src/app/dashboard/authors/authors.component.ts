@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 import { HttpClient } from '@angular/common/http';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-authors',
@@ -28,7 +29,8 @@ export class AuthorsComponent implements OnInit {
 
   constructor(
     private bookService: DashboardBooksService,
-    private http: HttpClient
+    private http: HttpClient,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -76,11 +78,11 @@ export class AuthorsComponent implements OnInit {
       next: () => {
         this.loadAuthors();
         this.resetForm();
-        alert('Autor guardado con éxito');
+        this.notificationService.success('Autor guardado con éxito.', 'Autores');
       },
       error: (err) => {
         this.loading = false;
-        alert('Error al guardar: ' + (err.error?.error || 'Desconocido'));
+        this.notificationService.error('Error al guardar: ' + (err.error?.error || 'Desconocido'), 'Error');
       }
     });
   }

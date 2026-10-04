@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-users',
@@ -21,7 +22,10 @@ export class UsersComponent implements OnInit {
   inkReason = 'Recarga de cortesía';
   savingInk = false;
 
-  constructor(private dashboardService: DashboardBooksService) {}
+  constructor(
+    private dashboardService: DashboardBooksService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -75,9 +79,10 @@ export class UsersComponent implements OnInit {
       next: (res) => {
         user.is_active = res.is_active;
         this.actionToast = res.message;
+        this.notificationService.success(res.message, 'Usuarios');
         setTimeout(() => this.actionToast = '', 3500);
       },
-      error: (err) => alert(err.error?.error || 'Error al cambiar estado del usuario.')
+      error: (err) => this.notificationService.error(err.error?.error || 'Error al cambiar estado del usuario.', 'Error')
     });
   }
 
@@ -88,9 +93,10 @@ export class UsersComponent implements OnInit {
       next: (res) => {
         user.role = res.role_display;
         this.actionToast = res.message;
+        this.notificationService.success(res.message, 'Rol Actualizado');
         setTimeout(() => this.actionToast = '', 3500);
       },
-      error: (err) => alert(err.error?.error || 'Error al cambiar rol.')
+      error: (err) => this.notificationService.error(err.error?.error || 'Error al cambiar rol.', 'Error')
     });
   }
 
@@ -114,11 +120,12 @@ export class UsersComponent implements OnInit {
         this.savingInk = false;
         this.closeInkModal();
         this.actionToast = res.message;
+        this.notificationService.success(res.message, 'Ajuste de Tinta');
         setTimeout(() => this.actionToast = '', 3500);
       },
       error: (err) => {
         this.savingInk = false;
-        alert(err.error?.error || 'Error al ajustar tinta.');
+        this.notificationService.error(err.error?.error || 'Error al ajustar tinta.', 'Error');
       }
     });
   }

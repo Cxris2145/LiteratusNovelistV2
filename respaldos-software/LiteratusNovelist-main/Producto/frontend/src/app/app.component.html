@@ -151,9 +151,17 @@
                 <span class="mat-symbol">draw</span>
                 <span>El Enigma del Tintero</span>
               </button>
+              <button mat-menu-item routerLink="/games/interrogatorio">
+                <span class="mat-symbol">visibility_off</span>
+                <span>Interrogatorio a Ciegas</span>
+              </button>
               <button mat-menu-item routerLink="/achievements">
                 <span class="mat-symbol">emoji_events</span>
                 <span>Mis Logros y Nivel</span>
+              </button>
+              <button mat-menu-item routerLink="/publish-book">
+                <span class="mat-symbol">edit_note</span>
+                <span>Publicar mi Obra</span>
               </button>
               <button mat-menu-item (click)="openGuideDialog()">
                 <span class="mat-symbol">help_outline</span>
@@ -224,19 +232,82 @@
 <app-assistant-widget *ngIf="isLoggedIn && !isDashboard && !isPlayingLevel"></app-assistant-widget>
 
 <!-- ═════════════════════════════════════════════════════════════════════
-     GAMIFICATION TOASTS
+     SISTEMA UNIFICADO DE NOTIFICACIONES (POP-UP CENTRAL BOUTIQUE)
 ═════════════════════════════════════════════════════════════════════ -->
-<div class="gamification-toast-container">
-  <div *ngFor="let toast of gamificationToasts" class="gamification-toast" [ngClass]="'toast-' + toast.type">
-    <div class="toast-icon">
-      <span class="material-symbols-rounded" *ngIf="toast.type === 'ink'">ink_pen</span>
-      <span class="material-symbols-rounded" *ngIf="toast.type === 'xp'">military_tech</span>
-      <span class="material-symbols-rounded" *ngIf="toast.type === 'level_up'">star</span>
-      <span class="material-symbols-rounded" *ngIf="toast.type === 'achievement'">emoji_events</span>
+<div
+  class="unified-popup-backdrop"
+  *ngIf="currentNotification"
+  [class.backdrop-closing]="currentNotification.isClosing"
+  (click)="onBackdropClick($event)"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="currentNotification.title || 'Aviso'">
+
+  <div
+    class="unified-popup-card popup-{{ currentNotification.type }}"
+    [class.popup-closing]="currentNotification.isClosing"
+    (click)="$event.stopPropagation()"
+    (mouseenter)="pauseToastTimer(currentNotification.id)"
+    (mouseleave)="resumeToastTimer(currentNotification.id)">
+
+    <!-- Halo y brillo ambiental -->
+    <div class="popup-ambient-glow" aria-hidden="true"></div>
+
+    <!-- Botón cerrar esquina -->
+    <button
+      type="button"
+      class="popup-close-corner"
+      (click)="dismissNotification(currentNotification.id)"
+      aria-label="Cerrar notificación"
+      title="Cerrar (Esc)">
+      <span class="material-symbols-rounded">close</span>
+    </button>
+
+    <!-- Emblema con icono animado -->
+    <div class="popup-emblem-wrap">
+      <div class="popup-emblem-aura" aria-hidden="true"></div>
+      <div class="popup-emblem-disc">
+        <span class="material-symbols-rounded popup-symbol">{{ currentNotification.icon }}</span>
+      </div>
     </div>
-    <div class="toast-content">
-      <div class="toast-amount" *ngIf="toast.amount">+{{ toast.amount }} <span *ngIf="toast.type === 'ink'">Tinta</span><span *ngIf="toast.type === 'xp'">XP</span></div>
-      <div class="toast-message">{{ toast.message }}</div>
+
+    <!-- Cuerpo del Pop-up -->
+    <div class="popup-body">
+      <h3 class="popup-title" *ngIf="currentNotification.title">{{ currentNotification.title }}</h3>
+
+      <div class="popup-reward-badge" *ngIf="currentNotification.amount">
+        <span class="material-symbols-rounded badge-sparkle">auto_awesome</span>
+        <span>+{{ currentNotification.amount }} {{ currentNotification.type === 'ink' ? 'Gotas de Tinta' : (currentNotification.type === 'xp' ? 'XP' : '') }}</span>
+      </div>
+
+      <p class="popup-message">{{ currentNotification.message }}</p>
+
+      <div class="popup-queue-indicator" *ngIf="notifications.length > 1">
+        <span>Aviso 1 de {{ notifications.length }}</span>
+      </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="popup-actions">
+      <button
+        *ngIf="currentNotification.action"
+        type="button"
+        class="popup-btn popup-btn-action"
+        (click)="executeToastAction(currentNotification)">
+        {{ currentNotification.action.label }}
+      </button>
+
+      <button
+        type="button"
+        class="popup-btn popup-btn-primary"
+        (click)="dismissNotification(currentNotification.id)">
+        {{ currentNotification.action ? 'Cerrar' : (notifications.length > 1 ? 'Siguiente' : 'Entendido') }}
+      </button>
+    </div>
+
+    <!-- Barra de progreso / tiempo -->
+    <div class="popup-progress-track" *ngIf="currentNotification.duration && currentNotification.duration > 0">
+      <div class="popup-progress-fill" [style.animation-duration.ms]="currentNotification.duration"></div>
     </div>
   </div>
 </div>

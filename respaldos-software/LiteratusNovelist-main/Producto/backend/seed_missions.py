@@ -14,8 +14,8 @@ def seed_missions():
             'description': 'Lee al menos 5 capítulos esta semana.',
             'activity_type': 'chapter_read',
             'target_count': 5,
-            'ink_reward': 50,
-            'xp_reward': 100,
+            'ink_reward': 25,
+            'xp_reward': 60,
             'reset_type': 'weekly'
         },
         {
@@ -34,8 +34,8 @@ def seed_missions():
             'description': 'Completa 1 libro este mes.',
             'activity_type': 'book_completed',
             'target_count': 1,
-            'ink_reward': 200,
-            'xp_reward': 500,
+            'ink_reward': 60,
+            'xp_reward': 150,
             'reset_type': 'monthly'
         }
     ]

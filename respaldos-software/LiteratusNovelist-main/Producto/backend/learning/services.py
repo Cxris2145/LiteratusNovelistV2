@@ -143,12 +143,12 @@ def ensure_streak(user, activity_type: str = 'quiz_passed') -> dict:
     profile.streak_last_date = today
     profile.save(update_fields=['streak_current', 'streak_max', 'streak_shields', 'streak_last_date'])
 
-    # Hitos especiales de racha
+    # Hitos especiales de racha (normalizados para una economía saludable)
     milestones = {
-        7: {'ink': 30, 'xp': 50, 'name': 'Semana Completa'},
-        30: {'ink': 150, 'xp': 200, 'name': 'Maratón de 30 Días'},
-        50: {'ink': 300, 'xp': 500, 'name': '50 Días de Letras'},
-        100: {'ink': 700, 'xp': 1000, 'name': 'Centurión Literario'}
+        7: {'ink': 25, 'xp': 40, 'name': 'Semana Completa'},
+        30: {'ink': 75, 'xp': 150, 'name': 'Maratón de 30 Días'},
+        50: {'ink': 120, 'xp': 250, 'name': '50 Días de Letras'},
+        100: {'ink': 250, 'xp': 500, 'name': 'Centurión Literario'}
     }
     if profile.streak_current in milestones:
         m = milestones[profile.streak_current]
@@ -363,17 +363,27 @@ def evaluate_and_record_attempt(user, level_id: str, answers_payload: dict, dura
         else:
             stars = 1
 
-        # Recompensas base del nivel
-        xp_earned = level.xp_reward
-        ink_earned = level.ink_reward
+        # Verificar si es la primera vez que completa este nivel para evitar farmeo infinito
+        already_completed = UserLevelProgress.objects.filter(
+            user=user, level=level, is_completed=True
+        ).exists()
 
-        # Bonus por 3 estrellas
-        if stars == 3:
-            xp_earned += 15
-            ink_earned += 5
+        if not already_completed:
+            # Recompensas completas SOLO en la primera superación
+            xp_earned = level.xp_reward
+            ink_earned = min(level.ink_reward, 10)
 
-        # Otorgar recompensas en el sistema central
-        reward_activity(user, 'quiz_passed', reference_id=str(level.id), custom_ink=ink_earned, custom_xp=xp_earned)
+            # Bonus por 3 estrellas
+            if stars == 3:
+                xp_earned += 10
+                ink_earned += 3
+
+            reward_activity(user, 'quiz_passed', reference_id=str(level.id), custom_ink=ink_earned, custom_xp=xp_earned)
+        else:
+            # Práctica de un nivel ya completado: no genera tinta adicional (previene abuso y exploits)
+            xp_earned = 5
+            ink_earned = 0
+            reward_activity(user, 'quiz_practice', reference_id=str(level.id), custom_ink=0, custom_xp=xp_earned)
 
         # Actualizar racha diaria
         ensure_streak(user, 'quiz_passed')
@@ -478,8 +488,8 @@ def is_level_unlocked(user, level) -> bool:
 
 SKIP_REQUIRED_SCORE = 90
 SKIP_SESSION_TTL = 2 * 60 * 60
-SKIP_XP_PER_UNIT = 40
-SKIP_INK_PER_UNIT = 15
+SKIP_XP_PER_UNIT = 30
+SKIP_INK_PER_UNIT = 8
 
 
 def _skip_scope(unit) -> str:

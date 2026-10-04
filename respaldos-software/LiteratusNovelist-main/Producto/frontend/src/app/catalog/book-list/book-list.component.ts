@@ -6,6 +6,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import { FavoritesService } from '../../core/services/favorites.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { ScrollRevealService } from '../../core/services/scroll-reveal.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
 import { coverThumb } from '../../core/utils/cover-thumb.util';
@@ -59,6 +60,7 @@ export class BookListComponent implements OnInit {
   private api = inject(ApiService);
   private authService = inject(AuthService);
   private favoritesService = inject(FavoritesService);
+  private notificationService = inject(NotificationService);
   private scrollRevealService = inject(ScrollRevealService);
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
@@ -318,11 +320,15 @@ export class BookListComponent implements OnInit {
       .pipe(finalize(() => this.pendingFavoriteIds.delete(book.id)))
       .subscribe({
         next: () => {
-          this.showToast(willBeFavorite ? `«${book.title}» agregado a tus favoritos.` : `«${book.title}» quitado de favoritos.`);
+          if (willBeFavorite) {
+            this.notificationService.success(`«${book.title}» agregado a tus favoritos.`, 'Favorito Añadido');
+          } else {
+            this.notificationService.info(`«${book.title}» quitado de tus favoritos.`, 'Favoritos');
+          }
         },
         error: error => {
           console.error('No se pudo actualizar el favorito.', error);
-          this.showToast('No se pudo actualizar el favorito. Intenta nuevamente.');
+          this.notificationService.error('No se pudo actualizar el favorito. Intenta nuevamente.', 'Error');
         },
       });
   }
@@ -363,10 +369,19 @@ export class BookListComponent implements OnInit {
     });
   }
 
+  get hasPersonalizedRecommendations(): boolean {
+    const user = this.authService.currentUser();
+    return !!(user && user.has_completed_onboarding);
+  }
+
   /* ── Recomendados para ti ── */
   loadRecommendations(): void {
     this.isLoadingRecommendations = true;
-    this.api.getCached<any>('catalog/books/recommendations/', undefined, 10 * 60 * 1000).subscribe({
+    const req$ = this.authService.isLoggedIn()
+      ? this.api.get<any>('catalog/books/recommendations/')
+      : this.api.getCached<any>('catalog/books/recommendations/', undefined, 10 * 60 * 1000);
+
+    req$.subscribe({
       next: (res) => {
         const list = Array.isArray(res) ? res : (res?.results || []);
         this.recommendedBooks = this.decorateBooks(list.slice(0, 6));

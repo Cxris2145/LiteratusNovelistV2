@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Profile
 from django.db import transaction
+from django.db.models import Q
 from .serializers import MyTokenObtainPairSerializer, UserWriteSerializer, UserReadSerializer, ProfileSerializer
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -231,3 +232,89 @@ class PasswordResetConfirmView(APIView):
             return Response({'message': 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'El enlace de recuperación es inválido o ha expirado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OnboardingView(APIView):
+    """
+    POST /api/v1/users/onboarding/
+    Captura y persiste el rol inicial ('reader' o 'author'), los géneros favoritos
+    y los autores seguidos durante el onboarding posterior al registro o primer login.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        from .serializers import OnboardingSerializer
+        from catalog.models import Genre, Author
+        from django.utils.text import slugify
+        import uuid
+
+        serializer = OnboardingSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'error': 'DATOS_INVALIDOS',
+                'message': 'Por favor corrige los datos del onboarding.',
+                'details': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+        role = validated_data['role']
+        raw_genres = validated_data['favorite_genres']
+        raw_authors = validated_data.get('followed_authors', [])
+
+        # Buscar y resolver géneros (por UUID, slug o nombre)
+        genre_queries = Q()
+        for item in raw_genres:
+            item_str = str(item).strip()
+            try:
+                uuid_obj = uuid.UUID(item_str)
+                genre_queries |= Q(id=uuid_obj)
+            except ValueError:
+                genre_queries |= Q(name__iexact=item_str) | Q(slug__iexact=slugify(item_str))
+
+        matched_genres = Genre.objects.filter(genre_queries) if genre_queries else Genre.objects.none()
+        if matched_genres.count() < 3:
+            return Response({
+                'error': 'GENEROS_INSUFICIENTES',
+                'message': 'Se requieren al menos 3 géneros literarios válidos de la plataforma.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Buscar y resolver autores seguidos (opcional)
+        matched_authors = Author.objects.none()
+        if raw_authors:
+            author_queries = Q()
+            for item in raw_authors:
+                item_str = str(item).strip()
+                try:
+                    uuid_obj = uuid.UUID(item_str)
+                    author_queries |= Q(id=uuid_obj)
+                except ValueError:
+                    author_queries |= Q(full_name__iexact=item_str) | Q(slug__iexact=slugify(item_str))
+            matched_authors = Author.objects.filter(author_queries) if author_queries else Author.objects.none()
+
+        # Guardado atómico
+        with transaction.atomic():
+            user = request.user
+            user.role = role
+            user.save(update_fields=['role'])
+
+            profile, _ = Profile.objects.get_or_create(user=user)
+            profile.favorite_genres.set(matched_genres)
+            profile.followed_authors.set(matched_authors)
+            profile.has_completed_onboarding = True
+            profile.save()
+
+        return Response({
+            'success': True,
+            'message': f'¡Bienvenido a Literatus Novelist como {user.get_role_display()}! Tu perfil ha sido configurado.',
+            'user': {
+                'id': str(user.id),
+                'username': user.username,
+                'email': user.email,
+                'role': user.role,
+                'is_staff': user.is_staff,
+                'is_superuser': user.is_superuser,
+                'has_completed_onboarding': True,
+            },
+            'profile': ProfileSerializer(profile).data
+        }, status=status.HTTP_200_OK)
+

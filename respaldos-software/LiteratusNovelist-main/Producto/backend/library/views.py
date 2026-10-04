@@ -79,12 +79,12 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Gestiona la biblioteca personal del usuario autenticado.
     - select_related: edition → book (FK directa, 1 JOIN).
-    - prefetch_related: cover_image, genres, tags y progreso de lectura (evita N+1).
-    - Paginado a 12 por página con búsqueda por título de libro.
+    - prefetch_related: cover_image, genres, tags, avatars, autores y progreso de lectura (evita N+1).
+    - Sin paginación para cargar la colección completa del usuario.
     """
     serializer_class = UserInventorySerializer
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = StandardResultsSetPagination
+    pagination_class = None
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['edition__book__title', 'edition__book__synopsis']
     ordering_fields = ['acquired_at', 'edition__book__title']
@@ -100,6 +100,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
                 'edition__book__genres',
                 'edition__book__tags',
                 'edition__avatars',
+                'edition__book__book_authors__author',
             )
         )
 
@@ -165,7 +166,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             })
             
         return Response({
-            'has_premium_narration': inventory_item.has_premium_narration or request.user.is_staff or request.user.is_superuser,
+            'has_premium_narration': inventory_item.has_premium_narration,
             'chapters': data
         })
 
@@ -239,16 +240,6 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             edition__book__slug=slug
         ).first()
 
-        if not inventory_item and (request.user.is_staff or request.user.is_superuser):
-            from catalog.models import Book
-            book = Book.objects.filter(slug=slug).first()
-            if book and book.editions.exists():
-                inventory_item, _ = UserInventory.objects.get_or_create(
-                    user=request.user,
-                    edition=book.editions.first(),
-                    defaults={'has_premium_narration': True}
-                )
-        
         if inventory_item:
             return Response({
                 "owned": True,
@@ -515,10 +506,10 @@ class DailyRewardViewSet(viewsets.ViewSet):
             created_at__date=today
         ).exists()
 
-        reward_config = getattr(settings, 'GAMIFICATION_REWARDS', {}).get('daily_reward', {'ink': 20, 'xp': 15})
+        reward_config = getattr(settings, 'GAMIFICATION_REWARDS', {}).get('daily_reward', {'ink': 15, 'xp': 15})
         user_level = request.user.profile.level if hasattr(request.user, 'profile') else 1
-        level_bonus_ink = max(0, (user_level - 1) * 5)
-        total_ink = reward_config.get('ink', 20) + level_bonus_ink
+        level_bonus_ink = min(8, max(0, (user_level - 1) * 2))
+        total_ink = reward_config.get('ink', 15) + level_bonus_ink
         total_xp = reward_config.get('xp', 15)
 
         last_claim = InkTransaction.objects.filter(
@@ -530,7 +521,7 @@ class DailyRewardViewSet(viewsets.ViewSet):
             'can_claim': not already_claimed,
             'ink_reward': total_ink,
             'xp_reward': total_xp,
-            'base_ink': reward_config.get('ink', 20),
+            'base_ink': reward_config.get('ink', 15),
             'level_bonus_ink': level_bonus_ink,
             'last_claimed_at': last_claim.created_at if last_claim else None
         }, status=status.HTTP_200_OK)
@@ -559,10 +550,10 @@ class DailyRewardViewSet(viewsets.ViewSet):
                     'message': 'Ya has reclamado tu recompensa de Tinta el día de hoy. ¡Vuelve mañana!'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            reward_config = getattr(settings, 'GAMIFICATION_REWARDS', {}).get('daily_reward', {'ink': 20, 'xp': 15})
+            reward_config = getattr(settings, 'GAMIFICATION_REWARDS', {}).get('daily_reward', {'ink': 15, 'xp': 15})
             user_level = profile.level
-            level_bonus_ink = max(0, (user_level - 1) * 5)
-            total_ink = reward_config.get('ink', 20) + level_bonus_ink
+            level_bonus_ink = min(8, max(0, (user_level - 1) * 2))
+            total_ink = reward_config.get('ink', 15) + level_bonus_ink
             total_xp = reward_config.get('xp', 15)
 
             # Otorga la Tinta y XP de forma atómica y registra en InkTransaction
@@ -583,4 +574,208 @@ class DailyRewardViewSet(viewsets.ViewSet):
                 'new_ink_balance': request.user.profile.ink_balance,
                 'new_xp': request.user.profile.xp,
                 'new_level': request.user.profile.level
+            }, status=status.HTTP_200_OK)
+
+    def get_permissions(self):
+        if self.action in ['abandon_enigma']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    @action(detail=False, methods=['GET'], url_path='enigma-status')
+    def enigma_status(self, request):
+        """Comprueba el estado del enigma literario de hoy para el usuario (reclamado, abandonado o en curso)."""
+        from .models import InkTransaction
+        from django.utils import timezone
+
+        today = timezone.localdate()
+        already_claimed = InkTransaction.objects.filter(
+            user=request.user,
+            concept='daily_enigma',
+            created_at__date=today
+        ).exists()
+
+        abandoned_tx = InkTransaction.objects.filter(
+            user=request.user,
+            concept='daily_enigma_abandoned',
+            created_at__date=today
+        ).first()
+
+        if already_claimed:
+            return Response({
+                'can_claim': False,
+                'can_play': False,
+                'completed': True,
+                'attempted': True,
+                'score': 15,
+                'points_earned': 15,
+                'status': 'solved',
+                'ink_reward': 15,
+                'xp_reward': 20,
+            }, status=status.HTTP_200_OK)
+
+        if abandoned_tx:
+            return Response({
+                'can_claim': False,
+                'can_play': False,
+                'completed': True,
+                'attempted': True,
+                'score': 0,
+                'points_earned': 0,
+                'status': 'unsolved',
+                'ink_reward': 15,
+                'xp_reward': 20,
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            'can_claim': True,
+            'can_play': True,
+            'completed': False,
+            'attempted': False,
+            'score': 0,
+            'points_earned': 0,
+            'status': 'in_progress',
+            'ink_reward': 15,
+            'xp_reward': 20,
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'], url_path='claim-enigma')
+    def claim_enigma(self, request):
+        """Otorga la recompensa fija de 15 Gotas de Tinta y 20 XP por descifrar el enigma diario."""
+        from django.db import transaction
+        from .models import InkTransaction
+        from django.utils import timezone
+        from library.achievement_engine import reward_activity
+
+        today = timezone.localdate()
+        with transaction.atomic():
+            from users.models import Profile
+            profile = Profile.objects.select_for_update().get(user=request.user)
+
+            already_claimed = InkTransaction.objects.filter(
+                user=request.user,
+                concept='daily_enigma',
+                created_at__date=today
+            ).exists()
+
+            if already_claimed:
+                return Response({
+                    'error': 'ALREADY_CLAIMED',
+                    'message': 'Ya has reclamado la recompensa del enigma de hoy. ¡Vuelve mañana para un nuevo reto!'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            already_abandoned = InkTransaction.objects.filter(
+                user=request.user,
+                concept='daily_enigma_abandoned',
+                created_at__date=today
+            ).exists()
+
+            if already_abandoned:
+                return Response({
+                    'error': 'ALREADY_ABANDONED',
+                    'message': 'El enigma de hoy fue registrado como no descubierto por abandono. ¡Vuelve mañana para un nuevo reto!'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            ink_reward = 15
+            xp_reward = 20
+
+            reward_activity(
+                user=request.user,
+                activity_type='daily_enigma',
+                custom_ink=ink_reward,
+                custom_xp=xp_reward
+            )
+
+            profile.refresh_from_db()
+
+            return Response({
+                'message': f'¡Has recibido +{ink_reward} Gotas de Tinta y +{xp_reward} XP por descifrar el enigma!',
+                'ink_reward': ink_reward,
+                'xp_reward': xp_reward,
+                'ink_balance': profile.ink_balance,
+                'xp': profile.xp,
+                'level': profile.level,
+                'completed': True,
+                'attempted': True,
+                'score': ink_reward,
+                'points_earned': ink_reward,
+                'status': 'solved',
+                'can_play': False
+            }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['POST'], url_path='abandon-enigma')
+    def abandon_enigma(self, request):
+        """
+        Penaliza el abandono de la partida del enigma diario:
+        - completed = True, attempted = True
+        - score = 0, points_earned = 0, status = 'unsolved'
+        - Inhabilita nuevos intentos para el resto de la jornada
+        """
+        from django.db import transaction
+        from .models import InkTransaction
+        from django.utils import timezone
+        from users.models import Profile
+
+        user = request.user
+        if not user or not user.is_authenticated:
+            # Soporte de token para beacon / fetch keepalive al cerrar pestaña
+            token = (
+                request.headers.get('Authorization', '').replace('Bearer ', '').strip()
+                or request.data.get('token')
+                or request.query_params.get('token')
+            )
+            if token:
+                from rest_framework_simplejwt.authentication import JWTAuthentication
+                try:
+                    jwt_auth = JWTAuthentication()
+                    validated_token = jwt_auth.get_validated_token(token)
+                    user = jwt_auth.get_user(validated_token)
+                except Exception:
+                    pass
+
+        if not user or not user.is_authenticated:
+            return Response(
+                {'error': 'UNAUTHORIZED', 'message': 'Autenticación requerida para registrar abandono.'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        today = timezone.localdate()
+        with transaction.atomic():
+            profile = Profile.objects.select_for_update().get(user=user)
+
+            # Si ya fue resuelto con éxito hoy, no sobreescribir la victoria
+            if InkTransaction.objects.filter(user=user, concept='daily_enigma', created_at__date=today).exists():
+                return Response({
+                    'message': 'El enigma de hoy ya fue resuelto previamente con éxito.',
+                    'completed': True,
+                    'attempted': True,
+                    'score': 15,
+                    'points_earned': 15,
+                    'status': 'solved',
+                    'can_play': False
+                }, status=status.HTTP_200_OK)
+
+            # Si aún no existe el registro de abandono para hoy, crearlo
+            abandoned_tx = InkTransaction.objects.filter(
+                user=user,
+                concept='daily_enigma_abandoned',
+                created_at__date=today
+            ).first()
+
+            if not abandoned_tx:
+                InkTransaction.objects.create(
+                    user=user,
+                    amount=0,
+                    concept='daily_enigma_abandoned',
+                    reference_id='unsolved',
+                    balance_after=profile.ink_balance
+                )
+
+            return Response({
+                'message': 'Has salido del enigma. Se ha registrado como no descubierto (0 puntos) y se han inhabilitado nuevos intentos hoy.',
+                'completed': True,
+                'attempted': True,
+                'score': 0,
+                'points_earned': 0,
+                'status': 'unsolved',
+                'can_play': False
             }, status=status.HTTP_200_OK)

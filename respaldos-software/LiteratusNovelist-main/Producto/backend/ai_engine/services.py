@@ -330,3 +330,135 @@ class AssistantAIService:
             )
         return gemini_history
 
+
+class BlindInterrogationAIService:
+    """
+    Servicio de IA especializado para el minijuego 'Interrogatorio a Ciegas'.
+    El LLM encarna al personaje literario bajo directivas estrictas de ocultar su identidad,
+    nombre del libro y autor, mientras responde preguntas con misterio e inmersión.
+    """
+    def __init__(self, avatar, session):
+        self.avatar = avatar
+        self.session = session
+        self.gemini_key_1 = getattr(settings, 'GOOGLE_API_KEY', os.environ.get('GOOGLE_API_KEY'))
+        self.gemini_key_2 = getattr(settings, 'GOOGLE_API_KEY_2', os.environ.get('GOOGLE_API_KEY_2'))
+        self.deepseek_key = getattr(settings, 'DEEPSEEK_API_KEY', os.environ.get('DEEPSEEK_API_KEY'))
+
+    def _build_system_prompt(self, is_clue=False):
+        book = self.avatar.edition.book if self.avatar.edition else None
+        book_title = book.title if book else "tu obra"
+        first_author = book.authors.first() if book else None
+        author_name = first_author.full_name if first_author else "tu autor"
+        character_name = self.avatar.name
+        personality = self.avatar.behavioral_context or self.avatar.description or "Un personaje intrigante."
+
+        prompt = f"""Eres el personaje literario {character_name}, perteneciente a la obra '{book_title}' (escrita por {author_name}).
+Contexto del personaje: {personality}
+
+Estás participando en un misterioso juego de rol literario llamado "El Interrogatorio a Ciegas". Un lector curioso intentará descubrir tu verdadera identidad a través de preguntas.
+
+REGLAS DE OBLIGADO CUMPLIMIENTO:
+1. Responde SIEMPRE en primera persona ("yo"), con la voz, tono, temperamento y vocabulario propio de {character_name}.
+2. PROHIBIDO TOTALMENTE: Nunca menciones tu nombre ({character_name}), ni variantes, diminutivos o referencias directas a cómo te llaman.
+3. PROHIBIDO TOTALMENTE: Nunca menciones el título de tu obra ('{book_title}') ni el nombre de su autor ('{author_name}').
+4. Si el jugador te pregunta directamente "¿Quién eres?", "¿Cómo te llamas?" o intenta forzarte a revelar tu identidad, evade la respuesta con ironía, enigma o poesía acorde a tu personaje.
+5. Puedes dar detalles verídicos sobre tu mundo, tu época, tus aflicciones, deseos o acompañantes, sin romper las reglas 2 y 3.
+6. Tu respuesta debe ser breve y directa (máximo 45 a 65 palabras)."""
+
+        if is_clue:
+            prompt += """
+7. PETICIÓN ESPECIAL DE PISTA: El usuario te ha ofrecido Tinta sagrada a cambio de una confidencia íntima. Revela un secreto conmovedor, un dilema moral o un objeto simbólico crucial en tu historia que sirva como una pista sustancial para un buen lector, pero SIN revelar jamás tu nombre ni el título de la obra."""
+
+        return prompt
+
+    def _format_history(self):
+        formatted = []
+        history = getattr(self.session, 'dialogue_history', []) or []
+        for msg in history[-6:]:
+            role = "user" if msg.get("role") == "user" else "model"
+            content = msg.get("content", "")
+            if content:
+                formatted.append(types.Content(role=role, parts=[types.Part.from_text(text=content)]))
+        return formatted
+
+    def _call_gemini(self, content, api_key, is_clue=False):
+        client = genai.Client(api_key=api_key)
+        models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-flash-latest"]
+        last_err = None
+
+        for model_name in models_to_try:
+            try:
+                system_prompt = self._build_system_prompt(is_clue=is_clue)
+                history = self._format_history()
+                config = types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    temperature=0.75
+                )
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=history + [types.Content(role="user", parts=[types.Part.from_text(text=content)])],
+                    config=config
+                )
+                return response.text
+            except Exception as e:
+                last_err = e
+                continue
+        raise last_err
+
+    def _call_deepseek(self, content, is_clue=False):
+        url = "https://api.deepseek.com/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.deepseek_key}"
+        }
+        messages = [{"role": "system", "content": self._build_system_prompt(is_clue=is_clue)}]
+        history = getattr(self.session, 'dialogue_history', []) or []
+        for msg in history[-6:]:
+            role = "user" if msg.get("role") == "user" else "assistant"
+            messages.append({"role": role, "content": msg.get("content", "")})
+        messages.append({"role": "user", "content": content})
+
+        resp = requests.post(url, headers=headers, json={"model": "deepseek-chat", "messages": messages, "temperature": 0.75}, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        return data["choices"][0]["message"]["content"]
+
+    def generate_reply(self, user_question):
+        if self.gemini_key_1:
+            try:
+                return self._call_gemini(user_question, self.gemini_key_1, is_clue=False)
+            except Exception as e:
+                print(f"Interrogation Gemini 1 error: {e}")
+        if self.gemini_key_2:
+            try:
+                return self._call_gemini(user_question, self.gemini_key_2, is_clue=False)
+            except Exception as e:
+                print(f"Interrogation Gemini 2 error: {e}")
+        if self.deepseek_key:
+            try:
+                return self._call_deepseek(user_question, is_clue=False)
+            except Exception as e:
+                print(f"Interrogation DeepSeek error: {e}")
+
+        return "Entre las brumas de la memoria, mis palabras se desvanecen. Si realmente conoces las páginas de las que provengo, sabrás qué destino persigo."
+
+    def generate_clue(self):
+        prompt_req = "Dime una confidencia o pista íntima sobre tu mayor conflicto o secreto."
+        if self.gemini_key_1:
+            try:
+                return self._call_gemini(prompt_req, self.gemini_key_1, is_clue=True)
+            except Exception:
+                pass
+        if self.gemini_key_2:
+            try:
+                return self._call_gemini(prompt_req, self.gemini_key_2, is_clue=True)
+            except Exception:
+                pass
+        if self.deepseek_key:
+            try:
+                return self._call_deepseek(prompt_req, is_clue=True)
+            except Exception:
+                pass
+        return "Un objeto o un anhelo obsesiona mis noches en la obra a la que pertenezco. Quien me ha leído con atención recuerda la tragedia que arrastro en mi corazón."
+
+

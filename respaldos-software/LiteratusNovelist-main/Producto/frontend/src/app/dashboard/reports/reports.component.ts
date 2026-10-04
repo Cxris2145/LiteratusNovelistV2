@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
+import { NotificationService } from '../../core/services/notification.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -16,7 +17,10 @@ export class ReportsComponent implements OnInit {
   exportingBooks = false;
   exportingUsers = false;
 
-  constructor(private api: ApiService) {}
+  constructor(
+    private api: ApiService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.api.get<any>('dashboard/stats/').subscribe({
@@ -32,6 +36,13 @@ export class ReportsComponent implements OnInit {
 
   private showToast(msg: string): void {
     this.toastMessage = msg;
+    if (msg.includes('Error') || msg.includes('error')) {
+      this.notificationService.error(msg, 'Reportes');
+    } else if (msg.includes('éxito') || msg.includes('exitosamente')) {
+      this.notificationService.success(msg, 'Reportes');
+    } else {
+      this.notificationService.info(msg, 'Reportes');
+    }
     setTimeout(() => this.toastMessage = '', 4000);
   }
 

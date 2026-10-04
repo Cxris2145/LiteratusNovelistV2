@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { Subject, takeUntil, combineLatest } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '../../core/services/notification.service';
 import {
   AchievementsService,
   UserAchievement,
@@ -61,7 +62,8 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     private gamificationService: GamificationService,
     private chatService: ChatService,
     private snack: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -117,11 +119,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
           this.gamificationService.notifyXP(res.xp_reward, 'Recompensa Diaria');
 
           const toastMessage = res.message || `¡Has recibido +${res.ink_reward} Gotas de Tinta y +${res.xp_reward} XP!`;
-          this.snack.open(toastMessage, '¡Genial!', {
-            duration: 4500,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom'
-          });
+          this.notificationService.success(toastMessage, 'Recompensa Reclamada');
 
           // Actualizar historial de tinta
           this.gamificationService.getInkHistory().pipe(takeUntil(this.destroy$)).subscribe(h => {
@@ -134,7 +132,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
         error: (err) => {
           this.isClaimingReward = false;
           const msg = err.error?.message || err.error?.error || 'No se pudo reclamar la recompensa en este momento.';
-          this.snack.open(msg, 'Cerrar', { duration: 4000 });
+          this.notificationService.error(msg, 'Recompensa Diaria');
           if (err.status === 400 && (err.error?.error === 'ALREADY_CLAIMED' || err.error?.message?.includes('Ya has reclamado'))) {
             if (this.dailyReward) this.dailyReward.can_claim = false;
           }

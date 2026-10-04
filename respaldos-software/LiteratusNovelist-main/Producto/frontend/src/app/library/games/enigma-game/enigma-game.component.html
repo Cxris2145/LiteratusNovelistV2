@@ -203,15 +203,15 @@
           </div>
         </div>
 
-        <!-- MODO COMPLETADO: DERROTA (TINTA AGOTADA) -->
+        <!-- MODO COMPLETADO: DERROTA (TINTA AGOTADA / NO DESCUBIERTO) -->
         <div *ngIf="gameStatus === 'lost'" class="endgame-card endgame-card--lost">
           <div class="endgame-badge">
             <span class="material-symbols-rounded">history_edu</span>
           </div>
           <div class="endgame-info">
-            <h2 class="endgame-title">Tinta Agotada por Hoy</h2>
+            <h2 class="endgame-title">Enigma No Descubierto Hoy</h2>
             <p class="endgame-subtitle">
-              La obra oculta era: <strong>{{ currentWord.word }}</strong>. ¡Mañana tendrás un nuevo enigma para descifrar!
+              La obra oculta era: <strong>{{ currentWord.word }}</strong>. Se ha registrado el reto de hoy con 0 puntos. ¡Mañana tendrás un nuevo enigma para descifrar!
             </p>
           </div>
           <div class="countdown-box">
@@ -249,5 +249,48 @@
       <p>Consultando tu biblioteca y preparando el enigma del día...</p>
     </div>
 
+  </div>
+
+  <!-- ═══ MODAL DE ADVERTENCIA DE SALIDA Y PENALIZACIÓN ═══ -->
+  <div class="exit-modal-backdrop" *ngIf="showExitModal" (click)="cancelExit()">
+    <div class="exit-modal-dialog glass-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="exitModalTitle">
+      <div class="exit-modal-header">
+        <div class="exit-modal-icon-badge">
+          <span class="material-symbols-rounded">warning</span>
+        </div>
+        <div class="exit-modal-titles">
+          <h2 id="exitModalTitle" class="exit-modal-title">¿Abandonar el Enigma?</h2>
+          <span class="exit-modal-tag">Penalización de Puntos</span>
+        </div>
+      </div>
+
+      <div class="exit-modal-body">
+        <p class="exit-modal-message">
+          ¿Estás seguro de que deseas salir? Si abandonas la página ahora, perderás la oportunidad de ganar los puntos de hoy y el enigma se registrará como no descubierto.
+        </p>
+
+        <div class="exit-modal-alert-box">
+          <span class="material-symbols-rounded alert-icon">info</span>
+          <div class="alert-text">
+            <span>Se asignarán <strong>0 puntos</strong> y quedará <strong>inhabilitado</strong> hasta mañana.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="exit-modal-actions">
+        <!-- Continuar jugando: cancela la salida y mantiene al usuario exactamente donde estaba -->
+        <button type="button" class="exit-btn exit-btn--keep" (click)="cancelExit()" [disabled]="isAbandoning">
+          <span class="material-symbols-rounded">sports_esports</span>
+          <span>Continuar jugando</span>
+        </button>
+
+        <!-- Salir y perder puntos: confirma la salida, ejecuta la penalización y redirige -->
+        <button type="button" class="exit-btn exit-btn--abandon" (click)="confirmExitAndPenalize()" [disabled]="isAbandoning">
+          <span *ngIf="!isAbandoning" class="material-symbols-rounded">logout</span>
+          <span *ngIf="isAbandoning" class="spinner-small"></span>
+          <span>{{ isAbandoning ? 'Registrando abandono...' : 'Salir y perder puntos' }}</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

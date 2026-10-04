@@ -172,8 +172,12 @@ export class DashboardBooksService {
     return this.http.post<any>(`${this.apiUrl}/books/${id}/toggle-publish/`, {});
   }
 
-  approveBook(id: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/books/${id}/approve/`, {});
+  approveBook(id: string, notes?: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/books/${id}/approve/`, { editorial_notes: notes || '' });
+  }
+
+  rejectBook(id: string, notes?: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/books/${id}/reject/`, { editorial_notes: notes || '' });
   }
 
   getCuration(): Observable<any> {

@@ -22,6 +22,7 @@ import { FavoritesService } from '../../core/services/favorites.service';
 import { ReaderTabsService } from '../../core/services/reader-tabs.service';
 import { ReaderBlock, parseChapterBlocks } from '../../core/utils/chapter-parser.util';
 import { VocabularyJump } from './vocabulary-panel/vocabulary-panel.component';
+import { NotificationService } from '../../core/services/notification.service';
 
 export interface ProgressData {
   percentage: number;
@@ -79,6 +80,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readingSession = inject(ReadingSessionService);
   private favorites = inject(FavoritesService);
   private readerTabs = inject(ReaderTabsService);
+  private notificationService = inject(NotificationService);
 
   // ── LECTURA ──────────────────────────────────────────────────────
 
@@ -2010,7 +2012,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isUnlocking || !this.bookSlug) return;
 
     if (this.inkBalance < this.PREMIUM_VOICE_INK_COST) {
-      alert(`No tienes tinta suficiente. Necesitas ${this.PREMIUM_VOICE_INK_COST} Ink.`);
+      this.notificationService.warning(`No tienes tinta suficiente. Necesitas ${this.PREMIUM_VOICE_INK_COST} Gotas de Tinta.`, 'Tinta Insuficiente');
       return;
     }
 
@@ -2020,12 +2022,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isUnlocking = false;
         this.hasPremiumNarration = true;
         this.inkBalance = res.ink_balance;
-        alert('¡Narración premium desbloqueada para todo el libro!');
+        this.notificationService.success('¡Narración premium desbloqueada para todo el libro!', 'Voz Desbloqueada');
       },
       error: (err) => {
         this.isUnlocking = false;
         console.error('Error al comprar narración', err);
-        alert(err.error?.message || 'Error al procesar la compra.');
+        this.notificationService.error(err.error?.message || 'Error al procesar la compra.', 'Error de Compra');
       }
     });
   }
@@ -3562,7 +3564,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   askCharacter() {
     if (!this.selectedText || this.characterAvatars.length === 0) {
-      alert('No hay texto seleccionado o personajes disponibles.');
+      this.notificationService.info('No hay texto seleccionado o personajes disponibles para consultar.', 'Preguntar al Personaje');
       return;
     }
     const defaultAvatar = this.characterAvatars[0];

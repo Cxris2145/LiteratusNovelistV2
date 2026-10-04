@@ -313,13 +313,15 @@ DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@novelatus.tech'
 
 GAMIFICATION_REWARDS = {
     # Actividad              : {'ink': Tinta, 'xp': Experiencia}
-    'chapter_read':           {'ink': 10,  'xp': 15},
-    'book_completed':         {'ink': 50,  'xp': 100},
-    'review_written':         {'ink': 20,  'xp': 30},
-    'ai_interaction':         {'ink': 5,   'xp': 5},
-    'streak_bonus_day':       {'ink': 5,   'xp': 10},
-    'achievement_unlocked':   {'ink': 0,   'xp': 25},  # XP extra al desbloquear logro
-    'daily_reward':           {'ink': 20,  'xp': 15},  # Recompensa diaria por iniciar sesión
+    'chapter_read':           {'ink': 3,   'xp': 10},  # 3 Tinta por capítulo (máx 3/día = 9 Tinta)
+    'book_completed':         {'ink': 40,  'xp': 100}, # 40 Tinta al finalizar una obra completa
+    'review_written':         {'ink': 10,  'xp': 20},  # 10 Tinta por reseña verificada (1 por obra poseída)
+    'ai_interaction':         {'ink': 0,   'xp': 5},   # Conversación con IA (la IA consume tinta/cuota, no genera de la nada)
+    'streak_bonus_day':       {'ink': 5,   'xp': 10},  # 5 Tinta diaria por mantener la racha de lectura
+    'achievement_unlocked':   {'ink': 0,   'xp': 25},  # Cada logro especifica su propia tinta en el modelo
+    'daily_reward':           {'ink': 15,  'xp': 15},  # Conexión diaria (15 base + bono moderado por nivel)
+    'daily_enigma':           {'ink': 15,  'xp': 20},  # Descifrar el enigma literario diario (1 vez al día)
+    'quiz_passed':            {'ink': 5,   'xp': 15},  # Superación de nivel en La Senda (primera vez)
 }
 
 # Niveles de lector: ordenados por nivel ascendente.

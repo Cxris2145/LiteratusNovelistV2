@@ -53,7 +53,11 @@ export class LoginComponent implements OnInit {
           if (res.user) {
             this.auth.setUser(res.user);
           }
-          this.router.navigateByUrl(this.returnUrl);
+          if (res.user && res.user.has_completed_onboarding === false) {
+            this.router.navigate(['/onboarding']);
+          } else {
+            this.router.navigateByUrl(this.returnUrl);
+          }
         },
         error: (err) => {
           this.errorMsg = 'Credenciales inválidas. Verifica tu usuario o contraseña.';
@@ -77,11 +81,14 @@ export class LoginComponent implements OnInit {
         if (res.user) {
           this.auth.setUser(res.user);
         }
-        // Entrar a la aplicación (catálogo o URL previa no administrativa), NO al panel de administración
-        const target = (this.returnUrl && !this.returnUrl.startsWith('/dashboard') && this.returnUrl !== '/login') 
-          ? this.returnUrl 
-          : '/catalog';
-        this.router.navigateByUrl(target);
+        if (res.user && res.user.has_completed_onboarding === false) {
+          this.router.navigate(['/onboarding']);
+        } else {
+          const target = (this.returnUrl && !this.returnUrl.startsWith('/dashboard') && this.returnUrl !== '/login') 
+            ? this.returnUrl 
+            : '/catalog';
+          this.router.navigateByUrl(target);
+        }
       },
       error: (err) => {
         console.error('Error al iniciar sesión como administrador:', err);

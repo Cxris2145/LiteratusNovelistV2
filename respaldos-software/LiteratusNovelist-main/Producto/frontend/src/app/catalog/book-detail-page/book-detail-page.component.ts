@@ -4,6 +4,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { LiyumiService } from '../../core/services/liyumi.service';
 import { ChatService } from '../../core/services/chat.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-book-detail-page',
@@ -30,6 +31,7 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   private cdr = inject(ChangeDetectorRef);
   private liyumi = inject(LiyumiService);
   private chatService = inject(ChatService);
+  private notificationService = inject(NotificationService);
   public auth = inject(AuthService);
 
   slug: string | null = null;
@@ -183,10 +185,10 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
       return;
     }
 
-    if (this.isOwned && this.book.inventory_id) {
+    if (this.isOwned && this.book?.inventory_id) {
       this.router.navigate(['/reader', this.book.inventory_id]);
     } else {
-      this.router.navigate(['/checkout', 'book', this.slug]);
+      this.confirmPurchase();
     }
   }
 
@@ -206,27 +208,35 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   confirmPurchase(): void {
-    if (this.slug) {
-      this.purchaseLoading = true;
-      this.api.post<any>(`catalog/books/${this.slug}/purchase/`, {}).subscribe({
-        next: (res) => {
-          this.isOwned = true;
+    if (!this.slug || this.purchaseLoading) return;
+    this.purchaseLoading = true;
+    this.purchaseErrorMsg = '';
+
+    this.api.post<any>(`catalog/books/${this.slug}/purchase/`, {}).subscribe({
+      next: (res) => {
+        this.isOwned = true;
+        if (this.book) {
+          this.book.is_owned = true;
           this.book.inventory_id = res.inventory_id;
+        }
+        if (res.ink_balance !== undefined) {
           this.userInkBalance = res.ink_balance;
           this.chatService.updateInkBalance(this.userInkBalance);
-          this.purchaseLoading = false;
-          this.showPurchaseModal = false;
-          document.body.style.overflow = '';
-          // Liyumi celebra la compra
-          this.liyumi.wave('¡Excelente elección! 🎉 Tu libro está listo. ¡A leer!');
-        },
-        error: (err) => {
-          console.error('Error purchasing book:', err);
-          alert(err.error?.error || 'Hubo un error al procesar la compra.');
-          this.purchaseLoading = false;
         }
-      });
-    }
+        this.purchaseLoading = false;
+        this.showPurchaseModal = false;
+        document.body.style.overflow = '';
+        this.notificationService.success(`«${this.book?.title || 'Obra'}» agregada a tu biblioteca.`, '¡Adquisición Exitosa!');
+        // Liyumi celebra la adquisición
+        this.liyumi.wave('¡Excelente elección! 🎉 Tu obra ha sido agregada a Mi Biblioteca. ¡A leer!');
+      },
+      error: (err) => {
+        console.error('Error purchasing book:', err);
+        this.purchaseErrorMsg = err.error?.message || err.error?.error || 'Hubo un error al procesar la adquisición.';
+        this.purchaseLoading = false;
+        this.notificationService.error(this.purchaseErrorMsg, 'Error de Adquisición');
+      }
+    });
   }
 
   selectAvatar(avatar: any): void {
@@ -254,7 +264,7 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
         },
         error: (err) => {
           console.error('Error downloading PDF:', err);
-          alert('No se pudo descargar el archivo. Es posible que esta edición no tenga un PDF adjunto.');
+          this.notificationService.warning('No se pudo descargar el archivo. Es posible que esta edición no cuente con un PDF adjunto.', 'Descarga no disponible');
         }
       });
     }

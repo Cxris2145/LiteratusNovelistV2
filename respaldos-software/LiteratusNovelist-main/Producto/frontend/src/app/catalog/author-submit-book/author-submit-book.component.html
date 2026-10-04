@@ -1,0 +1,510 @@
+<div class="author-portal-container">
+  
+  <!-- CABECERA DEL PORTAL EDITORIAL -->
+  <header class="author-hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="material-symbols-outlined">history_edu</span>
+        Comité Editorial & Autores
+      </div>
+      <h1 class="hero-title">Publica tu Manuscrito en Literatus</h1>
+      <p class="hero-subtitle">
+        Envía tu novela, ensayo o cuento para integrarlo al catálogo oficial. Tu obra será revisada por nuestro Comité de Curaduría para certificar los requisitos mínimos de calidad literaria, formato y derechos de autor.
+      </p>
+
+      <!-- NAVEGACIÓN POR PESTAÑAS -->
+      <nav class="portal-nav-tabs">
+        <button class="tab-btn" [class.active]="activeTab === 'submit'" (click)="activeTab = 'submit'">
+          <span class="material-symbols-outlined">post_add</span>
+          Enviar Nueva Obra
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'my-submissions'" (click)="activeTab = 'my-submissions'">
+          <span class="material-symbols-outlined">inventory_2</span>
+          Mis Obras Enviadas
+          <span class="sub-counter" *ngIf="mySubmissions.length > 0">{{ mySubmissions.length }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'guidelines'" (click)="activeTab = 'guidelines'">
+          <span class="material-symbols-outlined">menu_book</span>
+          Criterios Editoriales
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════ PESTAÑA 1: FORMULARIO DE ENVÍO ══════════ -->
+  <main class="portal-body" *ngIf="activeTab === 'submit'">
+    
+    <!-- PANTALLA DE ÉXITO -->
+    <section class="success-screen" *ngIf="submissionSuccess">
+      <div class="success-card">
+        <div class="success-icon-wrap">
+          <span class="material-symbols-outlined">mark_email_read</span>
+        </div>
+        <h2 class="success-title">¡Manuscrito Enviado a Curaduría!</h2>
+        <p class="success-lead">
+          La obra <strong>"{{ submittedBookResult?.title || title }}"</strong> ha ingresado exitosamente a la mesa de curaduría de Literatus Novelist.
+        </p>
+        
+        <div class="success-dossier">
+          <div class="dossier-row">
+            <span class="d-label">Estado Inicial:</span>
+            <span class="status-pill status-pending">En Revisión Editorial</span>
+          </div>
+          <div class="dossier-row">
+            <span class="d-label">Identificador:</span>
+            <code>{{ submittedBookResult?.id || 'Ref-Novelist' }}</code>
+          </div>
+          <div class="dossier-row">
+            <span class="d-label">Tiempo de Evaluación:</span>
+            <span>24 a 48 horas hábiles</span>
+          </div>
+        </div>
+
+        <p class="success-note">
+          El administrador evaluará el cumplimiento de los estándares mínimos (portada, estructura de capítulos y sinopsis). Podrás seguir las observaciones en la pestaña <strong>"Mis Obras Enviadas"</strong>.
+        </p>
+
+        <div class="success-actions">
+          <button class="primary-btn" (click)="activeTab = 'my-submissions'">
+            <span class="material-symbols-outlined">visibility</span>
+            Ver Estado de mi Envío
+          </button>
+          <button class="secondary-btn" (click)="resetForm()">
+            <span class="material-symbols-outlined">add</span>
+            Enviar Otro Manuscrito
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORMULARIO DE DOS COLUMNAS -->
+    <div class="submission-layout" *ngIf="!submissionSuccess">
+      
+      <!-- COLUMNA PRINCIPAL: FORMULARIO PASO A PASO -->
+      <section class="form-column">
+        
+        <!-- PASO 1: METADATOS BÁSICOS -->
+        <article class="form-section-card">
+          <div class="section-card-header">
+            <div class="step-num">1</div>
+            <div>
+              <h2 class="step-title">Ficha Técnica & Metadatos</h2>
+              <p class="step-desc">Identificación de la obra y seudónimo o nombre de autoría.</p>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="input-field">
+              <label for="bookTitle">Título de la Obra <span class="required-star">*</span></label>
+              <input type="text" id="bookTitle" [(ngModel)]="title" placeholder="Ej: Las Crónicas del Tintero de Oro" class="text-input" [class.input-valid]="hasValidTitle">
+              <span class="field-hint" [class.hint-valid]="hasValidTitle">
+                {{ hasValidTitle ? '✓ Título válido' : 'Mínimo 3 caracteres requeridos.' }}
+              </span>
+            </div>
+
+            <div class="input-field">
+              <label for="authorName">Nombre de Autor o Seudónimo <span class="required-star">*</span></label>
+              <input type="text" id="authorName" [(ngModel)]="authorName" placeholder="Tu nombre o seudónimo literario" class="text-input">
+            </div>
+          </div>
+
+          <div class="input-field">
+            <label for="authorBio">Breve Biografía o Nota de Autor (opcional)</label>
+            <input type="text" id="authorBio" [(ngModel)]="authorBio" placeholder="Ej: Escritor independiente enfocado en narrativa fantástica y misterio histórico." class="text-input">
+          </div>
+
+          <div class="form-grid-2">
+            <div class="input-field">
+              <label for="diffLevel">Nivel de Dificultad Narrativa <span class="required-star">*</span></label>
+              <select id="diffLevel" [(ngModel)]="difficultyLevel" class="select-input">
+                <option *ngFor="let opt of difficultyOptions" [value]="opt.value">{{ opt.label }}</option>
+              </select>
+            </div>
+
+            <div class="input-field">
+              <label for="bookTags">Etiquetas Temáticas (separadas por comas)</label>
+              <input type="text" id="bookTags" [(ngModel)]="tags" placeholder="magia, viajes en el tiempo, thriller, épico" class="text-input">
+            </div>
+          </div>
+
+          <!-- GÉNEROS LITERARIOS -->
+          <div class="input-field">
+            <label>Géneros Literarios <span class="required-star">*</span> <small>(Selecciona entre 1 y 4 géneros)</small></label>
+            <div class="genres-chips-wrap">
+              <button type="button" 
+                      *ngFor="let g of availableGenres" 
+                      class="genre-chip" 
+                      [class.selected]="isGenreSelected(g.name)"
+                      (click)="toggleGenre(g.name)">
+                <span class="material-symbols-outlined chip-icon">{{ isGenreSelected(g.name) ? 'check' : 'add' }}</span>
+                {{ g.name }}
+              </button>
+            </div>
+            <span class="field-hint" [class.hint-valid]="hasGenres">
+              {{ hasGenres ? '✓ Géneros clasificados (' + selectedGenres.length + ')' : 'Debes seleccionar al menos un género.' }}
+            </span>
+          </div>
+        </article>
+
+        <!-- PASO 2: SINOPSIS LITERARIA -->
+        <article class="form-section-card">
+          <div class="section-card-header">
+            <div class="step-num">2</div>
+            <div>
+              <h2 class="step-title">Sinopsis & Argumento</h2>
+              <p class="step-desc">El texto que cautivará a los lectores en la portada del catálogo (mínimo 50 caracteres).</p>
+            </div>
+          </div>
+
+          <div class="input-field">
+            <div class="synopsis-label-row">
+              <label for="synopsisArea">Sinopsis Editorial <span class="required-star">*</span></label>
+              <span class="char-counter" [class.counter-pass]="hasValidSynopsis">
+                {{ synopsisLength }} / 50 mín.
+              </span>
+            </div>
+            <textarea id="synopsisArea" [(ngModel)]="synopsis" rows="5" class="textarea-input" [class.input-valid]="hasValidSynopsis" placeholder="Describe la trama principal, el conflicto dramático y el gancho narrativo de tu obra con cuidado de ortografía y estilo..."></textarea>
+            
+            <div class="synopsis-progress-bar">
+              <div class="progress-fill" [style.width.%]="(synopsisLength / 50) * 100 > 100 ? 100 : (synopsisLength / 50) * 100" [class.fill-complete]="hasValidSynopsis"></div>
+            </div>
+
+            <span class="field-hint" [class.hint-valid]="hasValidSynopsis">
+              {{ hasValidSynopsis ? '✓ Longitud de sinopsis adecuada para catálogo' : 'Faltan ' + (50 - synopsisLength) + ' caracteres para cumplir el mínimo.' }}
+            </span>
+          </div>
+        </article>
+
+        <!-- PASO 3: PORTADA EDITORIAL -->
+        <article class="form-section-card">
+          <div class="section-card-header">
+            <div class="step-num">3</div>
+            <div>
+              <h2 class="step-title">Portada Gráfica</h2>
+              <p class="step-desc">Imagen representativa de la obra. Relación sugerida 2:3 o 3:4 (formato JPG, PNG o WEBP).</p>
+            </div>
+          </div>
+
+          <div class="cover-uploader-layout">
+            <div class="upload-dropzone" (click)="coverFileInput.click()" [class.has-file]="hasCover">
+              <input #coverFileInput type="file" accept="image/*" (change)="onCoverSelected($event)" style="display: none;">
+              
+              <div class="dropzone-content" *ngIf="!coverPreview">
+                <span class="material-symbols-outlined drop-icon">add_photo_alternate</span>
+                <strong>Seleccionar archivo de imagen</strong>
+                <p>Arrastra aquí o haz clic para buscar tu portada</p>
+                <small>JPG, PNG, WEBP (máx. 5 MB)</small>
+              </div>
+
+              <div class="dropzone-preview" *ngIf="coverPreview">
+                <img [src]="coverPreview" alt="Vista previa de portada">
+                <div class="change-overlay">
+                  <span class="material-symbols-outlined">sync</span>
+                  <span>Cambiar portada</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="cover-preview-card" *ngIf="coverPreview">
+              <div class="preview-3d-book">
+                <img [src]="coverPreview" alt="Portada libro">
+                <div class="spine-sheen"></div>
+              </div>
+              <div class="preview-meta">
+                <strong>{{ title || 'Título de tu Obra' }}</strong>
+                <span>{{ authorName || 'Autor' }}</span>
+                <button type="button" class="btn-remove-cover" (click)="removeCover()">
+                  <span class="material-symbols-outlined">delete</span>
+                  Quitar portada
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- PASO 4: MANUSCRITO Y CONTENIDO -->
+        <article class="form-section-card">
+          <div class="section-card-header">
+            <div class="step-num">4</div>
+            <div>
+              <h2 class="step-title">Manuscrito & Texto de la Obra</h2>
+              <p class="step-desc">Adjunta el archivo completo de lectura o redacta los capítulos iniciales.</p>
+            </div>
+          </div>
+
+          <div class="content-mode-selector">
+            <button type="button" class="mode-tab" [class.active]="contentMode === 'file'" (click)="contentMode = 'file'">
+              <span class="material-symbols-outlined">upload_file</span>
+              Subir Archivo (.EPUB o .PDF)
+            </button>
+            <button type="button" class="mode-tab" [class.active]="contentMode === 'manual'" (click)="contentMode = 'manual'">
+              <span class="material-symbols-outlined">edit_note</span>
+              Redactar Capítulos Manuales
+            </button>
+          </div>
+
+          <!-- MODO ARCHIVO -->
+          <div class="manuscript-file-zone" *ngIf="contentMode === 'file'">
+            <div class="manuscript-dropzone" (click)="manuscriptInput.click()" [class.file-loaded]="manuscriptFile">
+              <input #manuscriptInput type="file" accept=".epub,.pdf" (change)="onManuscriptSelected($event)" style="display: none;">
+              
+              <div *ngIf="!manuscriptFile" class="manuscript-prompt">
+                <span class="material-symbols-outlined m-icon">menu_book</span>
+                <strong>Subir Archivo de la Obra (.EPUB recomendado o .PDF)</strong>
+                <p>Al subir un archivo EPUB, los capítulos y el índice se estructuran automáticamente para los lectores.</p>
+                <small>Tamaño máximo permitido: 40 MB</small>
+              </div>
+
+              <div *ngIf="manuscriptFile" class="manuscript-loaded-badge">
+                <span class="material-symbols-outlined file-type-icon">
+                  {{ manuscriptFormat === 'epub' ? 'auto_stories' : 'picture_as_pdf' }}
+                </span>
+                <div class="file-info">
+                  <strong>{{ manuscriptFileName }}</strong>
+                  <span>Formato detectado: {{ manuscriptFormat?.toUpperCase() }}</span>
+                </div>
+                <button type="button" class="btn-remove-file" (click)="$event.stopPropagation(); removeManuscript()">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODO REDACCIÓN MANUAL -->
+          <div class="manual-chapters-zone" *ngIf="contentMode === 'manual'">
+            <div class="chapter-card" *ngFor="let ch of manualChapters; let idx = index">
+              <div class="chapter-header">
+                <span class="ch-badge">Capítulo {{ ch.order }}</span>
+                <input type="text" [(ngModel)]="ch.title" class="ch-title-input" placeholder="Título del capítulo">
+                <button type="button" class="btn-del-chapter" (click)="removeChapter(idx)" title="Eliminar capítulo" *ngIf="manualChapters.length > 1">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+              <textarea [(ngModel)]="ch.content" rows="6" class="textarea-input ch-content-area" placeholder="Escribe o pega aquí el contenido literario del capítulo..."></textarea>
+            </div>
+
+            <button type="button" class="btn-add-chapter" (click)="addChapter()">
+              <span class="material-symbols-outlined">add_circle</span>
+              Agregar Siguiente Capítulo
+            </button>
+          </div>
+        </article>
+
+        <!-- PASO 5: DECLARACIÓN JURADA -->
+        <article class="form-section-card declaration-card">
+          <div class="section-card-header">
+            <div class="step-num">5</div>
+            <div>
+              <h2 class="step-title">Declaración Jurada de Propiedad Intelectual</h2>
+              <p class="step-desc">Cumplimiento del marco legal de la Ley N° 17.336 de Propiedad Intelectual.</p>
+            </div>
+          </div>
+
+          <div class="legal-box">
+            <label class="legal-checkbox-label">
+              <input type="checkbox" [(ngModel)]="submissionDeclaration" class="legal-checkbox">
+              <span class="legal-text">
+                <strong>Declaro bajo fe de juramento</strong> que soy el autor legítimo y titular exclusivo de los derechos patrimoniales y morales de esta obra, o cuento con la debida autorización de sus titulares. Autorizo a Literatus Novelist para su exhibición y difusión en la plataforma, eximiendo a la editorial de cualquier responsabilidad ante reclamos de terceros.
+              </span>
+            </label>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- COLUMNA LATERAL: CHECKLIST EN VIVO & ACCIÓN -->
+      <aside class="sidebar-column">
+        <div class="sticky-checklist-card">
+          <div class="checklist-header">
+            <span class="material-symbols-outlined c-icon">task_alt</span>
+            <h3>Criterios Mínimos Editoriales</h3>
+          </div>
+          <p class="checklist-intro">
+            Para que el formulario pueda ser remitido al Administrador, debes cumplir con cada uno de los siguientes estándares:
+          </p>
+
+          <div class="criteria-meter">
+            <div class="meter-bar">
+              <div class="meter-fill" [style.width.%]="(passedCriteriaCount / 6) * 100"></div>
+            </div>
+            <span class="meter-count">{{ passedCriteriaCount }} de 6 criterios cumplidos</span>
+          </div>
+
+          <ul class="criteria-list">
+            <li [class.passed]="hasValidTitle">
+              <span class="material-symbols-outlined">{{ hasValidTitle ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              <span>Título de la obra (mín. 3 letras)</span>
+            </li>
+            <li [class.passed]="hasValidSynopsis">
+              <span class="material-symbols-outlined">{{ hasValidSynopsis ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              <span>Sinopsis editorial (mín. 50 caracteres)</span>
+            </li>
+            <li [class.passed]="hasCover">
+              <span class="material-symbols-outlined">{{ hasCover ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              <span>Portada gráfica seleccionada</span>
+            </li>
+            <li [class.passed]="hasGenres">
+              <span class="material-symbols-outlined">{{ hasGenres ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              <span>Al menos 1 género literario</span>
+            </li>
+            <li [class.passed]="hasContent">
+              <span class="material-symbols-outlined">{{ hasContent ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              <span>Manuscrito (.EPUB/.PDF) o texto</span>
+            </li>
+            <li [class.passed]="hasDeclaration">
+              <span class="material-symbols-outlined">{{ hasDeclaration ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              <span>Declaración de autoría aceptada</span>
+            </li>
+          </ul>
+
+          <div class="checklist-status-badge" [class.badge-ready]="meetsAllCriteria" [class.badge-pending]="!meetsAllCriteria">
+            <span class="material-symbols-outlined">{{ meetsAllCriteria ? 'verified' : 'hourglass_top' }}</span>
+            <span>{{ meetsAllCriteria ? 'Listo para enviar a Curaduría' : 'Requisitos pendientes de completar' }}</span>
+          </div>
+
+          <button class="submit-action-btn" (click)="submitBook()" [disabled]="!meetsAllCriteria || submitting">
+            <span class="material-symbols-outlined" *ngIf="!submitting">send</span>
+            <span class="spinner-inline" *ngIf="submitting"></span>
+            {{ submitting ? 'Enviando a Curaduría...' : 'Enviar Obra al Administrador' }}
+          </button>
+
+          <p class="security-guarantee">
+            <span class="material-symbols-outlined">shield</span>
+            Tus manuscritos se almacenan de forma segura y cifrada.
+          </p>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ══════════ PESTAÑA 2: MIS OBRAS ENVIADAS ══════════ -->
+  <main class="portal-body" *ngIf="activeTab === 'my-submissions'">
+    <div class="submissions-header">
+      <h2>Historial de Obras Remitidas</h2>
+      <p>Revisa el veredicto del Administrador y el estado de curaduría de cada uno de tus títulos.</p>
+    </div>
+
+    <div class="loading-state" *ngIf="loadingSubmissions">
+      <div class="spinner"></div>
+      <p>Cargando tus obras...</p>
+    </div>
+
+    <div *ngIf="!loadingSubmissions">
+      <div class="submissions-grid" *ngIf="mySubmissions.length > 0; else noSubmissions">
+        <div class="submission-card" *ngFor="let item of mySubmissions">
+          <div class="card-cover-side">
+            <img [src]="item.cover || 'assets/no-cover.jpg'" alt="Portada">
+            <span class="status-badge" [class.badge-pending]="item.status === 'pending_review'" [class.badge-approved]="item.status === 'published'" [class.badge-rejected]="item.status === 'rejected'">
+              {{ item.status === 'pending_review' ? 'En Revisión' : (item.status === 'published' ? 'Publicado' : 'Observado') }}
+            </span>
+          </div>
+
+          <div class="card-info-side">
+            <div class="info-top">
+              <span class="date-badge">{{ item.created_at | date:'dd MMM yyyy' }}</span>
+              <span class="diff-tag">{{ item.difficulty_level }}</span>
+            </div>
+
+            <h3 class="item-title">{{ item.title }}</h3>
+            <p class="item-synopsis">{{ item.synopsis }}</p>
+
+            <div class="item-stats">
+              <span><strong>{{ item.chapters_count }}</strong> capítulos</span>
+              <span *ngIf="item.word_count"><strong>{{ item.word_count | number }}</strong> palabras</span>
+            </div>
+
+            <!-- OBSERVACIONES DEL ADMINISTRADOR -->
+            <div class="admin-feedback-box" *ngIf="item.editorial_notes" [class.box-rejected]="item.status === 'rejected'" [class.box-approved]="item.status === 'published'">
+              <div class="feedback-title">
+                <span class="material-symbols-outlined">{{ item.status === 'published' ? 'task_alt' : 'rate_review' }}</span>
+                Notas del Comité Editorial / Administrador:
+              </div>
+              <p class="feedback-text">{{ item.editorial_notes }}</p>
+            </div>
+
+            <div class="item-actions">
+              <a *ngIf="item.status === 'published'" [routerLink]="['/book', item.slug]" class="btn-view-book">
+                <span class="material-symbols-outlined">auto_stories</span>
+                Ver en el Catálogo
+              </a>
+              <span *ngIf="item.status === 'pending_review'" class="pending-notice">
+                <span class="material-symbols-outlined">schedule</span>
+                En evaluación por el comité
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noSubmissions>
+        <div class="empty-submissions">
+          <span class="material-symbols-outlined empty-icon">menu_book</span>
+          <h3>Aún no has enviado manuscritos</h3>
+          <p>Comparte tus creaciones literarias con la comunidad de Literatus Novelist.</p>
+          <button class="primary-btn" (click)="activeTab = 'submit'">
+            <span class="material-symbols-outlined">post_add</span>
+            Enviar mi Primera Obra
+          </button>
+        </div>
+      </ng-template>
+    </div>
+  </main>
+
+  <!-- ══════════ PESTAÑA 3: CRITERIOS EDITORIALES ══════════ -->
+  <main class="portal-body" *ngIf="activeTab === 'guidelines'">
+    <div class="guidelines-card">
+      <div class="guidelines-header">
+        <span class="material-symbols-outlined g-icon">policy</span>
+        <h2>Guía de Criterios Mínimos Editoriales</h2>
+        <p>Literatus Novelist mantiene un estándar de excelencia en diseño y contenido literario.</p>
+      </div>
+
+      <div class="guidelines-grid">
+        <div class="rule-card">
+          <div class="rule-number">1</div>
+          <h3>Titularidad de Derechos</h3>
+          <p>Toda obra remitida debe ser original y contar con titularidad moral y patrimonial comprobable, conforme a la legislación de propiedad intelectual (Ley N° 17.336). No se admiten plagios ni contenidos no autorizados.</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-number">2</div>
+          <h3>Sinopsis Literaria Completa</h3>
+          <p>La sinopsis debe contar con al menos 50 caracteres que permitan comprender el tema, ambientación y premisa argumental de la obra sin errores ortográficos graves.</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-number">3</div>
+          <h3>Portada Gráfica de Calidad</h3>
+          <p>Una buena portada atrae lectores. Recomendamos una relación de aspecto de 2:3 o 3:4, en resolución no menor a 800x1200 píxeles, con tipografía legible del título y nombre del autor.</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-number">4</div>
+          <h3>Estructura del Manuscrito</h3>
+          <p>Se admiten archivos .EPUB (formato nativo optimizado con tabla de contenidos) o documentos .PDF de lectura fluida. También puedes transcribir tus capítulos de forma directa.</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-number">5</div>
+          <h3>Curaduría y Tiempos de Respuesta</h3>
+          <p>El Administrador evalúa cada propuesta en un plazo estimado de 24 a 48 horas hábiles. En caso de requerir ajustes, recibirás una notificación detallada con las observaciones para perfeccionar tu publicación.</p>
+        </div>
+
+        <div class="rule-card">
+          <div class="rule-number">6</div>
+          <h3>Economía de la Tinta</h3>
+          <p>Al publicarse tu obra, los lectores de Literatus Novelist podrán desbloquearla, leer sus capítulos e interactuar con sus pasajes, generando prestigio y reconocimientos para tu perfil de autor.</p>
+        </div>
+      </div>
+
+      <div class="guidelines-cta">
+        <button class="primary-btn" (click)="activeTab = 'submit'">
+          <span class="material-symbols-outlined">edit_note</span>
+          Comenzar Formulario de Envío
+        </button>
+      </div>
+    </div>
+  </main>
+
+</div>

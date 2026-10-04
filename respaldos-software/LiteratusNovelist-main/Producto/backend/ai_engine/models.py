@@ -26,6 +26,7 @@ DISEÑO 3NF:
 """
 
 from django.db import models
+from django.utils import timezone
 import uuid
 from core.models import TimeStampedModel
 from users.models import User
@@ -326,3 +327,46 @@ class AssistantMessage(TimeStampedModel):
     def __str__(self):
         preview = self.content[:50] + '...' if len(self.content) > 50 else self.content
         return f"[{self.get_role_display()}] {preview}"
+
+
+class BlindInterrogationSession(TimeStampedModel):
+    """
+    Sesión del minijuego 'Interrogatorio a Ciegas'.
+    Un AIAvatar actúa de incógnito sin revelar su nombre ni el título de su libro.
+    El usuario dispone de preguntas base, puede invertir Tinta en ventajas y debe adivinar la identidad.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='interrogation_sessions')
+    avatar = models.ForeignKey(AIAvatar, on_delete=models.CASCADE, related_name='+')
+
+    distractor_avatar_ids = models.JSONField(default=list, help_text="IDs de los 3 avatares señuelo.")
+    candidate_order = models.JSONField(default=list, help_text="Lista ordenada de IDs de los 4 candidatos mostrados al usuario.")
+
+    questions_allowed = models.PositiveIntegerField(default=3)
+    questions_used = models.PositiveIntegerField(default=0)
+    extra_questions_bought = models.PositiveIntegerField(default=0)
+    clues_bought = models.PositiveIntegerField(default=0)
+    discarded_avatar_ids = models.JSONField(default=list, help_text="Avatares descartados por ventaja de 50/50.")
+
+    dialogue_history = models.JSONField(default=list, help_text="Lista de mensajes: [{'role': 'user'|'character'|'clue', 'content': '...'}]")
+
+    STATUS_CHOICES = [
+        ('playing', 'En juego'),
+        ('won', 'Descubierto con éxito'),
+        ('lost', 'No descubierto / Fallado'),
+        ('abandoned', 'Abandonado'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='playing')
+
+    ink_earned = models.IntegerField(default=0)
+    xp_earned = models.IntegerField(default=0)
+    is_official_daily = models.BooleanField(default=True)
+    game_date = models.DateField(default=timezone.localdate)
+
+    class Meta:
+        verbose_name = 'Blind Interrogation Session'
+        verbose_name_plural = 'Blind Interrogation Sessions'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Interrogatorio [{self.user.username}] - {self.avatar.name} ({self.status})"
+

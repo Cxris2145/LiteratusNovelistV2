@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-store-settings',
@@ -13,7 +14,10 @@ export class StoreSettingsComponent implements OnInit {
   toastMessage = '';
   selectedTheme = 'default';
 
-  constructor(private dashboardService: DashboardBooksService) {}
+  constructor(
+    private dashboardService: DashboardBooksService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadSettings();
@@ -38,14 +42,16 @@ export class StoreSettingsComponent implements OnInit {
     this.dashboardService.saveSettings({ theme: this.selectedTheme }).subscribe({
       next: (res) => {
         this.saving = false;
-        this.toastMessage = res.message || 'Configuración guardada exitosamente.';
+        const msg = res.message || 'Configuración guardada exitosamente.';
+        this.toastMessage = msg;
+        this.notificationService.success(msg, 'Configuración');
         // Apply theme to body
         document.body.setAttribute('data-theme', this.selectedTheme);
         setTimeout(() => this.toastMessage = '', 4000);
       },
       error: () => {
         this.saving = false;
-        alert('Error al guardar la configuración.');
+        this.notificationService.error('Error al guardar la configuración.', 'Error');
       }
     });
   }

@@ -1,0 +1,419 @@
+<div class="interrogation-wrapper">
+  <!-- Resplandores ambientales noir -->
+  <div class="ambient-glow ambient-glow--1"></div>
+  <div class="ambient-glow ambient-glow--2"></div>
+
+  <div class="interrogation-container">
+
+    <!-- ═══ ENCABEZADO PRINCIPAL ═══ -->
+    <header class="interrogation-header">
+      <div class="header-main">
+        <div class="header-icon-badge">
+          <span class="material-symbols-rounded">visibility_off</span>
+        </div>
+        <div class="header-titles">
+          <div class="title-row">
+            <h1 class="header-title">El Interrogatorio a Ciegas</h1>
+            <span class="daily-badge" *ngIf="session?.is_official_daily">
+              <span class="material-symbols-rounded">stars</span>
+              <span>Reto Diario</span>
+            </span>
+            <span class="daily-badge daily-badge--practice" *ngIf="session && !session.is_official_daily">
+              <span class="material-symbols-rounded">science</span>
+              <span>Modo Práctica</span>
+            </span>
+
+            <!-- Badge de procedencia del sospechoso incógnito -->
+            <span class="origin-badge origin-badge--owned" *ngIf="session?.is_secret_in_library" title="El personaje que estás interrogando pertenece a un libro de tu biblioteca">
+              <span class="material-symbols-rounded">bookmark_added</span>
+              <span>En tu biblioteca</span>
+            </span>
+            <span class="origin-badge origin-badge--mixed" *ngIf="session && !session.is_secret_in_library" title="El personaje que estás interrogando pertenece al catálogo general">
+              <span class="material-symbols-rounded">public</span>
+              <span>Catálogo general</span>
+            </span>
+
+            <button class="rules-btn" (click)="openRules()" title="Ver reglas del juego">
+              <span class="material-symbols-rounded">help_outline</span>
+            </button>
+          </div>
+          <p class="header-subtitle">Formula preguntas y deduce la identidad del personaje que te habla desde las sombras</p>
+        </div>
+      </div>
+
+      <!-- Métricas: Preguntas y Saldo de Tinta -->
+      <div class="header-metrics" *ngIf="session">
+        <div class="metric-pill" title="Preguntas restantes">
+          <span class="material-symbols-rounded pill-icon pill-icon--cyan">chat_bubble</span>
+          <div class="pill-data">
+            <span class="pill-label">Preguntas</span>
+            <span class="pill-value">{{ session.questions_left }} / {{ session.questions_allowed }}</span>
+          </div>
+        </div>
+
+        <div class="metric-pill" title="Saldo de Tinta">
+          <span class="material-symbols-rounded pill-icon pill-icon--gold">ink_pen</span>
+          <div class="pill-data">
+            <span class="pill-label">Tu Tinta</span>
+            <span class="pill-value">{{ userInkBalance | number }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══ ESTADO DE CARGA ═══ -->
+    <div class="loading-box glass-card" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Convocando a los personajes de tu biblioteca...</p>
+    </div>
+
+    <!-- ═══ TABLERO EN JUEGO ═══ -->
+    <main class="interrogation-board glass-card" *ngIf="!isLoading && session && session.status === 'playing'">
+
+      <!-- SILUETA MISTERIOSA DEL PERSONAJE -->
+      <section class="shadow-figure-section">
+        <div class="shadow-portrait-wrap">
+          <div class="shadow-silhouette" [class.is-speaking]="isSendingQuestion">
+            <span class="material-symbols-rounded shadow-icon">psychology_alt</span>
+            <div class="eyes-glow"></div>
+          </div>
+          <div class="shadow-mist"></div>
+        </div>
+
+        <div class="shadow-details">
+          <div class="shadow-badge-row">
+            <div class="shadow-badge">
+              <span class="material-symbols-rounded">fingerprint</span>
+              <span>Identidad Oculta</span>
+            </div>
+            <!-- Indicador claro de si este sospechoso está en la biblioteca -->
+            <span class="lib-badge lib-badge--owned lib-badge--lg" *ngIf="session?.is_secret_in_library">
+              <span class="material-symbols-rounded">bookmark_added</span>
+              <span>Libro en tu biblioteca</span>
+            </span>
+            <span class="lib-badge lib-badge--catalog lib-badge--lg" *ngIf="session && !session.is_secret_in_library">
+              <span class="material-symbols-rounded">public</span>
+              <span>Obra del catálogo general</span>
+            </span>
+          </div>
+
+          <h2 class="shadow-name">La Sombra del Manuscrito</h2>
+          <p class="shadow-desc" *ngIf="session?.is_secret_in_library">
+            Pertenezco a un libro que tienes en tu biblioteca. Responderé a tus preguntas sin revelar jamás mi nombre, autor ni libro.
+          </p>
+          <p class="shadow-desc" *ngIf="session && !session.is_secret_in_library">
+            Pertenezco a una obra clásica del catálogo literario. Responderé a tus preguntas sin revelar jamás mi nombre, autor ni libro.
+          </p>
+        </div>
+
+        <div class="shadow-action-cta">
+          <button type="button" class="guess-cta-btn" (click)="openGuessModal()">
+            <span class="material-symbols-rounded">search_check</span>
+            <span>¡Sé quién es!</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- BARRA DE VENTAJAS DE TINTA (UTILIDAD DE LA MONEDA) -->
+      <section class="perks-bar">
+        <div class="perks-label">
+          <span class="material-symbols-rounded">auto_awesome</span>
+          <span>Ventajas del Tintero:</span>
+        </div>
+
+        <div class="perks-group">
+          <!-- +1 Pregunta (3 Tinta) -->
+          <button type="button" class="perk-btn" (click)="buyExtraQuestion()"
+                  [disabled]="isBuyingPerk || userInkBalance < 3 || session.extra_questions_bought >= 2"
+                  [title]="session.extra_questions_bought >= 2 ? 'Límite alcanzado' : 'Añadir 1 pregunta por 3 Gotas de Tinta'">
+            <span class="material-symbols-rounded">add_circle</span>
+            <span>+1 Pregunta</span>
+            <span class="perk-cost">3 💧</span>
+          </button>
+
+          <!-- Pista Reveladora (5 Tinta) -->
+          <button type="button" class="perk-btn" (click)="buyClue()"
+                  [disabled]="isBuyingPerk || userInkBalance < 5 || session.clues_bought >= 1"
+                  [title]="session.clues_bought >= 1 ? 'Pista ya obtenida' : 'Pedir una confidencia íntima por 5 Gotas de Tinta'">
+            <span class="material-symbols-rounded">lightbulb</span>
+            <span>Pista Reveladora</span>
+            <span class="perk-cost">5 💧</span>
+          </button>
+
+          <!-- Descarte 50/50 (4 Tinta) -->
+          <button type="button" class="perk-btn" (click)="buyDiscardTwo()"
+                  [disabled]="isBuyingPerk || userInkBalance < 4 || (session.discarded_avatar_ids && session.discarded_avatar_ids.length > 0)"
+                  [title]="session.discarded_avatar_ids && session.discarded_avatar_ids.length > 0 ? 'Descarte ya usado' : 'Eliminar 2 sospechosos por 4 Gotas de Tinta'">
+            <span class="material-symbols-rounded">flaky</span>
+            <span>Descarte 50/50</span>
+            <span class="perk-cost">4 💧</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- FEED DE DIÁLOGO / INTERROGATORIO -->
+      <section class="dialogue-feed" #chatScrollContainer>
+        <div *ngFor="let msg of session.dialogue_history" class="chat-bubble-wrap" [ngClass]="'chat-bubble-wrap--' + msg.role">
+          <div class="chat-bubble" [ngClass]="'chat-bubble--' + msg.role">
+            <div class="bubble-header" *ngIf="msg.role === 'clue'">
+              <span class="material-symbols-rounded">lightbulb</span>
+              <span>Confidencia del Tintero</span>
+            </div>
+            <p class="bubble-text">{{ msg.content }}</p>
+          </div>
+        </div>
+
+        <div *ngIf="isSendingQuestion" class="chat-bubble-wrap chat-bubble-wrap--character">
+          <div class="chat-bubble chat-bubble--character chat-bubble--typing">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- BARRA DE ENTRADA DE PREGUNTAS -->
+      <footer class="interrogation-input-bar">
+        <form (ngSubmit)="sendQuestion()" class="question-form">
+          <input type="text" class="question-input"
+                 [(ngModel)]="currentQuestion"
+                 name="userQuestion"
+                 placeholder="Escribe tu pregunta a la sombra (ej. ¿Cuál es tu mayor aflicción? ¿En qué siglo vives?)..."
+                 [disabled]="session.questions_left <= 0 || isSendingQuestion"
+                 autocomplete="off" />
+
+          <button type="submit" class="send-question-btn"
+                  [disabled]="!currentQuestion.trim() || session.questions_left <= 0 || isSendingQuestion">
+            <span class="material-symbols-rounded">send</span>
+          </button>
+        </form>
+
+        <div class="input-helper-row">
+          <span class="helper-text" *ngIf="session.questions_left > 0">
+            Te quedan <strong>{{ session.questions_left }}</strong> preguntas base.
+          </span>
+          <span class="helper-text helper-text--warning" *ngIf="session.questions_left <= 0">
+            Preguntas agotadas. Puedes comprar una extra arriba o adivinar quién es.
+          </span>
+        </div>
+      </footer>
+
+    </main>
+
+    <!-- ═══ PANTALLA DE RESOLUCIÓN (VICTORIA O DERROTA) ═══ -->
+    <div class="endgame-screen glass-card" *ngIf="!isLoading && session && session.status !== 'playing'">
+      <div class="endgame-header" [class.endgame-header--won]="session.status === 'won'" [class.endgame-header--lost]="session.status !== 'won'">
+        <div class="endgame-icon-circle">
+          <span class="material-symbols-rounded">{{ session.status === 'won' ? 'workspace_premium' : 'sentiment_dissatisfied' }}</span>
+        </div>
+        <h2 class="endgame-title">{{ session.status === 'won' ? '¡Identidad Descubierta con Éxito!' : 'El Misterio No Pudo Ser Resuelto' }}</h2>
+        <p class="endgame-subtitle" *ngIf="session.status === 'won'">
+          Has demostrado una perspicacia literaria admirable al desenmascarar a la sombra.
+        </p>
+        <p class="endgame-subtitle" *ngIf="session.status !== 'won'">
+          La sombra se ha disipado en las páginas de tu biblioteca sin ser reconocida.
+        </p>
+      </div>
+
+      <!-- Tarjeta del personaje revelado -->
+      <div class="revealed-avatar-card" *ngIf="session.secret_avatar">
+        <div class="avatar-portrait">
+          <img *ngIf="session.secret_avatar.image" [src]="session.secret_avatar.image" [alt]="session.secret_avatar.name" />
+          <span *ngIf="!session.secret_avatar.image" class="material-symbols-rounded no-img">person</span>
+        </div>
+
+        <div class="avatar-info">
+          <div class="avatar-header-row">
+            <span class="avatar-pretitle">Personaje Descubierto</span>
+            <span class="lib-badge lib-badge--owned lib-badge--lg" *ngIf="session.secret_avatar.is_in_library">
+              <span class="material-symbols-rounded">bookmark_added</span>
+              <span>¡Está en tu biblioteca!</span>
+            </span>
+            <span class="lib-badge lib-badge--catalog lib-badge--lg" *ngIf="!session.secret_avatar.is_in_library">
+              <span class="material-symbols-rounded">public</span>
+              <span>Obra del catálogo general</span>
+            </span>
+          </div>
+          <h3 class="avatar-name">{{ session.secret_avatar.name }}</h3>
+          <p class="avatar-book-meta">
+            <span>De la obra: <strong>{{ session.secret_avatar.book_title }}</strong></span>
+            <span *ngIf="session.secret_avatar.author_name">• {{ session.secret_avatar.author_name }}</span>
+          </p>
+          <p class="avatar-bio" *ngIf="session.secret_avatar.description">
+            "{{ session.secret_avatar.description }}"
+          </p>
+        </div>
+      </div>
+
+      <!-- Recompensas obtenidas -->
+      <div class="rewards-summary-box">
+        <div class="reward-pill reward-pill--ink">
+          <span class="material-symbols-rounded">ink_pen</span>
+          <span>+{{ session.ink_earned }} Gotas de Tinta</span>
+        </div>
+        <div class="reward-pill reward-pill--xp">
+          <span class="material-symbols-rounded">stars</span>
+          <span>+{{ session.xp_earned }} XP</span>
+        </div>
+      </div>
+
+      <!-- Acciones de fin de juego -->
+      <div class="endgame-actions-row">
+        <a *ngIf="session.secret_avatar?.is_in_library" routerLink="/library" class="endgame-btn endgame-btn--secondary">
+          <span class="material-symbols-rounded">local_library</span>
+          <span>Leer en Mi Biblioteca</span>
+        </a>
+        <a *ngIf="!session.secret_avatar?.is_in_library" [routerLink]="session.secret_avatar?.book_id ? ['/book', session.secret_avatar?.book_id] : '/catalog'" class="endgame-btn endgame-btn--secondary">
+          <span class="material-symbols-rounded">travel_explore</span>
+          <span>Explorar en el Catálogo</span>
+        </a>
+        <button type="button" class="endgame-btn endgame-btn--primary" (click)="startNewGame()">
+          <span class="material-symbols-rounded">replay</span>
+          <span>Jugar Otra Partida</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ MODAL DE SELECCIÓN DE SOSPECHOSOS (ADIVINAR) ═══ -->
+  <div class="modal-backdrop" *ngIf="showGuessModal" (click)="closeGuessModal()">
+    <div class="guess-modal-card glass-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="material-symbols-rounded modal-icon">search_check</span>
+          <h2 class="modal-title">¿Quién crees que es la Sombra?</h2>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeGuessModal()">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <p class="modal-intro">
+        Selecciona tu veredicto final. Si aciertas, ganarás Tinta y XP en base a tu rapidez de deducción:
+      </p>
+
+      <div class="suspects-grid" *ngIf="session">
+        <div *ngFor="let suspect of session.suspects"
+             class="suspect-card"
+             [class.selected]="selectedSuspectId === suspect.id"
+             [class.discarded]="suspect.is_discarded"
+             (click)="selectSuspect(suspect.id)">
+
+          <div class="suspect-portrait">
+            <img *ngIf="suspect.image" [src]="suspect.image" [alt]="suspect.name" />
+            <span *ngIf="!suspect.image" class="material-symbols-rounded suspect-no-img">person</span>
+            <div class="discarded-overlay" *ngIf="suspect.is_discarded">
+              <span class="material-symbols-rounded">cancel</span>
+              <span>Descartado</span>
+            </div>
+          </div>
+
+          <div class="suspect-info">
+            <div class="suspect-title-row">
+              <h4 class="suspect-name">{{ suspect.name }}</h4>
+              <span class="lib-badge lib-badge--owned" *ngIf="suspect.is_in_library" title="Tienes este libro en tu biblioteca">
+                <span class="material-symbols-rounded">bookmark_added</span>
+                <span>En tu biblioteca</span>
+              </span>
+              <span class="lib-badge lib-badge--catalog" *ngIf="!suspect.is_in_library" title="Obra del catálogo general">
+                <span class="material-symbols-rounded">public</span>
+                <span>Catálogo</span>
+              </span>
+            </div>
+            <span class="suspect-book" [title]="suspect.book_title">{{ suspect.book_title }}</span>
+            <span class="suspect-author" *ngIf="suspect.author_name">{{ suspect.author_name }}</span>
+          </div>
+
+          <div class="select-indicator">
+            <span class="material-symbols-rounded">{{ selectedSuspectId === suspect.id ? 'check_circle' : 'radio_button_unchecked' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeGuessModal()">
+          <span>Seguir interrogando</span>
+        </button>
+        <button type="button" class="btn-confirm" (click)="submitGuess()" [disabled]="!selectedSuspectId || isSubmittingGuess">
+          <span *ngIf="!isSubmittingGuess" class="material-symbols-rounded">verified</span>
+          <span *ngIf="isSubmittingGuess" class="spinner-small"></span>
+          <span>{{ isSubmittingGuess ? 'Validando veredicto...' : 'Confirmar Veredicto' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL DE REGLAS ═══ -->
+  <div class="modal-backdrop" *ngIf="showRulesModal" (click)="closeRules()">
+    <div class="rules-modal-card glass-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="material-symbols-rounded modal-icon">auto_stories</span>
+          <h2 class="modal-title">Reglas del Interrogatorio a Ciegas</h2>
+        </div>
+        <button type="button" class="modal-close-btn" (click)="closeRules()">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <div class="rules-body">
+        <div class="rule-block">
+          <h3><span class="material-symbols-rounded">psychology</span> El Desafío</h3>
+          <p>Un personaje misterioso de tus libros adquiridos habla contigo. Dispone de voz, personalidad y recuerdos, pero tiene prohibido decir su nombre, autor y libro.</p>
+        </div>
+
+        <div class="rule-block">
+          <h3><span class="material-symbols-rounded">chat</span> Preguntas y Deducción</h3>
+          <p>Dispones de <strong>3 preguntas base</strong> libres. Haz preguntas sobre su época, emociones, dilemas o entorno para acorralar su identidad.</p>
+        </div>
+
+        <div class="rule-block">
+          <h3><span class="material-symbols-rounded">ink_pen</span> Utilidad de la Tinta</h3>
+          <ul>
+            <li><strong>+1 Pregunta extra:</strong> 3 Gotas de Tinta.</li>
+            <li><strong>Pista Reveladora:</strong> 5 Gotas de Tinta para que confiese un secreto o símbolo clave.</li>
+            <li><strong>Descarte 50/50:</strong> 4 Gotas de Tinta para eliminar dos sospechosos inocentes.</li>
+          </ul>
+        </div>
+
+        <div class="rule-block">
+          <h3><span class="material-symbols-rounded">stars</span> Recompensas</h3>
+          <p>Acertar con 1 pregunta otorga <strong>+15 Gotas</strong> y <strong>+25 XP</strong>. Con 2 preguntas: <strong>+10 Gotas</strong>. Con 3 preguntas: <strong>+7 Gotas</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MODAL DE ADVERTENCIA DE SALIDA ═══ -->
+  <div class="modal-backdrop" *ngIf="showExitModal" (click)="cancelExit()">
+    <div class="exit-modal-card glass-card" (click)="$event.stopPropagation()">
+      <div class="exit-header">
+        <div class="exit-icon-wrap">
+          <span class="material-symbols-rounded">warning</span>
+        </div>
+        <div class="exit-titles">
+          <h3>¿Deseas salir del Interrogatorio?</h3>
+          <span class="exit-badge">Penalización de Abandono</span>
+        </div>
+      </div>
+
+      <p class="exit-msg">
+        ¿Estás seguro de que deseas salir? Si abandonas la partida ahora, el interrogatorio se registrará como no descubierto (0 puntos) y perderás la oportunidad de ganar los puntos del reto hoy.
+      </p>
+
+      <div class="exit-actions">
+        <button type="button" class="btn-keep" (click)="cancelExit()" [disabled]="isAbandoning">
+          <span class="material-symbols-rounded">sports_esports</span>
+          <span>Continuar interrogando</span>
+        </button>
+        <button type="button" class="btn-abandon" (click)="confirmExitAndPenalize()" [disabled]="isAbandoning">
+          <span *ngIf="!isAbandoning" class="material-symbols-rounded">logout</span>
+          <span *ngIf="isAbandoning" class="spinner-small"></span>
+          <span>{{ isAbandoning ? 'Abandonando...' : 'Salir y perder puntos' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

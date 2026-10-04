@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-author-editor',
@@ -25,7 +26,8 @@ export class AuthorEditorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private bookService: DashboardBooksService
+    private bookService: DashboardBooksService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
@@ -53,7 +55,7 @@ export class AuthorEditorComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        alert('Error al cargar autor');
+        this.notificationService.error('Error al cargar la información del autor.', 'Error');
         this.router.navigate(['/dashboard/authors']);
       }
     });
@@ -79,11 +81,12 @@ export class AuthorEditorComponent implements OnInit {
     this.bookService.saveFullAuthor(data, this.authorPhoto || undefined).subscribe({
       next: () => {
         this.loading = false;
+        this.notificationService.success('Autor guardado exitosamente.', 'Autores');
         this.router.navigate(['/dashboard/authors']);
       },
       error: (err) => {
         this.loading = false;
-        alert('Error al guardar: ' + (err.error?.error || 'Desconocido'));
+        this.notificationService.error('Error al guardar: ' + (err.error?.error || 'Desconocido'), 'Error');
       }
     });
   }

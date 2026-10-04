@@ -190,7 +190,9 @@ class Book(TimeStampedModel):
 
     class StatusChoices(models.TextChoices):
         DRAFT = 'draft', 'Borrador'
+        PENDING_REVIEW = 'pending_review', 'En Revisión'
         PUBLISHED = 'published', 'Publicado'
+        REJECTED = 'rejected', 'Rechazado'
         ARCHIVED = 'archived', 'Archivado'
 
     status = models.CharField(
@@ -198,6 +200,24 @@ class Book(TimeStampedModel):
         choices=StatusChoices.choices,
         default=StatusChoices.DRAFT,
         help_text="Estado de la obra en el flujo de trabajo."
+    )
+
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='submitted_books',
+        help_text="Usuario o autor que remitió la obra para curaduría."
+    )
+    editorial_notes = models.TextField(
+        blank=True,
+        default='',
+        help_text="Observaciones, sugerencias o motivos editoriales del Administrador."
+    )
+    submission_declaration = models.BooleanField(
+        default=False,
+        help_text="Declaración jurada de autoría o derechos legítimos."
     )
     
 

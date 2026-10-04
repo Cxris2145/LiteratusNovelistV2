@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DashboardBooksService } from '../services/dashboard-books.service';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'app-categories-admin',
@@ -19,7 +20,10 @@ export class CategoriesAdminComponent implements OnInit {
   saving = false;
   toastMessage = '';
 
-  constructor(private dashboardService: DashboardBooksService) {}
+  constructor(
+    private dashboardService: DashboardBooksService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.loadGenres();
@@ -80,7 +84,7 @@ export class CategoriesAdminComponent implements OnInit {
 
   save(): void {
     if (!this.formName.trim()) {
-      alert('El nombre de la categoría es obligatorio.');
+      this.notificationService.warning('El nombre de la categoría es obligatorio.', 'Campo Requerido');
       return;
     }
     this.saving = true;
@@ -93,13 +97,16 @@ export class CategoriesAdminComponent implements OnInit {
       next: (res) => {
         this.saving = false;
         this.closeModal();
-        this.toastMessage = res.message || 'Categoría guardada exitosamente.';
+        const msg = res.message || 'Categoría guardada exitosamente.';
+        this.toastMessage = msg;
+        this.notificationService.success(msg, 'Categorías');
         this.loadGenres();
         setTimeout(() => this.toastMessage = '', 4000);
       },
       error: (err) => {
         this.saving = false;
-        alert(err.error?.error || 'Error al guardar la categoría.');
+        const msg = err.error?.error || 'Error al guardar la categoría.';
+        this.notificationService.error(msg, 'Error');
       }
     });
   }
@@ -108,12 +115,14 @@ export class CategoriesAdminComponent implements OnInit {
     if (!confirm(`¿Eliminar la categoría "${genre.name}"? Los libros asociados no se borrarán.`)) return;
     this.dashboardService.deleteGenre(genre.id).subscribe({
       next: (res) => {
-        this.toastMessage = res.message || 'Categoría eliminada.';
+        const msg = res.message || 'Categoría eliminada.';
+        this.toastMessage = msg;
+        this.notificationService.success(msg, 'Categoría Eliminada');
         this.genres = this.genres.filter(g => g.id !== genre.id);
         this.filterGenres();
         setTimeout(() => this.toastMessage = '', 4000);
       },
-      error: () => alert('Error al eliminar la categoría.')
+      error: () => this.notificationService.error('Error al eliminar la categoría.', 'Error')
     });
   }
 }

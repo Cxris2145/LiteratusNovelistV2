@@ -58,14 +58,21 @@
         ← Cancelar
       </button>
       <button class="btn-pay" (click)="confirmPurchase()" [disabled]="isLoading || !!errorMsg">
-        <span *ngIf="!isLoading">Pagar con Webpay Plus <svg lucideCreditCard [size]="18" class="lucide-icon"></svg></span>
+        <span *ngIf="!isLoading">
+          <ng-container *ngIf="itemType === 'book' && bookInfo && (!bookInfo.price || bookInfo.price === 0)">
+            Obtener Gratis <svg lucideCheckCircle [size]="18" class="lucide-icon"></svg>
+          </ng-container>
+          <ng-container *ngIf="itemType !== 'book' || (bookInfo && bookInfo.price > 0)">
+            Pagar con Webpay Plus <svg lucideCreditCard [size]="18" class="lucide-icon"></svg>
+          </ng-container>
+        </span>
         <span *ngIf="isLoading" class="loading-text">
-          <span class="spinner-small"></span> Redirigiendo...
+          <span class="spinner-small"></span> Procesando...
         </span>
       </button>
     </div>
 
-    <p class="webpay-note">Serás redirigido al portal seguro de Webpay Plus de Transbank.</p>
+    <p class="webpay-note" *ngIf="itemType === 'ink' || (bookInfo && bookInfo.price > 0)">Serás redirigido al portal seguro de Webpay Plus de Transbank.</p>
 
   </div>
 </div>

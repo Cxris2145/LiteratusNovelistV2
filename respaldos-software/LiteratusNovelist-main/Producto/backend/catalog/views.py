@@ -139,8 +139,9 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     def recommendations(self, request):
         """
         SERVICIO DE RECOMENDACIONES INTELIGENTE.
-        Calcula el perfil del usuario basado en Géneros (Categorías) y Tags de sus compras.
-        Devuelve hasta 10 libros paginados.
+        Calcula el perfil del usuario basado en sus preferencias del Onboarding
+        (géneros preferidos y autores seguidos) y en los géneros/tags de sus compras.
+        Devuelve hasta 6 libros recomendados para el carrusel de Explorar.
         """
         if not request.user.is_authenticated:
             qs = self.get_queryset().filter(is_featured=True)[:6]
@@ -149,54 +150,76 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             serializer = self.get_serializer(qs, many=True)
             return Response(serializer.data)
 
-        # 1. Obtener inventario del usuario
-        owned_book_ids = UserInventory.objects.filter(
+        # 1. Obtener libros ya adquiridos por el usuario (inventario)
+        owned_book_ids = list(UserInventory.objects.filter(
             user=request.user
-        ).values_list('edition__book_id', flat=True)
+        ).values_list('edition__book_id', flat=True))
 
-        if not owned_book_ids:
+        # 2. Obtener preferencias explícitas del Onboarding
+        profile = getattr(request.user, 'profile', None)
+        pref_genre_ids = list(profile.favorite_genres.values_list('id', flat=True)) if profile else []
+        pref_author_ids = list(profile.followed_authors.values_list('id', flat=True)) if profile else []
+
+        # 3. Obtener intereses implícitos de compras previas
+        from django.db.models import Count, Q
+
+        purchased_genre_ids = list(Genre.objects.filter(
+            books__id__in=owned_book_ids
+        ).values_list('id', flat=True)) if owned_book_ids else []
+
+        user_tag_ids = list(Tag.objects.filter(
+            books__id__in=owned_book_ids
+        ).values_list('id', flat=True)) if owned_book_ids else []
+
+        all_target_genre_ids = list(set(pref_genre_ids + purchased_genre_ids))
+
+        # Si el usuario no tiene preferencias ni compras registradas, mostrar destacados
+        if not owned_book_ids and not all_target_genre_ids and not pref_author_ids:
             qs = self.get_queryset().filter(is_featured=True)[:6]
             if not qs.exists():
                 qs = self.get_queryset()[:6]
             return Response(self.get_serializer(qs, many=True).data)
 
-        # 2. Calcular perfil de interés
-        from django.db.models import Count, Q
-
-        favorite_genres = Genre.objects.filter(
-            books__id__in=owned_book_ids
-        ).annotate(genre_count=Count('books')).order_by('-genre_count')
-
-        user_tags = Tag.objects.filter(
-            books__id__in=owned_book_ids
-        ).values_list('id', flat=True)
-
-        # 3. Candidatos (excluyendo los que ya posee)
+        # 4. Candidatos a recomendar (excluyendo obras que ya posee)
         candidates = self.get_queryset().exclude(id__in=owned_book_ids)
 
+        annotations = {}
         order_by_fields = []
-        if favorite_genres.exists():
-            genre_ids = list(favorite_genres.values_list('id', flat=True))
-            candidates = candidates.filter(genres__id__in=genre_ids).annotate(
-                matching_genres=Count('genres', filter=Q(genres__id__in=genre_ids))
-            )
+
+        if pref_author_ids:
+            annotations['matching_author'] = Count('authors', filter=Q(authors__id__in=pref_author_ids), distinct=True)
+            order_by_fields.append('-matching_author')
+
+        if all_target_genre_ids:
+            annotations['matching_genres'] = Count('genres', filter=Q(genres__id__in=all_target_genre_ids), distinct=True)
             order_by_fields.append('-matching_genres')
 
-        if user_tags:
-            tag_ids = list(user_tags)
-            candidates = candidates.annotate(
-                matching_tags=Count('tags', filter=Q(tags__id__in=tag_ids))
-            )
+        if user_tag_ids:
+            annotations['matching_tags'] = Count('tags', filter=Q(tags__id__in=user_tag_ids), distinct=True)
             order_by_fields.append('-matching_tags')
 
-        order_by_fields.extend(['-view_count', '-id'])
-        candidates = candidates.order_by(*order_by_fields).distinct()
+        order_by_fields.extend(['-is_featured', '-view_count', '-id'])
 
-        # 4. Paginar y enviar
-        page = self.paginate_queryset(candidates[:10])
-        if page is not None:
-            return self.get_paginated_response(self.get_serializer(page, many=True).data)
-        serializer = self.get_serializer(candidates[:10], many=True)
+        if annotations:
+            candidates = candidates.annotate(**annotations)
+
+        # Priorizar candidatos con al menos 1 coincidencia en autores seguidos o géneros favoritos
+        match_q = Q()
+        if pref_author_ids:
+            match_q |= Q(authors__id__in=pref_author_ids)
+        if all_target_genre_ids:
+            match_q |= Q(genres__id__in=all_target_genre_ids)
+
+        if match_q:
+            matched_candidates = candidates.filter(match_q).order_by(*order_by_fields).distinct()
+            if matched_candidates.count() >= 3:
+                candidates = matched_candidates
+            else:
+                candidates = candidates.order_by(*order_by_fields).distinct()
+        else:
+            candidates = candidates.order_by(*order_by_fields).distinct()
+
+        serializer = self.get_serializer(candidates[:6], many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['GET'])
@@ -273,10 +296,11 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             )
             
             # Crear inventario
-            UserInventory.objects.create(user=request.user, edition=edition)
+            inventory = UserInventory.objects.create(user=request.user, edition=edition)
             
         return Response({
             'message': 'Libro adquirido con éxito.', 
+            'inventory_id': str(inventory.id),
             'ink_balance': profile.ink_balance,
             'discount_applied': discount_percent
         }, status=status.HTTP_201_CREATED)
@@ -431,3 +455,358 @@ class CatalogStatsView(APIView):
         }
         cache.set(cache_key, data, CATALOG_CACHE_TTL)
         return Response(data)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PORTAL DE AUTORES: Envío y Seguimiento de Obras para Curaduría
+# ─────────────────────────────────────────────────────────────────────────────
+
+from rest_framework.parsers import MultiPartParser, FormParser
+from io import BytesIO
+from django.utils.text import slugify
+import json
+from .models import Edition, Chapter, BookAuthor
+
+
+class AuthorSubmitBookView(APIView):
+    """
+    POST /api/v1/catalog/author/submit-book/
+    Permite a los autores enviar una obra de su autoría para evaluación editorial.
+    La obra queda en estado PENDING_REVIEW con is_published=False hasta que
+    el Administrador verifique el cumplimiento de los requisitos mínimos.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        data = request.data
+        title = (data.get('title') or '').strip()
+        synopsis = (data.get('synopsis') or '').strip()
+        declaration = str(data.get('submission_declaration', '')).lower() in ('true', '1', 'yes')
+
+        # ─── 1. Validación Estricta de Requisitos Mínimos ───
+        errors = {}
+        if not title or len(title) < 3:
+            errors['title'] = 'El título de la obra es obligatorio y debe contener al menos 3 caracteres.'
+
+        if not synopsis or len(synopsis) < 50:
+            errors['synopsis'] = 'La sinopsis es obligatoria y debe tener al menos 50 caracteres (idealmente 100+ palabras) para la curaduría editorial.'
+
+        if not declaration:
+            errors['submission_declaration'] = 'Debes aceptar la declaración jurada que certifica que eres el autor legítimo de la obra o posees los derechos de difusión.'
+
+        cover_file = request.FILES.get('cover')
+        if not cover_file:
+            errors['cover'] = 'Se requiere una portada en alta resolución (JPG, PNG o WebP).'
+
+        epub_file = request.FILES.get('epub')
+        pdf_file = request.FILES.get('pdf_file')
+        raw_chapters = data.get('chapters')
+
+        if not epub_file and not pdf_file and not raw_chapters:
+            errors['file'] = 'Debes adjuntar el manuscrito de la obra en formato EPUB, PDF o ingresar sus capítulos.'
+
+        genres_raw = data.get('genres')
+        genre_ids = []
+        if genres_raw:
+            try:
+                genre_ids = json.loads(genres_raw) if isinstance(genres_raw, str) else list(genres_raw)
+            except Exception:
+                genre_ids = []
+
+        if not genre_ids:
+            errors['genres'] = 'Debes seleccionar al menos una categoría o género literario de la plataforma.'
+
+        if errors:
+            return Response({
+                'error': 'REQUISITOS_NO_CUMPLIDOS',
+                'message': 'La obra no cumple con los requisitos mínimos de calidad editorial.',
+                'details': errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # ─── 2. Registro de la Obra y sus Componentes ───
+        try:
+            with transaction.atomic():
+                # Autor
+                author_name = (data.get('author_name') or '').strip()
+                if not author_name:
+                    author_name = request.user.get_full_name() or request.user.username
+
+                author_slug = slugify(author_name)
+                author, _ = Author.objects.get_or_create(
+                    slug=author_slug,
+                    defaults={
+                        'full_name': author_name,
+                        'bio': data.get('author_bio', f'Autor independiente en Literatus Novelist: {author_name}.'),
+                    }
+                )
+
+                # Slug del Libro
+                base_slug = slugify(title)
+                book_slug = base_slug
+                counter = 1
+                while Book.objects.filter(slug=book_slug).exists():
+                    book_slug = f"{base_slug}-{counter}"
+                    counter += 1
+
+                # Creación en estado EN REVISIÓN (No publicado)
+                book = Book.objects.create(
+                    title=title,
+                    slug=book_slug,
+                    synopsis=synopsis,
+                    status=Book.StatusChoices.PENDING_REVIEW,
+                    is_published=False,
+                    difficulty_level=data.get('difficulty_level', Book.DifficultyChoices.INTERMEDIATE),
+                    copyright_notice=data.get('copyright_notice', f'Obra original remitida por su autor ({author_name}) para difusión y lectura en Literatus Novelist.'),
+                    submitted_by=request.user,
+                    submission_declaration=True,
+                )
+
+                # Portada
+                book.cover_image.save(f'cover_{book.pk}.jpg', cover_file, save=True)
+
+                # Relación con Autor
+                BookAuthor.objects.create(book=book, author=author, role=BookAuthor.RoleChoices.PRIMARY)
+
+                # Géneros (soporta UUID, nombres o slugs)
+                import uuid
+                from django.db.models import Q
+                genre_queries = Q()
+                for item in genre_ids:
+                    item_str = str(item).strip()
+                    try:
+                        uuid_obj = uuid.UUID(item_str)
+                        genre_queries |= Q(id=uuid_obj)
+                    except ValueError:
+                        genre_queries |= Q(name__iexact=item_str) | Q(slug__iexact=slugify(item_str))
+
+                valid_genres = Genre.objects.filter(genre_queries) if genre_queries else Genre.objects.none()
+                book.genres.set(valid_genres)
+
+                # Tags temáticos opcionales
+                tags_raw = data.get('tags', '')
+                if tags_raw:
+                    for tag_name in [t.strip() for t in tags_raw.split(',') if t.strip()]:
+                        t_slug = slugify(tag_name)[:150]
+                        if t_slug:
+                            tag, _ = Tag.objects.get_or_create(slug=t_slug, defaults={'name': tag_name[:150]})
+                            book.tags.add(tag)
+
+                # PDF si se adjuntó
+                if pdf_file:
+                    book.pdf_file.save(f'book_{book.pk}.pdf', pdf_file, save=True)
+                    Edition.objects.create(
+                        book=book,
+                        format=Edition.FormatChoices.PDF,
+                        price=0.00,
+                        language='es'
+                    )
+
+                # EPUB si se adjuntó
+                total_words = 0
+                if epub_file:
+                    try:
+                        import ebooklib
+                        from ebooklib import epub
+                        from bs4 import BeautifulSoup
+                        content = epub_file.read()
+                        book_epub = epub.read_epub(BytesIO(content))
+                        order = 1
+                        for item in book_epub.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+                            name = item.get_name().lower()
+                            if any(x in name for x in ['cover', 'titlepage', 'nav', 'toc']):
+                                continue
+                            raw = item.get_body_content().decode('utf-8', errors='ignore')
+                            soup = BeautifulSoup(raw, 'html.parser')
+                            text_only = soup.get_text(separator=' ', strip=True)
+                            if len(text_only) > 80:
+                                title_tag = soup.find('h1') or soup.find('h2') or soup.find('h3')
+                                chapter_title = title_tag.text.strip() if title_tag else f'Capítulo {order}'
+                                Chapter.objects.create(
+                                    book=book,
+                                    order=order,
+                                    title=chapter_title[:200],
+                                    content_html=str(soup),
+                                )
+                                total_words += len(text_only.split())
+                                order += 1
+
+                        epub_file.seek(0)
+                        edition = Edition.objects.create(
+                            book=book,
+                            format=Edition.FormatChoices.EPUB,
+                            price=0.00,
+                            language='es'
+                        )
+                        edition.file.save(f'book_{book.pk}.epub', epub_file, save=True)
+                    except Exception as epub_err:
+                        print(f"[AuthorSubmitBook] Error procesando EPUB: {epub_err}")
+
+                elif raw_chapters:
+                    try:
+                        parsed_chapters = json.loads(raw_chapters) if isinstance(raw_chapters, str) else raw_chapters
+                        for idx, ch in enumerate(parsed_chapters, start=1):
+                            ch_title = ch.get('title', f'Capítulo {idx}')
+                            ch_html = ch.get('content_html', ch.get('content', ''))
+                            Chapter.objects.create(
+                                book=book,
+                                order=idx,
+                                title=ch_title[:200],
+                                content_html=ch_html
+                            )
+                            total_words += len(ch_html.split())
+                    except Exception as ch_err:
+                        print(f"[AuthorSubmitBook] Error procesando capítulos: {ch_err}")
+
+                if total_words > 0:
+                    book.word_count = total_words
+                    book.save(update_fields=['word_count'])
+
+                return Response({
+                    'success': True,
+                    'message': '¡Tu obra ha sido enviada exitosamente al equipo editorial! Se encuentra en revisión.',
+                    'book': {
+                        'id': str(book.pk),
+                        'title': book.title,
+                        'slug': book.slug,
+                        'status': book.status,
+                        'status_label': book.get_status_display(),
+                        'author': author.full_name,
+                        'chapters_count': book.chapters.count(),
+                        'word_count': book.word_count,
+                        'created_at': book.created_at,
+                    }
+                }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'error': 'SUBMISSION_FAILED',
+                'message': f'Error interno al procesar el envío de la obra: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AuthorMySubmissionsView(APIView):
+    """
+    GET /api/v1/catalog/author/my-submissions/
+    Lista todas las obras enviadas por el autor autenticado con sus estados de curaduría.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        submissions = (
+            Book.objects.filter(submitted_by=request.user)
+            .annotate(anno_chapters_count=Count('chapters', distinct=True))
+            .prefetch_related('genres', 'authors')
+            .order_by('-created_at')
+        )
+
+        data = [
+            {
+                'id': str(b.pk),
+                'title': b.title,
+                'slug': b.slug,
+                'status': b.status,
+                'status_label': b.get_status_display(),
+                'is_published': b.is_published,
+                'difficulty_level': b.difficulty_level,
+                'authors': [a.full_name for a in b.authors.all()],
+                'genres': [g.name for g in b.genres.all()],
+                'cover': request.build_absolute_uri(b.cover_image.url) if b.cover_image else None,
+                'chapters_count': b.anno_chapters_count,
+                'word_count': b.word_count,
+                'editorial_notes': b.editorial_notes,
+                'created_at': b.created_at,
+                'updated_at': b.updated_at,
+                'synopsis': b.synopsis,
+            }
+            for b in submissions
+        ]
+
+        return Response({
+            'total': len(data),
+            'count': len(data),
+            'submissions': data
+        })
+
+
+class AuthorSubmissionRequirementsView(APIView):
+    """
+    GET /api/v1/catalog/author/requirements/
+    Retorna la lista de requisitos mínimos editoriales que una obra debe cumplir.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        requirements = [
+            {
+                'id': 'title',
+                'code': 'title',
+                'title': 'Título Identificatorio',
+                'label': 'Título Identificatorio',
+                'description': 'Mínimo 3 caracteres, sin faltas ortográficas graves ni mayúsculas sostenidas innecesarias.',
+                'icon': 'title',
+                'required': True,
+                'mandatory': True
+            },
+            {
+                'id': 'synopsis',
+                'code': 'synopsis',
+                'title': 'Sinopsis Editorial Completa',
+                'label': 'Sinopsis Editorial Completa',
+                'description': 'Descripción clara del argumento de al menos 50 caracteres para la evaluación del comité curador.',
+                'icon': 'notes',
+                'required': True,
+                'mandatory': True
+            },
+            {
+                'id': 'genres',
+                'code': 'genres',
+                'title': 'Categorización Literaria',
+                'label': 'Categorización Literaria',
+                'description': 'Asignación de al menos un género literario válido de la plataforma para su correcta catalogación.',
+                'icon': 'category',
+                'required': True,
+                'mandatory': True
+            },
+            {
+                'id': 'cover',
+                'code': 'cover',
+                'title': 'Portada en Alta Resolución',
+                'label': 'Portada en Alta Resolución',
+                'description': 'Imagen vertical legible y nítida (formato JPG, PNG o WebP), libre de marcas de agua comerciales.',
+                'icon': 'image',
+                'required': True,
+                'mandatory': True
+            },
+            {
+                'id': 'manuscript',
+                'code': 'manuscript',
+                'title': 'Manuscrito Completo',
+                'label': 'Manuscrito Completo',
+                'description': 'Archivo de la obra en formato EPUB estándar o documento PDF con capítulos identificables.',
+                'icon': 'menu_book',
+                'required': True,
+                'mandatory': True
+            },
+            {
+                'id': 'declaration',
+                'code': 'declaration',
+                'title': 'Declaración Jurada de Titularidad',
+                'label': 'Declaración Jurada de Titularidad',
+                'description': 'Aceptación expresa de titularidad conforme a la Ley N° 17.336 de Propiedad Intelectual.',
+                'icon': 'gavel',
+                'required': True,
+                'mandatory': True
+            },
+        ]
+        return Response({
+            'requirements': requirements,
+            'minimum_requirements': requirements,
+            'guidelines': {
+                'formats': ['EPUB', 'PDF', 'Redacción de Capítulos'],
+                'max_file_size_mb': 40,
+                'recommended_cover_aspect_ratio': '2:3 o 3:4',
+                'review_sla_hours': 48
+            },
+            'editorial_policy': 'Literatus Novelist promueve la creación literaria independiente de calidad. Cada obra enviada pasa por un proceso de curaduría donde el equipo editorial evalúa la presentación y coherencia antes de su publicación en el catálogo abierto.'
+        })
