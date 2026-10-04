@@ -56,6 +56,9 @@ import { AchievementsComponent } from './library/achievements/achievements.compo
 import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
 import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive';
+import { CountUpDirective } from './core/directives/count-up.directive';
+import { TiltDirective } from './core/directives/tilt.directive';
+import { InkwellComponent } from './library/tavern/inkwell/inkwell.component';
 
 @NgModule({
   declarations: [
@@ -94,7 +97,10 @@ import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive
     AchievementsComponent,
     EnigmaGameComponent,
     GuideDialogComponent,
-    ScrollRevealDirective
+    ScrollRevealDirective,
+    CountUpDirective,
+    TiltDirective,
+    InkwellComponent
   ],
 
 

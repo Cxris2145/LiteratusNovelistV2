@@ -1,0 +1,218 @@
+/* Tintero vivo. Todo lo que se mueve en bucle es transform u opacity sobre elementos HTML
+   (no hijos de SVG), así el navegador lo compone en la GPU sin repintar. */
+:host {
+  display: block;
+  --iw-gold: var(--color-warning);
+  --iw-ink: color-mix(in srgb, var(--color-warning) 82%, var(--home-bg));
+  --iw-ink-deep: color-mix(in srgb, var(--color-warning) 38%, var(--home-bg));
+  --iw-glass: color-mix(in srgb, var(--home-ink) 7%, transparent);
+  --iw-rim: color-mix(in srgb, var(--home-ink) 34%, transparent);
+  --iw-ease: var(--ease-editorial, cubic-bezier(.16, 1, .3, 1));
+  --iw-wave-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12' preserveAspectRatio='none'%3E%3Cpath d='M0 6 Q15 0 30 6 T60 6 T90 6 T120 6 V12 H0 Z'/%3E%3C/svg%3E");
+}
+:host-context([data-theme="high-contrast-dark"]),
+:host-context([data-theme="high-contrast-light"]) {
+  --iw-ink: var(--color-warning);
+  --iw-ink-deep: var(--color-warning);
+  --iw-glass: transparent;
+  --iw-rim: var(--home-ink);
+}
+
+.iw-stage {
+  position: relative;
+  width: 240px;
+  height: 290px;
+  margin-inline: auto;
+}
+
+/* ---- Frasco ---- */
+.iw-bottle {
+  position: absolute;
+  left: 30px;
+  bottom: 0;
+  width: 180px;
+  height: 196px;
+}
+.iw-lip {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 88px;
+  height: 12px;
+  margin-left: -44px;
+  border-radius: 6px;
+  background: var(--iw-gold);
+}
+.iw-neck {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  width: 68px;
+  height: 32px;
+  margin-left: -34px;
+  border: 2px solid var(--iw-rim);
+  border-block: 0;
+  background: var(--iw-glass);
+}
+.iw-body {
+  position: absolute;
+  inset: 34px 0 0;
+  overflow: hidden;
+  border: 2px solid var(--iw-rim);
+  border-radius: 44% 44% 20% 20% / 30% 30% 14% 14%;
+  background: var(--iw-glass);
+}
+.iw-liquid {
+  position: absolute;
+  inset: auto 0 0;
+  height: 88%;
+  background: linear-gradient(180deg, var(--iw-ink), var(--iw-ink-deep));
+  transform: translateY(calc((1 - var(--level, 0)) * 100%));
+  transition: transform 1.6s var(--iw-ease);
+}
+.iw-wave {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  width: 200%;
+  height: 12px;
+  margin-bottom: -1px;
+  background: var(--iw-ink);
+  -webkit-mask: var(--iw-wave-svg) repeat-x 0 100% / 50% 100%;
+  mask: var(--iw-wave-svg) repeat-x 0 100% / 50% 100%;
+  animation: iw-wave 4.2s linear infinite;
+}
+.iw-wave-back {
+  height: 17px;
+  opacity: .45;
+  animation-duration: 6.5s;
+  animation-direction: reverse;
+}
+.iw-splash {
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 72px;
+  height: 16px;
+  margin-left: -36px;
+  border: 2px solid var(--iw-gold);
+  border-radius: 50%;
+  opacity: 0;
+}
+.iw-shine {
+  position: absolute;
+  left: 13%;
+  top: 16%;
+  width: 12%;
+  height: 46%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, color-mix(in srgb, #fff 45%, transparent), transparent);
+  opacity: .5;
+}
+
+/* ---- Pluma: descansa en el tintero, se levanta, gotea y vuelve a mojarse ---- */
+.iw-quill {
+  position: absolute;
+  left: 96px;
+  top: -6px;
+  width: 120px;
+  height: 140px;
+  overflow: visible;
+  transform-origin: 24px 124px;
+  animation: iw-dip 7s var(--iw-ease) infinite;
+}
+.iw-vane { fill: color-mix(in srgb, var(--home-ink) 88%, transparent); }
+.iw-shaft { fill: none; stroke: var(--iw-gold); stroke-width: 2.5; stroke-linecap: round; }
+.iw-nib { fill: var(--iw-gold); }
+.iw-drip {
+  position: absolute;
+  left: 116px;
+  top: 82px;
+  width: 8px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: var(--iw-ink);
+  opacity: 0;
+  animation: iw-drip 7s linear infinite;
+}
+
+/* ---- Motas que suben ---- */
+.iw-mote {
+  --dx: 14px;
+  position: absolute;
+  left: calc(34px + var(--m) * 32px);
+  bottom: 50px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--iw-gold);
+  opacity: 0;
+  animation: iw-mote 8s linear infinite;
+  animation-delay: calc(var(--m) * -1.35s);
+}
+.iw-mote:nth-child(even) { --dx: -12px; }
+
+/* ---- Saldo ---- */
+.iw-caption {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: .85rem;
+  color: var(--home-ink-muted);
+}
+.iw-amount {
+  position: relative;
+  display: inline-block;
+  font: 600 2.6rem/1 var(--font-display, Georgia, serif);
+  color: var(--home-ink);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.iw-caption > span { display: block; margin-top: 6px; }
+.iw-caption a { color: var(--color-warning); font-weight: 600; text-underline-offset: 4px; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes iw-wave { to { transform: translateX(-50%); } }
+@keyframes iw-dip {
+  0%, 56%, 100% { transform: none; }
+  66%, 80% { transform: translateY(-30px) rotate(-4deg); }
+  90% { transform: translateY(2px); }
+}
+@keyframes iw-drip {
+  0%, 69% { opacity: 0; transform: translateY(0) scale(.4); }
+  72% { opacity: 1; transform: translateY(2px) scale(1); }
+  79% { opacity: 1; transform: translateY(40px) scale(1, 1.15); }
+  81%, 100% { opacity: 0; transform: translateY(44px) scale(.6); }
+}
+@keyframes iw-mote {
+  0% { opacity: 0; transform: translate(0, 0); }
+  15% { opacity: .7; }
+  100% { opacity: 0; transform: translate(var(--dx), -220px); }
+}
+
+/* La Taberna marca data-onscreen="false" en las secciones fuera de pantalla: los bucles se detienen. */
+:host-context([data-onscreen="false"]) .iw-stage *,
+:host-context([data-onscreen="false"]) .iw-stage { animation-play-state: paused; }
+
+:host-context([data-theme="high-contrast-dark"]) .iw-shine,
+:host-context([data-theme="high-contrast-light"]) .iw-shine,
+:host-context([data-theme="high-contrast-dark"]) .iw-mote,
+:host-context([data-theme="high-contrast-light"]) .iw-mote { display: none; }
+
+@media (max-width: 620px) {
+  .iw-stage { scale: .8; transform-origin: 50% 100%; margin-top: -58px; }
+  .iw-amount { font-size: 2.2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iw-stage *, .iw-stage { animation: none !important; transition: none !important; }
+  .iw-drip, .iw-mote { display: none; }
+}

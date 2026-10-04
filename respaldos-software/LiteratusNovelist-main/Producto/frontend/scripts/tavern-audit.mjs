@@ -31,17 +31,22 @@ const plans = [
 ];
 const usage = { date: '2026-09-30', server_now: new Date().toISOString(), resets_at: new Date(Date.now()+3600000).toISOString(), tokens_used: 192000,
   tokens_reserved: 0, token_limit: 300000, tokens_remaining: 108000, active_seconds: 8280, time_limit: null, has_plan: true, plan_available: true, ink_balance: 1420 };
+// La recompensa diaria se puede reclamar una vez; después el saldo de todas las respuestas sube a 1.440.
+let claimed = false;
+const balance = () => claimed ? 1440 : 1420;
 function fixture(url) {
   const path = new URL(url).pathname;
   if (path.endsWith('/finance/plans/')) return plans;
   if (path.endsWith('/finance/ink-packages/')) return [{ amount: 200, price: '990', currency: 'CLP' }, { amount: 500, price: '1990', currency: 'CLP' }, { amount: 1200, price: '3990', currency: 'CLP' }];
-  if (path.endsWith('/finance/subscription/')) return { subscription: { plan: plans[1], status: 'ACTIVE', active: true, paid_until: new Date(Date.now()+28*86400000).toISOString(), renews_at: new Date(Date.now()+28*86400000).toISOString(), cancel_at_period_end: false, pending_plan: null }, cosmetics: { maestro: true, frame: 'frame-maestro' }, ink_balance: 1420 };
-  if (path.endsWith('/ai/usage/')) return usage;
-  if (path.endsWith('/users/profile/')) return { username: 'Lector QA', level: 1, xp: 0, ink_balance: 1420, theme: 'default', avatar_color: '#3174cf', equipped_frame: '', subscription_cosmetics: { maestro: true } };
-  if (path.includes('/daily-reward/status/')) return { can_claim: true, ink_reward: 20, xp_reward: 15 };
+  if (path.endsWith('/finance/subscription/')) return { subscription: { plan: plans[1], status: 'ACTIVE', active: true, paid_until: new Date(Date.now()+28*86400000).toISOString(), renews_at: new Date(Date.now()+28*86400000).toISOString(), cancel_at_period_end: false, pending_plan: null }, cosmetics: { maestro: true, frame: 'frame-maestro' }, ink_balance: balance() };
+  if (path.endsWith('/ai/usage/')) return { ...usage, ink_balance: balance() };
+  if (path.endsWith('/users/profile/')) return { username: 'Lector QA', level: 1, xp: 0, ink_balance: balance(), theme: 'default', avatar_color: '#3174cf', equipped_frame: '', subscription_cosmetics: { maestro: true } };
+  if (path.includes('/daily-reward/claim/')) { claimed = true; return { message: 'Recompensa diaria reclamada', new_ink_balance: balance(), ink_reward: 20, xp_reward: 15 }; }
+  if (path.includes('/daily-reward/status/')) return { can_claim: !claimed, ink_reward: 20, xp_reward: 15 };
   if (path.endsWith('/learning/shop/')) return [
     { code: 'qa-shield', name: 'Protector de racha', description: 'Protege tu recorrido de lectura.', cost_ink: 100, item_type: 'streak_shield', icon: 'shield', quantity: 0, is_owned: false },
-    { code: 'qa-frame', name: 'Marco del explorador', description: 'Dale otro marco a tu perfil.', cost_ink: 200, item_type: 'profile_frame', icon: 'filter_frames', quantity: 1, is_owned: true }
+    { code: 'qa-frame', name: 'Marco del explorador', description: 'Dale otro marco a tu perfil.', cost_ink: 200, item_type: 'profile_frame', icon: 'filter_frames', quantity: 1, is_owned: true },
+    { code: 'qa-title', name: 'Título de cronista', description: 'Un título para tu perfil.', cost_ink: 2000, item_type: 'title', icon: 'workspace_premium', quantity: 0, is_owned: false }
   ];
   if (path.endsWith('/users/me/')) return { id: 'qa', username: 'Lector QA', email: 'qa@example.invalid', is_staff: false, is_superuser: false };
   return { count: 0, results: [] };
@@ -84,6 +89,21 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 500 }, sessionId);
     await send('Page.navigate', { url: 'http://127.0.0.1:4380/tavern' }, sessionId);
     await sleep(2300);
+    if (width === 1440) {
+      // Con movimiento: reclamar la recompensa lanza gotas hacia el tintero y el saldo sube al aterrizar.
+      await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] }, sessionId);
+      await send('Runtime.evaluate', { expression: `document.querySelector('.tv-hero-claim')?.click(); true` }, sessionId);
+      await sleep(450);
+      const flying = await send('Runtime.evaluate', { expression: `document.querySelector('.ink-burst-layer')?.children.length || 0`, returnByValue: true }, sessionId);
+      const midflight = await send('Page.captureScreenshot', { format: 'png', clip: { x: 0, y: 0, width, height: 900, scale: 1 } }, sessionId);
+      await writeFile(join(out, 'reward-midflight-1440.png'), Buffer.from(midflight.data, 'base64'));
+      await sleep(2200);
+      const landed = await send('Runtime.evaluate', { expression: `({ layers: document.querySelectorAll('.ink-burst-layer').length, balance: document.querySelector('.tavern').textContent.includes('1.440'), claimVisible: !!document.querySelector('.tv-hero-claim') })`, returnByValue: true }, sessionId);
+      const reward = { drops: flying.result.value, ...landed.result.value };
+      if (reward.drops < 1 || reward.layers || !reward.balance || reward.claimVisible) throw Error('Animación de recompensa fallida: ' + JSON.stringify(reward));
+      report.push({ check: 'reward-animation', ...reward });
+      console.log(`recompensa: ${reward.drops} gotas en vuelo, capa limpia y saldo 1.440`);
+    }
     for (const theme of ['default', 'neon', 'light-gallery', 'high-contrast-dark', 'high-contrast-light', 'sepia']) {
       await send('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme',${JSON.stringify(theme)});` }, sessionId);
       await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] }, sessionId);
@@ -106,9 +126,10 @@ try {
       })()`, returnByValue: true }, sessionId);
       const contrast = contrastResult.result.value;
       if (contrast.failures.length) throw Error('Contraste insuficiente: ' + theme + ' ' + JSON.stringify(contrast));
-      const result = await send('Runtime.evaluate', { expression: `(() => { const el=document.querySelector('.tavern'); if(!el) throw Error('Taberna no montada'); const text=el.textContent; return { width:innerWidth, overflow:el.scrollWidth-el.clientWidth, hasPrices:text.includes('7,99')&&text.includes('14,99'), hasUsage:text.includes('192.000'), hasBazar:!!el.querySelector('.shop-item'), reducedMotion:getComputedStyle(el.querySelector('.hero-art')).backgroundImage, height:document.documentElement.scrollHeight }; })()`, returnByValue: true }, sessionId);
+      const result = await send('Runtime.evaluate', { expression: `(() => { const el=document.querySelector('.tavern'); if(!el) throw Error('Taberna no montada'); const text=el.textContent; return { width:innerWidth, overflow:el.scrollWidth-el.clientWidth, hasPrices:text.includes('7,99')&&text.includes('14,99'), hasUsage:text.includes('192.000'), hasBazar:!!el.querySelector('.shop-item'), reducedMotion:getComputedStyle(el.querySelector('.hero-art')).backgroundImage, running:document.getAnimations().filter(a=>a.playState==='running'&&el.contains(a.effect&&a.effect.target)).length, height:document.documentElement.scrollHeight }; })()`, returnByValue: true }, sessionId);
       const state = result.result.value;
       if (!state || !state.hasPrices || !state.hasUsage || state.overflow > 2) throw Error('Revisión visual fallida: ' + JSON.stringify(state));
+      if (state.running) throw Error('Animaciones activas con movimiento reducido: ' + theme + ' ' + state.running);
       report.push({ theme, ...state, contrast });
       const screenshot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true,
         clip: { x: 0, y: 0, width, height: Math.min(state.height, 9000), scale: 1 } }, sessionId);

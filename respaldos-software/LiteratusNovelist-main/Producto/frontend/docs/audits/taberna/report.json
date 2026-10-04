@@ -2,14 +2,22 @@
   "fixtures": true,
   "states": [
     {
+      "check": "reward-animation",
+      "drops": 10,
+      "layers": 0,
+      "balance": true,
+      "claimVisible": false
+    },
+    {
       "theme": "default",
       "width": 1440,
       "overflow": 0,
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 3426,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 4157,
       "contrast": {
         "minimum": 6.38,
         "failures": []
@@ -22,8 +30,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 3426,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 4157,
       "contrast": {
         "minimum": 9.59,
         "failures": []
@@ -36,8 +45,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 3426,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 4157,
       "contrast": {
         "minimum": 6.41,
         "failures": []
@@ -50,8 +60,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 3426,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 4161,
       "contrast": {
         "minimum": 12.99,
         "failures": []
@@ -64,8 +75,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 3426,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 4161,
       "contrast": {
         "minimum": 5.02,
         "failures": []
@@ -78,8 +90,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 3426,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 4157,
       "contrast": {
         "minimum": 6.06,
         "failures": []
@@ -92,8 +105,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 5829,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 7187,
       "contrast": {
         "minimum": 6.38,
         "failures": []
@@ -106,8 +120,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 5829,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 7187,
       "contrast": {
         "minimum": 9.59,
         "failures": []
@@ -120,8 +135,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 5829,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 7187,
       "contrast": {
         "minimum": 6.41,
         "failures": []
@@ -134,8 +150,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 5962,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 7324,
       "contrast": {
         "minimum": 12.99,
         "failures": []
@@ -148,8 +165,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 5962,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 7324,
       "contrast": {
         "minimum": 5.02,
         "failures": []
@@ -162,8 +180,9 @@
       "hasPrices": true,
       "hasUsage": true,
       "hasBazar": true,
-      "reducedMotion": "url(\"http://127.0.0.1:4380/assets/images/mascot-reading.webp\")",
-      "height": 5829,
+      "reducedMotion": "none",
+      "running": 0,
+      "height": 7187,
       "contrast": {
         "minimum": 6.06,
         "failures": []

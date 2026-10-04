@@ -1,0 +1,28 @@
+<div class="iw-stage" aria-hidden="true">
+  <span class="iw-mote" *ngFor="let m of motes" [style.--m]="m"></span>
+  <svg class="iw-quill" viewBox="0 0 120 140" focusable="false">
+    <path class="iw-vane" d="M106 4 C108 26 96 52 74 72 L80 62 C66 76 50 88 34 98 C40 82 50 66 62 54 L54 58 C66 40 84 20 106 4 Z" />
+    <path class="iw-shaft" d="M106 4 C80 40 52 80 24 124" />
+    <path class="iw-nib" d="M24 124 L19 136 L29 128 Z" />
+  </svg>
+  <span class="iw-drip"></span>
+  <div class="iw-bottle" #bottle>
+    <span class="iw-neck"></span>
+    <span class="iw-lip"></span>
+    <div class="iw-body">
+      <div class="iw-liquid">
+        <span class="iw-wave iw-wave-back"></span>
+        <span class="iw-wave"></span>
+        <span class="iw-splash" #splash></span>
+      </div>
+      <span class="iw-shine"></span>
+    </div>
+  </div>
+</div>
+<p class="iw-caption" *ngIf="!anonymous; else guest">
+  <strong class="iw-amount"><span aria-hidden="true" [appCountUp]="balance" [countUpDelta]="showDelta"></span><span class="sr-only">{{ format(balance) }}</span></strong>
+  <span>Tinta en tu tintero</span>
+</p>
+<ng-template #guest>
+  <p class="iw-caption"><a routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">Inicia sesión</a> para ver tu Tinta.</p>
+</ng-template>
