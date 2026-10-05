@@ -35,8 +35,10 @@ FRIEND_CODE_RE = re.compile(r'^[2-9A-HJKMNP-Z]{6}$')
 RANKING_SCOPES = ('week', 'month', 'all')
 
 
-def _ok(message='', status=200, **data):
-    return {'success': True, 'message': message, 'status': status, **data}
+def _ok(msg='', status=200, **data):
+    payload = {'success': True, 'message': msg, 'status': status}
+    payload.update(data)
+    return payload
 
 
 def _fail(error, message, status=400):
@@ -514,11 +516,11 @@ def send_tavern_message(me, raw_content) -> dict:
     now = timezone.now()
     last = TavernMessage.objects.filter(user=me).order_by('-created_at').first()
     if last and now - last.created_at < timedelta(seconds=3):
-        return _fail('SPAM_COOLDOWN', 'Espera unos segundos antes de enviar otro mensaje.')
+        return _fail('SPAM_COOLDOWN', 'Espera unos segundos antes de enviar otro mensaje.', status=429)
 
     recent_count = TavernMessage.objects.filter(user=me, created_at__gte=now - timedelta(minutes=10)).count()
     if recent_count >= 25:
-        return _fail('RATE_LIMIT', 'Has enviado muchos mensajes recientemente. Tómate un respiro.')
+        return _fail('RATE_LIMIT', 'Has enviado muchos mensajes recientemente. Tómate un respiro.', status=429)
 
     msg = TavernMessage.objects.create(user=me, content=content)
     profile = _profiles().filter(user=me).first()
@@ -556,17 +558,19 @@ def send_tavern_reaction(me, raw_reaction, message_id=None) -> dict:
     now = timezone.now()
     last = TavernReaction.objects.filter(user=me).order_by('-created_at').first()
     if last and now - last.created_at < timedelta(seconds=1):
-        return _fail('REACTION_COOLDOWN', 'Un segundo entre reacciones.')
+        return _fail('REACTION_COOLDOWN', 'Un segundo entre reacciones.', status=429)
 
     target_msg = None
     if message_id:
         target_msg = TavernMessage.objects.filter(pk=message_id).first()
 
     rec = TavernReaction.objects.create(user=me, message=target_msg, reaction=canonical)
+    emoji = REACTION_MAP.get(canonical, canonical)
     return _ok('Reacción enviada.', status=201, reaction={
         'id': str(rec.id),
         'reaction': canonical,
-        'emoji': REACTION_MAP.get(canonical, canonical),
+        'emoji': emoji,
+        'symbol': emoji,
         'username': me.username,
         'message_id': str(target_msg.id) if target_msg else None,
         'created_at': rec.created_at,

@@ -364,7 +364,7 @@ class TavernChatTests(CommunityAPITestCase):
 
         # Bruno attempts to delete Ana's message
         del_forbidden = self.as_user(self.bruno).delete(f'{API}tavern/messages/{msg_id}/')
-        self.assertEqual(del_forbidden.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(del_forbidden.status_code, status.HTTP_403_FORBIDDEN)
 
         # Ana deletes her own message
         del_resp = self.as_user(self.ana).delete(f'{API}tavern/messages/{msg_id}/')
@@ -378,7 +378,7 @@ class TavernChatTests(CommunityAPITestCase):
         self.as_user(self.ana).post(f'{API}tavern/messages/', {'content': 'Primer mensaje'})
         second = self.as_user(self.ana).post(f'{API}tavern/messages/', {'content': 'Segundo mensaje muy rápido'})
         self.assertEqual(second.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-        self.assertEqual(second.data['error'], 'COOLDOWN_ACTIVE')
+        self.assertEqual(second.data['error'], 'SPAM_COOLDOWN')
 
 
 class TavernReactionTests(CommunityAPITestCase):
