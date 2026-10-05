@@ -207,7 +207,7 @@ export class LearningPathComponent implements OnInit, OnDestroy {
   }
 
   goToTavern(): void {
-    this.router.navigate(['/tavern']);
+    this.router.navigate(['/tavern/tienda']);
   }
 
   trackByUnit(index: number, unit: LearningUnit): string {

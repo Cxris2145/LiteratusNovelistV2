@@ -232,6 +232,7 @@ class ShopItem(TimeStampedModel):
         PROFILE_FRAME = 'profile_frame', 'Marco de Perfil'
         THEME = 'theme', 'Tema Visual'
         TITLE = 'title', 'Título Honorífico'
+        MAGUITO_WEAR = 'maguito_wear', 'Accesorio de Maguito'
 
     code = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=150)

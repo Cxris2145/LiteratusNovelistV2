@@ -88,3 +88,18 @@
   text-decoration: underline;
   color: white;
 }
+
+/* ── Cuenta creada, a la espera del enlace de activación ── */
+.verify-hint {
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.verify-login {
+  display: block;
+  margin-top: 12px;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}

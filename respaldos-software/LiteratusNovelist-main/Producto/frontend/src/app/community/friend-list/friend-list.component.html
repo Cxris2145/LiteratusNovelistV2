@@ -1,0 +1,84 @@
+<section class="th-panel fl" aria-labelledby="fl-title">
+  <div class="th-panel-title">
+    <h2 id="fl-title">Mis amigos <span class="fl-count">({{ friends.length }})</span></h2>
+    <button type="button" class="th-icon-btn" (click)="addFriend.emit()" aria-label="Agregar amigo" title="Agregar amigo">
+      <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+    </button>
+  </div>
+
+  <!-- Solicitudes -->
+  <div class="fl-requests" *ngIf="incoming.length || outgoing.length">
+    <article class="fl-request is-incoming" *ngFor="let request of incoming; trackBy: trackRequest">
+      <app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
+                   [interactive]="false" [followPointer]="false"></app-maguito>
+      <div class="fl-who">
+        <strong>{{ request.user.username }}</strong>
+        <span>Quiere sentarse a tu mesa</span>
+      </div>
+      <div class="fl-request-actions">
+        <button type="button" class="th-btn ghost is-accept" (click)="accept.emit(request)" [disabled]="busy === request.id">Aceptar</button>
+        <button type="button" class="th-btn ghost" (click)="decline.emit(request)" [disabled]="busy === request.id">Rechazar</button>
+      </div>
+    </article>
+    <article class="fl-request" *ngFor="let request of outgoing; trackBy: trackRequest">
+      <app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
+                   [interactive]="false" [followPointer]="false"></app-maguito>
+      <div class="fl-who">
+        <strong>{{ request.user.username }}</strong>
+        <span>Esperando respuesta</span>
+      </div>
+      <div class="fl-request-actions">
+        <button type="button" class="th-btn ghost" (click)="cancel.emit(request)" [disabled]="busy === request.id">Cancelar</button>
+      </div>
+    </article>
+  </div>
+
+  <p class="th-empty" *ngIf="loading && !friends.length" role="status">Buscando a tus amigos…</p>
+
+  <div class="fl-empty" *ngIf="!loading && !friends.length">
+    <p class="th-empty">Tu mesa está vacía. Agrega a un amigo con su nombre o su código.</p>
+    <button type="button" class="th-btn secondary" (click)="addFriend.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Agregar amigo
+    </button>
+  </div>
+
+  <ul class="fl-list" *ngIf="friends.length">
+    <li class="fl-friend" *ngFor="let friend of friends; trackBy: trackFriend">
+      <a class="fl-friend-link" [routerLink]="['/tavern/amigo', friend.friend_code]">
+        <span class="fl-avatar-wrap">
+          <app-maguito class="fl-avatar" crop="bust" [outfit]="friend.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false"></app-maguito>
+          <span class="th-dot fl-status-dot" [ngClass]="friend.status.kind" aria-hidden="true"></span>
+        </span>
+        <span class="fl-who">
+          <strong>{{ friend.username }}</strong>
+          <span class="fl-status" [ngClass]="friend.status.kind">{{ friend.status.label }}</span>
+        </span>
+      </a>
+
+      <ng-container *ngIf="confirming === friend.friend_code; else menuTpl">
+        <div class="fl-confirm" role="group" [attr.aria-label]="'¿Eliminar a ' + friend.username + '?'">
+          <button type="button" class="th-btn ghost is-danger" (click)="confirmRemove(friend)" [disabled]="busy === friend.friend_code">Eliminar</button>
+          <button type="button" class="th-btn ghost" (click)="confirming = null">No</button>
+        </div>
+      </ng-container>
+      <ng-template #menuTpl>
+        <button type="button" class="th-icon-btn" [matMenuTriggerFor]="friendMenu"
+                [attr.aria-label]="'Opciones para ' + friend.username">
+          <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
+        </button>
+        <mat-menu #friendMenu="matMenu" xPosition="before">
+          <a mat-menu-item [routerLink]="['/tavern/amigo', friend.friend_code]">
+            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">badge</span>Ver perfil
+          </a>
+          <button mat-menu-item type="button" (click)="toggleBrindis.emit(friend)" [disabled]="busy === friend.friend_code">
+            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">sports_bar</span>{{ friend.brindis_given ? 'Quitar brindis' : 'Brindar' }}
+          </button>
+          <button mat-menu-item type="button" (click)="askRemove(friend)">
+            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">person_remove</span>Eliminar amigo
+          </button>
+        </mat-menu>
+      </ng-template>
+    </li>
+  </ul>
+</section>

@@ -1,4 +1,7 @@
 <main class="tavern">
+  <a class="tv-back" routerLink="/tavern">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>Volver a la Taberna
+  </a>
   <header class="tv-hero" data-tv-section>
     <div class="tv-hero-copy">
       <h1 class="tv-title">
@@ -67,7 +70,7 @@
     <h2 id="account-title">Tu cuenta en la Taberna</h2>
     <div class="login-panel" *ngIf="!isLoggedIn()">
       <p>Inicia sesión para consultar tu plan, tu consumo y tu Tinta.</p>
-      <a class="button" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">Iniciar sesión</a>
+      <a class="button" routerLink="/login" [queryParams]="{ returnUrl: '/tavern/tienda' }">Iniciar sesión</a>
     </div>
     <div class="account-grid" *ngIf="isLoggedIn()">
       <article class="account-panel" style="--i: 0">
@@ -143,7 +146,7 @@
     <div class="tv-locked" *ngIf="!isLoggedIn()">
       <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
       <p>Inicia sesión para ver los objetos del Bazar y canjearlos con tu Tinta.</p>
-      <a class="button secondary" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">Iniciar sesión</a>
+      <a class="button secondary" routerLink="/login" [queryParams]="{ returnUrl: '/tavern/tienda' }">Iniciar sesión</a>
     </div>
     <ng-container *ngIf="isLoggedIn()">
       <p *ngIf="loadingShop" role="status">Preparando el Bazar…</p>
@@ -154,26 +157,54 @@
           <span class="tv-chip-label">{{ filter.label }}</span>
         </button>
       </div>
-      <div class="shop-grid" [class.no-enter]="filterUsed">
-        <article class="shop-item" *ngFor="let item of visibleShopItems; let i = index; trackBy: trackItem"
-                 [style.--i]="i" [style.view-transition-name]="vtName(item)" [class.is-bought]="justBought === item.code">
-          <span class="material-symbols-rounded item-icon" aria-hidden="true">{{ item.icon || 'shopping_bag' }}</span>
-          <div>
-            <h3>{{ item.name }}</h3>
-            <p>{{ item.description }}</p>
-            <small *ngIf="item.quantity > 0">{{ item.is_equipped ? 'Equipado' : 'Tienes ' + item.quantity }}</small>
+      <div class="bazar-layout" [class.has-fitting]="showFitting">
+        <!-- Probador: Maguito con lo que lleva puesto y la prenda que estás mirando -->
+        <aside class="tv-fitting" *ngIf="showFitting" aria-labelledby="fitting-title">
+          <h3 id="fitting-title">Probador de Maguito</h3>
+          <div class="tv-fitting-stage">
+            <app-maguito [outfit]="previewOutfit" [followPointer]="false" [interactive]="true"
+                         [label]="previewItem ? 'Tu Maguito probándose ' + previewItem.name : 'Tu Maguito'"></app-maguito>
           </div>
-          <div class="tv-need" *ngIf="canBuy(item) && missingInk(item) > 0">
-            <span class="tv-need-bar" aria-hidden="true"><span [style.--p]="inkBalance / item.cost_ink"></span></span>
-            <small>Te faltan {{ formatAmount(missingInk(item)) }} Tinta</small>
-          </div>
-          <div class="item-footer">
-            <strong>{{ formatAmount(item.cost_ink) }} Tinta</strong>
-            <button class="button secondary" type="button" *ngIf="canBuy(item)" (click)="buyShopItem(item)" [disabled]="busy || missingInk(item) > 0">Canjear</button>
-            <button class="button secondary" type="button" *ngIf="canEquip(item)" (click)="equipShopItem(item)" [disabled]="item.is_equipped">{{ item.is_equipped ? 'Equipado' : 'Equipar' }}</button>
-          </div>
-          <span class="tv-stamp" *ngIf="justBought === item.code" aria-hidden="true">Canjeado</span>
-        </article>
+          <p class="tv-fitting-caption" aria-live="polite">
+            {{ previewItem ? 'Así se vería con ' + previewItem.name : 'Así luce tu Maguito hoy' }}
+          </p>
+          <button type="button" class="button secondary" *ngIf="previewItem" (click)="resetPreview()">Restablecer</button>
+          <p class="tv-fitting-hint" *ngIf="!previewItem">Pasa por una prenda o pulsa "Probar" para vérsela puesta.</p>
+        </aside>
+
+        <div class="shop-grid" [class.no-enter]="filterUsed" (mouseleave)="peek(null)">
+          <article class="shop-item" *ngFor="let item of visibleShopItems; let i = index; trackBy: trackItem"
+                   [style.--i]="i" [style.view-transition-name]="vtName(item)" [class.is-bought]="justBought === item.code"
+                   [class.is-trying]="isWear(item) && isTrying(item)"
+                   (mouseenter)="peek(item)" (focusin)="peek(item)">
+            <span class="material-symbols-rounded item-icon" aria-hidden="true">{{ item.icon || 'shopping_bag' }}</span>
+            <div>
+              <span class="tv-slot" *ngIf="isWear(item)">{{ wearSlotLabel(item) }}</span>
+              <h3>{{ item.name }}</h3>
+              <p>{{ item.description }}</p>
+              <small *ngIf="item.quantity > 0">{{ item.is_equipped ? (isWear(item) ? 'Puesto' : 'Equipado') : (isWear(item) ? 'En tu baúl' : 'Tienes ' + item.quantity) }}</small>
+            </div>
+            <div class="tv-need" *ngIf="canBuy(item) && missingInk(item) > 0">
+              <span class="tv-need-bar" aria-hidden="true"><span [style.--p]="inkBalance / item.cost_ink"></span></span>
+              <small>Te faltan {{ formatAmount(missingInk(item)) }} Tinta</small>
+            </div>
+            <div class="item-footer">
+              <strong>{{ formatAmount(item.cost_ink) }} Tinta</strong>
+              <span class="item-actions">
+                <button class="button secondary" type="button" *ngIf="isWear(item) && !item.is_owned" (click)="tryOn(item)"
+                        [attr.aria-pressed]="isTrying(item)">{{ isTrying(item) ? 'Probando' : 'Probar' }}</button>
+                <button class="button secondary" type="button" *ngIf="canBuy(item)" (click)="buyShopItem(item)" [disabled]="busy || missingInk(item) > 0">Canjear</button>
+                <ng-container *ngIf="canEquip(item)">
+                  <button class="button secondary" type="button" *ngIf="isWear(item) && item.is_equipped; else equipBtn" (click)="unequipWear(item)" [disabled]="busy">Quitar</button>
+                  <ng-template #equipBtn>
+                    <button class="button secondary" type="button" (click)="equipShopItem(item)" [disabled]="item.is_equipped">{{ item.is_equipped ? 'Equipado' : (isWear(item) ? 'Ponérselo' : 'Equipar') }}</button>
+                  </ng-template>
+                </ng-container>
+              </span>
+            </div>
+            <span class="tv-stamp" *ngIf="justBought === item.code" aria-hidden="true">Canjeado</span>
+          </article>
+        </div>
       </div>
     </ng-container>
   </section>

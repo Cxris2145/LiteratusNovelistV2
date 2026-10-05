@@ -1,0 +1,43 @@
+<div class="af th-panel" role="document">
+  <div class="th-panel-title">
+    <h2 mat-dialog-title id="af-title">Agregar amigo</h2>
+    <button type="button" class="th-icon-btn" (click)="close()" aria-label="Cerrar">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+  </div>
+
+  <label class="af-label" for="af-query">Nombre de usuario o código</label>
+  <div class="af-search">
+    <span class="material-symbols-rounded" aria-hidden="true">search</span>
+    <input id="af-query" type="search" [formControl]="query" placeholder="Ej. lunaescribe o #K7Q2XM"
+           autocomplete="off" spellcheck="false" cdkFocusInitial aria-describedby="af-hint af-live">
+  </div>
+  <p class="af-hint" id="af-hint">Escribe al menos 3 letras. El código lo ve cada lector en su perfil de La Taberna.</p>
+
+  <p class="sr-only" id="af-live" aria-live="polite">{{ liveMessage }}</p>
+  <p class="th-empty af-status" *ngIf="liveMessage && !results.length" aria-hidden="true">{{ liveMessage }}</p>
+
+  <ul class="af-results" *ngIf="results.length">
+    <li *ngFor="let card of results; trackBy: trackCard">
+      <app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
+                   [interactive]="false" [followPointer]="false"></app-maguito>
+      <span class="af-who">
+        <strong>{{ card.username }}</strong>
+        <span class="th-code">#{{ card.friend_code }}</span>
+      </span>
+      <button type="button" class="th-btn"
+              [class.secondary]="card.relation === 'outgoing' || card.relation === 'friend'"
+              [disabled]="busy === card.friend_code || card.relation === 'friend'"
+              (click)="act(card)">
+        {{ busy === card.friend_code ? 'Un momento…' : actionLabel(card) }}
+      </button>
+    </li>
+  </ul>
+
+  <div class="af-mine" *ngIf="data.myCode">
+    <span>Tu código: <strong class="th-code">#{{ data.myCode }}</strong></span>
+    <button type="button" class="th-btn ghost" (click)="copyMyCode()">
+      <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
+    </button>
+  </div>
+</div>

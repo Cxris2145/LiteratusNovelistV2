@@ -841,6 +841,13 @@ body:has(.container.dashboard-mode) {
   border-radius: 20px !important;
 }
 
+/* La Taberna (comunidad): el diálogo dibuja su propio panel */
+.th-dialog-panel .mat-mdc-dialog-surface {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 20px !important;
+}
+
 /* ═════════════════════════════════════════════════════════════════════════
    SISTEMA DE ANIMACIONES AL HACER SCROLL — Literatus Editorial Motion
    Diseñado según las directrices de frontend-design y vercel-react-best-practices:

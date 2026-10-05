@@ -1,12 +1,51 @@
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import User, Profile
 
+
+def level_name_for(level):
+    """Nombre del rango lector (settings.READER_LEVELS) para un nivel."""
+    from django.conf import settings
+    levels = getattr(settings, 'READER_LEVELS', [])
+    for lvl in sorted(levels, key=lambda x: x['level'], reverse=True):
+        if level >= lvl['level']:
+            return lvl['name']
+    return "Lector Novato"
+
+
+def find_user_by_login(identifier):
+    """Usuario por correo (sin distinguir mayúsculas) si trae '@', o por nombre exacto."""
+    identifier = (identifier or '').strip()
+    if not identifier:
+        return None
+    if '@' in identifier:
+        user = User.objects.filter(email__iexact=identifier).first()
+        if user is not None:
+            return user
+    return User.objects.filter(username=identifier).first()
+
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        data = super().validate(attrs)
+        # Se puede entrar con el nombre de usuario o con el correo.
+        user = find_user_by_login(attrs.get(self.username_field))
+        if user is not None:
+            attrs[self.username_field] = user.username
+
+        try:
+            data = super().validate(attrs)
+        except AuthenticationFailed:
+            # Django rechaza igual una contraseña errónea que una cuenta sin verificar;
+            # solo con la contraseña correcta revelamos que falta confirmar el correo.
+            if user is not None and not user.is_active and user.check_password(attrs.get('password', '')):
+                raise AuthenticationFailed({
+                    'code': 'account_not_verified',
+                    'detail': 'Tu cuenta aún no está verificada. Revisa tu correo y abre el enlace de activación.',
+                })
+            raise
         profile = getattr(self.user, 'profile', None)
         has_onboarding = profile.has_completed_onboarding if profile else False
         data['user'] = {
@@ -73,10 +112,22 @@ class ProfileSerializer(serializers.ModelSerializer):
             'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',
             'equipped_frame', 'equipped_title', 'discount_percent', 
             'level_perks', 'all_levels', 'subscription_cosmetics',
-            'has_completed_onboarding', 'favorite_genres', 'followed_authors'
+            'has_completed_onboarding', 'favorite_genres', 'followed_authors',
+            'friend_code', 'tagline', 'outfit'
         ]
+        # outfit solo cambia al equipar en El Bazar; friend_code es inmutable.
         read_only_fields = ['ink_balance', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
-            'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title', 'has_completed_onboarding']
+            'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title', 'has_completed_onboarding',
+            'friend_code', 'outfit']
+
+    def validate_tagline(self, value):
+        return ' '.join(value.split())
+
+    def validate_bio(self, value):
+        # Los amigos ven la biografía en La Taberna: un límite generoso, pero un límite.
+        if len(value) > 1000:
+            raise serializers.ValidationError('La biografía admite hasta 1000 caracteres.')
+        return value
 
     def get_favorite_genres(self, obj):
         return [{'id': str(g.id), 'name': g.name, 'slug': g.slug} for g in obj.favorite_genres.all()]
@@ -106,12 +157,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return int(max(0, remainder))
 
     def get_level_name(self, obj):
-        from django.conf import settings
-        levels = getattr(settings, 'READER_LEVELS', [])
-        for lvl in sorted(levels, key=lambda x: x['level'], reverse=True):
-            if obj.level >= lvl['level']:
-                return lvl['name']
-        return "Lector Novato"
+        return level_name_for(obj.level)
 
     def get_xp_to_next_level(self, obj):
         from django.conf import settings
@@ -171,6 +217,25 @@ class UserWriteSerializer(serializers.ModelSerializer):
             'id': {'read_only': True}
         }
 
+    def _others(self):
+        users = User.objects.all()
+        return users.exclude(pk=self.instance.pk) if self.instance else users
+
+    def validate_email(self, value):
+        # 'Ana@Correo.com' y 'ana@correo.com' son la misma bandeja: una sola cuenta.
+        value = User.objects.normalize_email(value.strip()).lower()
+        if self._others().filter(email__iexact=value).exists():
+            raise serializers.ValidationError('Ya existe una cuenta con este correo.')
+        return value
+
+    def validate_username(self, value):
+        value = value.strip()
+        if '@' in value:
+            raise serializers.ValidationError('El nombre de usuario no puede contener "@".')
+        if self._others().filter(username__iexact=value).exists():
+            raise serializers.ValidationError('Ese nombre de usuario ya está en uso.')
+        return value
+
     def validate_password(self, value):
         """
         Valida la contraseña utilizando los validadores configurados en AUTH_PASSWORD_VALIDATORS.
@@ -183,7 +248,7 @@ class UserWriteSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        # Desactivar usuario hasta que verifique su email
+        # Desactivar usuario hasta que verifique su email (RegisterUserView envía el correo)
         validated_data['is_active'] = False
 
         # Blindaje anti-escalamiento de roles: el registro siempre asigna rol LECTOR
@@ -194,19 +259,8 @@ class UserWriteSerializer(serializers.ModelSerializer):
         if not password:
             raise serializers.ValidationError({'password': ['La contraseña es requerida para el registro.']})
 
-        user = User.objects.create_user(password=password, **validated_data)
-
-        # Enviar correo de verificación
-        from .utils import send_verification_email
-        try:
-            send_verification_email(user)
-        except Exception as e:
-            # En caso de error de correo (ej. credenciales inválidas en dev),
-            # dejamos log para no romper el registro pero poder debuggear.
-            print(f"Error enviando correo de verificación: {e}")
-
-        # Perfil se crea vía señal en users/signals.py para asegurar ink_balance = 150
-        return user
+        # El perfil (con su Tinta inicial) se crea vía señal en users/signals.py
+        return User.objects.create_user(password=password, **validated_data)
 
     def update(self, instance, validated_data):
         # Blindaje anti-escalamiento: eliminar 'role' por si se enviara en el payload

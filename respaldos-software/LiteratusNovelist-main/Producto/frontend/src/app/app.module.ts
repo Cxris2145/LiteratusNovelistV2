@@ -62,6 +62,13 @@ import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive
 import { CountUpDirective } from './core/directives/count-up.directive';
 import { TiltDirective } from './core/directives/tilt.directive';
 import { InkwellComponent } from './library/tavern/inkwell/inkwell.component';
+import { TavernHallComponent } from './community/tavern-hall/tavern-hall.component';
+import { TavernSceneComponent } from './community/tavern-scene/tavern-scene.component';
+import { ProfileCardComponent } from './community/profile-card/profile-card.component';
+import { FriendListComponent } from './community/friend-list/friend-list.component';
+import { TavernRankingComponent } from './community/tavern-ranking/tavern-ranking.component';
+import { AddFriendDialogComponent } from './community/add-friend-dialog/add-friend-dialog.component';
+import { FriendProfileComponent } from './community/friend-profile/friend-profile.component';
 
 @NgModule({
   declarations: [
@@ -106,7 +113,14 @@ import { InkwellComponent } from './library/tavern/inkwell/inkwell.component';
     InkwellComponent,
     AuthorSubmitBookComponent,
     OnboardingComponent,
-    BlindInterrogationComponent
+    BlindInterrogationComponent,
+    TavernHallComponent,
+    TavernSceneComponent,
+    ProfileCardComponent,
+    FriendListComponent,
+    TavernRankingComponent,
+    AddFriendDialogComponent,
+    FriendProfileComponent
   ],
 
 

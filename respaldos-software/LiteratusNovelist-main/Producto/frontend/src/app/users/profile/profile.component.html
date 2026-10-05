@@ -52,9 +52,38 @@
         </div>
 
         <div class="form-group">
-          <label>Biografía Breve</label>
-          <textarea formControlName="bio" class="glass-input textarea" rows="4"
+          <label for="profile-tagline">Frase de taberna</label>
+          <input id="profile-tagline" type="text" formControlName="tagline" class="glass-input" [attr.maxlength]="taglineMax"
+                 placeholder="Ej. Lector de mundos, escritor de posibilidades" aria-describedby="profile-tagline-count">
+          <p class="field-hint field-count" id="profile-tagline-count">
+            La ven tus amigos bajo tu nombre · {{ profileForm.get('tagline')?.value?.length || 0 }}/{{ taglineMax }}
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-bio">Sobre mí (lo ven tus amigos)</label>
+          <textarea id="profile-bio" formControlName="bio" class="glass-input textarea" rows="4" [attr.maxlength]="bioMax"
             placeholder="Cuéntanos un poco sobre ti, tus autores favoritos o tus lecturas en curso..."></textarea>
+        </div>
+
+        <div class="tavern-identity" *ngIf="friendCode">
+          <div class="tavern-identity-maguito">
+            <app-maguito crop="bust" [outfit]="outfit" [followPointer]="false" [calm]="true" label="Tu Maguito"></app-maguito>
+          </div>
+          <div class="tavern-identity-copy">
+            <span class="field-hint">Tu código de amigo en La Taberna</span>
+            <strong class="tavern-code">#{{ friendCode }}</strong>
+            <div class="tavern-identity-actions">
+              <button type="button" class="avatar-action-btn" (click)="copyFriendCode()">
+                <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
+                <span>Copiar código</span>
+              </button>
+              <a class="avatar-action-btn" routerLink="/tavern/tienda" [queryParams]="{ filtro: 'maguito' }">
+                <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>
+                <span>Vestir a Maguito</span>
+              </a>
+            </div>
+          </div>
         </div>
 
         <div class="form-actions">

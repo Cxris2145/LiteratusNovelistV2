@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, HostListener } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
-import { AuthService } from './core/services/auth.service';
+import { AuthService, userStorageKey } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
 import { filter } from 'rxjs/operators';
 import { routeTransitionAnimations, shakeAnimation } from './core/animations';
@@ -85,7 +85,7 @@ export class AppComponent implements OnInit {
   }
   
   userAvatarUrl: string | null = null;
-  userAvatarColor: string = localStorage.getItem('user_avatar_color') || '#7c3aed';
+  userAvatarColor: string = localStorage.getItem(userStorageKey('user_avatar_color')) || '#7c3aed';
 
   // Animación Tinta
   shakeState = 'default';
@@ -233,7 +233,7 @@ export class AppComponent implements OnInit {
         }
         if (profile && profile.avatar_color) {
           this.userAvatarColor = profile.avatar_color;
-          localStorage.setItem('user_avatar_color', profile.avatar_color);
+          localStorage.setItem(userStorageKey('user_avatar_color'), profile.avatar_color);
         }
       }
     });
@@ -248,12 +248,11 @@ export class AppComponent implements OnInit {
   }
 
   logout() {
-    this.authService.clearTokens();
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   openTavern() {
-    this.router.navigate(['/tavern']);
+    this.router.navigate(['/tavern/tienda']);
   }
 
   triggerShake() {
@@ -344,7 +343,7 @@ export class AppComponent implements OnInit {
   updateCartCount(): void {
     const previous = this.cartCount;
     try {
-      const raw = localStorage.getItem('literatus_cart');
+      const raw = localStorage.getItem(userStorageKey('literatus_cart'));
       const list = raw ? JSON.parse(raw) : [];
       this.cartCount = Array.isArray(list) ? list.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) : 0;
     } catch {

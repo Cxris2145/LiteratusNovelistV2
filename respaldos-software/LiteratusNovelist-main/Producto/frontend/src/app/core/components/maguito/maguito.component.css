@@ -8,6 +8,29 @@
   width: 160px;
   line-height: 0;
   -webkit-tap-highlight-color: transparent;
+  /* Capa dorada de siempre; las capas del Bazar cambian estas variables */
+  --mg-cape-a: #f8bf55;
+  --mg-cape-b: #e59a2f;
+  --mg-cape-c: #bf7018;
+  --mg-cape-seam: #b86a14;
+  --mg-sleeve: #e39a2e;
+  --mg-sleeve-hi: #f7c15e;
+}
+:host([data-cape="royal"]) {
+  --mg-cape-a: #c39bff;
+  --mg-cape-b: #7e44d6;
+  --mg-cape-c: #4b1f8f;
+  --mg-cape-seam: #3a166f;
+  --mg-sleeve: #7e44d6;
+  --mg-sleeve-hi: #c39bff;
+}
+:host([data-cape="emerald"]) {
+  --mg-cape-a: #6fe0a8;
+  --mg-cape-b: #1f8f5f;
+  --mg-cape-c: #0f5a3a;
+  --mg-cape-seam: #0b4a2f;
+  --mg-sleeve: #1f8f5f;
+  --mg-sleeve-hi: #6fe0a8;
 }
 :host(.mg-interactive) { cursor: pointer; }
 .mg-svg { display: block; width: 100%; height: auto; overflow: visible; }

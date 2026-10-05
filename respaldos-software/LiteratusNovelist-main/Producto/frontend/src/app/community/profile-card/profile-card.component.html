@@ -1,0 +1,59 @@
+<section class="th-panel pc" *ngIf="card; else skeleton" [attr.aria-label]="mine ? 'Tu perfil' : 'Perfil de ' + card.username">
+  <div class="th-panel-title">
+    <h2>{{ mine ? 'Tu perfil' : 'Perfil' }}</h2>
+    <a *ngIf="mine" class="th-btn ghost" routerLink="/profile">
+      <span class="material-symbols-rounded" aria-hidden="true">edit</span>Editar perfil
+    </a>
+  </div>
+
+  <div class="pc-avatar">
+    <app-maguito crop="bust" [outfit]="card.outfit" [followPointer]="false" [calm]="true"
+                 [label]="'Maguito de ' + card.username"></app-maguito>
+  </div>
+
+  <h3 class="pc-name">
+    {{ card.username }}
+    <span *ngIf="crowned" class="material-symbols-rounded pc-crown" aria-label="Primer lugar de la semana" title="Primer lugar de la semana">crown</span>
+  </h3>
+  <p class="pc-level">Nivel {{ card.level }} · {{ card.level_name }}<ng-container *ngIf="card.equipped_title"> · {{ card.equipped_title }}</ng-container></p>
+  <p class="pc-tagline" [class.is-placeholder]="!card.tagline">{{ card.tagline || (mine ? 'Escribe tu frase de taberna en tu perfil' : 'Lector de mundos por descubrir') }}</p>
+
+  <ul class="pc-genres" *ngIf="card.favorite_genres.length" aria-label="Géneros favoritos">
+    <li *ngFor="let genre of card.favorite_genres | slice:0:3">{{ genre.name }}</li>
+  </ul>
+
+  <dl class="pc-stats">
+    <div><dt>Libros</dt><dd>{{ card.stats.books_read }}</dd></div>
+    <div><dt>Reseñas</dt><dd>{{ card.stats.reviews }}</dd></div>
+    <div><dt>Amigos</dt><dd>{{ card.stats.friends }}</dd></div>
+    <div><dt>Brindis</dt><dd>{{ card.stats.brindis }}</dd></div>
+  </dl>
+
+  <div class="pc-about">
+    <h3>Sobre mí</h3>
+    <p [class.is-placeholder]="!card.bio">{{ card.bio || (mine ? 'Cuéntales a tus amigos qué te gusta leer desde tu perfil.' : 'Aún no escribe nada sobre sí.') }}</p>
+  </div>
+
+  <div class="pc-code" *ngIf="mine">
+    <span>Tu código de amigo</span>
+    <strong class="th-code">#{{ card.friend_code }}</strong>
+    <button type="button" class="th-btn ghost" (click)="copyCode()">
+      <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
+    </button>
+  </div>
+
+  <a *ngIf="mine" class="th-btn secondary pc-dress" routerLink="/tavern/tienda" [queryParams]="{ filtro: 'maguito' }">
+    <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir a Maguito
+  </a>
+
+  <ng-content></ng-content>
+</section>
+
+<ng-template #skeleton>
+  <section class="th-panel pc is-loading" aria-busy="true" aria-label="Cargando perfil">
+    <div class="pc-avatar sk"></div>
+    <div class="sk sk-line"></div>
+    <div class="sk sk-line short"></div>
+    <div class="sk sk-block"></div>
+  </section>
+</ng-template>

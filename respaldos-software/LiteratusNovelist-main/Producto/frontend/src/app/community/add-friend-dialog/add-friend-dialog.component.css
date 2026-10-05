@@ -1,0 +1,82 @@
+:host { display: block; }
+
+.af {
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(640px, calc(100vh - 48px));
+  overflow: auto;
+  background: var(--home-bg-surface);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+}
+.af h2 { padding: 0; font-size: 1.6rem; }
+
+.af-label { display: block; margin-bottom: 6px; font-size: .82rem; color: var(--th-muted); }
+.af-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--th-border);
+  background: var(--home-bg);
+  transition: border-color .2s;
+}
+.af-search:focus-within { border-color: var(--th-gold); }
+.af-search .material-symbols-rounded { color: var(--th-muted); }
+.af-search input {
+  flex: 1;
+  min-height: 46px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--th-ink);
+  font: 500 1rem var(--font-ui);
+}
+.af-search input:focus-visible { outline: none; }
+.af-hint { margin: 6px 0 14px; font-size: .76rem; color: var(--th-muted); }
+.af-status { margin-bottom: 10px; }
+
+.af-results {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.af-results li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--home-bg) 55%, transparent);
+}
+.af-avatar {
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--th-gold) 10%, var(--home-bg));
+  border: 1px solid var(--th-border);
+}
+.af-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.af-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-who .th-code { font-size: .74rem; color: var(--th-muted); }
+.af-results .th-btn { min-height: 38px; padding: 6px 12px; font-size: .8rem; flex: none; }
+
+.af-mine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--th-border);
+  font-size: .85rem;
+  color: var(--th-muted);
+}
+.af-mine strong { color: var(--th-gold); }
+
+@media (max-width: 480px) {
+  .af-results li { flex-wrap: wrap; }
+  .af-results .th-btn { width: 100%; }
+}

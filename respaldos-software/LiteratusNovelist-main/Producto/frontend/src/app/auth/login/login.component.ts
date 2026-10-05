@@ -12,6 +12,10 @@ import { AuthService } from '../../core/services/auth.service';
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMsg = '';
+  infoMsg = '';
+  /** La cuenta existe y la contraseña es correcta, pero falta abrir el enlace del correo. */
+  needsVerification = false;
+  isResending = false;
   isLoading = false;
   isAdminLoading = false;
   returnUrl: string = '/catalog';
@@ -44,26 +48,55 @@ export class LoginComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMsg = '';
+    this.infoMsg = '';
+    this.needsVerification = false;
 
-    this.api.post<{access: string, refresh: string, user: any}>('users/login/', this.loginForm.value)
+    const credentials = {
+      username: this.loginForm.value.username.trim(),
+      password: this.loginForm.value.password
+    };
+    this.api.post<{access: string, refresh: string, user: any}>('users/login/', credentials)
       .subscribe({
-        next: (res) => {
-          this.auth.setTokens(res.access, res.refresh);
-          this.auth.markFreshLogin();
-          if (res.user) {
-            this.auth.setUser(res.user);
-          }
-          if (res.user && res.user.has_completed_onboarding === false) {
-            this.router.navigate(['/onboarding']);
-          } else {
-            this.router.navigateByUrl(this.returnUrl);
-          }
-        },
+        next: (res) => this.enter(res, this.returnUrl),
         error: (err) => {
-          this.errorMsg = 'Credenciales inválidas. Verifica tu usuario o contraseña.';
+          if (err.error?.code === 'account_not_verified') {
+            this.needsVerification = true;
+            this.errorMsg = err.error.detail;
+          } else if (err.status === 0) {
+            this.errorMsg = 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.';
+          } else {
+            this.errorMsg = 'Credenciales inválidas. Verifica tu usuario o contraseña.';
+          }
           this.isLoading = false;
         }
       });
+  }
+
+  resendVerification() {
+    const identifier = this.loginForm.value.username?.trim();
+    if (!identifier || this.isResending) return;
+    this.isResending = true;
+    this.auth.resendVerification(identifier).subscribe({
+      next: (res: any) => {
+        this.isResending = false;
+        this.infoMsg = res.message;
+      },
+      error: () => {
+        this.isResending = false;
+        this.infoMsg = 'No pudimos reenviar el enlace. Inténtalo de nuevo en unos minutos.';
+      }
+    });
+  }
+
+  /** Abre la sesión. Si en esta pestaña había otra cuenta, recarga para no heredar sus datos en memoria. */
+  private enter(res: {access: string, refresh: string, user: any}, target: string) {
+    const switchedAccount = this.auth.startSession(res.access, res.refresh, res.user);
+    const destination = res.user?.has_completed_onboarding === false ? '/onboarding' : target;
+    if (switchedAccount) {
+      window.location.assign(destination);
+    } else {
+      this.router.navigateByUrl(destination);
+    }
   }
 
   loginAsAdmin() {
@@ -76,19 +109,10 @@ export class LoginComponent implements OnInit {
       password: 'admin'
     }).subscribe({
       next: (res) => {
-        this.auth.setTokens(res.access, res.refresh);
-        this.auth.markFreshLogin();
-        if (res.user) {
-          this.auth.setUser(res.user);
-        }
-        if (res.user && res.user.has_completed_onboarding === false) {
-          this.router.navigate(['/onboarding']);
-        } else {
-          const target = (this.returnUrl && !this.returnUrl.startsWith('/dashboard') && this.returnUrl !== '/login') 
-            ? this.returnUrl 
-            : '/catalog';
-          this.router.navigateByUrl(target);
-        }
+        const target = (this.returnUrl && !this.returnUrl.startsWith('/dashboard') && this.returnUrl !== '/login')
+          ? this.returnUrl
+          : '/catalog';
+        this.enter(res, target);
       },
       error: (err) => {
         console.error('Error al iniciar sesión como administrador:', err);

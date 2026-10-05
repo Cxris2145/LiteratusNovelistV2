@@ -201,6 +201,40 @@ ACHIEVEMENTS = [
         'ink_reward': 50,
         'sort_order': 230,
     },
+
+    # -------------------------------------------------------------------------
+    # LA TABERNA DE TINTA - Amigos y brindis (también los crea community/0002)
+    # -------------------------------------------------------------------------
+    {
+        'code': 'tavern_first_friend',
+        'title': 'Compañero de Mesa',
+        'description': 'Sentaste a tu primer amigo a tu mesa en La Taberna.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🍺',
+        'threshold': 1,
+        'ink_reward': 10,
+        'sort_order': 240,
+    },
+    {
+        'code': 'tavern_full_table',
+        'title': 'Mesa Llena',
+        'description': 'Tienes 5 amigos en La Taberna.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🪑',
+        'threshold': 5,
+        'ink_reward': 25,
+        'sort_order': 245,
+    },
+    {
+        'code': 'tavern_toasted',
+        'title': 'Alma de la Fiesta',
+        'description': 'Tus amigos brindaron 10 veces por ti.',
+        'category': Achievement.Category.SOCIAL,
+        'icon': '🥂',
+        'threshold': 10,
+        'ink_reward': 25,
+        'sort_order': 250,
+    },
 ]
 
 

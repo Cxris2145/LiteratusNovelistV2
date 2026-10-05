@@ -291,3 +291,73 @@ class SkipTestAPITests(APITestCase):
 
         # La sesión se consume: no se puede volver a enviar la misma prueba.
         self.assertEqual(self._submit(3, answers).status_code, 400)
+
+
+class ShopWearableTests(APITestCase):
+    """Ropa de Maguito en El Bazar: se compra una vez, se equipa sola y se puede quitar."""
+
+    def setUp(self):
+        from users.models import Profile
+        self.user = get_user_model().objects.create_user(
+            username='vestidor', email='vestidor@example.com', password='StrongPassword123!')
+        Profile.objects.filter(user=self.user).update(ink_balance=1000)
+        self.client.force_authenticate(self.user)
+
+    def profile(self):
+        from users.models import Profile
+        return Profile.objects.get(user=self.user)
+
+    def buy(self, code):
+        return self.client.post('/api/v1/learning/shop/buy/', {'item_code': code}, format='json')
+
+    def test_wearables_are_seeded_by_migration(self):
+        from learning.models import ShopItem
+        wearables = ShopItem.objects.filter(item_type='maguito_wear')
+
+        self.assertEqual(wearables.count(), 14)
+        self.assertTrue(wearables.filter(code='wear_head_crown', value='head:crown').exists())
+
+    def test_buying_charges_ink_and_puts_it_on(self):
+        response = self.buy('wear_head_crown')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['outfit'], {'head': 'crown'})
+        profile = self.profile()
+        self.assertEqual(profile.ink_balance, 750)
+        self.assertEqual(profile.outfit, {'head': 'crown'})
+
+    def test_cosmetics_cannot_be_bought_twice(self):
+        self.buy('wear_face_beard')
+
+        again = self.buy('wear_face_beard')
+
+        self.assertEqual(again.status_code, 400)
+        self.assertEqual(again.data['error'], 'ALREADY_OWNED')
+        self.assertEqual(self.profile().ink_balance, 860)
+
+    def test_equip_requires_owning_and_unequip_restores_default(self):
+        not_owned = self.client.post('/api/v1/learning/shop/equip/', {'item_code': 'wear_cape_royal'}, format='json')
+        self.assertEqual(not_owned.data['error'], 'NOT_OWNED')
+
+        self.buy('wear_cape_royal')
+        self.buy('wear_eyes_monocle')
+        removed = self.client.post('/api/v1/learning/shop/unequip/', {'slot': 'cape'}, format='json')
+        invalid = self.client.post('/api/v1/learning/shop/unequip/', {'slot': 'tail'}, format='json')
+
+        self.assertEqual(removed.data['outfit'], {'eyes': 'monocle'})
+        self.assertEqual(invalid.status_code, 400)
+
+        equipped = self.client.post('/api/v1/learning/shop/equip/', {'item_code': 'wear_cape_royal'}, format='json')
+        self.assertEqual(equipped.data['outfit'], {'eyes': 'monocle', 'cape': 'royal'})
+
+    def test_shop_list_marks_owned_and_equipped_with_constant_queries(self):
+        self.buy('wear_head_crown')
+        self.buy('wear_head_tophat')  # reemplaza a la corona en la cabeza
+
+        with self.assertNumQueries(3):  # inventario, perfil y artículos, sin importar cuántos haya
+            items = {i['code']: i for i in self.client.get('/api/v1/learning/shop/').data}
+
+        self.assertTrue(items['wear_head_crown']['is_owned'])
+        self.assertFalse(items['wear_head_crown']['is_equipped'])
+        self.assertTrue(items['wear_head_tophat']['is_equipped'])
+        self.assertFalse(items['wear_face_beard']['is_owned'])

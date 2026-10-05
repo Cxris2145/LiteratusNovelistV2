@@ -8,4 +8,5 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'country', 'preferred_language']
+    list_display = ['user', 'friend_code', 'country', 'preferred_language']
+    search_fields = ['user__username', 'friend_code']

@@ -1,0 +1,90 @@
+:host { display: block; }
+
+.rk-info { color: var(--th-muted); font-size: 20px; cursor: help; border-radius: 50%; }
+
+.rk-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--home-bg) 60%, transparent);
+  border: 1px solid var(--th-border);
+}
+.rk-tabs button {
+  min-height: 36px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--th-muted);
+  font: 600 .78rem var(--font-ui);
+  cursor: pointer;
+  transition: background-color .2s, color .2s, border-color .2s;
+}
+.rk-tabs button:hover { color: var(--th-ink); }
+.rk-tabs button.is-active {
+  color: var(--th-gold);
+  border-color: color-mix(in srgb, var(--th-gold) 60%, transparent);
+  background: color-mix(in srgb, var(--th-gold) 10%, transparent);
+}
+
+.rk-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  transition: opacity .2s;
+}
+.rk-list.is-loading { opacity: .55; }
+.rk-row {
+  display: grid;
+  grid-template-columns: 30px 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 10px;
+}
+.rk-row + .rk-row { border-top: 1px solid color-mix(in srgb, var(--th-border) 70%, transparent); }
+.rk-row.is-me { background: color-mix(in srgb, var(--th-gold) 9%, transparent); }
+.rk-row.is-outside { margin-top: 6px; border-top: 1px dashed var(--th-border); }
+
+.rk-rank {
+  display: grid;
+  place-items: center;
+  font: 600 1rem var(--font-display, Georgia, serif);
+  color: var(--th-muted);
+  font-variant-numeric: tabular-nums;
+}
+.rk-rank.gold { color: var(--th-gold); }
+.rk-rank.gold .material-symbols-rounded { font-size: 22px; font-variation-settings: 'FILL' 1; }
+.rk-rank.silver { color: #c9d2e3; }
+.rk-rank.bronze { color: #d99a6c; }
+
+.rk-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--th-gold) 10%, var(--home-bg));
+  border: 1px solid var(--th-border);
+}
+.rk-name {
+  min-width: 0;
+  font-size: .88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rk-points {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--th-gold);
+  font-weight: 600;
+  font-size: .86rem;
+  font-variant-numeric: tabular-nums;
+}
+.rk-points .material-symbols-rounded { font-size: 16px; }
+.rk-hint { margin-top: 12px; font-size: .82rem; }

@@ -3,7 +3,17 @@
     <h2>Únete a Literatus</h2>
     <p class="subtitle">Crea tu cuenta y comienza a disfrutar de Literatus.</p>
     
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+    <div class="verify-pending" *ngIf="pendingEmail">
+      <div class="success-banner">{{ successMsg }}</div>
+      <div class="error-banner" *ngIf="errorMsg">{{ errorMsg }}</div>
+      <p class="verify-hint">¿No te llegó? Revisa la carpeta de spam o pide otro enlace.</p>
+      <button type="button" class="glass-btn" (click)="resendVerification()" [disabled]="isResending">
+        {{ isResending ? 'Enviando…' : 'Reenviar el enlace' }}
+      </button>
+      <a routerLink="/login" class="glass-btn verify-login">Ir a iniciar sesión</a>
+    </div>
+
+    <form *ngIf="!pendingEmail" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       
       <div class="form-group">
         <label>Nombre de Usuario</label>
@@ -33,7 +43,8 @@
                  class="glass-input" 
                  [ngClass]="{'is-invalid': f['password'].touched && f['password'].invalid}"
                  formControlName="password" 
-                 placeholder="Mínimo 8 caracteres">
+                 placeholder="Mínimo 8 caracteres"
+                 autocomplete="new-password">
           <button type="button" (click)="togglePassword()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 5px;">
             <svg lucideEyeOff *ngIf="showPassword" style="width: 20px; height: 20px;"></svg>
             <svg lucideEye *ngIf="!showPassword" style="width: 20px; height: 20px;"></svg>

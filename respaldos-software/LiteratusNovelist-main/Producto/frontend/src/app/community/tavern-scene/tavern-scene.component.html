@@ -1,0 +1,130 @@
+<div class="ts-stage" role="img" [attr.aria-label]="summary">
+  <!-- Ambiente: pared de tablones, ventana con luna, faroles y repisa. Todo decorativo. -->
+  <div class="ts-backdrop" aria-hidden="true">
+    <div class="ts-light"></div>
+
+    <svg class="ts-window" viewBox="0 0 120 170" focusable="false">
+      <defs>
+        <linearGradient id="ts-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0a1430"/>
+          <stop offset="1" stop-color="#22366e"/>
+        </linearGradient>
+        <mask id="ts-moon-cut">
+          <rect width="120" height="170" fill="#fff"/>
+          <circle cx="85" cy="49" r="12" fill="#000"/>
+        </mask>
+      </defs>
+      <path d="M6 168V62A54 54 0 0 1 114 62V168Z" fill="#3e2518"/>
+      <path d="M15 162V64A45 45 0 0 1 105 64V162Z" fill="url(#ts-sky)"/>
+      <circle cx="78" cy="54" r="15" fill="#fff4c4" mask="url(#ts-moon-cut)"/>
+      <g fill="#fff4c4">
+        <circle class="ts-star" cx="34" cy="62" r="1.6"/>
+        <circle class="ts-star s2" cx="50" cy="40" r="1.2"/>
+        <circle class="ts-star s3" cx="90" cy="96" r="1.4"/>
+        <circle class="ts-star" cx="30" cy="118" r="1"/>
+        <circle class="ts-star s2" cx="68" cy="128" r="1.3"/>
+      </g>
+      <path d="M60 22V162M15 104H105" stroke="#3e2518" stroke-width="5"/>
+      <rect x="0" y="160" width="120" height="10" rx="3" fill="#5a3824"/>
+    </svg>
+
+    <div class="ts-lantern l1"><span class="ts-flame"></span></div>
+    <div class="ts-lantern l2"><span class="ts-flame"></span></div>
+
+    <svg class="ts-shelf" viewBox="0 0 170 96" focusable="false">
+      <rect x="0" y="74" width="170" height="9" rx="2" fill="#5a3824"/>
+      <path d="M14 83 22 96M156 83 148 96" stroke="#3e2518" stroke-width="5" stroke-linecap="round"/>
+      <rect x="12" y="30" width="13" height="44" rx="2" fill="#7c2d3a"/>
+      <rect x="26" y="22" width="11" height="52" rx="2" fill="#2f5d8a"/>
+      <rect x="38" y="34" width="14" height="40" rx="2" fill="#c8902a"/>
+      <rect x="54" y="38" width="10" height="36" rx="2" fill="#3f7a55" transform="rotate(12 59 74)"/>
+      <path d="M96 74H128V60Q128 50 112 50Q96 50 96 60Z" fill="#1b1430"/>
+      <path d="M108 50V40" stroke="#e8b54a" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="140" y="50" width="10" height="24" rx="2" fill="#f2e6c9"/>
+    </svg>
+    <span class="ts-candle-flame" aria-hidden="true"></span>
+
+    <div class="ts-floor"></div>
+  </div>
+
+  <!-- Los comensales. Cada Maguito lleva la ropa que compró su dueño. -->
+  <div *ngFor="let seat of seats; trackBy: trackSeat" class="ts-seat" [ngClass]="'seat-' + seat.slot">
+    <p class="ts-bubble" *ngIf="seat.bubble" aria-hidden="true">{{ seat.bubble }}</p>
+    <app-maguito
+      [outfit]="seat.guest.outfit"
+      [greetOnEnter]="seat.isMe"
+      [followPointer]="seat.isMe"
+      [interactive]="true">
+    </app-maguito>
+  </div>
+
+  <svg class="ts-table" viewBox="0 0 800 240" focusable="false" aria-hidden="true">
+    <defs>
+      <linearGradient id="ts-wood" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#8a5732"/>
+        <stop offset="1" stop-color="#5a3420"/>
+      </linearGradient>
+      <linearGradient id="ts-wood-dark" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#4a2a18"/>
+        <stop offset="1" stop-color="#2c170c"/>
+      </linearGradient>
+      <radialGradient id="ts-lamp-glow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffd27a" stop-opacity="0.75"/>
+        <stop offset="0.5" stop-color="#ffb347" stop-opacity="0.22"/>
+        <stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect x="140" y="120" width="34" height="120" fill="url(#ts-wood-dark)"/>
+    <rect x="626" y="120" width="34" height="120" fill="url(#ts-wood-dark)"/>
+    <path d="M40 92Q400 172 760 92V132Q400 212 40 132Z" fill="url(#ts-wood-dark)"/>
+    <ellipse cx="400" cy="92" rx="360" ry="60" fill="url(#ts-wood)"/>
+    <ellipse cx="400" cy="92" rx="352" ry="54" fill="none" stroke="#a8724a" stroke-width="2" opacity="0.5"/>
+    <path d="M120 96Q300 116 520 104M220 74Q420 64 640 82" stroke="#3e2518" stroke-width="2" fill="none" opacity="0.25"/>
+
+    <circle class="ts-lamp-glow" cx="112" cy="70" r="120" fill="url(#ts-lamp-glow)"/>
+    <!-- Farol de mesa, en la punta para no tapar a nadie -->
+    <g transform="translate(112 96)">
+      <path d="M-16 -54H16L12 -60H-12Z" fill="#2c170c"/>
+      <rect x="-15" y="-54" width="30" height="46" rx="4" fill="#ffcf6a" opacity="0.9"/>
+      <path d="M-15 -54V-8M15 -54V-8M0 -54V-8" stroke="#2c170c" stroke-width="3"/>
+      <rect x="-19" y="-10" width="38" height="8" rx="2" fill="#2c170c"/>
+      <ellipse class="ts-lamp-flame" cx="0" cy="-30" rx="5" ry="9" fill="#fff4c4"/>
+      <path d="M-6 -64Q0 -76 6 -64" stroke="#2c170c" stroke-width="3" fill="none"/>
+    </g>
+    <!-- Jarras -->
+    <g transform="translate(232 72)">
+      <path d="M22 -8Q40 -8 40 10Q40 26 22 26" stroke="#c8902a" stroke-width="6" fill="none"/>
+      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#c8902a"/>
+      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#ffffff" opacity="0.08"/>
+      <ellipse cx="0" cy="-20" rx="24" ry="9" fill="#fff4dc"/>
+      <path d="M-14 -4V24M0 -4V24M14 -4V24" stroke="#8a5a1a" stroke-width="2" opacity="0.5"/>
+    </g>
+    <g transform="translate(566 76)">
+      <path d="M-22 -8Q-40 -8 -40 10Q-40 26 -22 26" stroke="#b07a3a" stroke-width="6" fill="none"/>
+      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#b07a3a"/>
+      <ellipse cx="0" cy="-20" rx="24" ry="9" fill="#fff4dc"/>
+      <path d="M-14 -4V24M0 -4V24M14 -4V24" stroke="#6a4512" stroke-width="2" opacity="0.5"/>
+    </g>
+    <!-- Libro abierto -->
+    <g transform="translate(660 98)">
+      <path d="M0 0Q-26 -12 -50 -4V14Q-26 6 0 18Z" fill="#f2e6c9"/>
+      <path d="M0 0Q26 -12 50 -4V14Q26 6 0 18Z" fill="#e8d9b5"/>
+      <path d="M-40 2Q-24 -4 -8 4M-40 8Q-24 2 -8 10M8 4Q24 -4 40 2M8 10Q24 2 40 8" stroke="#8a7350" stroke-width="1.2" fill="none" opacity="0.6"/>
+    </g>
+    <!-- Vela -->
+    <g transform="translate(704 104)">
+      <rect x="-7" y="-22" width="14" height="26" rx="3" fill="#f2e6c9"/>
+      <ellipse class="ts-lamp-flame" cx="0" cy="-30" rx="4" ry="7" fill="#ffd27a"/>
+      <ellipse cx="0" cy="6" rx="14" ry="4" fill="#3e2518"/>
+    </g>
+  </svg>
+
+  <!-- Nombres sobre la mesa: van fuera de cada asiento para quedar delante de ella -->
+  <span *ngFor="let seat of seats; trackBy: trackSeat" class="ts-name" [ngClass]="'seat-' + seat.slot" aria-hidden="true">
+    <span class="th-dot" [ngClass]="seat.isMe ? 'tavern' : (seat.guest.status?.kind || '')"></span>
+    {{ seat.isMe ? (demo ? seat.guest.username : 'Tú') : seat.guest.username }}
+  </span>
+
+  <span class="ts-more wide" *ngIf="extraWide" aria-hidden="true">+{{ extraWide }} en la lista</span>
+  <span class="ts-more narrow" *ngIf="extraNarrow" aria-hidden="true">+{{ extraNarrow }} en la lista</span>
+</div>

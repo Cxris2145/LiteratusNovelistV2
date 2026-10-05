@@ -48,6 +48,8 @@ def evaluate_for_user(user, trigger: str, session=None, progress=None, chat_sess
             _evaluate_genre_exploration(user, progress)
         elif trigger == 'chat':
             _evaluate_social_milestones(user, chat_session_id)
+        elif trigger == 'friends':
+            _evaluate_tavern_milestones(user)
     except Exception:
         # El motor de logros NO debe bloquear el flujo principal.
         # Errores se ignoran silenciosamente para no romper la sesiÃ³n
@@ -291,6 +293,7 @@ def reward_activity(user, activity_type: str, reference_id: str = '', custom_ink
     profile.ink_balance += ink_reward
     profile.xp += xp_reward
     profile.save(update_fields=['ink_balance', 'xp'])
+    _log_daily_activity(user, xp_reward, ink_reward)
 
     if ink_reward != 0:
         InkTransaction.objects.create(
@@ -305,6 +308,21 @@ def reward_activity(user, activity_type: str, reference_id: str = '', custom_ink
         _check_level_up(profile)
         
     _update_missions(user, activity_type)
+
+
+def _log_daily_activity(user, xp: int, ink: int):
+    """
+    Suma lo ganado hoy al registro diario: es el historial que usa el ranking semanal
+    y mensual de La Taberna. Todo el XP del sistema pasa por reward_activity.
+    """
+    from learning.models import DailyActivityLog
+
+    xp, ink = max(xp, 0), max(ink, 0)
+    if not xp and not ink:
+        return
+    log, _ = DailyActivityLog.objects.get_or_create(user=user, date=timezone.localdate())
+    DailyActivityLog.objects.filter(pk=log.pk).update(
+        xp_earned=F('xp_earned') + xp, ink_earned=F('ink_earned') + ink)
 
 
 def _update_missions(user, activity_type: str, increment: int = 1):
@@ -424,6 +442,18 @@ def get_user_discount(user):
 # ---------------------------------------------------------------------------
 # EVALUADORES SOCIALES (Chat con IA)
 # ---------------------------------------------------------------------------
+
+def _evaluate_tavern_milestones(user):
+    """La Taberna de Tinta: amigos sentados a tu mesa y brindis recibidos."""
+    from community.models import Brindis
+    from community.services import friend_ids
+
+    friends = len(friend_ids(user))
+    _unlock_or_update(user, 'tavern_first_friend', current=min(friends, 1), threshold=1)
+    _unlock_or_update(user, 'tavern_full_table', current=friends, threshold=5)
+    toasts = Brindis.objects.filter(receiver=user).count()
+    _unlock_or_update(user, 'tavern_toasted', current=toasts, threshold=10)
+
 
 def _evaluate_social_milestones(user, chat_session_id=None):
     from ai_engine.models import ChatSession, ChatMessage

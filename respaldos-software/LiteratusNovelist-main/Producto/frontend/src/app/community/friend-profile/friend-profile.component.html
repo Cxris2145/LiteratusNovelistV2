@@ -1,0 +1,66 @@
+<main class="fp">
+  <a class="fp-back" routerLink="/tavern">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>Volver a la Taberna
+  </a>
+
+  <p class="th-empty" *ngIf="loading && !profile" role="status">Abriendo la puerta de la taberna…</p>
+
+  <section class="th-panel fp-missing" *ngIf="notFound">
+    <h1>No encontramos a ese lector</h1>
+    <p class="th-empty">Revisa el código: son 6 letras y números, por ejemplo #K7Q2XM.</p>
+    <a class="th-btn" routerLink="/tavern">Volver a la Taberna</a>
+  </section>
+
+  <!-- Amigo: perfil completo -->
+  <div class="fp-grid" *ngIf="full as friend">
+    <div class="fp-stage" aria-hidden="true">
+      <div class="fp-spot"></div>
+      <app-maguito class="fp-maguito" [outfit]="friend.outfit" [greetOnEnter]="true" [followPointer]="true"></app-maguito>
+      <div class="fp-mugs" [class.is-cheering]="cheers">
+        <span class="material-symbols-rounded">sports_bar</span>
+        <span class="material-symbols-rounded">sports_bar</span>
+      </div>
+    </div>
+
+    <app-profile-card [card]="friend">
+      <div class="fp-actions">
+        <button type="button" class="th-btn" [class.secondary]="friend.brindis_given" (click)="toggleBrindis()" [disabled]="busy"
+                [attr.aria-pressed]="!!friend.brindis_given">
+          <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>
+          {{ friend.brindis_given ? 'Brindaste por ' + friend.username : 'Brindar por ' + friend.username }}
+        </button>
+
+        <ng-container *ngIf="!confirmingRemove; else confirmTpl">
+          <button type="button" class="th-btn ghost" (click)="confirmingRemove = true">
+            <span class="material-symbols-rounded" aria-hidden="true">person_remove</span>Eliminar amigo
+          </button>
+        </ng-container>
+        <ng-template #confirmTpl>
+          <div class="fp-confirm" role="group" aria-label="Confirmar eliminación">
+            <span>¿Quitar a {{ friend.username }} de tu mesa?</span>
+            <button type="button" class="th-btn ghost is-danger" (click)="removeFriend()" [disabled]="busy">Eliminar</button>
+            <button type="button" class="th-btn ghost" (click)="confirmingRemove = false">No</button>
+          </div>
+        </ng-template>
+      </div>
+    </app-profile-card>
+  </div>
+
+  <!-- Aún no es tu amigo: tarjeta mínima -->
+  <section class="th-panel fp-stranger" *ngIf="minimal as card">
+    <div class="fp-stranger-avatar">
+      <app-maguito crop="bust" [outfit]="card.outfit" [followPointer]="false" [calm]="true"
+                   [label]="'Maguito de ' + card.username"></app-maguito>
+    </div>
+    <h1>{{ card.username }}</h1>
+    <p class="th-code fp-code">#{{ card.friend_code }}</p>
+    <p class="th-empty">
+      {{ card.relation === 'incoming' ? card.username + ' quiere sentarse a tu mesa.' :
+         card.relation === 'outgoing' ? 'Le enviaste una solicitud. Cuando la acepte verás su perfil completo.' :
+         'Cuando sean amigos verás sus libros, sus brindis y su "Sobre mí".' }}
+    </p>
+    <button type="button" class="th-btn" [class.secondary]="card.relation === 'outgoing'" (click)="requestAction()" [disabled]="busy">
+      {{ requestLabel(card) }}
+    </button>
+  </section>
+</main>

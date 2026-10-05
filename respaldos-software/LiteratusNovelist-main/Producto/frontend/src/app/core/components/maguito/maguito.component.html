@@ -40,10 +40,29 @@
       <stop offset="0" stop-color="#6a2aa6"/>
       <stop offset="1" stop-color="#4c1880"/>
     </linearGradient>
+    <!-- Los colores de la capa salen de variables: el Bazar vende capas de otros colores -->
     <linearGradient [attr.id]="ids['cape']" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f8bf55"/>
-      <stop offset="0.6" stop-color="#e59a2f"/>
-      <stop offset="1" stop-color="#bf7018"/>
+      <stop offset="0" style="stop-color: var(--mg-cape-a)"/>
+      <stop offset="0.6" style="stop-color: var(--mg-cape-b)"/>
+      <stop offset="1" style="stop-color: var(--mg-cape-c)"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['crown']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0.55" stop-color="#f1c867"/>
+      <stop offset="1" stop-color="#c8902a"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['tophat']" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a3d5c"/>
+      <stop offset="0.45" stop-color="#262940"/>
+      <stop offset="1" stop-color="#15172a"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['beard']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f4f6ff"/>
+      <stop offset="1" stop-color="#c9d0ea"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['scarf']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff6b6b"/>
+      <stop offset="1" stop-color="#c0283a"/>
     </linearGradient>
     <radialGradient [attr.id]="ids['sclera']" cx="0.45" cy="0.35" r="0.7">
       <stop offset="0" stop-color="#ffffff"/>
@@ -88,7 +107,7 @@
   </defs>
 
   <circle class="mg-aura" cx="225" cy="210" r="175" [attr.fill]="refs['aura']"/>
-  <ellipse class="mg-hat-glow" cx="244" cy="112" rx="160" ry="118" [attr.fill]="refs['hat-glow']"/>
+  <ellipse *ngIf="look.head === 'wizard'" class="mg-hat-glow" cx="244" cy="112" rx="160" ry="118" [attr.fill]="refs['hat-glow']"/>
   <ellipse class="mg-shadow" cx="226" cy="362" rx="70" ry="8" fill="#050816" opacity="0.35"/>
 
   <!-- Estrellas que orbitan (cargando) -->
@@ -107,7 +126,7 @@
         <g class="mg-cape">
           <path d="M160 246C141 262 131 292 127 334C141 334 151 329 162 320Z" [attr.fill]="refs['cape']"/>
           <path d="M290 240C319 258 342 298 354 340C335 339 314 331 296 320Z" [attr.fill]="refs['cape']"/>
-          <path d="M296 262C313 282 326 306 334 332" stroke="#b86a14" stroke-width="2" fill="none" opacity="0.45" stroke-linecap="round"/>
+          <path d="M296 262C313 282 326 306 334 332" style="stroke: var(--mg-cape-seam)" stroke-width="2" fill="none" opacity="0.45" stroke-linecap="round"/>
         </g>
 
         <!-- Cuerpo -->
@@ -116,6 +135,20 @@
         <path [attr.fill]="refs['body-shade']"
           d="M150 226C150 181 176 158 225 158C274 158 300 181 300 226L300 322C300 349 290 360 272 360C252 360 241 352 237 341C233 334 217 334 213 341C209 352 198 360 178 360C160 360 150 349 150 322Z"/>
         <ellipse cx="170" cy="282" rx="9" ry="34" fill="#ffffff" opacity="0.07"/>
+
+        <!-- Cuello (accesorio): va sobre el cuerpo y bajo la cara; los brazos lo tapan en los hombros -->
+        <g class="mg-neck" *ngIf="look.neck === 'scarf-red'">
+          <path d="M150 262Q225 286 300 262L300 288Q225 312 150 288Z" [attr.fill]="refs['scarf']"/>
+          <path d="M156 270Q225 292 294 270" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.18" stroke-linecap="round"/>
+          <path d="M262 284C266 304 270 324 276 340L256 342C252 324 250 304 248 288Z" [attr.fill]="refs['scarf']"/>
+          <path d="M258 342v8M264 341v8M270 340v8" stroke="#c0283a" stroke-width="2.4" stroke-linecap="round"/>
+        </g>
+        <g class="mg-neck" *ngIf="look.neck === 'bowtie'">
+          <path d="M225 282L199 270Q194 282 199 294Z" fill="#c0283a"/>
+          <path d="M225 282L251 270Q256 282 251 294Z" fill="#c0283a"/>
+          <path d="M203 275Q200 282 203 289M247 275Q250 282 247 289" stroke="#8e1b2b" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <rect x="219" y="276" width="12" height="12" rx="3" fill="#8e1b2b"/>
+        </g>
 
         <!-- Cara: se desplaza un poco hacia donde mira (giro de cabeza) -->
         <g class="mg-face">
@@ -142,8 +175,8 @@
             <rect class="mg-lid-low" x="222" y="187" width="60" height="58" [attr.fill]="refs['lid']"/>
           </g>
 
-          <!-- Gafas redondas -->
-          <g class="mg-glasses" fill="none" stroke-linecap="round">
+          <!-- Gafas redondas (las de siempre) -->
+          <g *ngIf="look.eyes === 'round'" class="mg-glasses" fill="none" stroke-linecap="round">
             <path d="M162 201A22 22 0 0 1 180 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
             <path d="M232 201A22 22 0 0 1 250 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
             <circle cx="182" cy="215" r="28" stroke="#18215a" stroke-width="5"/>
@@ -154,6 +187,24 @@
             <path d="M154 212 150 209" stroke="#18215a" stroke-width="4"/>
             <path d="M280 212 299 205" stroke="#18215a" stroke-width="4"/>
           </g>
+          <!-- Monóculo del erudito -->
+          <g *ngIf="look.eyes === 'monocle'" class="mg-eyewear" fill="none" stroke-linecap="round">
+            <circle cx="252" cy="215" r="29" stroke="#d4a72c" stroke-width="4.5" fill="#ffffff" fill-opacity="0.08"/>
+            <path d="M232 203A22 22 0 0 1 250 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
+            <path d="M279 226C292 250 290 276 280 300" stroke="#d4a72c" stroke-width="1.6" stroke-dasharray="2.5 3"/>
+          </g>
+          <!-- Gafas de media luna -->
+          <g *ngIf="look.eyes === 'halfmoon'" class="mg-eyewear" stroke="#d4a72c" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M156 218A26 26 0 0 0 208 218Z" stroke-width="4" fill="#ffffff" fill-opacity="0.1"/>
+            <path d="M226 218A26 26 0 0 0 278 218Z" stroke-width="4" fill="#ffffff" fill-opacity="0.1"/>
+            <path d="M208 220Q217 214 226 220M156 218 150 214M278 218 299 210" stroke-width="3.5" fill="none"/>
+          </g>
+          <!-- Gafas estelares -->
+          <g *ngIf="look.eyes === 'star'" class="mg-eyewear" stroke="#ff5fa8" stroke-linejoin="round" stroke-linecap="round">
+            <use [attr.href]="hrefs['star']" transform="translate(182 215) scale(3.3)" fill="#ff8fc7" fill-opacity="0.18" stroke-width="1.3"/>
+            <use [attr.href]="hrefs['star']" transform="translate(252 215) scale(3.3)" fill="#ff8fc7" fill-opacity="0.18" stroke-width="1.3"/>
+            <path d="M212 212Q217 206 222 212" stroke-width="4" fill="none"/>
+          </g>
 
           <!-- Boca: sonrisa / abierta / concentrada -->
           <path class="mg-mouth mg-mouth-smile" d="M207 244Q216 252 225 244" stroke="#141c50" stroke-width="3.4" stroke-linecap="round" fill="none"/>
@@ -162,10 +213,57 @@
             <path d="M209 251Q216 257 223 251Q216 247 209 251Z" fill="#ec6f86"/>
           </g>
           <ellipse class="mg-mouth mg-mouth-o" cx="216" cy="246" rx="4" ry="5" fill="#3a0f25"/>
+
+          <!-- Cara (accesorio): la barba nace bajo la boca para que siga a la vista -->
+          <g *ngIf="look.face === 'beard'" class="mg-facial">
+            <path d="M168 244C168 292 194 332 216 340C238 332 264 292 264 244C254 266 238 274 216 274C194 274 178 266 168 244Z" [attr.fill]="refs['beard']"/>
+            <path d="M190 288Q194 306 202 318M216 284V326M242 288Q238 306 230 318" stroke="#aab3d6" stroke-width="2" fill="none" opacity="0.6" stroke-linecap="round"/>
+          </g>
+          <path *ngIf="look.face === 'mustache'" class="mg-facial" fill="#4a2c1a"
+            d="M216 242C210 236 200 236 194 242C190 247 183 247 180 242C182 253 199 256 216 248C233 256 250 253 252 242C249 247 242 247 238 242C232 236 222 236 216 242Z"/>
         </g>
 
-        <!-- Sombrero de mago -->
-        <g class="mg-hat">
+        <!-- Sombrero: el de mago es el de siempre; los demás se compran en El Bazar.
+             Todos comparten el pivote y las animaciones de .mg-hat. -->
+        <g class="mg-hat" [ngSwitch]="look.head">
+          <!-- Corona del Rey Lector -->
+          <g *ngSwitchCase="'crown'">
+            <path d="M180 164L172 118L200 140L212 104L225 136L238 104L250 140L278 118L270 164Z" [attr.fill]="refs['crown']"/>
+            <path d="M178 162Q225 152 272 162L270 178Q225 168 180 178Z" fill="#c8902a"/>
+            <path d="M184 166Q225 158 266 166" stroke="#fff4c4" stroke-width="1.6" fill="none" opacity="0.6" stroke-linecap="round"/>
+            <circle cx="225" cy="168" r="5" fill="#e0457b"/>
+            <circle cx="200" cy="170" r="3.5" fill="#4fc3f7"/>
+            <circle cx="250" cy="170" r="3.5" fill="#66d19e"/>
+            <circle cx="172" cy="118" r="4.5" fill="#fff4c4"/>
+            <circle cx="212" cy="104" r="4.5" fill="#fff4c4"/>
+            <circle cx="238" cy="104" r="4.5" fill="#fff4c4"/>
+            <circle cx="278" cy="118" r="4.5" fill="#fff4c4"/>
+          </g>
+          <!-- Chistera victoriana -->
+          <g *ngSwitchCase="'tophat'" transform="rotate(-8 225 170)">
+            <path d="M186 168L182 86Q225 78 268 86L264 168Z" [attr.fill]="refs['tophat']"/>
+            <path d="M185 150Q225 144 265 150L265 164Q225 158 185 164Z" fill="#8b1e3f"/>
+            <ellipse cx="225" cy="86" rx="43" ry="8" fill="#2f3250"/>
+            <path d="M194 96L196 146" stroke="#ffffff" stroke-width="3" opacity="0.12" stroke-linecap="round"/>
+            <ellipse cx="225" cy="170" rx="74" ry="11" fill="#15172a"/>
+            <path d="M156 168Q225 160 294 168" stroke="#4a4e78" stroke-width="2" fill="none" opacity="0.7" stroke-linecap="round"/>
+          </g>
+          <!-- Tricornio de corsario -->
+          <g *ngSwitchCase="'pirate'">
+            <path d="M168 158Q170 98 225 94Q280 98 282 158Z" fill="#33274a"/>
+            <path d="M190 120Q200 104 222 101" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.12" stroke-linecap="round"/>
+            <path d="M138 172Q160 124 225 132Q290 124 312 172Q270 156 225 162Q180 156 138 172Z" fill="#231a2e"/>
+            <path d="M142 170Q182 152 225 158Q268 152 308 170" stroke="#e9c46a" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <use [attr.href]="hrefs['star']" transform="translate(225 146) scale(0.8)" fill="#e9c46a"/>
+          </g>
+          <!-- Boina de poeta -->
+          <g *ngSwitchCase="'beret'">
+            <path d="M164 170C152 150 176 126 222 124C270 122 300 140 296 160C292 172 268 170 240 168C214 168 186 176 164 170Z" fill="#9b2242"/>
+            <path d="M176 152C190 136 214 130 240 131" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.14" stroke-linecap="round"/>
+            <path d="M226 124Q228 114 234 112" stroke="#9b2242" stroke-width="5" fill="none" stroke-linecap="round"/>
+          </g>
+          <!-- Sombrero de mago -->
+          <ng-container *ngSwitchDefault>
           <!-- Ala: gruesa y caída a los lados, apoyada sobre las gafas -->
           <path d="M104 166C150 180 200 188 250 191C292 193 332 202 362 209C360 217 330 217 298 212C258 206 206 200 160 190C132 184 110 176 104 166Z" [attr.fill]="refs['brim-under']"/>
           <path class="mg-brim" [attr.fill]="refs['brim']"
@@ -191,16 +289,18 @@
           <use [attr.href]="hrefs['star']" transform="translate(272 46) scale(0.55)" fill="#f1c867"/>
           <use [attr.href]="hrefs['star']" transform="translate(280 104) scale(0.45)" fill="#f1c867"/>
           <path d="M306 66A12 12 0 1 0 306 90A9 9 0 1 1 306 66Z" fill="none" stroke="#f1c867" stroke-width="1.6"/>
+          </ng-container>
         </g>
 
         <!-- Brazo derecho (saluda) -->
         <g class="mg-arm-r">
           <g class="mg-arm-r-wave">
-            <path d="M294 262C303 279 308 293 310 306" stroke="#e39a2e" stroke-width="21" stroke-linecap="round" fill="none"/>
-            <path d="M298 270C305 283 308 293 309 300" stroke="#f7c15e" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.45"/>
+            <!-- La manga es de la misma tela que la capa -->
+            <path d="M294 262C303 279 308 293 310 306" style="stroke: var(--mg-sleeve)" stroke-width="21" stroke-linecap="round" fill="none"/>
+            <path d="M298 270C305 283 308 293 309 300" style="stroke: var(--mg-sleeve-hi)" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.45"/>
             <ellipse cx="303" cy="313" rx="5.5" ry="8" transform="rotate(20 303 313)" [attr.fill]="refs['limb']"/>
             <ellipse cx="312" cy="320" rx="11.5" ry="13.5" [attr.fill]="refs['limb']"/>
-            <path d="M306 311Q312 306 318 311" stroke="#e39a2e" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+            <path d="M306 311Q312 306 318 311" style="stroke: var(--mg-sleeve)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
           </g>
         </g>
 

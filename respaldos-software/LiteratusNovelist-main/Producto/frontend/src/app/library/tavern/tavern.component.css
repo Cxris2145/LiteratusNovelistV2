@@ -32,6 +32,16 @@
 .tavern > section {
   margin-top: 64px;
 }
+.tv-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--home-ink-muted);
+  font-size: .9rem;
+  text-decoration: none;
+}
+.tv-back:hover { color: var(--color-warning); }
 h1, h2, h3 {
   font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
   margin: 0;
@@ -47,7 +57,7 @@ a {
   color: var(--color-warning);
   text-underline-offset: 4px;
 }
-#plans-title, #ink-packages {
+#plans-title, #ink-packages, #bazar-title {
   scroll-margin-top: 96px;
 }
 
@@ -720,6 +730,62 @@ th, td {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
+}
+
+/* ── Probador de Maguito ── */
+.bazar-layout.has-fitting {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.bazar-layout.has-fitting .shop-grid {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+.tv-fitting {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--home-glass-border));
+  background:
+    radial-gradient(ellipse 80% 45% at 50% 82%, rgba(255, 179, 71, .22), transparent 70%),
+    linear-gradient(180deg, #2a1b22, #3b2520 70%, #22151a);
+  text-align: center;
+}
+.tv-fitting h3 { font-size: 1.25rem; color: #fff4dc; }
+.tv-fitting-stage { width: 100%; max-width: 220px; }
+.tv-fitting-stage app-maguito { width: 100%; }
+.tv-fitting-caption { margin: 0; font-size: .85rem; color: #fff4dc; min-height: 2.4em; }
+.tv-fitting-hint { margin: 0; font-size: .74rem; color: rgba(255, 244, 220, .65); }
+.tv-fitting .button { font-size: .78rem; padding: 8px 14px; }
+.tv-slot {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+}
+.shop-item.is-trying { border-color: var(--color-warning); }
+.item-actions { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+@media (max-width: 960px) {
+  .bazar-layout.has-fitting { grid-template-columns: 1fr; }
+  .tv-fitting {
+    position: static;
+    grid-template-columns: 120px 1fr;
+    justify-items: start;
+    text-align: left;
+  }
+  .tv-fitting h3, .tv-fitting-caption, .tv-fitting-hint, .tv-fitting .button { grid-column: 2; }
+  .tv-fitting-stage { grid-column: 1; grid-row: 1 / span 4; max-width: 120px; }
 }
 .shop-item {
   position: relative;

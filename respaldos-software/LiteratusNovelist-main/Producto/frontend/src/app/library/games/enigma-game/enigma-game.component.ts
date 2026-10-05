@@ -4,6 +4,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ChatService } from '../../../core/services/chat.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../../core/services/notification.service';
+import { userStorageKey } from '../../../core/services/auth.service';
 import { Observable, Subject } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
@@ -436,7 +437,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy, CanComponentDeact
     this.isLoadingEnigma = true;
 
     // Verificar si ya hay estado guardado para hoy
-    const storageKey = `literatus_daily_enigma_${this.todayDateStr}`;
+    const storageKey = userStorageKey(`literatus_daily_enigma_${this.todayDateStr}`);
     const savedRaw = localStorage.getItem(storageKey);
     const savedState = savedRaw ? JSON.parse(savedRaw) : null;
 
@@ -533,7 +534,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy, CanComponentDeact
       gameStatus: this.gameStatus,
       isRewardClaimed: this.isRewardClaimed
     };
-    localStorage.setItem(`literatus_daily_enigma_${this.todayDateStr}`, JSON.stringify(state));
+    localStorage.setItem(userStorageKey(`literatus_daily_enigma_${this.todayDateStr}`), JSON.stringify(state));
   }
 
   pressLetter(letter: string): void {

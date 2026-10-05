@@ -6,8 +6,8 @@
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       
       <div class="form-group">
-        <label>Nombre de Usuario</label>
-        <input type="text" class="glass-input" formControlName="username" placeholder="Ingresa tu usuario">
+        <label>Usuario o correo</label>
+        <input type="text" class="glass-input" formControlName="username" placeholder="Tu usuario o tu correo" autocomplete="username">
       </div>
 
       <div class="form-group">
@@ -27,6 +27,14 @@
 
       <div class="error-banner" *ngIf="errorMsg">
         {{ errorMsg }}
+        <button type="button" class="inline-action" *ngIf="needsVerification && !infoMsg"
+                (click)="resendVerification()" [disabled]="isResending">
+          {{ isResending ? 'Enviando…' : 'Reenviar el enlace' }}
+        </button>
+      </div>
+
+      <div class="success-banner" *ngIf="infoMsg">
+        {{ infoMsg }}
       </div>
 
       <button type="submit" class="glass-btn" [disabled]="loginForm.invalid || isLoading">

@@ -6,6 +6,11 @@ import { ChatService } from '../../core/services/chat.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../core/services/notification.service';
+import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
+import { copyText } from '../../community/clipboard.util';
+
+export const TAGLINE_MAX = 80;
+export const BIO_MAX = 1000;
 
 @Component({
   selector: 'app-profile',
@@ -83,14 +88,27 @@ export class ProfileComponent implements OnInit {
   equippedTitle: string = '';
   maestroActive = false;
   avatarUrl: string | null = null;
+  /** La Taberna: código de amigo y ropa de Maguito (solo lectura aquí). */
+  friendCode = '';
+  outfit: MaguitoOutfit = {};
+  readonly taglineMax = TAGLINE_MAX;
+  readonly bioMax = BIO_MAX;
 
   constructor() {
     this.profileForm = this.fb.group({
       username: ['', Validators.required],
       email: [{value: '', disabled: true}],
-      bio: [''],
+      tagline: ['', Validators.maxLength(TAGLINE_MAX)],
+      bio: ['', Validators.maxLength(BIO_MAX)],
       country: ['']
     });
+  }
+
+  async copyFriendCode() {
+    if (!this.friendCode) return;
+    const copied = await copyText('#' + this.friendCode);
+    if (copied) this.notificationService.success('Código copiado.', 'La Taberna');
+    else this.notificationService.info(`Tu código es #${this.friendCode}.`, 'La Taberna');
   }
 
   ngOnInit() {
@@ -104,9 +122,12 @@ export class ProfileComponent implements OnInit {
           this.profileForm.patchValue({
             username: profile.username || this.authService.currentUser()?.username,
             email: this.authService.currentUser()?.email,
+            tagline: profile.tagline || '',
             bio: profile.bio,
             country: profile.country
           });
+          this.friendCode = profile.friend_code || '';
+          this.outfit = profile.outfit || {};
           this.avatarUrl = profile.avatar || null;
           this.avatarColor = profile.avatar_color || '#3b82f6';
           this.selectedTheme = profile.theme || 'default';
@@ -198,6 +219,7 @@ export class ProfileComponent implements OnInit {
     this.loading = true;
 
     const payload = {
+      tagline: this.profileForm.get('tagline')?.value || '',
       bio: this.profileForm.get('bio')?.value || '',
       country: this.profileForm.get('country')?.value || '',
       avatar: this.avatarUrl || '',
@@ -216,7 +238,8 @@ export class ProfileComponent implements OnInit {
       error: (err) => {
         this.loading = false;
         console.error("Error actualizando perfil", err);
-        this.notificationService.error('Error al guardar los cambios.', 'Error');
+        const fieldError = err.error && typeof err.error === 'object' ? Object.values(err.error).flat()[0] : null;
+        this.notificationService.error(typeof fieldError === 'string' ? fieldError : 'Error al guardar los cambios.', 'Error');
       }
     });
   }

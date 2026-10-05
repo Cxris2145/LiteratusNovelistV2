@@ -18,10 +18,26 @@ DISEÑO SEPARACIÓN User ↔ Profile (3NF):
     petición). Profile solo se carga cuando se necesita (lazy loading).
 """
 
+import secrets
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from core.models import TimeStampedModel
+
+# Sin 0/O, 1/I/L: el código se dicta y se copia a mano sin confusiones.
+FRIEND_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
+FRIEND_CODE_LENGTH = 6
+
+
+def generate_unique_friend_code():
+    """Código público de La Taberna (ej. K7Q2XM). 31^6 ≈ 887 millones de combinaciones."""
+    for _ in range(10):
+        code = ''.join(secrets.choice(FRIEND_CODE_ALPHABET) for _ in range(FRIEND_CODE_LENGTH))
+        # all_objects: un perfil borrado lógicamente sigue reservando su código.
+        if not Profile.all_objects.filter(friend_code=code).exists():
+            return code
+    raise RuntimeError('No se pudo generar un código de amigo único.')
 
 
 class User(AbstractUser, TimeStampedModel):
@@ -145,9 +161,35 @@ class Profile(TimeStampedModel):
         help_text="Autores literarios que el usuario sigue para recibir novedades."
     )
 
+    # La Taberna de Tinta (comunidad)
+    friend_code = models.CharField(
+        max_length=FRIEND_CODE_LENGTH, unique=True, null=True, blank=True, editable=False,
+        help_text="Código público e inmutable para encontrar al lector en La Taberna (ej. K7Q2XM)."
+    )
+    tagline = models.CharField(
+        max_length=80, blank=True, default='',
+        help_text="Frase corta que ven los amigos en La Taberna."
+    )
+    outfit = models.JSONField(
+        default=dict, blank=True,
+        help_text="Accesorios de Maguito por espacio: {'head': 'crown', ...}. Solo cambia desde El Bazar."
+    )
+    last_seen_in_tavern = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Último latido de presencia en La Taberna."
+    )
+
     class Meta:
         verbose_name = 'Profile'
         verbose_name_plural = 'Profiles'
 
     def __str__(self):
         return f"Profile de {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        if not self.friend_code:
+            self.friend_code = generate_unique_friend_code()
+            update_fields = kwargs.get('update_fields')
+            if update_fields is not None:
+                kwargs['update_fields'] = {*update_fields, 'friend_code'}
+        super().save(*args, **kwargs)

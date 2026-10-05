@@ -329,7 +329,7 @@ export class PlayLevelComponent implements OnInit, OnDestroy {
   }
 
   goToTavern(): void {
-    this.router.navigate(['/tavern']);
+    this.router.navigate(['/tavern/tienda']);
   }
 
   recapScore(item: any): string {

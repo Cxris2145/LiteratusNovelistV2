@@ -1,15 +1,25 @@
 """
 users/views.py — Vistas para Autenticación (SimpleJWT), Registro y Gestión de Perfil.
 """
+import logging
+
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Profile
 from django.db import transaction
 from django.db.models import Q
-from .serializers import MyTokenObtainPairSerializer, UserWriteSerializer, UserReadSerializer, ProfileSerializer
+from .serializers import (
+    MyTokenObtainPairSerializer, UserWriteSerializer, UserReadSerializer, ProfileSerializer,
+    find_user_by_login,
+)
+from .utils import email_is_configured, send_verification_email
+
+logger = logging.getLogger(__name__)
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
@@ -21,11 +31,73 @@ class RegisterUserView(generics.CreateAPIView):
     """
     Endpoint POST para registrar usuarios públicos.
     No requiere autenticación. Responde con 201 Created.
-    Devuelve los datos vía UserWriteSerializer (limpiando password).
+
+    La cuenta nace inactiva y se activa con el enlace del correo de verificación.
+    Si el correo no se puede enviar, el alta se deshace (503) para no dejar una
+    cuenta imposible de activar que además bloquee ese usuario y ese correo.
+    En desarrollo (DEBUG) sin servicio de correo, la cuenta queda activa al instante.
     """
     queryset = User.objects.all()
     serializer_class = UserWriteSerializer
     permission_classes = [permissions.AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            user = serializer.save()
+            try:
+                if not email_is_configured():
+                    raise RuntimeError('Servicio de correo sin configurar (EMAIL_HOST_PASSWORD vacío).')
+                send_verification_email(user)
+                requires_verification = True
+            except Exception:
+                logger.exception('No se pudo enviar el correo de verificación a %s', user.email)
+                if not settings.DEBUG:
+                    transaction.set_rollback(True)
+                    return Response({
+                        'error': 'EMAIL_NOT_SENT',
+                        'message': 'No pudimos enviar el correo de verificación. Inténtalo de nuevo en unos minutos.',
+                    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                user.is_active = True
+                user.save(update_fields=['is_active'])
+                requires_verification = False
+
+        return Response({
+            'id': str(user.id),
+            'username': user.username,
+            'email': user.email,
+            'requires_verification': requires_verification,
+            'message': (
+                f'Te enviamos un enlace de activación a {user.email}.'
+                if requires_verification else
+                'Cuenta creada. Ya puedes iniciar sesión.'
+            ),
+        }, status=status.HTTP_201_CREATED)
+
+
+class ResendVerificationView(APIView):
+    """
+    Endpoint POST /api/v1/users/verify-email/resend/
+    Recibe `email` o `username` y reenvía el enlace si la cuenta sigue sin verificar.
+    Responde lo mismo exista o no la cuenta (evita enumeración de usuarios).
+    """
+    permission_classes = [permissions.AllowAny]
+    RESEND_COOLDOWN_SECONDS = 60
+
+    def post(self, request, *args, **kwargs):
+        identifier = request.data.get('email') or request.data.get('username')
+        user = find_user_by_login(identifier)
+        if (user is not None and not user.is_active and email_is_configured()
+                and cache.add(f'verify-resend:{user.pk}', 1, self.RESEND_COOLDOWN_SECONDS)):
+            try:
+                send_verification_email(user)
+            except Exception:
+                logger.exception('No se pudo reenviar el correo de verificación a %s', user.email)
+        return Response({
+            'message': 'Si la cuenta existe y falta verificarla, te enviamos un nuevo enlace. Revisa también la carpeta de spam.'
+        }, status=status.HTTP_200_OK)
 
 
 class UserMeView(generics.RetrieveUpdateAPIView):
@@ -186,7 +258,7 @@ class PasswordResetRequestView(APIView):
             return Response({'error': 'Debes proveer un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
             
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email__iexact=email.strip())
             send_password_reset_email(user)
         except User.DoesNotExist:
             # Por seguridad, no revelamos si el correo existe o no, 

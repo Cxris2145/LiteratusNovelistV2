@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService, userStorageKey } from '../../core/services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs/operators';
 import { FavoriteApiBook, FavoritesService } from '../../core/services/favorites.service';
@@ -222,7 +222,7 @@ export class FavoritesComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     try {
-      const raw = localStorage.getItem('literatus_cart');
+      const raw = localStorage.getItem(userStorageKey('literatus_cart'));
       const cart: any[] = raw ? JSON.parse(raw) : [];
       const exists = cart.some(item => item.id === book.id || item.slug === book.slug);
       if (!exists) {
@@ -236,7 +236,7 @@ export class FavoritesComponent implements OnInit {
           type: 'book',
           label: 'Obra Literaria'
         });
-        localStorage.setItem('literatus_cart', JSON.stringify(cart));
+        localStorage.setItem(userStorageKey('literatus_cart'), JSON.stringify(cart));
         window.dispatchEvent(new Event('literatus-cart-updated'));
       }
       this.router.navigate(['/cart']);

@@ -10,12 +10,14 @@ import { SubscriptionService, SubscriptionAccount, SubscriptionPlan, AIUsage } f
 import { isInViewport, prefersReducedMotion } from '../../core/utils/motion.util';
 import { InkwellComponent } from './inkwell/inkwell.component';
 import { flyInkDrops } from './ink-burst.util';
+import { MaguitoOutfit, SLOT_LABELS, parseWear } from '../../core/components/maguito/maguito-outfit';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-type ShopFilter = 'all' | 'streak' | 'profile';
+type ShopFilter = 'all' | 'streak' | 'profile' | 'maguito';
 const STREAK_ITEMS: ShopItem['item_type'][] = ['streak_shield', 'streak_repair', 'hearts_refill'];
 const PROFILE_ITEMS: ShopItem['item_type'][] = ['profile_frame', 'title', 'theme'];
+const WEAR_ITEMS: ShopItem['item_type'][] = ['maguito_wear'];
 
 @Component({ selector: 'app-tavern', templateUrl: './tavern.component.html', styleUrls: ['./tavern.component.css'] })
 export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -46,8 +48,16 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Tras usar un filtro, las tarjetas que reaparecen no repiten la animación de entrada. */
   filterUsed = false;
   readonly shopFilters: { id: ShopFilter; label: string }[] = [
-    { id: 'all', label: 'Todo' }, { id: 'streak', label: 'Racha y vidas' }, { id: 'profile', label: 'Perfil' }
+    { id: 'all', label: 'Todo' }, { id: 'maguito', label: 'Maguito' }, { id: 'streak', label: 'Racha y vidas' }, { id: 'profile', label: 'Perfil' }
   ];
+  /** Probador: lo que lleva puesto Maguito y lo que se está probando. */
+  currentOutfit: MaguitoOutfit = {};
+  previewOutfit: MaguitoOutfit = {};
+  previewItem: ShopItem | null = null;
+  private pinnedCode: string | null = null;
+  private hoverCode: string | null = null;
+  /** ?filtro=maguito (p. ej. desde "Vestir a Maguito"): se aplica cuando llega el Bazar. */
+  private pendingFilter: ShopFilter | null = null;
   justBought: string | null = null;
   packages: { amount: number; price: string; currency: string }[] = [];
   dailyReward: any = null;
@@ -116,11 +126,17 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
     return (this.account?.subscription?.active ? 'Cambiar a ' : 'Elegir ') + plan.name;
   }
   canBuy(item: ShopItem): boolean { return !item.is_owned || STREAK_ITEMS.includes(item.item_type); }
-  canEquip(item: ShopItem): boolean { return item.is_owned && PROFILE_ITEMS.includes(item.item_type); }
+  canEquip(item: ShopItem): boolean { return item.is_owned && (PROFILE_ITEMS.includes(item.item_type) || this.isWear(item)); }
+  isWear(item: ShopItem): boolean { return WEAR_ITEMS.includes(item.item_type); }
+  wearSlotLabel(item: ShopItem): string { const wear = parseWear(item.value); return wear ? SLOT_LABELS[wear.slot] : ''; }
   missingInk(item: ShopItem): number { return this.isLoggedIn() ? Math.max(0, item.cost_ink - this.inkBalance) : 0; }
   get showShopFilters(): boolean {
-    return this.shopItems.some(i => STREAK_ITEMS.includes(i.item_type)) && this.shopItems.some(i => PROFILE_ITEMS.includes(i.item_type));
+    const groups = [STREAK_ITEMS, PROFILE_ITEMS, WEAR_ITEMS].filter(group => this.shopItems.some(i => group.includes(i.item_type)));
+    return groups.length >= 2;
   }
+  get hasWearables(): boolean { return this.shopItems.some(i => this.isWear(i)); }
+  /** El probador se muestra con la ropa a la vista: en "Todo" y en "Maguito". */
+  get showFitting(): boolean { return this.hasWearables && (this.shopFilter === 'all' || this.shopFilter === 'maguito'); }
   /** Nombre para la View Transition de cada tarjeta del Bazar (debe ser un identificador CSS). */
   vtName(item: ShopItem): string { return 'tv-item-' + item.code.replace(/[^a-zA-Z0-9_-]/g, '-'); }
   unitPrice(pack: { amount: number; price: string }): string {
@@ -132,6 +148,7 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   trackPack = (_: number, pack: { amount: number }) => pack.amount;
 
   ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.get('filtro') === 'maguito') this.pendingFilter = 'maguito';
     this.subscriptions.plans().pipe(takeUntil(this.destroy$)).subscribe({ next: v => { this.plans = v; this.loading = false; }, error: () => { this.loading = false; this.error = 'No pudimos cargar los planes. Intenta de nuevo.'; } });
     this.api.get<any[]>('finance/ink-packages/').pipe(takeUntil(this.destroy$)).subscribe({ next: v => this.packages = v, error: () => {} });
     if (this.isLoggedIn()) {
@@ -178,7 +195,7 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
     document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
   }
   choosePlan(plan: SubscriptionPlan): void {
-    if (!this.isLoggedIn()) { this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern' } }); return; }
+    if (!this.isLoggedIn()) { this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern/tienda' } }); return; }
     if (this.busy) return;
     this.busy = true;
     const request = this.account?.subscription?.active ? this.subscriptions.manage('change', plan.code) : this.subscriptions.subscribe(plan.code);
@@ -199,7 +216,19 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   loadShop(): void {
     this.loadingShop = true;
     this.learning.getShopItems().pipe(takeUntil(this.destroy$)).subscribe({
-      next: v => { this.shopItems = v; this.applyShopFilter(); this.loadingShop = false; },
+      next: v => {
+        this.shopItems = v;
+        this.currentOutfit = this.equippedOutfit(v);
+        if (this.pendingFilter && this.hasWearables) {
+          this.shopFilter = this.pendingFilter;
+          this.pendingFilter = null;
+          // Salto directo (sin animación): la página recién se abrió para esto.
+          setTimeout(() => document.getElementById('bazar-title')?.scrollIntoView({ block: 'start' }));
+        }
+        this.applyShopFilter();
+        this.updatePreview();
+        this.loadingShop = false;
+      },
       error: () => { this.loadingShop = false; this.shopError = 'El Bazar no está disponible en este momento.'; }
     });
   }
@@ -221,6 +250,7 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
     this.learning.buyShopItem(item.code).subscribe({
       next: value => {
         this.busy = false; this.markBought(item.code);
+        if (this.isWear(item)) { this.pinnedCode = null; this.hoverCode = null; }
         this.notification.success(value.message || 'Artículo adquirido.', 'Bazar'); this.refreshAccount(); this.loadShop();
       },
       error: err => this.operationError(err)
@@ -228,6 +258,50 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   equipShopItem(item: ShopItem): void {
     this.learning.equipShopItem(item.code).subscribe({ next: value => { this.notification.success(value.message || 'Artículo equipado.', 'Bazar'); this.chat.notifyProfileUpdate(); this.loadShop(); }, error: err => this.operationError(err) });
+  }
+  /** Quita la prenda: ese espacio vuelve a lo de siempre (sombrero de mago, lentes redondos…). */
+  unequipWear(item: ShopItem): void {
+    const wear = parseWear(item.value);
+    if (!wear || this.busy) return;
+    this.busy = true;
+    this.learning.unequipShopSlot(wear.slot).subscribe({
+      next: value => { this.busy = false; this.notification.success(value.message || 'Accesorio guardado.', 'Bazar'); this.loadShop(); },
+      error: err => this.operationError(err)
+    });
+  }
+
+  // ── Probador ──────────────────────────────────────────────
+  /** "Probar": deja la prenda puesta en el probador hasta elegir otra o restablecer. */
+  tryOn(item: ShopItem): void {
+    this.pinnedCode = this.pinnedCode === item.code ? null : item.code;
+    this.updatePreview();
+  }
+  isTrying(item: ShopItem): boolean { return this.pinnedCode === item.code; }
+  /** Pasar el mouse o el foco por una prenda la muestra mientras tanto. */
+  peek(item: ShopItem | null): void {
+    const code = item && this.isWear(item) ? item.code : null;
+    if (code === this.hoverCode) return;
+    this.hoverCode = code;
+    this.updatePreview();
+  }
+  resetPreview(): void {
+    this.pinnedCode = null;
+    this.hoverCode = null;
+    this.updatePreview();
+  }
+  private updatePreview(): void {
+    const code = this.hoverCode ?? this.pinnedCode;
+    this.previewItem = code ? this.shopItems.find(i => i.code === code) ?? null : null;
+    const wear = this.previewItem ? parseWear(this.previewItem.value) : null;
+    this.previewOutfit = wear ? { ...this.currentOutfit, [wear.slot]: wear.variant } : this.currentOutfit;
+  }
+  private equippedOutfit(items: ShopItem[]): MaguitoOutfit {
+    const outfit: MaguitoOutfit = {};
+    for (const item of items) {
+      const wear = item.is_equipped && this.isWear(item) ? parseWear(item.value) : null;
+      if (wear) outfit[wear.slot] = wear.variant;
+    }
+    return outfit;
   }
   buyInk(amount: number): void { this.router.navigate(this.isLoggedIn() ? ['/checkout', 'ink', amount] : ['/login']); }
   loadReward(): void { this.rewards.getDailyRewardStatus().subscribe({ next: v => this.dailyReward = v, error: () => {} }); }
@@ -264,7 +338,8 @@ export class TavernComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
   private applyShopFilter(): void {
-    const group = this.shopFilter === 'streak' ? STREAK_ITEMS : this.shopFilter === 'profile' ? PROFILE_ITEMS : null;
+    const groups: Partial<Record<ShopFilter, ShopItem['item_type'][]>> = { streak: STREAK_ITEMS, profile: PROFILE_ITEMS, maguito: WEAR_ITEMS };
+    const group = groups[this.shopFilter] ?? null;
     this.visibleShopItems = group ? this.shopItems.filter(i => group.includes(i.item_type)) : this.shopItems;
   }
   private markBought(code: string): void {

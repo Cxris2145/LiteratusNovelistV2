@@ -10,6 +10,8 @@ import { BookListComponent } from './catalog/book-list/book-list.component';
 import { BookDetailPageComponent } from './catalog/book-detail-page/book-detail-page.component';
 import { ReaderComponent } from './library/reader/reader.component';
 import { TavernComponent } from './library/tavern/tavern.component';
+import { TavernHallComponent } from './community/tavern-hall/tavern-hall.component';
+import { FriendProfileComponent } from './community/friend-profile/friend-profile.component';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
 import { AuthorDetailPageComponent } from './catalog/author-detail-page/author-detail-page.component';
@@ -48,7 +50,10 @@ const routes: Routes = [
   { path: 'interrogatorio', redirectTo: 'games/interrogatorio', pathMatch: 'full' },
   { path: 'messages', component: MessagesComponent },
   { path: 'cart', component: CartComponent },
-  { path: 'tavern', component: TavernComponent },
+  // La Taberna: la comunidad en /tavern; planes, Bazar y Tinta en su Tienda.
+  { path: 'tavern', component: TavernHallComponent },
+  { path: 'tavern/tienda', component: TavernComponent },
+  { path: 'tavern/amigo/:code', component: FriendProfileComponent, canActivate: [authGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'onboarding', component: OnboardingComponent, canActivate: [onboardingGuard] },

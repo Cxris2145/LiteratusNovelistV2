@@ -1,0 +1,47 @@
+<section class="th-panel rk" aria-labelledby="rk-title">
+  <div class="th-panel-title">
+    <h2 id="rk-title">Ranking de la Taberna</h2>
+    <span class="material-symbols-rounded rk-info" tabindex="0" role="img"
+          aria-label="Puntos de experiencia ganados leyendo, en La Senda y en los juegos. La semana se reinicia el lunes."
+          title="Puntos de experiencia ganados leyendo, en La Senda y en los juegos. La semana se reinicia el lunes.">info</span>
+  </div>
+
+  <div class="rk-tabs" role="tablist" aria-label="Periodo del ranking">
+    <button #tab *ngFor="let option of scopes; let i = index" type="button" role="tab"
+            [attr.aria-selected]="option.id === scope" [attr.tabindex]="option.id === scope ? 0 : -1"
+            [class.is-active]="option.id === scope" (click)="select(option.id)" (keydown)="onTabKey($event, i)">
+      {{ option.label }}
+    </button>
+  </div>
+
+  <div role="tabpanel" class="rk-panel" [attr.aria-busy]="loading">
+    <p class="th-empty" *ngIf="!ranking" role="status">Contando puntos…</p>
+
+    <ng-container *ngIf="ranking">
+      <ol class="rk-list" [class.is-loading]="loading">
+        <li *ngFor="let entry of ranking.entries; trackBy: trackEntry" class="rk-row" [class.is-me]="entry.is_me">
+          <span class="rk-rank" [ngClass]="medal(entry.rank) || ''">
+            <span *ngIf="entry.rank === 1" class="material-symbols-rounded" aria-hidden="true">crown</span>
+            <span [class.sr-only]="entry.rank === 1">{{ entry.rank }}</span>
+          </span>
+          <app-maguito class="rk-avatar" crop="bust" [outfit]="entry.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false"></app-maguito>
+          <span class="rk-name">{{ entry.is_me ? entry.username + ' (tú)' : entry.username }}</span>
+          <span class="rk-points"><span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>{{ points(entry.points) }}</span>
+        </li>
+        <li *ngIf="myRowOutside as me" class="rk-row is-me is-outside">
+          <span class="rk-rank">{{ me.rank }}</span>
+          <app-maguito class="rk-avatar" crop="bust" [outfit]="me.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false"></app-maguito>
+          <span class="rk-name">{{ me.username }} (tú)</span>
+          <span class="rk-points"><span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>{{ points(me.points) }}</span>
+        </li>
+      </ol>
+
+      <p class="th-empty rk-hint" *ngIf="ranking.participants <= 1">Agrega amigos para competir con ellos.</p>
+      <p class="th-empty rk-hint" *ngIf="ranking.participants > 1 && nobodyScored && scope !== 'all'">
+        Aún nadie suma puntos {{ scope === 'week' ? 'esta semana' : 'este mes' }}. ¡Lee un capítulo y toma la delantera!
+      </p>
+    </ng-container>
+  </div>
+</section>

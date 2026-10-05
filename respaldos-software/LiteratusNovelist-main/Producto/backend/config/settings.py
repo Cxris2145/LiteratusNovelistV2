@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'library.apps.LibraryConfig',
     'ai_engine.apps.AiEngineConfig',
     'learning.apps.LearningConfig',
+    'community.apps.CommunityConfig',
     'dashboard',
 ]
 
@@ -211,6 +212,11 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    # ── Límites por vista (ScopedRateThrottle): solo La Taberna los usa ───────
+    'DEFAULT_THROTTLE_RATES': {
+        'community_search': '30/min',
+        'community_write': '60/hour',
+    },
 }
 
 # ---------------------------------------------------------------------------

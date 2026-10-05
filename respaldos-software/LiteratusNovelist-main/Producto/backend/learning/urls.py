@@ -18,6 +18,7 @@ from .views import (
     ShopListView,
     ShopBuyView,
     ShopEquipView,
+    ShopUnequipView,
     LearningStatsView
 )
 
@@ -45,6 +46,7 @@ urlpatterns = [
     path('shop/', ShopListView.as_view(), name='learning-shop'),
     path('shop/buy/', ShopBuyView.as_view(), name='learning-shop-buy'),
     path('shop/equip/', ShopEquipView.as_view(), name='learning-shop-equip'),
+    path('shop/unequip/', ShopUnequipView.as_view(), name='learning-shop-unequip'),
 
     # Estadísticas de comprensión
     path('stats/', LearningStatsView.as_view(), name='learning-stats'),

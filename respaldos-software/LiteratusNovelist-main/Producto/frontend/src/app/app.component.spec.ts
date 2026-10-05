@@ -71,12 +71,12 @@ describe('AppComponent navigation', () => {
     expect(component.globalSearchTerm).toBe('');
   });
 
-  it('navega a /tavern al abrir la taberna', () => {
+  it('el contador de Tinta abre la Tienda de la Taberna', () => {
     const router = TestBed.inject(Router);
     spyOn(router, 'navigate');
 
     component.openTavern();
-    expect(router.navigate).toHaveBeenCalledWith(['/tavern']);
+    expect(router.navigate).toHaveBeenCalledWith(['/tavern/tienda']);
   });
 
   it('calcula las iniciales del usuario correctamente', () => {

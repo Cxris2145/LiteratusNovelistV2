@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthService, userStorageKey } from '../../core/services/auth.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -112,7 +112,7 @@ export class CartComponent implements OnInit {
 
   loadCart(): void {
     try {
-      const raw = localStorage.getItem('literatus_cart');
+      const raw = localStorage.getItem(userStorageKey('literatus_cart'));
       this.cartItems = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(this.cartItems)) this.cartItems = [];
     } catch {
@@ -123,7 +123,7 @@ export class CartComponent implements OnInit {
 
   saveCart(): void {
     try {
-      localStorage.setItem('literatus_cart', JSON.stringify(this.cartItems));
+      localStorage.setItem(userStorageKey('literatus_cart'), JSON.stringify(this.cartItems));
       this.syncCartCount();
       window.dispatchEvent(new Event('literatus-cart-updated'));
     } catch (e) {

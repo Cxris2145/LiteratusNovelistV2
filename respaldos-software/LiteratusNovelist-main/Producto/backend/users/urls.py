@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import (
 from .views import (
     MyTokenObtainPairView, RegisterUserView, UserMeView, ProfileView, 
     AddInkView, SpendInkView, VerifyEmailView, PasswordResetRequestView, PasswordResetConfirmView,
-    OnboardingView
+    OnboardingView, ResendVerificationView
 )
 
 urlpatterns = [
@@ -29,6 +29,7 @@ urlpatterns = [
     
     # ---- Correos (Verificación y Password Reset) ----
     path('verify-email/', VerifyEmailView.as_view(), name='verify_email'),
+    path('verify-email/resend/', ResendVerificationView.as_view(), name='verify_email_resend'),
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 ]

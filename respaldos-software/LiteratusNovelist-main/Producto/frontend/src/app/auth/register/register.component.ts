@@ -2,6 +2,13 @@ import { Component, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
+
+interface RegisterResponse {
+  email: string;
+  requires_verification: boolean;
+  message: string;
+}
 
 @Component({
   selector: 'app-register',
@@ -12,6 +19,9 @@ export class RegisterComponent {
   registerForm: FormGroup;
   errorMsg = '';
   successMsg = '';
+  /** Correo al que se envió el enlace de activación; con él se oculta el formulario. */
+  pendingEmail: string | null = null;
+  isResending = false;
   isLoading = false;
   showPassword = false;
   showConfirmPassword = false;
@@ -26,6 +36,7 @@ export class RegisterComponent {
 
   private fb = inject(FormBuilder);
   private api = inject(ApiService);
+  private auth = inject(AuthService);
   private router = inject(Router);
 
   constructor() {
@@ -65,13 +76,19 @@ export class RegisterComponent {
     this.successMsg = '';
 
     const payload = {
-      username: this.registerForm.value.username,
-      email: this.registerForm.value.email,
+      username: this.registerForm.value.username.trim(),
+      email: this.registerForm.value.email.trim(),
       password: this.registerForm.value.password
     };
 
-    this.api.post('users/register/', payload).subscribe({
-      next: () => {
+    this.api.post<RegisterResponse>('users/register/', payload).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        if (res.requires_verification) {
+          this.pendingEmail = res.email;
+          this.successMsg = `${res.message} Ábrelo para activar tu cuenta y luego inicia sesión.`;
+          return;
+        }
         this.successMsg = '¡Cuenta creada con éxito! Redirigiendo al login...';
         setTimeout(() => {
           this.router.navigate(['/login']);
@@ -79,14 +96,37 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        // Se extrae el mensaje de error del backend de ser posible
-        if (err.error && typeof err.error === 'object') {
-          const errors = Object.values(err.error).flat();
-          this.errorMsg = errors.join(' ');
-        } else {
-          this.errorMsg = 'Ha ocurrido un error durante el registro. Inténtalo de nuevo.';
-        }
+        this.errorMsg = this.describeError(err);
       }
     });
+  }
+
+  resendVerification() {
+    if (!this.pendingEmail || this.isResending) return;
+    this.isResending = true;
+    this.auth.resendVerification(this.pendingEmail).subscribe({
+      next: (res: any) => {
+        this.isResending = false;
+        this.successMsg = res.message;
+      },
+      error: () => {
+        this.isResending = false;
+        this.errorMsg = 'No pudimos reenviar el enlace. Inténtalo de nuevo en unos minutos.';
+      }
+    });
+  }
+
+  private describeError(err: any): string {
+    if (err.status === 0) {
+      return 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.';
+    }
+    const body = err.error;
+    if (body && typeof body === 'object') {
+      if (typeof body.message === 'string') return body.message;
+      // Errores por campo de DRF: { username: [...], email: [...], password: [...] }
+      const messages = Object.values(body).flat().filter(m => typeof m === 'string');
+      if (messages.length) return messages.join(' ');
+    }
+    return 'Ha ocurrido un error durante el registro. Inténtalo de nuevo.';
   }
 }

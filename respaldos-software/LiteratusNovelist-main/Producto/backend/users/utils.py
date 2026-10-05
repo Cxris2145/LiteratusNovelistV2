@@ -25,6 +25,11 @@ email_verification_token = EmailVerificationTokenGenerator()
 # Mantener default_token_generator para reset de contraseña
 from django.contrib.auth.tokens import default_token_generator
 
+
+def email_is_configured():
+    """Hay forma de enviar correos: una clave (Resend o SMTP) o un backend que no sea SMTP (tests, consola)."""
+    return bool(settings.EMAIL_HOST_PASSWORD) or settings.EMAIL_BACKEND != 'django.core.mail.backends.smtp.EmailBackend'
+
 def send_mail_via_resend_api(subject, message, from_email, recipient_list, html_message=None):
     """
     Envía correo usando la API REST de Resend para evitar bloqueos de puertos SMTP (465/587) en Render.

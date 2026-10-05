@@ -3,6 +3,8 @@ import {
   OnChanges, OnDestroy, Output, SimpleChanges, inject,
 } from '@angular/core';
 
+import { MaguitoLook, MaguitoOutfit, resolveOutfit } from './maguito-outfit';
+
 /**
  * Estados de Maguito:
  * - idle: respira, parpadea, mira alrededor (o sigue al puntero) y el sombrero lo acompaña.
@@ -31,8 +33,8 @@ const GAZE: Partial<Record<ShownState, { x: number; y: number }>> = {
   success: { x: 0, y: -0.2 },
 };
 
-const DEF_NAMES = ['aura', 'band', 'body', 'body-shade', 'brim', 'brim-under', 'cape', 'eye-l', 'eye-r',
-  'feather', 'glow', 'hat', 'hat-glow', 'iris', 'lid', 'limb', 'nib', 'sclera', 'spark', 'star'];
+const DEF_NAMES = ['aura', 'band', 'beard', 'body', 'body-shade', 'brim', 'brim-under', 'cape', 'crown', 'eye-l', 'eye-r',
+  'feather', 'glow', 'hat', 'hat-glow', 'iris', 'lid', 'limb', 'nib', 'scarf', 'sclera', 'spark', 'star', 'tophat'];
 
 /**
  * Maguito, la mascota de Literatus, dibujado en SVG por capas y animado por partes:
@@ -55,6 +57,7 @@ const DEF_NAMES = ['aura', 'band', 'body', 'body-shade', 'brim', 'brim-under', '
     '[class.mg-with-aura]': 'aura',
     '[class.mg-crop-bust]': "crop === 'bust'",
     '[class.mg-calm]': 'calm',
+    '[attr.data-cape]': 'look.cape',
     '(click)': 'poke()',
   },
 })
@@ -83,6 +86,11 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
    * que están siempre a la vista (la burbuja del asistente en todas las páginas).
    */
   @Input() calm = false;
+  /** Accesorios comprados en El Bazar. Sin outfit lleva el atuendo de siempre. */
+  @Input() outfit: MaguitoOutfit | null | undefined = null;
+
+  /** El outfit ya resuelto: cada espacio con una variante que este componente sabe dibujar. */
+  look: MaguitoLook = resolveOutfit(null);
 
   get viewBox(): string {
     return this.crop === 'bust' ? '98 70 250 250' : '0 0 400 380';
@@ -124,6 +132,8 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // Antes del primer render también: el primer ngOnChanges llega sin vista.
+    if (changes['outfit']) this.look = resolveOutfit(this.outfit);
     if (!this.viewReady) return;
     if (changes['state']) this.show(this.state);
     if (changes['paused']) this.updateRunning();

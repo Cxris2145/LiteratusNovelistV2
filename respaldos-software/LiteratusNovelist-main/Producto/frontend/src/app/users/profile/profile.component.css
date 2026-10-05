@@ -433,3 +433,40 @@ label {
   border-radius: 50%;
   box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
 }
+
+/* ── La Taberna: frase, código de amigo y Maguito ── */
+.field-count { margin: 6px 0 0; }
+.tavern-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 25px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--color-warning) 45%, transparent);
+  background: color-mix(in srgb, var(--color-surface-elevated, #1E3050) 60%, transparent);
+}
+.tavern-identity-maguito {
+  width: 84px;
+  height: 84px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--color-warning) 22%, transparent), transparent 72%);
+  border: 2px solid color-mix(in srgb, var(--color-warning) 55%, transparent);
+}
+.tavern-identity-maguito app-maguito { width: 100%; }
+.tavern-identity-copy { display: grid; gap: 4px; min-width: 0; }
+.tavern-identity-copy .field-hint { margin: 0; }
+.tavern-code {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 1.2rem;
+  letter-spacing: .12em;
+  color: var(--color-warning);
+}
+.tavern-identity-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.tavern-identity-actions a { text-decoration: none; }
+@media (max-width: 520px) {
+  .tavern-identity { flex-direction: column; text-align: center; }
+  .tavern-identity-actions { justify-content: center; }
+}

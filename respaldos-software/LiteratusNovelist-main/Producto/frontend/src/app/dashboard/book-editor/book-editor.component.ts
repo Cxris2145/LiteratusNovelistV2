@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DashboardBooksService } from '../services/dashboard-books.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { userStorageKey } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-book-editor',
@@ -257,7 +258,7 @@ export class BookEditorComponent implements OnInit {
       this.pdfFile || undefined
     ).subscribe({
       next: () => {
-        localStorage.removeItem('book_editor_draft');
+        localStorage.removeItem(userStorageKey('book_editor_draft'));
         this.notificationService.success('¡Libro guardado con éxito!', 'Editor de Libros');
         this.router.navigate(['/dashboard/books']);
       },
@@ -274,12 +275,12 @@ export class BookEditorComponent implements OnInit {
       chapters: this.chapters,
       timestamp: new Date().getTime()
     };
-    localStorage.setItem('book_editor_draft', JSON.stringify(draft));
+    localStorage.setItem(userStorageKey('book_editor_draft'), JSON.stringify(draft));
     console.log('Borrador guardado localmente');
   }
 
   loadDraft(): void {
-    const raw = localStorage.getItem('book_editor_draft');
+    const raw = localStorage.getItem(userStorageKey('book_editor_draft'));
     if (raw) {
       const draft = JSON.parse(raw);
       // Solo cargar si es reciente (menos de 24h)

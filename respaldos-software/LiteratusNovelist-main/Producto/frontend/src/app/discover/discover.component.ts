@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
-import { AuthService } from '../core/services/auth.service';
+import { AuthService, userStorageKey } from '../core/services/auth.service';
 import { coverThumb } from '../core/utils/cover-thumb.util';
 
 /* ────────────────────────────────────────────────────────────────────
@@ -243,7 +243,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
   private loadSaved(): void {
     try {
-      const raw = localStorage.getItem('discover_saved');
+      const raw = localStorage.getItem(userStorageKey('discover_saved'));
       if (raw) {
         const ids = JSON.parse(raw);
         this.savedIds = new Set(ids);
@@ -254,7 +254,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   }
 
   private persistSaved(): void {
-    localStorage.setItem('discover_saved', JSON.stringify([...this.savedIds]));
+    localStorage.setItem(userStorageKey('discover_saved'), JSON.stringify([...this.savedIds]));
   }
 
   /* ═══════════════════════════════════════════════════════════════════

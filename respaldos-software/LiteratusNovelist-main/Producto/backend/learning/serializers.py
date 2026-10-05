@@ -13,6 +13,7 @@ from .models import (
     UserInventoryItem
 )
 from . import games
+from .wearables import parse_wear_value
 
 
 class LearningLevelListSerializer(serializers.ModelSerializer):
@@ -188,22 +189,50 @@ class ShopItemSerializer(serializers.ModelSerializer):
             'is_owned', 'is_equipped', 'quantity'
         ]
 
+    """
+    El listado (ShopListView) pasa en el contexto `inventory` ({item_id: UserInventoryItem}) y
+    `profile`, cargados una vez: sin eso cada artículo hacía tres consultas.
+    """
+
+    def _user(self):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        return user if user and user.is_authenticated else None
+
+    def _inventory_item(self, obj):
+        if 'inventory' in self.context:
+            return self.context['inventory'].get(obj.id)
+        user = self._user()
+        return UserInventoryItem.objects.filter(user=user, item=obj).first() if user else None
+
+    def _profile(self):
+        if 'profile' not in self.context:
+            from users.models import Profile
+            user = self._user()
+            self.context['profile'] = Profile.objects.filter(user=user).first() if user else None
+        return self.context['profile']
+
     def get_is_owned(self, obj):
-        user = self.context.get('request').user if 'request' in self.context else None
-        if not user or not user.is_authenticated:
-            return False
-        return UserInventoryItem.objects.filter(user=user, item=obj, quantity__gt=0).exists()
+        inv = self._inventory_item(obj)
+        return bool(inv and inv.quantity > 0)
 
     def get_is_equipped(self, obj):
-        user = self.context.get('request').user if 'request' in self.context else None
-        if not user or not user.is_authenticated:
+        """Lo equipado vive en el perfil (UserInventoryItem.is_equipped no se usa)."""
+        profile = self._profile()
+        if profile is None or not self.get_is_owned(obj):
             return False
-        inv = UserInventoryItem.objects.filter(user=user, item=obj).first()
-        return inv.is_equipped if inv else False
+        Type = ShopItem.ItemType
+        if obj.item_type == Type.MAGUITO_WEAR:
+            wear = parse_wear_value(obj.value)
+            return bool(wear) and (profile.outfit or {}).get(wear[0]) == wear[1]
+        if obj.item_type == Type.PROFILE_FRAME:
+            return profile.equipped_frame == (obj.value or obj.code)
+        if obj.item_type == Type.TITLE:
+            return profile.equipped_title == obj.name
+        if obj.item_type == Type.THEME:
+            return profile.theme == (obj.value or obj.code)
+        return False
 
     def get_quantity(self, obj):
-        user = self.context.get('request').user if 'request' in self.context else None
-        if not user or not user.is_authenticated:
-            return 0
-        inv = UserInventoryItem.objects.filter(user=user, item=obj).first()
+        inv = self._inventory_item(obj)
         return inv.quantity if inv else 0

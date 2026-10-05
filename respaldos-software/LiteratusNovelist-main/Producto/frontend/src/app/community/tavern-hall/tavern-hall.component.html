@@ -1,0 +1,90 @@
+<main class="th-hall">
+  <header class="th-hero">
+    <div class="th-hero-copy">
+      <h1 class="th-title">
+        <span class="material-symbols-rounded th-title-icon" aria-hidden="true">sports_bar</span>
+        La Taberna de Tinta
+      </h1>
+      <p class="th-lead">Donde las historias nos reúnen.</p>
+      <p class="th-text">Sienta a tus amigos a tu mesa, brinda por sus lecturas y compite leyendo. Cada Maguito viste lo que su dueño eligió en la Tienda.</p>
+
+      <div class="th-actions" *ngIf="loggedIn; else visitorActions">
+        <button type="button" class="th-btn" (click)="openAddFriend()">
+          <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Agregar amigo
+        </button>
+        <a class="th-btn secondary" routerLink="/profile">
+          <span class="material-symbols-rounded" aria-hidden="true">edit</span>Editar perfil
+        </a>
+        <a class="th-btn secondary" routerLink="/tavern/tienda">
+          <span class="material-symbols-rounded" aria-hidden="true">storefront</span>Tienda
+        </a>
+      </div>
+      <ng-template #visitorActions>
+        <div class="th-actions">
+          <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
+            <span class="material-symbols-rounded" aria-hidden="true">login</span>Entra con tu Maguito
+          </a>
+          <a class="th-btn secondary" routerLink="/register">Crear cuenta</a>
+          <a class="th-btn secondary" routerLink="/tavern/tienda">
+            <span class="material-symbols-rounded" aria-hidden="true">storefront</span>Visitar la Tienda
+          </a>
+        </div>
+      </ng-template>
+    </div>
+
+    <figure class="th-note" aria-hidden="true">
+      <span class="material-symbols-rounded">ink_pen</span>
+      <blockquote>Aquí las historias también se viven juntos.</blockquote>
+    </figure>
+  </header>
+
+  <p class="th-error" role="alert" *ngIf="error">
+    {{ error }}
+    <button type="button" class="th-btn ghost" (click)="loadAll()">Reintentar</button>
+  </p>
+
+  <div class="th-layout" *ngIf="loggedIn; else visitor">
+    <app-tavern-scene class="area-scene" [me]="sceneMe" [guests]="sceneGuests"></app-tavern-scene>
+
+    <app-profile-card class="area-profile" [card]="me" [mine]="true" [crowned]="weeklyLeader"></app-profile-card>
+
+    <div class="area-side">
+      <app-friend-list
+        [friends]="friends"
+        [incoming]="incoming"
+        [outgoing]="outgoing"
+        [loading]="loading"
+        [busy]="busy"
+        (accept)="accept($event)"
+        (decline)="decline($event)"
+        (cancel)="cancel($event)"
+        (toggleBrindis)="toggleBrindis($event)"
+        (remove)="remove($event)"
+        (addFriend)="openAddFriend()">
+      </app-friend-list>
+
+      <app-tavern-ranking
+        [ranking]="ranking"
+        [scope]="scope"
+        [loading]="rankingLoading"
+        (scopeChange)="changeScope($event)">
+      </app-tavern-ranking>
+    </div>
+  </div>
+
+  <ng-template #visitor>
+    <div class="th-visitor">
+      <app-tavern-scene [me]="demoMe" [guests]="demoGuests" [demo]="true"></app-tavern-scene>
+      <section class="th-panel th-visitor-copy">
+        <h2>Tu mesa te espera</h2>
+        <ul>
+          <li><span class="material-symbols-rounded" aria-hidden="true">badge</span>Recibe tu código de amigo y comparte tu perfil.</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>Brinda por las lecturas de tus amigos.</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">emoji_events</span>Compite en el ranking semanal leyendo.</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Viste a tu Maguito con corona, barba o monóculo.</li>
+        </ul>
+        <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">Entra con tu Maguito</a>
+      </section>
+    </div>
+  </ng-template>
+</main>

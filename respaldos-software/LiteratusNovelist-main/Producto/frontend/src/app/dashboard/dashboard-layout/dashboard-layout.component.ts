@@ -188,7 +188,6 @@ export class DashboardLayoutComponent implements OnInit {
   }
 
   logout(): void {
-    this.auth.clearTokens();
-    this.router.navigate(['/']);
+    this.auth.logout('/');
   }
 }

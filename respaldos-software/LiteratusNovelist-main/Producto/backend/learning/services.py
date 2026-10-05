@@ -23,6 +23,15 @@ from .models import (
 )
 from . import games
 from .content.builder import build_skip_test
+from .wearables import WEAR_SLOTS, parse_wear_value
+
+# Cosméticos: se compran una sola vez (los consumibles se pueden recomprar).
+ONE_TIME_ITEM_TYPES = {
+    ShopItem.ItemType.PROFILE_FRAME,
+    ShopItem.ItemType.TITLE,
+    ShopItem.ItemType.THEME,
+    ShopItem.ItemType.MAGUITO_WEAR,
+}
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +115,8 @@ def ensure_streak(user, activity_type: str = 'quiz_passed') -> dict:
         log.levels_completed += 1
     elif activity_type == 'chapter_read':
         log.chapters_read += 1
-    log.save()
+    # Solo estos campos: xp_earned/ink_earned los suma reward_activity con F() y no deben pisarse.
+    log.save(update_fields=['chapters_read', 'levels_completed', 'updated_at'])
 
     # Caso 1: Ya validada hoy
     if profile.streak_last_date == today:
@@ -654,6 +664,17 @@ def purchase_shop_item(user, item_code: str) -> dict:
     if item.item_type == ShopItem.ItemType.STREAK_SHIELD and profile.streak_shields >= 2:
         return {'success': False, 'error': 'MAX_SHIELDS', 'message': 'Ya tienes el máximo de 2 escudos protectores.'}
 
+    # Los cosméticos se compran una vez; volver a pagarlos no da nada nuevo.
+    if (item.item_type in ONE_TIME_ITEM_TYPES
+            and UserInventoryItem.objects.filter(user=user, item=item, quantity__gt=0).exists()):
+        return {'success': False, 'error': 'ALREADY_OWNED', 'message': 'Ya tienes este artículo en tu inventario.'}
+
+    wear = None
+    if item.item_type == ShopItem.ItemType.MAGUITO_WEAR:
+        wear = parse_wear_value(item.value)
+        if wear is None:
+            return {'success': False, 'error': 'ITEM_NOT_FOUND', 'message': 'Artículo no disponible en El Bazar.'}
+
     # Descontar Tinta
     profile.ink_balance -= item.cost_ink
     profile.save(update_fields=['ink_balance'])
@@ -694,6 +715,12 @@ def purchase_shop_item(user, item_code: str) -> dict:
         inv.quantity += 1
         inv.save(update_fields=['quantity'])
 
+    # La ropa de Maguito se pone al comprarla: el usuario ya se la probó en el probador.
+    if wear is not None:
+        slot, variant = wear
+        profile.outfit = {**(profile.outfit or {}), slot: variant}
+        profile.save(update_fields=['outfit'])
+
     return {
         'success': True,
         'item_name': item.name,
@@ -701,7 +728,8 @@ def purchase_shop_item(user, item_code: str) -> dict:
         'ink_balance': profile.ink_balance,
         'streak_shields': profile.streak_shields,
         'hearts': profile.hearts,
-        'message': f'¡Has adquirido "{item.name}" con éxito!'
+        'outfit': profile.outfit or {},
+        'message': f'¡Has adquirido "{item.name}" con éxito!' + (' Tu Maguito ya lo lleva puesto.' if wear else '')
     }
 
 
@@ -729,10 +757,32 @@ def equip_cosmetic_item(user, item_code: str) -> dict:
         profile.theme = item.value or item.code
         profile.save(update_fields=['theme'])
 
+    elif item.item_type == ShopItem.ItemType.MAGUITO_WEAR:
+        wear = parse_wear_value(item.value)
+        if wear is None:
+            return {'success': False, 'error': 'ITEM_NOT_FOUND', 'message': 'Este accesorio ya no está disponible.'}
+        slot, variant = wear
+        profile.outfit = {**(profile.outfit or {}), slot: variant}
+        profile.save(update_fields=['outfit'])
+
     return {
         'success': True,
         'message': f'Has equipado "{item.name}" correctamente.',
         'equipped_frame': profile.equipped_frame,
         'equipped_title': profile.equipped_title,
-        'theme': profile.theme
+        'theme': profile.theme,
+        'outfit': profile.outfit or {},
     }
+
+
+@transaction.atomic
+def unequip_wearable(user, slot: str) -> dict:
+    """Quita el accesorio de un espacio: Maguito vuelve a llevar lo de siempre ahí."""
+    if slot not in WEAR_SLOTS:
+        return {'success': False, 'error': 'INVALID_SLOT', 'message': 'Ese espacio de vestuario no existe.'}
+    profile = Profile.objects.select_for_update().get(user=user)
+    outfit = dict(profile.outfit or {})
+    outfit.pop(slot, None)
+    profile.outfit = outfit
+    profile.save(update_fields=['outfit'])
+    return {'success': True, 'message': 'Accesorio guardado en el baúl.', 'outfit': outfit}

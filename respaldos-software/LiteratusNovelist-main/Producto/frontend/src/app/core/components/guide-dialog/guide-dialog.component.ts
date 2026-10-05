@@ -74,7 +74,7 @@ export class GuideDialogComponent {
       description: 'Sumérgete en debates únicos con los protagonistas y autores de las obras.',
       points: [
         { icon: 'forum', text: 'Chatea o habla por voz con Don Quijote, Sherlock Holmes y más.' },
-        { icon: 'local_bar', text: 'Visita La Taberna para recargar Tinta y desbloquear pociones.' },
+        { icon: 'local_bar', text: 'En La Taberna te reúnes con tus amigos; en su Tienda recargas Tinta y vistes a tu Maguito.' },
         { icon: 'mail', text: 'Recibe correspondencia literaria y avisos importantes en tu buzón.' }
       ],
       route: '/characters',

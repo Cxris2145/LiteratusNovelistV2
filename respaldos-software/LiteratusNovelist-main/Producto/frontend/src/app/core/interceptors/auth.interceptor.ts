@@ -45,11 +45,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               return next(retryReq);
             }),
             catchError((refreshErr) => {
-              authService.clearTokens();
-              router.navigate(['/login']);
+              // La sesión venció: logout recarga la app para no dejar en memoria datos de esta cuenta.
+              authService.logout();
               return throwError(() => refreshErr);
             })
           );
+        } else if (token) {
+          authService.logout();
         } else {
           authService.clearTokens();
           router.navigate(['/login']);

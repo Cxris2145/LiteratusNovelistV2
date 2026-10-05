@@ -54,6 +54,8 @@ respaldos-software/books/*/images/
 **/.idea/
 .claude/
 **/.claude/
+.impeccable/
+**/.impeccable/
 *.swp
 *.swo
 *~

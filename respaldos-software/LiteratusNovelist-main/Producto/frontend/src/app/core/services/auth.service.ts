@@ -12,6 +12,27 @@ export interface UserProfile {
   has_completed_onboarding?: boolean;
 }
 
+const USER_KEY = 'user_profile';
+
+/**
+ * Clave de localStorage propia de la cuenta activa (o de la visita sin sesión).
+ * Lo que una cuenta guarda en el navegador (carrito, borradores, partidas) no lo
+ * ve otra cuenta que entre después en el mismo navegador.
+ */
+export function userStorageKey(base: string): string {
+  let owner = 'guest';
+  try {
+    owner = JSON.parse(localStorage.getItem(USER_KEY) || 'null')?.id || 'guest';
+  } catch {
+    // perfil ilegible: se trata como visita
+  }
+  return `${base}:${owner}`;
+}
+
+/** Claves que antes se guardaban sin dueño y cualquier cuenta del navegador podía leer. */
+const LEGACY_SHARED_KEYS = ['literatus_cart', 'discover_saved', 'book_editor_draft', 'user_avatar_color'];
+const LEGACY_SHARED_PREFIXES = ['literatus_daily_enigma_'];
+
 @Injectable({
   providedIn: 'root'
 })
@@ -19,8 +40,9 @@ export class AuthService {
 
   private readonly TOKEN_KEY = 'access_token';
   private readonly REFRESH_KEY = 'refresh_token';
-  private readonly USER_KEY = 'user_profile';
+  private readonly USER_KEY = USER_KEY;
   private readonly FRESH_LOGIN_KEY = 'literatus_fresh_login';
+  private readonly THEME_KEY = 'literatus-theme';
 
   private loggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
   public isLoggedIn$ = this.loggedInSubject.asObservable();
@@ -31,16 +53,24 @@ export class AuthService {
 
   private api = inject(ApiService);
 
-  constructor() {}
+  constructor() {
+    this.dropLegacySharedKeys();
+  }
 
   private hasToken(): boolean {
     return !!localStorage.getItem(this.TOKEN_KEY);
   }
 
   // --- Recuperación y Verificación de Correo ---
-  
+
   verifyEmail(uid: string, token: string): Observable<any> {
     return this.api.post(`users/verify-email/`, { uid, token });
+  }
+
+  /** `identifier` es el correo o el nombre de usuario de una cuenta sin verificar. */
+  resendVerification(identifier: string): Observable<any> {
+    const field = identifier.includes('@') ? 'email' : 'username';
+    return this.api.post(`users/verify-email/resend/`, { [field]: identifier });
   }
 
   requestPasswordReset(email: string): Observable<any> {
@@ -94,6 +124,63 @@ export class AuthService {
     sessionStorage.removeItem(this.FRESH_LOGIN_KEY);
     this.loggedInSubject.next(false);
     this._currentUser.set(null);
+  }
+
+  /**
+   * Guarda la sesión recién iniciada. Devuelve true si en esta pestaña había otra
+   * cuenta cargada: en ese caso hay que recargar la app (ver `logout`).
+   */
+  startSession(access: string, refresh: string, user: UserProfile | null | undefined): boolean {
+    const previous = this._currentUser();
+    const switchedAccount = !!previous && previous.id !== user?.id;
+    void this.clearOfflineApiCache();
+    this.setTokens(access, refresh);
+    this.markFreshLogin();
+    if (user) this.setUser(user);
+    return switchedAccount;
+  }
+
+  /**
+   * Cierra la sesión y recarga la app. Los servicios guardan en memoria datos de la
+   * cuenta (tinta, biblioteca, chats, cachés de la API) y solo una carga limpia
+   * garantiza que la siguiente cuenta no vea nada de la anterior.
+   */
+  logout(redirectTo = '/login'): void {
+    this.clearTokens();
+    localStorage.removeItem(this.THEME_KEY);
+    this.clearOfflineApiCache().finally(() => window.location.assign(redirectTo));
+  }
+
+  /**
+   * Vacía las respuestas de la API que el service worker guarda para leer sin
+   * conexión (dataGroups de ngsw-config.json). Se guardan por URL, sin dueño.
+   */
+  private async clearOfflineApiCache(): Promise<void> {
+    if (typeof caches === 'undefined') return;
+    try {
+      const names = (await caches.keys()).filter(name => name.includes(':data:api-') && name.endsWith(':cache'));
+      await Promise.all(names.map(async name => {
+        const cache = await caches.open(name);
+        const requests = await cache.keys();
+        await Promise.all(requests.map(request => cache.delete(request)));
+      }));
+    } catch {
+      // Sin Cache Storage (modo privado, http sin TLS): no hay nada guardado.
+    }
+  }
+
+  private dropLegacySharedKeys(): void {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (!key || key.includes(':')) continue;
+        if (LEGACY_SHARED_KEYS.includes(key) || LEGACY_SHARED_PREFIXES.some(prefix => key.startsWith(prefix))) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {
+      // Sin localStorage no hay nada que limpiar.
+    }
   }
 
   /**

@@ -14,7 +14,8 @@ from .models import (
     LearningExercise,
     UserLevelProgress,
     UserExerciseAttempt,
-    ShopItem
+    ShopItem,
+    UserInventoryItem
 )
 from .serializers import (
     LearningUnitListSerializer,
@@ -38,7 +39,8 @@ from .services import (
     check_skip_answer,
     submit_skip_test,
     purchase_shop_item,
-    equip_cosmetic_item
+    equip_cosmetic_item,
+    unequip_wearable
 )
 from .ai_generator import ReadingComprehensionAIGenerator
 from .content.builder import build_fallback_exercise
@@ -391,8 +393,16 @@ class ShopListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        from users.models import Profile
+
         items = ShopItem.objects.filter(is_active=True).order_by('sort_order', 'cost_ink')
-        serializer = ShopItemSerializer(items, many=True, context={'request': request})
+        context = {
+            'request': request,
+            'inventory': {inv.item_id: inv for inv in UserInventoryItem.objects.filter(user=request.user)},
+            'profile': Profile.objects.filter(user=request.user)
+                .only('outfit', 'equipped_frame', 'equipped_title', 'theme').first(),
+        }
+        serializer = ShopItemSerializer(items, many=True, context=context)
         return Response(serializer.data)
 
 
@@ -432,6 +442,19 @@ class ShopEquipView(APIView):
         if not result.get('success'):
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         return Response(result, status=status.HTTP_200_OK)
+
+
+class ShopUnequipView(APIView):
+    """
+    POST /api/v1/learning/shop/unequip/
+    Quita el accesorio de Maguito de un espacio (head, eyes, face, neck, cape).
+    Body: { "slot": "head" }
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        result = unequip_wearable(request.user, str(request.data.get('slot', '')))
+        return Response(result, status=status.HTTP_200_OK if result.get('success') else status.HTTP_400_BAD_REQUEST)
 
 
 class LearningStatsView(APIView):

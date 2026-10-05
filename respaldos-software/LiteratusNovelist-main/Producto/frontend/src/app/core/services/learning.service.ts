@@ -107,7 +107,7 @@ export interface ShopItem {
   code: string;
   name: string;
   description: string;
-  item_type: 'streak_shield' | 'streak_repair' | 'hearts_refill' | 'profile_frame' | 'theme' | 'title';
+  item_type: 'streak_shield' | 'streak_repair' | 'hearts_refill' | 'profile_frame' | 'theme' | 'title' | 'maguito_wear';
   cost_ink: number;
   icon: string;
   asset_url: string;
@@ -268,6 +268,11 @@ export class LearningService {
         }
       })
     );
+  }
+
+  /** Quita el accesorio de Maguito de un espacio (head, eyes, face, neck, cape). */
+  unequipShopSlot(slot: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}shop/unequip/`, { slot });
   }
 
   getStats(): Observable<any> {
