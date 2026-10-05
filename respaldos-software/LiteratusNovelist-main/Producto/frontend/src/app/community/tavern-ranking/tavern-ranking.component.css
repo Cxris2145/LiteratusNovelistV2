@@ -80,11 +80,14 @@
 .rk-points {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  color: var(--th-gold);
-  font-weight: 600;
-  font-size: .86rem;
+  gap: 5px;
+  color: var(--th-ink);
+  font-weight: 700;
+  font-size: .9rem;
   font-variant-numeric: tabular-nums;
 }
-.rk-points .material-symbols-rounded { font-size: 16px; }
+.rk-points .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--th-gold);
+}
 .rk-hint { margin-top: 12px; font-size: .82rem; }

@@ -64,6 +64,25 @@
       <stop offset="0" stop-color="#ff6b6b"/>
       <stop offset="1" stop-color="#c0283a"/>
     </linearGradient>
+    <linearGradient [attr.id]="ids['witch-hat']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#aa1936"/>
+      <stop offset="0.6" stop-color="#721124"/>
+      <stop offset="1" stop-color="#3d0712"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['witch-brim']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bd2344"/>
+      <stop offset="1" stop-color="#540a1b"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['aviator-cap']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#734626"/>
+      <stop offset="0.6" stop-color="#4d2c14"/>
+      <stop offset="1" stop-color="#2a1608"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['goggle-glass']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#90e0ef"/>
+      <stop offset="0.6" stop-color="#0096c7"/>
+      <stop offset="1" stop-color="#023e8a"/>
+    </linearGradient>
     <radialGradient [attr.id]="ids['sclera']" cx="0.45" cy="0.35" r="0.7">
       <stop offset="0" stop-color="#ffffff"/>
       <stop offset="0.7" stop-color="#f1f3fb"/>
@@ -262,6 +281,44 @@
             <path d="M176 152C190 136 214 130 240 131" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.14" stroke-linecap="round"/>
             <path d="M226 124Q228 114 234 112" stroke="#9b2242" stroke-width="5" fill="none" stroke-linecap="round"/>
           </g>
+          <!-- Sombrero de hechicera con flor -->
+          <g *ngSwitchCase="'witch-flower'">
+            <ellipse cx="225" cy="172" rx="84" ry="18" [attr.fill]="refs['witch-brim']"/>
+            <path d="M142 170Q225 154 308 170Q225 186 142 170Z" [attr.fill]="refs['witch-hat']"/>
+            <path d="M172 165C175 125 198 75 235 40C260 16 295 18 316 38C332 54 340 74 336 92C332 100 326 102 322 98C324 86 317 72 305 68C293 64 286 80 290 102C294 122 302 138 310 156Z" [attr.fill]="refs['witch-hat']"/>
+            <path d="M240 45C260 30 286 30 304 44" stroke="#e07a5f" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+            <path d="M170 148Q225 168 290 152L290 168Q225 182 172 165Z" fill="#3d0c1e"/>
+            <!-- Flor dorada en la cinta -->
+            <g transform="translate(192 156)">
+              <circle cx="0" cy="0" r="10" fill="#f4a261"/>
+              <circle cx="0" cy="0" r="6" fill="#e76f51"/>
+              <circle cx="0" cy="-11" r="5" fill="#f4a261"/>
+              <circle cx="9" cy="-7" r="5" fill="#f4a261"/>
+              <circle cx="11" cy="3" r="5" fill="#f4a261"/>
+              <circle cx="5" cy="11" r="5" fill="#f4a261"/>
+              <circle cx="-6" cy="10" r="5" fill="#f4a261"/>
+              <circle cx="-11" cy="2" r="5" fill="#f4a261"/>
+              <circle cx="-8" cy="-7" r="5" fill="#f4a261"/>
+              <circle cx="0" cy="0" r="4" fill="#ffd166"/>
+              <path d="M-8 8Q-14 16 -18 12Q-14 8 -8 8" fill="#2a9d8f"/>
+            </g>
+          </g>
+          <!-- Gorro de aviador con gafas -->
+          <g *ngSwitchCase="'aviator'">
+            <path d="M162 160C158 178 152 205 158 220C163 226 172 222 172 210C172 195 174 175 176 160Z" [attr.fill]="refs['aviator-cap']"/>
+            <path d="M288 160C292 178 298 205 292 220C287 226 278 222 278 210C278 195 276 175 274 160Z" [attr.fill]="refs['aviator-cap']"/>
+            <path d="M164 168C160 120 185 88 225 86C265 88 290 120 286 168C265 172 245 174 225 174C205 174 185 172 164 168Z" [attr.fill]="refs['aviator-cap']"/>
+            <path d="M225 86V174M185 96C198 120 205 145 208 174M265 96C252 120 245 145 242 174" stroke="#2c170c" stroke-width="2" stroke-dasharray="3 2" fill="none" opacity="0.6"/>
+            <path d="M164 140Q225 150 286 140" stroke="#1d1109" stroke-width="12" fill="none"/>
+            <path d="M164 140Q225 150 286 140" stroke="#4a2a12" stroke-width="8" fill="none"/>
+            <circle cx="196" cy="140" r="20" fill="#d4af37" stroke="#8a6d1c" stroke-width="3"/>
+            <circle cx="196" cy="140" r="16" [attr.fill]="refs['goggle-glass']"/>
+            <ellipse cx="192" cy="136" rx="10" ry="6" fill="#ffffff" opacity="0.45" transform="rotate(-25 192 136)"/>
+            <circle cx="254" cy="140" r="20" fill="#d4af37" stroke="#8a6d1c" stroke-width="3"/>
+            <circle cx="254" cy="140" r="16" [attr.fill]="refs['goggle-glass']"/>
+            <ellipse cx="250" cy="136" rx="10" ry="6" fill="#ffffff" opacity="0.45" transform="rotate(-25 250 136)"/>
+            <rect x="214" y="137" width="22" height="6" rx="2" fill="#d4af37" stroke="#8a6d1c" stroke-width="1.5"/>
+          </g>
           <!-- Sombrero de mago -->
           <ng-container *ngSwitchDefault>
           <!-- Ala: gruesa y caída a los lados, apoyada sobre las gafas -->
@@ -322,6 +379,27 @@
           <path d="M156 262C150 268 146 273 143 278" [attr.stroke]="refs['limb']" stroke-width="18" stroke-linecap="round" fill="none"/>
           <circle cx="140" cy="282" r="12.5" [attr.fill]="refs['limb']"/>
           <ellipse cx="146" cy="277" rx="4.5" ry="6" transform="rotate(-30 146 277)" fill="#5a78e6"/>
+        </g>
+
+        <!-- Jarra de taberna sostenida en la mano -->
+        <g *ngIf="mug" class="mg-mug-hand" [class.is-toasting]="toasting">
+          <g transform="translate(306 312) scale(0.68)">
+            <!-- Asa -->
+            <path d="M22 -8Q44 -8 44 14Q44 32 22 32" stroke="#8a5a1a" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <path d="M22 -8Q40 -8 40 14Q40 30 22 30" stroke="#c8902a" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <!-- Cuerpo de madera -->
+            <rect x="-24" y="-22" width="48" height="60" rx="8" fill="#7a461e"/>
+            <!-- Franjas de hierro/bronce -->
+            <rect x="-24" y="-12" width="48" height="6" fill="#4a2a12"/>
+            <rect x="-24" y="24" width="48" height="6" fill="#4a2a12"/>
+            <path d="M-14 -22V38M0 -22V38M14 -22V38" stroke="#3b1d09" stroke-width="2" opacity="0.4"/>
+            <!-- Espuma dorada y blanca -->
+            <ellipse cx="0" cy="-22" rx="26" ry="11" fill="#fff5d9"/>
+            <path d="M-22 -20Q-14 -32 0 -22Q14 -34 24 -20" fill="#fff9eb"/>
+            <!-- Gotas de espuma -->
+            <circle cx="-16" cy="-14" r="3" fill="#fff9eb"/>
+            <circle cx="18" cy="-10" r="2.5" fill="#fff9eb"/>
+          </g>
         </g>
       </g>
     </g>

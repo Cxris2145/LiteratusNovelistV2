@@ -15,6 +15,10 @@ from .views import (
     FriendRequestsView,
     PresenceView,
     RankingView,
+    TavernActivityView,
+    TavernMessageDetailView,
+    TavernMessagesView,
+    TavernReactionsView,
     UnfriendView,
 )
 
@@ -31,4 +35,8 @@ urlpatterns = [
     path('profiles/<str:code>/brindis/', BrindisView.as_view(), name='community-brindis'),
     path('ranking/', RankingView.as_view(), name='community-ranking'),
     path('presence/', PresenceView.as_view(), name='community-presence'),
+    path('tavern/messages/', TavernMessagesView.as_view(), name='tavern-messages'),
+    path('tavern/messages/<uuid:pk>/', TavernMessageDetailView.as_view(), name='tavern-message-detail'),
+    path('tavern/reactions/', TavernReactionsView.as_view(), name='tavern-reactions'),
+    path('tavern/activity/', TavernActivityView.as_view(), name='tavern-activity'),
 ]

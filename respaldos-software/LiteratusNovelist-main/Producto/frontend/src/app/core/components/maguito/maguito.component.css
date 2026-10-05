@@ -32,6 +32,14 @@
   --mg-sleeve: #1f8f5f;
   --mg-sleeve-hi: #6fe0a8;
 }
+:host([data-cape="red"]) {
+  --mg-cape-a: #e63946;
+  --mg-cape-b: #b71c1c;
+  --mg-cape-c: #7f0000;
+  --mg-cape-seam: #5f0909;
+  --mg-sleeve: #b71c1c;
+  --mg-sleeve-hi: #e63946;
+}
 :host(.mg-interactive) { cursor: pointer; }
 .mg-svg { display: block; width: 100%; height: auto; overflow: visible; }
 /* Busto (avatares): lo que queda fuera del encuadre no se pinta encima de lo que hay abajo */
@@ -212,6 +220,21 @@
 @keyframes mg-aura {
   0%, 100% { opacity: 0.75; }
   50% { opacity: 1; }
+}
+
+/* ── Jarra de la Taberna ── */
+.mg-mug-hand {
+  transform-origin: 306px 312px;
+  transition: transform 0.4s var(--mg-spring);
+}
+:host(.mg-toasting) .mg-mug-hand,
+.mg-mug-hand.is-toasting {
+  animation: mg-toast 0.9s ease-in-out infinite alternate;
+}
+@keyframes mg-toast {
+  0% { transform: rotate(0deg) translate(0, 0); }
+  50% { transform: rotate(-16deg) translate(-8px, -14px); }
+  100% { transform: rotate(-24deg) translate(-14px, -20px); }
 }
 
 /* Movimiento reducido: sin balanceos, saltos ni partículas. Queda la pose de cada

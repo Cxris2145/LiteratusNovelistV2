@@ -1,6 +1,16 @@
 :host { display: block; }
 
 .fl-count { color: var(--th-muted); font-size: 1.1rem; }
+.fl-header-actions { display: flex; align-items: center; gap: 10px; }
+.fl-see-all {
+  font-size: .8rem;
+  color: var(--th-gold);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .2s;
+}
+.fl-see-all:hover { text-decoration: underline; opacity: .85; }
 
 .fl-requests {
   display: grid;

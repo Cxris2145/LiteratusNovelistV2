@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from users.models import Profile
 from users.serializers import level_name_for
-from .models import Brindis, Friendship, pair_key_for
+from .models import Brindis, Friendship, TavernMessage, TavernReaction, pair_key_for
 
 User = get_user_model()
 
@@ -202,22 +202,26 @@ def presence_statuses(profiles) -> dict:
         for row in progress:
             uid = row.inventory.user_id
             if uid not in statuses:
-                statuses[uid] = _reading(row.inventory.edition.book.title)
+                statuses[uid] = _reading(row.inventory.edition.book.title, chapter=row.current_page)
         pending = [uid for uid in readers if uid not in statuses]
         if pending:
             sessions = (ReadingSession.objects
                         .filter(user_id__in=pending, ended_at__isnull=True, started_at__gte=now - OPEN_SESSION_WINDOW)
                         .select_related('book').order_by('-started_at'))
             for session in sessions:
-                statuses.setdefault(session.user_id, _reading(session.book.title))
+                statuses.setdefault(session.user_id, _reading(session.book.title, chapter=session.chapters_read or None))
 
     for profile in profiles:
         statuses.setdefault(profile.user_id, {'kind': 'away', 'label': 'De paseo', 'book_title': None})
     return statuses
 
 
-def _reading(title):
-    return {'kind': 'reading', 'label': f'Leyendo · {title}', 'book_title': title}
+def _reading(title, chapter=None):
+    if chapter and int(chapter) > 0:
+        label = f'Leyendo · Capítulo {chapter}'
+    else:
+        label = f'Leyendo · {title}'
+    return {'kind': 'reading', 'label': label, 'book_title': title, 'chapter': chapter}
 
 
 def friends_list(me) -> list:
@@ -450,4 +454,144 @@ def ranking(me, scope='week', limit=5):
         'entries': entries[:limit],
         'me': next((e for e in entries if e['is_me']), None),
         'participants': len(entries),
+    }
+
+
+# ── Chat y Reacciones de La Taberna ───────────────────────────────────
+
+REACTION_MAP = {
+    'beer': '🍺',
+    'heart': '❤️',
+    'clap': '👏',
+    'book': '📖',
+    'sparkle': '✨',
+    '🍺': 'beer',
+    '❤️': 'heart',
+    '👏': 'clap',
+    '📖': 'book',
+    '✨': 'sparkle',
+}
+
+
+def list_tavern_messages(me, limit=30) -> list:
+    """Mensajes de tu mesa (tú y tus amigos)."""
+    ids = friend_ids(me) | {me.pk}
+    messages = list(TavernMessage.objects
+                    .filter(user_id__in=ids)
+                    .select_related('user')
+                    .prefetch_related('reactions')
+                    .order_by('-created_at')[:limit])
+
+    profiles = {p.user_id: p for p in _profiles().filter(user_id__in=ids)}
+    result = []
+    for msg in messages:
+        profile = profiles.get(msg.user_id)
+        reaction_counts = {}
+        for r in msg.reactions.all():
+            reaction_counts[r.reaction] = reaction_counts.get(r.reaction, 0) + 1
+
+        result.append({
+            'id': str(msg.id),
+            'content': msg.content,
+            'created_at': msg.created_at,
+            'is_me': msg.user_id == me.pk,
+            'username': msg.user.username,
+            'friend_code': profile.friend_code if profile else None,
+            'outfit': profile.outfit if profile else {},
+            'reactions': reaction_counts,
+        })
+    return result
+
+
+def send_tavern_message(me, raw_content) -> dict:
+    """Envía un mensaje a la mesa con validaciones y protección contra spam."""
+    content = str(raw_content or '').strip()
+    if not content:
+        return _fail('EMPTY_MESSAGE', 'El mensaje no puede estar vacío.')
+    if len(content) > 200:
+        return _fail('MESSAGE_TOO_LONG', 'El mensaje no puede superar los 200 caracteres.')
+
+    now = timezone.now()
+    last = TavernMessage.objects.filter(user=me).order_by('-created_at').first()
+    if last and now - last.created_at < timedelta(seconds=3):
+        return _fail('SPAM_COOLDOWN', 'Espera unos segundos antes de enviar otro mensaje.')
+
+    recent_count = TavernMessage.objects.filter(user=me, created_at__gte=now - timedelta(minutes=10)).count()
+    if recent_count >= 25:
+        return _fail('RATE_LIMIT', 'Has enviado muchos mensajes recientemente. Tómate un respiro.')
+
+    msg = TavernMessage.objects.create(user=me, content=content)
+    profile = _profiles().filter(user=me).first()
+    return _ok('Mensaje compartido.', status=201, message={
+        'id': str(msg.id),
+        'content': msg.content,
+        'created_at': msg.created_at,
+        'is_me': True,
+        'username': me.username,
+        'friend_code': profile.friend_code if profile else None,
+        'outfit': profile.outfit if profile else {},
+        'reactions': {},
+    })
+
+
+def delete_tavern_message(me, message_id) -> dict:
+    msg = TavernMessage.objects.filter(pk=message_id).first()
+    if not msg:
+        return _fail('NOT_FOUND', 'El mensaje ya no existe.', status=404)
+    if msg.user_id != me.pk:
+        return _fail('FORBIDDEN', 'Solo puedes eliminar tus propios mensajes.', status=403)
+    msg.delete()
+    return _ok('Mensaje eliminado.')
+
+
+def send_tavern_reaction(me, raw_reaction, message_id=None) -> dict:
+    """Reacciona a la mesa o a un mensaje."""
+    canonical = REACTION_MAP.get(raw_reaction)
+    if not canonical:
+        return _fail('INVALID_REACTION', 'Reacción no válida.')
+    # Normalizar a clave en texto inglés si vino como emoji
+    if canonical not in ('beer', 'heart', 'clap', 'book', 'sparkle'):
+        canonical = raw_reaction
+
+    now = timezone.now()
+    last = TavernReaction.objects.filter(user=me).order_by('-created_at').first()
+    if last and now - last.created_at < timedelta(seconds=1):
+        return _fail('REACTION_COOLDOWN', 'Un segundo entre reacciones.')
+
+    target_msg = None
+    if message_id:
+        target_msg = TavernMessage.objects.filter(pk=message_id).first()
+
+    rec = TavernReaction.objects.create(user=me, message=target_msg, reaction=canonical)
+    return _ok('Reacción enviada.', status=201, reaction={
+        'id': str(rec.id),
+        'reaction': canonical,
+        'emoji': REACTION_MAP.get(canonical, canonical),
+        'username': me.username,
+        'message_id': str(target_msg.id) if target_msg else None,
+        'created_at': rec.created_at,
+    })
+
+
+def recent_tavern_activity(me) -> dict:
+    """Últimos mensajes y reacciones recientes (para actualizar burbujas y animaciones en vivo)."""
+    ids = friend_ids(me) | {me.pk}
+    messages = list_tavern_messages(me, limit=15)
+    now = timezone.now()
+    recent_reactions = (TavernReaction.objects
+                        .filter(user_id__in=ids, created_at__gte=now - timedelta(seconds=20))
+                        .select_related('user')
+                        .order_by('-created_at')[:10])
+
+    return {
+        'messages': messages,
+        'reactions': [{
+            'id': str(r.id),
+            'reaction': r.reaction,
+            'emoji': REACTION_MAP.get(r.reaction, '✨'),
+            'username': r.user.username,
+            'is_me': r.user_id == me.pk,
+            'message_id': str(r.message_id) if r.message_id else None,
+            'created_at': r.created_at,
+        } for r in recent_reactions],
     }

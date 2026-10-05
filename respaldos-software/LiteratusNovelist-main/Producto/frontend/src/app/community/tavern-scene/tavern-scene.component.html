@@ -1,130 +1,238 @@
 <div class="ts-stage" role="img" [attr.aria-label]="summary">
-  <!-- Ambiente: pared de tablones, ventana con luna, faroles y repisa. Todo decorativo. -->
-  <div class="ts-backdrop" aria-hidden="true">
-    <div class="ts-light"></div>
-
-    <svg class="ts-window" viewBox="0 0 120 170" focusable="false">
-      <defs>
-        <linearGradient id="ts-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#0a1430"/>
-          <stop offset="1" stop-color="#22366e"/>
-        </linearGradient>
-        <mask id="ts-moon-cut">
-          <rect width="120" height="170" fill="#fff"/>
-          <circle cx="85" cy="49" r="12" fill="#000"/>
-        </mask>
-      </defs>
-      <path d="M6 168V62A54 54 0 0 1 114 62V168Z" fill="#3e2518"/>
-      <path d="M15 162V64A45 45 0 0 1 105 64V162Z" fill="url(#ts-sky)"/>
-      <circle cx="78" cy="54" r="15" fill="#fff4c4" mask="url(#ts-moon-cut)"/>
-      <g fill="#fff4c4">
-        <circle class="ts-star" cx="34" cy="62" r="1.6"/>
-        <circle class="ts-star s2" cx="50" cy="40" r="1.2"/>
-        <circle class="ts-star s3" cx="90" cy="96" r="1.4"/>
-        <circle class="ts-star" cx="30" cy="118" r="1"/>
-        <circle class="ts-star s2" cx="68" cy="128" r="1.3"/>
-      </g>
-      <path d="M60 22V162M15 104H105" stroke="#3e2518" stroke-width="5"/>
-      <rect x="0" y="160" width="120" height="10" rx="3" fill="#5a3824"/>
-    </svg>
-
-    <div class="ts-lantern l1"><span class="ts-flame"></span></div>
-    <div class="ts-lantern l2"><span class="ts-flame"></span></div>
-
-    <svg class="ts-shelf" viewBox="0 0 170 96" focusable="false">
-      <rect x="0" y="74" width="170" height="9" rx="2" fill="#5a3824"/>
-      <path d="M14 83 22 96M156 83 148 96" stroke="#3e2518" stroke-width="5" stroke-linecap="round"/>
-      <rect x="12" y="30" width="13" height="44" rx="2" fill="#7c2d3a"/>
-      <rect x="26" y="22" width="11" height="52" rx="2" fill="#2f5d8a"/>
-      <rect x="38" y="34" width="14" height="40" rx="2" fill="#c8902a"/>
-      <rect x="54" y="38" width="10" height="36" rx="2" fill="#3f7a55" transform="rotate(12 59 74)"/>
-      <path d="M96 74H128V60Q128 50 112 50Q96 50 96 60Z" fill="#1b1430"/>
-      <path d="M108 50V40" stroke="#e8b54a" stroke-width="2.5" stroke-linecap="round"/>
-      <rect x="140" y="50" width="10" height="24" rx="2" fill="#f2e6c9"/>
-    </svg>
-    <span class="ts-candle-flame" aria-hidden="true"></span>
-
-    <div class="ts-floor"></div>
+  <!-- Capa de ambiente: resplandor cálido de velas y faroles -->
+  <div class="ts-ambient-light" aria-hidden="true">
+    <div class="ts-hearth-glow"></div>
+    <div class="ts-candle c1"><span class="ts-flame"></span></div>
+    <div class="ts-candle c2"><span class="ts-flame"></span></div>
   </div>
 
-  <!-- Los comensales. Cada Maguito lleva la ropa que compró su dueño. -->
+  <!-- Partículas de reacciones flotantes (🍺, ❤️, 👏, 📖, ✨) -->
+  <div class="ts-particles-layer" aria-hidden="true">
+    <div *ngFor="let p of particles; trackBy: trackParticle" class="ts-floating-particle" [style.left.%]="p.x">
+      <span class="ts-emoji-float">{{ p.emoji }}</span>
+    </div>
+  </div>
+
+  <!-- Maguitos sentados alrededor de la mesa con sus atuendos -->
   <div *ngFor="let seat of seats; trackBy: trackSeat" class="ts-seat" [ngClass]="'seat-' + seat.slot">
-    <p class="ts-bubble" *ngIf="seat.bubble" aria-hidden="true">{{ seat.bubble }}</p>
+    <!-- Bocadillo de diálogo (chat o frase temática con emojis) -->
+    <div class="ts-bubble" *ngIf="seat.bubble" [class.is-chat]="seat.bubble.isChat" aria-hidden="true">
+      <span *ngIf="seat.bubble.isChat" class="material-symbols-rounded ts-chat-indicator">chat_bubble</span>
+      <span class="ts-bubble-text">{{ seat.bubble.text }}</span>
+    </div>
+
     <app-maguito
       [outfit]="seat.guest.outfit"
+      [mug]="seat.mug"
+      [toasting]="toasting"
       [greetOnEnter]="seat.isMe"
       [followPointer]="seat.isMe"
       [interactive]="true">
     </app-maguito>
   </div>
 
-  <svg class="ts-table" viewBox="0 0 800 240" focusable="false" aria-hidden="true">
+  <!-- Mesa de primer plano con libros, pergaminos, farol, jarras y el gato negro -->
+  <svg class="ts-table-overlay" viewBox="0 0 1000 320" focusable="false" aria-hidden="true">
     <defs>
-      <linearGradient id="ts-wood" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#8a5732"/>
-        <stop offset="1" stop-color="#5a3420"/>
+      <linearGradient id="ts-table-wood" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#804d26"/>
+        <stop offset="0.4" stop-color="#5a3419"/>
+        <stop offset="1" stop-color="#321c0e"/>
       </linearGradient>
-      <linearGradient id="ts-wood-dark" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#4a2a18"/>
-        <stop offset="1" stop-color="#2c170c"/>
+      <linearGradient id="ts-table-rim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#a66e3b"/>
+        <stop offset="1" stop-color="#462512"/>
       </linearGradient>
-      <radialGradient id="ts-lamp-glow" cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0" stop-color="#ffd27a" stop-opacity="0.75"/>
-        <stop offset="0.5" stop-color="#ffb347" stop-opacity="0.22"/>
-        <stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
+      <radialGradient id="ts-lantern-glow-center" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#ffd56b" stop-opacity="0.95"/>
+        <stop offset="0.35" stop-color="#ff9e3b" stop-opacity="0.45"/>
+        <stop offset="1" stop-color="#ff9e3b" stop-opacity="0"/>
       </radialGradient>
+      <filter id="ts-glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+      </filter>
     </defs>
-    <rect x="140" y="120" width="34" height="120" fill="url(#ts-wood-dark)"/>
-    <rect x="626" y="120" width="34" height="120" fill="url(#ts-wood-dark)"/>
-    <path d="M40 92Q400 172 760 92V132Q400 212 40 132Z" fill="url(#ts-wood-dark)"/>
-    <ellipse cx="400" cy="92" rx="360" ry="60" fill="url(#ts-wood)"/>
-    <ellipse cx="400" cy="92" rx="352" ry="54" fill="none" stroke="#a8724a" stroke-width="2" opacity="0.5"/>
-    <path d="M120 96Q300 116 520 104M220 74Q420 64 640 82" stroke="#3e2518" stroke-width="2" fill="none" opacity="0.25"/>
 
-    <circle class="ts-lamp-glow" cx="112" cy="70" r="120" fill="url(#ts-lamp-glow)"/>
-    <!-- Farol de mesa, en la punta para no tapar a nadie -->
-    <g transform="translate(112 96)">
-      <path d="M-16 -54H16L12 -60H-12Z" fill="#2c170c"/>
-      <rect x="-15" y="-54" width="30" height="46" rx="4" fill="#ffcf6a" opacity="0.9"/>
-      <path d="M-15 -54V-8M15 -54V-8M0 -54V-8" stroke="#2c170c" stroke-width="3"/>
-      <rect x="-19" y="-10" width="38" height="8" rx="2" fill="#2c170c"/>
-      <ellipse class="ts-lamp-flame" cx="0" cy="-30" rx="5" ry="9" fill="#fff4c4"/>
-      <path d="M-6 -64Q0 -76 6 -64" stroke="#2c170c" stroke-width="3" fill="none"/>
+    <!-- Superficie redondeada de la mesa de roble -->
+    <ellipse cx="500" cy="190" rx="460" ry="110" fill="url(#ts-table-wood)"/>
+    <ellipse cx="500" cy="186" rx="454" ry="104" fill="none" stroke="url(#ts-table-rim)" stroke-width="4" opacity="0.6"/>
+    <!-- Vetas de madera -->
+    <path d="M120 188Q340 215 500 210Q660 205 880 184" stroke="#2c170c" stroke-width="2.5" fill="none" opacity="0.4"/>
+    <path d="M180 168Q380 190 520 186Q680 182 820 164" stroke="#2c170c" stroke-width="1.8" fill="none" opacity="0.3"/>
+
+    <!-- Resplandor del farol central de mesa -->
+    <circle class="ts-lantern-halo" cx="500" cy="136" r="140" fill="url(#ts-lantern-glow-center)"/>
+
+    <!-- Pergaminos y libro abierto en el centro-izquierda -->
+    <g transform="translate(390, 160) scale(0.85)">
+      <!-- Pergaminos enrollados -->
+      <rect x="-80" y="-34" width="70" height="18" rx="6" fill="#f4ebd0"/>
+      <ellipse cx="-80" cy="-25" rx="5" ry="9" fill="#dfd2b0"/>
+      <ellipse cx="-10" cy="-25" rx="5" ry="9" fill="#f4ebd0"/>
+      <path d="M-50 -34V-16" stroke="#93282b" stroke-width="3"/>
+      <!-- Libro abierto antiguo -->
+      <path d="M-60 6Q-30 -10 0 4V34Q-30 20 -60 36Z" fill="#faf3e0"/>
+      <path d="M60 6Q30 -10 0 4V34Q30 20 60 36Z" fill="#efe4c8"/>
+      <path d="M0 4V36" stroke="#8a6d3b" stroke-width="2.5"/>
+      <!-- Líneas de texto mágico manuscrito -->
+      <path d="M-50 12Q-30 4 -10 10M-50 18Q-30 10 -10 16M-50 24Q-30 16 -10 22" stroke="#8c7853" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+      <path d="M10 10Q30 4 50 12M10 16Q30 10 50 18M10 22Q30 16 50 24" stroke="#8c7853" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.7"/>
     </g>
-    <!-- Jarras -->
-    <g transform="translate(232 72)">
-      <path d="M22 -8Q40 -8 40 10Q40 26 22 26" stroke="#c8902a" stroke-width="6" fill="none"/>
-      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#c8902a"/>
-      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#ffffff" opacity="0.08"/>
+
+    <!-- Farol central de bronce con vidrio y llama viva -->
+    <g transform="translate(500, 150)">
+      <!-- Base y cúpula -->
+      <path d="M-18 20L18 20L14 26L-14 26Z" fill="#2d1c11"/>
+      <rect x="-15" y="-36" width="30" height="56" rx="4" fill="#ffd470" opacity="0.88"/>
+      <!-- Varillas de hierro -->
+      <path d="M-15 -36V20M15 -36V20M0 -36V20" stroke="#2d1c11" stroke-width="3"/>
+      <path d="M-18 -36H18L12 -46H-12Z" fill="#2d1c11"/>
+      <!-- Aro de sujeción -->
+      <path d="M-7 -46Q0 -58 7 -46" stroke="#2d1c11" stroke-width="3" fill="none"/>
+      <!-- Llama interior que oscila -->
+      <ellipse class="ts-table-flame" cx="0" cy="-6" rx="6" ry="12" fill="#fffbe6"/>
+      <ellipse class="ts-table-flame" cx="0" cy="-4" rx="3.5" ry="7" fill="#ffb703"/>
+    </g>
+
+    <!-- Libros apilados y tintero con pluma en centro-derecha -->
+    <g transform="translate(615, 175) scale(0.85)">
+      <!-- Libro de cuero granate -->
+      <rect x="-40" y="8" width="80" height="14" rx="3" fill="#6a1b29"/>
+      <rect x="-38" y="2" width="76" height="8" rx="2" fill="#224263"/>
+      <rect x="-35" y="-4" width="70" height="8" rx="2" fill="#c48b28"/>
+      <!-- Tintero con pluma -->
+      <ellipse cx="48" cy="12" rx="10" ry="7" fill="#1f2421"/>
+      <path d="M48 6Q58 -22 68 -48" stroke="#d4af37" stroke-width="2" fill="none"/>
+      <path d="M68 -48C64 -40 60 -26 50 -10" stroke="#f4f1de" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+    </g>
+
+    <!-- El gato negro de la taberna con bufanda roja sobre la mesa -->
+    <g class="ts-cat" transform="translate(715, 170) scale(0.82)">
+      <!-- Cuerpo del gato -->
+      <ellipse cx="0" cy="16" rx="22" ry="15" fill="#1b1624"/>
+      <!-- Cola sinuosa que se mueve -->
+      <path class="ts-cat-tail" d="M-18 20Q-34 14 -32 -2Q-30 -16 -20 -12Q-22 -4 -14 14" stroke="#1b1624" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <!-- Cabeza -->
+      <circle cx="0" cy="-6" r="18" fill="#1b1624"/>
+      <!-- Orejitas puntiagudas -->
+      <path d="M-14 -16L-8 -30L-2 -18Z" fill="#1b1624"/>
+      <path d="M-12 -17L-8 -26L-4 -18Z" fill="#e76f51" opacity="0.6"/>
+      <path d="M2 -18L8 -30L14 -16Z" fill="#1b1624"/>
+      <path d="M4 -18L8 -26L12 -17Z" fill="#e76f51" opacity="0.6"/>
+      <!-- Ojos grandes dorados curiosos -->
+      <ellipse cx="-7" cy="-7" rx="4.5" ry="5.5" fill="#ffd166"/>
+      <ellipse cx="-7" cy="-7" rx="1.8" ry="4" fill="#0d0a14"/>
+      <circle cx="-5.5" cy="-9" r="1.4" fill="#ffffff"/>
+      <ellipse cx="7" cy="-7" rx="4.5" ry="5.5" fill="#ffd166"/>
+      <ellipse cx="7" cy="-7" rx="1.8" ry="4" fill="#0d0a14"/>
+      <circle cx="8.5" cy="-9" r="1.4" fill="#ffffff"/>
+      <!-- Hocico y bigotitos finos -->
+      <path d="M-2 -1L0 1L2 -1" stroke="#e76f51" stroke-width="1.2" fill="none"/>
+      <path d="M-8 1L-20 -1M-8 3L-21 4M8 1L20 -1M8 3L21 4" stroke="#e0e1dd" stroke-width="1.2" opacity="0.6" stroke-linecap="round"/>
+      <!-- Bufanda roja abrigada con nudo -->
+      <path d="M-16 5Q0 14 16 5L14 14Q0 22 -14 14Z" fill="#c0283a"/>
+      <path d="M4 10L8 25L0 25L-2 10Z" fill="#c0283a"/>
+      <path d="M0 25V29M4 25V29M7 25V29" stroke="#8e1b2b" stroke-width="1.6"/>
+    </g>
+
+    <!-- Jarra de madera en la mesa para la izquierda -->
+    <g transform="translate(305, 172) scale(0.72)">
+      <path d="M22 -8Q40 -8 40 10Q40 26 22 26" stroke="#c8902a" stroke-width="7" fill="none"/>
+      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#804d26"/>
+      <rect x="-22" y="-12" width="44" height="5" fill="#462512"/>
+      <rect x="-22" y="18" width="44" height="5" fill="#462512"/>
       <ellipse cx="0" cy="-20" rx="24" ry="9" fill="#fff4dc"/>
-      <path d="M-14 -4V24M0 -4V24M14 -4V24" stroke="#8a5a1a" stroke-width="2" opacity="0.5"/>
     </g>
-    <g transform="translate(566 76)">
-      <path d="M-22 -8Q-40 -8 -40 10Q-40 26 -22 26" stroke="#b07a3a" stroke-width="6" fill="none"/>
-      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#b07a3a"/>
+
+    <!-- Jarra de madera en la mesa para la derecha -->
+    <g transform="translate(680, 185) scale(0.72)">
+      <path d="M-22 -8Q-40 -8 -40 10Q-40 26 -22 26" stroke="#b07a3a" stroke-width="7" fill="none"/>
+      <rect x="-22" y="-20" width="44" height="54" rx="8" fill="#6d3e1b"/>
+      <rect x="-22" y="-12" width="44" height="5" fill="#3b1d09"/>
+      <rect x="-22" y="18" width="44" height="5" fill="#3b1d09"/>
       <ellipse cx="0" cy="-20" rx="24" ry="9" fill="#fff4dc"/>
-      <path d="M-14 -4V24M0 -4V24M14 -4V24" stroke="#6a4512" stroke-width="2" opacity="0.5"/>
-    </g>
-    <!-- Libro abierto -->
-    <g transform="translate(660 98)">
-      <path d="M0 0Q-26 -12 -50 -4V14Q-26 6 0 18Z" fill="#f2e6c9"/>
-      <path d="M0 0Q26 -12 50 -4V14Q26 6 0 18Z" fill="#e8d9b5"/>
-      <path d="M-40 2Q-24 -4 -8 4M-40 8Q-24 2 -8 10M8 4Q24 -4 40 2M8 10Q24 2 40 8" stroke="#8a7350" stroke-width="1.2" fill="none" opacity="0.6"/>
-    </g>
-    <!-- Vela -->
-    <g transform="translate(704 104)">
-      <rect x="-7" y="-22" width="14" height="26" rx="3" fill="#f2e6c9"/>
-      <ellipse class="ts-lamp-flame" cx="0" cy="-30" rx="4" ry="7" fill="#ffd27a"/>
-      <ellipse cx="0" cy="6" rx="14" ry="4" fill="#3e2518"/>
     </g>
   </svg>
 
-  <!-- Nombres sobre la mesa: van fuera de cada asiento para quedar delante de ella -->
+  <!-- Cartelitos con el nombre sobre la mesa, con punto de estado y corona si es 1° lugar -->
   <span *ngFor="let seat of seats; trackBy: trackSeat" class="ts-name" [ngClass]="'seat-' + seat.slot" aria-hidden="true">
-    <span class="th-dot" [ngClass]="seat.isMe ? 'tavern' : (seat.guest.status?.kind || '')"></span>
-    {{ seat.isMe ? (demo ? seat.guest.username : 'Tú') : seat.guest.username }}
+    <span class="th-dot" [ngClass]="seat.isMe ? 'tavern' : (seat.guest.status?.kind || 'tavern')"></span>
+    <span class="ts-name-text">{{ seat.isMe ? (demo ? seat.guest.username : (me?.username || 'Tú')) : seat.guest.username }}</span>
+    <span *ngIf="seat.isFirst" class="ts-name-crown" title="Primer lugar del ranking">👑</span>
   </span>
 
   <span class="ts-more wide" *ngIf="extraWide" aria-hidden="true">+{{ extraWide }} en la lista</span>
-  <span class="ts-more narrow" *ngIf="extraNarrow" aria-hidden="true">+{{ extraNarrow }} en la lista</span>
+
+  <!-- ============================================================ -->
+  <!-- BARRA DE CHAT Y REACCIONES RÁPIDAS DE LA TABERNA             -->
+  <!-- ============================================================ -->
+  <footer class="ts-chat-dock">
+    <div class="ts-chat-bar">
+      <span class="material-symbols-rounded ts-chat-lead-icon" aria-hidden="true">chat</span>
+
+      <input
+        type="text"
+        class="ts-chat-input"
+        [(ngModel)]="chatText"
+        (keydown.enter)="sendChat()"
+        placeholder="Comparte un mensaje en la taberna…"
+        maxlength="200"
+        [disabled]="busySending"
+        aria-label="Mensaje para la mesa"
+      />
+
+      <div class="ts-chat-tools">
+        <!-- Selector rápido de emojis -->
+        <div class="ts-emoji-picker-wrap" *ngIf="showEmojiList">
+          <div class="ts-emoji-grid">
+            <button *ngFor="let em of quickEmojis" type="button" class="ts-emoji-pick-btn" (click)="insertEmoji(em)">
+              {{ em }}
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="ts-chat-icon-btn" (click)="toggleEmojiList()" title="Añadir emoji" aria-label="Añadir emoji">
+          <span class="material-symbols-rounded" aria-hidden="true">mood</span>
+        </button>
+
+        <!-- Botón enviar circular dorado con flecha -->
+        <button
+          type="button"
+          class="ts-chat-send-btn"
+          (click)="sendChat()"
+          [disabled]="!chatText.trim() || busySending"
+          title="Enviar mensaje"
+          aria-label="Enviar mensaje"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">send</span>
+        </button>
+      </div>
+
+      <!-- Divisor hacia las reacciones rápidas -->
+      <div class="ts-dock-separator" aria-hidden="true"></div>
+
+      <!-- Reacciones rápidas: 🍺 ❤️ 👏 📖 ✨ -->
+      <div class="ts-dock-reactions">
+        <span class="ts-dock-reactions-label">Reacciones</span>
+        <div class="ts-dock-reactions-list">
+          <button type="button" class="ts-react-pill" (click)="react('🍺')" title="Brindar por las lecturas" aria-label="Brindar con cerveza">
+            🍺
+          </button>
+          <button type="button" class="ts-react-pill" (click)="react('❤️')" title="Me encanta" aria-label="Corazón">
+            ❤️
+          </button>
+          <button type="button" class="ts-react-pill" (click)="react('👏')" title="¡Gran logro!" aria-label="Aplausos">
+            👏
+          </button>
+          <button type="button" class="ts-react-pill" (click)="react('📖')" title="Buena lectura" aria-label="Libro">
+            📖
+          </button>
+          <button type="button" class="ts-react-pill" (click)="react('✨')" title="Magia literaria" aria-label="Destellos">
+            ✨
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
 </div>

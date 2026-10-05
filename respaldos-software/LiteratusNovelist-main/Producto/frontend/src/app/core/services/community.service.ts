@@ -100,8 +100,34 @@ export interface CommunityResult {
   brindis_count?: number;
 }
 
+export interface TavernChatMessage {
+  id: string;
+  content: string;
+  created_at: string;
+  is_me: boolean;
+  username: string;
+  friend_code: string | null;
+  outfit: MaguitoOutfit;
+  reactions: Record<string, number>;
+}
+
+export interface TavernReactionItem {
+  id: string;
+  reaction: string;
+  emoji: string;
+  username: string;
+  is_me: boolean;
+  message_id: string | null;
+  created_at: string;
+}
+
+export interface TavernActivity {
+  messages: TavernChatMessage[];
+  reactions: TavernReactionItem[];
+}
+
 /**
- * La Taberna de Tinta: amigos, solicitudes, brindis, perfiles y ranking.
+ * La Taberna de Tinta: amigos, solicitudes, brindis, perfiles, ranking y chat social.
  * Son datos de la cuenta: nada pasa por la caché en memoria de ApiService.
  */
 @Injectable({ providedIn: 'root' })
@@ -166,5 +192,25 @@ export class CommunityService {
 
   heartbeat(): Observable<{ pending_incoming: number }> {
     return this.api.post(`${this.base}presence/`, {});
+  }
+
+  getMessages(): Observable<{ results: TavernChatMessage[] }> {
+    return this.api.get<{ results: TavernChatMessage[] }>(`${this.base}tavern/messages/`);
+  }
+
+  sendMessage(content: string): Observable<CommunityResult & { message: TavernChatMessage }> {
+    return this.api.post(`${this.base}tavern/messages/`, { content });
+  }
+
+  deleteMessage(messageId: string): Observable<CommunityResult> {
+    return this.api.delete(`${this.base}tavern/messages/${messageId}/`);
+  }
+
+  sendReaction(reaction: string, messageId?: string): Observable<CommunityResult & { reaction: TavernReactionItem }> {
+    return this.api.post(`${this.base}tavern/reactions/`, { reaction, message_id: messageId });
+  }
+
+  getActivity(): Observable<TavernActivity> {
+    return this.api.get<TavernActivity>(`${this.base}tavern/activity/`);
   }
 }

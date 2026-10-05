@@ -3,20 +3,41 @@
 .pc { display: flex; flex-direction: column; gap: 10px; }
 .pc .th-panel-title { margin-bottom: 4px; }
 
-.pc-avatar {
+.pc-avatar-wrap {
   position: relative;
-  width: 132px;
+  width: 136px;
+  margin: 4px auto 8px;
+}
+.pc-avatar {
+  width: 136px;
   aspect-ratio: 1;
-  margin: 4px auto 6px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--th-gold) 22%, var(--home-bg)), var(--home-bg) 72%);
-  border: 2px solid color-mix(in srgb, var(--th-gold) 55%, transparent);
-  box-shadow: 0 0 0 6px color-mix(in srgb, var(--th-gold) 8%, transparent);
+  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.2), #0f1426 72%);
+  border: 2.5px solid rgba(212, 175, 55, 0.6);
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.2), inset 0 0 16px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   display: grid;
   place-items: end center;
 }
 .pc-avatar app-maguito { width: 100%; }
+
+.pc-online-dot {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #4ade80;
+  border: 2.5px solid #0f1426;
+  box-shadow: 0 0 8px #4ade80;
+  z-index: 2;
+  animation: pc-dot-glow 2.5s ease-in-out infinite alternate;
+}
+@keyframes pc-dot-glow {
+  0% { box-shadow: 0 0 4px #4ade80; }
+  100% { box-shadow: 0 0 12px #4ade80, 0 0 20px rgba(74, 222, 128, 0.4); }
+}
 
 .pc-name {
   display: flex;
@@ -28,7 +49,7 @@
   text-align: center;
   overflow-wrap: anywhere;
 }
-.pc-crown { color: var(--th-gold); font-size: 26px; font-variation-settings: 'FILL' 1; }
+.pc-crown { color: var(--th-gold); font-size: 24px; font-variation-settings: 'FILL' 1; }
 .pc-level {
   margin: -4px 0 0;
   text-align: center;
@@ -39,6 +60,7 @@
   margin: 0;
   text-align: center;
   color: var(--th-ink);
+  font-size: 0.88rem;
   line-height: 1.45;
 }
 .is-placeholder { color: var(--th-muted) !important; font-style: italic; }
@@ -48,42 +70,70 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 6px;
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   padding: 0;
   list-style: none;
 }
 .pc-genres li {
-  padding: 4px 11px;
+  padding: 4px 12px;
   border-radius: 99px;
-  border: 1px solid var(--th-border);
-  background: color-mix(in srgb, var(--home-bg) 60%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(14, 18, 36, 0.6);
   font-size: .75rem;
   color: var(--th-ink);
 }
 
 .pc-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin: 6px 0 0;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 8px 0 0;
   padding: 12px 0;
-  border-block: 1px solid var(--th-border);
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
 }
-.pc-stats > div { text-align: center; }
-.pc-stats > div + div { border-left: 1px solid var(--th-border); }
-.pc-stats dt { font-size: .7rem; color: var(--th-muted); order: 2; }
+.pc-stats > div {
+  text-align: center;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 4px;
+}
+.pc-stats > div + div { border-left: 1px solid rgba(255, 255, 255, 0.08); }
+.pc-stats dt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: .72rem;
+  color: var(--th-muted);
+}
+.pc-stats dt .material-symbols-rounded {
+  font-size: 14px;
+  color: var(--th-gold);
+}
 .pc-stats dd {
   margin: 0;
-  font: 600 1.35rem var(--font-display, Georgia, serif);
+  font: 700 1.35rem var(--font-display, Georgia, serif);
   color: var(--th-ink);
   font-variant-numeric: tabular-nums;
 }
-.pc-stats > div { display: flex; flex-direction: column-reverse; }
 
-.pc-about h3 { font-size: 1.15rem; margin-bottom: 4px; }
+.pc-about {
+  margin-top: 4px;
+}
+.pc-about-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.pc-about h3 { font-size: 1.15rem; margin: 0; }
+.pc-quill-watermark {
+  color: rgba(212, 175, 55, 0.45);
+  font-size: 22px;
+}
 .pc-about p {
   margin: 0;
   color: var(--th-muted);
-  font-size: .88rem;
+  font-size: .86rem;
   line-height: 1.55;
   white-space: pre-line;
   display: -webkit-box;

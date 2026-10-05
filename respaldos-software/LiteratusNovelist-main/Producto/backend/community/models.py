@@ -78,3 +78,49 @@ class Brindis(TimeStampedModel):
 
     def __str__(self):
         return f'{self.giver} 🍺 {self.receiver}'
+
+
+class TavernMessage(TimeStampedModel):
+    """
+    Mensaje compartido en La Taberna de Tinta.
+    Visible para el autor y sus amigos sentados a la mesa.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tavern_messages'
+    )
+    content = models.CharField(max_length=280)
+
+    class Meta:
+        verbose_name = 'Tavern Message'
+        verbose_name_plural = 'Tavern Messages'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.user.username}: {self.content[:30]}'
+
+
+class TavernReaction(TimeStampedModel):
+    """Reacción rápida en La Taberna (🍺, ❤️, 👏, 📖, ✨)."""
+    ALLOWED_REACTIONS = ('beer', 'heart', 'clap', 'book', 'sparkle')
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tavern_reactions'
+    )
+    message = models.ForeignKey(
+        TavernMessage, on_delete=models.CASCADE, null=True, blank=True, related_name='reactions'
+    )
+    reaction = models.CharField(max_length=20)
+
+    class Meta:
+        verbose_name = 'Tavern Reaction'
+        verbose_name_plural = 'Tavern Reactions'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.user.username} {self.reaction}'

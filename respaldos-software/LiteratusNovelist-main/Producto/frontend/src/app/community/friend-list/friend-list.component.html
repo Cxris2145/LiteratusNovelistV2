@@ -1,9 +1,12 @@
 <section class="th-panel fl" aria-labelledby="fl-title">
   <div class="th-panel-title">
     <h2 id="fl-title">Mis amigos <span class="fl-count">({{ friends.length }})</span></h2>
-    <button type="button" class="th-icon-btn" (click)="addFriend.emit()" aria-label="Agregar amigo" title="Agregar amigo">
-      <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
-    </button>
+    <div class="fl-header-actions">
+      <a class="fl-see-all" routerLink="/tavern" (click)="addFriend.emit()">Ver todos →</a>
+      <button type="button" class="th-icon-btn" (click)="addFriend.emit()" aria-label="Agregar amigo" title="Agregar amigo">
+        <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+      </button>
+    </div>
   </div>
 
   <!-- Solicitudes -->

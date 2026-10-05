@@ -325,3 +325,77 @@ class PresenceTests(CommunityAPITestCase):
 
     def test_without_activity_friend_is_away(self):
         self.assertEqual(self.status_of_bruno()['kind'], 'away')
+
+    def test_recent_reading_progress_shows_chapter_label(self):
+        book = Book.objects.create(title='Cien años de soledad', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        inventory = UserInventory.objects.create(user=self.bruno, edition=Edition.objects.create(book=book, price=0))
+        ReadingProgress.objects.create(inventory=inventory, current_page=4)
+
+        status_ = self.status_of_bruno()
+        self.assertEqual(status_['kind'], 'reading')
+        self.assertEqual(status_['book_title'], 'Cien años de soledad')
+        self.assertEqual(status_['chapter'], 4)
+        self.assertEqual(status_['label'], 'Leyendo · Capítulo 4')
+
+
+class TavernChatTests(CommunityAPITestCase):
+    def setUp(self):
+        super().setUp()
+        self.befriend(self.ana, self.bruno)
+
+    def test_send_and_list_tavern_messages(self):
+        resp = self.as_user(self.ana).post(f'{API}tavern/messages/', {'content': '¡Salud por las letras! 🍺'})
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp.data['message']['username'], 'ana')
+        self.assertEqual(resp.data['message']['content'], '¡Salud por las letras! 🍺')
+        self.assertTrue(resp.data['message']['is_me'])
+
+        # Bruno reads the tavern messages
+        list_resp = self.as_user(self.bruno).get(f'{API}tavern/messages/')
+        self.assertEqual(list_resp.status_code, status.HTTP_200_OK)
+        messages = list_resp.data['results']
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0]['username'], 'ana')
+        self.assertFalse(messages[0]['is_me'])
+
+    def test_delete_own_message_and_forbidden_for_others(self):
+        resp = self.as_user(self.ana).post(f'{API}tavern/messages/', {'content': 'Mensaje efímero'})
+        msg_id = resp.data['message']['id']
+
+        # Bruno attempts to delete Ana's message
+        del_forbidden = self.as_user(self.bruno).delete(f'{API}tavern/messages/{msg_id}/')
+        self.assertEqual(del_forbidden.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Ana deletes her own message
+        del_resp = self.as_user(self.ana).delete(f'{API}tavern/messages/{msg_id}/')
+        self.assertEqual(del_resp.status_code, status.HTTP_200_OK)
+
+        # Confirm list is now empty
+        list_resp = self.as_user(self.ana).get(f'{API}tavern/messages/')
+        self.assertEqual(len(list_resp.data['results']), 0)
+
+    def test_message_cooldown_rate_limit(self):
+        self.as_user(self.ana).post(f'{API}tavern/messages/', {'content': 'Primer mensaje'})
+        second = self.as_user(self.ana).post(f'{API}tavern/messages/', {'content': 'Segundo mensaje muy rápido'})
+        self.assertEqual(second.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertEqual(second.data['error'], 'COOLDOWN_ACTIVE')
+
+
+class TavernReactionTests(CommunityAPITestCase):
+    def test_send_valid_reaction_and_activity(self):
+        resp = self.as_user(self.ana).post(f'{API}tavern/reactions/', {'reaction': 'beer'})
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(resp.data['reaction']['symbol'], '🍺')
+        self.assertEqual(resp.data['reaction']['reaction'], 'beer')
+
+        # Check tavern activity endpoint
+        act = self.as_user(self.ana).get(f'{API}tavern/activity/')
+        self.assertEqual(act.status_code, status.HTTP_200_OK)
+        self.assertTrue(len(act.data['reactions']) >= 1)
+        self.assertEqual(act.data['reactions'][0]['reaction'], 'beer')
+
+    def test_send_invalid_reaction(self):
+        resp = self.as_user(self.ana).post(f'{API}tavern/reactions/', {'reaction': 'rocket_ship'})
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.data['error'], 'INVALID_REACTION')
+

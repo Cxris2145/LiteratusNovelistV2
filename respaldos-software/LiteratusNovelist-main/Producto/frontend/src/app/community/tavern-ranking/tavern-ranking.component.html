@@ -27,14 +27,14 @@
           <app-maguito class="rk-avatar" crop="bust" [outfit]="entry.outfit" [paused]="true" [calm]="true"
                        [interactive]="false" [followPointer]="false"></app-maguito>
           <span class="rk-name">{{ entry.is_me ? entry.username + ' (tú)' : entry.username }}</span>
-          <span class="rk-points"><span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>{{ points(entry.points) }}</span>
+          <span class="rk-points"><span class="material-symbols-rounded rk-quill" aria-hidden="true">history_edu</span>{{ points(entry.points) }}</span>
         </li>
         <li *ngIf="myRowOutside as me" class="rk-row is-me is-outside">
           <span class="rk-rank">{{ me.rank }}</span>
           <app-maguito class="rk-avatar" crop="bust" [outfit]="me.outfit" [paused]="true" [calm]="true"
                        [interactive]="false" [followPointer]="false"></app-maguito>
           <span class="rk-name">{{ me.username }} (tú)</span>
-          <span class="rk-points"><span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>{{ points(me.points) }}</span>
+          <span class="rk-points"><span class="material-symbols-rounded rk-quill" aria-hidden="true">history_edu</span>{{ points(me.points) }}</span>
         </li>
       </ol>
 

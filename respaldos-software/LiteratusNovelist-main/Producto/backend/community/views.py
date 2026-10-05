@@ -149,3 +149,36 @@ class PresenceView(CommunityView):
     def post(self, request):
         services.touch_presence(request.user)
         return Response({'pending_incoming': services.pending_incoming_count(request.user)})
+
+
+class TavernMessagesView(CommunityView):
+    """
+    GET  tavern/messages/ — Mensajes de la mesa.
+    POST tavern/messages/ — Enviar mensaje a la mesa. Body: {content}
+    """
+    def get(self, request):
+        return Response({'results': services.list_tavern_messages(request.user)})
+
+    def post(self, request):
+        content = request.data.get('content')
+        return _result(services.send_tavern_message(request.user, content))
+
+
+class TavernMessageDetailView(CommunityView):
+    """DELETE tavern/messages/<uuid:pk>/ — Borrar mensaje propio."""
+    def delete(self, request, pk):
+        return _result(services.delete_tavern_message(request.user, pk))
+
+
+class TavernReactionsView(CommunityView):
+    """POST tavern/reactions/ — Reaccionar (🍺, ❤️, 👏, 📖, ✨). Body: {reaction, message_id?}"""
+    def post(self, request):
+        reaction = request.data.get('reaction')
+        message_id = request.data.get('message_id')
+        return _result(services.send_tavern_reaction(request.user, reaction, message_id))
+
+
+class TavernActivityView(CommunityView):
+    """GET tavern/activity/ — Mensajes y reacciones recientes para animación y burbujas."""
+    def get(self, request):
+        return Response(services.recent_tavern_activity(request.user))

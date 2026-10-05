@@ -7,27 +7,48 @@ import { takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import {
   CommunityMe, CommunityResult, CommunityService, FriendCard, FriendRequestItem, Ranking, RankingScope,
+  TavernChatMessage, TavernReactionItem,
 } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AddFriendDialogComponent, AddFriendDialogData } from '../add-friend-dialog/add-friend-dialog.component';
 import { SceneGuest } from '../tavern-scene/tavern-scene.component';
 
-const POLL_MS = 60000;
+const POLL_MS = 8000;
 
-/** Mesa de ejemplo para quien visita sin sesión. */
-const DEMO_ME: SceneGuest = { code: 'demo-me', username: 'Tu Maguito', outfit: {} };
+/** Mesa de ejemplo para quien visita sin sesión, idéntica a la maqueta. */
+const DEMO_ME: SceneGuest = {
+  code: 'demo-me',
+  username: 'Maguito',
+  outfit: { head: 'aviator', cape: 'red' },
+  level: 12,
+};
 const DEMO_GUESTS: SceneGuest[] = [
-  { code: 'demo-luna', username: 'LunaEscribe', outfit: { head: 'beret', neck: 'scarf-red' },
-    status: { kind: 'reading', label: 'Leyendo · Rayuela', book_title: 'Rayuela' } },
-  { code: 'demo-pluma', username: 'SirPluma', outfit: { head: 'tophat', eyes: 'monocle', face: 'mustache' },
-    status: { kind: 'tavern', label: 'En la taberna', book_title: null }, level: 7 },
-  { code: 'demo-sabio', username: 'ElSabio', outfit: { face: 'beard', eyes: 'halfmoon', cape: 'royal' },
-    status: { kind: 'tavern', label: 'En la taberna', book_title: null } },
+  {
+    code: 'demo-amigo',
+    username: 'Amigo de Maguito',
+    outfit: { head: 'wizard', face: 'beard' },
+    status: { kind: 'tavern', label: 'En la taberna', book_title: null },
+    level: 9,
+  },
+  {
+    code: 'demo-tercer',
+    username: 'Tercer amigo de Maguito',
+    outfit: { head: 'witch-flower' },
+    status: { kind: 'tavern', label: 'En la taberna', book_title: null },
+    level: 6,
+  },
+  {
+    code: 'demo-luna',
+    username: 'LunaEscribe',
+    outfit: { head: 'beret', neck: 'scarf-red' },
+    status: { kind: 'reading', label: 'Leyendo · Capítulo 4', book_title: 'Rayuela' },
+    level: 8,
+  },
 ];
 
 /**
  * La Taberna de Tinta (/tavern): tu Maguito a la mesa con tus amigos, tu perfil,
- * la lista de amigos con sus solicitudes y el ranking. La tienda vive en /tavern/tienda.
+ * la lista de amigos con sus solicitudes, el chat social en tiempo real y el ranking.
  */
 @Component({
   selector: 'app-tavern-hall',
@@ -56,23 +77,25 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   ranking: Ranking | null = null;
   scope: RankingScope = 'week';
   weeklyLeader = false;
+  topRankUsername: string | null = null;
   sceneMe: SceneGuest | null = null;
   sceneGuests: SceneGuest[] = [];
+
+  messages: TavernChatMessage[] = [];
+  recentReactions: TavernReactionItem[] = [];
+  toasting = false;
 
   loading = true;
   rankingLoading = false;
   error = '';
-  /** Id de solicitud o código de amigo con una acción en curso. */
   busy: string | null = null;
 
   ngOnInit(): void {
-    // Antes la página de planes vivía aquí: PayPal todavía puede volver a /tavern?paypal=…
     const paypal = this.route.snapshot.queryParamMap.get('paypal');
     if (paypal) {
       this.router.navigate(['/tavern/tienda'], { queryParams: { paypal }, replaceUrl: true });
       return;
     }
-    // Sin sesión no se llama a la API: un 401 mandaría al visitante a /login.
     if (!this.loggedIn) {
       this.loading = false;
       return;
@@ -102,6 +125,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       friends: this.community.friends(),
       requests: this.community.requests(),
       ranking: this.community.ranking(this.scope),
+      activity: this.community.getActivity(),
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: data => {
         this.me = data.me;
@@ -109,6 +133,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.incoming = data.requests.incoming;
         this.outgoing = data.requests.outgoing;
         this.setRanking(data.ranking);
+        this.messages = data.activity.messages;
+        this.recentReactions = data.activity.reactions;
         this.loading = false;
       },
       error: () => {
@@ -153,10 +179,39 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       ? this.community.removeBrindis(friend.friend_code)
       : this.community.giveBrindis(friend.friend_code);
     this.run(friend.friend_code, request);
+    if (!friend.brindis_given) {
+      this.toasting = true;
+      setTimeout(() => this.toasting = false, 2000);
+    }
   }
 
   remove(friend: FriendCard): void {
     this.run(friend.friend_code, this.community.unfriend(friend.friend_code));
+  }
+
+  onSendMessage(content: string): void {
+    this.community.sendMessage(content).subscribe({
+      next: res => {
+        if (res.message) {
+          this.messages = [res.message, ...this.messages];
+        }
+      },
+      error: err => {
+        this.notification.error(err.error?.message || 'No se pudo enviar el mensaje.', 'Taberna');
+      },
+    });
+  }
+
+  onSendReaction(reaction: string): void {
+    this.community.sendReaction(reaction).subscribe({
+      next: () => {
+        if (reaction === '🍺') {
+          this.toasting = true;
+          setTimeout(() => this.toasting = false, 2000);
+        }
+      },
+      error: () => {},
+    });
   }
 
   private run(key: string, request: Observable<CommunityResult>): void {
@@ -176,17 +231,19 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Latido + amigos + solicitudes: lo que cambia mientras la página está abierta. */
   private refreshLive(): void {
     forkJoin({
       presence: this.community.heartbeat(),
       friends: this.community.friends(),
       requests: this.community.requests(),
+      activity: this.community.getActivity(),
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: data => {
         this.setFriends(data.friends.results);
         this.incoming = data.requests.incoming;
         this.outgoing = data.requests.outgoing;
+        this.messages = data.activity.messages;
+        this.recentReactions = data.activity.reactions;
         if (this.me) this.me = { ...this.me, pending_incoming: data.presence.pending_incoming };
       },
       error: () => {},
@@ -209,6 +266,9 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   private setRanking(ranking: Ranking): void {
     this.ranking = ranking;
+    if (ranking.entries.length) {
+      this.topRankUsername = ranking.entries[0].username;
+    }
     if (ranking.scope === 'week') {
       const leader = ranking.entries[0];
       this.weeklyLeader = !!leader && leader.is_me && leader.points > 0 && ranking.participants > 1;

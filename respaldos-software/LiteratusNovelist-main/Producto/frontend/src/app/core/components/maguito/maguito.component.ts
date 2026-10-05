@@ -33,8 +33,8 @@ const GAZE: Partial<Record<ShownState, { x: number; y: number }>> = {
   success: { x: 0, y: -0.2 },
 };
 
-const DEF_NAMES = ['aura', 'band', 'beard', 'body', 'body-shade', 'brim', 'brim-under', 'cape', 'crown', 'eye-l', 'eye-r',
-  'feather', 'glow', 'hat', 'hat-glow', 'iris', 'lid', 'limb', 'nib', 'scarf', 'sclera', 'spark', 'star', 'tophat'];
+const DEF_NAMES = ['aura', 'aviator-cap', 'band', 'beard', 'body', 'body-shade', 'brim', 'brim-under', 'cape', 'crown', 'eye-l', 'eye-r',
+  'feather', 'glow', 'goggle-glass', 'hat', 'hat-glow', 'iris', 'lid', 'limb', 'nib', 'scarf', 'sclera', 'spark', 'star', 'tophat', 'witch-brim', 'witch-hat'];
 
 /**
  * Maguito, la mascota de Literatus, dibujado en SVG por capas y animado por partes:
@@ -57,6 +57,8 @@ const DEF_NAMES = ['aura', 'band', 'beard', 'body', 'body-shade', 'brim', 'brim-
     '[class.mg-with-aura]': 'aura',
     '[class.mg-crop-bust]': "crop === 'bust'",
     '[class.mg-calm]': 'calm',
+    '[class.mg-has-mug]': 'mug',
+    '[class.mg-toasting]': 'toasting',
     '[attr.data-cape]': 'look.cape',
     '(click)': 'poke()',
   },
@@ -86,6 +88,10 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
    * que están siempre a la vista (la burbuja del asistente en todas las páginas).
    */
   @Input() calm = false;
+  /** Sostiene una jarra de madera con espuma de la Taberna. */
+  @Input() mug = false;
+  /** Brinda chocando la jarra con sus compañeros. */
+  @Input() toasting = false;
   /** Accesorios comprados en El Bazar. Sin outfit lleva el atuendo de siempre. */
   @Input() outfit: MaguitoOutfit | null | undefined = null;
 
