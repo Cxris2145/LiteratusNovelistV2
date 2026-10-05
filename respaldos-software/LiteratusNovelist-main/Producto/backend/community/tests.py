@@ -329,7 +329,9 @@ class PresenceTests(CommunityAPITestCase):
     def test_recent_reading_progress_shows_chapter_label(self):
         book = Book.objects.create(title='Cien años de soledad', status=Book.StatusChoices.PUBLISHED, is_published=True)
         inventory = UserInventory.objects.create(user=self.bruno, edition=Edition.objects.create(book=book, price=0))
-        ReadingProgress.objects.create(inventory=inventory, current_page=4)
+        progress, _ = ReadingProgress.objects.get_or_create(inventory=inventory)
+        progress.current_page = 4
+        progress.save(update_fields=['current_page'])
 
         status_ = self.status_of_bruno()
         self.assertEqual(status_['kind'], 'reading')
