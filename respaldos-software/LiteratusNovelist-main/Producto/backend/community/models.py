@@ -124,3 +124,16 @@ class TavernReaction(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user.username} {self.reaction}'
+
+
+class TavernInvitation(TimeStampedModel):
+    """Invitación breve entre amigos para reunirse en la taberna compartida."""
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tavern_invites_sent')
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tavern_invites_received')
+    expires_at = models.DateTimeField(db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['sender', 'recipient'], condition=Q(deleted_at__isnull=True), name='unique_active_tavern_invite'),
+            models.CheckConstraint(condition=~Q(sender=F('recipient')), name='tavern_invite_not_self'),
+        ]

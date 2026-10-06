@@ -40,6 +40,7 @@ export class AppComponent implements OnInit {
 
   isDashboard = false;
   isEnigma = false;
+  isTavernHall = /^\/tavern\/?(?:[?#]|$)/.test(this.router.url);
   /** Partida de La Senda en modo concentración: sin header ni asistente (tapaba la bandeja). */
   isPlayingLevel = false;
   isNavBubblesHidden = false;
@@ -101,6 +102,7 @@ export class AppComponent implements OnInit {
         const url = e.urlAfterRedirects as string;
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
         this.isEnigma = url.includes('enigma');
+        this.isTavernHall = /^\/tavern\/?(?:[?#]|$)/.test(url);
         this.isPlayingLevel = url.startsWith('/learn/play') || url.startsWith('/learn/skip');
       });
   }
@@ -251,8 +253,8 @@ export class AppComponent implements OnInit {
     this.authService.logout();
   }
 
-  openTavern() {
-    this.router.navigate(['/tavern/tienda']);
+  openInkTopUp() {
+    this.router.navigate(['/planes'], { fragment: 'tinta' });
   }
 
   triggerShake() {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject } from '@angular/core';
 
 import { CommunityProfile } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -20,8 +20,13 @@ export class ProfileCardComponent {
 
   @Input() card: CommunityProfile | null = null;
   @Input() mine = false;
+  @Input() compact = false;
   /** Primer lugar del ranking semanal (con puntos). */
   @Input() crowned = false;
+  /** El Bazar está abierto (para aria-expanded del botón "Vestir a Maguito"). */
+  @Input() dressing = false;
+  /** "Vestir a Maguito": la página abre el ropero del Bazar. */
+  @Output() dress = new EventEmitter<void>();
 
   async copyCode(): Promise<void> {
     if (!this.card) return;

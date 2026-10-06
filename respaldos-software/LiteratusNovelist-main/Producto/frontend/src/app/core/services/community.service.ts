@@ -124,6 +124,14 @@ export interface TavernReactionItem {
 export interface TavernActivity {
   messages: TavernChatMessage[];
   reactions: TavernReactionItem[];
+  invitations?: { incoming: TavernInvitation[]; outgoing: TavernInvitation[] };
+}
+
+export interface TavernInvitation {
+  id: string;
+  created_at: string;
+  expires_at: string;
+  user: { friend_code: string; username: string; outfit: MaguitoOutfit };
 }
 
 /**
@@ -212,5 +220,13 @@ export class CommunityService {
 
   getActivity(): Observable<TavernActivity> {
     return this.api.get<TavernActivity>(`${this.base}tavern/activity/`);
+  }
+
+  inviteToTavern(friendCode: string): Observable<CommunityResult> {
+    return this.api.post(`${this.base}tavern/invitations/`, { friend_code: friendCode });
+  }
+
+  respondToInvitation(id: string, action: 'accept' | 'decline'): Observable<CommunityResult> {
+    return this.api.post(`${this.base}tavern/invitations/${id}/respond/`, { action });
   }
 }

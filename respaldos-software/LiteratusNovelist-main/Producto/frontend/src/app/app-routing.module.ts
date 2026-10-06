@@ -9,10 +9,11 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
 import { BookListComponent } from './catalog/book-list/book-list.component';
 import { BookDetailPageComponent } from './catalog/book-detail-page/book-detail-page.component';
 import { ReaderComponent } from './library/reader/reader.component';
-import { TavernComponent } from './library/tavern/tavern.component';
+import { MembershipComponent } from './membership/membership.component';
 import { TavernHallComponent } from './community/tavern-hall/tavern-hall.component';
 import { FriendProfileComponent } from './community/friend-profile/friend-profile.component';
 import { authGuard } from './core/guards/auth.guard';
+import { legacyShopRedirect } from './core/guards/legacy-shop.redirect';
 import { adminGuard } from './guards/admin.guard';
 import { AuthorDetailPageComponent } from './catalog/author-detail-page/author-detail-page.component';
 import { CheckoutComponent } from './catalog/checkout/checkout.component';
@@ -50,9 +51,11 @@ const routes: Routes = [
   { path: 'interrogatorio', redirectTo: 'games/interrogatorio', pathMatch: 'full' },
   { path: 'messages', component: MessagesComponent },
   { path: 'cart', component: CartComponent },
-  // La Taberna: la comunidad en /tavern; planes, Bazar y Tinta en su Tienda.
+  // La Taberna (/tavern) es la comunidad y trae El Bazar (?bazar=ropero). "Sé parte de Literatus"
+  // (/planes) reúne planes, membresía y cofres de Tinta. /tavern/tienda era la tienda anterior.
   { path: 'tavern', component: TavernHallComponent },
-  { path: 'tavern/tienda', component: TavernComponent },
+  { path: 'planes', component: MembershipComponent },
+  { path: 'tavern/tienda', canActivate: [legacyShopRedirect], children: [] },
   { path: 'tavern/amigo/:code', component: FriendProfileComponent, canActivate: [authGuard] },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },

@@ -1,4 +1,4 @@
-/* La Taberna de Tinta — "Tintero vivo".
+/* Sé parte de Literatus — "Tintero vivo".
    Reglas de movimiento: los bucles solo animan transform/opacity (o translate/scale/rotate);
    las entradas usan keyframes "from" con fill backwards, así al terminar no queda ningún
    valor animado pisando la inclinación ni los hover. Las secciones fuera de pantalla llevan
@@ -11,7 +11,6 @@
   --tv-ink: color-mix(in srgb, var(--color-warning) 82%, var(--home-bg));
   --tv-ink-deep: color-mix(in srgb, var(--color-warning) 38%, var(--home-bg));
   --tv-glow: color-mix(in srgb, var(--color-warning) 28%, transparent);
-  --tv-wax: color-mix(in srgb, var(--color-error) 90%, var(--home-bg));
   --tv-ease: var(--ease-editorial, cubic-bezier(.16, 1, .3, 1));
   --tv-ease-out: var(--ease-out, cubic-bezier(.23, 1, .32, 1));
   --tv-ease-in-out: var(--ease-in-out, cubic-bezier(.77, 0, .175, 1));
@@ -21,7 +20,6 @@
   --tv-ink: var(--color-warning);
   --tv-ink-deep: var(--color-warning);
   --tv-glow: transparent;
-  --tv-wax: var(--color-warning);
 }
 
 .tavern {
@@ -32,16 +30,6 @@
 .tavern > section {
   margin-top: 64px;
 }
-.tv-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-  color: var(--home-ink-muted);
-  font-size: .9rem;
-  text-decoration: none;
-}
-.tv-back:hover { color: var(--color-warning); }
 h1, h2, h3 {
   font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
   margin: 0;
@@ -57,14 +45,15 @@ a {
   color: var(--color-warning);
   text-underline-offset: 4px;
 }
-#plans-title, #ink-packages, #bazar-title {
-  scroll-margin-top: 96px;
+#plans-title, #tinta {
+  scroll-margin-top: calc(var(--navbar-h, 182px) + 24px);
 }
 
 /* Trazo de tinta bajo cada título de sección */
 .section-heading h2, .tv-section > h2 {
   position: relative;
   display: inline-block;
+  line-height: 1.15;
   padding-bottom: 12px;
 }
 .section-heading h2::after, .tv-section > h2::after {
@@ -160,40 +149,6 @@ a {
   gap: 12px;
   margin-top: 26px;
 }
-.tv-hero-claim-slot {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  margin-top: 18px;
-}
-.tv-hero-note {
-  margin: 0;
-  font-size: .85rem;
-  color: var(--home-ink-muted);
-}
-.tv-hero-claim {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 8px 18px 8px 12px;
-  border-radius: 99px;
-  border: 1px solid color-mix(in srgb, var(--color-warning) 55%, transparent);
-  background: transparent;
-  color: var(--color-warning);
-  font: 600 .85rem var(--font-ui);
-  cursor: pointer;
-  transition: border-color .3s, translate .35s var(--tv-ease);
-}
-.tv-hero-claim:hover:not(:disabled) {
-  border-color: var(--color-warning);
-  translate: 0 -2px;
-}
-.tv-hero-claim .material-symbols-rounded {
-  font-size: 22px;
-  animation: tv-nudge 3.2s var(--tv-ease) infinite;
-}
-
 /* ================= Botones entintados ================= */
 .button {
   position: relative;
@@ -609,9 +564,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   font-size: .8rem;
   color: var(--home-ink-muted);
 }
-.ink-panel > a {
-  font-size: .8rem;
-}
 .quota-rest {
   border-top: 1px solid var(--home-glass-border);
   padding-top: 12px;
@@ -669,304 +621,6 @@ th, td {
   border-bottom: 1px solid var(--home-glass-border);
   animation: tv-slide .5s var(--tv-ease) backwards;
   animation-delay: calc(min(var(--i, 0), 12) * 40ms);
-}
-
-/* ================= Bazar ================= */
-.tv-locked {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 22px;
-  border: 1px dashed var(--home-glass-border);
-  border-radius: 14px;
-}
-.tv-locked .material-symbols-rounded {
-  font-size: 34px;
-  color: var(--tv-gold);
-}
-.tv-locked p {
-  flex: 1;
-  margin: 0;
-  color: var(--home-ink-muted);
-}
-.tv-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 18px;
-}
-.tv-chip {
-  position: relative;
-  min-height: 44px;
-  padding: 8px 18px;
-  border-radius: 99px;
-  border: 1px solid var(--home-glass-border);
-  background: transparent;
-  color: var(--home-ink);
-  font: 500 .85rem var(--font-ui);
-  cursor: pointer;
-  transition: border-color .25s, color .25s;
-}
-.tv-chip:hover {
-  border-color: var(--color-warning);
-}
-.tv-chip[aria-pressed="true"] {
-  color: var(--color-warning);
-  border-color: transparent;
-}
-/* La píldora salta de un filtro a otro gracias a su view-transition-name */
-.tv-chip-pill {
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  border: 1.5px solid var(--color-warning);
-  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
-  view-transition-name: tv-chip-pill;
-}
-.tv-chip-label {
-  position: relative;
-}
-.shop-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
-
-/* ── Probador de Maguito ── */
-.bazar-layout.has-fitting {
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
-  gap: 22px;
-  align-items: start;
-}
-.bazar-layout.has-fitting .shop-grid {
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-}
-.tv-fitting {
-  position: sticky;
-  top: 96px;
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--color-warning) 35%, var(--home-glass-border));
-  background:
-    radial-gradient(ellipse 80% 45% at 50% 82%, rgba(255, 179, 71, .22), transparent 70%),
-    linear-gradient(180deg, #2a1b22, #3b2520 70%, #22151a);
-  text-align: center;
-}
-.tv-fitting h3 { font-size: 1.25rem; color: #fff4dc; }
-.tv-fitting-stage { width: 100%; max-width: 220px; }
-.tv-fitting-stage app-maguito { width: 100%; }
-.tv-fitting-caption { margin: 0; font-size: .85rem; color: #fff4dc; min-height: 2.4em; }
-.tv-fitting-hint { margin: 0; font-size: .74rem; color: rgba(255, 244, 220, .65); }
-.tv-fitting .button { font-size: .78rem; padding: 8px 14px; }
-.tv-slot {
-  display: inline-block;
-  margin-bottom: 4px;
-  padding: 2px 9px;
-  border-radius: 99px;
-  font-size: .66rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  color: var(--color-warning);
-  border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
-}
-.shop-item.is-trying { border-color: var(--color-warning); }
-.item-actions { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-@media (max-width: 960px) {
-  .bazar-layout.has-fitting { grid-template-columns: 1fr; }
-  .tv-fitting {
-    position: static;
-    grid-template-columns: 120px 1fr;
-    justify-items: start;
-    text-align: left;
-  }
-  .tv-fitting h3, .tv-fitting-caption, .tv-fitting-hint, .tv-fitting .button { grid-column: 2; }
-  .tv-fitting-stage { grid-column: 1; grid-row: 1 / span 4; max-width: 120px; }
-}
-.shop-item {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: 44px 1fr;
-  align-content: start;
-  gap: 14px;
-  border: 1px solid var(--home-glass-border);
-  border-radius: 14px;
-  padding: 20px;
-  background: var(--home-bg-surface);
-  transition: border-color .3s, translate .4s var(--tv-ease);
-}
-.shop-item:hover {
-  border-color: color-mix(in srgb, var(--color-warning) 60%, var(--home-glass-border));
-  translate: 0 -4px;
-}
-.shop-item.is-bought {
-  border-color: var(--color-warning);
-}
-.item-icon {
-  color: var(--color-warning);
-  font-size: 32px;
-  transition: rotate .5s var(--tv-ease), translate .5s var(--tv-ease), scale .5s var(--tv-ease);
-}
-.shop-item:hover .item-icon {
-  translate: 0 -3px;
-  rotate: -10deg;
-  scale: 1.08;
-}
-.shop-item.is-bought .item-icon {
-  animation: tv-bounce .7s var(--tv-ease);
-}
-.shop-item h3 {
-  font-size: 1.2rem;
-}
-.shop-item p {
-  font-size: .78rem;
-  color: var(--home-ink-muted);
-  line-height: 1.5;
-  margin: 8px 0;
-}
-.shop-item small {
-  font-size: .7rem;
-  color: var(--color-warning);
-}
-.tv-need {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 6px;
-}
-.tv-need-bar {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 6px;
-  background: var(--home-bg);
-}
-.tv-need-bar > span {
-  display: block;
-  height: 100%;
-  background: var(--tv-ink-deep);
-  transform-origin: left center;
-  transform: scaleX(min(1, var(--p, 0)));
-  transition: transform .8s var(--tv-ease);
-}
-.tv-need small {
-  color: var(--home-ink-muted);
-}
-.item-footer {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border-top: 1px solid var(--home-glass-border);
-  padding-top: 14px;
-  font-size: .8rem;
-  margin-top: auto;
-}
-.item-footer .button {
-  font-size: .75rem;
-  padding: 8px 14px;
-}
-.tv-stamp {
-  position: absolute;
-  right: 14px;
-  top: 14px;
-  padding: 4px 12px;
-  border: 3px double var(--color-warning);
-  border-radius: 8px;
-  background: var(--home-bg-surface);
-  color: var(--color-warning);
-  font: 700 1.05rem var(--font-display, Georgia, serif);
-  rotate: -12deg;
-  pointer-events: none;
-  animation: tv-stamp-drop .6s var(--tv-ease) backwards;
-}
-
-/* ================= Recompensas ================= */
-.rewards-section {
-  border-block: 1px solid var(--home-glass-border);
-  padding: 32px 0;
-}
-.rewards-grid, .ink-packages {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 28px;
-  margin-top: 24px;
-}
-.rewards-grid p, .ink-packages p {
-  color: var(--home-ink-muted);
-  font-size: .85rem;
-  line-height: 1.6;
-}
-.rewards-grid a {
-  font-size: .85rem;
-}
-.tv-perk {
-  position: relative;
-}
-.tv-perk-icon {
-  display: inline-block;
-  font-size: 30px;
-  color: var(--tv-gold);
-  margin-bottom: 12px;
-  transition: rotate .5s var(--tv-ease), scale .5s var(--tv-ease);
-}
-.tv-perk:hover .tv-perk-icon {
-  rotate: -12deg;
-  scale: 1.15;
-}
-/* Carta con sello de lacre */
-.tv-letter {
-  position: relative;
-  isolation: isolate;
-  display: block;
-  width: 64px;
-  height: 44px;
-  margin-bottom: 16px;
-  border: 2px solid var(--tv-gold);
-  border-radius: 6px;
-}
-.tv-letter-flap {
-  position: absolute;
-  inset: 0 0 30%;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  background: color-mix(in srgb, var(--tv-gold) 34%, transparent);
-}
-.tv-wax {
-  position: absolute;
-  left: 50%;
-  top: 70%;
-  width: 22px;
-  height: 22px;
-  margin: -11px 0 0 -11px;
-}
-.tv-wax-half {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--tv-wax);
-  clip-path: inset(0 50% 0 0);
-}
-.tv-wax-half + .tv-wax-half {
-  clip-path: inset(0 0 0 50%);
-}
-.tv-reward:not(.is-ready) .tv-wax {
-  opacity: .45;
-}
-.tv-reward.is-ready .tv-letter {
-  animation: tv-nudge 3.2s var(--tv-ease) infinite;
-}
-.tv-reward.is-ready .tv-letter::after {
-  content: '';
-  position: absolute;
-  inset: -22px;
-  z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--tv-glow), transparent);
-  animation: tv-breathe 2.6s ease-in-out infinite;
 }
 
 /* ================= Cofres ================= */
@@ -1181,8 +835,6 @@ th, td {
   [data-tv-section]:not(.is-revealed) app-inkwell,
   [data-tv-section]:not(.is-revealed) .plan,
   [data-tv-section]:not(.is-revealed) .account-panel,
-  [data-tv-section]:not(.is-revealed) .shop-item,
-  [data-tv-section]:not(.is-revealed) .tv-perk,
   [data-tv-section]:not(.is-revealed) .tv-coffer,
   [data-tv-section]:not(.is-revealed) details { opacity: 0; }
   [data-tv-section]:not(.is-revealed) .section-heading h2::after,
@@ -1199,7 +851,6 @@ th, td {
   .is-revealed .tv-hero-copy > :nth-child(4) { animation-delay: .75s; }
   .is-revealed .tv-hero-copy > :nth-child(5) { animation-delay: .9s; }
   .is-revealed app-inkwell { animation: tv-unfold 1s var(--tv-ease) .25s backwards; }
-  .tv-hero-claim, .tv-hero-note { animation: tv-rise .6s var(--tv-ease) backwards; }
 
   .is-revealed .section-heading h2::after,
   .is-revealed > h2::after { animation: tv-stroke .9s var(--tv-ease) .15s backwards; }
@@ -1214,10 +865,7 @@ th, td {
   .is-revealed .account-panel { animation: tv-unfold .7s var(--tv-ease) backwards; animation-delay: calc(var(--i, 0) * 90ms); }
   .is-revealed .tv-meter-fill { animation: tv-fill 1.4s var(--tv-ease) .25s backwards; }
 
-  /* Bazar: las tarjetas se reparten como naipes (no se repite al filtrar) */
-  .is-revealed .shop-grid:not(.no-enter) .shop-item { animation: tv-deal .7s var(--tv-ease) backwards; animation-delay: calc(var(--i, 0) * 65ms); }
 
-  .is-revealed .tv-perk { animation: tv-rise .7s var(--tv-ease) backwards; animation-delay: calc(var(--i, 0) * 110ms); }
 
   /* Cofres: suben y asoman la tapa una vez */
   .is-revealed .tv-coffer { animation: tv-rise .7s var(--tv-ease) backwards; animation-delay: calc(var(--i, 0) * 120ms); }
@@ -1239,7 +887,6 @@ th, td {
 @keyframes tv-nib-fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes tv-rise { from { opacity: 0; translate: 0 26px; } }
 @keyframes tv-unfold { from { opacity: 0; scale: .95; translate: 0 14px; } }
-@keyframes tv-deal { from { opacity: 0; translate: 0 28px; rotate: -2.5deg; } }
 @keyframes tv-slide { from { opacity: 0; translate: -18px 0; } }
 @keyframes tv-stroke { from { scale: 0 1; } }
 @keyframes tv-stamp { 0% { opacity: 0; scale: 1.9; rotate: -28deg; } 55% { opacity: 1; scale: .9; rotate: 5deg; } }
@@ -1247,14 +894,11 @@ th, td {
 @keyframes tv-check { from { opacity: 0; scale: 0; } }
 @keyframes tv-fill { from { transform: scaleX(0); } }
 @keyframes tv-peek { 0%, 100% { transform: none; } 45% { transform: rotateX(55deg); } }
-@keyframes tv-stamp-drop { from { opacity: 0; scale: 2.2; rotate: -30deg; } }
-@keyframes tv-bounce { 30% { translate: 0 -10px; scale: 1.15; } 60% { translate: 0 2px; scale: .95; } }
 @keyframes tv-spin { to { transform: rotate(1turn); } }
 @keyframes tv-pulse { from { opacity: .7; scale: 1; } to { opacity: 0; scale: 3; } }
 @keyframes tv-sheen { 0% { translate: -100% 0; } 60%, 100% { translate: 260% 0; } }
 @keyframes tv-glow { 50% { opacity: .55; } }
 @keyframes tv-breathe { 50% { opacity: .5; scale: 1.18; } }
-@keyframes tv-nudge { 0%, 78%, 100% { rotate: 0deg; } 84% { rotate: -8deg; } 90% { rotate: 6deg; } 95% { rotate: -3deg; } }
 @keyframes tv-scribble { 25% { rotate: -14deg; translate: -2px -3px; } 60% { rotate: 8deg; translate: 3px 0; } }
 @keyframes tv-gem { 0% { opacity: 0; translate: 0 0; } 25% { opacity: 1; } 100% { opacity: 0; translate: 0 -34px; } }
 
@@ -1287,9 +931,6 @@ th, td {
   .ink-panel {
     grid-column: 1 / -1;
   }
-  .shop-grid {
-    grid-template-columns: 1fr 1fr;
-  }
   .section-heading {
     display: block;
   }
@@ -1304,6 +945,14 @@ th, td {
     grid-template-columns: 1fr;
     padding-bottom: 28px;
   }
+  .hero-art {
+    width: min(200px, 60%);
+    justify-self: center;
+  }
+}
+/* En el celular los planes van primero: el tintero es decorativo y tu saldo sigue en "Tu membresía". */
+@media (max-width: 480px) {
+  .hero-art { display: none; }
 }
 @media (max-width: 620px) {
   .tavern {
@@ -1321,7 +970,7 @@ th, td {
   .tv-hero-actions .button {
     flex: 1 1 140px;
   }
-  .plans-grid, .account-grid, .shop-grid, .rewards-grid, .ink-packages {
+  .plans-grid, .account-grid, .ink-packages {
     grid-template-columns: 1fr;
   }
   .plan {
@@ -1333,23 +982,17 @@ th, td {
   .plan-price {
     font-size: 2.3rem;
   }
-  .login-panel, .tavern-footer, .tv-locked {
+  .login-panel, .tavern-footer {
     display: block;
   }
-  .login-panel .button, .tv-locked .button {
+  .login-panel .button {
     width: 100%;
-  }
-  .tv-locked p {
-    margin: 10px 0 14px;
   }
   .tavern-footer p {
     margin-top: 16px;
   }
   .plan-badge {
     font-size: .65rem;
-  }
-  .item-footer .button {
-    min-height: 44px;
   }
 }
 

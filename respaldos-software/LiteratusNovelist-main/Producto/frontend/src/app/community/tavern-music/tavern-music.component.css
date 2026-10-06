@@ -1,0 +1,35 @@
+:host { display: block; min-width: 0; }
+.tm-panel {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--th-panel-background, #19141de6);
+  border: 1px solid var(--th-panel-border, #d4af3759);
+  box-shadow: var(--th-panel-shadow, 0 8px 24px #0005);
+  color: #fff2dc;
+}
+.tm-heading { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.tm-heading > span { color: #ffbf69; font-size: 22px; }
+h2 { flex: 1; margin: 0; font: 600 1.15rem var(--font-display, 'Cormorant Garamond', serif); }
+.tm-heading a { display: grid; place-items: center; width: 32px; height: 32px; color: #eacda5; border-radius: 8px; }
+.tm-heading a span { font-size: 18px; }
+/* El vídeo y los controles de YouTube permanecen completos, visibles y sin superposiciones. */
+.tm-player { display: block; width: 100%; height: 200px; min-width: 200px; border: 0; background: #090909; }
+.tm-status { margin: 10px 0; min-height: 2.6em; font: .75rem/1.35 var(--font-ui, sans-serif); color: #eacda5; }
+.tm-controls { display: flex; align-items: center; gap: 12px; }
+.tm-play {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  min-height: 40px; padding: 7px 10px; border: 1px solid #d4af3766; border-radius: 10px;
+  font: 600 .76rem var(--font-ui, sans-serif); color: #ffcf87; background: #25190d;
+  cursor: pointer;
+}
+.tm-play span { font-size: 21px; }
+.tm-play:disabled { opacity: .55; cursor: default; }
+.tm-volume { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.tm-volume span { font-size: 19px; color: #eacda5; }
+.tm-volume input { width: 100%; min-width: 40px; height: 32px; accent-color: #ffb54d; cursor: pointer; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid #ffd166; outline-offset: 3px; }
+@media (hover: hover) { .tm-play:not(:disabled):hover, .tm-heading a:hover { background: #45301b; } }
+:host-context([data-theme='high-contrast-light']) .tm-panel { color: #171717; }
+:host-context([data-theme='high-contrast-light']) .tm-status,
+:host-context([data-theme='high-contrast-light']) .tm-heading a,
+:host-context([data-theme='high-contrast-light']) .tm-volume span { color: #171717; }

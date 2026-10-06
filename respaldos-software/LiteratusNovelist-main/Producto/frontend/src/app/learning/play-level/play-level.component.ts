@@ -329,7 +329,7 @@ export class PlayLevelComponent implements OnInit, OnDestroy {
   }
 
   goToTavern(): void {
-    this.router.navigate(['/tavern/tienda']);
+    this.router.navigate(['/tavern'], { queryParams: { bazar: 'racha' } });
   }
 
   recapScore(item: any): string {

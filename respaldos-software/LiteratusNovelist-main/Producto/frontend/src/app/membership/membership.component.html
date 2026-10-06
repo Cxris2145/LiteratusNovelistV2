@@ -1,28 +1,17 @@
 <main class="tavern">
-  <a class="tv-back" routerLink="/tavern">
-    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>Volver a la Taberna
-  </a>
   <header class="tv-hero" data-tv-section>
     <div class="tv-hero-copy">
       <h1 class="tv-title">
         <span class="tv-title-wrap">
-          <span class="tv-title-ink">La Taberna de Tinta</span>
+          <span class="tv-title-ink">Sé parte de Literatus</span>
           <span class="tv-title-nib" aria-hidden="true"><span></span></span>
         </span>
       </h1>
-      <p class="hero-lead">Elige cómo quieres vivir tus historias.</p>
-      <p class="tv-hero-text">Leer sigue siendo gratis. La suscripción amplía la forma en que interactúas con las historias.</p>
+      <p class="hero-lead">Conversa más con los personajes de tus clásicos.</p>
+      <p class="tv-hero-text">Leer sigue siendo gratis. Un plan mensual amplía tus conversaciones diarias con personajes y autores; la Tinta te deja seguir cuando se acaba tu cupo.</p>
       <div class="tv-hero-actions">
         <a class="button" href="#plans-title" (click)="jump($event, 'plans-title')">Ver planes</a>
-        <a class="button secondary" href="#ink-packages" (click)="jump($event, 'ink-packages')">Recargar Tinta</a>
-      </div>
-      <!-- El espacio queda reservado para que la llegada del estado de la recompensa no mueva el hero. -->
-      <div class="tv-hero-claim-slot" *ngIf="isLoggedIn()">
-        <button type="button" class="tv-hero-claim" *ngIf="dailyReward?.can_claim; else claimedToday" (click)="claimReward($event.currentTarget)" [disabled]="busy">
-          <span class="material-symbols-rounded" aria-hidden="true">redeem</span>
-          Reclamar tus {{ dailyReward.ink_reward }} Tinta de hoy
-        </button>
-        <ng-template #claimedToday><p class="tv-hero-note" *ngIf="dailyReward">Tu recompensa de hoy ya está en tu tintero.</p></ng-template>
+        <a class="button secondary" href="#tinta" (click)="jump($event, 'tinta')">Recargar Tinta</a>
       </div>
     </div>
     <app-inkwell #inkwell class="hero-art" [balance]="inkBalance" [anonymous]="!isLoggedIn()" [showDelta]="balanceReady"></app-inkwell>
@@ -67,10 +56,10 @@
   </section>
 
   <section class="tv-section" aria-labelledby="account-title" data-tv-section>
-    <h2 id="account-title">Tu cuenta en la Taberna</h2>
+    <h2 id="account-title">Tu membresía</h2>
     <div class="login-panel" *ngIf="!isLoggedIn()">
       <p>Inicia sesión para consultar tu plan, tu consumo y tu Tinta.</p>
-      <a class="button" routerLink="/login" [queryParams]="{ returnUrl: '/tavern/tienda' }">Iniciar sesión</a>
+      <a class="button" routerLink="/login" [queryParams]="{ returnUrl: '/planes' }">Iniciar sesión</a>
     </div>
     <div class="account-grid" *ngIf="isLoggedIn()">
       <article class="account-panel" style="--i: 0">
@@ -113,12 +102,15 @@
       <article class="account-panel ink-panel" style="--i: 2">
         <h3>Tu reserva de Tinta</h3>
         <p class="ink-balance">
-          <span class="tv-quill-icon" aria-hidden="true">✒</span>
+          <span class="tv-quill-icon material-symbols-rounded" aria-hidden="true">ink_pen</span>
           <strong class="tv-balance" #balanceEl><span aria-hidden="true" [appCountUp]="inkBalance" [countUpDelta]="balanceReady"></span><span class="sr-only">{{ formatAmount(inkBalance) }}</span></strong>
           <span class="tv-unit-label">Tinta</span>
         </p>
-        <p>Tu saldo se acumula. Úsalo en el Bazar, extras o conversaciones cuyo precio aceptes.</p>
-        <a href="#ink-packages" (click)="jump($event, 'ink-packages')">Recargar Tinta</a>
+        <p>Tu saldo se acumula. Úsalo en El Bazar de la Taberna, en extras o en conversaciones cuyo precio aceptes.</p>
+        <div class="account-actions">
+          <a href="#tinta" (click)="jump($event, 'tinta')">Recargar Tinta</a>
+          <a routerLink="/tavern" [queryParams]="{ bazar: 'ropero' }">Ir al Bazar</a>
+        </div>
       </article>
     </div>
     <div class="history" *ngIf="showHistory">
@@ -138,106 +130,7 @@
     </div>
   </section>
 
-  <section class="tv-section" aria-labelledby="bazar-title" data-tv-section>
-    <div class="section-heading">
-      <h2 id="bazar-title">El Bazar Literario</h2>
-      <span>Canjea la Tinta que has ganado leyendo y jugando.</span>
-    </div>
-    <div class="tv-locked" *ngIf="!isLoggedIn()">
-      <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
-      <p>Inicia sesión para ver los objetos del Bazar y canjearlos con tu Tinta.</p>
-      <a class="button secondary" routerLink="/login" [queryParams]="{ returnUrl: '/tavern/tienda' }">Iniciar sesión</a>
-    </div>
-    <ng-container *ngIf="isLoggedIn()">
-      <p *ngIf="loadingShop" role="status">Preparando el Bazar…</p>
-      <p *ngIf="shopError" role="status">{{ shopError }}</p>
-      <div class="tv-filters" role="group" aria-label="Filtrar el Bazar" *ngIf="showShopFilters">
-        <button type="button" class="tv-chip" *ngFor="let filter of shopFilters" [attr.aria-pressed]="shopFilter === filter.id" (click)="setShopFilter(filter.id)">
-          <span class="tv-chip-pill" *ngIf="shopFilter === filter.id" aria-hidden="true"></span>
-          <span class="tv-chip-label">{{ filter.label }}</span>
-        </button>
-      </div>
-      <div class="bazar-layout" [class.has-fitting]="showFitting">
-        <!-- Probador: Maguito con lo que lleva puesto y la prenda que estás mirando -->
-        <aside class="tv-fitting" *ngIf="showFitting" aria-labelledby="fitting-title">
-          <h3 id="fitting-title">Probador de Maguito</h3>
-          <div class="tv-fitting-stage">
-            <app-maguito [outfit]="previewOutfit" [followPointer]="false" [interactive]="true"
-                         [label]="previewItem ? 'Tu Maguito probándose ' + previewItem.name : 'Tu Maguito'"></app-maguito>
-          </div>
-          <p class="tv-fitting-caption" aria-live="polite">
-            {{ previewItem ? 'Así se vería con ' + previewItem.name : 'Así luce tu Maguito hoy' }}
-          </p>
-          <button type="button" class="button secondary" *ngIf="previewItem" (click)="resetPreview()">Restablecer</button>
-          <p class="tv-fitting-hint" *ngIf="!previewItem">Pasa por una prenda o pulsa "Probar" para vérsela puesta.</p>
-        </aside>
-
-        <div class="shop-grid" [class.no-enter]="filterUsed" (mouseleave)="peek(null)">
-          <article class="shop-item" *ngFor="let item of visibleShopItems; let i = index; trackBy: trackItem"
-                   [style.--i]="i" [style.view-transition-name]="vtName(item)" [class.is-bought]="justBought === item.code"
-                   [class.is-trying]="isWear(item) && isTrying(item)"
-                   (mouseenter)="peek(item)" (focusin)="peek(item)">
-            <span class="material-symbols-rounded item-icon" aria-hidden="true">{{ item.icon || 'shopping_bag' }}</span>
-            <div>
-              <span class="tv-slot" *ngIf="isWear(item)">{{ wearSlotLabel(item) }}</span>
-              <h3>{{ item.name }}</h3>
-              <p>{{ item.description }}</p>
-              <small *ngIf="item.quantity > 0">{{ item.is_equipped ? (isWear(item) ? 'Puesto' : 'Equipado') : (isWear(item) ? 'En tu baúl' : 'Tienes ' + item.quantity) }}</small>
-            </div>
-            <div class="tv-need" *ngIf="canBuy(item) && missingInk(item) > 0">
-              <span class="tv-need-bar" aria-hidden="true"><span [style.--p]="inkBalance / item.cost_ink"></span></span>
-              <small>Te faltan {{ formatAmount(missingInk(item)) }} Tinta</small>
-            </div>
-            <div class="item-footer">
-              <strong>{{ formatAmount(item.cost_ink) }} Tinta</strong>
-              <span class="item-actions">
-                <button class="button secondary" type="button" *ngIf="isWear(item) && !item.is_owned" (click)="tryOn(item)"
-                        [attr.aria-pressed]="isTrying(item)">{{ isTrying(item) ? 'Probando' : 'Probar' }}</button>
-                <button class="button secondary" type="button" *ngIf="canBuy(item)" (click)="buyShopItem(item)" [disabled]="busy || missingInk(item) > 0">Canjear</button>
-                <ng-container *ngIf="canEquip(item)">
-                  <button class="button secondary" type="button" *ngIf="isWear(item) && item.is_equipped; else equipBtn" (click)="unequipWear(item)" [disabled]="busy">Quitar</button>
-                  <ng-template #equipBtn>
-                    <button class="button secondary" type="button" (click)="equipShopItem(item)" [disabled]="item.is_equipped">{{ item.is_equipped ? 'Equipado' : (isWear(item) ? 'Ponérselo' : 'Equipar') }}</button>
-                  </ng-template>
-                </ng-container>
-              </span>
-            </div>
-            <span class="tv-stamp" *ngIf="justBought === item.code" aria-hidden="true">Canjeado</span>
-          </article>
-        </div>
-      </div>
-    </ng-container>
-  </section>
-
-  <section class="tv-section rewards-section" aria-labelledby="rewards-title" data-tv-section>
-    <h2 id="rewards-title">Historias que dan recompensas</h2>
-    <div class="rewards-grid">
-      <article class="tv-perk tv-reward" style="--i: 0" [class.is-ready]="dailyReward?.can_claim">
-        <span class="tv-letter" aria-hidden="true">
-          <span class="tv-letter-flap"></span>
-          <span class="tv-wax"><span class="tv-wax-half"></span><span class="tv-wax-half"></span></span>
-        </span>
-        <h3>Recompensa diaria</h3>
-        <p>{{ dailyReward?.can_claim ? 'Tu recompensa de hoy está lista: ' + dailyReward.ink_reward + ' Tinta.' : 'Vuelve cada día y consulta tu recompensa en Logros.' }}</p>
-        <button class="button" *ngIf="dailyReward?.can_claim" type="button" (click)="claimReward($event.currentTarget)" [disabled]="busy">Reclamar {{ dailyReward.ink_reward }} Tinta</button>
-        <a routerLink="/achievements" *ngIf="!dailyReward?.can_claim">Ver recompensas</a>
-      </article>
-      <article class="tv-perk" style="--i: 1">
-        <span class="material-symbols-rounded tv-perk-icon" aria-hidden="true">route</span>
-        <h3>Misiones y rachas</h3>
-        <p>Continúa tu recorrido y descubre las recompensas de La Senda.</p>
-        <a routerLink="/learn">Ir a La Senda</a>
-      </article>
-      <article class="tv-perk" style="--i: 2">
-        <span class="material-symbols-rounded tv-perk-icon" aria-hidden="true">emoji_events</span>
-        <h3>Tus logros</h3>
-        <p>Encuentra nuevos desafíos y consulta lo que has conseguido.</p>
-        <a routerLink="/achievements">Ver mis logros</a>
-      </article>
-    </div>
-  </section>
-
-  <section id="ink-packages" class="tv-section" aria-labelledby="ink-title" data-tv-section>
+  <section id="tinta" class="tv-section" aria-labelledby="ink-title" data-tv-section>
     <div class="section-heading">
       <h2 id="ink-title">Cofres de Tinta</h2>
       <span>Pago único en pesos chilenos con Webpay.</span>
@@ -261,11 +154,12 @@
   <section class="tv-section faq" aria-labelledby="faq-title" data-tv-section>
     <h2 id="faq-title">Antes de seguir tu historia</h2>
     <details style="--i: 0"><summary>¿Necesito pagar para leer?</summary><p>No. Leer los libros sigue siendo gratis. Los planes amplían las conversaciones con personajes y autores.</p></details>
-    <details style="--i: 1"><summary>¿En qué se diferencian el cupo de IA y la Tinta?</summary><p>El cupo cubre las conversaciones de tu plan y se renueva cada día. La Tinta es un saldo que se acumula para canjes, extras y conversaciones adicionales.</p></details>
-    <details style="--i: 2"><summary>¿Cómo se cuentan mis horas y créditos?</summary><p>El tiempo cuenta con el chat visible y actividad reciente; se pausa al salir o tras dos minutos sin interacción. Los tokens incluyen tu mensaje, el contexto y la respuesta. El consumo es compartido por todos tus dispositivos y se reinicia a las 00:00 de Santiago.</p></details>
-    <details style="--i: 3"><summary>¿Qué ocurre cuando termino mi cupo?</summary><p>Puedes esperar al reinicio diario o aceptar el precio de una respuesta en Tinta. No se descuenta Tinta automáticamente. El asistente general sigue gratuito.</p></details>
-    <details style="--i: 4"><summary>¿Puedo cancelar o cambiar mi plan?</summary><p>Puedes detener la renovación y conservar tu período pagado y la Tinta recibida. Los cambios de plan se aplican en la siguiente renovación, sin prorrateo.</p></details>
-    <details style="--i: 5"><summary>¿Maestro incluye audio o desbloquea todos los personajes?</summary><p>Los planes incluyen chat escrito y respetan los desbloqueos por lectura. El audio mantiene sus reglas actuales. La insignia y el marco Maestro están disponibles durante el período pagado.</p></details>
+    <details style="--i: 1"><summary>¿Dónde uso mi Tinta?</summary><p>En El Bazar de La Taberna: ropa para tu Maguito, protectores de racha y adornos de perfil. También sirve para seguir conversando cuando se acaba el cupo de tu plan.</p></details>
+    <details style="--i: 2"><summary>¿En qué se diferencian el cupo de IA y la Tinta?</summary><p>El cupo cubre las conversaciones de tu plan y se renueva cada día. La Tinta es un saldo que se acumula para canjes, extras y conversaciones adicionales.</p></details>
+    <details style="--i: 3"><summary>¿Cómo se cuentan mis horas y créditos?</summary><p>El tiempo cuenta con el chat visible y actividad reciente; se pausa al salir o tras dos minutos sin interacción. Los tokens incluyen tu mensaje, el contexto y la respuesta. El consumo es compartido por todos tus dispositivos y se reinicia a las 00:00 de Santiago.</p></details>
+    <details style="--i: 4"><summary>¿Qué ocurre cuando termino mi cupo?</summary><p>Puedes esperar al reinicio diario o aceptar el precio de una respuesta en Tinta. No se descuenta Tinta automáticamente. El asistente general sigue gratuito.</p></details>
+    <details style="--i: 5"><summary>¿Puedo cancelar o cambiar mi plan?</summary><p>Puedes detener la renovación y conservar tu período pagado y la Tinta recibida. Los cambios de plan se aplican en la siguiente renovación, sin prorrateo.</p></details>
+    <details style="--i: 6"><summary>¿Maestro incluye audio o desbloquea todos los personajes?</summary><p>Los planes incluyen chat escrito y respetan los desbloqueos por lectura. El audio mantiene sus reglas actuales. La insignia y el marco Maestro están disponibles durante el período pagado.</p></details>
   </section>
 
   <footer class="tavern-footer" data-tv-section>

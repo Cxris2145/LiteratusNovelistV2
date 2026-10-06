@@ -1,58 +1,74 @@
-<main class="th-hall">
-  <!-- Cabecera de la Taberna con título, botones de acción, cita dorada y pergamino -->
+<main class="th-hall" [class.is-cinema]="cinemaMode">
+  <!-- El salón ilustrado: una capa pegajosa que no obliga a repintar la página al desplazarse. -->
+  <div class="th-backdrop" aria-hidden="true"></div>
+  <!-- Cabecera compacta para dejar el protagonismo al salón. -->
   <header class="th-hero">
     <div class="th-hero-copy">
-      <div class="th-hero-header-row">
-        <h1 class="th-title">
-          <span class="material-symbols-rounded th-title-icon" aria-hidden="true">sports_bar</span>
-          La Taberna de Tinta
-        </h1>
-      </div>
+      <h1 class="th-title">
+        <span class="material-symbols-rounded th-title-icon" aria-hidden="true">sports_bar</span>
+        La Taberna de Tinta
+      </h1>
       <p class="th-lead">Donde las historias nos reúnen.</p>
-      <p class="th-text">Comparte, conversa, haz nuevos amigos y vive la literatura en un lugar pensado para soñadores como tú.</p>
-
-      <div class="th-actions" *ngIf="loggedIn; else visitorActions">
-        <button type="button" class="th-btn" (click)="openAddFriend()">
-          <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Agregar amigo
+    </div>
+    <div class="th-actions" *ngIf="loggedIn; else visitorActions">
+      <!-- Utilidades del salón: discretas, para no competir con las acciones. -->
+      <div class="th-utilities" role="group" aria-label="Ambiente de la taberna">
+        <button type="button" class="th-icon-toggle" (click)="toggleAudio()" [attr.aria-pressed]="audioPlaying"
+                [attr.aria-label]="audioPlaying ? 'Silenciar la chimenea' : 'Activar el sonido de la chimenea'">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ audioPlaying ? 'volume_up' : 'volume_off' }}</span>
+          <span class="th-tip" aria-hidden="true">{{ audioPlaying ? 'Silenciar chimenea' : 'Chimenea' }}</span>
         </button>
-        <a class="th-btn secondary" routerLink="/profile">
-          <span class="material-symbols-rounded" aria-hidden="true">edit</span>Editar perfil
-        </a>
+        <button type="button" class="th-icon-toggle" (click)="toggleCinema()" [attr.aria-pressed]="cinemaMode"
+                [attr.aria-label]="cinemaMode ? 'Salir del modo cine' : 'Modo cine: solo la mesa'">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ cinemaMode ? 'fullscreen_exit' : 'fullscreen' }}</span>
+          <span class="th-tip" aria-hidden="true">{{ cinemaMode ? 'Salir del modo cine' : 'Modo cine' }}</span>
+        </button>
       </div>
-      <ng-template #visitorActions>
-        <div class="th-actions">
-          <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
-            <span class="material-symbols-rounded" aria-hidden="true">login</span>Entra con tu Maguito
-          </a>
-          <a class="th-btn secondary" routerLink="/register">Crear cuenta</a>
-        </div>
-      </ng-template>
+      <span class="th-actions-divider" aria-hidden="true"></span>
+      <button type="button" class="th-btn secondary" (click)="openBazar()" [attr.aria-expanded]="bazarOpen" aria-controls="tavern-bazar">
+        <span class="material-symbols-rounded" aria-hidden="true">storefront</span>El Bazar
+      </button>
+      <button type="button" class="th-btn" (click)="openAddFriend()">
+        <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Agregar amigo
+      </button>
     </div>
-
-    <!-- Cita central dorada: “Buenos libros, mejores compañías.” -->
-    <div class="th-quote-banner" aria-hidden="true">
-      <p class="th-quote-text">“Buenos libros, mejores compañías.”</p>
-    </div>
-
-    <!-- Pergamino ilustrado de la taberna -->
-    <figure class="th-note" aria-hidden="true">
-      <span class="material-symbols-rounded">ink_pen</span>
-      <blockquote>Aquí las historias también se viven juntos.</blockquote>
-    </figure>
+    <ng-template #visitorActions>
+      <div class="th-actions">
+        <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
+          <span class="material-symbols-rounded" aria-hidden="true">login</span>Entra con tu Maguito
+        </a>
+        <a class="th-btn secondary" routerLink="/register">Crear cuenta</a>
+      </div>
+    </ng-template>
   </header>
+
+  <!-- Modo cine activo: una pastilla que explica cómo volver. -->
+  <div class="th-cinema-banner" *ngIf="cinemaMode" role="status">
+    <span class="material-symbols-rounded" aria-hidden="true">movie</span>
+    <span class="th-cinema-banner-text">Modo cine: solo la mesa y tus compañeros.</span>
+    <button type="button" class="th-btn ghost" (click)="toggleCinema()">Salir <kbd>Esc</kbd></button>
+  </div>
 
   <p class="th-error" role="alert" *ngIf="error">
     {{ error }}
     <button type="button" class="th-btn ghost" (click)="loadAll()">Reintentar</button>
   </p>
 
-  <!-- Distribución principal con la escena de la taberna al centro y paneles flotantes -->
-  <div class="th-layout" *ngIf="loggedIn; else visitor">
+  <!-- Una sola ilustración cubre el salón; los paneles flotan a sus lados. -->
+  <div class="th-layout" [class.is-bazar-open]="bazarOpen" *ngIf="loggedIn; else visitor">
     <!-- Columna izquierda: Tu perfil -->
-    <app-profile-card class="area-profile" [card]="me" [mine]="true" [crowned]="weeklyLeader"></app-profile-card>
+    <app-profile-card class="area-profile" [compact]="true" [card]="me" [mine]="true" [crowned]="weeklyLeader"
+                      [dressing]="bazarOpen" (dress)="openBazar('ropero')"></app-profile-card>
 
-    <!-- Columna central: Escena ilustrada a pantalla completa + mesa interactiva + chat -->
+    <!-- Columna central: mesa interactiva y chat sobre el fondo compartido. -->
     <div class="area-scene-wrap">
+      <aside class="th-invitations" *ngIf="invitations.length" aria-label="Invitaciones a la mesa">
+        <div *ngFor="let invitation of invitations" class="th-invitation">
+          <p><strong>{{ invitation.user.username }}</strong> te invita a compartir un brindis.</p>
+          <button type="button" class="th-btn" [disabled]="!!invitationBusy" (click)="respondToInvitation(invitation, 'accept')">Unirme</button>
+          <button type="button" class="th-btn ghost" [disabled]="!!invitationBusy" (click)="respondToInvitation(invitation, 'decline')">Ahora no</button>
+        </div>
+      </aside>
       <app-tavern-scene
         class="area-scene"
         [me]="sceneMe"
@@ -61,13 +77,20 @@
         [reactions]="recentReactions"
         [toasting]="toasting"
         [topRankUsername]="topRankUsername"
+        [fitting]="bazarOpen"
+        [fittingTick]="fittingTick"
+        [fittingGesture]="fittingGesture"
         (sendMessage)="onSendMessage($event)"
-        (sendReaction)="onSendReaction($event)">
+        (sendReaction)="onSendReaction($event)"
+        (tableAction)="openTableAction($event)"
+        (bazar)="bazarOpen ? closeBazar() : openBazar()"
+        (guestSelect)="openGuest($event)">
       </app-tavern-scene>
     </div>
 
     <!-- Columna derecha: Amigos y Ranking -->
     <div class="area-side">
+      <app-tavern-music [suspended]="cinemaMode || bazarOpen"></app-tavern-music>
       <app-friend-list
         [friends]="friends"
         [incoming]="incoming"
@@ -91,6 +114,18 @@
     </div>
   </div>
 
+  <!-- El Bazar se abre sobre la columna de amigos: la mesa sigue a la vista y hace de espejo. -->
+  <app-tavern-bazar
+    *ngIf="loggedIn"
+    [open]="bazarOpen"
+    [tab]="bazarTab"
+    [wearing]="me?.outfit"
+    (closed)="closeBazar()"
+    (preview)="onBazarPreview($event)"
+    (gesture)="onBazarGesture($event)"
+    (outfitChange)="onOutfitChange($event)">
+  </app-tavern-bazar>
+
   <ng-template #visitor>
     <div class="th-visitor">
       <div class="area-scene-wrap">
@@ -101,10 +136,14 @@
           [demo]="true"
           [toasting]="toasting"
           (sendMessage)="onSendMessage($event)"
-          (sendReaction)="onSendReaction($event)">
+          (sendReaction)="onSendReaction($event)"
+          (tableAction)="openTableAction($event)"
+          (bazar)="openBazar()">
         </app-tavern-scene>
       </div>
-      <section class="th-panel th-visitor-copy">
+      <div class="th-visitor-side">
+        <app-tavern-music></app-tavern-music>
+        <section class="th-panel th-visitor-copy">
         <h2>Tu mesa te espera</h2>
         <ul>
           <li><span class="material-symbols-rounded" aria-hidden="true">badge</span>Recibe tu código de amigo y comparte tu perfil.</li>
@@ -113,7 +152,8 @@
           <li><span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Viste a tu Maguito con gorro de aviador, sombrero de bruja o capa roja.</li>
         </ul>
         <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">Entra con tu Maguito</a>
-      </section>
+        </section>
+      </div>
     </div>
   </ng-template>
 </main>

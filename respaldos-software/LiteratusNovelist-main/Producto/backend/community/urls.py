@@ -19,6 +19,8 @@ from .views import (
     TavernMessageDetailView,
     TavernMessagesView,
     TavernReactionsView,
+    TavernInvitationsView,
+    TavernInvitationResponseView,
     UnfriendView,
 )
 
@@ -39,4 +41,6 @@ urlpatterns = [
     path('tavern/messages/<uuid:pk>/', TavernMessageDetailView.as_view(), name='tavern-message-detail'),
     path('tavern/reactions/', TavernReactionsView.as_view(), name='tavern-reactions'),
     path('tavern/activity/', TavernActivityView.as_view(), name='tavern-activity'),
+    path('tavern/invitations/', TavernInvitationsView.as_view(), name='tavern-invitations'),
+    path('tavern/invitations/<uuid:pk>/respond/', TavernInvitationResponseView.as_view(), name='tavern-invitation-response'),
 ]

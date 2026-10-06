@@ -1,4 +1,4 @@
-<section class="th-panel pc" *ngIf="card; else skeleton" [attr.aria-label]="mine ? 'Tu perfil' : 'Perfil de ' + card.username">
+<section class="th-panel pc" *ngIf="card; else skeleton" [class.is-compact]="compact" [attr.aria-label]="mine ? 'Tu perfil' : 'Perfil de ' + card.username">
   <div class="th-panel-title">
     <h2>{{ mine ? 'Tu perfil' : 'Perfil' }}</h2>
     <a *ngIf="mine" class="th-btn ghost" routerLink="/profile">
@@ -55,9 +55,9 @@
     </button>
   </div>
 
-  <a *ngIf="mine" class="th-btn secondary pc-dress" routerLink="/tavern/tienda" [queryParams]="{ filtro: 'maguito' }">
+  <button *ngIf="mine" type="button" class="th-btn secondary pc-dress" (click)="dress.emit()" [attr.aria-expanded]="dressing">
     <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir a Maguito
-  </a>
+  </button>
 
   <ng-content></ng-content>
 </section>

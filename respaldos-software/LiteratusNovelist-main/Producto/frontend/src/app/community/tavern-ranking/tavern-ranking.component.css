@@ -14,6 +14,8 @@
 }
 .rk-tabs button {
   min-height: 36px;
+  padding-inline: 4px;
+  white-space: nowrap;
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
@@ -22,7 +24,9 @@
   cursor: pointer;
   transition: background-color .2s, color .2s, border-color .2s;
 }
-.rk-tabs button:hover { color: var(--th-ink); }
+@media (hover: hover) and (pointer: fine) {
+  .rk-tabs button:hover { color: var(--th-ink); }
+}
 .rk-tabs button.is-active {
   color: var(--th-gold);
   border-color: color-mix(in srgb, var(--th-gold) 60%, transparent);

@@ -57,9 +57,31 @@
       <stop offset="1" stop-color="#15172a"/>
     </linearGradient>
     <linearGradient [attr.id]="ids['beard']" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#f4f6ff"/>
-      <stop offset="1" stop-color="#c9d0ea"/>
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#e9edfa"/>
+      <stop offset="1" stop-color="#a7b5d8"/>
     </linearGradient>
+    <linearGradient [attr.id]="ids['mustache']" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#926247"/>
+      <stop offset="0.5" stop-color="#573724"/>
+      <stop offset="1" stop-color="#2c1c19"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['lens']" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d5f1ff" stop-opacity="0.25"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#78b6db" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient [attr.id]="ids['metal']" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0b8"/>
+      <stop offset="0.35" stop-color="#d6a64f"/>
+      <stop offset="0.6" stop-color="#fff0b8"/>
+      <stop offset="1" stop-color="#986023"/>
+    </linearGradient>
+    <radialGradient [attr.id]="ids['velvet']" cx="0.3" cy="0.2" r="0.85">
+      <stop offset="0" stop-color="#cf4d6a"/>
+      <stop offset="0.5" stop-color="#962441"/>
+      <stop offset="1" stop-color="#511629"/>
+    </radialGradient>
     <linearGradient [attr.id]="ids['scarf']" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ff6b6b"/>
       <stop offset="1" stop-color="#c0283a"/>
@@ -143,17 +165,33 @@
 
         <!-- Capa -->
         <g class="mg-cape">
-          <path d="M160 246C141 262 131 292 127 334C141 334 151 329 162 320Z" [attr.fill]="refs['cape']"/>
-          <path d="M290 240C319 258 342 298 354 340C335 339 314 331 296 320Z" [attr.fill]="refs['cape']"/>
+          <path d="M160 246C141 262 127 294 123 336Q141 345 164 324Z" [attr.fill]="refs['cape']"/>
+          <path d="M290 240C319 258 342 298 354 340Q327 347 296 320Z" [attr.fill]="refs['cape']"/>
+          <path d="M154 260Q139 293 134 330M308 260Q330 288 343 333" style="stroke: var(--mg-cape-seam)" stroke-width="5" fill="none" opacity="0.35" stroke-linecap="round"/>
+          <path d="M126 332Q141 338 160 321M300 321Q328 340 350 336" stroke="#f1c867" stroke-width="2.2" fill="none" opacity="0.8"/>
+          <path d="M149 271Q138 304 138 324M311 269Q326 294 334 324" style="stroke: var(--mg-sleeve-hi)" stroke-width="2" stroke-dasharray="2 4" fill="none" opacity="0.6"/>
           <path d="M296 262C313 282 326 306 334 332" style="stroke: var(--mg-cape-seam)" stroke-width="2" fill="none" opacity="0.45" stroke-linecap="round"/>
         </g>
 
         <!-- Cuerpo -->
         <path class="mg-body" [attr.fill]="refs['body']"
           d="M150 226C150 181 176 158 225 158C274 158 300 181 300 226L300 322C300 349 290 360 272 360C252 360 241 352 237 341C233 334 217 334 213 341C209 352 198 360 178 360C160 360 150 349 150 322Z"/>
-        <path [attr.fill]="refs['body-shade']"
+        <path class="mg-body-shade" [attr.fill]="refs['body-shade']"
           d="M150 226C150 181 176 158 225 158C274 158 300 181 300 226L300 322C300 349 290 360 272 360C252 360 241 352 237 341C233 334 217 334 213 341C209 352 198 360 178 360C160 360 150 349 150 322Z"/>
-        <ellipse cx="170" cy="282" rx="9" ry="34" fill="#ffffff" opacity="0.07"/>
+        <ellipse class="mg-body-highlight" cx="170" cy="282" rx="9" ry="34" fill="#ffffff" opacity="0.07"/>
+
+        <!-- Solapas, forro y bordado: la tela acompaña a la capa equipada. -->
+        <g class="mg-garment">
+          <path d="M153 256L181 274L171 337Q159 341 151 329Z" [attr.fill]="refs['cape']"/>
+          <path d="M295 253L263 275L276 337Q291 340 300 327Z" [attr.fill]="refs['cape']"/>
+          <path d="M155 258L180 276L170 330M292 257L264 277L276 330" stroke="#f1c867" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M162 282L157 324M285 281L291 324" style="stroke: var(--mg-cape-seam)" stroke-width="3" fill="none" opacity="0.5"/>
+          <path d="M171 333Q225 343 277 333" style="stroke: var(--mg-cape-seam)" stroke-width="5" fill="none"/>
+          <rect x="214" y="333" width="21" height="10" rx="3" [attr.fill]="refs['metal']"/>
+          <rect x="220" y="336" width="9" height="4" rx="1" style="fill: var(--mg-cape-seam)"/>
+          <use [attr.href]="hrefs['star']" transform="translate(166 306) scale(.35)" fill="#f1c867" opacity="0.8"/>
+          <use [attr.href]="hrefs['star']" transform="translate(285 306) scale(.35)" fill="#f1c867" opacity="0.8"/>
+        </g>
 
         <!-- Cuello (accesorio): va sobre el cuerpo y bajo la cara; los brazos lo tapan en los hombros -->
         <g class="mg-neck" *ngIf="look.neck === 'scarf-red'">
@@ -161,12 +199,17 @@
           <path d="M156 270Q225 292 294 270" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.18" stroke-linecap="round"/>
           <path d="M262 284C266 304 270 324 276 340L256 342C252 324 250 304 248 288Z" [attr.fill]="refs['scarf']"/>
           <path d="M258 342v8M264 341v8M270 340v8" stroke="#c0283a" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M153 282Q223 306 297 282" stroke="#86182b" stroke-width="4" fill="none" opacity="0.6"/>
+          <path d="M258 296L266 333" stroke="#ffb1a4" stroke-width="2" opacity="0.4"/>
+          <path d="M165 275L167 287M182 281L184 294M199 285L201 298M216 287L218 300M233 286L235 299M250 283L252 296M267 279L269 292M284 274L286 287" stroke="#ffcab5" stroke-width="1" opacity="0.3"/>
         </g>
         <g class="mg-neck" *ngIf="look.neck === 'bowtie'">
           <path d="M225 282L199 270Q194 282 199 294Z" fill="#c0283a"/>
           <path d="M225 282L251 270Q256 282 251 294Z" fill="#c0283a"/>
           <path d="M203 275Q200 282 203 289M247 275Q250 282 247 289" stroke="#8e1b2b" stroke-width="1.6" fill="none" stroke-linecap="round"/>
           <rect x="219" y="276" width="12" height="12" rx="3" fill="#8e1b2b"/>
+          <path d="M201 273L215 281L201 289M249 273L235 281L249 289" stroke="#ff9b99" stroke-width="1.3" fill="none" opacity="0.55"/>
+          <rect x="221" y="277" width="8" height="9" rx="2" [attr.fill]="refs['scarf']"/>
         </g>
 
         <!-- Cara: se desplaza un poco hacia donde mira (giro de cabeza) -->
@@ -196,6 +239,8 @@
 
           <!-- Gafas redondas (las de siempre) -->
           <g *ngIf="look.eyes === 'round'" class="mg-glasses" fill="none" stroke-linecap="round">
+            <circle cx="182" cy="215" r="25.5" [attr.fill]="refs['lens']" stroke="none"/>
+            <circle cx="252" cy="215" r="25.5" [attr.fill]="refs['lens']" stroke="none"/>
             <path d="M162 201A22 22 0 0 1 180 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
             <path d="M232 201A22 22 0 0 1 250 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
             <circle cx="182" cy="215" r="28" stroke="#18215a" stroke-width="5"/>
@@ -205,24 +250,34 @@
             <path d="M210 214Q217 207 224 214" stroke="#18215a" stroke-width="4.5"/>
             <path d="M154 212 150 209" stroke="#18215a" stroke-width="4"/>
             <path d="M280 212 299 205" stroke="#18215a" stroke-width="4"/>
+            <path class="mg-lens-shine" d="M166 210L178 198M239 212L254 197" stroke="#ffffff" stroke-width="3" opacity="0.32"/>
+            <circle cx="153" cy="210" r="2.5" [attr.fill]="refs['metal']" stroke="none"/>
+            <circle cx="282" cy="210" r="2.5" [attr.fill]="refs['metal']" stroke="none"/>
           </g>
           <!-- Monóculo del erudito -->
           <g *ngIf="look.eyes === 'monocle'" class="mg-eyewear" fill="none" stroke-linecap="round">
-            <circle cx="252" cy="215" r="29" stroke="#d4a72c" stroke-width="4.5" fill="#ffffff" fill-opacity="0.08"/>
+            <circle cx="252" cy="215" r="29" [attr.stroke]="refs['metal']" stroke-width="5" [attr.fill]="refs['lens']"/>
+            <circle cx="252" cy="215" r="25.7" stroke="#fff0b8" stroke-width="1" opacity="0.55"/>
             <path d="M232 203A22 22 0 0 1 250 193" stroke="#ffffff" stroke-opacity="0.55" stroke-width="3"/>
             <path d="M279 226C292 250 290 276 280 300" stroke="#d4a72c" stroke-width="1.6" stroke-dasharray="2.5 3"/>
+            <circle cx="279" cy="227" r="3" [attr.fill]="refs['metal']" stroke="#8d5f26" stroke-width="1"/>
+            <path class="mg-lens-shine" d="M238 215L254 199" stroke="#ffffff" stroke-width="3" opacity="0.32"/>
+            <circle cx="280" cy="301" r="4" [attr.fill]="refs['metal']" stroke="#8d5f26" stroke-width="1"/>
           </g>
           <!-- Gafas de media luna -->
-          <g *ngIf="look.eyes === 'halfmoon'" class="mg-eyewear" stroke="#d4a72c" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M156 218A26 26 0 0 0 208 218Z" stroke-width="4" fill="#ffffff" fill-opacity="0.1"/>
-            <path d="M226 218A26 26 0 0 0 278 218Z" stroke-width="4" fill="#ffffff" fill-opacity="0.1"/>
+          <g *ngIf="look.eyes === 'halfmoon'" class="mg-eyewear" [attr.stroke]="refs['metal']" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M156 218A26 26 0 0 0 208 218Z" stroke-width="4" [attr.fill]="refs['lens']"/>
+            <path d="M226 218A26 26 0 0 0 278 218Z" stroke-width="4" [attr.fill]="refs['lens']"/>
             <path d="M208 220Q217 214 226 220M156 218 150 214M278 218 299 210" stroke-width="3.5" fill="none"/>
+            <path class="mg-lens-shine" d="M164 223Q170 235 180 237M234 223Q240 235 250 237" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.45"/>
           </g>
           <!-- Gafas estelares -->
           <g *ngIf="look.eyes === 'star'" class="mg-eyewear" stroke="#ff5fa8" stroke-linejoin="round" stroke-linecap="round">
             <use [attr.href]="hrefs['star']" transform="translate(182 215) scale(3.3)" fill="#ff8fc7" fill-opacity="0.18" stroke-width="1.3"/>
             <use [attr.href]="hrefs['star']" transform="translate(252 215) scale(3.3)" fill="#ff8fc7" fill-opacity="0.18" stroke-width="1.3"/>
             <path d="M212 212Q217 206 222 212" stroke-width="4" fill="none"/>
+            <path d="M154 207L147 203M280 208L300 202" stroke="#c44180" stroke-width="3.5" fill="none"/>
+            <path class="mg-lens-shine" d="M172 210L181 201M243 210L252 201" stroke="#ffdce9" stroke-width="3" opacity="0.6"/>
           </g>
 
           <!-- Boca: sonrisa / abierta / concentrada -->
@@ -235,11 +290,15 @@
 
           <!-- Cara (accesorio): la barba nace bajo la boca para que siga a la vista -->
           <g *ngIf="look.face === 'beard'" class="mg-facial">
-            <path d="M168 244C168 292 194 332 216 340C238 332 264 292 264 244C254 266 238 274 216 274C194 274 178 266 168 244Z" [attr.fill]="refs['beard']"/>
-            <path d="M190 288Q194 306 202 318M216 284V326M242 288Q238 306 230 318" stroke="#aab3d6" stroke-width="2" fill="none" opacity="0.6" stroke-linecap="round"/>
+            <path d="M172 248C172 266 166 276 174 293C173 303 185 308 184 315C197 322 204 340 216 346C229 337 236 321 246 315C245 308 259 301 259 291C266 274 259 260 259 248C250 261 235 274 216 269C199 273 181 261 172 248Z" [attr.fill]="refs['beard']" stroke="#bec9e2" stroke-width="1.2"/>
+            <path d="M178 264Q178 284 190 295M188 280Q188 306 205 322M216 281Q208 309 216 337M243 273Q251 289 239 302M240 293Q237 316 224 330" stroke="#9caaca" stroke-width="2.2" fill="none" opacity="0.65" stroke-linecap="round"/>
+            <path d="M180 269Q182 282 189 287M197 282Q195 303 207 315M224 282Q223 299 220 309M248 267Q253 282 248 288M232 299Q230 313 223 321" stroke="#ffffff" stroke-width="2.4" fill="none" opacity="0.75" stroke-linecap="round"/>
+            <path d="M174 252Q186 271 198 274M258 252Q245 271 234 275" stroke="#ffffff" stroke-width="4" fill="none" opacity="0.7" stroke-linecap="round"/>
           </g>
-          <path *ngIf="look.face === 'mustache'" class="mg-facial" fill="#4a2c1a"
-            d="M216 242C210 236 200 236 194 242C190 247 183 247 180 242C182 253 199 256 216 248C233 256 250 253 252 242C249 247 242 247 238 242C232 236 222 236 216 242Z"/>
+          <g *ngIf="look.face === 'mustache'" class="mg-facial">
+            <path d="M216 246C210 237 200 237 194 244C187 251 181 247 183 240C177 242 176 251 183 255C191 263 206 257 216 252C227 258 242 263 250 254C256 248 253 241 248 240C252 247 243 250 238 244C232 237 222 237 216 246Z" [attr.fill]="refs['mustache']" stroke="#36241f" stroke-width="1.2"/>
+            <path d="M213 247Q202 241 197 248Q187 257 182 248M220 247Q231 241 237 248Q246 255 250 248" stroke="#c79b70" stroke-width="1.6" fill="none" opacity="0.65" stroke-linecap="round"/>
+          </g>
         </g>
 
         <!-- Sombrero: el de mago es el de siempre; los demás se compran en El Bazar.
@@ -257,6 +316,9 @@
             <circle cx="212" cy="104" r="4.5" fill="#fff4c4"/>
             <circle cx="238" cy="104" r="4.5" fill="#fff4c4"/>
             <circle cx="278" cy="118" r="4.5" fill="#fff4c4"/>
+            <path d="M178 158Q225 148 273 158" stroke="#80551f" stroke-width="2" fill="none" opacity="0.7"/>
+            <path d="M180 119L201 147L212 112M239 112L251 147L271 125" stroke="#fff3b9" stroke-width="2" fill="none" opacity="0.65"/>
+            <path d="M221 166L225 163L229 166L225 171Z" fill="#ffb9d6"/>
           </g>
           <!-- Chistera victoriana -->
           <g *ngSwitchCase="'tophat'" transform="rotate(-8 225 170)">
@@ -266,6 +328,9 @@
             <path d="M194 96L196 146" stroke="#ffffff" stroke-width="3" opacity="0.12" stroke-linecap="round"/>
             <ellipse cx="225" cy="170" rx="74" ry="11" fill="#15172a"/>
             <path d="M156 168Q225 160 294 168" stroke="#4a4e78" stroke-width="2" fill="none" opacity="0.7" stroke-linecap="round"/>
+            <path d="M187 93Q225 86 264 93M190 148Q225 143 261 148" stroke="#8589aa" stroke-width="1.3" fill="none" opacity="0.5"/>
+            <rect x="234" y="149" width="17" height="11" rx="2" [attr.fill]="refs['metal']"/>
+            <rect x="238" y="152" width="9" height="5" rx="1" fill="#64213b"/>
           </g>
           <!-- Tricornio de corsario -->
           <g *ngSwitchCase="'pirate'">
@@ -274,12 +339,19 @@
             <path d="M138 172Q160 124 225 132Q290 124 312 172Q270 156 225 162Q180 156 138 172Z" fill="#231a2e"/>
             <path d="M142 170Q182 152 225 158Q268 152 308 170" stroke="#e9c46a" stroke-width="3" fill="none" stroke-linecap="round"/>
             <use [attr.href]="hrefs['star']" transform="translate(225 146) scale(0.8)" fill="#e9c46a"/>
+            <path d="M153 161Q186 145 213 149M237 149Q269 145 296 160" stroke="#ba9251" stroke-width="1.5" stroke-dasharray="3 4" fill="none"/>
+            <path d="M266 130Q278 111 293 112Q286 123 270 137" [attr.fill]="refs['feather']"/>
+            <path d="M268 133L289 115" stroke="#9b6620" stroke-width="1.3"/>
           </g>
           <!-- Boina de poeta -->
           <g *ngSwitchCase="'beret'">
-            <path d="M164 170C152 150 176 126 222 124C270 122 300 140 296 160C292 172 268 170 240 168C214 168 186 176 164 170Z" fill="#9b2242"/>
+            <path d="M164 170C152 150 176 126 222 124C270 122 300 140 296 160C292 172 268 170 240 168C214 168 186 176 164 170Z" [attr.fill]="refs['velvet']"/>
             <path d="M176 152C190 136 214 130 240 131" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.14" stroke-linecap="round"/>
             <path d="M226 124Q228 114 234 112" stroke="#9b2242" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <path d="M164 165Q212 171 258 165" stroke="#4c172b" stroke-width="6" fill="none" stroke-linecap="round"/>
+            <path d="M168 164Q210 170 254 164" stroke="#d86880" stroke-width="1.3" stroke-dasharray="2 3" fill="none" opacity="0.55"/>
+            <circle cx="255" cy="162" r="5" [attr.fill]="refs['metal']"/>
+            <path d="M253 162L257 162M255 160L255 164" stroke="#835323" stroke-width="1"/>
           </g>
           <!-- Sombrero de hechicera con flor -->
           <g *ngSwitchCase="'witch-flower'">
@@ -287,6 +359,8 @@
             <path d="M142 170Q225 154 308 170Q225 186 142 170Z" [attr.fill]="refs['witch-hat']"/>
             <path d="M172 165C175 125 198 75 235 40C260 16 295 18 316 38C332 54 340 74 336 92C332 100 326 102 322 98C324 86 317 72 305 68C293 64 286 80 290 102C294 122 302 138 310 156Z" [attr.fill]="refs['witch-hat']"/>
             <path d="M240 45C260 30 286 30 304 44" stroke="#e07a5f" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+            <path d="M185 135Q198 90 230 60M296 105Q300 126 305 143" stroke="#d64865" stroke-width="2" fill="none" opacity="0.45"/>
+            <path d="M150 174Q224 189 302 174" stroke="#cf6377" stroke-width="1.6" fill="none" opacity="0.7"/>
             <path d="M170 148Q225 168 290 152L290 168Q225 182 172 165Z" fill="#3d0c1e"/>
             <!-- Flor dorada en la cinta -->
             <g transform="translate(192 156)">
@@ -309,6 +383,7 @@
             <path d="M288 160C292 178 298 205 292 220C287 226 278 222 278 210C278 195 276 175 274 160Z" [attr.fill]="refs['aviator-cap']"/>
             <path d="M164 168C160 120 185 88 225 86C265 88 290 120 286 168C265 172 245 174 225 174C205 174 185 172 164 168Z" [attr.fill]="refs['aviator-cap']"/>
             <path d="M225 86V174M185 96C198 120 205 145 208 174M265 96C252 120 245 145 242 174" stroke="#2c170c" stroke-width="2" stroke-dasharray="3 2" fill="none" opacity="0.6"/>
+            <path d="M171 122Q188 92 222 92Q254 93 279 123M159 183L165 214M286 183L287 213" stroke="#c49468" stroke-width="1.4" stroke-dasharray="2 3" fill="none" opacity="0.7"/>
             <path d="M164 140Q225 150 286 140" stroke="#1d1109" stroke-width="12" fill="none"/>
             <path d="M164 140Q225 150 286 140" stroke="#4a2a12" stroke-width="8" fill="none"/>
             <circle cx="196" cy="140" r="20" fill="#d4af37" stroke="#8a6d1c" stroke-width="3"/>

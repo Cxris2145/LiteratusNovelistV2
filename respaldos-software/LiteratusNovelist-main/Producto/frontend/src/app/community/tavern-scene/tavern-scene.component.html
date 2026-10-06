@@ -1,12 +1,37 @@
-<div class="ts-stage" role="img" [attr.aria-label]="summary">
+<section class="ts-stage" [class.is-fitting]="fitting" [attr.aria-label]="summary">
+  <nav class="ts-table-tools" aria-label="Objetos de tu mesa">
+    <button type="button" aria-label="Mi lectura" data-tip="Mi lectura" (click)="activateTable('book')" (pointerenter)="tableHover = 'book'" (pointerleave)="tableHover = null" (focus)="tableHover = 'book'" (blur)="tableHover = null">
+      <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+      <span class="ts-tool-long">Mi lectura</span><span class="ts-tool-short">Lectura</span>
+    </button>
+    <button type="button" aria-label="Invitar y brindar" data-tip="Invitar y brindar" (click)="activateTable('invite')" (pointerenter)="tableHover = 'invite'" (pointerleave)="tableHover = null" (focus)="tableHover = 'invite'" (blur)="tableHover = null">
+      <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>
+      <span class="ts-tool-long">Invitar y brindar</span><span class="ts-tool-short">Brindar</span>
+    </button>
+    <button type="button" aria-label="Mi cofre" data-tip="Mi cofre" (click)="activateTable('rewards')" (pointerenter)="tableHover = 'rewards'" (pointerleave)="tableHover = null" (focus)="tableHover = 'rewards'" (blur)="tableHover = null">
+      <span class="material-symbols-rounded" aria-hidden="true">redeem</span>
+      <span class="ts-tool-long">Mi cofre</span><span class="ts-tool-short">Cofre</span>
+    </button>
+  </nav>
+
+  <!-- Mensaje de interacción con objetos de la mesa (gato, poción, reloj) -->
+  <div *ngIf="catMessage" class="ts-object-bubble" role="status" aria-live="polite">
+    <span class="ts-object-bubble-text">{{ catMessage }}</span>
+    <button type="button" class="ts-object-bubble-close" (click)="catMessage = null" aria-label="Cerrar aviso"><span class="material-symbols-rounded" aria-hidden="true">close</span></button>
+  </div>
+
   <!-- Capa de ambiente: resplandor cálido de velas y faroles -->
   <div class="ts-ambient-light" aria-hidden="true">
     <div class="ts-hearth-glow"></div>
-    <div class="ts-candle c1"><span class="ts-flame"></span></div>
-    <div class="ts-candle c2"><span class="ts-flame"></span></div>
+    <span class="ts-ember" style="--ember-x: 13%; --ember-drift: 18px; --ember-time: 12s; --ember-delay: -4s"></span>
+    <span class="ts-ember" style="--ember-x: 25%; --ember-drift: -24px; --ember-time: 15s; --ember-delay: -11s"></span>
+    <span class="ts-ember" style="--ember-x: 40%; --ember-drift: 12px; --ember-time: 11s; --ember-delay: -2s"></span>
+    <span class="ts-ember" style="--ember-x: 62%; --ember-drift: -18px; --ember-time: 14s; --ember-delay: -8s"></span>
+    <span class="ts-ember" style="--ember-x: 76%; --ember-drift: 24px; --ember-time: 13s; --ember-delay: -6s"></span>
+    <span class="ts-ember" style="--ember-x: 87%; --ember-drift: -12px; --ember-time: 16s; --ember-delay: -12s"></span>
   </div>
 
-  <!-- Partículas de reacciones flotantes (🍺, ❤️, 👏, 📖, ✨) -->
+  <!-- Partículas de reacciones flotantes (🍺, ❤️, 👏, 📖, ✨, 🐾, ⏳) -->
   <div class="ts-particles-layer" aria-hidden="true">
     <div *ngFor="let p of particles; trackBy: trackParticle" class="ts-floating-particle" [style.left.%]="p.x">
       <span class="ts-emoji-float">{{ p.emoji }}</span>
@@ -14,14 +39,23 @@
   </div>
 
   <!-- Maguitos sentados alrededor de la mesa con sus atuendos -->
-  <div *ngFor="let seat of seats; trackBy: trackSeat" class="ts-seat" [ngClass]="'seat-' + seat.slot">
-    <!-- Bocadillo de diálogo (chat o frase temática con emojis) -->
-    <div class="ts-bubble" *ngIf="seat.bubble" [class.is-chat]="seat.bubble.isChat" aria-hidden="true">
-      <span *ngIf="seat.bubble.isChat" class="material-symbols-rounded ts-chat-indicator">chat_bubble</span>
-      <span class="ts-bubble-text">{{ seat.bubble.text }}</span>
+  <div *ngFor="let seat of seats; trackBy: trackSeat" class="ts-seat" [ngClass]="'seat-' + seat.slot" [class.is-me]="seat.isMe">
+    <!-- Probador: la lámpara de la taberna se vuelve hacia tu Maguito mientras el Bazar está abierto. -->
+    <span *ngIf="seat.isMe" class="ts-fit-light" aria-hidden="true"></span>
+    <div class="ts-seat-chair" aria-hidden="true"><i></i><i></i><i></i></div>
+    <!-- Bocadillo de diálogo (chat o frase temática con emojis): uno nuevo por frase. -->
+    <div class="ts-bubble" *ngFor="let bubble of seat.bubble ? [seat.bubble] : []; trackBy: trackBubble" [class.is-chat]="bubble.isChat" [attr.tabindex]="bubble.isChat ? 0 : null" [attr.title]="bubble.fullText || bubble.text" [attr.aria-label]="seat.guest.username + ': ' + (bubble.fullText || bubble.text)">
+      <span *ngIf="bubble.isChat" class="material-symbols-rounded ts-chat-indicator" aria-hidden="true">chat_bubble</span>
+      <span class="ts-bubble-text">{{ bubble.text }}</span>
     </div>
+    <span *ngIf="seat.isMe" class="ts-fit-bursts" aria-hidden="true">
+      <span *ngFor="let burst of fitBursts; trackBy: trackBurst" class="ts-fit-burst">
+        <i style="--a: 0deg"></i><i style="--a: 60deg"></i><i style="--a: 120deg"></i><i style="--a: 180deg"></i><i style="--a: 240deg"></i><i style="--a: 300deg"></i>
+      </span>
+    </span>
 
     <app-maguito
+      #seatMaguito
       [outfit]="seat.guest.outfit"
       [mug]="seat.mug"
       [toasting]="toasting"
@@ -31,8 +65,19 @@
     </app-maguito>
   </div>
 
-  <!-- Mesa de primer plano con libros, pergaminos, farol, jarras y el gato negro -->
-  <svg class="ts-table-overlay" viewBox="0 0 1000 320" focusable="false" aria-hidden="true">
+  <!-- Sillas vacías con estética de fantasía -->
+  <button *ngFor="let slot of emptySlots" type="button" class="ts-empty-seat" [ngClass]="'seat-' + slot" (click)="tableAction.emit('invite')" aria-label="Asiento libre: invitar a un amigo">
+    <span class="ts-seat-chair" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="ts-empty-medal" aria-hidden="true"><span class="material-symbols-rounded">add</span></span>
+    <span class="ts-empty-tag" aria-hidden="true">Invitar</span>
+  </button>
+
+  <app-tavern-table class="ts-table-overlay" [toasting]="toasting" [hoverAction]="tableHover"
+    [reaction]="tableReaction" [reactionTick]="tableReactionTick"
+    (readyChange)="table3dReady = $event" (action)="tableAction.emit($event)"></app-tavern-table>
+
+  <!-- Respaldo ilustrado mientras carga WebGL o si el dispositivo no lo admite. -->
+  <svg class="ts-table-overlay ts-table-fallback" [class.is-replaced]="table3dReady" viewBox="0 0 1000 320" focusable="false" aria-hidden="true">
     <defs>
       <linearGradient id="ts-table-wood" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#804d26"/>
@@ -156,13 +201,14 @@
   </svg>
 
   <!-- Cartelitos con el nombre sobre la mesa, con punto de estado y corona si es 1° lugar -->
-  <span *ngFor="let seat of seats; trackBy: trackSeat" class="ts-name" [ngClass]="'seat-' + seat.slot" aria-hidden="true">
+  <button *ngFor="let seat of seats; trackBy: trackSeat" type="button" class="ts-name" [ngClass]="'seat-' + seat.slot" [disabled]="demo" (click)="guestSelect.emit(seat.guest)" [attr.aria-label]="'Ver perfil de ' + seat.guest.username">
     <span class="th-dot" [ngClass]="seat.isMe ? 'tavern' : (seat.guest.status?.kind || 'tavern')"></span>
     <span class="ts-name-text">{{ seat.isMe ? (demo ? seat.guest.username : (me?.username || 'Tú')) : seat.guest.username }}</span>
     <span *ngIf="seat.isFirst" class="ts-name-crown" title="Primer lugar del ranking">👑</span>
-  </span>
+  </button>
 
-  <span class="ts-more wide" *ngIf="extraWide" aria-hidden="true">+{{ extraWide }} en la lista</span>
+  <button type="button" class="ts-more wide" *ngIf="extraWide" (click)="tableAction.emit('invite')">+{{ extraWide }} amigos</button>
+  <button type="button" class="ts-more narrow" *ngIf="extraNarrow" (click)="tableAction.emit('invite')">+{{ extraNarrow }} amigos</button>
 
   <!-- ============================================================ -->
   <!-- BARRA DE CHAT Y REACCIONES RÁPIDAS DE LA TABERNA             -->
@@ -176,7 +222,7 @@
         class="ts-chat-input"
         [(ngModel)]="chatText"
         (keydown.enter)="sendChat()"
-        placeholder="Comparte un mensaje en la taberna…"
+        placeholder="Escribe a tu mesa…"
         maxlength="200"
         [disabled]="busySending"
         aria-label="Mensaje para la mesa"
@@ -192,7 +238,7 @@
           </div>
         </div>
 
-        <button type="button" class="ts-chat-icon-btn" (click)="toggleEmojiList()" title="Añadir emoji" aria-label="Añadir emoji">
+        <button type="button" class="ts-chat-icon-btn ts-emoji-toggle" (click)="toggleEmojiList()" title="Añadir emoji" aria-label="Añadir emoji" [attr.aria-expanded]="showEmojiList">
           <span class="material-symbols-rounded" aria-hidden="true">mood</span>
         </button>
 
@@ -235,4 +281,4 @@
       </div>
     </div>
   </footer>
-</div>
+</section>

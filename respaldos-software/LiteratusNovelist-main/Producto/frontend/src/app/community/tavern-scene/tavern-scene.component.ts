@@ -1,11 +1,13 @@
 import {
-  ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, NgZone,
-  OnChanges, OnDestroy, OnInit, Output, SimpleChanges, inject,
+  ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, NgZone,
+  OnChanges, OnDestroy, OnInit, Output, QueryList, SimpleChanges, ViewChildren, inject,
 } from '@angular/core';
 
+import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { FriendStatus, TavernChatMessage, TavernReactionItem } from '../../core/services/community.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
+import { TavernTableAction } from '../tavern-table/tavern-table.types';
 
 /** Alguien sentado a la mesa. */
 export interface SceneGuest {
@@ -21,6 +23,7 @@ export type Slot = 'me' | 'center' | 'l1' | 'r1' | 'l2' | 'r2';
 export interface BubbleData {
   text: string;
   isChat: boolean;
+  fullText?: string;
 }
 
 export interface Seat {
@@ -38,6 +41,9 @@ export interface FloatingParticle {
   x: number;
 }
 
+/** Centro horizontal (%) de cada asiento: las reacciones suben desde quien las envía. */
+const SEAT_X: Record<Slot, number> = { me: 50, center: 50, l1: 28, r1: 72, l2: 10, r2: 90 };
+
 const PHRASES = [
   '¡Salud por más historias! 🍺',
   '¡Qué gran capítulo! 📚',
@@ -47,6 +53,7 @@ const PHRASES = [
   'Nivel {n} y subiendo 🚀',
 ];
 const ROTATE_MS = 12000;
+const FITTING_BUBBLE: BubbleData = { text: '¿Cómo me queda? ✨', isChat: false };
 
 /**
  * La mesa de La Taberna de Tinta:
@@ -72,11 +79,23 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   @Input() reactions: TavernReactionItem[] = [];
   @Input() toasting = false;
   @Input() topRankUsername: string | null = null;
+  /** El Bazar está abierto: la lámpara alumbra a tu Maguito, que hace de espejo. */
+  @Input() fitting = false;
+  /** Cambia con cada prenda probada, canjeada o puesta. */
+  @Input() fittingTick = 0;
+  @Input() fittingGesture: 'try' | 'buy' | 'equip' = 'try';
 
   @Output() sendMessage = new EventEmitter<string>();
   @Output() sendReaction = new EventEmitter<string>();
+  @Output() tableAction = new EventEmitter<TavernTableAction>();
+  @Output() guestSelect = new EventEmitter<SceneGuest>();
+  /** Botón "El Bazar" de la mesa. */
+  @Output() bazar = new EventEmitter<void>();
+
+  @ViewChildren('seatMaguito') private seatMaguitos?: QueryList<MaguitoComponent>;
 
   seats: Seat[] = [];
+  emptySlots: Slot[] = [];
   extraWide = 0;
   extraNarrow = 0;
   summary = '';
@@ -84,7 +103,13 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   chatText = '';
   busySending = false;
   showEmojiList = false;
+  table3dReady = false;
+  tableHover: TavernTableAction | null = null;
+  tableReaction = '';
+  tableReactionTick = 0;
   particles: FloatingParticle[] = [];
+  /** Destellos al probarse una prenda: cada número es una ráfaga nueva. */
+  fitBursts: number[] = [];
 
   readonly quickEmojis = ['😊', '📚', '🍺', '✨', '🧙‍♂️', '📜', '🕯️', '🔥'];
 
@@ -93,16 +118,20 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
   private observer?: IntersectionObserver;
   private seenReactionIds = new Set<string>();
+  private reactionLoads = 0;
 
   ngOnInit(): void {
     if (typeof IntersectionObserver === 'function') {
       this.zone.runOutsideAngular(() => {
         this.observer = new IntersectionObserver(entries => {
           this.host.dataset['onscreen'] = String(entries[0]?.isIntersecting ?? true);
+          this.syncAmbient();
         });
         this.observer.observe(this.host);
       });
     }
+    document.addEventListener('visibilitychange', this.syncAmbient);
+    this.syncAmbient();
     if (!prefersReducedMotion()) {
       this.zone.runOutsideAngular(() => {
         this.timer = setInterval(() => {
@@ -115,28 +144,38 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    this.build();
     if (changes['reactions'] && this.reactions) {
+      // La lista vacía inicial y la primera carga son de antes de llegar: solo se marcan como vistas.
+      // Las propias tampoco se repiten: ya salieron al pulsar.
+      const arriving = this.reactionLoads++ < 2;
       for (const r of this.reactions) {
-        if (!this.seenReactionIds.has(r.id)) {
-          this.seenReactionIds.add(r.id);
-          this.spawnParticle(r.emoji || '✨');
-          if (r.emoji === '🍺' || r.reaction === 'beer') {
-            this.triggerToastEffect();
-          }
-        }
+        if (this.seenReactionIds.has(r.id)) continue;
+        this.seenReactionIds.add(r.id);
+        if (arriving || r.is_me) continue;
+        this.spawnParticle(r.emoji || '✨', this.seatXFor(r.username, false));
+        if (r.emoji === '🍺' || r.reaction === 'beer') this.triggerToastEffect();
       }
     }
-    this.build();
+    if (changes['fittingTick'] && !changes['fittingTick'].firstChange) this.celebrateFitting();
   }
 
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.observer?.disconnect();
+    document.removeEventListener('visibilitychange', this.syncAmbient);
   }
+
+  private syncAmbient = (): void => {
+    this.host.dataset['ambientPaused'] = String(document.hidden || this.host.dataset['onscreen'] === 'false');
+  };
 
   trackSeat = (_: number, seat: Seat) => seat.slot + seat.guest.code;
   trackParticle = (_: number, p: FloatingParticle) => p.id;
+  /** Un bocadillo nuevo por cada frase: así entra con su animación al cambiar el texto. */
+  trackBubble = (_: number, bubble: BubbleData) => bubble.text;
+  trackBurst = (_: number, burst: number) => burst;
 
   sendChat(): void {
     const text = this.chatText.trim();
@@ -148,7 +187,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
 
   react(emoji: string): void {
     this.sendReaction.emit(emoji);
-    this.spawnParticle(emoji);
+    this.spawnParticle(emoji, this.demo ? SEAT_X.r1 : SEAT_X.center);
     if (emoji === '🍺') {
       this.triggerToastEffect();
     }
@@ -163,6 +202,95 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     this.showEmojiList = !this.showEmojiList;
   }
 
+  /** El selector de emojis se cierra al pulsar fuera o con Escape. */
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointer(event: PointerEvent): void {
+    if (!this.showEmojiList) return;
+    const target = event.target as Element | null;
+    if (target?.closest('.ts-emoji-picker-wrap, .ts-emoji-toggle')) return;
+    this.showEmojiList = false;
+    this.cdr.markForCheck();
+  }
+
+  @HostListener('keydown.escape')
+  onEscape(): void {
+    if (this.showEmojiList) {
+      this.showEmojiList = false;
+      this.cdr.markForCheck();
+    }
+  }
+
+  catMessage: string | null = null;
+  private catTimer: ReturnType<typeof setTimeout> | null = null;
+
+  activateTable(action: TavernTableAction): void {
+    if (action === 'cat') {
+      this.tableReaction = '🐾';
+      this.tableReactionTick++;
+      this.spawnParticle('🐾', 78);
+      this.triggerCatPurr();
+      return;
+    }
+    if (action === 'potions') {
+      this.tableReaction = '✨';
+      this.tableReactionTick++;
+      this.spawnParticle('✨', 65);
+      this.triggerPotionMagic();
+      return;
+    }
+    if (action === 'hourglass') {
+      this.tableReaction = '⏳';
+      this.tableReactionTick++;
+      this.spawnParticle('⏳', 35);
+      this.triggerHourglassFlip();
+      return;
+    }
+    this.tableReaction = action === 'book' ? '📖' : action === 'rewards' ? '✨' : '🍺';
+    this.tableReactionTick++;
+    this.tableAction.emit(action);
+  }
+
+  private triggerCatPurr(): void {
+    const purrs = [
+      '¡Miau! 🐾 El gato negro de la taberna ronronea alegremente a tu lado.',
+      '🐾 El gato de la taberna te guiña un ojo dorado con complicidad.',
+      '¡Ronroneo de la suerte! 🐾 Tus próximas lecturas tendrán magia extra.',
+      '🐾 El gato negro amasa suavemente la madera de la mesa.',
+    ];
+    this.catMessage = purrs[Math.floor(Math.random() * purrs.length)];
+    if (this.catTimer) clearTimeout(this.catTimer);
+    this.catTimer = setTimeout(() => {
+      this.catMessage = null;
+      this.cdr.markForCheck();
+    }, 4500);
+    this.cdr.markForCheck();
+  }
+
+  private triggerPotionMagic(): void {
+    const effects = [
+      '✨ Has probado la Poción de Concentración: mente lúcida y atenta.',
+      '🧪 La pócima violeta burbujea: un aura mágica envuelve tu mesa.',
+      '🌟 Destellos aromáticos de lavanda y tinta fresca despiertan tu inspiración.',
+    ];
+    this.catMessage = effects[Math.floor(Math.random() * effects.length)];
+    if (this.catTimer) clearTimeout(this.catTimer);
+    this.catTimer = setTimeout(() => {
+      this.catMessage = null;
+      this.cdr.markForCheck();
+    }, 4500);
+    this.cdr.markForCheck();
+  }
+
+  private triggerHourglassFlip(): void {
+    this.catMessage = '⏳ El tiempo de lectura fluye como arena dorada. ¡Cada página suma!';
+    if (this.catTimer) clearTimeout(this.catTimer);
+    this.catTimer = setTimeout(() => {
+      this.catMessage = null;
+      this.cdr.markForCheck();
+    }, 4500);
+    this.cdr.markForCheck();
+  }
+
   private triggerToastEffect(): void {
     this.toasting = true;
     if (this.toastTimer) clearTimeout(this.toastTimer);
@@ -173,11 +301,34 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  private spawnParticle(emoji: string): void {
+  /** Al probarse algo, tu Maguito reacciona: un respingo al probar, un salto al canjear o ponérselo. */
+  private celebrateFitting(): void {
+    const index = this.seats.findIndex(seat => seat.isMe);
+    if (index < 0 || prefersReducedMotion()) return;
+    this.seatMaguitos?.get(index)?.play(this.fittingGesture === 'try' ? 'poke' : 'success');
+    if (this.fittingGesture !== 'try') return;
+    const burst = this.fittingTick;
+    this.fitBursts = [...this.fitBursts.slice(-2), burst];
+    setTimeout(() => {
+      this.fitBursts = this.fitBursts.filter(item => item !== burst);
+      this.cdr.markForCheck();
+    }, 700);
+  }
+
+  /** Horizontal de quien reacciona; si no está sentado a la vista, algún punto de la mesa. */
+  private seatXFor(username: string, isMe: boolean): number {
+    const seat = this.seats.find(item => isMe ? item.isMe : item.guest.username.toLowerCase() === username?.toLowerCase());
+    return seat ? SEAT_X[seat.slot] : 24 + Math.random() * 52;
+  }
+
+  private spawnParticle(emoji: string, x = 24 + Math.random() * 52): void {
+    this.tableReaction = emoji;
+    this.tableReactionTick++;
     const p: FloatingParticle = {
       id: Math.random().toString(),
       emoji,
-      x: 24 + Math.random() * 52,
+      // Un poco de dispersión para que dos reacciones seguidas no se tapen.
+      x: Math.max(6, Math.min(94, x + (Math.random() - .5) * 8)),
     };
     this.particles.push(p);
     this.cdr.markForCheck();
@@ -233,73 +384,20 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    // Modo real conectado:
-    const seatedGuests = [...this.guests];
-    this.seats = [];
-
-    if (!seatedGuests.length) {
-      // Solo Maguito esperando en la mesa
-      if (this.me) {
-        this.seats.push({
-          slot: 'center',
-          guest: this.me,
-          isMe: true,
-          isFirst: isFirstRank(this.me.username),
-          bubble: this.hostBubble(),
-          mug: true,
-        });
-      }
-    } else if (seatedGuests.length === 1) {
-      // Tú y un amigo
-      this.seats.push({
-        slot: 'l1',
-        guest: seatedGuests[0],
-        isMe: false,
-        isFirst: isFirstRank(seatedGuests[0].username),
-        bubble: this.bubbleFor(seatedGuests[0], 0),
-        mug: true,
-      });
-      if (this.me) {
-        this.seats.push({
-          slot: 'r1',
-          guest: this.me,
-          isMe: true,
-          isFirst: isFirstRank(this.me.username),
-          bubble: this.hostBubble(),
-          mug: true,
-        });
-      }
-    } else {
-      // Tres o más: Amigo 1 a la izquierda, Amigo 0 al centro, Maguito a la derecha
-      this.seats.push({
-        slot: 'l1',
-        guest: seatedGuests[1],
-        isMe: false,
-        isFirst: isFirstRank(seatedGuests[1].username),
-        bubble: this.bubbleFor(seatedGuests[1], 1),
-        mug: true,
-      });
-      this.seats.push({
-        slot: 'center',
-        guest: seatedGuests[0],
-        isMe: false,
-        isFirst: isFirstRank(seatedGuests[0].username),
-        bubble: this.bubbleFor(seatedGuests[0], 0),
-        mug: true,
-      });
-      if (this.me) {
-        this.seats.push({
-          slot: 'r1',
-          guest: this.me,
-          isMe: true,
-          isFirst: isFirstRank(this.me.username),
-          bubble: this.hostBubble(),
-          mug: true,
-        });
-      }
-    }
-
-    this.extraWide = Math.max(0, this.guests.length - 2);
+    // La presencia real decide quién comparte la mesa. Tu asiento no cambia al llegar amigos.
+    const seatedGuests = this.guests.filter(guest => guest.status?.kind === 'tavern');
+    const slots: Slot[] = ['l1', 'r1', 'l2', 'r2'];
+    this.seats = seatedGuests.slice(0, 4).map((guest, index) => ({
+      slot: slots[index], guest, isMe: false, isFirst: isFirstRank(guest.username),
+      bubble: this.bubbleFor(guest, index), mug: true,
+    }));
+    if (this.me) this.seats.push({
+      slot: 'center', guest: this.me, isMe: true, isFirst: isFirstRank(this.me.username),
+      bubble: this.fitting ? FITTING_BUBBLE : this.hostBubble(), mug: !this.fitting,
+    });
+    this.emptySlots = slots.slice(seatedGuests.length, Math.max(2, Math.min(4, seatedGuests.length + 1)));
+    this.extraWide = Math.max(0, seatedGuests.length - 4);
+    this.extraNarrow = Math.max(0, seatedGuests.length - 2);
     this.summary = this.describe(seatedGuests);
     this.cdr.markForCheck();
   }
@@ -308,7 +406,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     if (this.me) {
       const myMsg = this.messages.find(m => m.is_me || m.username === this.me!.username);
       if (myMsg && myMsg.content) {
-        return { text: this.shorten(myMsg.content, 48), isChat: true };
+        return { text: this.shorten(myMsg.content, 48), fullText: myMsg.content, isChat: true };
       }
     }
     return this.guests.length
@@ -322,7 +420,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
       m => m.username.toLowerCase() === guest.username.toLowerCase() || (m.friend_code && m.friend_code === guest.code)
     );
     if (userMsg && userMsg.content) {
-      return { text: this.shorten(userMsg.content, 48), isChat: true };
+      return { text: this.shorten(userMsg.content, 48), fullText: userMsg.content, isChat: true };
     }
 
     // 2. Si está leyendo o ausente

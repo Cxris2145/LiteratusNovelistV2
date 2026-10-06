@@ -1,172 +1,237 @@
 :host {
   display: block;
+  --th-panel-background: rgba(16, 17, 30, 0.88);
+  --th-panel-border: rgba(212, 175, 55, 0.35);
+  /* Solo los tres paneles grandes desenfocan lo de atrás: el resto usa fondos opacos. */
+  --th-panel-filter: blur(12px);
+  --th-panel-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.15), 0 14px 38px rgba(0, 0, 0, 0.55);
+  --th-stage-height: max(440px, calc(100svh - var(--navbar-h, 182px) - 138px));
+  --th-pad: clamp(16px, 2vw, 40px);
+  --th-gap: 20px;
+  --th-profile-w: clamp(260px, 18vw, 310px);
+  --th-side-w: clamp(300px, 21vw, 350px);
+  /* Ancho del Bazar (lo lee tavern-bazar): tapa la columna de amigos, no la mesa. */
+  --th-bazar-width: clamp(380px, 30vw, 460px);
 }
 
+/* La ilustración pertenece al salón completo, no al recuadro de la mesa. */
 .th-hall {
-  position: relative;
-  min-height: calc(100vh - 72px);
-  max-width: 1540px;
-  margin: auto;
-  padding: 24px 28px 72px;
+  isolation: isolate;
+  min-height: calc(100svh - var(--navbar-h, 182px));
+  width: 100%;
+  padding: 16px var(--th-pad) 24px;
+  background-color: #1c1320;
+}
+/* Antes era un fondo con background-attachment: fixed, que obliga a repintar toda la página en
+   cada desplazamiento. Una capa pegajosa del alto de la ventana se ve igual, la compone el
+   navegador sin repintar y no se sale del salón (no tapa el pie de página). */
+.th-backdrop {
+  --th-backdrop-h: calc(100svh - var(--navbar-h, 182px));
+  position: sticky;
+  top: var(--navbar-h, 182px);
+  z-index: -1;
+  height: var(--th-backdrop-h);
+  margin: -16px calc(-1 * var(--th-pad)) calc(16px - var(--th-backdrop-h));
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, rgba(12, 10, 20, .48), rgba(12, 10, 20, .08) 35%, rgba(12, 10, 20, .08) 65%, rgba(12, 10, 20, .48)),
+    linear-gradient(0deg, rgba(12, 10, 20, .5), transparent 45%),
+    url('/assets/images/tavern-backdrop.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-/* ── Héroe superior ────────────────────────────────────────── */
 .th-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) auto auto;
-  align-items: center;
-  gap: 28px;
-  margin-bottom: 28px;
-  padding: 18px 24px;
-  border-radius: 20px;
-  background: rgba(14, 18, 36, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.22);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
-}
-
-.th-hero-copy {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+  padding: 10px 18px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
+.th-hero-copy { min-width: 0; }
 .th-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: clamp(2rem, 3.8vw, 3.2rem);
+  margin: 0;
+  font-size: clamp(1.5rem, 1.9vw, 2rem);
   font-weight: 600;
-  line-height: 1.06;
+  line-height: 1.1;
   letter-spacing: -.02em;
-  color: #fff;
+  color: #fff2dc;
+  text-shadow: 0 2px 5px #160f0d, 0 4px 18px #160f0dcc;
 }
 .th-title-icon {
-  font-size: clamp(32px, 3.5vw, 44px);
-  color: var(--th-gold);
+  font-size: 28px;
+  color: #ffb54d;
   font-variation-settings: 'FILL' 1;
-  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.45));
 }
 .th-lead {
-  margin: 6px 0 4px;
-  font-size: 1.12rem;
-  color: var(--th-gold);
-  font-weight: 500;
+  margin: 4px 0 0;
+  color: #f0dfc9;
+  font-size: .82rem;
+  line-height: 1.5;
+  text-shadow: 0 1px 4px #160f0d, 0 2px 10px #160f0d;
 }
-.th-text {
-  max-width: 620px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: .88rem;
-  line-height: 1.55;
-}
+/* Cabecera: utilidades (íconos) | separador | El Bazar (contorno) · Agregar amigo (dorado). */
 .th-actions {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.th-utilities {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 99px;
+  background: rgba(22, 15, 12, .78);
+  border: 1px solid rgba(212, 175, 55, .3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+}
+.th-actions-divider {
+  width: 1px;
+  height: 28px;
+  margin-inline: 2px;
+  background: rgba(255, 228, 180, .22);
+}
+.th-actions .th-btn { min-height: 42px; padding-block: 8px; }
+.th-actions .th-btn.secondary {
+  background: rgba(22, 15, 12, .78);
+  color: #ffcf87;
+  border-color: rgba(212, 175, 55, .55);
+}
+@media (hover: hover) and (pointer: fine) {
+  .th-actions .th-btn.secondary:hover:not(:disabled) { background: rgba(87, 54, 27, .86); border-color: #ffd166; }
 }
 
-/* Cita dorada superior */
-.th-quote-banner {
-  padding: 12px 20px;
-  border-left: 2px solid rgba(212, 175, 55, 0.4);
-  border-right: 2px solid rgba(212, 175, 55, 0.4);
-  display: grid;
-  place-items: center;
+/* Modo cine: una pastilla que dice cómo volver. */
+.th-cinema-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  margin: -4px auto 14px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 99px;
+  background: rgba(24, 15, 10, .92);
+  border: 1px solid rgba(212, 175, 55, .6);
+  color: #fce8c3;
+  font: 600 .8rem var(--font-ui);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .45);
+  animation: th-pop-in 200ms var(--th-ease-out) backwards;
 }
-.th-quote-text {
-  margin: 0;
-  font: italic 500 1.25rem/1.35 var(--font-display, Georgia, serif);
-  color: #f7d26d;
-  text-shadow: 0 0 18px rgba(247, 210, 109, 0.35);
-  text-align: center;
+.th-cinema-banner > .material-symbols-rounded { font-size: 19px; color: #ffd166; }
+.th-cinema-banner .th-btn { min-height: 34px; padding: 4px 12px; font-size: .76rem; border-color: rgba(212, 175, 55, .5); }
+.th-cinema-banner kbd {
+  padding: 1px 6px;
+  border: 1px solid rgba(255, 228, 180, .35);
+  border-radius: 5px;
+  font: 600 .68rem var(--font-ui);
 }
-
-/* Nota de pergamino */
-.th-note {
-  margin: 0;
-  width: 210px;
-  padding: 16px 18px;
-  rotate: 2.5deg;
-  border-radius: 6px 14px 8px 12px;
-  background: linear-gradient(160deg, #f7ebd0, #ddc18c);
-  color: #3b2713;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, .45);
-  display: grid;
-  gap: 6px;
-  justify-items: end;
-  flex: none;
-}
-.th-note .material-symbols-rounded {
-  color: #6b4a22;
-  font-size: 26px;
-}
-.th-note blockquote {
-  margin: 0;
-  font: italic 600 1.05rem/1.3 var(--font-display, Georgia, serif);
-  text-align: right;
+@keyframes th-pop-in { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
+@media (prefers-reduced-motion: reduce) {
+  .th-cinema-banner { animation: none; }
 }
 
 .th-error {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
+  margin-bottom: 20px;
   padding: 12px 18px;
   border-radius: 14px;
-  background: color-mix(in srgb, var(--color-error) 18%, transparent);
+  background: var(--th-panel-background);
   border: 1px solid var(--color-error);
-  color: #fff;
-  margin-bottom: 20px;
+  color: var(--th-ink);
 }
 
-/* ── Distribución flotante sobre el fondo de la taberna ─────── */
+/* Los laterales quedan junto a la mesa incluso en un notebook. */
 .th-layout {
   display: grid;
-  grid-template-columns: 310px minmax(0, 1fr) 350px;
-  grid-template-areas: "profile scene side";
-  gap: 24px;
+  grid-template-columns: var(--th-profile-w) minmax(0, 1fr) var(--th-side-w);
+  grid-template-areas: 'profile scene side';
   align-items: start;
+  gap: var(--th-gap);
 }
-
+/* Modo Cine: los paneles laterales se repliegan y la mesa se expande al centro */
+.th-hall.is-cinema .th-layout {
+  grid-template-columns: 1fr;
+  grid-template-areas: 'scene';
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.th-hall.is-cinema .area-profile,
+.th-hall.is-cinema .area-side {
+  display: none !important;
+}
+/* Con el Bazar abierto la mesa se corre lo justo para quedar entera a la vista: es el espejo. */
+@media (min-width: 1001px) {
+  .th-layout.is-bazar-open .area-scene-wrap {
+    margin-inline-end: max(0px, calc(var(--th-bazar-width) - var(--th-side-w) - var(--th-gap) - var(--th-pad)));
+  }
+}
 .area-profile {
   grid-area: profile;
-  position: sticky;
-  top: 86px;
 }
 .area-scene-wrap {
+  position: relative;
   grid-area: scene;
   min-width: 0;
 }
+.th-invitations { position: absolute; z-index: 30; top: 62px; left: 12px; right: 12px; max-height: 160px; overflow-y: auto; }
+.th-invitation { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 12px; margin-bottom: 8px; background: var(--th-panel-background); border: 1px solid var(--th-gold); border-radius: 12px; box-shadow: var(--th-panel-shadow); }
+.th-invitation p { flex: 1 1 180px; margin: 0; font-size: .86rem; color: var(--th-ink); }
+.th-invitation .th-btn { padding: 8px 12px; font-size: .8rem; }
 .area-side {
   grid-area: side;
-  display: grid;
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--th-border) transparent;
+}
+.area-side > * { flex-shrink: 0; }
+.area-side > app-friend-list { max-height: 260px; }
+.area-profile,
+.area-side {
   position: sticky;
-  top: 86px;
+  top: calc(var(--navbar-h, 182px) + 20px);
+  max-height: var(--th-stage-height);
+  border-radius: 18px;
 }
-
-/* Paneles flotantes translúcidos con efecto de vidrio oscuro */
-:host ::ng-deep .th-panel {
-  background: rgba(14, 18, 36, 0.86) !important;
-  backdrop-filter: blur(18px) !important;
-  -webkit-backdrop-filter: blur(18px) !important;
-  border: 1px solid rgba(212, 175, 55, 0.24) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55) !important;
+.area-profile,
+.area-side > app-friend-list,
+.area-side > app-tavern-ranking {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--th-border) transparent;
+  border-radius: 18px;
 }
+.area-side > app-tavern-ranking { max-height: none; }
 
-/* ── Visitante ─────────────────────────────────────────────── */
 .th-visitor {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(290px, .85fr);
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-areas: 'scene welcome';
   gap: 24px;
-  align-items: center;
+  align-items: start;
 }
+.th-visitor-side { grid-area: welcome; display: grid; gap: 16px; }
 .th-visitor-copy h2 {
-  font-size: 1.85rem;
   margin-bottom: 14px;
-  color: #fff;
+  font-size: 1.85rem;
 }
 .th-visitor-copy ul {
   list-style: none;
@@ -179,56 +244,83 @@
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--th-muted);
   font-size: .88rem;
   line-height: 1.5;
 }
-.th-visitor-copy li .material-symbols-rounded {
+.th-visitor-copy li .material-symbols-rounded { color: var(--th-gold); }
+
+/* Superficies opacas en los temas de alto contraste. */
+:host-context([data-theme='light-gallery']),
+:host-context([data-theme='sepia']) {
+  --th-panel-background: color-mix(in srgb, var(--home-bg-surface) 80%, transparent);
+}
+:host-context([data-theme='high-contrast-dark']),
+:host-context([data-theme='high-contrast-light']) {
+  --th-panel-background: var(--home-bg-surface);
+  --th-panel-border: var(--home-ink);
+  --th-panel-filter: none;
+  --th-panel-shadow: none;
+}
+:host-context([data-theme='high-contrast-dark']) .th-actions .th-btn.secondary,
+:host-context([data-theme='high-contrast-light']) .th-actions .th-btn.secondary,
+:host-context([data-theme='high-contrast-dark']) .th-utilities,
+:host-context([data-theme='high-contrast-light']) .th-utilities {
+  background: var(--home-bg-surface);
   color: var(--th-gold);
+  box-shadow: none;
 }
 
-/* ── Responsive ────────────────────────────────────────────── */
-@media (max-width: 1240px) {
-  .th-layout {
-    grid-template-columns: minmax(0, 1fr) 340px;
-    grid-template-areas:
-      "scene side"
-      "profile side";
+@media (max-width: 1180px) and (min-width: 1001px) {
+  :host {
+    --th-profile-w: 240px;
+    --th-side-w: 280px;
+    --th-gap: 16px;
   }
 }
 
-@media (max-width: 960px) {
-  .th-hero {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-  .th-quote-banner {
-    display: none;
-  }
-  .th-note {
-    display: none;
-  }
+@media (max-width: 1000px) {
+  :host { --th-stage-height: 520px; }
   .th-layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "scene"
-      "side"
-      "profile";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: 'music music' 'scene scene' 'profile friends' 'profile ranking';
   }
   .area-profile,
   .area-side {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
+  .area-side { display: contents; }
+  .area-side > app-tavern-music { grid-area: music; width: min(100%, 480px); justify-self: center; }
+  .area-side > app-friend-list { grid-area: friends; }
+  .area-side > app-tavern-ranking { grid-area: ranking; }
+  .area-side > app-friend-list,
+  .area-side > app-tavern-ranking { max-height: none; overflow: visible; }
+  .th-hero { flex-wrap: wrap; }
+  .th-visitor { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'music' 'scene' 'welcome'; }
+  .th-visitor-side { display: contents; }
+  .th-visitor-side > app-tavern-music { grid-area: music; width: min(100%, 480px); justify-self: center; }
+  .th-visitor-copy { grid-area: welcome; }
 }
 
-@media (max-width: 600px) {
-  .th-hall {
-    padding: 14px 12px 48px;
+@media (max-width: 700px) {
+  :host { --th-stage-height: max(360px, calc(100svh - var(--navbar-h, 196px) - 178px)); }
+  .th-hall { padding: 16px 12px 24px; }
+  .th-hero { padding: 12px; gap: 10px; margin-bottom: 12px; }
+  .th-title { gap: 8px; font-size: clamp(1.4rem, 5.6vw, 1.7rem); }
+  .th-title-icon { font-size: 28px; }
+  .th-actions { width: 100%; gap: 8px; flex-wrap: nowrap; }
+  .th-actions-divider { display: none; }
+  .th-actions .th-btn { flex: 1 1 0; min-width: 0; gap: 6px; padding-inline: 8px; font-size: .78rem; white-space: nowrap; }
+  .th-actions .th-btn .material-symbols-rounded { font-size: 18px; }
+  .th-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'music' 'scene' 'profile' 'friends' 'ranking';
+    gap: 16px;
   }
-  .th-hero {
-    padding: 14px 16px;
-  }
-  .th-actions .th-btn {
-    flex: 1 1 auto;
-  }
+}
+/* En teléfonos angostos las etiquetas mandan: los íconos de las acciones se ocultan para que quepan en una línea. */
+@media (max-width: 420px) {
+  .th-actions .th-btn .material-symbols-rounded { display: none; }
 }

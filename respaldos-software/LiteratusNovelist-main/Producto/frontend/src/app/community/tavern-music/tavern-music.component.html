@@ -1,0 +1,25 @@
+<section class="tm-panel" aria-label="Música de la taberna">
+  <header class="tm-heading">
+    <span class="material-symbols-rounded" aria-hidden="true">music_note</span>
+    <h2>Música de la taberna</h2>
+    <a [href]="songUrl" target="_blank" rel="noopener noreferrer" aria-label="Abrir la canción en YouTube">
+      <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span>
+    </a>
+  </header>
+  <iframe #frame class="tm-player" [src]="embedUrl" title="Canción de la Taberna de Tinta en YouTube"
+          width="320" height="200" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          referrerpolicy="strict-origin-when-cross-origin" credentialless allowfullscreen></iframe>
+  <p class="tm-status" role="status" aria-live="polite">{{ status }}</p>
+  <div class="tm-controls">
+    <button type="button" class="tm-play" (click)="togglePlayback()" [disabled]="!ready || !!error"
+            [attr.aria-label]="playing ? 'Pausar la música' : 'Reproducir la música'">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ playing ? 'pause' : 'play_arrow' }}</span>
+      {{ playing ? 'Pausar' : 'Reproducir' }}
+    </button>
+    <label class="tm-volume">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ volume ? 'volume_up' : 'volume_off' }}</span>
+      <input type="range" min="0" max="100" step="1" [value]="volume" (input)="setVolume($event)"
+             aria-label="Volumen de la música" [attr.aria-valuetext]="volume + ' por ciento'">
+    </label>
+  </div>
+</section>

@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from users.models import Profile
 from users.serializers import level_name_for
-from .models import Brindis, Friendship, TavernMessage, TavernReaction, pair_key_for
+from .models import Brindis, Friendship, TavernInvitation, TavernMessage, TavernReaction, pair_key_for
 
 User = get_user_model()
 
@@ -589,6 +589,7 @@ def recent_tavern_activity(me) -> dict:
 
     return {
         'messages': messages,
+        'invitations': tavern_invitations(me),
         'reactions': [{
             'id': str(r.id),
             'reaction': r.reaction,
@@ -599,3 +600,46 @@ def recent_tavern_activity(me) -> dict:
             'created_at': r.created_at,
         } for r in recent_reactions],
     }
+
+
+def tavern_invitations(me):
+    friends = friend_ids(me)
+    rows = list(TavernInvitation.objects.filter(
+        Q(sender=me, recipient_id__in=friends) | Q(recipient=me, sender_id__in=friends),
+        expires_at__gt=timezone.now(),
+    ).select_related('sender', 'recipient').order_by('-created_at'))
+    profiles = {p.user_id: p for p in _profiles().filter(user_id__in=friends)}
+    result = {'incoming': [], 'outgoing': []}
+    for row in rows:
+        incoming = row.recipient_id == me.pk
+        other = row.sender if incoming else row.recipient
+        profile = profiles.get(other.pk)
+        if profile:
+            result['incoming' if incoming else 'outgoing'].append({
+                'id': str(row.pk), 'created_at': row.created_at, 'expires_at': row.expires_at,
+                'user': {'friend_code': profile.friend_code, 'username': other.username, 'outfit': profile.outfit or {}},
+            })
+    return result
+
+
+def invite_to_tavern(me, other):
+    if other.pk not in friend_ids(me):
+        return _fail('NOT_FRIEND', 'Solo puedes invitar a tus amigos.', 403)
+    now = timezone.now()
+    TavernInvitation.objects.filter(sender=me, expires_at__lte=now).delete()
+    invitation, created = TavernInvitation.objects.get_or_create(
+        sender=me, recipient=other, defaults={'expires_at': now + timedelta(minutes=30)},
+    )
+    return _ok('Invitación enviada.' if created else 'Tu invitación sigue pendiente.',
+               id=str(invitation.pk), expires_at=invitation.expires_at)
+
+
+def respond_to_tavern_invitation(me, pk, accept):
+    with transaction.atomic():
+        row = TavernInvitation.objects.select_for_update().filter(pk=pk, recipient=me).first()
+        if row is None or row.expires_at <= timezone.now() or row.sender_id not in friend_ids(me):
+            return _fail('NOT_FOUND', 'Esta invitación ya no está disponible.', 404)
+        TavernInvitation.objects.filter(pk=row.pk).delete()
+        if accept:
+            touch_presence(me)
+        return _ok('Ya estás en la mesa. ¡Salud!' if accept else 'Invitación descartada.')

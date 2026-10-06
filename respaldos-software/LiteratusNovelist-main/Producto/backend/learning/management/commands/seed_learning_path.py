@@ -1,6 +1,6 @@
 """
 learning/management/commands/seed_learning_path.py
-Puebla La Senda del Lector (20 unidades, 100 niveles con sus ejercicios) y El Bazar.
+Puebla La Senda del Lector (30 unidades, 150 niveles con sus ejercicios) y El Bazar.
 
     python manage.py seed_learning_path              # crea lo que falte
     python manage.py seed_learning_path --overwrite  # además reemplaza los ejercicios existentes
@@ -90,7 +90,7 @@ SHOP_ITEMS = [
 
 
 class Command(BaseCommand):
-    help = 'Puebla las 20 unidades de La Senda del Lector, sus 100 niveles con ejercicios y El Bazar.'
+    help = 'Puebla las 30 unidades de La Senda del Lector, sus 150 niveles con ejercicios y El Bazar.'
 
     def add_arguments(self, parser):
         parser.add_argument(

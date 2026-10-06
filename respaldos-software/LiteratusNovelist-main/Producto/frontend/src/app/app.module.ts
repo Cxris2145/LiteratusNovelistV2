@@ -22,7 +22,7 @@ import { RouteReuseStrategy, RouterModule } from '@angular/router';
 import { AppRouteReuseStrategy } from './core/app-route-reuse.strategy';
 import { HomeComponent } from './home/home.component';
 import { BookDetailPageComponent } from './catalog/book-detail-page/book-detail-page.component';
-import { TavernComponent } from './library/tavern/tavern.component';
+import { MembershipComponent } from './membership/membership.component';
 import { AIUsageMeterComponent } from './core/components/ai-usage-meter/ai-usage-meter.component';
 import { AuthorDetailPageComponent } from './catalog/author-detail-page/author-detail-page.component';
 import { CheckoutComponent } from './catalog/checkout/checkout.component';
@@ -61,9 +61,12 @@ import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialo
 import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive';
 import { CountUpDirective } from './core/directives/count-up.directive';
 import { TiltDirective } from './core/directives/tilt.directive';
-import { InkwellComponent } from './library/tavern/inkwell/inkwell.component';
+import { InkwellComponent } from './membership/inkwell/inkwell.component';
 import { TavernHallComponent } from './community/tavern-hall/tavern-hall.component';
 import { TavernSceneComponent } from './community/tavern-scene/tavern-scene.component';
+import { TavernBazarComponent } from './community/tavern-bazar/tavern-bazar.component';
+import { TavernTableComponent } from './community/tavern-table/tavern-table.component';
+import { TavernMusicComponent } from './community/tavern-music/tavern-music.component';
 import { ProfileCardComponent } from './community/profile-card/profile-card.component';
 import { FriendListComponent } from './community/friend-list/friend-list.component';
 import { TavernRankingComponent } from './community/tavern-ranking/tavern-ranking.component';
@@ -83,7 +86,7 @@ import { FriendProfileComponent } from './community/friend-profile/friend-profil
     MainNavComponent,
     HomeComponent,
     BookDetailPageComponent,
-    TavernComponent,
+    MembershipComponent,
     AuthorDetailPageComponent,
     CheckoutComponent,
     PaymentSuccessComponent,
@@ -116,6 +119,7 @@ import { FriendProfileComponent } from './community/friend-profile/friend-profil
     BlindInterrogationComponent,
     TavernHallComponent,
     TavernSceneComponent,
+    TavernBazarComponent,
     ProfileCardComponent,
     FriendListComponent,
     TavernRankingComponent,
@@ -125,6 +129,8 @@ import { FriendProfileComponent } from './community/friend-profile/friend-profil
 
 
   imports: [
+    TavernMusicComponent,
+    TavernTableComponent,
     AIUsageMeterComponent,
     BrowserModule,
     BrowserAnimationsModule,

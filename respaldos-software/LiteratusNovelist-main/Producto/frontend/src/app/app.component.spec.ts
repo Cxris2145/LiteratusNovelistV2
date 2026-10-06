@@ -71,12 +71,12 @@ describe('AppComponent navigation', () => {
     expect(component.globalSearchTerm).toBe('');
   });
 
-  it('el contador de Tinta abre la Tienda de la Taberna', () => {
+  it('el contador de Tinta abre la recarga de Tinta en los planes', () => {
     const router = TestBed.inject(Router);
     spyOn(router, 'navigate');
 
-    component.openTavern();
-    expect(router.navigate).toHaveBeenCalledWith(['/tavern/tienda']);
+    component.openInkTopUp();
+    expect(router.navigate).toHaveBeenCalledWith(['/planes'], { fragment: 'tinta' });
   });
 
   it('calcula las iniciales del usuario correctamente', () => {

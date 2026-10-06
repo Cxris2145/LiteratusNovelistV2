@@ -2,6 +2,20 @@
    ASISTENTE GLOBAL — burbuja flotante + panel de conversación
    ========================================================================== */
 
+/* En la taberna (mesa, chat y Bazar), deja libres los controles cercanos. */
+@media (max-width: 700px) {
+  :host-context(body:has(app-tavern-hall)) .lit-bubble {
+    width: 40px;
+    height: 40px;
+    right: 8px;
+    bottom: 8px;
+  }
+  :host-context(body:has(app-tavern-hall)) .lit-bubble-avatar {
+    width: 32px;
+    height: 32px;
+  }
+}
+
 .lit-assistant-root {
   /* Ancla de posicionamiento; los hijos son fixed, este contenedor no ocupa layout. */
   position: relative;

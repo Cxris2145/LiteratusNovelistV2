@@ -1,17 +1,21 @@
-import { Component, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { AuthService } from '../../core/services/auth.service';
 import {
   CommunityMe, CommunityResult, CommunityService, FriendCard, FriendRequestItem, Ranking, RankingScope,
-  TavernChatMessage, TavernReactionItem,
+  TavernChatMessage, TavernReactionItem, TavernInvitation,
 } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AddFriendDialogComponent, AddFriendDialogData } from '../add-friend-dialog/add-friend-dialog.component';
+import { BazarGesture, BazarTab, isBazarTab } from '../tavern-bazar/tavern-bazar.component';
 import { SceneGuest } from '../tavern-scene/tavern-scene.component';
+import { TavernTableAction } from '../tavern-table/tavern-table.types';
+import { TavernAudioService } from '../../core/services/tavern-audio.service';
 
 const POLL_MS = 8000;
 
@@ -48,7 +52,8 @@ const DEMO_GUESTS: SceneGuest[] = [
 
 /**
  * La Taberna de Tinta (/tavern): tu Maguito a la mesa con tus amigos, tu perfil,
- * la lista de amigos con sus solicitudes, el chat social en tiempo real y el ranking.
+ * la lista de amigos con sus solicitudes, el chat social en tiempo real, el ranking
+ * y El Bazar (?bazar=ropero|racha|perfil), donde tu Maguito se prueba la ropa en la mesa.
  */
 @Component({
   selector: 'app-tavern-hall',
@@ -62,6 +67,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
   private notification = inject(NotificationService);
+  private audio = inject(TavernAudioService);
   private zone = inject(NgZone);
   private destroy$ = new Subject<void>();
   private poll: ReturnType<typeof setInterval> | null = null;
@@ -69,6 +75,21 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   readonly loggedIn = this.auth.isLoggedIn();
   readonly demoMe = DEMO_ME;
   readonly demoGuests = DEMO_GUESTS;
+
+  cinemaMode = false;
+
+  get audioPlaying(): boolean {
+    return this.audio.playing;
+  }
+
+  /** El ícono y su aria-pressed ya muestran el estado: no hace falta un aviso. */
+  toggleAudio(): void {
+    this.audio.toggle();
+  }
+
+  toggleCinema(): void {
+    this.cinemaMode = !this.cinemaMode;
+  }
 
   me: CommunityMe | null = null;
   friends: FriendCard[] = [];
@@ -81,9 +102,21 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   sceneMe: SceneGuest | null = null;
   sceneGuests: SceneGuest[] = [];
 
+  bazarOpen = false;
+  bazarTab: BazarTab = 'ropero';
+  /** Lo que se prueba en el Bazar; null = la ropa que lleva puesta. */
+  private fittingOutfit: MaguitoOutfit | null = null;
+  fittingTick = 0;
+  fittingGesture: BazarGesture = 'try';
+
   messages: TavernChatMessage[] = [];
   recentReactions: TavernReactionItem[] = [];
   toasting = false;
+  invitations: TavernInvitation[] = [];
+  outgoingInvitations: TavernInvitation[] = [];
+  invitationBusy = '';
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
+  private tableOpening = false;
 
   loading = true;
   rankingLoading = false;
@@ -93,13 +126,24 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const paypal = this.route.snapshot.queryParamMap.get('paypal');
     if (paypal) {
-      this.router.navigate(['/tavern/tienda'], { queryParams: { paypal }, replaceUrl: true });
+      this.router.navigate(['/planes'], { queryParams: { paypal }, replaceUrl: true });
       return;
     }
     if (!this.loggedIn) {
       this.loading = false;
       return;
     }
+    // ?bazar=ropero abre el Bazar (también si llega estando ya en la taberna).
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      const bazar = params.get('bazar');
+      if (bazar) {
+        this.bazarTab = isBazarTab(bazar) ? bazar : 'ropero';
+        this.bazarOpen = true;
+      } else if (this.bazarOpen) {
+        this.bazarOpen = false;
+        this.onBazarPreview(null);
+      }
+    });
     this.loadAll();
     this.community.changed$.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadAll());
     this.zone.runOutsideAngular(() => {
@@ -111,7 +155,9 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.audio.stop();
     if (this.poll) clearInterval(this.poll);
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
     document.removeEventListener('visibilitychange', this.onVisibility);
     this.destroy$.next();
     this.destroy$.complete();
@@ -135,6 +181,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.setRanking(data.ranking);
         this.messages = data.activity.messages;
         this.recentReactions = data.activity.reactions;
+        this.setInvitations(data.activity.invitations);
         this.loading = false;
       },
       error: () => {
@@ -162,6 +209,135 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     });
   }
 
+  async openTableAction(action: TavernTableAction): Promise<void> {
+    if (!this.loggedIn) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern' } });
+      return;
+    }
+    if (action === 'cat' || action === 'potions') {
+      return;
+    }
+    if (action === 'hourglass') {
+      this.notification.info('El reloj de arena mide el flujo de tus momentos dedicados a la lectura.', 'Tiempo en la Taberna');
+      return;
+    }
+    if (this.tableOpening || this.dialog.openDialogs.length) return;
+    this.tableOpening = true;
+    try {
+      const { TavernTableDialogComponent } = await import('../tavern-table-dialog/tavern-table-dialog.component');
+      if (this.destroy$.isStopped) return;
+      this.dialog.open(TavernTableDialogComponent, {
+        data: { action, friends: this.friends, outgoing: this.outgoingInvitations },
+        panelClass: 'th-dialog-panel', width: '580px', maxWidth: 'calc(100vw - 24px)',
+        autoFocus: 'first-tabbable', restoreFocus: true,
+      }).afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
+        if (result?.message) this.messages = [result.message, ...this.messages];
+        if (result?.addFriend) this.openAddFriend();
+        if (result?.toast) { this.animateToast(); this.onSendReaction('🍺'); this.loadAll(); }
+        else this.refreshLive();
+      });
+    } catch {
+      if (!this.destroy$.isStopped) this.notification.error('No pudimos abrir este objeto. Inténtalo de nuevo.', 'Taberna');
+    } finally {
+      this.tableOpening = false;
+    }
+  }
+
+  // ── El Bazar ──────────────────────────────────────────────
+
+  openBazar(tab: BazarTab = this.bazarTab): void {
+    if (!this.loggedIn) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern?bazar=' + tab } });
+      return;
+    }
+    this.bazarTab = tab;
+    this.bazarOpen = true;
+    this.syncBazarUrl();
+    // En escritorio la mesa es el espejo: si quedó fuera de vista, vuelve a ella.
+    const scene = document.querySelector('app-tavern-scene');
+    if (scene && matchMedia('(min-width: 1001px)').matches && scene.getBoundingClientRect().top < 0) {
+      window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }
+  }
+
+  closeBazar(): void {
+    if (!this.bazarOpen) return;
+    this.bazarOpen = false;
+    this.onBazarPreview(null);
+    this.syncBazarUrl();
+  }
+
+  onBazarPreview(outfit: MaguitoOutfit | null): void {
+    this.fittingOutfit = outfit;
+    this.updateSceneMe();
+  }
+
+  onBazarGesture(gesture: BazarGesture): void {
+    this.fittingGesture = gesture;
+    this.fittingTick++;
+  }
+
+  /** Ropa guardada en el Bazar: el perfil y la mesa la reflejan sin recargar. */
+  onOutfitChange(outfit: MaguitoOutfit): void {
+    if (this.me) this.me = { ...this.me, outfit };
+    this.updateSceneMe();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.cinemaMode) {
+      this.cinemaMode = false;
+      return;
+    }
+    if (this.bazarOpen && !this.dialog.openDialogs.length) this.closeBazar();
+  }
+
+  private syncBazarUrl(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { bazar: this.bazarOpen ? this.bazarTab : null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private updateSceneMe(): void {
+    if (!this.me) return;
+    this.sceneMe = {
+      code: this.me.friend_code, username: this.me.username, level: this.me.level,
+      outfit: this.fittingOutfit ?? this.me.outfit,
+    };
+  }
+
+  respondToInvitation(invitation: TavernInvitation, action: 'accept' | 'decline'): void {
+    if (this.invitationBusy) return;
+    this.invitationBusy = invitation.id;
+    this.community.respondToInvitation(invitation.id, action).pipe(takeUntil(this.destroy$)).subscribe({
+      next: result => {
+        this.invitationBusy = '';
+        this.invitations = this.invitations.filter(item => item.id !== invitation.id);
+        if (action === 'accept') { this.animateToast(); this.onSendReaction('🍺'); }
+        this.notification.success(result.message, 'Taberna');
+        this.refreshLive();
+      },
+      error: err => {
+        this.invitationBusy = '';
+        this.notification.error(err.error?.message || 'No pudimos responder a la invitación.', 'Taberna');
+        this.refreshLive();
+      },
+    });
+  }
+
+  openGuest(guest: SceneGuest): void {
+    this.router.navigate(guest.code === this.me?.friend_code ? ['/profile'] : ['/tavern/amigo', guest.code]);
+  }
+
+  private animateToast(): void {
+    this.toasting = true;
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => this.toasting = false, 2200);
+  }
+
   accept(request: FriendRequestItem): void {
     this.run(request.id, this.community.accept(request.id));
   }
@@ -180,8 +356,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       : this.community.giveBrindis(friend.friend_code);
     this.run(friend.friend_code, request);
     if (!friend.brindis_given) {
-      this.toasting = true;
-      setTimeout(() => this.toasting = false, 2000);
+      this.animateToast();
     }
   }
 
@@ -190,6 +365,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   onSendMessage(content: string): void {
+    if (!this.loggedIn) return;
     this.community.sendMessage(content).subscribe({
       next: res => {
         if (res.message) {
@@ -203,11 +379,11 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   onSendReaction(reaction: string): void {
+    if (!this.loggedIn) return;
     this.community.sendReaction(reaction).subscribe({
       next: () => {
         if (reaction === '🍺') {
-          this.toasting = true;
-          setTimeout(() => this.toasting = false, 2000);
+          this.animateToast();
         }
       },
       error: () => {},
@@ -244,6 +420,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.outgoing = data.requests.outgoing;
         this.messages = data.activity.messages;
         this.recentReactions = data.activity.reactions;
+        this.setInvitations(data.activity.invitations);
         if (this.me) this.me = { ...this.me, pending_incoming: data.presence.pending_incoming };
       },
       error: () => {},
@@ -256,12 +433,15 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   private setFriends(friends: FriendCard[]): void {
     this.friends = friends;
-    this.sceneGuests = friends.map(f => ({
+    this.sceneGuests = friends.filter(f => f.status.kind === 'tavern').sort((a, b) => a.friend_code.localeCompare(b.friend_code)).map(f => ({
       code: f.friend_code, username: f.username, outfit: f.outfit, status: f.status, level: f.level,
     }));
-    if (this.me) {
-      this.sceneMe = { code: this.me.friend_code, username: this.me.username, outfit: this.me.outfit, level: this.me.level };
-    }
+    this.updateSceneMe();
+  }
+
+  private setInvitations(invitations?: { incoming: TavernInvitation[]; outgoing: TavernInvitation[] }): void {
+    this.invitations = invitations?.incoming ?? [];
+    this.outgoingInvitations = invitations?.outgoing ?? [];
   }
 
   private setRanking(ranking: Ranking): void {

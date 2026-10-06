@@ -1,5 +1,5 @@
 """
-Mapa de La Senda: 20 unidades × 5 niveles = 100 niveles.
+Mapa de La Senda: 30 unidades × 5 niveles = 150 niveles.
 
 Cada unidad sigue el mismo ritmo:
   1 y 2 → lectura con preguntas y juegos
@@ -12,6 +12,7 @@ para no alterar el progreso guardado de nadie.
 """
 
 READING, GAMES, EXAM = 'reading', 'games', 'exam'
+LAST_UNIT = 30
 
 
 def _level(number, title, description, difficulty, required, xp, ink, kind, icon=None):
@@ -33,10 +34,10 @@ def _level(number, title, description, difficulty, required, xp, ink, kind, icon
 
 
 def _new_unit(number, slug, title, description, icon, color, min_level, theme, difficulty, names, descriptions):
-    """Unidades 7-20: recompensas y exigencia crecen con el número de unidad."""
+    """Unidades 7-30: recompensas y exigencia crecen con el número de unidad."""
     step = number - 7
     xp, ink = 55 + step * 5, 20 + step * 2
-    required = 75 if number < 15 else 80
+    required = 75 if number < 15 else 80 if number < 25 else 85
     hard = 'dificil' if difficulty == 'dificil' else 'intermedio'
     levels = [
         _level(1, f'Nivel 1: {names[0]}', descriptions[0], difficulty, required, xp, ink, READING),
@@ -44,7 +45,7 @@ def _new_unit(number, slug, title, description, icon, color, min_level, theme, d
         _level(3, f'Nivel 3: {names[2]}', descriptions[2], 'intermedio', 60, xp + 30, ink + 25, GAMES),
         _level(4, f'Nivel 4: {names[3]}', descriptions[3], hard, required + 5, xp + 10, ink + 5, READING),
         _level(5, f'Nivel 5: {names[4]}', descriptions[4], hard, 85 if number >= 15 else 80,
-               xp * 2 + 20, ink * 2, EXAM, 'workspace_premium' if number == 20 else None),
+               xp * 2 + 20, ink * 2, EXAM, 'workspace_premium' if number in (20, LAST_UNIT) else None),
     ]
     return {
         'unit_number': number, 'slug': slug, 'title': f'Unidad {number} — {title}',
@@ -285,14 +286,124 @@ UNITS = [
     ),
     _new_unit(
         20, 'unidad-20-la-gran-travesia', 'La Gran Travesía',
-        'El repaso final: relato, poema y ensayo para demostrar todo lo aprendido en La Senda.',
+        'El gran repaso: relato, poema y ensayo para demostrar todo lo aprendido hasta aquí.',
         'explore', '#facc15', 10, 'maestria', 'dificil',
-        ['Lectura Integral: El Relato', 'Lectura Integral: El Poema', 'Cofre del Maestro Lector', 'Lectura Integral: El Ensayo', 'Gran Examen Final de La Senda'],
+        ['Lectura Integral: El Relato', 'Lectura Integral: El Poema', 'Cofre del Maestro Lector', 'Lectura Integral: El Ensayo', 'Gran Examen de la Travesía'],
         ['Aplica todo lo aprendido a un relato completo.',
          'Analiza un poema: figuras, rima y sentido.',
          _GAMES_DESC,
          'Encuentra la tesis y los recursos de un ensayo.',
-         'El último desafío: supéralo y conviértete en Maestro Lector.'],
+         'Supéralo para ganar el título de Maestro Lector y abrir la Unidad 21.'],
+    ),
+    _new_unit(
+        21, 'unidad-21-noticias-y-medios', 'Noticias y Medios',
+        'Noticia, reportaje, crónica y entrevista: lee el periódico con ojo crítico.',
+        'newspaper', '#0284c7', 11, 'medios', 'dificil',
+        ['La Pirámide Invertida', 'La Crónica y su Mirada', 'Cofre de la Redacción', 'La Entrevista', 'Prueba de Maestría Periodística'],
+        ['Descubre por qué una noticia cuenta lo más importante primero.',
+         'Lee una crónica y distingue los hechos de la mirada del cronista.',
+         _GAMES_DESC,
+         'Aprende cómo se arma una entrevista: entrada, preguntas y respuestas.',
+         'Demuestra que sabes leer los medios para abrir la Unidad 22.'],
+    ),
+    _new_unit(
+        22, 'unidad-22-el-relato-policial', 'El Relato Policial',
+        'Detectives, pistas y coartadas: el género que convierte al lector en investigador.',
+        'search', '#475569', 11, 'policial', 'dificil',
+        ['La Escena del Crimen', 'La Coartada', 'Cofre del Detective', 'Grandes Detectives', 'Prueba de Maestría Policial'],
+        ['Observa como un detective: cada detalle puede ser una pista.',
+         'Pon a prueba una coartada y encuentra la contradicción.',
+         _GAMES_DESC,
+         'Conoce a Dupin, Sherlock Holmes y Hércules Poirot.',
+         'Resuelve el caso de la unidad para abrir la Unidad 23.'],
+    ),
+    _new_unit(
+        23, 'unidad-23-ciencia-ficcion', 'Ciencia Ficción',
+        'Robots, viajes en el tiempo y mundos posibles: la literatura que imagina el futuro.',
+        'rocket_launch', '#7c3aed', 12, 'ciencia_ficcion', 'dificil',
+        ['¿Y si...?', 'Máquinas que Piensan', 'Cofre del Futuro', 'Utopías y Distopías', 'Prueba de Maestría Futurista'],
+        ['Una pregunta imposible es el motor de la ciencia ficción.',
+         'Un robot y una decisión: las leyes de la robótica en acción.',
+         _GAMES_DESC,
+         'Mundos perfectos que esconden algo y mundos que advierten.',
+         'Demuestra que imaginas el futuro con lógica para abrir la Unidad 24.'],
+    ),
+    _new_unit(
+        24, 'unidad-24-humor-ironia-y-parodia', 'Humor, Ironía y Parodia',
+        'Reír también es leer: ironía, sátira, parodia y el humor como crítica.',
+        'sentiment_very_satisfied', '#f59e0b', 12, 'humor', 'dificil',
+        ['Decir lo Contrario', 'La Sátira', 'Cofre del Bufón', 'Parodias Famosas', 'Prueba de Maestría del Humor'],
+        ['Descubre la ironía: cuando las palabras dicen lo contrario de lo que se piensa.',
+         'Lee una sátira que se burla de un defecto para corregirlo.',
+         _GAMES_DESC,
+         'Del Quijote a hoy: imitar para hacer reír.',
+         'Demuestra que entiendes el humor para abrir la Unidad 25.'],
+    ),
+    _new_unit(
+        25, 'unidad-25-realismo-magico-y-boom', 'Realismo Mágico y el Boom',
+        'Lo maravilloso contado como cotidiano y los autores que llevaron América Latina al mundo.',
+        'auto_fix_high', '#16a34a', 13, 'boom', 'dificil',
+        ['Lo Maravilloso Cotidiano', 'Pueblos de Papel', 'Cofre de Macondo', 'Las Voces del Boom', 'Prueba de Maestría del Boom'],
+        ['Un abuelo que flota de felicidad y una familia a la que no le sorprende.',
+         'Los lugares inventados que se volvieron famosos.',
+         _GAMES_DESC,
+         'García Márquez, Cortázar, Vargas Llosa y Fuentes.',
+         'Demuestra que conoces el Boom para abrir la Unidad 26.'],
+    ),
+    _new_unit(
+        26, 'unidad-26-diarios-cartas-y-memorias', 'Diarios, Cartas y Memorias',
+        'Escribir la propia vida: el diario íntimo, la carta y la autobiografía.',
+        'mail', '#db2777', 13, 'autobiografia', 'dificil',
+        ['Querido Diario', 'Cartas que Viajan', 'Cofre de los Recuerdos', 'Memorias y Autobiografías', 'Prueba de Maestría Íntima'],
+        ['Lee las páginas de un diario y descubre lo que su autora no le cuenta a nadie.',
+         'Una carta revela tanto como lo que calla.',
+         _GAMES_DESC,
+         'Ana Frank, Neruda y otros que contaron su vida.',
+         'Demuestra que sabes leer lo íntimo para abrir la Unidad 27.'],
+    ),
+    _new_unit(
+        27, 'unidad-27-comic-y-novela-grafica', 'Cómic y Novela Gráfica',
+        'Viñetas, globos y onomatopeyas: leer con los ojos y con las palabras a la vez.',
+        'photo_library', '#ea580c', 14, 'comic', 'dificil',
+        ['La Viñeta', 'Globos y Cartelas', 'Cofre del Dibujante', 'Del Diario a la Novela Gráfica', 'Prueba de Maestría Gráfica'],
+        ['Aprende cómo una viñeta cuenta con imagen y texto.',
+         'Distingue el globo de diálogo, el de pensamiento y la cartela.',
+         _GAMES_DESC,
+         'Mafalda, Condorito, Maus y Persépolis.',
+         'Demuestra que sabes leer historietas para abrir la Unidad 28.'],
+    ),
+    _new_unit(
+        28, 'unidad-28-literatura-y-sociedad', 'Literatura y Sociedad',
+        'Las obras nacen en un tiempo y un lugar: contexto de producción y crítica social.',
+        'groups', '#9333ea', 14, 'sociedad', 'dificil',
+        ['El Contexto de Producción', 'Voces de la Mina', 'Cofre de la Historia', 'La Denuncia Social', 'Prueba de Maestría Social'],
+        ['Descubre cómo el momento histórico deja huella en una obra.',
+         'Un relato sobre los mineros del carbón y lo que denuncia.',
+         _GAMES_DESC,
+         'De Dickens a Baldomero Lillo: escribir para cambiar las cosas.',
+         'Demuestra que lees con mirada social para abrir la Unidad 29.'],
+    ),
+    _new_unit(
+        29, 'unidad-29-el-taller-del-escritor', 'El Taller del Escritor',
+        'Planificar, escribir, revisar y editar: cómo se construye un buen texto.',
+        'edit_note', '#0d9488', 15, 'escritura', 'dificil',
+        ['Planificar la Historia', 'Coherencia y Cohesión', 'Cofre del Escritor', 'Revisar y Editar', 'Prueba de Maestría del Escritor'],
+        ['Antes de escribir: propósito, destinatario e ideas.',
+         'Conectores y referencias que mantienen unido un texto.',
+         _GAMES_DESC,
+         'Corrige un borrador como lo haría un editor.',
+         'Demuestra que piensas como escritor para abrir la Unidad 30.'],
+    ),
+    _new_unit(
+        30, 'unidad-30-la-cumbre-del-lector', 'La Cumbre del Lector',
+        'El último ascenso: textos que reúnen todo lo aprendido en las treinta unidades de La Senda.',
+        'landscape', '#ca8a04', 15, 'cumbre', 'dificil',
+        ['Lectura de Cumbre: El Cuento', 'Lectura de Cumbre: La Crónica', 'Cofre de la Cumbre', 'Lectura de Cumbre: La Carta', 'Gran Examen Final de La Senda'],
+        ['Aplica todo lo aprendido a un cuento completo.',
+         'Lee una crónica con ojo crítico y mirada literaria.',
+         _GAMES_DESC,
+         'Una carta que cierra el camino del lector.',
+         'El último desafío: supéralo y conviértete en Gran Maestro Lector.'],
     ),
 ]
 

@@ -15,14 +15,18 @@ import random
 import re
 
 from .. import games
-from .banks import BANKS
+from .banks import BANKS as _BANKS_1
+from .banks_2 import BANKS_2
 from .readings_1 import READINGS as _R1
 from .readings_2 import READINGS as _R2
 from .readings_3 import READINGS as _R3
 from .readings_4 import READINGS as _R4
+from .readings_5 import READINGS as _R5
+from .readings_6 import READINGS as _R6
 from .units import EXAM, READING, UNITS, unit_by_number
 
-READINGS = {**_R1, **_R2, **_R3, **_R4}
+BANKS = {**_BANKS_1, **BANKS_2}
+READINGS = {**_R1, **_R2, **_R3, **_R4, **_R5, **_R6}
 
 _SENTENCE_END = re.compile(r'(?<=[.!?…»])\s+')
 

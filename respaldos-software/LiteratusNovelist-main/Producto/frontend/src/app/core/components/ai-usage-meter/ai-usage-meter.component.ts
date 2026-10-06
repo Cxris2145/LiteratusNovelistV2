@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 
 @Component({ selector: 'app-ai-usage-meter', standalone: true, imports: [CommonModule, RouterModule],
   template: `<section class="usage-meter" *ngIf="usage" aria-label="Tu uso de IA hoy">
-    <div class="meter-row"><strong>{{ usage.has_plan ? 'Tu uso de hoy' : 'Conversaciones con Tinta' }}</strong><a routerLink="/tavern/tienda">{{ usage.has_plan ? 'Ver mi plan' : 'Ver planes' }}</a></div>
+    <div class="meter-row"><strong>{{ usage.has_plan ? 'Tu uso de hoy' : 'Conversaciones con Tinta' }}</strong><a routerLink="/planes">{{ usage.has_plan ? 'Ver mi plan' : 'Ver planes' }}</a></div>
     <ng-container *ngIf="usage.has_plan"><progress [value]="usage.tokens_used" [max]="usage.token_limit" aria-label="Cupo diario de IA utilizado"></progress>
       <div class="meter-row"><span>{{ usage.tokens_used | number:'1.0-0' }} / {{ usage.token_limit | number:'1.0-0' }} tokens</span><span>{{ usage.time_limit === null ? 'Sin límite horario' : elapsed }}</span></div>
       <p *ngIf="!usage.plan_available"><strong>Tu magia necesita descansar.</strong> Reinicio en {{ countdown }}.</p>

@@ -1,0 +1,68 @@
+<header class="td-header">
+  <span class="material-symbols-rounded td-icon" aria-hidden="true">{{ icon[data.action] }}</span>
+  <h2 mat-dialog-title>{{ title[data.action] }}</h2>
+  <button type="button" class="td-close" mat-dialog-close aria-label="Cerrar"><span class="material-symbols-rounded" aria-hidden="true">close</span></button>
+</header>
+<mat-dialog-content>
+  <p *ngIf="loading" role="status" class="td-muted">Abriendo {{ data.action === 'book' ? 'tu biblioteca' : 'tu cofre' }}…</p>
+  <div *ngIf="error" class="td-error" role="alert">
+    <p>{{ error }}</p>
+    <button *ngIf="!busy && data.action !== 'invite'" type="button" class="th-btn ghost" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="data.action === 'book' && !loading">
+    <ng-container *ngIf="readings.length; else emptyBooks">
+      <p class="td-muted">Trae tu lectura a la conversación o comparte una cita que te haya gustado.</p>
+      <label for="td-book">Tu libro</label>
+      <select id="td-book" [(ngModel)]="selectedId" [disabled]="!!busy">
+        <option *ngFor="let item of readings" [value]="item.id">{{ bookTitle(item) }}</option>
+      </select>
+      <div class="td-reading" *ngIf="selected as item">
+        <span>{{ item.author_name || 'De tu biblioteca' }}</span><span>{{ progress(item) | number:'1.0-0' }}% leído</span>
+      </div>
+      <label for="td-quote">Una cita <span class="td-muted">(opcional)</span></label>
+      <textarea id="td-quote" [(ngModel)]="quote" maxlength="140" rows="4" [disabled]="!!busy" placeholder="Escribe aquí el fragmento que quieres compartir…"></textarea>
+      <p class="td-note">Se publicará en el chat de tu mesa. {{ quote.length }}/140</p>
+    </ng-container>
+    <ng-template #emptyBooks><p class="td-muted" *ngIf="!error">Tu libro está esperando su primera historia. Añade una lectura a tu biblioteca.</p></ng-template>
+  </ng-container>
+
+  <ng-container *ngIf="data.action === 'invite'">
+    <p class="td-muted">Invita a tus amigos a venir a la taberna. Quienes estén aquí pueden compartir un brindis contigo.</p>
+    <div class="td-friends" *ngIf="data.friends.length; else emptyFriends">
+      <article *ngFor="let friend of data.friends" class="td-friend">
+        <div><strong>{{ friend.username }}</strong><p><span class="th-dot" [ngClass]="friend.status.kind"></span>{{ friend.status.label }}</p></div>
+        <button *ngIf="friend.status.kind !== 'tavern'" type="button" class="th-btn secondary" (click)="invite(friend)" [disabled]="!!busy || sent.has(friend.friend_code)">
+          {{ sent.has(friend.friend_code) ? 'Invitación enviada' : busy === friend.friend_code ? 'Enviando…' : 'Invitar a la mesa' }}
+        </button>
+        <button *ngIf="friend.status.kind === 'tavern'" type="button" class="th-btn secondary" (click)="toast(friend)" [disabled]="!!busy || toasted.has(friend.friend_code)">
+          {{ toasted.has(friend.friend_code) ? 'Ya brindaste' : busy === friend.friend_code ? 'Brindando…' : 'Brindar' }}
+        </button>
+      </article>
+    </div>
+    <ng-template #emptyFriends><p class="td-empty">Hay sitio en tu mesa. Agrega a tu primer amigo para compartir historias.</p></ng-template>
+    <p *ngIf="sent.size" class="td-note" role="status">Las invitaciones aparecen en la taberna de tus amigos y duran 30 minutos.</p>
+  </ng-container>
+
+  <ng-container *ngIf="data.action === 'rewards' && !loading">
+    <p class="td-muted">Tus lecturas hacen crecer el cofre. Completa las misiones semanales para obtener Tinta y experiencia.</p>
+    <article *ngFor="let item of missions" class="td-mission" [class.is-complete]="item.is_completed">
+      <div class="td-mission-heading"><strong>{{ item.mission.title }}</strong><span>{{ item.is_completed ? 'Completada' : item.current_count + ' / ' + item.mission.target_count }}</span></div>
+      <p>{{ item.mission.description }}</p>
+      <progress [value]="item.progress_percentage" max="100" [attr.aria-label]="item.mission.title"></progress>
+      <div class="td-reward"><span *ngIf="item.mission.ink_reward">{{ item.mission.ink_reward }} Tinta</span><span *ngIf="item.mission.xp_reward">{{ item.mission.xp_reward }} XP</span></div>
+    </article>
+    <p *ngIf="!missions.length && !error" class="td-empty">No hay misiones semanales disponibles ahora. Puedes consultar tus logros y otras recompensas.</p>
+    <p *ngIf="missions.length" class="td-note">Las recompensas se abonan al completar cada misión.</p>
+  </ng-container>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <ng-container *ngIf="data.action === 'book'">
+    <a class="th-btn ghost" routerLink="/library" (click)="dialog.close()">Mi biblioteca</a>
+    <a *ngIf="selected" class="th-btn secondary" [routerLink]="['/reader', selected.id]" (click)="dialog.close()">Continuar lectura</a>
+    <button *ngIf="readings.length" type="button" class="th-btn" [disabled]="!selected || !!busy" (click)="share()">{{ busy ? 'Compartiendo…' : 'Compartir en la mesa' }}</button>
+    <a *ngIf="!readings.length && !loading && !error" class="th-btn" routerLink="/catalog" (click)="dialog.close()">Explorar libros</a>
+  </ng-container>
+  <button *ngIf="data.action === 'invite'" type="button" class="th-btn" (click)="dialog.close({ addFriend: true })">Agregar amigo</button>
+  <a *ngIf="data.action === 'rewards'" class="th-btn" routerLink="/achievements" (click)="dialog.close()">Ver todos mis logros</a>
+</mat-dialog-actions>

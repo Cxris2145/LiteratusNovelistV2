@@ -72,9 +72,9 @@ class GamesGradingTests(SimpleTestCase):
 
 
 class ContentTests(SimpleTestCase):
-    def test_one_hundred_playable_levels(self):
+    def test_every_level_is_playable(self):
         exercises = list(all_exercises())
-        self.assertEqual(len(exercises), 100)
+        self.assertEqual(len(exercises), 150)
         kinds = set()
         for unit, level, exercise in exercises:
             ids = [q['id'] for q in exercise['questions_data']]
@@ -97,9 +97,9 @@ class ContentTests(SimpleTestCase):
 class SeedCommandTests(TestCase):
     def test_seed_creates_the_path_and_keeps_existing_exercises(self):
         call_command('seed_learning_path', verbosity=0)
-        self.assertEqual(LearningUnit.objects.count(), 20)
-        self.assertEqual(LearningLevel.objects.count(), 100)
-        self.assertEqual(LearningExercise.objects.count(), 100)
+        self.assertEqual(LearningUnit.objects.count(), 30)
+        self.assertEqual(LearningLevel.objects.count(), 150)
+        self.assertEqual(LearningExercise.objects.count(), 150)
 
         level = LearningLevel.objects.get(unit__unit_number=1, level_number=2)
         level.exercise.questions_data = [{'id': 'propia', 'type': 'true_false', 'prompt': '¿?', 'options': [
@@ -148,7 +148,7 @@ class LearningAPITests(APITestCase):
 
     def test_units_open_in_order(self):
         units = self.client.get('/api/v1/learning/path/').data['units']
-        self.assertEqual(len(units), 20)
+        self.assertEqual(len(units), 30)
         self.assertFalse(units[0]['is_locked'])
         self.assertTrue(units[0]['levels'][0]['is_unlocked'])
         self.assertTrue(units[1]['is_locked'])

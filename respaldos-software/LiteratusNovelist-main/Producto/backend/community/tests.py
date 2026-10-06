@@ -14,7 +14,7 @@ from library.achievement_engine import reward_activity
 from library.models import ReadingProgress, UserInventory
 from users.models import FRIEND_CODE_ALPHABET, Profile
 
-from .models import Brindis, Friendship
+from .models import Brindis, Friendship, TavernInvitation
 
 User = get_user_model()
 API = '/api/v1/community/'
@@ -73,6 +73,72 @@ class CommunityAPITestCase(APITestCase):
 
     def befriend(self, a, b):
         return Friendship.objects.create(requester=a, addressee=b, status=Friendship.Status.ACCEPTED)
+
+
+class TavernInvitationTests(CommunityAPITestCase):
+    def invite(self):
+        self.befriend(self.ana, self.bruno)
+        return self.as_user(self.ana).post(f'{API}tavern/invitations/', {'friend_code': code_of(self.bruno)})
+
+    def test_invitation_is_private_to_sender_and_recipient_and_idempotent(self):
+        first = self.invite()
+        again = self.client.post(f'{API}tavern/invitations/', {'friend_code': code_of(self.bruno)})
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.data['id'], again.data['id'])
+        self.assertEqual(TavernInvitation.objects.count(), 1)
+        incoming = self.as_user(self.bruno).get(f'{API}tavern/activity/').data['invitations']['incoming']
+        self.assertEqual(incoming[0]['user']['friend_code'], code_of(self.ana))
+        self.assertEqual(self.as_user(self.ana).get(f'{API}tavern/activity/').data['invitations']['outgoing'][0]['id'], first.data['id'])
+        self.assertEqual(self.as_user(self.carla).get(f'{API}tavern/activity/').data['invitations'], {'incoming': [], 'outgoing': []})
+
+    def test_self_stranger_and_pending_friend_cannot_be_invited(self):
+        client = self.as_user(self.ana)
+        for target in [self.ana, self.bruno]:
+            self.assertEqual(client.post(f'{API}tavern/invitations/', {'friend_code': code_of(target)}).status_code, 403)
+        Friendship.objects.create(requester=self.ana, addressee=self.bruno)
+        self.assertEqual(client.post(f'{API}tavern/invitations/', {'friend_code': code_of(self.bruno)}).status_code, 403)
+
+    def test_only_recipient_can_accept_and_acceptance_updates_presence(self):
+        pk = self.invite().data['id']
+        url = f'{API}tavern/invitations/{pk}/respond/'
+        self.assertEqual(self.as_user(self.ana).post(url, {'action': 'accept'}).status_code, 404)
+        self.assertEqual(self.as_user(self.carla).post(url, {'action': 'accept'}).status_code, 404)
+        self.assertEqual(self.as_user(self.bruno).post(url, {'action': 'accept'}).status_code, 200)
+        self.assertIsNotNone(Profile.objects.get(user=self.bruno).last_seen_in_tavern)
+        self.assertFalse(TavernInvitation.objects.exists())
+        self.assertEqual(self.client.post(url, {'action': 'accept'}).status_code, 404)
+
+    def test_expired_invitation_is_hidden_and_cannot_be_accepted(self):
+        pk = self.invite().data['id']
+        TavernInvitation.objects.filter(pk=pk).update(expires_at=timezone.now() - timedelta(seconds=1))
+        client = self.as_user(self.bruno)
+        self.assertEqual(client.get(f'{API}tavern/activity/').data['invitations']['incoming'], [])
+        self.assertEqual(client.post(f'{API}tavern/invitations/{pk}/respond/', {'action': 'accept'}).status_code, 404)
+        self.assertEqual(self.as_user(self.ana).post(f'{API}tavern/invitations/', {'friend_code': code_of(self.bruno)}).status_code, 200)
+        self.assertEqual(TavernInvitation.objects.count(), 1)
+
+    def test_decline_removes_invitation_without_claiming_rewards(self):
+        pk = self.invite().data['id']
+        before = Profile.objects.get(user=self.bruno)
+        self.assertEqual(self.as_user(self.bruno).post(f'{API}tavern/invitations/{pk}/respond/', {'action': 'decline'}).status_code, 200)
+        after = Profile.objects.get(user=self.bruno)
+        self.assertEqual((after.xp, after.ink_balance), (before.xp, before.ink_balance))
+        self.assertIsNone(after.last_seen_in_tavern)
+        self.assertFalse(TavernInvitation.objects.exists())
+
+    def test_unfriend_revokes_visibility_and_response(self):
+        pk = self.invite().data['id']
+        Friendship.objects.all().delete()
+        client = self.as_user(self.bruno)
+        self.assertEqual(client.get(f'{API}tavern/activity/').data['invitations']['incoming'], [])
+        self.assertEqual(client.post(f'{API}tavern/invitations/{pk}/respond/', {'action': 'accept'}).status_code, 404)
+
+    def test_authentication_and_response_validation(self):
+        pk = self.invite().data['id']
+        client = self.as_user(self.bruno)
+        self.assertEqual(client.post(f'{API}tavern/invitations/{pk}/respond/', {'action': 'dance'}).status_code, 400)
+        self.client.force_authenticate(None)
+        self.assertEqual(self.client.post(f'{API}tavern/invitations/', {'friend_code': code_of(self.bruno)}).status_code, 401)
 
 
 class FriendRequestTests(CommunityAPITestCase):
@@ -400,4 +466,3 @@ class TavernReactionTests(CommunityAPITestCase):
         resp = self.as_user(self.ana).post(f'{API}tavern/reactions/', {'reaction': 'rocket_ship'})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(resp.data['error'], 'INVALID_REACTION')
-

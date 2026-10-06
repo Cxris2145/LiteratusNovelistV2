@@ -59,8 +59,8 @@ def subscribe(request):
             data = paypal.api('POST', '/v1/billing/subscriptions', {
                 'plan_id': plan.provider_plan_id, 'custom_id': str(request.user.pk),
                 'application_context': {'brand_name': 'Literatus Novelist', 'user_action': 'SUBSCRIBE_NOW',
-                    'return_url': settings.FRONTEND_URL.rstrip('/') + '/tavern/tienda?paypal=return',
-                    'cancel_url': settings.FRONTEND_URL.rstrip('/') + '/tavern/tienda?paypal=cancel'}}, sub.creation_request_id)
+                    'return_url': settings.FRONTEND_URL.rstrip('/') + '/planes?paypal=return',
+                    'cancel_url': settings.FRONTEND_URL.rstrip('/') + '/planes?paypal=cancel'}}, sub.creation_request_id)
             with transaction.atomic():
                 Profile.objects.select_for_update().get(user=request.user)
                 PayPalSubscriptionBinding.objects.get_or_create(provider_subscription_id=data['id'], defaults={'subscription': sub, 'plan': plan})
@@ -94,8 +94,8 @@ def manage(request, action):
             UserSubscription.objects.filter(pk=sub.pk).update(pending_plan=plan)
             data = paypal.api('POST', '/v1/billing/subscriptions/' + sub.provider_subscription_id + '/revise',
                 {'plan_id': plan.provider_plan_id, 'application_context': {
-                    'return_url': settings.FRONTEND_URL.rstrip('/') + '/tavern/tienda?paypal=return',
-                    'cancel_url': settings.FRONTEND_URL.rstrip('/') + '/tavern/tienda?paypal=cancel'}}, uuid.uuid4())
+                    'return_url': settings.FRONTEND_URL.rstrip('/') + '/planes?paypal=return',
+                    'cancel_url': settings.FRONTEND_URL.rstrip('/') + '/planes?paypal=cancel'}}, uuid.uuid4())
             return Response({'approval_url': paypal.approval_url(data), **account_data(request.user)})
         else:
             return Response(status=404)

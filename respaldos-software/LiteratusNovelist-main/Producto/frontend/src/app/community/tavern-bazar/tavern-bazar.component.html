@@ -1,0 +1,154 @@
+<!-- En el celular el Bazar es una hoja sobre la mesa: el fondo la cierra. -->
+<div class="bz-backdrop" [class.is-open]="open" (click)="close()" aria-hidden="true"></div>
+
+<aside id="tavern-bazar" class="bz-drawer" [class.is-open]="open" [attr.inert]="open ? null : ''" aria-labelledby="bz-title" (keydown.escape)="close()">
+  <span class="bz-grip" aria-hidden="true"></span>
+
+  <header class="bz-head">
+    <span class="bz-emblem" aria-hidden="true"><span class="material-symbols-rounded">storefront</span></span>
+    <div class="bz-head-copy">
+      <h2 id="bz-title" #heading tabindex="-1">El Bazar de la Taberna</h2>
+      <p>Viste a tu Maguito y canjea la Tinta que ganas leyendo.</p>
+    </div>
+    <button type="button" class="th-icon-btn bz-close" (click)="close()" aria-label="Cerrar el Bazar">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <div class="bz-purse">
+    <span class="material-symbols-rounded bz-purse-icon" aria-hidden="true">ink_pen</span>
+    <p class="bz-balance">
+      <strong><span aria-hidden="true" [appCountUp]="balance" [countUpDelta]="loaded"></span><span class="sr-only">{{ format(balance) }}</span></strong>
+      <span>Tinta en tu bolsa</span>
+    </p>
+    <button *ngIf="dailyReward?.can_claim; else topUp" type="button" class="bz-claim" (click)="claimReward()" [disabled]="!!busy">
+      <span class="material-symbols-rounded" aria-hidden="true">redeem</span>
+      {{ busy === 'reward' ? 'Reclamando…' : 'Reclamar ' + dailyReward?.ink_reward + ' de hoy' }}
+    </button>
+    <ng-template #topUp>
+      <a class="bz-topup" routerLink="/planes" fragment="tinta">Recargar</a>
+    </ng-template>
+  </div>
+
+  <div class="bz-tabs" role="group" aria-label="Mostradores del Bazar" *ngIf="tabs.length > 1"
+       [style.--tab-count]="tabs.length" [style.--tab-index]="tabs.indexOf(tab)">
+    <span class="bz-tab-pill" aria-hidden="true"></span>
+    <button type="button" *ngFor="let id of tabs" [attr.aria-pressed]="tab === id" (click)="selectTab(id)">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ tabIcons[id] }}</span>{{ tabLabels[id] }}
+    </button>
+  </div>
+
+  <div class="bz-body">
+    <!-- Probador: en escritorio el espejo es tu Maguito sentado a la mesa; aquí solo se ve en pantallas angostas. -->
+    <section class="bz-fitting" *ngIf="hasWear" aria-label="Probador de Maguito">
+      <div class="bz-mirror">
+        <app-maguito [outfit]="previewOutfit" [followPointer]="false" [interactive]="true" [paused]="!open"
+                     [label]="previewItem ? 'Tu Maguito probándose ' + previewItem.name : 'Tu Maguito'"></app-maguito>
+        <span class="bz-plinth" aria-hidden="true"></span>
+      </div>
+      <div class="bz-fitting-copy">
+        <p class="bz-caption" aria-live="polite">{{ mirrorCaption }}</p>
+        <p class="bz-hint bz-hint-table">Mírate en la mesa: tu Maguito se prueba lo que elijas.</p>
+        <p class="bz-hint bz-hint-mirror">Pulsa una prenda para probártela; puedes combinar varias.</p>
+        <ul class="bz-trying" *ngIf="tryingItems.length" aria-label="Piezas en el probador">
+          <li *ngFor="let item of tryingItems; trackBy: trackItem">
+            <span>{{ item.name }}</span>
+            <button type="button" (click)="removeTry(item)" [attr.aria-label]="'Dejar de probar ' + item.name">
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            </button>
+          </li>
+        </ul>
+        <button type="button" class="bz-reset" *ngIf="tryingItems.length" (click)="resetPreview()">
+          <span class="material-symbols-rounded" aria-hidden="true">undo</span>Volver a mi ropa
+        </button>
+      </div>
+    </section>
+
+    <div class="bz-tools" *ngIf="loaded">
+      <label class="bz-search">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input type="search" [(ngModel)]="query" (ngModelChange)="applyFilter()" placeholder="Buscar en el Bazar" aria-label="Buscar en el Bazar" />
+      </label>
+      <button type="button" class="bz-owned" [attr.aria-pressed]="ownedOnly" (click)="toggleOwned()">
+        <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>Mi baúl
+      </button>
+    </div>
+
+    <div class="bz-slots" role="group" aria-label="Tipo de prenda" *ngIf="loaded && tab === 'ropero' && wearFilters.length">
+      <button type="button" *ngFor="let filter of wearFilters" [attr.aria-pressed]="wearFilter === filter.id" (click)="setWearFilter(filter.id)">{{ filter.label }}</button>
+    </div>
+
+    <p class="sr-only" role="status">{{ loading ? 'Abriendo el Bazar…' : loaded ? visibleItems.length + (visibleItems.length === 1 ? ' artículo' : ' artículos') : '' }}</p>
+
+    <div class="bz-grid is-skeleton" *ngIf="loading" aria-hidden="true">
+      <span class="bz-ghost" *ngFor="let n of [0, 1, 2, 3]"></span>
+    </div>
+
+    <div class="bz-error" role="alert" *ngIf="error">
+      <span class="material-symbols-rounded" aria-hidden="true">door_front</span>
+      <p>{{ error }}</p>
+      <button type="button" class="th-btn ghost" (click)="load()">Reintentar</button>
+    </div>
+
+    <div class="bz-grid" *ngIf="loaded" (mouseleave)="peek(null)">
+      <article class="bz-item" *ngFor="let item of visibleItems; let i = index; trackBy: trackItem"
+               [style.--i]="i" [class.is-wear]="isWear(item)" [class.is-trying]="isWear(item) && isTrying(item)"
+               [class.is-equipped]="item.is_equipped" [class.is-bought]="justBought === item.code"
+               (mouseenter)="peek(item)" (mouseleave)="peek(null)" (focusin)="peek(item)" (focusout)="leavePeek($event)">
+        <button *ngIf="isWear(item); else objectArt" type="button" class="bz-thumb" (click)="tryOn(item)"
+                [attr.aria-pressed]="isTrying(item)" [attr.aria-label]="(isTrying(item) ? 'Dejar de probar ' : 'Probar ') + item.name">
+          <app-maguito crop="detail" [detailSlot]="wearSlot(item)" [outfit]="itemLooks[item.code]" [interactive]="false"
+                       [followPointer]="false" [calm]="true" [paused]="true"></app-maguito>
+          <span class="bz-thumb-hint" aria-hidden="true">{{ isTrying(item) ? 'Probando' : 'Probar' }}</span>
+        </button>
+        <ng-template #objectArt>
+          <span class="bz-thumb is-object" aria-hidden="true"><span class="material-symbols-rounded">{{ item.icon || 'shopping_bag' }}</span></span>
+        </ng-template>
+
+        <span class="bz-state" *ngIf="item.is_owned">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ item.is_equipped ? 'check_circle' : 'inventory_2' }}</span>
+          {{ item.is_equipped ? (isWear(item) ? 'Puesto' : 'Equipado') : (isWear(item) ? 'En tu baúl' : 'Tienes ' + item.quantity) }}
+        </span>
+
+        <div class="bz-copy">
+          <span class="bz-slot" *ngIf="isWear(item)">{{ slotLabel(item) }}</span>
+          <h3>{{ item.name }}</h3>
+          <p [attr.title]="item.description">{{ item.description }}</p>
+        </div>
+
+        <div class="bz-need" *ngIf="canBuy(item) && missingInk(item) > 0">
+          <span class="bz-need-bar" aria-hidden="true"><span [style.--p]="progressTo(item)"></span></span>
+          <small>Te faltan {{ format(missingInk(item)) }} Tinta</small>
+        </div>
+
+        <footer class="bz-foot">
+          <span class="bz-price"><span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>{{ format(item.cost_ink) }}<span class="sr-only"> Tinta</span></span>
+          <span class="bz-actions">
+            <button *ngIf="isWear(item) && !item.is_equipped" type="button" class="bz-btn ghost" (click)="tryOn(item)" [attr.aria-pressed]="isTrying(item)">
+              {{ isTrying(item) ? 'Probando' : 'Probar' }}
+            </button>
+            <button *ngIf="canBuy(item)" type="button" class="bz-btn" (click)="buy(item)" [disabled]="!!busy || missingInk(item) > 0">
+              {{ busy === item.code ? 'Canjeando…' : 'Canjear' }}
+            </button>
+            <ng-container *ngIf="canEquip(item)">
+              <button *ngIf="item.is_equipped && isWear(item)" type="button" class="bz-btn ghost" (click)="unequip(item)" [disabled]="!!busy">
+                {{ busy === item.code ? 'Guardando…' : 'Quitar' }}
+              </button>
+              <button *ngIf="!item.is_equipped" type="button" class="bz-btn" (click)="equip(item)" [disabled]="!!busy">
+                {{ busy === item.code ? 'Un momento…' : (isWear(item) ? 'Ponérselo' : 'Equipar') }}
+              </button>
+            </ng-container>
+          </span>
+        </footer>
+
+        <span class="bz-stamp" *ngIf="justBought === item.code" aria-hidden="true">¡Tuyo!</span>
+      </article>
+
+      <div class="bz-empty" *ngIf="!visibleItems.length">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ ownedOnly ? 'inventory_2' : 'search_off' }}</span>
+        <h3>{{ ownedOnly ? 'Tu baúl está vacío en este mostrador' : 'Nada en el Bazar con esa búsqueda' }}</h3>
+        <button type="button" class="th-btn ghost" (click)="clearFilters()">Ver todo el mostrador</button>
+      </div>
+    </div>
+  </div>
+</aside>

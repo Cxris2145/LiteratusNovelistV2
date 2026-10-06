@@ -157,6 +157,26 @@
 .pc-code > button { grid-column: 2; grid-row: 1 / span 2; }
 .pc-dress { width: 100%; }
 
+/* La tarjeta lateral deja más espacio visible para el salón y el chat. */
+.pc.is-compact { gap: 8px; padding: 16px; }
+.pc.is-compact .th-panel-title { align-items: center; gap: 8px; }
+.pc.is-compact .th-panel-title h2 { font-size: 1.3rem; }
+.pc.is-compact .th-panel-title .th-btn { padding-inline: 8px; font-size: .75rem; }
+.pc.is-compact .pc-avatar-wrap,
+.pc.is-compact .pc-avatar { width: 104px; }
+.pc.is-compact .pc-avatar-wrap { margin-block: 0; }
+.pc.is-compact .pc-name { font-size: 1.5rem; }
+.pc.is-compact .pc-stats { margin-top: 4px; padding-block: 8px; }
+.pc.is-compact .pc-genres li {
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--home-bg) 70%, transparent);
+  border-color: var(--th-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-online-dot { animation: none; }
+}
+
 /* Esqueleto mientras carga */
 .pc.is-loading { min-height: 420px; }
 .sk {

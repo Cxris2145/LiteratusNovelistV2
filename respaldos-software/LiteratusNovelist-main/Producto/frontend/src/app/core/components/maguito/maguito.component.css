@@ -44,6 +44,37 @@
 .mg-svg { display: block; width: 100%; height: auto; overflow: visible; }
 /* Busto (avatares): lo que queda fuera del encuadre no se pinta encima de lo que hay abajo */
 :host(.mg-crop-bust) .mg-svg { overflow: hidden; }
+:host(.mg-crop-detail) { height: 100%; }
+:host(.mg-crop-detail) .mg-svg { height: 100%; overflow: hidden; }
+/* Miniaturas de la pieza, dibujadas con las mismas capas del personaje vestido. */
+:host(.mg-crop-detail) .mg-body,
+:host(.mg-crop-detail) .mg-body-shade,
+:host(.mg-crop-detail) .mg-body-highlight,
+:host(.mg-crop-detail) .mg-shadow,
+:host(.mg-crop-detail) .mg-arm-l,
+:host(.mg-crop-detail) .mg-arm-r,
+:host(.mg-crop-detail) .mg-aura,
+:host(.mg-crop-detail) .mg-hat-glow,
+:host(.mg-crop-detail) .mg-eye,
+:host(.mg-crop-detail) .mg-mouth,
+:host(.mg-crop-detail) .mg-cape,
+:host(.mg-crop-detail) .mg-garment,
+:host(.mg-crop-detail) .mg-neck,
+:host(.mg-crop-detail) .mg-hat { display: none; }
+:host([data-detail-slot='head']) .mg-hat,
+:host([data-detail-slot='neck']) .mg-neck,
+:host([data-detail-slot='cape']) .mg-cape,
+:host([data-detail-slot='cape']) .mg-garment,
+:host([data-detail-slot='cape']) .mg-body,
+:host([data-detail-slot='cape']) .mg-body-shade,
+:host([data-detail-slot='cape']) .mg-body-highlight,
+:host([data-detail-slot='eyes'][data-eyes='none']) .mg-eye { display: initial; }
+:host([data-detail-slot='head']) .mg-face,
+:host([data-detail-slot='neck']) .mg-face,
+:host([data-detail-slot='cape']) .mg-face { display: none; }
+:host([data-face='mustache']) .mg-mouth { transform: translateY(9px); }
+.mg-lens-shine { transition: opacity .25s ease; }
+:host(:hover) .mg-lens-shine { opacity: .75; }
 
 .mg-aura { opacity: 0; transition: opacity 400ms ease; }
 :host(.mg-with-aura) .mg-aura { opacity: 1; animation: mg-aura 4s ease-in-out infinite; }
@@ -245,6 +276,7 @@
   :host .mg-rig, :host .mg-hop, :host .mg-arm-l, :host .mg-arm-r-wave,
   :host .mg-hat, :host .mg-orbit, :host .mg-p, :host .mg-b { animation: none !important; }
   .mg-arm-r, .mg-arm-l, .mg-face, .mg-pupil, .mg-lid-low { transition-duration: 0.01ms !important; }
+  .mg-lens-shine { transition: none; }
   .mg-tip-spark { animation: mg-fade 2.8s ease-in-out infinite !important; transform: none; }
   .mg-particles, .mg-burst { display: none; }
 }

@@ -197,8 +197,8 @@ export class MessagesComponent implements OnInit {
         category: 'ink',
         timestamp: 'Ayer',
         unread: false,
-        actionUrl: '/tavern/tienda',
-        actionLabel: 'Ir a La Taberna'
+        actionUrl: '/tavern?bazar=ropero',
+        actionLabel: 'Ir al Bazar'
       },
       {
         id: '3',

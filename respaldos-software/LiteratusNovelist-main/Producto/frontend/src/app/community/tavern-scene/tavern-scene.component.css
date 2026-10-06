@@ -4,22 +4,14 @@
 }
 
 .ts-stage {
+  container-type: inline-size;
+  --ts-table-bottom: 50px;
   position: relative;
   isolation: isolate;
   overflow: hidden;
   width: 100%;
-  aspect-ratio: 16 / 10.2;
-  min-height: 460px;
-  border-radius: 22px;
-  background-color: #120c18;
-  background-image:
-    radial-gradient(ellipse at 50% 60%, rgba(20, 14, 28, 0.15) 0%, rgba(10, 8, 16, 0.5) 100%),
-    url('/assets/images/tavern-backdrop.jpg');
-  background-size: cover;
-  background-position: center 65%;
-  background-repeat: no-repeat;
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.6), 0 20px 50px rgba(0, 0, 0, 0.5);
+  height: var(--th-stage-height, 560px);
+  background: transparent;
 }
 
 /* ── Ambiente: luces y velas ────────────────────────────────── */
@@ -40,49 +32,290 @@
   background: radial-gradient(closest-side, rgba(255, 179, 71, 0.25), rgba(255, 179, 71, 0.08) 60%, transparent);
   animation: ts-glow-pulse 5s ease-in-out infinite alternate;
 }
+.ts-ember {
+  position: absolute;
+  left: var(--ember-x);
+  bottom: 20%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffd38a;
+  box-shadow: 0 0 7px 2px #ffb54d40;
+  opacity: 0;
+  animation: ts-ember-drift var(--ember-time) ease-in-out var(--ember-delay) infinite;
+}
+@keyframes ts-ember-drift {
+  0%, 100% { opacity: 0; transform: translate(0, 0) scale(.6); }
+  15% { opacity: .5; }
+  70% { opacity: .3; }
+  95% { opacity: 0; transform: translate(var(--ember-drift), -240px) scale(.3); }
+}
+:host([data-ambient-paused='true']) *,
+:host([data-ambient-paused='true']) *::before,
+:host([data-ambient-paused='true']) *::after { animation-play-state: paused !important; }
 
 /* ── Asientos de Maguitos ───────────────────────────────────── */
 .ts-seat {
   position: absolute;
-  translate: -50% 0;
+  translate: -50% calc(-1 * clamp(24px, 3vw, 52px));
   line-height: 0;
   pointer-events: auto;
 }
+.ts-seat-chair { position: absolute; bottom: 4%; left: 16%; width: 68%; height: 65%;
+  border: 7px solid #57321c; border-bottom-width: 14px; border-radius: 20px 20px 7px 7px;
+  background: linear-gradient(100deg, #70462b, #342117 30%, #5c3820 65%, #382419);
+  box-shadow: inset 0 2px 0 #aa7948, inset 4px 0 0 #3a2416, 6px 9px 12px #140b0999;
+  display: flex; justify-content: space-evenly; padding: 14% 10% 8%; z-index: -1;
+  transform: perspective(500px) rotateX(-5deg); pointer-events: none; }
+.ts-seat-chair i { width: 12%; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #8f5a34, #59361e 60%, #2e1b12); box-shadow: 2px 0 0 #1e120b; }
+.ts-empty-seat {
+  position: absolute;
+  translate: -50% calc(-1 * clamp(24px, 3vw, 52px));
+  aspect-ratio: 400/380;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: #f5d49d;
+  z-index: 2;
+}
+/* Asiento libre: un medallón dorado sobre el respaldo; «Invitar» aparece al acercarse. */
+.ts-empty-medal {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 214, 120, .75);
+  background: radial-gradient(circle at 35% 30%, #5a3a1f, #2a180d);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 228, 160, .3);
+  color: #ffd166;
+  translate: -50% 0;
+  transition: transform .2s var(--th-ease-out), border-color .2s ease, box-shadow .2s ease;
+}
+.ts-empty-medal .material-symbols-rounded { font-size: 22px; }
+.ts-empty-tag {
+  position: absolute;
+  top: calc(34% + 46px);
+  left: 50%;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(22, 15, 12, .9);
+  border: 1px solid rgba(212, 175, 55, .5);
+  color: #fff0cd;
+  font: 600 .7rem var(--font-ui);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -4px);
+  transition: opacity .15s ease, transform .18s var(--th-ease-out);
+}
+.ts-empty-seat:focus-visible .ts-empty-tag { opacity: 1; transform: translate(-50%, 0); }
+.ts-empty-seat:focus-visible .ts-empty-medal { border-color: #ffd700; }
+.ts-empty-seat:active .ts-empty-medal { transform: scale(.94); }
+@media (hover: hover) and (pointer: fine) {
+  .ts-empty-seat:hover .ts-empty-medal { transform: translateY(-3px); border-color: #ffd700; box-shadow: 0 8px 18px rgba(255, 193, 7, .28), inset 0 1px 0 rgba(255, 228, 160, .4); }
+  .ts-empty-seat:hover .ts-empty-tag { opacity: 1; transform: translate(-50%, 0); }
+}
+/* En pantallas táctiles no hay hover: la etiqueta se ve siempre, pequeña. */
+@media (hover: none) {
+  .ts-empty-tag { opacity: 1; transform: translate(-50%, 0); font-size: .64rem; }
+}
+
+/* Los objetos de la mesa forman una sola barra con divisores, no tres cajas sueltas. */
+.ts-table-tools {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-end;
+  width: max-content;
+  max-width: calc(100% - 36px);
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, .5);
+  background: rgba(24, 16, 12, .86);
+  box-shadow: inset 0 1px 0 rgba(255, 240, 205, .1), 0 6px 18px rgba(0, 0, 0, .4);
+}
+@container (max-width: 680px) {
+  .ts-table-tools {
+    left: 50%;
+    right: auto;
+    translate: -50% 0;
+  }
+}
+.ts-table-tools button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  min-height: 38px;
+  background: transparent;
+  color: #fff0cd;
+  font: 600 .76rem var(--font-ui);
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease, transform .16s var(--th-ease-out);
+}
+/* Divisor fino entre botones de la barra. */
+.ts-table-tools button + button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 1px;
+  background: rgba(255, 228, 180, .18);
+}
+.ts-table-tools button:focus-visible { background: rgba(255, 214, 120, .14); }
+.ts-table-tools button:active { transform: scale(.96); }
+@media (hover: hover) and (pointer: fine) {
+  .ts-table-tools button:hover { background: rgba(255, 214, 120, .14); color: #fff8e6; }
+  .ts-table-tools button:hover::before,
+  .ts-table-tools button:hover + button::before { opacity: 0; }
+}
+.ts-table-tools .material-symbols-rounded { font-size: 19px; color: #ffd166; }
+.ts-tool-short { display: none; }
+/* Mesa mediana (notebook): la barra queda solo con íconos para no tapar el bocadillo central;
+   el nombre aparece al pasar el mouse o con el foco. */
+@container (min-width: 581px) and (max-width: 900px) {
+  .ts-tool-long { display: none; }
+  .ts-table-tools button { width: 42px; padding: 8px 0; }
+  .ts-table-tools button::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 2;
+    width: max-content;
+    padding: 5px 9px;
+    border-radius: 7px;
+    background: #1d140f;
+    border: 1px solid rgba(212, 175, 55, .55);
+    color: #fff0cd;
+    font: 600 .72rem var(--font-ui);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: opacity .14s ease, transform .16s var(--th-ease-out);
+  }
+  .ts-table-tools button:focus-visible::after { opacity: 1; transform: none; }
+}
+@media (hover: hover) and (pointer: fine) {
+  @container (min-width: 581px) and (max-width: 900px) {
+    .ts-table-tools button:hover::after { opacity: 1; transform: none; transition-delay: .2s; }
+  }
+}
+.ts-empty-seat:focus-visible, .ts-name:focus-visible, .ts-more:focus-visible { outline: 2px solid #ffc062; outline-offset: 4px; }
+.ts-table-tools button:focus-visible { outline: 2px solid #ffc062; outline-offset: 1px; }
+.narrow { display: none; }
 .ts-seat app-maguito {
   width: 100%;
   display: block;
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.6));
 }
 
+/* ── Probador: la lámpara se vuelve hacia tu Maguito ───────── */
+.ts-seat { transition: filter .45s ease; }
+.ts-stage.is-fitting .ts-seat:not(.is-me) { filter: brightness(.55) saturate(.7); }
+/* El desenfoque va en el contenedor para suavizar el borde recortado del haz. */
+.ts-fit-light {
+  position: absolute;
+  z-index: -2;
+  left: 50%;
+  bottom: 2%;
+  width: 150%;
+  height: 175%;
+  translate: -50% 0;
+  pointer-events: none;
+  filter: blur(10px);
+  opacity: 0;
+  transform: scaleY(.85);
+  transform-origin: 50% 0;
+  transition: opacity .45s var(--th-ease-out), transform .6s var(--th-ease-out);
+}
+.ts-fit-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 214, 140, 0) 0%, rgba(255, 214, 140, .2) 50%, rgba(255, 196, 110, .34) 100%);
+  clip-path: polygon(43% 0, 57% 0, 96% 100%, 4% 100%);
+}
+.ts-fit-light::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -2%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 205, 120, .55), rgba(255, 205, 120, 0));
+}
+.ts-stage.is-fitting .ts-fit-light { opacity: 1; transform: none; }
+
+/* Destellos al probarse una prenda: salen de la cabeza hacia afuera. */
+.ts-fit-bursts {
+  position: absolute;
+  z-index: 12;
+  left: 54%;
+  top: 22%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.ts-fit-burst { position: absolute; inset: 0; }
+.ts-fit-burst i {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  background: #ffd56b;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  opacity: 0;
+  animation: ts-fit-spark 620ms var(--th-ease-out) forwards;
+}
+.ts-fit-burst i:nth-child(even) { width: 8px; height: 8px; left: -4px; top: -4px; background: #fff3c4; animation-delay: 40ms; }
+@keyframes ts-fit-spark {
+  0% { opacity: 1; transform: rotate(var(--a)) translateY(-8px) scale(.5); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateY(-52px) scale(1); }
+}
+
 /* Escala y disposición amplia idéntica a la maqueta */
 .seat-center,
 .seat-me {
   left: 50%;
-  bottom: 27%;
-  width: 27%;
+  bottom: calc(var(--ts-table-bottom) + 14cqw);
+  width: 24%;
   z-index: 3;
 }
 .seat-l1 {
   left: 28%;
-  bottom: 25.5%;
-  width: 24.5%;
+  bottom: calc(var(--ts-table-bottom) + 12cqw);
+  width: 22%;
   z-index: 2;
 }
 .seat-r1 {
   left: 72%;
-  bottom: 25.5%;
-  width: 24.5%;
+  bottom: calc(var(--ts-table-bottom) + 12cqw);
+  width: 22%;
   z-index: 2;
 }
 .seat-l2 {
   left: 10%;
-  bottom: 18%;
+  bottom: calc(var(--ts-table-bottom) + 9cqw);
   width: 17%;
   z-index: 1;
 }
 .seat-r2 {
   left: 90%;
-  bottom: 18%;
+  bottom: calc(var(--ts-table-bottom) + 9cqw);
   width: 17%;
   z-index: 1;
 }
@@ -91,10 +324,11 @@
 .ts-bubble {
   position: absolute;
   left: 50%;
-  bottom: 96%;
+  bottom: calc(100% + 12px);
   translate: -50% 0;
   width: max-content;
-  max-width: 210px;
+  max-width: min(210px, 65vw);
+  overflow-wrap: anywhere;
   margin: 0;
   padding: 8px 14px;
   border-radius: 14px;
@@ -103,9 +337,11 @@
   font: 600 .78rem/1.35 var(--font-ui);
   text-align: center;
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.5);
-  animation: ts-bubble-in .38s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+  /* Sale de la boca de quien habla: crece desde su base. */
+  transform-origin: 50% 100%;
+  animation: ts-bubble-in 260ms var(--th-ease-out) backwards;
   z-index: 10;
-  pointer-events: none;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,6 +356,7 @@
   font-size: 14px;
   color: #d4af37;
 }
+.ts-bubble:focus-visible { outline: 2px solid #ffc062; outline-offset: 3px; }
 .ts-bubble::after {
   content: '';
   position: absolute;
@@ -137,13 +374,14 @@
 .ts-table-overlay {
   position: absolute;
   left: 50%;
-  bottom: 50px;
+  bottom: var(--ts-table-bottom);
   width: 86%;
   translate: -50% 0;
   z-index: 4;
   pointer-events: none;
-  filter: drop-shadow(0 -6px 18px rgba(0, 0, 0, 0.6));
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .5));
 }
+.ts-table-fallback.is-replaced { display: none; }
 
 .ts-lantern-halo {
   animation: ts-lantern-glow 4s ease-in-out infinite alternate;
@@ -174,15 +412,16 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  width: max-content;
   max-width: 25%;
   padding: 5px 12px;
   border-radius: 99px;
-  background: rgba(14, 18, 36, 0.88);
+  background: rgba(14, 16, 30, .82);
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: #fff;
   font: 600 .76rem var(--font-ui);
   white-space: nowrap;
-  backdrop-filter: blur(8px);
+  cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 .ts-name-text {
@@ -220,9 +459,11 @@
 .ts-more {
   position: absolute;
   right: 16px;
-  top: 16px;
+  top: 60px;
   z-index: 6;
   padding: 5px 12px;
+  color: #fff;
+  cursor: pointer;
   border-radius: 99px;
   background: rgba(14, 18, 36, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -248,22 +489,25 @@
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
 }
 
+/* Sube desde quien reacciona, se mece como una burbuja y se desvanece arriba. */
 @keyframes ts-particle-rise {
   0% {
     opacity: 0;
-    transform: translateY(0) scale(0.6) rotate(-8deg);
+    transform: translateY(0) scale(0.8) rotate(-6deg);
   }
-  20% {
+  14% {
     opacity: 1;
-    transform: translateY(-50px) scale(1.25) rotate(6deg);
+    transform: translateY(-36px) scale(1.05) rotate(4deg);
   }
-  75% {
-    opacity: 0.95;
-    transform: translateY(-200px) scale(1.1) rotate(-6deg);
+  50% {
+    transform: translate(10px, -150px) scale(1) rotate(-4deg);
+  }
+  80% {
+    opacity: 0.9;
   }
   100% {
     opacity: 0;
-    transform: translateY(-280px) scale(0.85) rotate(10deg);
+    transform: translate(-6px, -270px) scale(0.9) rotate(6deg);
   }
 }
 
@@ -282,11 +526,15 @@
   gap: 10px;
   padding: 6px 14px;
   border-radius: 14px;
-  background: rgba(14, 18, 36, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(14, 16, 30, .88);
   border: 1px solid rgba(212, 175, 55, 0.28);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 205, .06), 0 8px 24px rgba(0, 0, 0, .3);
+  transition: background-color .2s, border-color .2s, box-shadow .2s;
+}
+.ts-chat-bar:focus-within {
+  background: rgba(14, 16, 30, .94);
+  border-color: #efbd6880;
+  box-shadow: 0 0 18px #ffb54d18, 0 8px 24px rgba(0, 0, 0, .3);
 }
 
 .ts-chat-lead-icon {
@@ -306,7 +554,12 @@
   font: 500 .88rem var(--font-ui);
 }
 .ts-chat-input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+  color: #b9c4d8;
+}
+.ts-chat-input:focus-visible {
+  outline: 2px solid var(--th-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .ts-chat-tools {
@@ -329,7 +582,8 @@
   cursor: pointer;
   transition: background-color .18s, color .18s;
 }
-.ts-chat-icon-btn:hover {
+.ts-chat-icon-btn:hover,
+.ts-chat-icon-btn[aria-expanded='true'] {
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
 }
@@ -349,9 +603,12 @@
   cursor: pointer;
   transition: transform .18s var(--th-ease-out), box-shadow .25s, opacity .2s;
 }
-.ts-chat-send-btn:hover:not(:disabled) {
-  transform: scale(1.08);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.6);
+.ts-chat-send-btn:active:not(:disabled) { transform: scale(.95); }
+@media (hover: hover) and (pointer: fine) {
+  .ts-chat-send-btn:hover:not(:disabled) {
+    transform: scale(1.06);
+    box-shadow: 0 4px 16px rgba(212, 175, 55, 0.45);
+  }
 }
 .ts-chat-send-btn:disabled {
   opacity: 0.45;
@@ -372,8 +629,10 @@
   border-radius: 12px;
   padding: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(16px);
   z-index: 30;
+  /* Se despliega desde su botón (abajo a la derecha). */
+  transform-origin: calc(100% - 50px) 100%;
+  animation: ts-pop-in 160ms var(--th-ease-out) backwards;
 }
 .ts-emoji-grid {
   display: grid;
@@ -390,9 +649,12 @@
   place-items: center;
   transition: transform .15s, background .15s;
 }
-.ts-emoji-pick-btn:hover {
-  transform: scale(1.2);
-  background: rgba(255, 255, 255, 0.12);
+.ts-emoji-pick-btn:active { transform: scale(.92); }
+@media (hover: hover) and (pointer: fine) {
+  .ts-emoji-pick-btn:hover {
+    transform: scale(1.15);
+    background: rgba(255, 255, 255, 0.12);
+  }
 }
 
 .ts-dock-separator {
@@ -412,7 +674,7 @@
 }
 .ts-dock-reactions-label {
   font-size: .74rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: #c7cddd;
 }
 .ts-dock-reactions-list {
   display: flex;
@@ -431,19 +693,24 @@
   cursor: pointer;
   transition: transform .15s var(--th-ease-out), background-color .2s, border-color .2s;
 }
-.ts-react-pill:hover {
-  transform: translateY(-3px) scale(1.15);
-  background: rgba(212, 175, 55, 0.18);
-  border-color: rgba(212, 175, 55, 0.6);
-}
 .ts-react-pill:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ts-react-pill:hover {
+    transform: translateY(-2px) scale(1.08);
+    background: rgba(212, 175, 55, 0.18);
+    border-color: rgba(212, 175, 55, 0.6);
+  }
+  .ts-react-pill:hover:active { transform: translateY(-2px) scale(.96); }
 }
 
 /* ── Animaciones ────────────────────────────────────────────── */
 @keyframes ts-bubble-in {
-  from { opacity: 0; transform: translateY(8px) scale(0.85); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(6px) scale(0.95); }
+}
+@keyframes ts-pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.95); }
 }
 @keyframes ts-glow-pulse {
   from { opacity: 0.7; }
@@ -467,36 +734,55 @@
   50% { transform: rotate(12deg); }
 }
 
-/* Responsive */
-@media (max-width: 980px) {
-  .ts-stage {
-    min-height: 400px;
-    aspect-ratio: 16 / 11;
-  }
-  .ts-dock-reactions-label {
-    display: none;
-  }
+/* La ilustración sigue visible, con superficies sólidas cuando se solicita contraste. */
+:host-context([data-theme='high-contrast-dark']) .ts-table-tools,
+:host-context([data-theme='high-contrast-light']) .ts-table-tools,
+:host-context([data-theme='high-contrast-dark']) .ts-name,
+:host-context([data-theme='high-contrast-light']) .ts-name,
+:host-context([data-theme='high-contrast-dark']) .ts-chat-bar,
+:host-context([data-theme='high-contrast-light']) .ts-chat-bar {
+  background: var(--home-bg-surface);
+  color: var(--home-ink);
+  border-color: var(--home-ink);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
+:host-context([data-theme='high-contrast-dark']) .ts-chat-input,
+:host-context([data-theme='high-contrast-light']) .ts-chat-input,
+:host-context([data-theme='high-contrast-dark']) .ts-chat-input::placeholder,
+:host-context([data-theme='high-contrast-light']) .ts-chat-input::placeholder,
+:host-context([data-theme='high-contrast-dark']) .ts-chat-icon-btn,
+:host-context([data-theme='high-contrast-light']) .ts-chat-icon-btn,
+:host-context([data-theme='high-contrast-dark']) .ts-dock-reactions-label,
+:host-context([data-theme='high-contrast-light']) .ts-dock-reactions-label { color: var(--home-ink); }
+:host-context([data-theme='high-contrast-dark']) .ts-ember,
+:host-context([data-theme='high-contrast-light']) .ts-ember { display: none; }
+
+/* Responsive */
 
 @media (max-width: 720px) {
   .ts-stage {
-    min-height: 360px;
-    aspect-ratio: 4 / 3.4;
+    --ts-table-bottom: 100px;
+    height: var(--th-stage-height, 460px);
   }
+  .ts-bubble { max-width: 28vw; padding: 6px 8px; font-size: .7rem; }
+  .ts-seat.seat-l1 .ts-bubble { left: 0; translate: 0; }
+  .ts-seat.seat-r1 .ts-bubble { left: auto; right: 0; translate: 0; }
   .seat-center,
   .seat-me {
     width: 35%;
-    bottom: 24%;
+    bottom: calc(var(--ts-table-bottom) + 14cqw);
   }
   .seat-l1 {
     left: 20%;
     width: 29%;
-    bottom: 23%;
+    bottom: calc(var(--ts-table-bottom) + 12cqw);
   }
   .seat-r1 {
     left: 80%;
     width: 29%;
-    bottom: 23%;
+    bottom: calc(var(--ts-table-bottom) + 12cqw);
   }
   .seat-l2,
   .seat-r2,
@@ -506,15 +792,15 @@
   }
   .ts-name.seat-center,
   .ts-name.seat-me {
-    bottom: 74px;
+    bottom: 126px;
   }
   .ts-name.seat-l1 {
     left: 20%;
-    bottom: 80px;
+    bottom: 132px;
   }
   .ts-name.seat-r1 {
     left: 80%;
-    bottom: 80px;
+    bottom: 132px;
   }
   .ts-chat-dock {
     left: 8px;
@@ -522,13 +808,115 @@
     bottom: 8px;
   }
   .ts-chat-bar {
-    padding: 4px 8px;
-    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px;
+    gap: 8px;
   }
   .ts-dock-separator {
     display: none;
   }
-  .ts-dock-reactions-list .ts-react-pill:nth-child(n+4) {
-    display: none;
+  .ts-dock-reactions {
+    flex-basis: 100%;
+    justify-content: center;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
   }
+  .wide { display: none; }
+  .narrow { display: inline-flex; }
+  .ts-table-tools { width: calc(100% - 16px); }
+  .ts-table-tools button { flex: 1; flex-direction: column; padding: 6px 4px; min-height: 48px; font-size: .68rem; gap: 2px; }
+  .ts-table-tools .material-symbols-rounded { font-size: 17px; }
+  .ts-seat-chair { border-width: 5px; border-bottom-width: 10px; }
+}
+
+/* La barra de chat se parte en dos filas solo cuando la mesa es angosta (no según la ventana):
+   en un notebook cabe en una fila y la mesa baja, dejando aire entre los bocadillos y los botones. */
+@media (min-width: 721px) {
+  @container (max-width: 600px) {
+    .ts-seat, .ts-empty-seat, .ts-table-overlay { --ts-table-bottom: 96px; }
+    .ts-chat-bar { flex-wrap: wrap; }
+    .ts-dock-separator { display: none; }
+    .ts-dock-reactions { flex-basis: 100%; justify-content: center; }
+    .ts-name.seat-center,
+    .ts-name.seat-me { bottom: 126px; }
+    .ts-name.seat-l1,
+    .ts-name.seat-r1 { bottom: 134px; }
+    .ts-name.seat-l2,
+    .ts-name.seat-r2 { bottom: 116px; }
+  }
+  @container (max-width: 820px) {
+    .ts-dock-reactions-label { display: none; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* El salón conserva sus laterales en notebook; la mesa responde a su propio ancho. */
+@container (max-width: 580px) {
+  .ts-bubble { max-width: 30cqw; padding: 6px 8px; font-size: .7rem; }
+  .ts-seat.seat-l1 .ts-bubble { left: 0; translate: 0; }
+  .ts-seat.seat-r1 .ts-bubble { left: auto; right: 0; translate: 0; }
+  .seat-center, .seat-me { width: 35%; }
+  .seat-l1 { left: 20%; width: 29%; }
+  .seat-r1 { left: 80%; width: 29%; }
+  .seat-l2, .seat-r2, .wide { display: none; }
+  .narrow { display: inline-flex; }
+  .ts-name { max-width: 30%; padding-inline: 10px; }
+  .ts-name.seat-center, .ts-name.seat-me { max-width: 42%; }
+  .ts-tool-long { display: none; }
+  .ts-tool-short { display: inline; white-space: nowrap; }
+  .ts-dock-reactions-label { display: none; }
+  /* La burbuja del asistente vive en la esquina inferior derecha: las reacciones no van bajo ella. */
+  .ts-dock-reactions { padding-inline-end: 40px; }
+  .ts-table-tools { width: calc(100% - 16px); }
+  .ts-table-tools button { flex: 1; flex-direction: column; padding: 6px 4px; min-height: 48px; font-size: .68rem; gap: 2px; }
+  .ts-table-tools .material-symbols-rounded { font-size: 17px; }
+}
+
+/* ── Mensaje interactivo de objetos (gato, poción, reloj) ──── */
+.ts-object-bubble {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 25;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(28, 17, 12, 0.94);
+  border: 1.5px solid #d4af37;
+  color: #fff2d1;
+  font: 600 0.8rem/1.35 var(--font-ui);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  transform-origin: 50% 0;
+  animation: ts-pop-in 160ms var(--th-ease-out) backwards;
+  max-width: calc(100% - 32px);
+  pointer-events: auto;
+}
+.ts-object-bubble-text {
+  flex: 1;
+}
+.ts-object-bubble-close {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #ffd166;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.ts-object-bubble-close .material-symbols-rounded { font-size: 18px; }
+@media (hover: hover) and (pointer: fine) {
+  .ts-object-bubble-close:hover { background: rgba(255, 214, 120, .14); color: #fff; }
 }

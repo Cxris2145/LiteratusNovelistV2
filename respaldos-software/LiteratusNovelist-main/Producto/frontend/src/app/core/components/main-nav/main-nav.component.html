@@ -23,7 +23,7 @@
     </div>
   </div>
 
-  <a class="mn-cta" [routerLink]="isLoggedIn ? '/tavern/tienda' : '/register'">
+  <a class="mn-cta" routerLink="/planes" routerLinkActive="is-current" ariaCurrentWhenActive="page">
     <span *ngIf="showSheen" class="mn-cta-sheen" aria-hidden="true"></span>
     <span class="mn-cta-icon material-symbols-rounded" aria-hidden="true">crown</span>
     <span class="mn-cta-label">Sé parte de Literatus</span>

@@ -1,17 +1,10 @@
 :host { display: block; }
 
-.fl-count { color: var(--th-muted); font-size: 1.1rem; }
-.fl-header-actions { display: flex; align-items: center; gap: 10px; }
-.fl-see-all {
-  font-size: .8rem;
-  color: var(--th-gold);
-  text-decoration: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity .2s;
-}
-.fl-see-all:hover { text-decoration: underline; opacity: .85; }
-
+.fl .th-panel-title { align-items: center; gap: 8px; }
+.fl .th-panel-title h2 { font-size: 1.3rem; }
+.fl-count { color: var(--th-muted); font-size: .85rem; white-space: nowrap; }
+.fl-header-actions { display: flex; align-items: center; gap: 4px; }
+.fl-header-actions .th-icon-btn { width: 32px; }
 .fl-requests {
   display: grid;
   gap: 8px;

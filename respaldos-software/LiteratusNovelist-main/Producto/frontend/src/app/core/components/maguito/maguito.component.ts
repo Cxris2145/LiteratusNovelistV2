@@ -3,7 +3,7 @@ import {
   OnChanges, OnDestroy, Output, SimpleChanges, inject,
 } from '@angular/core';
 
-import { MaguitoLook, MaguitoOutfit, resolveOutfit } from './maguito-outfit';
+import { MaguitoLook, MaguitoOutfit, WearSlot, resolveOutfit } from './maguito-outfit';
 
 /**
  * Estados de Maguito:
@@ -34,7 +34,16 @@ const GAZE: Partial<Record<ShownState, { x: number; y: number }>> = {
 };
 
 const DEF_NAMES = ['aura', 'aviator-cap', 'band', 'beard', 'body', 'body-shade', 'brim', 'brim-under', 'cape', 'crown', 'eye-l', 'eye-r',
-  'feather', 'glow', 'goggle-glass', 'hat', 'hat-glow', 'iris', 'lid', 'limb', 'nib', 'scarf', 'sclera', 'spark', 'star', 'tophat', 'witch-brim', 'witch-hat'];
+  'feather', 'glow', 'goggle-glass', 'hat', 'hat-glow', 'iris', 'lens', 'lid', 'limb', 'metal', 'mustache', 'nib', 'scarf', 'sclera', 'spark', 'star', 'tophat', 'velvet', 'witch-brim', 'witch-hat'];
+
+const DETAIL_FRAMES: Record<WearSlot, string> = {
+  head: '92 0 284 190', eyes: '138 178 170 78', face: '157 236 117 117',
+  neck: '143 259 164 97', cape: '117 238 240 126',
+};
+const HEAD_FRAMES: Record<string, string> = {
+  crown: '147 96 148 90', tophat: '139 70 171 118', pirate: '126 84 198 102',
+  beret: '149 102 157 80', aviator: '143 78 164 155',
+};
 
 /**
  * Maguito, la mascota de Literatus, dibujado en SVG por capas y animado por partes:
@@ -56,10 +65,14 @@ const DEF_NAMES = ['aura', 'aviator-cap', 'band', 'beard', 'body', 'body-shade',
     '[class.mg-interactive]': 'interactive',
     '[class.mg-with-aura]': 'aura',
     '[class.mg-crop-bust]': "crop === 'bust'",
+    '[class.mg-crop-detail]': "crop === 'detail'",
     '[class.mg-calm]': 'calm',
     '[class.mg-has-mug]': 'mug',
     '[class.mg-toasting]': 'toasting',
     '[attr.data-cape]': 'look.cape',
+    '[attr.data-face]': 'look.face',
+    '[attr.data-eyes]': 'look.eyes',
+    '[attr.data-detail-slot]': "crop === 'detail' ? detailSlot : null",
     '(click)': 'poke()',
   },
 })
@@ -82,7 +95,9 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   /** Congela todo (p. ej. cuando su pantalla de carga quedó oculta pero sigue en el DOM). */
   @Input() paused = false;
   /** 'bust' encuadra cabeza y sombrero, para avatares pequeños. */
-  @Input() crop: 'full' | 'bust' = 'full';
+  @Input() crop: 'full' | 'bust' | 'detail' = 'full';
+  /** Encuadre de la pieza real para las miniaturas del Bazar. */
+  @Input() detailSlot: WearSlot = 'head';
   /**
    * En reposo solo parpadea y mira: sin respiración ni balanceo continuos. Para lugares
    * que están siempre a la vista (la burbuja del asistente en todas las páginas).
@@ -99,6 +114,13 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   look: MaguitoLook = resolveOutfit(null);
 
   get viewBox(): string {
+    if (this.crop === 'detail') {
+      if (this.detailSlot === 'head') return HEAD_FRAMES[this.look.head] || DETAIL_FRAMES.head;
+      if (this.detailSlot === 'eyes' && this.look.eyes === 'monocle') return '138 178 170 132';
+      if (this.detailSlot === 'face' && this.look.face === 'mustache') return '171 230 91 41';
+      if (this.detailSlot === 'neck' && this.look.neck === 'bowtie') return '187 262 77 43';
+      return DETAIL_FRAMES[this.detailSlot];
+    }
     return this.crop === 'bust' ? '98 70 250 250' : '0 0 400 380';
   }
 
@@ -179,6 +201,11 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (!this.interactive) return;
     this.show('poke');
     this.poked.emit();
+  }
+
+  /** Reproduce un gesto suelto desde fuera (p. ej. al probarse ropa en la Taberna) sin emitir (poked). */
+  play(gesture: 'poke' | 'success'): void {
+    if (this.viewReady) this.show(gesture);
   }
 
   // ── Estados ─────────────────────────────────────────────────────────

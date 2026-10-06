@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, Input, NgZone, OnChanges, ViewChild, inject } from '@angular/core';
-import { prefersReducedMotion } from '../../../core/utils/motion.util';
+import { prefersReducedMotion } from '../../core/utils/motion.util';
 
 /** Tintero del hero de la Taberna: el nivel del líquido refleja el saldo real de Tinta. */
 @Component({

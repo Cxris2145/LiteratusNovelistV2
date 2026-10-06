@@ -182,3 +182,20 @@ class TavernActivityView(CommunityView):
     """GET tavern/activity/ — Mensajes y reacciones recientes para animación y burbujas."""
     def get(self, request):
         return Response(services.recent_tavern_activity(request.user))
+
+
+class TavernInvitationsView(CommunityView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'community_write'
+
+    def post(self, request):
+        profile = services.profile_by_code(request.data.get('friend_code'))
+        return _result(services.invite_to_tavern(request.user, profile.user)) if profile else _not_found()
+
+
+class TavernInvitationResponseView(CommunityView):
+    def post(self, request, pk):
+        action = request.data.get('action')
+        if action not in ('accept', 'decline'):
+            return Response({'success': False, 'message': 'Elige aceptar o descartar la invitación.'}, status=400)
+        return _result(services.respond_to_tavern_invitation(request.user, pk, action == 'accept'))

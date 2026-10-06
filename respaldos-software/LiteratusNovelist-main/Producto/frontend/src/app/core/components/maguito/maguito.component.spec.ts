@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CommonModule } from '@angular/common';
 
 import { MaguitoComponent } from './maguito.component';
 import { resolveOutfit } from './maguito-outfit';
@@ -13,7 +14,7 @@ describe('MaguitoComponent (vestuario)', () => {
   }
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({ declarations: [MaguitoComponent] }).compileComponents();
+    await TestBed.configureTestingModule({ declarations: [MaguitoComponent], imports: [CommonModule] }).compileComponents();
     fixture = TestBed.createComponent(MaguitoComponent);
     host = fixture.nativeElement;
   });

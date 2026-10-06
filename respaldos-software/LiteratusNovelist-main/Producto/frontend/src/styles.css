@@ -866,6 +866,8 @@ body:has(.container.dashboard-mode) {
   --ease-in-out:    cubic-bezier(0.77, 0, 0.175, 1);
   /* Entradas y salidas de UI (menús, paneles, insignias). */
   --ease-out:       cubic-bezier(0.23, 1, 0.32, 1);
+  /* Cajones y hojas que entran desde un borde (curva de iOS). */
+  --ease-drawer:    cubic-bezier(0.32, 0.72, 0, 1);
   --reveal-duration: 0.65s;
   --reveal-distance: 24px;
 }

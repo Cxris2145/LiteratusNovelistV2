@@ -298,6 +298,14 @@
   transform: scale(0.97);
 }
 
+/* En la página de planes el botón queda encendido: es la sección actual. */
+.mn-cta.is-current {
+  border-color: var(--mn-accent);
+}
+.mn-cta.is-current::after {
+  opacity: 1;
+}
+
 .mn-cta:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 3px;
