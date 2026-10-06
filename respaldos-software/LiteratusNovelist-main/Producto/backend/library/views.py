@@ -90,6 +90,25 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['acquired_at', 'edition__book__title']
     ordering = ['-acquired_at']
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        book = instance.edition.book
+        if book.min_age > 0:
+            profile = getattr(request.user, 'profile', None)
+            if not profile or not profile.birth_date:
+                from rest_framework.response import Response
+                from rest_framework import status
+                return Response({'error': 'AGE_RESTRICTED', 'message': 'Por favor, registra tu fecha de nacimiento en tu perfil para leer este libro.'}, status=status.HTTP_403_FORBIDDEN)
+            from datetime import date
+            today = date.today()
+            born = profile.birth_date
+            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+            if age < book.min_age:
+                from rest_framework.response import Response
+                from rest_framework import status
+                return Response({'error': 'AGE_RESTRICTED', 'message': f'Este libro está restringido para mayores de {book.min_age} años.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().retrieve(request, *args, **kwargs)
+
     def get_queryset(self):
         """Restringe el queryset estrictamente al dueño de la petición."""
         return (

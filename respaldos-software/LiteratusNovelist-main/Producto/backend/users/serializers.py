@@ -113,7 +113,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'equipped_frame', 'equipped_title', 'discount_percent', 
             'level_perks', 'all_levels', 'subscription_cosmetics',
             'has_completed_onboarding', 'favorite_genres', 'followed_authors',
-            'friend_code', 'tagline', 'outfit'
+            'friend_code', 'tagline', 'outfit', 'birth_date'
         ]
         # outfit solo cambia al equipar en El Bazar; friend_code es inmutable.
         read_only_fields = ['ink_balance', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
@@ -194,6 +194,7 @@ class UserReadSerializer(serializers.ModelSerializer):
     o de otra cuenta. Excluye estrictamente campos de encriptación y hashes.
     """
     profile = ProfileSerializer(read_only=True)
+    birth_date = serializers.DateField(write_only=True, required=False)
     
     class Meta:
         model = User
@@ -207,6 +208,7 @@ class UserWriteSerializer(serializers.ModelSerializer):
     - Previene escalamiento de privilegios garantizando que 'role' no sea modificable por el usuario.
     """
     profile = ProfileSerializer(read_only=True)
+    birth_date = serializers.DateField(write_only=True, required=False)
 
     class Meta:
         model = User
@@ -248,6 +250,7 @@ class UserWriteSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        birth_date = validated_data.pop('birth_date', None)
         # Desactivar usuario hasta que verifique su email (RegisterUserView envía el correo)
         validated_data['is_active'] = False
 
@@ -260,7 +263,11 @@ class UserWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'password': ['La contraseña es requerida para el registro.']})
 
         # El perfil (con su Tinta inicial) se crea vía señal en users/signals.py
-        return User.objects.create_user(password=password, **validated_data)
+        user = User.objects.create_user(password=password, **validated_data)
+        if birth_date and hasattr(user, 'profile'):
+            user.profile.birth_date = birth_date
+            user.profile.save(update_fields=['birth_date'])
+        return user
 
     def update(self, instance, validated_data):
         # Blindaje anti-escalamiento: eliminar 'role' por si se enviara en el payload

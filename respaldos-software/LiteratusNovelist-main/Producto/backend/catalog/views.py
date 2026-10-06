@@ -89,6 +89,28 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     }
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     lookup_field = 'slug'
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.min_age > 0:
+            if not request.user.is_authenticated:
+                from rest_framework.response import Response
+                from rest_framework import status
+                return Response({'error': 'AGE_RESTRICTED', 'message': 'Debes iniciar sesión y registrar tu edad para ver este libro.'}, status=status.HTTP_403_FORBIDDEN)
+            profile = getattr(request.user, 'profile', None)
+            if not profile or not profile.birth_date:
+                from rest_framework.response import Response
+                from rest_framework import status
+                return Response({'error': 'AGE_RESTRICTED', 'message': 'Por favor, registra tu fecha de nacimiento en tu perfil para ver este libro.'}, status=status.HTTP_403_FORBIDDEN)
+            from datetime import date
+            today = date.today()
+            born = profile.birth_date
+            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+            if age < instance.min_age:
+                from rest_framework.response import Response
+                from rest_framework import status
+                return Response({'error': 'AGE_RESTRICTED', 'message': f'Este libro está restringido para mayores de {instance.min_age} años.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().retrieve(request, *args, **kwargs)
     
     # Búsqueda múltiple DRF: ?search=garcia
     search_fields = ['title', 'synopsis', 'book_authors__author__full_name', 'genres__name']

@@ -93,7 +93,8 @@ class Profile(TimeStampedModel):
     avatar_color = models.CharField(max_length=20, default='#3b82f6') # Color de fondo para el avatar de iniciales
     bio = models.TextField(blank=True, default='') # Biografía o descripción corta escrita por el usuario.
     country = models.CharField(max_length=100, blank=True, default='') # País de origen o residencia del usuario. Útil para métricas.
-    preferred_language = models.CharField(max_length=10, default='es') # Idioma preferido del usuario en la plataforma (ej. 'es' para español).
+    preferred_language = models.CharField(max_length=10, default='es')
+    birth_date = models.DateField(null=True, blank=True, help_text='Fecha de nacimiento del usuario. Requerido para acceder a contenido restringido por edad.') # Idioma preferido del usuario en la plataforma (ej. 'es' para español).
     # SISTEMA DE GAMIFICACIÓN: Tinta, XP, Nivel y Racha
     ink_balance = models.PositiveIntegerField(
         default=50,

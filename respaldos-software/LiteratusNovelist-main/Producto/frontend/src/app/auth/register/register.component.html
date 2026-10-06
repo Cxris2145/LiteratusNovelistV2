@@ -37,6 +37,16 @@
       </div>
 
       <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input type="date" 
+               class="glass-input" 
+               [ngClass]="{'is-invalid': f['birth_date'].touched && f['birth_date'].invalid}"
+               formControlName="birth_date">
+        <div class="validation-error" *ngIf="f['birth_date'].touched && f['birth_date'].invalid">La fecha de nacimiento es requerida.</div>
+      </div>
+
+
+      <div class="form-group">
         <label>Contraseña</label>
         <div style="position: relative;">
           <input [type]="showPassword ? 'text' : 'password'" 

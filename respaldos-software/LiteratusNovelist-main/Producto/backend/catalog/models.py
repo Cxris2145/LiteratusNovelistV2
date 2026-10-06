@@ -187,6 +187,7 @@ class Book(TimeStampedModel):
     title = models.CharField(max_length=255) # Título de la obra literaria.
     slug = models.SlugField(max_length=512, unique=True, blank=True) # Identificador URL amigable derivado del título.
     synopsis = models.TextField(blank=True, default='') # Resumen de la trama de la obra.
+    min_age = models.PositiveSmallIntegerField(default=0, help_text='Edad mínima recomendada para leer la obra (0 = para todo público).')
 
     class StatusChoices(models.TextChoices):
         DRAFT = 'draft', 'Borrador'
