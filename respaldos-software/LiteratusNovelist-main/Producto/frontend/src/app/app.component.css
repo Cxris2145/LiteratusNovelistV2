@@ -719,15 +719,20 @@
   box-shadow: 0 8px 32px var(--color-shadow) !important;
 }
 
+
+::ng-deep .dark-premium-menu .mdc-list-item__primary-text {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100%;
+}
 ::ng-deep .dark-premium-menu .mat-mdc-menu-item {
   font-family: var(--font-ui) !important;
   font-weight: 500 !important;
   font-size: 0.9rem !important;
   color: var(--text-main) !important;
   transition: background 0.2s ease, color 0.2s ease !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
+  
 }
 
 ::ng-deep .dark-premium-menu .mat-mdc-menu-item:hover {
@@ -738,7 +743,7 @@
 /* Material Symbols Rounded dentro del menu */
 ::ng-deep .dark-premium-menu .mat-symbol {
   color: var(--text-muted) !important;
-  font-size: 18px !important;
+  font-size: 20px !important;
   font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20 !important;
   transition: color 0.2s ease, font-variation-settings 0.2s ease !important;
 }
@@ -751,7 +756,7 @@
 /* mat-icon legacy (por si queda alguno) */
 ::ng-deep .dark-premium-menu .mat-icon {
   color: var(--text-muted) !important;
-  font-size: 18px !important;
+  font-size: 20px !important;
 }
 
 ::ng-deep .dark-premium-menu .mat-mdc-menu-item:hover .mat-icon {
