@@ -186,10 +186,20 @@ handleAction(): void {
     }
 
     if (this.book?.is_age_restricted && !this.isOwned) {
-      this.notificationService.error(
-        `Este contenido requiere ser mayor de ${this.book.min_age} años. Por favor, actualiza tu fecha de nacimiento en tu perfil.`,
-        'Contenido Restringido'
-      );
+      const user = this.auth.currentUser();
+      const birthDate = user?.profile?.birth_date || user?.birth_date;
+      
+      if (!birthDate) {
+        this.notificationService.error(
+          `Para acceder a este contenido restringido (+${this.book.min_age}), debes registrar tu fecha de nacimiento en tu perfil.`,
+          'Falta Fecha de Nacimiento'
+        );
+      } else {
+        this.notificationService.error(
+          `Tu edad actual no te permite acceder a este contenido. Está restringido para mayores de ${this.book.min_age} años.`,
+          'Contenido Restringido'
+        );
+      }
       return;
     }
 
