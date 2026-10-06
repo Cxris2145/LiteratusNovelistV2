@@ -14,7 +14,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   let authReq = req;
   if (token) {
     authReq = req.clone({
-      headers: req.headers.set('Authorization', Bearer \)
+      headers: req.headers.set('Authorization', `Bearer ${token}`)
     });
   }
 
@@ -23,6 +23,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error instanceof HttpErrorResponse && error.status === 403 && error.error?.error === 'AGE_RESTRICTED') {
         alert(error.error.message || 'Contenido restringido por edad. Completa tu perfil.');
         router.navigate(['/profile']);
+        return throwError(() => error);
+      }
+
+      
+      if (error instanceof HttpErrorResponse && error.status === 403 && error.error?.error === 'AGE_RESTRICTED') {
+        alert(error.error.message || 'Contenido restringido por edad. Completa tu perfil.');
+        router.navigate(['/users/profile']);
         return throwError(() => error);
       }
 
@@ -36,7 +43,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         if (refreshToken) {
           // Bypassear interceptores para la petición de refresco usando HttpBackend
           const httpClientBypass = new HttpClient(httpBackend);
-          const refreshUrl = \\users/login/refresh/\;
+          const refreshUrl = `${environment.apiUrl}users/login/refresh/`;
 
           return httpClientBypass.post<any>(refreshUrl, { refresh: refreshToken }).pipe(
             switchMap((res: any) => {
@@ -46,7 +53,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               authService.setTokens(newAccessToken, newRefreshToken);
 
               const retryReq = req.clone({
-                headers: req.headers.set('Authorization', \Bearer \\)
+                headers: req.headers.set('Authorization', `Bearer ${newAccessToken}`)
               });
               return next(retryReq);
             }),

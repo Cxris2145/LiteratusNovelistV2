@@ -941,3 +941,14 @@
     width: 100%;
   }
 }
+
+.restricted-btn {
+  background: rgba(180, 50, 50, 0.2);
+  color: #ffb4b4;
+  border-color: rgba(180, 50, 50, 0.4);
+  cursor: not-allowed;
+}
+.restricted-btn:hover {
+  background: rgba(180, 50, 50, 0.3);
+  box-shadow: none;
+}

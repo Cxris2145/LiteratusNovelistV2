@@ -107,7 +107,7 @@ class BookListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ['id', 'title', 'slug', 'synopsis', 'is_featured', 'cover_image', 'genres', 'tags', 'price', 'author_name', 'ai_character_count', 'word_count', 'page_count']
+        fields = ['id', 'title', 'slug', 'synopsis', 'is_featured', 'cover_image', 'genres', 'tags', 'price', 'author_name', 'ai_character_count', 'word_count', 'page_count', 'min_age']
 
     def get_price(self, obj):
         editions = obj.editions.all()
@@ -145,7 +145,7 @@ class BookDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ['id', 'title', 'slug', 'synopsis', 'cover_image', 'genres', 'book_authors', 'editions', 'price', 'page_count', 'word_count', 'created_at']
+        fields = ['id', 'title', 'slug', 'synopsis', 'cover_image', 'genres', 'book_authors', 'editions', 'price', 'page_count', 'word_count', 'created_at', 'min_age']
 
     def get_price(self, obj):
         editions = obj.editions.all()
@@ -185,13 +185,30 @@ class BookDetailFullSerializer(BookDetailSerializer):
     has_premium_narration = serializers.SerializerMethodField()
     total_words = serializers.SerializerMethodField()
 
+    is_age_restricted = serializers.SerializerMethodField()
+
+    def get_is_age_restricted(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        if obj.min_age > 0:
+            profile = getattr(request.user, 'profile', None)
+            if not profile or not profile.birth_date:
+                return True
+            from datetime import date
+            today = date.today()
+            born = profile.birth_date
+            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+            return age < obj.min_age
+        return False
+
     class Meta(BookDetailSerializer.Meta):
         fields = BookDetailSerializer.Meta.fields + [
             'difficulty_level', 'is_published', 'reviews', 'avatars', 'estimated_reading_time',
             'is_owned', 'inventory_id', 'ink_balance', 'price', 'has_premium_narration', 
             'total_words', 'copyright_notice', 'view_count', 'download_count', 'created_at',
-            'tags'
-        ]
+            'tags', 'is_age_restricted'
+          ]
 
     def get_avatars(self, obj):
         # Recolectar todos los avatares de todas las ediciones del libro pero filtrar duplicados por nombre

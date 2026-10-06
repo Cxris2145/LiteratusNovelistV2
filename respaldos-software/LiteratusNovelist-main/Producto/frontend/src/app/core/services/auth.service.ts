@@ -10,6 +10,8 @@ export interface UserProfile {
   is_staff: boolean;
   is_superuser: boolean;
   has_completed_onboarding?: boolean;
+  birth_date?: string;
+  profile?: any;
 }
 
 const USER_KEY = 'user_profile';

@@ -179,9 +179,17 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
     this.liyumi.stopSpeaking();
   }
 
-  handleAction(): void {
+handleAction(): void {
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
+    if (this.book?.is_age_restricted && !this.isOwned) {
+      this.notificationService.error(
+        `Este contenido requiere ser mayor de ${this.book.min_age} años. Por favor, actualiza tu fecha de nacimiento en tu perfil.`,
+        'Contenido Restringido'
+      );
       return;
     }
 
