@@ -1,6 +1,7 @@
 ﻿import { HttpInterceptorFn, HttpErrorResponse, HttpBackend, HttpClient } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { NotificationService } from '../services/notification.service';
 import { environment } from '../../../environments/environment';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
@@ -8,6 +9,7 @@ import { Router } from '@angular/router';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const notificationService = inject(NotificationService);
   const httpBackend = inject(HttpBackend);
   const token = authService.getAccessToken();
 
@@ -21,14 +23,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error: any) => {
       if (error instanceof HttpErrorResponse && error.status === 403 && error.error?.error === 'AGE_RESTRICTED') {
-        alert(error.error.message || 'Contenido restringido por edad. Completa tu perfil.');
+        notificationService.error(error.error.message || 'Contenido restringido por edad. Completa tu perfil.', 'Restricción de Edad');
         router.navigate(['/profile']);
         return throwError(() => error);
       }
 
       
       if (error instanceof HttpErrorResponse && error.status === 403 && error.error?.error === 'AGE_RESTRICTED') {
-        alert(error.error.message || 'Contenido restringido por edad. Completa tu perfil.');
+        notificationService.error(error.error.message || 'Contenido restringido por edad. Completa tu perfil.', 'Restricción de Edad');
         router.navigate(['/users/profile']);
         return throwError(() => error);
       }
