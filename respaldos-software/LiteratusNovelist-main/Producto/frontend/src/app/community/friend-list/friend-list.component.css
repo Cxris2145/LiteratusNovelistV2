@@ -73,7 +73,9 @@
   border-radius: 12px;
   transition: background-color .2s;
 }
-.fl-friend:hover { background: color-mix(in srgb, var(--th-ink) 5%, transparent); }
+@media (hover: hover) and (pointer: fine) {
+  .fl-friend:hover { background: color-mix(in srgb, var(--th-ink) 5%, transparent); }
+}
 .fl-friend-link {
   flex: 1;
   min-width: 0;

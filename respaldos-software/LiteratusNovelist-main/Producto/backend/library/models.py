@@ -184,6 +184,62 @@ class UserBookmark(TimeStampedModel):
         return f"Bookmark @ {self.position_cfi[:30]} [{self.inventory.user.username}]"
 
 
+class UserHighlight(TimeStampedModel):
+    """
+    Pasaje subrayado en el lector.
+
+    El pasaje se guarda como un rango de palabras del capítulo: los mismos índices
+    `word-N` con los que el lector pinta cada palabra (y con los que se sincroniza la narración).
+    """
+    class Colors(models.TextChoices):
+        GOLD = 'gold', 'Dorado'
+        BLUE = 'blue', 'Azul'
+        GREEN = 'green', 'Verde'
+        PINK = 'pink', 'Rosa'
+
+    MAX_HIGHLIGHTS_PER_BOOK = 500   # tope de seguridad; en la práctica nadie llega
+    MAX_WORDS = 600                 # un pasaje largo, pero no un capítulo entero
+
+    inventory = models.ForeignKey(UserInventory, on_delete=models.CASCADE, related_name='highlights')
+    chapter = models.ForeignKey('catalog.Chapter', on_delete=models.CASCADE, related_name='highlights')
+    start_word = models.PositiveIntegerField()
+    end_word = models.PositiveIntegerField()
+    text = models.TextField()  # el pasaje tal como se leía al subrayarlo
+    color = models.CharField(max_length=10, choices=Colors.choices, default=Colors.GOLD)
+
+    class Meta:
+        verbose_name = 'User Highlight'
+        verbose_name_plural = 'User Highlights'
+        indexes = [models.Index(fields=['inventory', 'chapter'])]
+
+    def __str__(self):
+        return f"Subrayado «{self.text[:30]}» [{self.inventory.user.username}]"
+
+
+class UserPostIt(TimeStampedModel):
+    """
+    Post-it pegado en una página del lector (botón "Post-it", independiente de los subrayados).
+
+    Queda anclado a una palabra del capítulo (`word-N`), así aparece en el mismo lugar del texto
+    con cualquier tamaño de letra o vista.
+    """
+    MAX_PER_BOOK = 30
+    MAX_CHARS = 500
+
+    inventory = models.ForeignKey(UserInventory, on_delete=models.CASCADE, related_name='post_its')
+    chapter = models.ForeignKey('catalog.Chapter', on_delete=models.CASCADE, related_name='post_its')
+    word = models.PositiveIntegerField()
+    text = models.TextField()
+
+    class Meta:
+        verbose_name = 'User Post-it'
+        verbose_name_plural = 'User Post-its'
+        indexes = [models.Index(fields=['inventory', 'chapter'])]
+
+    def __str__(self):
+        return f"Post-it «{self.text[:30]}» [{self.inventory.user.username}]"
+
+
 class ReadingSession(TimeStampedModel):
     """
     Registro atómico de una sesión de lectura.

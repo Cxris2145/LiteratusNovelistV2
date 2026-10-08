@@ -9,12 +9,14 @@ from rest_framework.response import Response
 from rest_framework import generics, permissions, status
 from django.db.models import Q
 from django.db import transaction
+from django.utils import timezone
 from users.models import Profile
 from django.shortcuts import get_object_or_404
 
 from core.pagination import StandardResultsSetPagination
 
 from library.models import UserInventory
+from catalog.age import ensure_book_access, visible_books
 from .models import AIAvatar, ChatSession, ChatMessage, AssistantConversation, AssistantMessage
 from .serializers import (
     AIAvatarListSerializer,
@@ -57,6 +59,7 @@ class AvatarListView(APIView):
             user=request.user
         )
         edition = inventory.edition
+        ensure_book_access(request.user, edition.book)
 
         # Obtener el capítulo actual del usuario (base 0 = índice desde 0)
         current_chapter = 0
@@ -84,6 +87,7 @@ class AvatarDetailView(APIView):
 
     def get(self, request, pk):
         avatar = get_object_or_404(AIAvatar, pk=pk)
+        ensure_book_access(request.user, avatar.edition.book)
         serializer = GlobalHubAvatarSerializer(
             avatar,
             context={'request': request}
@@ -111,7 +115,8 @@ class GlobalAvatarListView(generics.ListAPIView):
         sort_by = params.get('sort', 'name')  # name, popularity
 
         # select_related evita el N+1 de book_title/book_slug en el serializer.
-        avatars = AIAvatar.objects.select_related('edition__book').all()
+        avatars = visible_books(AIAvatar.objects.select_related('edition__book'),
+                                self.request.user, 'edition__book__')
 
         if query:
             avatars = avatars.filter(
@@ -141,9 +146,9 @@ class RecentChatsView(APIView):
 
         # Obtener las sesiones más recientes (updated_at se actualiza con nuevos mensajes)
         # Usamos updated_at de la sesión o created_at. TimeStampedModel tiene ambos.
-        sessions = ChatSession.objects.filter(
+        sessions = visible_books(ChatSession.objects.filter(
             user=request.user
-        ).select_related('avatar__edition__book').order_by('-updated_at')[:12]
+        ), request.user, 'avatar__edition__book__').select_related('avatar__edition__book').order_by('-updated_at')[:12]
         
         avatars = [s.avatar for s in sessions]
         
@@ -171,6 +176,7 @@ class ChatSessionView(APIView):
             )
 
         avatar = get_object_or_404(AIAvatar, id=avatar_id)
+        ensure_book_access(request.user, avatar.edition.book)
 
         # Si es un personaje principal o autor, permitir chat aunque no esté en inventario
         # (Para permitir exploración desde el Hub Global)
@@ -226,6 +232,7 @@ class ChatHistoryView(APIView):
 
     def get(self, request, session_id):
         session = get_object_or_404(ChatSession, id=session_id, user=request.user)
+        ensure_book_access(request.user, session.avatar.edition.book)
         messages = session.messages.order_by('created_at')[:50]
         serializer = ChatMessageSerializer(messages, many=True)
         return Response(serializer.data)
@@ -254,15 +261,16 @@ class DemoChatView(APIView):
     def get(self, request):
         """GET /api/v1/ai/demo-chat/?avatar_id=<int> — Devuelve info del personaje para la UI."""
         avatar_id = request.query_params.get('avatar_id')
+        available = visible_books(AIAvatar.objects.select_related('edition__book'), request.user, 'edition__book__')
         try:
             if avatar_id and avatar_id != 'undefined':
-                avatar = AIAvatar.objects.select_related('edition__book').get(pk=avatar_id)
+                avatar = available.get(pk=avatar_id)
             else:
-                avatar = AIAvatar.objects.filter(
+                avatar = available.filter(
                     name__icontains=self.DEMO_AVATAR_NAME
                 ).select_related('edition__book').first()
                 if not avatar:
-                    avatar = AIAvatar.objects.select_related('edition__book').order_by('-chat_count').first()
+                    avatar = available.order_by('-chat_count').first()
             if not avatar:
                 return Response({'error': 'No hay personajes disponibles.'}, status=status.HTTP_404_NOT_FOUND)
         except (AIAvatar.DoesNotExist, ValueError):
@@ -309,13 +317,14 @@ class DemoChatView(APIView):
             return Response({'error': 'El mensaje es demasiado largo (máx. 500 caracteres).'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Buscar el avatar solicitado o el de demostración por defecto
+        available = visible_books(AIAvatar.objects.select_related('edition__book'), request.user, 'edition__book__')
         try:
             if avatar_id and avatar_id != 'undefined':
-                avatar = AIAvatar.objects.get(pk=avatar_id)
+                avatar = available.get(pk=avatar_id)
             else:
-                avatar = AIAvatar.objects.filter(name__icontains=self.DEMO_AVATAR_NAME).first()
+                avatar = available.filter(name__icontains=self.DEMO_AVATAR_NAME).first()
                 if not avatar:
-                    avatar = AIAvatar.objects.order_by('-chat_count').first()
+                    avatar = available.order_by('-chat_count').first()
             if not avatar:
                 return Response({'error': 'No hay personajes de demostración disponibles.'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
         except (AIAvatar.DoesNotExist, ValueError):
@@ -387,6 +396,7 @@ class TTSGenerateView(APIView):
         if avatar_id:
             try:
                 avatar = AIAvatar.objects.get(pk=avatar_id)
+                ensure_book_access(request.user, avatar.edition.book)
             except (AIAvatar.DoesNotExist, ValueError, DjangoValidationError):
                 pass
 
@@ -467,6 +477,24 @@ class AssistantConversationListView(APIView):
         )
         serializer = AssistantConversationSerializer(conversation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class AssistantConversationDetailView(APIView):
+    """
+    DELETE /api/v1/ai/assistant/conversations/<uuid>/ — el usuario borra una conversación.
+    Borrado lógico, como el resto del proyecto: el soft delete no se propaga en cascada,
+    así que los mensajes se marcan a mano para que tampoco cuenten en el panel de administración.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, conversation_id):
+        # Filtrar por usuario: la conversación de otro responde 404, igual que una inexistente.
+        conversation = get_object_or_404(AssistantConversation, id=conversation_id, user=request.user)
+        now = timezone.now()
+        with transaction.atomic():
+            conversation.messages.update(is_active=False, deleted_at=now, updated_at=now)
+            conversation.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AssistantMessageListView(APIView):
@@ -560,7 +588,10 @@ def _format_interrogation_session(session, include_secret=False):
     from library.models import UserInventory, Edition
 
     avatar_ids = session.candidate_order or []
-    avatars_by_id = {str(a.id): a for a in AIAvatar.objects.filter(id__in=avatar_ids).select_related('edition__book')}
+    ensure_book_access(session.user, session.avatar.edition.book)
+    avatars_by_id = {str(a.id): a for a in visible_books(
+        AIAvatar.objects.filter(id__in=avatar_ids), session.user, 'edition__book__'
+    ).select_related('edition__book')}
     
     # Conjunto de ediciones y libros adquiridos por el usuario
     user_inventory_editions = set(UserInventory.objects.filter(
@@ -737,12 +768,13 @@ class InterrogationStartView(APIView):
             id__in=owned_editions
         ).values_list('book_id', flat=True))
 
-        owned_avatars = list(AIAvatar.objects.filter(
+        available = visible_books(AIAvatar.objects.all(), request.user, 'edition__book__')
+        owned_avatars = list(available.filter(
             Q(edition_id__in=owned_editions) | Q(edition__book_id__in=owned_book_ids),
             is_author=False
         ).exclude(avatar_image='').select_related('edition__book'))
 
-        fallback_avatars = list(AIAvatar.objects.filter(
+        fallback_avatars = list(available.filter(
             is_major_character=True,
             is_author=False
         ).exclude(avatar_image='').select_related('edition__book')[:60])
@@ -821,6 +853,7 @@ class InterrogationAskView(APIView):
             return Response({"error": "Se requieren 'session_id' y 'question'."}, status=status.HTTP_400_BAD_REQUEST)
 
         session = get_object_or_404(BlindInterrogationSession, id=session_id, user=request.user)
+        ensure_book_access(request.user, session.avatar.edition.book)
         if session.status != 'playing':
             return Response({"error": "Esta partida ya ha concluido."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -868,6 +901,7 @@ class InterrogationBuyPerkView(APIView):
             return Response({"error": "Parámetros inválidos."}, status=status.HTTP_400_BAD_REQUEST)
 
         session = get_object_or_404(BlindInterrogationSession, id=session_id, user=request.user)
+        ensure_book_access(request.user, session.avatar.edition.book)
         if session.status != 'playing':
             return Response({"error": "La partida ya ha concluido."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -945,6 +979,7 @@ class InterrogationGuessView(APIView):
             return Response({"error": "Se requieren 'session_id' y 'avatar_id'."}, status=status.HTTP_400_BAD_REQUEST)
 
         session = get_object_or_404(BlindInterrogationSession, id=session_id, user=request.user)
+        ensure_book_access(request.user, session.avatar.edition.book)
         if session.status != 'playing':
             return Response({"error": "La partida ya ha concluido."}, status=status.HTTP_400_BAD_REQUEST)
 

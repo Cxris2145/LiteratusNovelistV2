@@ -582,10 +582,16 @@
   cursor: pointer;
   transition: background-color .18s, color .18s;
 }
-.ts-chat-icon-btn:hover,
+
 .ts-chat-icon-btn[aria-expanded='true'] {
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
+}
+@media (hover: hover) and (pointer: fine) {
+  .ts-chat-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+  }
 }
 .ts-chat-icon-btn .material-symbols-rounded {
   font-size: 19px;
@@ -919,4 +925,11 @@
 .ts-object-bubble-close .material-symbols-rounded { font-size: 18px; }
 @media (hover: hover) and (pointer: fine) {
   .ts-object-bubble-close:hover { background: rgba(255, 214, 120, .14); color: #fff; }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .ts-chat-input {
+    font-size: 16px;
+  }
 }

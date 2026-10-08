@@ -1,5 +1,6 @@
 .author-portal-container {
   min-height: calc(100vh - 120px);
+  min-height: calc(100svh - 120px);
   padding: 2.5rem 1.5rem 4rem 1.5rem;
   max-width: 1320px;
   margin: 0 auto;
@@ -92,10 +93,12 @@
   transition: all 0.2s ease;
 }
 
-.tab-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
-  border-color: rgba(212, 175, 55, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+    border-color: rgba(212, 175, 55, 0.3);
+  }
 }
 
 .tab-btn.active {
@@ -259,10 +262,12 @@
   transition: all 0.15s ease;
 }
 
-.genre-chip:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #FFFFFF;
-  border-color: rgba(212, 175, 55, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .genre-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border-color: rgba(212, 175, 55, 0.3);
+  }
 }
 
 .genre-chip.selected {
@@ -334,9 +339,11 @@
   justify-content: center;
 }
 
-.upload-dropzone:hover {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.04);
+@media (hover: hover) and (pointer: fine) {
+  .upload-dropzone:hover {
+    border-color: #D4AF37;
+    background: rgba(212, 175, 55, 0.04);
+  }
 }
 
 .upload-dropzone.has-file {
@@ -474,8 +481,10 @@
   padding: 4px 8px;
 }
 
-.btn-remove-cover:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .btn-remove-cover:hover {
+    text-decoration: underline;
+  }
 }
 
 /* CONTENIDO Y MANUSCRITO */
@@ -502,9 +511,11 @@
   transition: all 0.2s ease;
 }
 
-.mode-tab:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #FFFFFF;
+@media (hover: hover) and (pointer: fine) {
+  .mode-tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #FFFFFF;
+  }
 }
 
 .mode-tab.active {
@@ -523,9 +534,11 @@
   transition: all 0.2s ease;
 }
 
-.manuscript-dropzone:hover {
-  border-color: #D4AF37;
-  background: rgba(212, 175, 55, 0.03);
+@media (hover: hover) and (pointer: fine) {
+  .manuscript-dropzone:hover {
+    border-color: #D4AF37;
+    background: rgba(212, 175, 55, 0.03);
+  }
 }
 
 .manuscript-dropzone.file-loaded {
@@ -583,8 +596,10 @@
   border-radius: 50%;
 }
 
-.btn-remove-file:hover {
-  background: rgba(239, 68, 68, 0.15);
+@media (hover: hover) and (pointer: fine) {
+  .btn-remove-file:hover {
+    background: rgba(239, 68, 68, 0.15);
+  }
 }
 
 /* REDACCIÓN MANUAL */
@@ -656,8 +671,10 @@
   transition: all 0.2s ease;
 }
 
-.btn-add-chapter:hover {
-  background: rgba(212, 175, 55, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .btn-add-chapter:hover {
+    background: rgba(212, 175, 55, 0.1);
+  }
 }
 
 /* DECLARACIÓN JURADA */
@@ -835,9 +852,11 @@
   transition: all 0.2s ease;
 }
 
-.submit-action-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+@media (hover: hover) and (pointer: fine) {
+  .submit-action-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  }
 }
 
 .submit-action-btn:disabled {
@@ -992,9 +1011,11 @@
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.submission-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(212, 175, 55, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .submission-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(212, 175, 55, 0.3);
+  }
 }
 
 .card-cover-side {
@@ -1272,9 +1293,11 @@
   transition: all 0.2s ease;
 }
 
-.primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  }
 }
 
 .secondary-btn {
@@ -1292,8 +1315,10 @@
   text-decoration: none;
 }
 
-.secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .spinner-inline {
@@ -1338,5 +1363,12 @@
   }
   .form-grid-2 {
     grid-template-columns: 1fr;
+  }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .text-input, .select-input, .textarea-input, .ch-title-input {
+    font-size: 16px;
   }
 }

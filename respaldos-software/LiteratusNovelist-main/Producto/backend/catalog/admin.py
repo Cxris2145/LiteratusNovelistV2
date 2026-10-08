@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 import json
-from .models import Author, Genre, Book, BookVocabulary, Edition, BookAuthor, Chapter, ChapterAudio, Tag
+from .models import Author, Genre, Book, BookSummary, BookVocabulary, Edition, BookAuthor, Chapter, ChapterAudio, Tag
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
@@ -45,8 +45,8 @@ class ChapterInline(admin.TabularInline):
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ['title', 'is_published', 'is_featured', 'difficulty_level']
-    list_filter = ['is_published', 'is_featured', 'difficulty_level']
+    list_display = ['title', 'min_age', 'is_published', 'is_featured', 'difficulty_level']
+    list_filter = ['min_age', 'is_published', 'is_featured', 'difficulty_level']
     search_fields = ['title', 'synopsis']
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ['tags', 'genres']
@@ -167,3 +167,13 @@ class BookVocabularyAdmin(admin.ModelAdmin):
     exclude = ['data']
     readonly_fields = ['book', 'lemma_count', 'word_count', 'engine', 'format_version']
 
+
+
+@admin.register(BookSummary)
+class BookSummaryAdmin(admin.ModelAdmin):
+    """Resúmenes con IA (catalog/summary.py). Para regenerar uno, bórralo: el próximo lector lo pide de nuevo."""
+    list_display = ['book', 'status', 'model_name', 'input_tokens', 'output_tokens', 'requested_by', 'updated_at']
+    list_filter = ['status']
+    search_fields = ['book__title']
+    raw_id_fields = ['book', 'requested_by']
+    readonly_fields = ['input_tokens', 'output_tokens', 'model_name', 'requested_at']

@@ -313,3 +313,10 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .search-box input, .select-filter {
+    font-size: 16px;
+  }
+}

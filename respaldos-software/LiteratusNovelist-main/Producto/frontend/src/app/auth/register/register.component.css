@@ -3,6 +3,7 @@
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 80px);
+  min-height: calc(100svh - 80px);
   padding: 20px;
 }
 
@@ -49,6 +50,12 @@
   margin-left: 4px;
 }
 
+.field-note {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  margin: 6px 0 0 4px;
+}
+
 .error-banner {
   background: var(--color-error-bg);
   border-left: 4px solid var(--color-error);
@@ -84,9 +91,11 @@
   transition: color 0.3s;
 }
 
-.footer-link a:hover {
-  text-decoration: underline;
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .footer-link a:hover {
+    text-decoration: underline;
+    color: white;
+  }
 }
 
 /* ── Cuenta creada, a la espera del enlace de activación ── */

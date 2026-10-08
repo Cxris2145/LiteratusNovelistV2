@@ -133,9 +133,11 @@
   border-radius: 50%;
 }
 
-.clear-search-btn:hover {
-  color: var(--text-main, #FCFAF2);
-  background: var(--color-hover);
+@media (hover: hover) and (pointer: fine) {
+  .clear-search-btn:hover {
+    color: var(--text-main, #FCFAF2);
+    background: var(--color-hover);
+  }
 }
 
 .controls-actions {
@@ -162,10 +164,12 @@
   white-space: nowrap;
 }
 
-.control-btn:hover {
-  border-color: var(--glow-gold, #D4AF37);
-  background: var(--color-hover);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .control-btn:hover {
+    border-color: var(--glow-gold, #D4AF37);
+    background: var(--color-hover);
+    transform: translateY(-1px);
+  }
 }
 
 .control-btn.has-active {
@@ -187,9 +191,11 @@
   border-color: color-mix(in srgb, var(--color-500) 30%, transparent);
 }
 
-.wizard-btn:hover {
-  border-color: var(--glow-gold, #D4AF37);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--color-500) 15%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .wizard-btn:hover {
+    border-color: var(--glow-gold, #D4AF37);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--color-500) 15%, transparent);
+  }
 }
 
 .wizard-wand {
@@ -234,10 +240,12 @@
   flex-shrink: 0;
 }
 
-.genre-tab:hover {
-  color: var(--text-main, #FCFAF2);
-  border-color: color-mix(in srgb, var(--color-500) 50%, transparent);
-  background: var(--color-hover);
+@media (hover: hover) and (pointer: fine) {
+  .genre-tab:hover {
+    color: var(--text-main, #FCFAF2);
+    border-color: color-mix(in srgb, var(--color-500) 50%, transparent);
+    background: var(--color-hover);
+  }
 }
 
 .genre-tab.active {
@@ -270,9 +278,10 @@
 
 .more-genres-dropdown {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% - 2px);
   left: 0;
-  width: 310px;
+  width: min(310px, 100%);
+  box-sizing: border-box;
   max-height: 380px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border, #1F3A2E);
@@ -342,9 +351,11 @@
   transition: all 0.15s ease;
 }
 
-.dropdown-genre-item:hover {
-  background: color-mix(in srgb, var(--color-500) 10%, transparent);
-  color: var(--text-main, #FCFAF2);
+@media (hover: hover) and (pointer: fine) {
+  .dropdown-genre-item:hover {
+    background: color-mix(in srgb, var(--color-500) 10%, transparent);
+    color: var(--text-main, #FCFAF2);
+  }
 }
 
 .dropdown-genre-item.active {
@@ -411,10 +422,12 @@
   opacity: 0.85;
 }
 
-.quick-chip:hover {
-  border-color: color-mix(in srgb, var(--color-500) 40%, transparent);
-  color: var(--text-main, #FCFAF2);
-  background: var(--color-hover);
+@media (hover: hover) and (pointer: fine) {
+  .quick-chip:hover {
+    border-color: color-mix(in srgb, var(--color-500) 40%, transparent);
+    color: var(--text-main, #FCFAF2);
+    background: var(--color-hover);
+  }
 }
 
 .quick-chip.active {
@@ -423,6 +436,48 @@
   color: var(--color-primary-text);
   font-weight: 600;
 }
+
+/* Control parental "+18" / "-18": dos botones pegados, separados de los chips rápidos */
+.audience-toggle {
+  display: inline-flex;
+  margin-left: 4px;
+  padding-left: 12px;
+  border-left: 1px solid var(--color-border);
+}
+.audience-btn {
+  min-width: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--text-muted, #A2B2A8);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.audience-btn:first-child { border-radius: 8px 0 0 8px; }
+.audience-btn:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
+@media (hover: hover) and (pointer: fine) {
+  .audience-btn:hover {
+    border-color: color-mix(in srgb, var(--color-500) 40%, transparent);
+    color: var(--text-main, #FCFAF2);
+    background: var(--color-hover);
+  }
+}
+.audience-btn.active {
+  position: relative; /* el borde activo queda encima del vecino */
+  border-color: var(--glow-gold, #D4AF37);
+  background: color-mix(in srgb, var(--color-500) 15%, transparent);
+  color: var(--color-primary-text);
+}
+.audience-btn--adult.active {
+  border-color: var(--color-error, #e5484d);
+  background: color-mix(in srgb, var(--color-error, #e5484d) 14%, transparent);
+  color: var(--color-error, #e5484d);
+}
+.audience-btn:focus-visible { outline: 2px solid var(--glow-gold, #D4AF37); outline-offset: 2px; }
 
 /* Selector de Orden */
 .sort-dropdown-container {
@@ -445,8 +500,10 @@
   transition: all 0.2s ease;
 }
 
-.sort-toggle-btn:hover {
-  border-color: var(--glow-gold, #D4AF37);
+@media (hover: hover) and (pointer: fine) {
+  .sort-toggle-btn:hover {
+    border-color: var(--glow-gold, #D4AF37);
+  }
 }
 
 .sort-prefix {
@@ -497,9 +554,11 @@
   transition: all 0.15s ease;
 }
 
-.sort-option-item:hover {
-  background: color-mix(in srgb, var(--color-500) 10%, transparent);
-  color: var(--text-main, #FCFAF2);
+@media (hover: hover) and (pointer: fine) {
+  .sort-option-item:hover {
+    background: color-mix(in srgb, var(--color-500) 10%, transparent);
+    color: var(--text-main, #FCFAF2);
+  }
 }
 
 .sort-option-item.selected {
@@ -580,10 +639,12 @@
   transition: all 0.25s ease;
 }
 
-.rec-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--glow-gold, #D4AF37);
-  box-shadow: 0 10px 24px rgba(8, 14, 26, 0.14);
+@media (hover: hover) and (pointer: fine) {
+  .rec-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--glow-gold, #D4AF37);
+    box-shadow: 0 10px 24px rgba(8, 14, 26, 0.14);
+  }
 }
 
 .rec-card-cover {
@@ -600,8 +661,10 @@
   transition: transform 0.35s ease;
 }
 
-.rec-card:hover .rec-card-cover img {
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .rec-card:hover .rec-card-cover img {
+    transform: scale(1.05);
+  }
 }
 
 .rec-heart-btn {
@@ -622,9 +685,11 @@
   backdrop-filter: blur(4px);
 }
 
-.rec-heart-btn:hover {
-  transform: scale(1.1);
-  background: rgba(8, 14, 26, 0.95);
+@media (hover: hover) and (pointer: fine) {
+  .rec-heart-btn:hover {
+    transform: scale(1.1);
+    background: rgba(8, 14, 26, 0.95);
+  }
 }
 
 .rec-heart-btn.is-fav {
@@ -731,8 +796,10 @@
   font-family: var(--font-ui, sans-serif);
 }
 
-.clear-all-link:hover {
-  color: var(--color-text-strong);
+@media (hover: hover) and (pointer: fine) {
+  .clear-all-link:hover {
+    color: var(--color-text-strong);
+  }
 }
 
 .results-header {
@@ -811,10 +878,12 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.book-card:hover {
-  transform: translateY(-7px);
-  border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
-  box-shadow: 0 14px 34px rgba(8, 14, 26, 0.14);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover {
+    transform: translateY(-7px);
+    border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
+    box-shadow: 0 14px 34px rgba(8, 14, 26, 0.14);
+  }
 }
 
 /* ── Portada Cuadrada ── */
@@ -837,8 +906,10 @@
   transition: transform 0.4s ease, opacity 0.2s ease;
 }
 
-.book-card:hover .cover-img {
-  transform: scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .cover-img {
+    transform: scale(1.04);
+  }
 }
 
 .favorite-toast {
@@ -886,10 +957,12 @@
   backdrop-filter: blur(6px);
 }
 
-.card-favorite-btn:hover {
-  transform: scale(1.15);
-  background: rgba(8, 14, 26, 0.95);
-  border-color: rgba(255, 179, 83, 0.5);
+@media (hover: hover) and (pointer: fine) {
+  .card-favorite-btn:hover {
+    transform: scale(1.15);
+    background: rgba(8, 14, 26, 0.95);
+    border-color: rgba(255, 179, 83, 0.5);
+  }
 }
 
 .card-favorite-btn.active {
@@ -1068,10 +1141,12 @@
   flex-shrink: 0;
 }
 
-.book-card:hover .card-page-count-badge {
-  background: color-mix(in srgb, var(--color-500) 20%, transparent);
-  border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
-  color: var(--color-text-strong);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .card-page-count-badge {
+    background: color-mix(in srgb, var(--color-500) 20%, transparent);
+    border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
+    color: var(--color-text-strong);
+  }
 }
 
 .card-action-wrapper {
@@ -1097,9 +1172,11 @@
   color: var(--color-on-primary);
 }
 
-.resume-pill:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-500) 40%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .resume-pill:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-500) 40%, transparent);
+  }
 }
 
 .action-hint {
@@ -1113,8 +1190,10 @@
   white-space: nowrap;
 }
 
-.book-card:hover .action-hint {
-  gap: 7px;
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .action-hint {
+    gap: 7px;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1281,9 +1360,11 @@
   transition: all 0.2s ease;
 }
 
-.catalog-btn:hover, .retry-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-500) 30%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .catalog-btn:hover, .retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-500) 30%, transparent);
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1327,10 +1408,12 @@
   transition: all 0.2s ease;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-500) 15%, transparent);
-  border-color: var(--glow-gold, #D4AF37);
-  color: var(--color-primary-text);
+@media (hover: hover) and (pointer: fine) {
+  .page-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-500) 15%, transparent);
+    border-color: var(--glow-gold, #D4AF37);
+    color: var(--color-primary-text);
+  }
 }
 
 .page-btn:disabled {
@@ -1372,6 +1455,7 @@
   width: 100%;
   max-width: 520px;
   max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 60px rgba(8, 14, 26, 0.22);
@@ -1429,9 +1513,11 @@
   border-radius: 6px;
 }
 
-.modal-close-btn:hover {
-  background: var(--color-hover);
-  color: var(--text-main, #FCFAF2);
+@media (hover: hover) and (pointer: fine) {
+  .modal-close-btn:hover {
+    background: var(--color-hover);
+    color: var(--text-main, #FCFAF2);
+  }
 }
 
 .modal-body {
@@ -1473,9 +1559,11 @@
   transition: all 0.2s ease;
 }
 
-.filter-opt-btn:hover {
-  border-color: color-mix(in srgb, var(--color-500) 40%, transparent);
-  color: var(--text-main, #FCFAF2);
+@media (hover: hover) and (pointer: fine) {
+  .filter-opt-btn:hover {
+    border-color: color-mix(in srgb, var(--color-500) 40%, transparent);
+    color: var(--text-main, #FCFAF2);
+  }
 }
 
 .filter-opt-btn.selected {
@@ -1527,9 +1615,11 @@
   font-family: var(--font-ui, sans-serif);
 }
 
-.btn-secondary:hover {
-  color: var(--text-main, #FCFAF2);
-  background: var(--color-hover);
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover {
+    color: var(--text-main, #FCFAF2);
+    background: var(--color-hover);
+  }
 }
 
 .btn-primary {
@@ -1544,9 +1634,11 @@
   transition: all 0.2s ease;
 }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-500) 35%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--color-500) 35%, transparent);
+  }
 }
 
 /* ── Wizard Asistente ── */
@@ -1585,10 +1677,12 @@
   transition: all 0.2s ease;
 }
 
-.wizard-choice-card:hover {
-  border-color: var(--glow-gold, #D4AF37);
-  background: color-mix(in srgb, var(--color-500) 8%, transparent);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .wizard-choice-card:hover {
+    border-color: var(--glow-gold, #D4AF37);
+    background: color-mix(in srgb, var(--color-500) 8%, transparent);
+    transform: translateY(-2px);
+  }
 }
 
 .choice-emoji {
@@ -1654,10 +1748,12 @@
   text-decoration: none;
 }
 
-.wizard-match-card:hover {
-  border-color: var(--glow-gold, #D4AF37);
-  background: color-mix(in srgb, var(--color-500) 8%, transparent);
-  transform: translateX(4px);
+@media (hover: hover) and (pointer: fine) {
+  .wizard-match-card:hover {
+    border-color: var(--glow-gold, #D4AF37);
+    background: color-mix(in srgb, var(--color-500) 8%, transparent);
+    transform: translateX(4px);
+  }
 }
 
 .match-cover {
@@ -1725,4 +1821,24 @@
   .wizard-cards-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .search-input, .dropdown-search-input {
+    font-size: 16px;
+  }
+}
+
+/* Sin hover en pantallas táctiles: la tarjeta responde mientras el dedo la presiona. */
+@media (hover: none) {
+  .book-card:active,
+  .rec-card:active {
+    filter: brightness(0.9);
+  }
+}
+
+/* iPhone: estos elementos fijos quedan sobre la barra de inicio, no debajo (0 donde no hay barra). */
+.favorite-toast {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
 }

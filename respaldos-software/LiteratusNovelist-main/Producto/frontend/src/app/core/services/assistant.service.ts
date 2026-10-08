@@ -48,6 +48,9 @@ const SECTION_LABELS: { prefix: string; label: string }[] = [
   { prefix: '/dashboard', label: 'Panel de administración' },
 ];
 
+/** Mismo saludo que guarda el backend al crear una conversación (ASSISTANT_GREETING). */
+const ASSISTANT_GREETING = 'Hola, ¿en qué puedo ayudarte dentro de Literatus?';
+
 function resolveSectionLabel(url: string): string {
   const found = SECTION_LABELS.find(s => url.startsWith(s.prefix));
   if (found) return found.label;
@@ -183,6 +186,27 @@ export class AssistantService {
     this._activeConversationId$.next(conversation.id);
     this.loadMessages(conversation.id);
     this._isHistoryOpen$.next(false);
+  }
+
+  /**
+   * Borra una conversación. Si era la abierta, pasa a la más reciente sin cerrar el historial;
+   * si no queda ninguna, muestra solo el saludo y `sendMessage` creará una nueva al escribir.
+   */
+  deleteConversation(conversationId: string): Observable<void> {
+    return this.api.delete<void>(`${this.BASE}/conversations/${conversationId}/`).pipe(
+      tap(() => {
+        const remaining = this._conversations$.value.filter(c => c.id !== conversationId);
+        this._conversations$.next(remaining);
+        if (this._activeConversationId$.value !== conversationId) return;
+        if (remaining.length > 0) {
+          this._activeConversationId$.next(remaining[0].id);
+          this.loadMessages(remaining[0].id);
+        } else {
+          this._activeConversationId$.next(null);
+          this._messages$.next([{ role: 'assistant', content: ASSISTANT_GREETING }]);
+        }
+      })
+    );
   }
 
   private loadMessages(conversationId: string): void {

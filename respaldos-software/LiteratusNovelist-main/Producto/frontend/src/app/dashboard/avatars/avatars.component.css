@@ -88,10 +88,12 @@
   text-decoration: none;
 }
 
-.book-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(34,197,94,0.25);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(34,197,94,0.1);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(34,197,94,0.25);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(34,197,94,0.1);
+  }
 }
 
 .book-cover {
@@ -102,7 +104,9 @@
 }
 
 .book-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
-.book-card:hover .book-cover img { transform: scale(1.04); }
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .book-cover img { transform: scale(1.04); }
+}
 
 .status-badge {
   position: absolute;
@@ -148,7 +152,9 @@
 .stat .value { font-size: 13px; font-weight: 700; color: #94a3b8; }
 
 .edit-hint { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #1e293b; margin-top: 2px; transition: color 0.2s; }
-.book-card:hover .edit-hint { color: #22C55E; }
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .edit-hint { color: #22C55E; }
+}
 
 /* LOADING */
 .loading-container { display: flex; flex-direction: column; align-items: center; padding: 80px; color: #22C55E; gap: 16px; }
@@ -221,9 +227,11 @@
   transition: all 0.15s;
 }
 
-.badge-btn:hover {
-  background: rgba(52, 80, 127, 0.2);
-  color: #e2e8f0;
+@media (hover: hover) and (pointer: fine) {
+  .badge-btn:hover {
+    background: rgba(52, 80, 127, 0.2);
+    color: #e2e8f0;
+  }
 }
 
 .badge-btn.active {
@@ -262,8 +270,10 @@
   border-radius: 4px;
 }
 
-.delete-link:hover {
-  background: rgba(239, 68, 68, 0.15);
+@media (hover: hover) and (pointer: fine) {
+  .delete-link:hover {
+    background: rgba(239, 68, 68, 0.15);
+  }
 }
 
 .disabled-link {
@@ -329,14 +339,18 @@
   text-decoration: none;
 }
 
-.table-icon-btn:hover {
-  background: rgba(52, 80, 127, 0.2);
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .table-icon-btn:hover {
+    background: rgba(52, 80, 127, 0.2);
+    color: #fff;
+  }
 }
 
-.table-icon-btn.delete-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+@media (hover: hover) and (pointer: fine) {
+  .table-icon-btn.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+  }
 }
 
 .role-pill {
@@ -377,9 +391,11 @@
   transition: all 0.15s ease;
 }
 
-.page-nav-btn:hover:not(:disabled) {
-  background: rgba(52, 80, 127, 0.25);
-  border-color: rgba(52, 80, 127, 0.5);
+@media (hover: hover) and (pointer: fine) {
+  .page-nav-btn:hover:not(:disabled) {
+    background: rgba(52, 80, 127, 0.25);
+    border-color: rgba(52, 80, 127, 0.5);
+  }
 }
 
 .page-nav-btn:disabled {
@@ -408,8 +424,10 @@
   transition: all 0.15s;
 }
 
-.page-num-btn:hover {
-  background: rgba(52, 80, 127, 0.25);
+@media (hover: hover) and (pointer: fine) {
+  .page-num-btn:hover {
+    background: rgba(52, 80, 127, 0.25);
+  }
 }
 
 .page-num-btn.active {
@@ -436,4 +454,11 @@
   color: #34D399;
   font-size: 13.5px;
   font-weight: 500;
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .search-box input {
+    font-size: 16px;
+  }
 }

@@ -8,10 +8,13 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q
+from django.utils.cache import patch_vary_headers
 from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
 from library.models import UserInventory
+from . import summary as book_summary
+from .age import age_block_message, allowed_age, ensure_book_access, visible_books
 from .models import Book, Author, Genre, Tag, Review
 from .serializers import (
     BookListSerializer, BookDetailSerializer, BookDetailFullSerializer, 
@@ -28,6 +31,14 @@ from core.pagination import StandardResultsSetPagination
 CATALOG_CACHE_TTL = 300  # segundos
 
 
+def age_catalog_response(data):
+    response = Response(data)
+    # La caché interna usa la edad; proxies y navegadores no deben compartir la respuesta.
+    response['Cache-Control'] = 'private, no-store'
+    patch_vary_headers(response, ['Authorization', 'Cookie'])
+    return response
+
+
 class GenreViewSet(viewsets.ModelViewSet):
     """
     ViewSet para gestionar géneros (Genre).
@@ -40,14 +51,20 @@ class GenreViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
+    def get_queryset(self):
+        return Genre.objects.annotate(book_count=Count(
+            'books', filter=Q(books__min_age__lte=allowed_age(self.request.user),
+                              books__deleted_at__isnull=True), distinct=True
+        )).order_by('-book_count', 'name')
+
     def list(self, request, *args, **kwargs):
-        cache_key = f"catalog:genres:{request.get_full_path()}"
+        cache_key = f"catalog:genres:age-v2:{allowed_age(request.user)}:{cache.get('catalog:age:revision', 'initial')}:{request.get_full_path()}"
         cached = cache.get(cache_key)
         if cached is not None:
-            return Response(cached)
+            return age_catalog_response(cached)
         response = super().list(request, *args, **kwargs)
         cache.set(cache_key, response.data, CATALOG_CACHE_TTL)
-        return response
+        return age_catalog_response(response.data)
 
 
 class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
@@ -90,27 +107,10 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     lookup_field = 'slug'
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.min_age > 0:
-            if not request.user.is_authenticated:
-                from rest_framework.response import Response
-                from rest_framework import status
-                return Response({'error': 'AGE_RESTRICTED', 'message': 'Debes iniciar sesión y registrar tu edad para ver este libro.'}, status=status.HTTP_403_FORBIDDEN)
-            profile = getattr(request.user, 'profile', None)
-            if not profile or not profile.birth_date:
-                from rest_framework.response import Response
-                from rest_framework import status
-                return Response({'error': 'AGE_RESTRICTED', 'message': 'Por favor, registra tu fecha de nacimiento en tu perfil para ver este libro.'}, status=status.HTTP_403_FORBIDDEN)
-            from datetime import date
-            today = date.today()
-            born = profile.birth_date
-            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-            if age < instance.min_age:
-                from rest_framework.response import Response
-                from rest_framework import status
-                return Response({'error': 'AGE_RESTRICTED', 'message': f'Este libro está restringido para mayores de {instance.min_age} años.'}, status=status.HTTP_403_FORBIDDEN)
-        return super().retrieve(request, *args, **kwargs)
+    def get_object(self):
+        book = super().get_object()
+        ensure_book_access(self.request.user, book)
+        return book
     
     # Búsqueda múltiple DRF: ?search=garcia
     search_fields = ['title', 'synopsis', 'book_authors__author__full_name', 'genres__name']
@@ -122,6 +122,10 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = Book.objects.prefetch_related('genres', 'book_authors__author', 'editions', 'tags')
         qs = qs.annotate(ai_character_count=Count('editions__avatars', distinct=True))
+        if self.action in ('list', 'recommendations'):
+            qs = visible_books(qs, self.request.user)
+        if self.action == 'details':
+            qs = qs.prefetch_related('editions__avatars', 'reviews__user__profile', 'chapters')
 
         has_ai = self.request.query_params.get('has_ai_avatars', None)
         if has_ai and has_ai.lower() == 'true':
@@ -134,7 +138,15 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         genre_slug = self.request.query_params.get('genres__slug', None)
         if genre_slug:
             qs = qs.filter(genres__slug__iexact=genre_slug).distinct()
-            
+
+        # Explorar, botones "+18" / "-18" (solo se le muestran a mayores de edad). Filtra dentro de lo
+        # que ya permite visible_books: a un menor nunca le llega una obra +18, pida lo que pida.
+        audience = self.request.query_params.get('audience')
+        if audience == 'adult':
+            qs = qs.filter(min_age__gte=18)
+        elif audience == 'general':
+            qs = qs.filter(min_age__lt=18)
+
         return qs
 
     def get_serializer_class(self):
@@ -149,13 +161,13 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         Garantiza que en cada refresco de página siempre se devuelvan los mismos
         libros iniciales con máximo rendimiento de caché.
         """
-        cache_key = f"catalog:books:{request.get_full_path()}"
+        cache_key = f"catalog:books:age-v2:{allowed_age(request.user)}:{cache.get('catalog:age:revision', 'initial')}:{request.get_full_path()}"
         cached = cache.get(cache_key)
         if cached is not None:
-            return Response(cached)
+            return age_catalog_response(cached)
         response = super().list(request, *args, **kwargs)
         cache.set(cache_key, response.data, CATALOG_CACHE_TTL)
-        return response
+        return age_catalog_response(response.data)
 
     @action(detail=False, methods=['GET'])
     def recommendations(self, request):
@@ -250,13 +262,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         Ficha Detallada de Obra (Fase 7.5).
         Devuelve información "nutricional" completa: avatares, tiempo de lectura, reseñas.
         """
-        # Añadir prefetch adicionales para optimizar queries anidadas en el Full Serializer
-        queryset = self.get_queryset().prefetch_related(
-            'editions__avatars', 
-            'reviews__user__profile',
-            'chapters'
-        )
-        book = get_object_or_404(queryset, slug=slug)
+        book = self.get_object()
 
         # Incrementar contador de visitas de forma atómica
         from django.db.models import F
@@ -265,6 +271,25 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = BookDetailFullSerializer(book, context={'request': request})
         return Response(serializer.data)
+
+    @action(detail=True, methods=['GET', 'POST'])
+    def summary(self, request, slug=None):
+        """
+        Resumen del libro completo con IA (incluye el desenlace). Gratis: se genera una vez por libro.
+        GET consulta el estado; POST lo pide si aún no existe (ver catalog/summary.py).
+        """
+        if request.method == 'POST' and not request.user.is_authenticated:
+            return Response({'error': 'Debes iniciar sesión para pedir el resumen.'}, status=status.HTTP_401_UNAUTHORIZED)
+        book = self.get_object()
+        blocked = age_block_message(request.user, book)
+        if blocked:
+            return Response({'error': 'AGE_RESTRICTED', 'message': blocked}, status=status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'POST':
+            result = book_summary.request_book_summary(book, request.user)
+        else:
+            result = book_summary.current_summary(book)
+        return Response(book_summary.summary_payload(result))
 
     @action(detail=True, methods=['POST'])
     def purchase(self, request, slug=None):
@@ -277,18 +302,6 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         book = self.get_object()
         
 
-        if book.min_age > 0:
-            profile = getattr(request.user, 'profile', None)
-            if not profile or not profile.birth_date:
-                return Response({'error': 'AGE_RESTRICTED', 'message': 'Por favor, registra tu fecha de nacimiento en tu perfil para adquirir este libro.'}, status=status.HTTP_403_FORBIDDEN)
-            from datetime import date
-            today = date.today()
-            born = profile.birth_date
-            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-            if age < book.min_age:
-                return Response({'error': 'AGE_RESTRICTED', 'message': f'Este libro está restringido para mayores de {book.min_age} años.'}, status=status.HTTP_403_FORBIDDEN)
-
-        # Obtenemos la edición principal (por defecto la primera, o EPUB)
         edition = book.editions.first()
         if not edition:
             return Response({'error': 'Este libro no tiene ediciones disponibles.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -350,17 +363,6 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             
         book = self.get_object()
 
-        if book.min_age > 0:
-            profile = getattr(request.user, 'profile', None)
-            if not profile or not profile.birth_date:
-                return Response({'error': 'AGE_RESTRICTED', 'message': 'Por favor, registra tu fecha de nacimiento en tu perfil para adquirir este libro.'}, status=status.HTTP_403_FORBIDDEN)
-            from datetime import date
-            today = date.today()
-            born = profile.birth_date
-            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-            if age < book.min_age:
-                return Response({'error': 'AGE_RESTRICTED', 'message': f'Este libro está restringido para mayores de {book.min_age} años.'}, status=status.HTTP_403_FORBIDDEN)
-
         edition = book.editions.first()
         if not edition:
             return Response({'error': 'Edición no encontrada.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -418,17 +420,6 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         book = self.get_object()
         
 
-        if book.min_age > 0:
-            profile = getattr(request.user, 'profile', None)
-            if not profile or not profile.birth_date:
-                return Response({'error': 'AGE_RESTRICTED', 'message': 'Por favor, registra tu fecha de nacimiento en tu perfil para adquirir este libro.'}, status=status.HTTP_403_FORBIDDEN)
-            from datetime import date
-            today = date.today()
-            born = profile.birth_date
-            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-            if age < book.min_age:
-                return Response({'error': 'AGE_RESTRICTED', 'message': f'Este libro está restringido para mayores de {book.min_age} años.'}, status=status.HTTP_403_FORBIDDEN)
-
         # Verificar si el usuario posee la obra
         owns_book = UserInventory.objects.filter(
             user=request.user, 
@@ -482,21 +473,22 @@ class CatalogStatsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        cache_key = "catalog:stats"
+        cache_key = f"catalog:stats:age-v2:{allowed_age(request.user)}:{cache.get('catalog:age:revision', 'initial')}"
         cached = cache.get(cache_key)
         if cached is not None:
-            return Response(cached)
+            return age_catalog_response(cached)
 
-        total_books = Book.objects.count()
+        books = visible_books(Book.objects.all(), request.user)
+        total_books = books.count()
         books_with_chapters = (
-            Book.objects.annotate(_n=Count('chapters')).filter(_n__gt=0).count()
+            books.annotate(_n=Count('chapters')).filter(_n__gt=0).count()
         )
         total_authors = Author.objects.count()
         total_genres = Genre.objects.count()
 
         try:
             from ai_engine.models import AIAvatar, ChatMessage
-            total_characters = AIAvatar.objects.count()
+            total_characters = visible_books(AIAvatar.objects.all(), request.user, 'edition__book__').count()
             total_dialogues = ChatMessage.objects.count()
         except Exception:
             total_characters = 0
@@ -512,7 +504,7 @@ class CatalogStatsView(APIView):
             'total_dialogues': total_dialogues,
         }
         cache.set(cache_key, data, CATALOG_CACHE_TTL)
-        return Response(data)
+        return age_catalog_response(data)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

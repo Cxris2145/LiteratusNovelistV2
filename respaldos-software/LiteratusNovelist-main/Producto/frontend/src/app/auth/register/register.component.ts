@@ -3,6 +3,7 @@ import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators }
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { birthDateValidator, todayIsoDate } from '../../core/utils/birth-date.util';
 
 interface RegisterResponse {
   email: string;
@@ -25,6 +26,7 @@ export class RegisterComponent {
   isLoading = false;
   showPassword = false;
   showConfirmPassword = false;
+  readonly today = todayIsoDate();
 
   togglePassword() {
     this.showPassword = !this.showPassword;
@@ -44,7 +46,7 @@ export class RegisterComponent {
       username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
-      birth_date: ['', Validators.required],
+      birth_date: ['', [Validators.required, birthDateValidator]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
@@ -79,7 +81,8 @@ export class RegisterComponent {
     const payload = {
       username: this.registerForm.value.username.trim(),
       email: this.registerForm.value.email.trim(),
-      password: this.registerForm.value.password
+      password: this.registerForm.value.password,
+      birth_date: this.registerForm.value.birth_date
     };
 
     this.api.post<RegisterResponse>('users/register/', payload).subscribe({

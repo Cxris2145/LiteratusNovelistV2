@@ -2,7 +2,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 80px); /* Height minus navbar */
+  min-height: calc(100vh - 80px);
+  min-height: calc(100svh - 80px); /* Height minus navbar */
 }
 
 .login-box {
@@ -88,9 +89,11 @@
   transition: color 0.3s;
 }
 
-.footer-link a:hover {
-  text-decoration: underline;
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .footer-link a:hover {
+    text-decoration: underline;
+    color: white;
+  }
 }
 
 /* ── Botón de Ingreso de pruebas (mismo formato que Iniciar Sesión) ── */

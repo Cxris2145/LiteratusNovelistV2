@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Author, Genre, Book, Edition, BookAuthor, Review
 from ai_engine.models import AIAvatar
+from .age import age_block_message, visible_books
 
 class AuthorReadSerializer(serializers.ModelSerializer):
     """
@@ -13,13 +14,15 @@ class AuthorReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'full_name', 'slug', 'bio', 'nationality', 'photo', 'books_count']
 
     def get_books_count(self, obj):
-        return obj.author_books.count()
+        request = self.context.get('request')
+        return visible_books(obj.books.all(), getattr(request, 'user', None)).distinct().count()
 
 class AuthorDetailSerializer(serializers.ModelSerializer):
     """
     Ficha de autor completa. Incluye temas, libro recomendado y todas sus obras.
     """
     books = serializers.SerializerMethodField()
+    recommended_book = serializers.SerializerMethodField()
     recommended_book_slug = serializers.SerializerMethodField()
 
     class Meta:
@@ -29,14 +32,24 @@ class AuthorDetailSerializer(serializers.ModelSerializer):
     def get_books(self, obj):
         # Obtenemos todos los BookAuthor para este autor, luego extraemos los libros.
         # Esto previene el problema N+1 si lo optimizamos en la vista.
-        books = [ba.book for ba in obj.author_books.all().select_related('book')]
+        request = self.context.get('request')
+        books = visible_books(obj.books.all(), getattr(request, 'user', None)).prefetch_related(
+            'genres', 'tags', 'editions', 'book_authors__author'
+        ).distinct()
         # Import local para evitar dependencia circular
         from .serializers import BookListSerializer
         return BookListSerializer(books, many=True, context=self.context).data
 
     def get_recommended_book_slug(self, obj):
-        if obj.recommended_book:
+        if self.get_recommended_book(obj):
             return obj.recommended_book.slug
+        return None
+
+    def get_recommended_book(self, obj):
+        request = self.context.get('request')
+        book = obj.recommended_book
+        if book and book.deleted_at is None and not age_block_message(getattr(request, 'user', None), book):
+            return str(book.pk)
         return None
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -189,18 +202,7 @@ class BookDetailFullSerializer(BookDetailSerializer):
 
     def get_is_age_restricted(self, obj):
         request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            return False
-        if obj.min_age > 0:
-            profile = getattr(request.user, 'profile', None)
-            if not profile or not profile.birth_date:
-                return True
-            from datetime import date
-            today = date.today()
-            born = profile.birth_date
-            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-            return age < obj.min_age
-        return False
+        return bool(age_block_message(getattr(request, 'user', None), obj))
 
     class Meta(BookDetailSerializer.Meta):
         fields = BookDetailSerializer.Meta.fields + [

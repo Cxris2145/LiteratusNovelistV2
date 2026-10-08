@@ -20,8 +20,10 @@
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.liyumi-avatar-wrapper:hover {
-  transform: scale(1.12) translateY(-4px);
+@media (hover: hover) and (pointer: fine) {
+  .liyumi-avatar-wrapper:hover {
+    transform: scale(1.12) translateY(-4px);
+  }
 }
 
 .liyumi-img {
@@ -127,7 +129,9 @@
   line-height: 1;
 }
 
-.bubble-close:hover { color: rgba(255,255,255,0.9); }
+@media (hover: hover) and (pointer: fine) {
+  .bubble-close:hover { color: rgba(255,255,255,0.9); }
+}
 
 /* ── WAVE BARS ── */
 .wave-bar {
@@ -178,9 +182,11 @@
   transition: all 0.2s;
 }
 
-.onboarding-next-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+@media (hover: hover) and (pointer: fine) {
+  .onboarding-next-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+  }
 }
 
 .onboarding-skip-btn {
@@ -195,7 +201,9 @@
   transition: all 0.2s;
 }
 
-.onboarding-skip-btn:hover { color: rgba(255,255,255,0.8); }
+@media (hover: hover) and (pointer: fine) {
+  .onboarding-skip-btn:hover { color: rgba(255,255,255,0.8); }
+}
 
 /* ── ANIMATION ── */
 @keyframes bubbleSlideIn {

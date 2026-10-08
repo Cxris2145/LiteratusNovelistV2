@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, throwError, Subject } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { SubscriptionService } from './subscription.service';
+import { todayIsoDate } from '../utils/birth-date.util';
 
 /** Tamaño de página del hub de personajes (el backend admite hasta 50). */
 export const HUB_PAGE_SIZE = 48;
@@ -58,6 +59,7 @@ export class ChatService {
   }
 
   notifyProfileUpdate() {
+    this.firstPageCache.clear();
     this.profileUpdatedSubject.next();
   }
 
@@ -126,7 +128,7 @@ export class ChatService {
     page: number = 1,
     pageSize: number = HUB_PAGE_SIZE
   ): Observable<Paginated<HubAvatar>> {
-    const cacheKey = `${sort}|${pageSize}`;
+    const cacheKey = `${localStorage.getItem('access_token') || 'guest'}|${todayIsoDate()}|${sort}|${pageSize}`;
     const cacheable = !query && page === 1;
     if (cacheable) {
       const hit = this.firstPageCache.get(cacheKey);

@@ -16,7 +16,7 @@ LOGIN_URL = '/api/v1/users/login/'
 class RegistrationTests(APITestCase):
     """Alta de cuentas: verificación por correo, duplicados y mensajes de login."""
 
-    payload = {'username': 'lectora', 'email': 'Lectora@Example.com', 'password': 'StrongPassword123!'}
+    payload = {'username': 'lectora', 'email': 'Lectora@Example.com', 'password': 'StrongPassword123!', 'birth_date': '2001-04-23'}
 
     def setUp(self):
         cache.clear()
@@ -113,6 +113,62 @@ class RegistrationTests(APITestCase):
         self.assertEqual(user.profile.tagline, 'Lector de mundos')
         self.assertEqual(too_long.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_register_saves_birth_date_and_rejects_future_dates(self):
+        response = self.client.post(REGISTER_URL, {**self.payload, 'birth_date': '2001-04-23'}, format='json')
+        future = self.client.post(REGISTER_URL, {
+            'username': 'futura', 'email': 'futura@example.com', 'password': 'StrongPassword123!',
+            'birth_date': '2999-01-01',
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(str(User.objects.get(username='lectora').profile.birth_date), '2001-04-23')
+        self.assertEqual(future.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('birth_date', future.data)
+
+    def test_registration_requires_a_valid_birth_date(self):
+        without_date = {k: v for k, v in self.payload.items() if k != 'birth_date'}
+        for value in ('missing', None, '', 'not-a-date', '2008-02-30', '1800-01-01'):
+            with self.subTest(value=value):
+                payload = without_date if value == 'missing' else {**without_date, 'birth_date': value}
+                response = self.client.post(REGISTER_URL, payload, format='json')
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn('birth_date', response.data)
+                self.assertFalse(User.objects.filter(username=self.payload['username']).exists())
+
+    def test_minor_can_register_and_birth_date_cannot_be_changed(self):
+        with mock.patch('users.views.send_verification_email'):
+            response = self.client.post(REGISTER_URL, {**self.payload, 'birth_date': '2012-04-23'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = User.objects.get(username=self.payload['username'])
+        self.assertEqual(str(user.profile.birth_date), '2012-04-23')
+        self.client.force_authenticate(user)
+        changed = self.client.patch('/api/v1/users/profile/', {'birth_date': '1980-01-01'}, format='json')
+        self.assertEqual(changed.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_birth_date_can_only_be_set_once(self):
+        user = User.objects.create_user(username='antigua', email='antigua@example.com', password='StrongPassword123!')
+        self.client.force_authenticate(user)
+        url = '/api/v1/users/profile/'
+
+        first = self.client.patch(url, {'birth_date': '1999-12-31'}, format='json')
+        change = self.client.patch(url, {'birth_date': '1980-01-01'}, format='json')
+        erase = self.client.patch(url, {'birth_date': None}, format='json')
+        same = self.client.patch(url, {'birth_date': '1999-12-31', 'bio': 'Sigo aquí'}, format='json')
+        # Usuario recién leído, como en una petición real: la señal post_save de User
+        # vuelve a guardar user.profile, y el objeto de arriba tiene el perfil en caché.
+        self.client.force_authenticate(User.objects.get(pk=user.pk))
+        via_me = self.client.patch('/api/v1/users/me/', {'birth_date': '1980-01-01'}, format='json')
+
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
+        self.assertEqual(change.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('birth_date', change.data)
+        self.assertEqual(erase.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(same.status_code, status.HTTP_200_OK)
+        self.assertEqual(via_me.status_code, status.HTTP_200_OK)
+        user.profile.refresh_from_db()
+        self.assertEqual(str(user.profile.birth_date), '1999-12-31')
+        self.assertEqual(user.profile.bio, 'Sigo aquí')
+
     def test_each_new_account_starts_with_its_own_profile(self):
         first = User.objects.create_user(username='uno', email='uno@example.com', password='StrongPassword123!')
         first.profile.bio = 'Bio de la primera cuenta'
@@ -196,7 +252,7 @@ class UsersAPITests(APITestCase):
         response = self.client.post('/api/v1/users/register/', {
             'username': 'newuser',
             'email': 'newuser@example.com',
-            'password': '123'
+            'password': '123', 'birth_date': '2001-04-23'
         }, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('password', response.data)

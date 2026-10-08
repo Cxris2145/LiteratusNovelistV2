@@ -81,8 +81,10 @@
   transition: background 0.15s ease;
 }
 
-.primary-btn:hover {
-  background: var(--color-primary-hover);
+@media (hover: hover) and (pointer: fine) {
+  .primary-btn:hover {
+    background: var(--color-primary-hover);
+  }
 }
 
 .secondary-btn {
@@ -100,9 +102,11 @@
   transition: all 0.15s ease;
 }
 
-.secondary-btn:hover {
-  background: var(--color-hover);
-  border-color: var(--color-border-strong);
+@media (hover: hover) and (pointer: fine) {
+  .secondary-btn:hover {
+    background: var(--color-hover);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .toast-alert {
@@ -221,10 +225,12 @@
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.stat-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--color-primary);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .stat-header {
@@ -788,10 +794,12 @@
   transition: all 0.15s ease;
 }
 
-.qa-btn:hover {
-  background: var(--color-hover);
-  border-color: var(--color-border-strong);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .qa-btn:hover {
+    background: var(--color-hover);
+    border-color: var(--color-border-strong);
+    transform: translateY(-1px);
+  }
 }
 
 .qa-icon {

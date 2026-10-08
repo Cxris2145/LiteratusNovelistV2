@@ -59,15 +59,40 @@
     <!-- HISTORIAL DE CONVERSACIONES -->
     <div class="lit-history-drawer" *ngIf="isHistoryOpen">
       <div class="lit-history-list">
-        <button
-          type="button"
-          class="lit-history-item"
+        <div
+          class="lit-history-row"
           *ngFor="let c of conversations; trackBy: trackByConversation"
           [class.active]="c.id === activeConversationId"
-          (click)="selectConversation(c)">
-          <span class="lit-history-item-title">{{ c.title || 'Nueva conversación' }}</span>
-          <span class="lit-history-item-preview" *ngIf="c.last_message">{{ c.last_message }}</span>
-        </button>
+          [class.confirming]="c.id === confirmingDeleteId">
+          <ng-container *ngIf="c.id !== confirmingDeleteId; else confirmDeleteTpl">
+            <button type="button" class="lit-history-item" (click)="selectConversation(c)">
+              <span class="lit-history-item-title">{{ c.title || 'Nueva conversación' }}</span>
+              <span class="lit-history-item-preview" *ngIf="c.last_message">{{ c.last_message }}</span>
+            </button>
+            <!-- Mientras el Asistente responde en esta conversación no se puede borrar -->
+            <button
+              type="button"
+              class="lit-history-delete"
+              (click)="askDelete(c)"
+              [disabled]="isSending && c.id === activeConversationId"
+              title="Eliminar conversación"
+              [attr.aria-label]="'Eliminar la conversación ' + (c.title || 'Nueva conversación')">
+              <span class="material-symbols-rounded">delete</span>
+            </button>
+          </ng-container>
+
+          <ng-template #confirmDeleteTpl>
+            <div class="lit-history-confirm" role="group" aria-label="Confirmar eliminación">
+              <span class="lit-history-confirm-text">¿Eliminar «{{ c.title || 'Nueva conversación' }}»? No se puede deshacer.</span>
+              <div class="lit-history-confirm-actions">
+                <button type="button" class="lit-confirm-btn" (click)="cancelDelete()" [disabled]="deletingId === c.id">Cancelar</button>
+                <button type="button" class="lit-confirm-btn lit-confirm-btn--danger" (click)="confirmDelete(c)" [disabled]="deletingId === c.id">
+                  {{ deletingId === c.id ? 'Eliminando…' : 'Eliminar' }}
+                </button>
+              </div>
+            </div>
+          </ng-template>
+        </div>
         <p class="lit-history-empty" *ngIf="conversations.length === 0">Aún no tienes conversaciones anteriores.</p>
       </div>
     </div>

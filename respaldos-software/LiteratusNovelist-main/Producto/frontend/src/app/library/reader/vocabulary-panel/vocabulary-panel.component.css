@@ -69,7 +69,9 @@
   color: inherit;
   cursor: pointer;
 }
-.vp-icon-btn:hover { background: var(--vp-line); }
+@media (hover: hover) and (pointer: fine) {
+  .vp-icon-btn:hover { background: var(--vp-line); }
+}
 
 .vp-toolbar {
   display: flex;
@@ -191,9 +193,11 @@
   text-align: left;
   cursor: pointer;
 }
-.vp-row:not(.vp-row-head):hover {
-  background: color-mix(in srgb, var(--lb-accent, #0e7490) 10%, transparent);
-  color: var(--lb-accent, #0e7490);
+@media (hover: hover) and (pointer: fine) {
+  .vp-row:not(.vp-row-head):hover {
+    background: color-mix(in srgb, var(--lb-accent, #0e7490) 10%, transparent);
+    color: var(--lb-accent, #0e7490);
+  }
 }
 .vp-row:focus-visible { outline: 2px solid var(--lb-accent, #0e7490); outline-offset: -2px; }
 .vp-row-head {
@@ -213,7 +217,9 @@
 }
 .vp-num { text-align: right; font-variant-numeric: tabular-nums; }
 .vp-kind { display: inline-flex; align-items: center; gap: 6px; color: var(--vp-muted); }
-.vp-row:hover .vp-kind { color: inherit; }
+@media (hover: hover) and (pointer: fine) {
+  .vp-row:hover .vp-kind { color: inherit; }
+}
 
 .vp-foot {
   display: flex;
@@ -234,7 +240,9 @@
   font: 600 0.88rem var(--font-ui, system-ui, sans-serif);
   cursor: pointer;
 }
-.vp-page-btn:hover:not(:disabled) { background: var(--vp-line); }
+@media (hover: hover) and (pointer: fine) {
+  .vp-page-btn:hover:not(:disabled) { background: var(--vp-line); }
+}
 .vp-page-btn:disabled { opacity: 0.35; cursor: default; }
 
 /* ── Dónde aparece ── */
@@ -262,7 +270,9 @@
   cursor: pointer;
   font: 0.95rem/1.45 var(--lb-font, Georgia, 'Times New Roman', serif);
 }
-.vp-occ:hover { background: color-mix(in srgb, var(--lb-accent, #0e7490) 9%, transparent); }
+@media (hover: hover) and (pointer: fine) {
+  .vp-occ:hover { background: color-mix(in srgb, var(--lb-accent, #0e7490) 9%, transparent); }
+}
 .vp-occ:focus-visible { outline: 2px solid var(--lb-accent, #0e7490); outline-offset: -2px; }
 .vp-occ-page {
   font: 600 0.8rem var(--font-ui, system-ui, sans-serif);
@@ -292,4 +302,11 @@
   .vp-col-second .vp-row-head { display: none; }
   .vp-row { grid-template-columns: minmax(0, 1fr) 44px 104px; }
   .vp-search input { width: 110px; }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .vp-search input, .vp-sort select {
+    font-size: 16px;
+  }
 }

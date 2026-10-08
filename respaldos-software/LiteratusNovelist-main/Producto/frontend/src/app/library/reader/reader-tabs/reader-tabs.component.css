@@ -32,8 +32,10 @@
 }
 .rt-home .material-symbols-rounded { font-size: 1.25rem; }
 .rt-add .material-symbols-rounded { font-size: 1.3rem; }
-.rt-home:hover,
-.rt-add:hover { background: rgba(255, 255, 255, 0.1); }
+@media (hover: hover) and (pointer: fine) {
+  .rt-home:hover,
+  .rt-add:hover { background: rgba(255, 255, 255, 0.1); }
+}
 .rt-home:focus-visible,
 .rt-add:focus-visible,
 .rt-tab-main:focus-visible,
@@ -66,7 +68,9 @@
   color: var(--lb-desk-text-muted, rgba(230, 237, 243, 0.68));
   transition: background-color 0.15s ease, color 0.15s ease;
 }
-.rt-tab:hover { background: rgba(255, 255, 255, 0.06); color: var(--lb-desk-text, #e6edf3); }
+@media (hover: hover) and (pointer: fine) {
+  .rt-tab:hover { background: rgba(255, 255, 255, 0.06); color: var(--lb-desk-text, #e6edf3); }
+}
 
 .rt-tab.active {
   background: var(--lb-tab-active, #17344a);
@@ -133,7 +137,9 @@
 .rt-close .material-symbols-rounded { font-size: 1rem; }
 .rt-tab:hover .rt-close,
 .rt-tab.active .rt-close { opacity: 0.85; }
-.rt-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.14); }
+@media (hover: hover) and (pointer: fine) {
+  .rt-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.14); }
+}
 
 .rt-actions {
   flex: 0 0 auto;

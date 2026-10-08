@@ -10,6 +10,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ScrollRevealService } from '../../core/services/scroll-reveal.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
 import { coverThumb } from '../../core/utils/cover-thumb.util';
+import { ageFromBirthDate } from '../../core/utils/birth-date.util';
 
 export interface Book {
   id: string;
@@ -82,6 +83,7 @@ export class BookListComponent implements OnInit {
   totalBooksCount = 0;
   activeGenreSlug: string | null = null;
   moreGenresOpen = false;
+  moreGenresLeft = 0;
   moreGenresSearch = '';
 
   readonly PINNED_GENRES: { name: string; slug: string | null }[] = [
@@ -102,6 +104,12 @@ export class BookListComponent implements OnInit {
     { id: 'gratis', label: 'Gratis', icon: 'redeem' },
   ];
   activeQuickFilter: string | null = null;
+
+  /* ── Control parental: botones "+18" / "-18" ──
+     Solo los ve quien tiene 18 años o más según su fecha de nacimiento. A un menor (o sin sesión
+     o sin fecha) el servidor ya no le manda obras +18, así que para él no hay nada que separar. */
+  isAdultReader = false;
+  audienceFilter: 'all' | 'general' | 'adult' = 'all';
 
   /* ── Selector de orden ── */
   readonly SORT_OPTIONS = [
@@ -176,6 +184,37 @@ export class BookListComponent implements OnInit {
     return this.filterLength !== 'all' || this.filterFeaturedOnly;
   }
 
+  private readonly LENGTH_LABELS = { short: 'Corta (< 120 pág.)', medium: 'Media (120 - 300 pág.)', long: 'Extensa (> 300 pág.)' };
+
+  /** Cada selección vigente es su propia ficha en la barra de filtros activos, y se quita por separado. */
+  get activeFilterChips(): { key: string; label: string; remove: () => void }[] {
+    const chips: { key: string; label: string; remove: () => void }[] = [];
+    if (this.activeGenreName) {
+      chips.push({ key: 'genre', label: `Categoría: ${this.activeGenreName}`, remove: () => this.selectGenre(null) });
+    }
+    if (this.searchTerm) {
+      chips.push({ key: 'search', label: `Búsqueda: «${this.searchTerm}»`, remove: () => { this.searchTerm = ''; this.fetchBooks(); } });
+    }
+    if (this.activeQuickFilter) {
+      const quick = this.QUICK_FILTERS.find(q => q.id === this.activeQuickFilter);
+      const id = this.activeQuickFilter;
+      chips.push({ key: 'quick', label: `Filtro: ${quick ? quick.label : id}`, remove: () => this.toggleQuickFilter(id) });
+    }
+    if (this.audienceFilter !== 'all') {
+      chips.push({ key: 'audience', label: `Edad: ${this.audienceFilter === 'adult' ? '+18' : '-18'}`, remove: () => this.setAudience('all') });
+    }
+    if (this.filterLength !== 'all') {
+      chips.push({ key: 'length', label: `Extensión: ${this.LENGTH_LABELS[this.filterLength]}`, remove: () => { this.filterLength = 'all'; this.applySortAndFilter(); } });
+    }
+    if (this.filterFeaturedOnly) {
+      chips.push({ key: 'featured', label: 'Solo destacadas', remove: () => { this.filterFeaturedOnly = false; this.applySortAndFilter(); } });
+    }
+    if (this.activeSort !== 'recommended') {
+      chips.push({ key: 'sort', label: `Orden: ${this.activeSortLabel}`, remove: () => this.setSort('recommended') });
+    }
+    return chips;
+  }
+
   private readonly FICTION_SLUGS = new Set<string>([
     'accion-y-aventura', 'antologias', 'ciencia-ficcion', 'cuentos', 'fantasia',
     'ficcion-clasica', 'ficcion-contemporanea', 'ficcion-erotica', 'ficcion-historica',
@@ -197,7 +236,7 @@ export class BookListComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.more-genres-wrapper')) {
+    if (!target.closest('.more-genres-wrapper, .more-genres-dropdown')) {
       this.moreGenresOpen = false;
     }
     if (!target.closest('.sort-dropdown-container')) {
@@ -214,6 +253,7 @@ export class BookListComponent implements OnInit {
     if (!this.isHome) {
       this.loadGenres();
       this.loadRecommendations();
+      this.loadReaderAge();
     }
 
     this.route.queryParams.subscribe(params => {
@@ -290,6 +330,7 @@ export class BookListComponent implements OnInit {
 
   trackBook = (_: number, b: Book) => b.id;
   trackGenre = (_: number, g: GenreCount) => g.slug;
+  trackChip = (_: number, c: { key: string }) => c.key;
 
   /* ── Favoritos ── */
   loadFavorites(): void {
@@ -447,6 +488,41 @@ export class BookListComponent implements OnInit {
   toggleMoreGenres(event: MouseEvent): void {
     event.stopPropagation();
     this.moreGenresOpen = !this.moreGenresOpen;
+    if (this.moreGenresOpen) {
+      this.moreGenresSearch = '';
+      this.placeMoreGenres(event.currentTarget as HTMLElement);
+    }
+  }
+
+  /** El menú vive fuera de la fila con scroll: se alinea bajo el botón sin salirse del ancho de la barra. */
+  private placeMoreGenres(button: HTMLElement): void {
+    const bar = button.closest('.horizontal-genres-bar');
+    if (!bar) return;
+    const barRect = bar.getBoundingClientRect();
+    const width = Math.min(310, barRect.width);
+    const left = button.getBoundingClientRect().left - barRect.left;
+    this.moreGenresLeft = Math.max(0, Math.min(left, barRect.width - width));
+  }
+
+  /* ── Control parental ── */
+  private loadReaderAge(): void {
+    if (!this.authService.isLoggedIn()) return;
+    this.api.getCached<{ birth_date?: string | null }>('users/profile/')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (profile) => {
+          this.isAdultReader = !!profile?.birth_date && ageFromBirthDate(profile.birth_date) >= 18;
+          if (!this.isAdultReader && this.audienceFilter !== 'all') this.setAudience('all');
+        },
+        error: () => (this.isAdultReader = false)
+      });
+  }
+
+  /** Tocar "+18" o "-18" filtra; tocar otra vez el que está activo vuelve a mostrar todo. */
+  setAudience(audience: 'all' | 'general' | 'adult'): void {
+    this.audienceFilter = this.audienceFilter === audience ? 'all' : audience;
+    this.currentPage = 1;
+    this.fetchBooks();
   }
 
   /* ── Filtros rápidos ── */
@@ -572,28 +648,14 @@ export class BookListComponent implements OnInit {
     if (this.activeGenreSlug) {
       params = params.set('genres__slug', this.activeGenreSlug);
     }
+    if (this.isAdultReader && this.audienceFilter !== 'all') {
+      params = params.set('audience', this.audienceFilter);
+    }
     params = params.set('page_size', String(this.pageSize));
     params = params.set('page', this.currentPage);
 
     if (!this.searchTerm) {
       params = params.set('ordering', '-is_featured,-created_at');
-    }
-
-    const isInitialPage = !this.activeGenreSlug && !this.searchTerm && this.currentPage === 1;
-
-    if (isInitialPage && this.rawBooks.length === 0) {
-      try {
-        const stored = sessionStorage.getItem('literatus_static_catalog_p1');
-        if (stored) {
-          const parsed: PaginatedResponse = JSON.parse(stored);
-          if (parsed && Array.isArray(parsed.results) && parsed.results.length > 0) {
-            this.rawBooks = this.decorateBooks(parsed.results);
-            this.totalCount = parsed.count;
-            this.applySortAndFilter();
-            this.isLoading = false;
-          }
-        }
-      } catch (_) {}
     }
 
     const cached = this.api.peekCached<PaginatedResponse>('catalog/books/', params);
@@ -610,11 +672,7 @@ export class BookListComponent implements OnInit {
         this.totalCount = response.count;
         this.applySortAndFilter();
         this.isLoading = false;
-        if (isInitialPage) {
-          try {
-            sessionStorage.setItem('literatus_static_catalog_p1', JSON.stringify(response));
-          } catch (_) {}
-        }
+
       },
       error: (err) => {
         console.error(err);
@@ -698,6 +756,7 @@ export class BookListComponent implements OnInit {
     this.searchTerm = '';
     this.activeGenreSlug = null;
     this.activeQuickFilter = null;
+    this.audienceFilter = 'all';
     this.activeSort = 'recommended';
     this.filterLength = 'all';
     this.filterFeaturedOnly = false;

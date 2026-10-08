@@ -13,6 +13,7 @@ from .views import (
     TTSGenerateView,
     DemoChatView,
     AssistantConversationListView,
+    AssistantConversationDetailView,
     AssistantMessageListView,
     AssistantChatView,
     InterrogationStatusView,
@@ -66,6 +67,9 @@ urlpatterns = [
     # ── Asistente global de la plataforma (guía de uso, gratuito) ──
     # GET/POST /api/v1/ai/assistant/conversations/
     path('assistant/conversations/', AssistantConversationListView.as_view(), name='assistant-conversations'),
+
+    # DELETE /api/v1/ai/assistant/conversations/<uuid>/
+    path('assistant/conversations/<uuid:conversation_id>/', AssistantConversationDetailView.as_view(), name='assistant-conversation-detail'),
 
     # GET /api/v1/ai/assistant/conversations/<uuid>/messages/
     path('assistant/conversations/<uuid:conversation_id>/messages/', AssistantMessageListView.as_view(), name='assistant-messages'),

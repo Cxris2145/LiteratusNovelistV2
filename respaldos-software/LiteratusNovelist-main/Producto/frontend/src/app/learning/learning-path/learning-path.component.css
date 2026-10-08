@@ -3,6 +3,7 @@
 :host {
   display: block;
   min-height: calc(100vh - 120px);
+  min-height: calc(100svh - 120px);
   background: radial-gradient(circle at 50% 20%, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%);
   color: #f8fafc;
   padding-bottom: 80px;
@@ -50,9 +51,11 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.stat-pill:hover {
-  background: rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .stat-pill:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+  }
 }
 
 .pill-icon {
@@ -358,9 +361,11 @@
   border-radius: 8px;
 }
 
-.close-btn:hover {
-  color: #f8fafc;
-  background: rgba(255, 255, 255, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .close-btn:hover {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .difficulty-badge {
@@ -429,9 +434,11 @@
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
 }
 
-.start-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+@media (hover: hover) and (pointer: fine) {
+  .start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+  }
 }
 
 /* MODAL RACHA */

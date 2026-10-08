@@ -67,9 +67,11 @@
   transition: all 0.2s ease;
 }
 
-.guide-close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-main, #ffffff);
+@media (hover: hover) and (pointer: fine) {
+  .guide-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main, #ffffff);
+  }
 }
 
 /* ── HERO ──────────────────────────────────────────────────────────────── */
@@ -198,10 +200,12 @@
   transition: all 0.2s ease;
 }
 
-.quick-nav-btn:hover {
-  background: var(--color-hover, rgba(70, 102, 153, 0.15));
-  border-style: solid;
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .quick-nav-btn:hover {
+    background: var(--color-hover, rgba(70, 102, 153, 0.15));
+    border-style: solid;
+    color: #ffffff;
+  }
 }
 
 .quick-nav-btn .material-symbols-rounded {
@@ -294,8 +298,10 @@
   color: var(--text-main, #f1f5f9);
 }
 
-.guide-btn-prev:hover {
-  background: var(--color-hover, rgba(255, 255, 255, 0.15));
+@media (hover: hover) and (pointer: fine) {
+  .guide-btn-prev:hover {
+    background: var(--color-hover, rgba(255, 255, 255, 0.15));
+  }
 }
 
 .guide-btn-next {
@@ -304,10 +310,12 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
-.guide-btn-next:hover {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+@media (hover: hover) and (pointer: fine) {
+  .guide-btn-next:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  }
 }
 
 @keyframes pulseGlow {

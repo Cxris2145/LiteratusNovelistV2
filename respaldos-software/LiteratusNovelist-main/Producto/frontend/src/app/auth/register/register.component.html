@@ -37,12 +37,16 @@
       </div>
 
       <div class="form-group">
-        <label>Fecha de Nacimiento</label>
-        <input type="date" 
-               class="glass-input" 
+        <label for="register-birth-date">Fecha de nacimiento</label>
+        <input id="register-birth-date" type="date" autocomplete="bday"
+               class="glass-input"
                [ngClass]="{'is-invalid': f['birth_date'].touched && f['birth_date'].invalid}"
+               [attr.max]="today"
                formControlName="birth_date">
-        <div class="validation-error" *ngIf="f['birth_date'].touched && f['birth_date'].invalid">La fecha de nacimiento es requerida.</div>
+        <div class="validation-error" *ngIf="f['birth_date'].touched && f['birth_date'].errors?.['required']">La fecha de nacimiento es requerida.</div>
+        <div class="validation-error" *ngIf="f['birth_date'].touched && f['birth_date'].errors?.['birthDateFuture']">La fecha de nacimiento no puede ser futura.</div>
+        <div class="validation-error" *ngIf="f['birth_date'].touched && f['birth_date'].errors?.['birthDateInvalid']">Introduce una fecha de nacimiento válida.</div>
+        <p class="field-note">Usamos tu edad para mostrarte libros adecuados. Si eres menor de 18 años, los libros para adultos no aparecerán. Revísala bien: una vez creada la cuenta no se puede cambiar.</p>
       </div>
 
 

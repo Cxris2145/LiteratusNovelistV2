@@ -24,6 +24,9 @@
                 [attr.aria-pressed]="!!currentSpreadBookmark" [class.active]="!!currentSpreadBookmark">
           <span class="material-symbols-rounded icon-fillable" [class.filled]="!!currentSpreadBookmark" style="font-size:1.3rem;">bookmark</span>
         </button>
+        <button class="toc-trigger-btn hdr-book-dup" (click)="createPostIt()" title="Pegar un post-it" aria-label="Pegar un post-it">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;">sticky_note_2</span>
+        </button>
         <button class="toc-trigger-btn hdr-book-dup hdr-optional" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
           <span class="material-symbols-rounded" style="font-size:1.3rem;">dictionary</span>
         </button>
@@ -849,6 +852,10 @@
                   [attr.aria-pressed]="!!currentSpreadBookmark">
             <span class="material-symbols-rounded icon-fillable" [class.filled]="!!currentSpreadBookmark" aria-hidden="true">bookmark</span>
           </button>
+          <button type="button" class="lb-btn" (click)="createPostIt()"
+                  title="Pegar un post-it en esta página" aria-label="Pegar un post-it en esta página">
+            <span class="material-symbols-rounded" aria-hidden="true">sticky_note_2</span>
+          </button>
           <button type="button" class="lb-btn" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
             <span class="material-symbols-rounded" aria-hidden="true">dictionary</span>
           </button>
@@ -873,97 +880,70 @@
             [class.rc-focus-word]="focusMode === 'word'"
             [class.rc-focus-sentence]="focusMode === 'sentence'"
             [class.rc-focus-paragraph]="focusMode === 'paragraph'"
+            [class.rc-has-focus]="currentWordIndex >= 0"
             [class.rc-long-para]="longParaSplit"
-            (scroll)="onCanvasScroll($event)" (click)="onCanvasClick($event)">
+            (click)="onCanvasClick($event)">
 
-    <!-- Título principal del capítulo -->
-    <!-- Título principal del capítulo con soporte para highlighting -->
+    <!-- Capítulo: una palabra = un <span class="word" id="word-N"> (narración, foco, subrayados).
+         Control de flujo nativo (@for/@if) y el id por interpolación: el capítulo tiene miles de
+         tokens y cada detección de cambios recorre todos. Los clics en palabras se atienden con un
+         solo listener en el lienzo (onCanvasClick), no uno por palabra. -->
     <h1 class="chapter-title-main">
-      <ng-container *ngFor="let tok of titleTokens; trackBy: trackByToken">
-        <span *ngIf="tok.isWord"
-              [id]="'word-' + tok.idx"
-              class="word"
-              [class.active-word]="tok.idx === currentWordIndex"
-              (click)="onWordClick(tok.idx)">
-          <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
-          <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
-        </span>
-        <ng-container *ngIf="!tok.isWord && !tok.isImg">{{ tok.text }}</ng-container>
-        <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
-      </ng-container>
-      <!-- Fallback si no se encontró el título en el texto original -->
-      <ng-container *ngIf="titleTokens.length === 0">{{ chapterTitle }}</ng-container>
+      @for (tok of titleTokens; track trackByToken($index, tok)) {
+        @if (tok.isWord) {
+          <span class="word" id="word-{{ tok.idx }}"
+                [class.active-word]="tok.idx === currentWordIndex"
+                [attr.data-hl]="tok.hl || null">@if (bionicReadingActive) {<strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span>} @else {{{ tok.text }}}</span>
+        } @else if (tok.isImg) {
+          @if (showSceneImages) {
+            <img [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
+          }
+        } @else {{{ tok.text }}}
+      } @empty {{{ chapterTitle }}}
     </h1>
 
-    <ng-container *ngFor="let block of renderedBlocks; trackBy: trackByBlock">
-
-      <!-- Imagen a nivel raíz (standalone) -->
-      <figure *ngIf="block.tag === 'img-block' && showSceneImages" class="chapter-image scene-image-container">
-        <img [src]="block.tokens[0].src" [alt]="block.tokens[0].alt || ''" loading="lazy" (click)="openImageModal(block.tokens[0].src)" class="scene-image">
-      </figure>
-
-      <h1 *ngIf="block.tag === 'h1'" class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
-        <ng-container *ngFor="let sentence of block.sentences">
-          <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
-            <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
-              <span *ngIf="tok.isWord"
-                    [id]="'word-' + tok.idx"
-                    class="word"
+    <ng-template #blockSentences let-block>
+      @for (sentence of block.sentences; track sentence) {
+        <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
+          @for (tok of sentence.tokens; track trackByToken($index, tok)) {
+            @if (tok.isWord) {
+              <span class="word" id="word-{{ tok.idx }}"
                     [class.active-word]="tok.idx === currentWordIndex"
-                    (click)="onWordClick(tok.idx)">
-                <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
-                <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
-              </span>
-              <ng-container *ngIf="!tok.isWord && !tok.isImg && !tok.isBr">{{ tok.text }}</ng-container>
-              <br *ngIf="tok.isBr">
-              <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
-            </ng-container>
-          </span>
-        </ng-container>
-      </h1>
+                    [attr.data-hl]="tok.hl || null">@if (bionicReadingActive) {<strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span>} @else {{{ tok.text }}}</span>
+            } @else if (tok.isBr) {
+              <br>
+            } @else if (tok.isImg) {
+              @if (showSceneImages) {
+                <img [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
+              }
+            } @else {{{ tok.text }}}
+          }
+        </span>
+      }
+    </ng-template>
 
-      <h2 *ngIf="block.tag === 'h2'" class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
-        <ng-container *ngFor="let sentence of block.sentences">
-          <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
-            <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
-              <span *ngIf="tok.isWord"
-                    [id]="'word-' + tok.idx"
-                    class="word"
-                    [class.active-word]="tok.idx === currentWordIndex"
-                    (click)="onWordClick(tok.idx)">
-                <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
-                <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
-              </span>
-              <ng-container *ngIf="!tok.isWord && !tok.isImg && !tok.isBr">{{ tok.text }}</ng-container>
-              <br *ngIf="tok.isBr">
-              <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
-            </ng-container>
-          </span>
-        </ng-container>
-      </h2>
-
-      <p *ngIf="block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote'"
-         [class.active-paragraph]="isActiveBlock(block)" [class.long-para]="block.long">
-        <ng-container *ngFor="let sentence of block.sentences">
-          <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
-            <ng-container *ngFor="let tok of sentence.tokens; trackBy: trackByToken">
-              <span *ngIf="tok.isWord"
-                    [id]="'word-' + tok.idx"
-                    class="word"
-                    [class.active-word]="tok.idx === currentWordIndex"
-                    (click)="onWordClick(tok.idx)">
-                <ng-container *ngIf="!bionicReadingActive">{{ tok.text }}</ng-container>
-                <ng-container *ngIf="bionicReadingActive"><strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span></ng-container>
-              </span>
-              <ng-container *ngIf="!tok.isWord && !tok.isImg && !tok.isBr">{{ tok.text }}</ng-container>
-              <br *ngIf="tok.isBr">
-              <img *ngIf="tok.isImg && showSceneImages" [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
-            </ng-container>
-          </span>
-        </ng-container>
-      </p>
-
-    </ng-container>
+    @for (block of renderedBlocks; track $index) {
+      @if (block.tag === 'img-block') {
+        <!-- Imagen a nivel raíz (standalone) -->
+        @if (showSceneImages) {
+          <figure class="chapter-image scene-image-container">
+            <img [src]="block.tokens[0].src" [alt]="block.tokens[0].alt || ''" loading="lazy" (click)="openImageModal(block.tokens[0].src)" class="scene-image">
+          </figure>
+        }
+      } @else if (block.tag === 'h1') {
+        <h1 class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
+          <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
+        </h1>
+      } @else if (block.tag === 'h2') {
+        <h2 class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
+          <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
+        </h2>
+      } @else if (block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote') {
+        <p [class.active-paragraph]="isActiveBlock(block)" [class.long-para]="block.long">
+          <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
+        </p>
+      }
+    }
   </main>
 
     <!-- Regla de lectura: guía horizontal traslúcida adaptada al renglón y columna activa -->
@@ -1042,6 +1022,13 @@
        [class.menu-above]="!isMenuBelow"
        [style.left.px]="wordMenuX"
        [style.top.px]="wordMenuY">
+    <div class="menu-highlight-row" role="group" aria-label="Subrayar el pasaje">
+      <span class="menu-highlight-label">Subrayar</span>
+      <button type="button" class="hl-swatch" *ngFor="let h of highlightColorOptions"
+              [style.background-color]="h.hex" [disabled]="isHighlightBusy"
+              [attr.aria-label]="'Subrayar en ' + h.label" [title]="'Subrayar en ' + h.label"
+              (click)="createHighlight(h.id)"></button>
+    </div>
     <button class="menu-action-btn" (click)="defineWord()">
       <span class="icon">📖</span> Definición
     </button>
@@ -1054,6 +1041,69 @@
     <button class="menu-action-btn" (click)="askCharacter()" [disabled]="characterAvatars.length === 0">
       <span class="icon">🎭</span> Preguntar a Personaje
     </button>
+  </div>
+
+  <!-- TARJETA DEL SUBRAYADO: cambiar color o quitar -->
+  <div class="highlight-popover" *ngIf="activeHighlight" role="dialog" aria-label="Subrayado"
+       [class.menu-below]="highlightPopoverBelow"
+       [class.menu-above]="!highlightPopoverBelow"
+       [style.left.px]="highlightPopoverX"
+       [style.top.px]="highlightPopoverY">
+    <div class="hl-popover-bar">
+      <button type="button" class="hl-swatch" *ngFor="let h of highlightColorOptions"
+              [class.on]="activeHighlight.color === h.id" [style.background-color]="h.hex"
+              [attr.aria-pressed]="activeHighlight.color === h.id"
+              [attr.aria-label]="'Color ' + h.label" [title]="h.label"
+              [disabled]="isHighlightBusy" (click)="recolorHighlight(h.id)"></button>
+      <span class="hl-popover-spacer"></span>
+      <button type="button" class="hl-icon-btn" (click)="deleteHighlight()" [disabled]="isHighlightBusy"
+              aria-label="Quitar subrayado" title="Quitar subrayado">🗑️</button>
+      <button type="button" class="hl-icon-btn" (click)="closeHighlightPopover()" aria-label="Cerrar" title="Cerrar">✕</button>
+    </div>
+  </div>
+
+  <!-- POST-ITS EN LOS MÁRGENES: papelitos al costado de la página, a la altura de su línea.
+       layoutMarginPostIts() escribe su posición directo en el DOM (cambia con cada scroll o giro);
+       se arrastran desde aquí (handleMarginPointerDown) y al tocarlos se abre su nota. -->
+  <div class="postit-margin-layer">
+    @for (p of chapterPostIts; track p) {
+      <button type="button" class="margin-postit" [attr.data-postit]="postItKey(p)"
+              [attr.data-enter]="p.id ? null : ''" [class.is-open]="activePostIt === p"
+              [attr.aria-expanded]="activePostIt === p"
+              [attr.aria-label]="p.text ? 'Post-it: ' + p.text : 'Post-it nuevo'"
+              [title]="p.text ? p.text + ' · Arrastra para moverlo' : ''"
+              (click)="onMarginPostItClick(p)">
+        <span class="margin-postit-paper">{{ p.text }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- NOTA DEL POST-IT: se abre al lado de su papelito, hacia dentro de la página -->
+  <div class="postit-card" *ngIf="activePostIt" role="dialog" aria-label="Post-it"
+       [class.from-left]="postItCardSide === 'left'" [class.from-right]="postItCardSide === 'right'"
+       [style.left.px]="postItCardX" [style.top.px]="postItCardY">
+    <div class="post-it">
+      <ng-container *ngIf="isEditingPostIt; else postItView">
+        <textarea [(ngModel)]="postItDraft" maxlength="500" rows="4"
+                  placeholder="Escribe tu nota…" aria-label="Texto del post-it"></textarea>
+        <div class="post-it-actions">
+          <span class="post-it-count">{{ postItDraft.length }}/500</span>
+          <button type="button" class="post-it-btn" (click)="cancelPostItEdit()">Cancelar</button>
+          <button type="button" class="post-it-btn primary" (click)="savePostIt()"
+                  [disabled]="isPostItBusy || !postItDraft.trim()">Pegar</button>
+        </div>
+      </ng-container>
+      <ng-template #postItView>
+        <p class="post-it-text">{{ activePostIt.text }}</p>
+        <p class="post-it-hint">Arrastra el papelito por el margen para cambiarlo de lugar.</p>
+        <div class="post-it-actions">
+          <span class="post-it-count">{{ postItCount }}/{{ maxPostIts }}</span>
+          <button type="button" class="post-it-btn" (click)="editPostIt()">Editar</button>
+          <button type="button" class="post-it-btn" (click)="deletePostIt()" [disabled]="isPostItBusy">Despegar</button>
+          <button type="button" class="post-it-btn" (click)="closePostIt()" aria-label="Cerrar">✕</button>
+        </div>
+      </ng-template>
+    </div>
   </div>
 
   <!-- MODAL DE DICCIONARIO PEQUEÑO -->
@@ -1195,6 +1245,14 @@
           (click)="scrollBackToReading()" aria-label="Volver a mi punto de lectura">
     <span class="material-symbols-rounded">read_more</span>
     <span>Volver a mi lectura</span>
+  </button>
+
+  <!-- Palabra marcada a mano: la forma visible de quitarla (también tocándola otra vez o con Esc) -->
+  <button type="button" class="back-to-reading-btn clear-focus-btn glass-btn" *ngIf="canClearWordFocus"
+          [class.stacked]="showBackToReadingBtn" (click)="clearWordFocus()"
+          aria-label="Quitar la palabra marcada" title="Quitar marca (Esc)">
+    <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    <span>Quitar marca</span>
   </button>
 
   <!-- BOTONES DE NAVEGACIÓN (TIPO FLECHA) -->

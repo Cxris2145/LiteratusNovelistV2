@@ -48,7 +48,7 @@
         <div class="form-group">
           <label>Correo Electrónico (No modificable)</label>
           <input type="email" formControlName="email" class="glass-input locked-input">
-          <mat-icon class="lock-icon">lock</mat-icon>
+          <span class="material-symbols-rounded lock-icon" aria-hidden="true">lock</span>
         </div>
 
         <div class="form-group">
@@ -64,6 +64,18 @@
           <label for="profile-bio">Sobre mí (lo ven tus amigos)</label>
           <textarea id="profile-bio" formControlName="bio" class="glass-input textarea" rows="4" [attr.maxlength]="bioMax"
             placeholder="Cuéntanos un poco sobre ti, tus autores favoritos o tus lecturas en curso..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="profile-birth-date">Fecha de Nacimiento{{ birthDateLocked ? ' (No modificable)' : '' }}</label>
+          <input id="profile-birth-date" type="date" formControlName="birth_date" class="glass-input"
+                 [class.locked-input]="birthDateLocked" [attr.max]="today" aria-describedby="profile-birth-date-hint">
+          <span class="material-symbols-rounded lock-icon" *ngIf="birthDateLocked" aria-hidden="true">lock</span>
+          <p class="field-hint" id="profile-birth-date-hint">
+            {{ birthDateLocked
+              ? 'Ya está registrada y no se puede cambiar.'
+              : 'Requerida para libros restringidos. Revísala bien: una vez guardada no se puede cambiar.' }}
+          </p>
         </div>
 
         <div class="tavern-identity" *ngIf="friendCode">
@@ -84,13 +96,6 @@
               </a>
             </div>
           </div>
-
-          <div class="form-group">
-            <label>Fecha de Nacimiento</label>
-            <input type="date" formControlName="birth_date" class="glass-input">
-            <p class="field-hint">Requerida para libros restringidos.</p>
-          </div>
-
         </div>
 
         <div class="form-actions">

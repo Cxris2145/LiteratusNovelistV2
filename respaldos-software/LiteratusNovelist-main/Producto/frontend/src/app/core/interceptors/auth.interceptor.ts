@@ -29,12 +29,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       
-      if (error instanceof HttpErrorResponse && error.status === 403 && error.error?.error === 'AGE_RESTRICTED') {
-        notificationService.error(error.error.message || 'Contenido restringido por edad. Completa tu perfil.', 'Restricción de Edad');
-        router.navigate(['/users/profile']);
-        return throwError(() => error);
-      }
-
       if (error instanceof HttpErrorResponse && error.status === 401) {
         // Evitar interceptar si la petición ya es de login o de refresco
         if (req.url.includes('/users/login/') || req.url.includes('/login/')) {

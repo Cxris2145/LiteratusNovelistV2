@@ -534,9 +534,19 @@ def generate_narration(audio_id):
 
 
 def audio_url(request, audio):
-    """URL pública del MP3: Supabase, o la vista del backend si solo quedó en disco local."""
+    """URL del MP3; las narraciones locales restringidas llevan un permiso firmado."""
     if _meta(audio).get('storage') == 'local':
-        return request.build_absolute_uri(reverse('narration-audio', args=[audio.pk]))
+        url = request.build_absolute_uri(reverse('narration-audio', args=[audio.pk]))
+        if audio.chapter.book.min_age:
+            from django.core import signing
+            from urllib.parse import urlencode
+            from .age import ensure_book_access
+            ensure_book_access(request.user, audio.chapter.book)
+            # <audio> no envía Authorization: permiso firmado, ligado a esta narración.
+            token = signing.dumps({'audio': str(audio.pk), 'user': str(request.user.pk)},
+                                  salt='catalog:narration-age-v1')
+            url += '?' + urlencode({'access': token})
+        return url
     return request.build_absolute_uri(audio.audio_file.url)
 
 

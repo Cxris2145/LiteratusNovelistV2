@@ -98,10 +98,12 @@
   transition: all 0.2s ease;
 }
 
-.filter-tab-btn:hover {
-  background: var(--color-surface-elevated);
-  color: var(--color-text-primary);
-  border-color: var(--color-border-strong);
+@media (hover: hover) and (pointer: fine) {
+  .filter-tab-btn:hover {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .filter-tab-btn.active {
@@ -140,9 +142,11 @@
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.curation-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-border-strong);
+@media (hover: hover) and (pointer: fine) {
+  .curation-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .card-author-submission {
@@ -356,8 +360,10 @@
   justify-content: center;
 }
 
-.review-btn:hover {
-  background: var(--color-hover);
+@media (hover: hover) and (pointer: fine) {
+  .review-btn:hover {
+    background: var(--color-hover);
+  }
 }
 
 .approve-btn {
@@ -367,8 +373,10 @@
   justify-content: center;
 }
 
-.approve-btn:hover:not(:disabled) {
-  background: #059669;
+@media (hover: hover) and (pointer: fine) {
+  .approve-btn:hover:not(:disabled) {
+    background: #059669;
+  }
 }
 
 .approve-btn:disabled {
@@ -384,9 +392,11 @@
   justify-content: center;
 }
 
-.reject-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+@media (hover: hover) and (pointer: fine) {
+  .reject-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+  }
 }
 
 .danger-btn {
@@ -403,8 +413,10 @@
   transition: all 0.15s;
 }
 
-.danger-btn:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .danger-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.3);
+  }
 }
 
 .danger-btn:disabled {
@@ -478,8 +490,10 @@
   color: #ffffff;
 }
 
-.btn-success:hover:not(:disabled) {
-  background: #059669;
+@media (hover: hover) and (pointer: fine) {
+  .btn-success:hover:not(:disabled) {
+    background: #059669;
+  }
 }
 
 .secondary-btn {
@@ -515,6 +529,7 @@
   border-radius: 16px;
   width: 100%;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   box-shadow: 0 16px 40px var(--color-shadow);
 }
@@ -839,5 +854,12 @@
   }
   .filter-tabs {
     flex-wrap: wrap;
+  }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .form-textarea {
+    font-size: 16px;
   }
 }

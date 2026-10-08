@@ -211,10 +211,12 @@
   border: 1px solid var(--glass-border);
 }
 
-.author-card:hover {
-  transform: translateY(-10px);
-  border-color: var(--color-primary);
-  box-shadow: 0 8px 24px var(--home-shadow);
+@media (hover: hover) and (pointer: fine) {
+  .author-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 24px var(--home-shadow);
+  }
 }
 
 .card-inner {
@@ -237,9 +239,11 @@
   filter: grayscale(40%) contrast(1.1);
 }
 
-.author-card:hover .author-photo {
-  transform: scale(1.08);
-  filter: grayscale(0%) contrast(1.1);
+@media (hover: hover) and (pointer: fine) {
+  .author-card:hover .author-photo {
+    transform: scale(1.08);
+    filter: grayscale(0%) contrast(1.1);
+  }
 }
 
 /* Badge Flotante para los libros */
@@ -308,9 +312,11 @@
   transition: color 0.2s;
 }
 
-.author-card:hover .read-more {
-  color: var(--text-main);
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .author-card:hover .read-more {
+    color: var(--text-main);
+    text-decoration: underline;
+  }
 }
 
 /* Loaders */
@@ -393,10 +399,12 @@
   box-shadow: none;
 }
 
-.page-btn:hover:not(:disabled) {
-  background: var(--home-sage-surface);
-  color: var(--color-primary-text);
-  border-color: var(--home-sage-ink);
+@media (hover: hover) and (pointer: fine) {
+  .page-btn:hover:not(:disabled) {
+    background: var(--home-sage-surface);
+    color: var(--color-primary-text);
+    border-color: var(--home-sage-ink);
+  }
 }
 
 .page-btn:disabled {
@@ -414,4 +422,11 @@
 .search-container:focus-within {
   border-color: var(--home-sage-ink);
   box-shadow: 0 0 0 3px var(--color-focus-soft);
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .glass-select-mini {
+    font-size: 16px;
+  }
 }

@@ -104,8 +104,10 @@
   transition: all 0.2s ease;
 }
 
-.tab-btn:hover {
-  color: var(--text-main, #FCFAF2);
+@media (hover: hover) and (pointer: fine) {
+  .tab-btn:hover {
+    color: var(--text-main, #FCFAF2);
+  }
 }
 
 .tab-btn.active {
@@ -212,10 +214,12 @@
   color: var(--text-muted, #A2B2A8);
 }
 
-.secondary-btn:hover {
-  background: var(--color-hover);
-  border-color: var(--glow-gold, #D4AF37);
-  color: var(--text-main, #FCFAF2);
+@media (hover: hover) and (pointer: fine) {
+  .secondary-btn:hover {
+    background: var(--color-hover);
+    border-color: var(--glow-gold, #D4AF37);
+    color: var(--text-main, #FCFAF2);
+  }
 }
 
 .primary-btn {
@@ -225,9 +229,11 @@
   font-weight: 700;
 }
 
-.primary-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-500) 35%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-500) 35%, transparent);
+  }
 }
 
 /* ── Lista de Conversaciones ── */
@@ -250,10 +256,12 @@
   position: relative;
 }
 
-.conv-card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--color-500) 50%, transparent);
-  box-shadow: 0 10px 24px rgba(8, 14, 26, 0.13);
+@media (hover: hover) and (pointer: fine) {
+  .conv-card:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--color-500) 50%, transparent);
+    box-shadow: 0 10px 24px rgba(8, 14, 26, 0.13);
+  }
 }
 
 .conv-card.unread {
@@ -383,8 +391,10 @@
   transition: gap 0.2s ease;
 }
 
-.conv-card:hover .open-chat-link {
-  gap: 8px;
+@media (hover: hover) and (pointer: fine) {
+  .conv-card:hover .open-chat-link {
+    gap: 8px;
+  }
 }
 
 .arrow-icon {
@@ -477,8 +487,10 @@
   text-decoration: none;
 }
 
-.notice-link-btn:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .notice-link-btn:hover {
+    text-decoration: underline;
+  }
 }
 
 /* ── Skeletons ── */
@@ -561,4 +573,11 @@
   .conv-avatar-wrap { width: 46px; height: 46px; }
   .conv-name { font-size: 0.95rem; }
   .conv-snippet { font-size: 0.8rem; -webkit-line-clamp: 2; }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .search-input {
+    font-size: 16px;
+  }
 }

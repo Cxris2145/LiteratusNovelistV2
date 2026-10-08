@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { tap, catchError } from 'rxjs/operators';
+import { swapTheme } from '../utils/theme-swap.util';
 
 export interface StoreSettings {
   theme: string;
@@ -47,13 +48,34 @@ export class SettingsService {
   private setTheme(theme: string) {
     this.currentThemeSubject.next(theme);
     localStorage.setItem('literatus-theme', theme);
+    this.applyThemeAttribute(theme);
+  }
+
+  private applyThemeAttribute(theme: string) {
     if (theme === 'default') {
       document.documentElement.removeAttribute('data-theme');
     } else {
       document.documentElement.setAttribute('data-theme', theme);
     }
+    this.syncThemeColor();
   }
+
+  /** La barra del navegador/sistema en el celular toma el color de fondo del tema activo. */
+  private syncThemeColor() {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const background = getComputedStyle(document.body).backgroundColor;
+    if (meta && background) meta.setAttribute('content', background);
+  }
+
+  /** Cambio elegido por el usuario (perfil): de una vez, sin cientos de transiciones a la vez. */
   public setThemeDirectly(theme: string) {
-    this.setTheme(theme);
+    const current = document.documentElement.getAttribute('data-theme') || 'default';
+    if (current === theme) {
+      this.setTheme(theme);
+      return;
+    }
+    this.currentThemeSubject.next(theme);
+    localStorage.setItem('literatus-theme', theme);
+    swapTheme(() => this.applyThemeAttribute(theme));
   }
 }

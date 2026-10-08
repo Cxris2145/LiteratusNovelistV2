@@ -1,6 +1,7 @@
 .chat-page-container {
   display: flex;
-  height: calc(100vh - 64px); /* Asumiendo navbar de 64px */
+  height: calc(100vh - 64px);
+  height: calc(100dvh - 64px); /* Asumiendo navbar de 64px */
   background: #0f172a;
   color: white;
   overflow: hidden;
@@ -38,9 +39,11 @@
   transition: all 0.3s;
 }
 
-.back-btn:hover {
-  background: rgba(255,255,255,0.05);
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .back-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+  }
 }
 
 .panel-title {
@@ -67,8 +70,10 @@
   margin-bottom: 4px;
 }
 
-.recent-item:hover {
-  background: rgba(255,255,255,0.03);
+@media (hover: hover) and (pointer: fine) {
+  .recent-item:hover {
+    background: rgba(255,255,255,0.03);
+  }
 }
 
 .recent-item.active {
@@ -253,8 +258,10 @@
   transition: transform 0.2s;
 }
 
-.send-btn:hover:not(:disabled) {
-  transform: scale(1.1);
+@media (hover: hover) and (pointer: fine) {
+  .send-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+  }
 }
 
 .send-btn:disabled {

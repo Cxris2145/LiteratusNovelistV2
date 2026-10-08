@@ -1,5 +1,6 @@
 .checkout-page {
   min-height: calc(100vh - 80px);
+  min-height: calc(100svh - 80px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -160,9 +161,11 @@
   transition: all 0.3s ease;
 }
 
-.btn-cancel:hover:not(:disabled) {
-  background: var(--color-hover);
-  color: var(--color-text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .btn-cancel:hover:not(:disabled) {
+    background: var(--color-hover);
+    color: var(--color-text-primary);
+  }
 }
 
 .btn-pay {
@@ -179,9 +182,11 @@
   box-shadow: 0 4px 20px rgba(0, 95, 255, 0.4);
 }
 
-.btn-pay:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 95, 255, 0.6);
+@media (hover: hover) and (pointer: fine) {
+  .btn-pay:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 95, 255, 0.6);
+  }
 }
 
 .btn-pay:disabled {

@@ -1,5 +1,6 @@
 .onboarding-container {
   min-height: calc(100vh - 120px);
+  min-height: calc(100svh - 120px);
   padding: 3rem 1.5rem 5rem 1.5rem;
   max-width: 1040px;
   margin: 0 auto;
@@ -152,10 +153,12 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
-.role-selection-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(212, 175, 55, 0.4);
-  background: rgba(22, 36, 58, 0.9);
+@media (hover: hover) and (pointer: fine) {
+  .role-selection-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 175, 55, 0.4);
+    background: rgba(22, 36, 58, 0.9);
+  }
 }
 
 .role-selection-card.selected {
@@ -351,10 +354,12 @@
   transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.onboarding-genre-chip:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #FFFFFF;
-  border-color: rgba(212, 175, 55, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .onboarding-genre-chip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border-color: rgba(212, 175, 55, 0.3);
+  }
 }
 
 .onboarding-genre-chip.selected {
@@ -440,8 +445,10 @@
   transition: background 0.15s ease;
 }
 
-.autocomplete-item:hover {
-  background: rgba(212, 175, 55, 0.12);
+@media (hover: hover) and (pointer: fine) {
+  .autocomplete-item:hover {
+    background: rgba(212, 175, 55, 0.12);
+  }
 }
 
 .item-author-info {
@@ -516,8 +523,10 @@
   align-items: center;
 }
 
-.btn-remove-chip:hover {
-  color: #FFFFFF;
+@media (hover: hover) and (pointer: fine) {
+  .btn-remove-chip:hover {
+    color: #FFFFFF;
+  }
 }
 
 /* SUGERENCIAS RÁPIDAS DE AUTORES */
@@ -555,9 +564,11 @@
   transition: all 0.15s ease;
 }
 
-.quick-author-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #FFFFFF;
+@media (hover: hover) and (pointer: fine) {
+  .quick-author-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #FFFFFF;
+  }
 }
 
 .quick-author-btn.is-following {
@@ -597,9 +608,11 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.primary-continue-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(212, 175, 55, 0.45);
+@media (hover: hover) and (pointer: fine) {
+  .primary-continue-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.45);
+  }
 }
 
 .primary-continue-btn:disabled {
@@ -624,9 +637,11 @@
   transition: all 0.2s ease;
 }
 
-.secondary-back-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
-  color: #FFFFFF;
+@media (hover: hover) and (pointer: fine) {
+  .secondary-back-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+  }
 }
 
 .spinner-inline {
@@ -658,5 +673,12 @@
   .secondary-back-btn, .primary-continue-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .search-input {
+    font-size: 16px;
   }
 }

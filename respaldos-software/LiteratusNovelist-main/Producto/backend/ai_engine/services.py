@@ -277,6 +277,7 @@ class AssistantAIService:
             return ''
 
         from catalog.models import Book
+        from catalog.age import visible_books
 
         words = re.findall(r"[A-Za-zÀ-ÿ]{4,}", message)
         terms = [w for w in words if w.lower() not in self._SEARCH_STOPWORDS]
@@ -288,7 +289,7 @@ class AssistantAIService:
             query |= Q(title__icontains=term)
 
         matches = list(
-            Book.objects.filter(query, is_published=True)
+            visible_books(Book.objects.filter(query, is_published=True), self.conversation.user)
             .prefetch_related('genres', 'book_authors__author')
             .distinct()[:limit]
         )

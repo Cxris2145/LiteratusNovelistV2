@@ -439,6 +439,39 @@
 
 html {
   overflow-x: clip; /* Evita desbordamiento horizontal sin causar doble scrollbar */
+  /* Sin el recuadro gris/azul que pinta el navegador móvil al tocar: cada control da su propia respuesta (abajo). */
+  -webkit-tap-highlight-color: transparent;
+  /* Sin "font boosting" de iOS/Android al girar a horizontal. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ── BASE TÁCTIL ──
+   manipulation: el toque se dispara al instante (sin esperar un posible doble toque para hacer zoom).
+   El texto de un control no se selecciona con una pulsación larga; el contenido sigue siendo seleccionable. */
+a, button, label, summary, select, [role="button"], [role="tab"] {
+  touch-action: manipulation;
+}
+
+button, [role="button"], [role="tab"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+@media (hover: none) {
+  /* Sin hover en pantallas táctiles: respuesta al presionar, mientras el dedo está encima. */
+  :is(a, button, [role="button"], [role="tab"]):not(:disabled):active {
+    filter: brightness(0.9);
+  }
+}
+
+@media (pointer: coarse) {
+  /* iOS agranda la página al enfocar un campo con letra menor a 16 px (y no la devuelve).
+     Esto cubre los campos sin tamaño propio; los que lo declaran se corrigen en su componente. */
+  input, textarea, select {
+    font-size: 16px;
+  }
 }
 
 body {
@@ -449,6 +482,7 @@ body {
   font-weight: 400;
   line-height: 1.6;
   min-height: 100vh;
+  min-height: 100svh;
   margin: 0;
   padding-top: env(safe-area-inset-top, 0px);
   overflow-x: clip; /* Usar clip en vez de hidden impide la creación de un contexto de scroll en Windows */
@@ -457,8 +491,19 @@ body {
    * FONDO ARTESANAL — Azul tinta:
    */
   background-image: var(--color-page-background);
-  background-attachment: fixed;
   background-size: 100% 100%;
+}
+
+/* El fondo queda quieto mientras se hace scroll, como antes con background-attachment: fixed,
+   pero en una capa fija propia: iOS ignora "fixed" (estiraba el degradado a toda la página) y
+   Android lo repintaba en cada scroll. Hereda el fondo del body, así que respeta cada tema. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: inherit;
 }
 
 [data-theme="neon"] body {
@@ -673,6 +718,7 @@ app-dashboard-layout :is(.alert-success, .success-message) {
 body:has(.container.dashboard-mode) {
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
 }
 
 /* ── PREMIUM MINIMALIST LUCIDE ICONS ── */
@@ -1150,6 +1196,14 @@ html.tv-vt::view-transition-group(*) { animation-duration: .45s; animation-timin
 /* La barra fija también se captura como grupo propio: como se pinta después que el contenido,
    su grupo queda encima y las tarjetas no la atraviesan mientras se mueven. */
 html.tv-vt header.main-header { view-transition-name: tv-header; }
+
+/* Cambio de paleta (core/utils/theme-swap.util.ts): durante el cambio no anima nada (si no,
+   cientos de elementos animan color y fondo a la vez) y la página entera hace un fundido corto. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after { transition: none !important; }
+html.theme-fade::view-transition-old(root),
+html.theme-fade::view-transition-new(root) { animation-duration: .2s; animation-timing-function: ease-out; }
 
 /* ═════════════════════════════════════════════════════════════════════
    NORMALIZED MAT-SNACKBAR THEME (LITERATUS BOUTIQUE)

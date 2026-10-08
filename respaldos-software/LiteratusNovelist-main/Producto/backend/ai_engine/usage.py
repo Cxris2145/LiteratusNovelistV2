@@ -37,6 +37,8 @@ def bounds_for_date(date):
 
 
 def check_avatar(user, avatar):
+    from catalog.age import ensure_book_access
+    ensure_book_access(user, avatar.edition.book)
     owned = UserInventory.objects.filter(user=user, edition=avatar.edition).first()
     if not owned and not (avatar.is_major_character or avatar.is_author):
         raise PermissionDenied('Añade esta obra a tu biblioteca para conversar con sus personajes.')

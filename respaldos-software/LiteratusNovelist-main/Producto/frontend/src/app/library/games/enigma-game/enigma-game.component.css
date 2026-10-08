@@ -14,6 +14,7 @@
   position: relative;
   width: 100%;
   min-height: calc(100vh - var(--navbar-h, 150px));
+  min-height: calc(100svh - var(--navbar-h, 150px));
   padding: 24px 20px 48px;
   box-sizing: border-box;
   display: flex;
@@ -164,12 +165,20 @@
   padding: 0;
 }
 
-.rules-help-btn:hover,
+
 .rules-help-btn.active {
   background: rgba(56, 189, 248, 0.2);
   border-color: #38bdf8;
   color: #38bdf8;
   transform: scale(1.08);
+}
+@media (hover: hover) and (pointer: fine) {
+  .rules-help-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    transform: scale(1.08);
+  }
 }
 
 .rules-help-btn .material-symbols-rounded {
@@ -239,9 +248,11 @@
   border-radius: 6px;
 }
 
-.popover-close-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .popover-close-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 
 .popover-body {
@@ -664,11 +675,13 @@
   justify-content: center;
 }
 
-.key-btn:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.25);
-  border-color: #38bdf8;
-  color: #ffffff;
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .key-btn:hover:not(:disabled) {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: #38bdf8;
+    color: #ffffff;
+    transform: translateY(-2px);
+  }
 }
 
 .key-btn:active:not(:disabled) {
@@ -823,9 +836,11 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
-.endgame-btn--primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+@media (hover: hover) and (pointer: fine) {
+  .endgame-btn--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+  }
 }
 
 .endgame-btn--secondary {
@@ -875,9 +890,11 @@
   transition: all 0.2s ease;
 }
 
-.glass-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .glass-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
 }
 
 .glass-btn .material-symbols-rounded {
@@ -1116,10 +1133,12 @@
   color: #38bdf8;
 }
 
-.exit-btn--keep:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.25);
-  border-color: rgba(56, 189, 248, 0.6);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .exit-btn--keep:hover:not(:disabled) {
+    background: rgba(56, 189, 248, 0.25);
+    border-color: rgba(56, 189, 248, 0.6);
+    transform: translateY(-1px);
+  }
 }
 
 /* Salir y perder puntos: acción de abandono destructiva */
@@ -1130,10 +1149,12 @@
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
 }
 
-.exit-btn--abandon:hover:not(:disabled) {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+@media (hover: hover) and (pointer: fine) {
+  .exit-btn--abandon:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+  }
 }
 
 .spinner-small {

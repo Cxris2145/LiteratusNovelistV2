@@ -4,6 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 import { slideUpPanelAnimation } from '../../animations';
 import { AssistantService, AssistantConversation, AssistantMessage } from '../../services/assistant.service';
 import { SpeechRecognitionService } from '../../services/speech-recognition.service';
+import { NotificationService } from '../../services/notification.service';
 import { MaguitoState } from '../maguito/maguito.component';
 
 @Component({
@@ -15,6 +16,7 @@ import { MaguitoState } from '../maguito/maguito.component';
 export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChecked {
   private assistant = inject(AssistantService);
   private speechService = inject(SpeechRecognitionService);
+  private notifications = inject(NotificationService);
   private destroy$ = new Subject<void>();
 
   @ViewChild('messagesEl') private messagesEl?: ElementRef<HTMLDivElement>;
@@ -29,6 +31,9 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   isListening = false;
   unreadCount = 0;
   draft = '';
+  /** Conversación cuya fila del historial está pidiendo confirmación para borrarse. */
+  confirmingDeleteId: string | null = null;
+  deletingId: string | null = null;
 
   isBouncing = false;
   /** Maguito en la cabecera: saluda al abrir y celebra cuando llega una respuesta. */
@@ -161,6 +166,7 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   toggleHistory(): void {
+    this.cancelDelete();
     this.assistant.toggleHistory();
   }
 
@@ -169,7 +175,32 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   }
 
   selectConversation(conversation: AssistantConversation): void {
+    this.cancelDelete();
     this.assistant.selectConversation(conversation);
+  }
+
+  /** Primer toque en la papelera: la fila pasa a pedir confirmación (no hay deshacer). */
+  askDelete(conversation: AssistantConversation): void {
+    this.confirmingDeleteId = conversation.id;
+  }
+
+  cancelDelete(): void {
+    if (!this.deletingId) this.confirmingDeleteId = null;
+  }
+
+  confirmDelete(conversation: AssistantConversation): void {
+    if (this.deletingId) return;
+    this.deletingId = conversation.id;
+    this.assistant.deleteConversation(conversation.id).subscribe({
+      next: () => {
+        this.deletingId = null;
+        this.confirmingDeleteId = null;
+      },
+      error: () => {
+        this.deletingId = null;
+        this.notifications.error('No pudimos eliminar la conversación. Intenta de nuevo.');
+      }
+    });
   }
 
   send(): void {

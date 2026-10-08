@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { todayIsoDate } from '../utils/birth-date.util';
 
 interface CacheEntry {
   value: unknown;                 // respuesta ya emitida (para lecturas síncronas)
@@ -20,6 +21,12 @@ export class ApiService {
   /** Caché en memoria para datos estables (catálogo, categorías, autores…). */
   private cache = new Map<string, CacheEntry>();
 
+  private cacheKey(endpoint: string, params?: HttpParams): string {
+    // El token distingue cuentas y sesiones; la fecha renueva la caché al cumplir años.
+    const session = localStorage.getItem('access_token') || 'guest';
+    return `${endpoint}?${params?.toString() || ''}:${session}:${todayIsoDate()}`;
+  }
+
   get<T>(endpoint: string, params?: HttpParams): Observable<T> {
     // Antes se añadía `_t=<timestamp>` a cada GET: hacía cada URL única y
     // anulaba TODA la caché del navegador (y las revalidaciones 304).
@@ -36,7 +43,7 @@ export class ApiService {
    * `Explorar → Biblioteca → Explorar` deja de re-descargar lo mismo.
    */
   getCached<T>(endpoint: string, params?: HttpParams, ttlMs = 5 * 60 * 1000): Observable<T> {
-    const key = endpoint + '?' + (params ? params.toString() : '');
+    const key = this.cacheKey(endpoint, params);
     const now = Date.now();
     const hit = this.cache.get(key);
     if (hit && hit.expires > now) {
@@ -61,9 +68,9 @@ export class ApiService {
   /** Lectura síncrona del último valor cacheado (o null). Útil para pintar al
    *  instante y refrescar en segundo plano. */
   peekCached<T>(endpoint: string, params?: HttpParams): T | null {
-    const key = endpoint + '?' + (params ? params.toString() : '');
+    const key = this.cacheKey(endpoint, params);
     const hit = this.cache.get(key);
-    return (hit && hit.value !== undefined ? hit.value : null) as T | null;
+    return (hit && hit.expires > Date.now() && hit.value !== undefined ? hit.value : null) as T | null;
   }
 
   /** Invalida una entrada (p. ej. tras comprar un libro) o todo el caché. */

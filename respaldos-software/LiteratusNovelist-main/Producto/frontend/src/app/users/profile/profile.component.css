@@ -3,6 +3,7 @@
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 80px);
+  min-height: calc(100svh - 80px);
   padding: 40px 20px;
 }
 
@@ -127,11 +128,13 @@
   transition: all 0.2s ease;
 }
 
-.theme-card-item:hover {
-  border-color: var(--color-primary);
-  background: var(--color-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px var(--color-shadow);
+@media (hover: hover) and (pointer: fine) {
+  .theme-card-item:hover {
+    border-color: var(--color-primary);
+    background: var(--color-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px var(--color-shadow);
+  }
 }
 
 .theme-card-item.selected {
@@ -253,9 +256,11 @@
   z-index: 2;
 }
 
-.avatar-edit-badge:hover {
-  transform: scale(1.1);
-  background: var(--color-primary-hover, #2563eb);
+@media (hover: hover) and (pointer: fine) {
+  .avatar-edit-badge:hover {
+    transform: scale(1.1);
+    background: var(--color-primary-hover, #2563eb);
+  }
 }
 
 .avatar-edit-badge .material-symbols-rounded {
@@ -284,9 +289,11 @@
   transition: all 0.2s ease;
 }
 
-.avatar-action-btn:hover {
-  background: color-mix(in srgb, var(--color-surface-elevated) 100%, white 10%);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .avatar-action-btn:hover {
+    background: color-mix(in srgb, var(--color-surface-elevated) 100%, white 10%);
+    transform: translateY(-1px);
+  }
 }
 
 .avatar-action-btn .material-symbols-rounded {
@@ -300,8 +307,10 @@
   background: rgba(239, 68, 68, 0.06);
 }
 
-.remove-photo-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
+@media (hover: hover) and (pointer: fine) {
+  .remove-photo-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+  }
 }
 
 .remove-photo-btn .material-symbols-rounded {
@@ -318,9 +327,11 @@
   padding: 0;
 }
 
-.color-circle:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+@media (hover: hover) and (pointer: fine) {
+  .color-circle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
 }
 
 .color-circle.selected {

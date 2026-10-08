@@ -3,6 +3,7 @@
 .af {
   width: min(520px, calc(100vw - 32px));
   max-height: min(640px, calc(100vh - 48px));
+  max-height: min(640px, calc(100dvh - 48px));
   overflow: auto;
   background: var(--home-bg-surface);
   box-shadow: 0 24px 60px rgba(0, 0, 0, .5);

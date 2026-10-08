@@ -66,14 +66,18 @@ h1, h2, h3 {
   cursor: pointer;
   transition: transform .18s var(--th-ease-out), background-color .25s, color .25s, box-shadow .3s;
 }
-.th-btn:hover:not(:disabled) { box-shadow: 0 6px 22px var(--th-glow); }
+@media (hover: hover) and (pointer: fine) {
+  .th-btn:hover:not(:disabled) { box-shadow: 0 6px 22px var(--th-glow); }
+}
 .th-btn:active:not(:disabled) { transform: scale(.97); }
 .th-btn.secondary {
   background: transparent;
   color: var(--th-gold);
 }
-.th-btn.secondary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--th-gold) 14%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .th-btn.secondary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--th-gold) 14%, transparent);
+  }
 }
 .th-btn.ghost {
   min-height: 36px;
@@ -83,10 +87,12 @@ h1, h2, h3 {
   color: var(--th-ink);
   font-size: .82rem;
 }
-.th-btn.ghost:hover:not(:disabled) {
-  border-color: var(--th-gold);
-  color: var(--th-gold);
-  box-shadow: none;
+@media (hover: hover) and (pointer: fine) {
+  .th-btn.ghost:hover:not(:disabled) {
+    border-color: var(--th-gold);
+    color: var(--th-gold);
+    box-shadow: none;
+  }
 }
 .th-btn .material-symbols-rounded { font-size: 20px; }
 .th-btn:disabled { opacity: .55; cursor: default; }
@@ -103,7 +109,9 @@ h1, h2, h3 {
   cursor: pointer;
   transition: background-color .2s, color .2s;
 }
-.th-icon-btn:hover { background: color-mix(in srgb, var(--th-ink) 8%, transparent); color: var(--th-ink); }
+@media (hover: hover) and (pointer: fine) {
+  .th-icon-btn:hover { background: color-mix(in srgb, var(--th-ink) 8%, transparent); color: var(--th-ink); }
+}
 
 /* Interruptor redondo (sonido, modo cine): encendido = dorado. La etiqueta aparece
    debajo al pasar el mouse o con el foco del teclado; el nombre accesible va en aria-label. */

@@ -1,6 +1,7 @@
 :host {
   display: block;
   height: 100vh;
+  height: 100dvh;
   --nexus-bg: var(--color-bg-primary);
   --nexus-surface: var(--color-surface);
   --nexus-surface-elevated: var(--color-surface-elevated);
@@ -14,6 +15,7 @@
 .nexus-layout {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   background: var(--nexus-bg);
   color: var(--nexus-text);
   font-family: 'Fira Sans', 'Fira Code', sans-serif;
@@ -103,9 +105,11 @@
   justify-content: center;
 }
 
-.collapse-btn:hover {
-  background: rgba(34, 197, 94, 0.15);
-  border-color: rgba(34, 197, 94, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .collapse-btn:hover {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: rgba(34, 197, 94, 0.3);
+  }
 }
 
 /* Nav */
@@ -143,9 +147,11 @@
   position: relative;
 }
 
-.nav-item:hover {
-  background: rgba(34, 197, 94, 0.06);
-  color: var(--nexus-text);
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover {
+    background: rgba(34, 197, 94, 0.06);
+    color: var(--nexus-text);
+  }
 }
 
 .nav-item.active {
@@ -166,7 +172,9 @@
 }
 
 .nav-item-external { opacity: 0.7; }
-.nav-item-external:hover { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .nav-item-external:hover { opacity: 1; }
+}
 
 .nav-icon-wrap {
   width: 32px;
@@ -179,8 +187,10 @@
   transition: background 0.2s;
 }
 
-.nav-item:hover .nav-icon-wrap {
-  background: rgba(34, 197, 94, 0.08);
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover .nav-icon-wrap {
+    background: rgba(34, 197, 94, 0.08);
+  }
 }
 
 .nav-item.active .nav-icon-wrap {
@@ -252,8 +262,10 @@
   border-radius: 6px;
 }
 
-.mobile-menu-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+@media (hover: hover) and (pointer: fine) {
+  .mobile-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
 }
 
 .breadcrumb-wrap {
@@ -330,9 +342,11 @@
   white-space: nowrap;
 }
 
-.logout-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.4);
+@media (hover: hover) and (pointer: fine) {
+  .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+  }
 }
 
 .theme-switcher-btn {
@@ -342,9 +356,11 @@
   color: var(--color-on-primary);
 }
 
-.theme-switcher-btn:hover {
-  background: var(--color-primary);
-  border-color: var(--color-focus);
+@media (hover: hover) and (pointer: fine) {
+  .theme-switcher-btn:hover {
+    background: var(--color-primary);
+    border-color: var(--color-focus);
+  }
 }
 
 /* CONTENT */
@@ -367,6 +383,7 @@
     position: fixed;
     z-index: 1000;
     height: 100vh;
+    height: 100dvh;
     left: -240px;
     transition: left 0.3s;
   }
@@ -430,9 +447,11 @@
   transition: all 0.2s;
 }
 
-.nav-item:hover .nav-badge {
-  background: rgba(222, 231, 244, 0.15);
-  color: var(--nexus-text);
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover .nav-badge {
+    background: rgba(222, 231, 244, 0.15);
+    color: var(--nexus-text);
+  }
 }
 
 .nav-item.active .nav-badge {
@@ -543,8 +562,10 @@
   transition: background 0.15s;
 }
 
-.search-res-item:hover {
-  background: rgba(52, 80, 127, 0.15);
+@media (hover: hover) and (pointer: fine) {
+  .search-res-item:hover {
+    background: rgba(52, 80, 127, 0.15);
+  }
 }
 
 .search-res-item .res-icon {
@@ -606,9 +627,11 @@
   transition: all 0.2s;
 }
 
-.topbar-icon-btn:hover {
-  background: rgba(52, 80, 127, 0.2);
-  border-color: var(--nexus-accent);
+@media (hover: hover) and (pointer: fine) {
+  .topbar-icon-btn:hover {
+    background: rgba(52, 80, 127, 0.2);
+    border-color: var(--nexus-accent);
+  }
 }
 
 .notif-dot {
@@ -669,8 +692,10 @@
   transition: background 0.15s;
 }
 
-.menu-alert-item:hover {
-  background: rgba(52, 80, 127, 0.15);
+@media (hover: hover) and (pointer: fine) {
+  .menu-alert-item:hover {
+    background: rgba(52, 80, 127, 0.15);
+  }
 }
 
 .alert-icon-box {
@@ -730,9 +755,11 @@
   color: var(--nexus-text);
 }
 
-.admin-profile-btn:hover {
-  border-color: var(--nexus-accent);
-  background: rgba(52, 80, 127, 0.15);
+@media (hover: hover) and (pointer: fine) {
+  .admin-profile-btn:hover {
+    border-color: var(--nexus-accent);
+    background: rgba(52, 80, 127, 0.15);
+  }
 }
 
 .admin-avatar-circle {
@@ -788,4 +815,11 @@
 
 .theme-switcher-btn .theme-label {
   margin-left: 4px;
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .topbar-search-input-box input {
+    font-size: 16px;
+  }
 }

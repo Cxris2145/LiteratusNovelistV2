@@ -183,9 +183,10 @@ def search(me, raw_query) -> list:
 
 # ── Estado de los amigos ──────────────────────────────────────────────
 
-def presence_statuses(profiles) -> dict:
+def presence_statuses(profiles, viewer=None) -> dict:
     """{user_id: {'kind', 'label', 'book_title'}} en dos consultas, sin importar cuántos amigos."""
     from library.models import ReadingProgress, ReadingSession
+    from catalog.age import age_block_message
 
     now = timezone.now()
     statuses, readers = {}, []
@@ -204,14 +205,18 @@ def presence_statuses(profiles) -> dict:
         for row in progress:
             uid = row.inventory.user_id
             if uid not in statuses:
-                statuses[uid] = _reading(row.inventory.edition.book.title, chapter=row.current_page)
+                book = row.inventory.edition.book
+                statuses[uid] = (_reading(None) if age_block_message(viewer, book)
+                                 else _reading(book.title, chapter=row.current_page))
         pending = [uid for uid in readers if uid not in statuses]
         if pending:
             sessions = (ReadingSession.objects
                         .filter(user_id__in=pending, ended_at__isnull=True, started_at__gte=now - OPEN_SESSION_WINDOW)
                         .select_related('book').order_by('-started_at'))
             for session in sessions:
-                statuses.setdefault(session.user_id, _reading(session.book.title, chapter=session.chapters_read or None))
+                reading = (_reading(None) if age_block_message(viewer, session.book)
+                           else _reading(session.book.title, chapter=session.chapters_read or None))
+                statuses.setdefault(session.user_id, reading)
 
     for profile in profiles:
         statuses.setdefault(profile.user_id, {'kind': 'away', 'label': 'De paseo', 'book_title': None})
@@ -222,7 +227,7 @@ def _reading(title, chapter=None):
     if chapter and int(chapter) > 0:
         label = f'Leyendo · Capítulo {chapter}'
     else:
-        label = f'Leyendo · {title}'
+        label = f'Leyendo · {title}' if title else 'Leyendo'
     return {'kind': 'reading', 'label': label, 'book_title': title, 'chapter': chapter}
 
 
@@ -231,7 +236,7 @@ def friends_list(me) -> list:
     if not ids:
         return []
     profiles = list(_profiles().filter(user_id__in=ids).order_by('user__username'))
-    statuses = presence_statuses(profiles)
+    statuses = presence_statuses(profiles, viewer=me)
     toasted = set(Brindis.objects.filter(giver=me, receiver_id__in=ids).values_list('receiver_id', flat=True))
     return [{
         'friend_code': p.friend_code,

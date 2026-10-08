@@ -136,9 +136,9 @@ class ReadingComprehensionAIGenerator:
         """
         try:
             if book_id:
-                book = Book.objects.filter(pk=book_id).first()
+                book = Book.objects.filter(pk=book_id, min_age=0).first()
             else:
-                books = list(Book.objects.filter(slug__in=SAFE_CLASSIC_SLUGS, chapters__isnull=False)
+                books = list(Book.objects.filter(slug__in=SAFE_CLASSIC_SLUGS, chapters__isnull=False, min_age=0)
                              .distinct().order_by('slug'))
                 book = books[_pick(seed or 'senda', len(books))] if books else None
 

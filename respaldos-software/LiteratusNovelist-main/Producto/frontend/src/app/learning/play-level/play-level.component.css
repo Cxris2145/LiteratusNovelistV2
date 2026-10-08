@@ -5,6 +5,7 @@
 :host {
   display: block;
   min-height: 100vh;
+  min-height: 100svh;
   background: var(--color-bg-primary, #0b0f19);
   color: var(--color-text-primary, #f8fafc);
   padding-bottom: 150px;

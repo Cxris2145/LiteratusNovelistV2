@@ -1,5 +1,6 @@
 .page-wrapper {
   min-height: 100vh;
+  min-height: 100svh;
   padding: 6rem 2rem 4rem;
   color: var(--color-text-primary);
   max-width: 1200px;
@@ -12,6 +13,7 @@
   align-items: center;
   justify-content: center;
   height: 50vh;
+  height: 50svh;
   text-align: center;
 }
 
@@ -76,9 +78,11 @@
   transition: all 0.5s ease;
 }
 
-.author-image:hover {
-  filter: grayscale(0%) contrast(1.1);
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .author-image:hover {
+    filter: grayscale(0%) contrast(1.1);
+    transform: scale(1.05);
+  }
 }
 
 .author-info {
@@ -161,9 +165,11 @@
   color: var(--color-text-primary);
 }
 
-.glass-btn:hover {
-  background: var(--color-hover);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .glass-btn:hover {
+    background: var(--color-hover);
+    transform: translateY(-2px);
+  }
 }
 
 .glass-btn.primary {
@@ -172,9 +178,11 @@
   color: var(--color-on-primary);
 }
 
-.glass-btn.primary:hover {
-  background: var(--color-primary);
-  box-shadow: 0 0 20px var(--color-shadow);
+@media (hover: hover) and (pointer: fine) {
+  .glass-btn.primary:hover {
+    background: var(--color-primary);
+    box-shadow: 0 0 20px var(--color-shadow);
+  }
 }
 
 /* BOOKS GRID */
@@ -217,10 +225,12 @@
   gap: 1rem;
 }
 
-.book-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 15px 40px var(--color-shadow);
-  border-color: var(--color-primary);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px var(--color-shadow);
+    border-color: var(--color-primary);
+  }
 }
 
 .book-cover-container {
@@ -260,8 +270,10 @@
   font-weight: 600;
 }
 
-.book-card:hover .book-cover {
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .book-cover {
+    transform: scale(1.05);
+  }
 }
 
 .book-card:hover .book-overlay {
@@ -307,10 +319,12 @@
   flex-shrink: 0;
 }
 
-.book-card:hover .card-page-count-badge {
-  background: color-mix(in srgb, var(--color-500) 22%, transparent);
-  border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
-  color: var(--color-text-strong);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .card-page-count-badge {
+    background: color-mix(in srgb, var(--color-500) 22%, transparent);
+    border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
+    color: var(--color-text-strong);
+  }
 }
 
 .book-genres {

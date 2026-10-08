@@ -28,6 +28,17 @@ def find_user_by_login(identifier):
     return User.objects.filter(username=identifier).first()
 
 
+def check_birth_date(value):
+    """La fecha de nacimiento se fija una sola vez: no puede ser futura ni absurda."""
+    from django.utils import timezone
+    today = timezone.localdate()
+    if value > today:
+        raise serializers.ValidationError('La fecha de nacimiento no puede ser futura.')
+    if value.year < today.year - 120:
+        raise serializers.ValidationError('Revisa la fecha de nacimiento: el año no es válido.')
+    return value
+
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         # Se puede entrar con el nombre de usuario o con el correo.
@@ -120,6 +131,16 @@ class ProfileSerializer(serializers.ModelSerializer):
             'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title', 'has_completed_onboarding',
             'friend_code', 'outfit']
 
+    def validate_birth_date(self, value):
+        # Las cuentas anteriores al filtro de edad la registran aquí una vez; después queda fija
+        # (si hubo un error, la corrige un administrador desde el panel de Django).
+        current = self.instance.birth_date if self.instance else None
+        if current is not None:
+            if value != current:
+                raise serializers.ValidationError('Tu fecha de nacimiento ya está registrada y no se puede cambiar.')
+            return value
+        return check_birth_date(value) if value is not None else value
+
     def validate_tagline(self, value):
         return ' '.join(value.split())
 
@@ -194,8 +215,7 @@ class UserReadSerializer(serializers.ModelSerializer):
     o de otra cuenta. Excluye estrictamente campos de encriptación y hashes.
     """
     profile = ProfileSerializer(read_only=True)
-    birth_date = serializers.DateField(write_only=True, required=False)
-    
+
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'profile', 'created_at']
@@ -249,6 +269,14 @@ class UserWriteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(list(e.messages))
         return value
 
+    def validate_birth_date(self, value):
+        return check_birth_date(value)
+
+    def validate(self, attrs):
+        if self.instance is None and not attrs.get('birth_date'):
+            raise serializers.ValidationError({'birth_date': 'La fecha de nacimiento es requerida para el registro.'})
+        return attrs
+
     def create(self, validated_data):
         birth_date = validated_data.pop('birth_date', None)
         # Desactivar usuario hasta que verifique su email (RegisterUserView envía el correo)
@@ -272,6 +300,8 @@ class UserWriteSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Blindaje anti-escalamiento: eliminar 'role' por si se enviara en el payload
         validated_data.pop('role', None)
+        # La fecha de nacimiento vive en el perfil y se fija una sola vez (ProfileSerializer).
+        validated_data.pop('birth_date', None)
 
         # Hashing seguro de contraseña: si se incluye, se procesa con set_password()
         password = validated_data.pop('password', None)

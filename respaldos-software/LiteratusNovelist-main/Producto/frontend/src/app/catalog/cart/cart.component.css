@@ -95,9 +95,11 @@
   transition: all 0.18s ease;
 }
 
-.clear-cart-btn:hover {
-  background: rgba(224, 93, 82, 0.12);
-  color: #E05D52;
+@media (hover: hover) and (pointer: fine) {
+  .clear-cart-btn:hover {
+    background: rgba(224, 93, 82, 0.12);
+    color: #E05D52;
+  }
 }
 
 .cart-items-list {
@@ -118,8 +120,10 @@
   transition: all 0.2s ease;
 }
 
-.cart-item-card:hover {
-  border-color: color-mix(in srgb, var(--color-500) 40%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .cart-item-card:hover {
+    border-color: color-mix(in srgb, var(--color-500) 40%, transparent);
+  }
 }
 
 .item-visual-wrap {
@@ -220,9 +224,11 @@
   transition: background 0.15s ease;
 }
 
-.qty-btn:hover {
-  background: color-mix(in srgb, var(--color-500) 20%, transparent);
-  color: var(--color-primary-text);
+@media (hover: hover) and (pointer: fine) {
+  .qty-btn:hover {
+    background: color-mix(in srgb, var(--color-500) 20%, transparent);
+    color: var(--color-primary-text);
+  }
 }
 
 .qty-value {
@@ -261,9 +267,11 @@
   transition: all 0.18s ease;
 }
 
-.remove-item-btn:hover {
-  background: rgba(224, 93, 82, 0.15);
-  color: var(--color-error);
+@media (hover: hover) and (pointer: fine) {
+  .remove-item-btn:hover {
+    background: rgba(224, 93, 82, 0.15);
+    color: var(--color-error);
+  }
 }
 
 /* ── Sección Recargas Rápidas ── */
@@ -320,9 +328,11 @@
   transition: all 0.15s ease;
 }
 
-.q-ink-add-btn:hover {
-  background: var(--glow-gold, #D4AF37);
-  color: var(--color-on-primary);
+@media (hover: hover) and (pointer: fine) {
+  .q-ink-add-btn:hover {
+    background: var(--glow-gold, #D4AF37);
+    color: var(--color-on-primary);
+  }
 }
 
 /* ── Columna de Resumen ── */
@@ -396,8 +406,10 @@
   transition: all 0.2s;
 }
 
-.ink-opt-btn:hover {
-  background: var(--color-selected);
+@media (hover: hover) and (pointer: fine) {
+  .ink-opt-btn:hover {
+    background: var(--color-selected);
+  }
 }
 
 .ink-opt-btn.active {
@@ -495,9 +507,11 @@
   box-shadow: 0 4px 16px color-mix(in srgb, var(--color-500) 35%, transparent);
 }
 
-.btn-checkout-webpay:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 22px color-mix(in srgb, var(--color-500) 50%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .btn-checkout-webpay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px color-mix(in srgb, var(--color-500) 50%, transparent);
+  }
 }
 
 .payment-guarantees {
@@ -583,9 +597,11 @@
   transition: transform 0.2s ease;
 }
 
-.ink-pack-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--glow-gold, #D4AF37);
+@media (hover: hover) and (pointer: fine) {
+  .ink-pack-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--glow-gold, #D4AF37);
+  }
 }
 
 .ink-pack-badge {
@@ -652,9 +668,11 @@
   transition: all 0.18s ease;
 }
 
-.btn-add-ink:hover {
-  background: var(--glow-gold, #D4AF37);
-  color: var(--color-on-primary);
+@media (hover: hover) and (pointer: fine) {
+  .btn-add-ink:hover {
+    background: var(--glow-gold, #D4AF37);
+    color: var(--color-on-primary);
+  }
 }
 
 .btn-explore-catalog {
@@ -672,9 +690,11 @@
   transition: all 0.2s ease;
 }
 
-.btn-explore-catalog:hover {
-  border-color: var(--glow-gold, #D4AF37);
-  color: var(--color-primary-text);
+@media (hover: hover) and (pointer: fine) {
+  .btn-explore-catalog:hover {
+    border-color: var(--glow-gold, #D4AF37);
+    color: var(--color-primary-text);
+  }
 }
 
 /* ── Responsivo ── */
@@ -694,4 +714,11 @@
   .glow-title { font-size: 1.85rem; }
   .cart-item-card { flex-wrap: wrap; gap: 10px; }
   .item-subtotal-wrap { margin-left: auto; }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .coupon-input {
+    font-size: 16px;
+  }
 }

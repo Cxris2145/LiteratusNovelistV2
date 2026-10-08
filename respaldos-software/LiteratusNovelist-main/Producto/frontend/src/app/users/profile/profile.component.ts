@@ -8,6 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../core/services/notification.service';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { copyText } from '../../community/clipboard.util';
+import { todayIsoDate } from '../../core/utils/birth-date.util';
 
 export const TAGLINE_MAX = 80;
 export const BIO_MAX = 1000;
@@ -93,6 +94,9 @@ export class ProfileComponent implements OnInit {
   outfit: MaguitoOutfit = {};
   readonly taglineMax = TAGLINE_MAX;
   readonly bioMax = BIO_MAX;
+  readonly today = todayIsoDate();
+  /** La fecha de nacimiento se registra una sola vez; después queda bloqueada. */
+  birthDateLocked = false;
 
   constructor() {
     this.profileForm = this.fb.group({
@@ -100,7 +104,8 @@ export class ProfileComponent implements OnInit {
       email: [{value: '', disabled: true}],
       tagline: ['', Validators.maxLength(TAGLINE_MAX)],
       bio: ['', Validators.maxLength(BIO_MAX)],
-      country: ['']
+      country: [''],
+      birth_date: ['']
     });
   }
 
@@ -124,8 +129,13 @@ export class ProfileComponent implements OnInit {
             email: this.authService.currentUser()?.email,
             tagline: profile.tagline || '',
             bio: profile.bio,
-            country: profile.country
+            country: profile.country,
+            birth_date: profile.birth_date || ''
           });
+          this.birthDateLocked = !!profile.birth_date;
+          const birthDate = this.profileForm.get('birth_date');
+          if (this.birthDateLocked) birthDate?.disable();
+          else birthDate?.enable();
           this.friendCode = profile.friend_code || '';
           this.outfit = profile.outfit || {};
           this.avatarUrl = profile.avatar || null;
@@ -218,7 +228,7 @@ export class ProfileComponent implements OnInit {
     if (this.profileForm.invalid) return;
     this.loading = true;
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       tagline: this.profileForm.get('tagline')?.value || '',
       bio: this.profileForm.get('bio')?.value || '',
       country: this.profileForm.get('country')?.value || '',
@@ -226,6 +236,8 @@ export class ProfileComponent implements OnInit {
       avatar_color: this.avatarColor,
       theme: this.selectedTheme
     };
+    const birthDate = this.profileForm.get('birth_date')?.value;
+    if (!this.birthDateLocked && birthDate) payload['birth_date'] = birthDate;
 
     this.api.patch('users/profile/', payload).subscribe({
       next: (res) => {

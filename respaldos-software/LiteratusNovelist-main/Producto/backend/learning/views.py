@@ -43,6 +43,7 @@ from .services import (
     unequip_wearable
 )
 from .ai_generator import ReadingComprehensionAIGenerator
+from catalog.age import ensure_book_access
 from .content.builder import build_fallback_exercise
 
 
@@ -146,6 +147,9 @@ class LevelSessionView(APIView):
             else:
                 defaults = build_fallback_exercise(level)
             exercise, _ = LearningExercise.objects.update_or_create(level=level, defaults=defaults)
+
+        if exercise.book:
+            ensure_book_access(request.user, exercise.book)
 
         # Partida nueva: las respuestas fijadas de una partida anterior no cuentan.
         reset_locked_answers(request.user, level)

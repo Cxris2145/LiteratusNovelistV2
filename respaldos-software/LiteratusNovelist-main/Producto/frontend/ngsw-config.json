@@ -29,18 +29,6 @@
   ],
   "dataGroups": [
     {
-      "name": "api-inventory",
-      "urls": [
-        "**/api/v1/library/inventory/**"
-      ],
-      "cacheConfig": {
-        "maxSize": 100,
-        "maxAge": "30d",
-        "timeout": "5s",
-        "strategy": "freshness"
-      }
-    },
-    {
       "name": "media-books",
       "urls": [
         "**/media/books/**"

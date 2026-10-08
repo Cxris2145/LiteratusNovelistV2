@@ -128,6 +128,60 @@
           <p class="synopsis-text">{{ book.synopsis }}</p>
         </div>
 
+        <!-- RESUMEN COMPLETO CON IA: incluye el final, por eso solo se muestra si el lector lo abre -->
+        <section class="summary-section glass-panel" aria-labelledby="book-summary-title">
+          <div class="summary-header">
+            <h3 id="book-summary-title">Resumen completo</h3>
+            <span class="spoiler-tag">Contiene spoilers</span>
+          </div>
+
+          <ng-container *ngIf="!showSummary">
+            <p class="summary-intro">
+              Todo el argumento de principio a fin, los personajes principales y los temas de la obra,
+              escrito por la IA a partir del texto íntegro del libro.
+            </p>
+            <button type="button" class="tts-btn summary-btn" (click)="openSummary()"
+                    [disabled]="summaryState === 'loading' || summaryState === 'generating'">
+              <svg lucideSparkles class="icon-sm" aria-hidden="true"></svg>
+              {{ summaryButtonLabel }}
+            </button>
+            <p class="summary-status" *ngIf="summaryState === 'generating'" role="status">
+              Leyendo el libro completo… puede tardar uno o dos minutos. Puedes seguir mirando la ficha.
+            </p>
+            <p class="summary-status summary-status--error" *ngIf="summaryState === 'unavailable'" role="alert">
+              {{ summaryMessage }}
+            </p>
+          </ng-container>
+
+          <div class="summary-body" *ngIf="showSummary && summary">
+            <p class="summary-overview">{{ summary.overview }}</p>
+
+            <h4>Argumento</h4>
+            <p class="summary-paragraph" *ngFor="let paragraph of summary.plot">{{ paragraph }}</p>
+
+            <ng-container *ngIf="summary.characters.length">
+              <h4>Personajes principales</h4>
+              <ul class="summary-characters">
+                <li *ngFor="let character of summary.characters">
+                  <strong>{{ character.name }}</strong> — {{ character.role }}
+                </li>
+              </ul>
+            </ng-container>
+
+            <ng-container *ngIf="summary.themes.length">
+              <h4>Temas</h4>
+              <ul class="summary-themes">
+                <li *ngFor="let theme of summary.themes">{{ theme }}</li>
+              </ul>
+            </ng-container>
+
+            <div class="summary-footer">
+              <p class="summary-note">Generado con IA: puede contener imprecisiones.</p>
+              <button type="button" class="tts-btn minimal" (click)="showSummary = false">Ocultar resumen</button>
+            </div>
+          </div>
+        </section>
+
         <!-- ABOUT AUTHOR CARD -->
         <div class="author-card-container glass-panel fade-in" *ngIf="book.book_authors && book.book_authors.length > 0">
           <ng-container *ngIf="book.book_authors[0] as rel">

@@ -43,9 +43,11 @@
   animation: lit-float 4.5s ease-in-out infinite;
 }
 
-.lit-bubble:hover {
-  border-color: var(--color-primary, #D4AF37);
-  box-shadow: 0 12px 32px rgba(8, 14, 26, 0.15), 0 0 22px color-mix(in srgb, var(--color-500) 25%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .lit-bubble:hover {
+    border-color: var(--color-primary, #D4AF37);
+    box-shadow: 0 12px 32px rgba(8, 14, 26, 0.15), 0 0 22px color-mix(in srgb, var(--color-500) 25%, transparent);
+  }
 }
 
 .lit-bubble.bouncing {
@@ -202,6 +204,7 @@
   max-width: calc(100vw - 32px);
   height: 600px;
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   background: var(--color-surface, #14291F);
   border: 1px solid color-mix(in srgb, var(--color-500) 22%, transparent);
   border-radius: 20px;
@@ -291,9 +294,11 @@
   font-size: 19px;
 }
 
-.lit-icon-btn:hover {
-  background: color-mix(in srgb, var(--color-500) 14%, transparent);
-  color: var(--color-text-strong, #FFFDF8);
+@media (hover: hover) and (pointer: fine) {
+  .lit-icon-btn:hover {
+    background: color-mix(in srgb, var(--color-500) 14%, transparent);
+    color: var(--color-text-strong, #FFFDF8);
+  }
 }
 
 .lit-icon-btn.active {
@@ -314,28 +319,141 @@
   gap: 4px;
 }
 
+/* La fila agrupa la conversación y su papelera: el fondo de hover/activa va en la fila. */
+.lit-history-row {
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: background 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lit-history-row:hover {
+    background: var(--color-hover, #213B2F);
+  }
+}
+
+.lit-history-row.active {
+  background: var(--color-selected, #2B493A);
+  border-color: color-mix(in srgb, var(--color-500) 30%, transparent);
+}
+
+.lit-history-row.confirming {
+  background: var(--color-error-bg, rgba(248, 113, 113, 0.18));
+  border-color: color-mix(in srgb, var(--color-error, #F87171) 45%, transparent);
+}
+
 .lit-history-item {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   text-align: left;
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid transparent;
+  padding: 10px 4px 10px 12px;
+  border: none;
   background: transparent;
+  cursor: pointer;
+}
+
+.lit-history-delete {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  margin-right: 6px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, #C9BEB0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.lit-history-delete .material-symbols-rounded {
+  font-size: 18px;
+}
+
+
+.lit-history-delete:focus-visible {
+  background: var(--color-error-bg, rgba(248, 113, 113, 0.18));
+  color: var(--color-error, #F87171);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lit-history-delete:hover:not(:disabled) {
+    background: var(--color-error-bg, rgba(248, 113, 113, 0.18));
+    color: var(--color-error, #F87171);
+  }
+}
+
+.lit-history-delete:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Con mouse, la papelera se asoma al pasar por la fila; en pantallas táctiles queda siempre visible. */
+@media (hover: hover) {
+  .lit-history-row:not(:hover):not(:focus-within) .lit-history-delete:not(:disabled) {
+    opacity: 0;
+  }
+}
+
+.lit-history-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+}
+
+.lit-history-confirm-text {
+  font: 500 12.5px/1.4 var(--font-ui, sans-serif);
+  color: var(--color-text-primary, #FCFAF2);
+  overflow-wrap: anywhere;
+}
+
+.lit-history-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.lit-confirm-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-500) 30%, transparent);
+  background: transparent;
+  color: var(--color-text-primary, #FCFAF2);
+  font: 600 12px var(--font-ui, sans-serif);
   cursor: pointer;
   transition: background 0.15s ease;
 }
 
-.lit-history-item:hover {
-  background: var(--color-hover, #213B2F);
+@media (hover: hover) and (pointer: fine) {
+  .lit-confirm-btn:hover:not(:disabled) {
+    background: var(--color-hover, #213B2F);
+  }
 }
 
-.lit-history-item.active {
-  background: var(--color-selected, #2B493A);
-  border-color: color-mix(in srgb, var(--color-500) 30%, transparent);
+.lit-confirm-btn--danger {
+  border-color: transparent;
+  background: var(--color-error, #F87171);
+  color: var(--color-surface, #14291F);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lit-confirm-btn--danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-error, #F87171) 85%, var(--color-text-strong, #FFFDF8));
+  }
+}
+
+.lit-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }
 
 .lit-history-item-title {
@@ -480,9 +598,11 @@
   font-size: 20px;
 }
 
-.lit-mic-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-500, #2E604A) 24%, transparent);
-  color: var(--color-primary-text, #E8C15A);
+@media (hover: hover) and (pointer: fine) {
+  .lit-mic-btn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-500, #2E604A) 24%, transparent);
+    color: var(--color-primary-text, #E8C15A);
+  }
 }
 
 .lit-mic-btn:disabled {
@@ -536,8 +656,10 @@
   cursor: not-allowed;
 }
 
-.lit-send-btn:not(:disabled):hover {
-  transform: scale(1.06);
+@media (hover: hover) and (pointer: fine) {
+  .lit-send-btn:not(:disabled):hover {
+    transform: scale(1.06);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -558,6 +680,19 @@
     width: auto;
     max-width: none;
     height: min(620px, calc(100vh - 88px));
+    height: min(620px, calc(100dvh - 88px));
     border-radius: 18px;
   }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .lit-input {
+    font-size: 16px;
+  }
+}
+
+/* iPhone: estos elementos fijos quedan sobre la barra de inicio, no debajo (0 donde no hay barra). */
+.lit-bubble, .lit-panel {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
 }

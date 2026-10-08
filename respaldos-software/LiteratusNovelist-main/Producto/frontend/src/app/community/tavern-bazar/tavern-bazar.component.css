@@ -658,3 +658,10 @@
   .bz-grid { grid-template-columns: minmax(0, 1fr); }
   .bz-fitting { grid-template-columns: 92px minmax(0, 1fr); }
 }
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .bz-search input {
+    font-size: 16px;
+  }
+}

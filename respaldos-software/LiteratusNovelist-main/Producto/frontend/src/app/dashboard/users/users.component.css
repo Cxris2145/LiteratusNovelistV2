@@ -134,9 +134,11 @@
   transition: all 0.15s ease;
 }
 
-.badge-btn:hover {
-  border-color: var(--color-border-strong);
-  color: var(--color-text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .badge-btn:hover {
+    border-color: var(--color-border-strong);
+    color: var(--color-text-primary);
+  }
 }
 
 .badge-btn.active {
@@ -249,9 +251,11 @@
   transition: all 0.15s ease;
 }
 
-.ink-pill-btn:hover {
-  border-color: var(--color-accent);
-  transform: scale(1.03);
+@media (hover: hover) and (pointer: fine) {
+  .ink-pill-btn:hover {
+    border-color: var(--color-accent);
+    transform: scale(1.03);
+  }
 }
 
 .ink-pill-btn .material-symbols-outlined {
@@ -286,9 +290,11 @@
   transition: all 0.15s ease;
 }
 
-.action-icon-btn:hover {
-  background: var(--color-surface-elevated);
-  color: var(--color-text-strong);
+@media (hover: hover) and (pointer: fine) {
+  .action-icon-btn:hover {
+    background: var(--color-surface-elevated);
+    color: var(--color-text-strong);
+  }
 }
 
 .block-btn.blocked {
@@ -428,4 +434,11 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .search-box input, .form-input {
+    font-size: 16px;
+  }
 }

@@ -47,7 +47,7 @@
 
   <!-- Barra Horizontal de Géneros -->
   <section class="horizontal-genres-bar" *ngIf="!isHome">
-    <div class="genres-scroll-container">
+    <div class="genres-scroll-container" (scroll)="moreGenresOpen = false">
 
       <!-- Pinned Genres -->
       <button *ngFor="let p of PINNED_GENRES"
@@ -67,34 +67,36 @@
           <span *ngIf="!isMoreGenreActive">Más categorías ▾</span>
           <span *ngIf="isMoreGenreActive">{{ activeGenreName }} <span class="tab-close" (click)="selectGenre(null); $event.stopPropagation()">✕</span></span>
         </button>
-
-        <!-- Dropdown flotante con todas las demás categorías -->
-        <div class="more-genres-dropdown glass-panel" *ngIf="moreGenresOpen" (click)="$event.stopPropagation()">
-          <div class="dropdown-header">
-            <span class="dropdown-title">Todas las Categorías</span>
-            <input type="text"
-                   [(ngModel)]="moreGenresSearch"
-                   placeholder="Filtrar género..."
-                   class="dropdown-search-input"
-                   (click)="$event.stopPropagation()">
-          </div>
-
-          <div class="dropdown-genres-list">
-            <button *ngFor="let g of otherGenres; trackBy: trackGenre"
-                    type="button"
-                    class="dropdown-genre-item"
-                    [class.active]="activeGenreSlug === g.slug"
-                    (click)="selectGenre(g.slug)">
-              <span class="dg-name">{{ g.name }}</span>
-              <span class="dg-count">{{ g.book_count }}</span>
-            </button>
-            <div class="no-results-text" *ngIf="otherGenres.length === 0">
-              No se encontraron categorías.
-            </div>
-          </div>
-        </div>
       </div>
 
+    </div>
+
+    <!-- Dropdown flotante con todas las demás categorías. Va fuera de la fila con scroll
+         horizontal porque ese overflow lo recortaba y no se veía. -->
+    <div class="more-genres-dropdown glass-panel" *ngIf="moreGenresOpen"
+         [style.left.px]="moreGenresLeft" (click)="$event.stopPropagation()">
+      <div class="dropdown-header">
+        <span class="dropdown-title">Todas las Categorías</span>
+        <input type="text"
+               [(ngModel)]="moreGenresSearch"
+               placeholder="Filtrar género..."
+               class="dropdown-search-input"
+               (click)="$event.stopPropagation()">
+      </div>
+
+      <div class="dropdown-genres-list">
+        <button *ngFor="let g of otherGenres; trackBy: trackGenre"
+                type="button"
+                class="dropdown-genre-item"
+                [class.active]="activeGenreSlug === g.slug"
+                (click)="selectGenre(g.slug)">
+          <span class="dg-name">{{ g.name }}</span>
+          <span class="dg-count">{{ g.book_count }}</span>
+        </button>
+        <div class="no-results-text" *ngIf="otherGenres.length === 0">
+          No se encontraron categorías.
+        </div>
+      </div>
     </div>
   </section>
 
@@ -109,6 +111,16 @@
         <span class="material-symbols-rounded chip-icon">{{ chip.icon }}</span>
         <span>{{ chip.label }}</span>
       </button>
+
+      <!-- Control parental: solo para mayores de 18 (a un menor el servidor no le muestra obras +18) -->
+      <div class="audience-toggle" *ngIf="isAdultReader" role="group" aria-label="Filtrar por edad">
+        <button type="button" class="audience-btn" [class.active]="audienceFilter === 'general'"
+                [attr.aria-pressed]="audienceFilter === 'general'" (click)="setAudience('general')"
+                title="Solo obras aptas para menores de 18">-18</button>
+        <button type="button" class="audience-btn audience-btn--adult" [class.active]="audienceFilter === 'adult'"
+                [attr.aria-pressed]="audienceFilter === 'adult'" (click)="setAudience('adult')"
+                title="Solo obras para mayores de 18">+18</button>
+      </div>
     </div>
 
     <!-- Selector de Orden -->
@@ -133,7 +145,7 @@
   </section>
 
   <!-- Sección: Recomendados para ti (Editorial Showcase) -->
-  <section class="recommendations-section" *ngIf="!isHome && recommendedBooks.length > 0 && !searchTerm && !activeGenreSlug && !activeQuickFilter && currentPage === 1">
+  <section class="recommendations-section" *ngIf="!isHome && recommendedBooks.length > 0 && !searchTerm && !activeGenreSlug && !activeQuickFilter && audienceFilter === 'all' && currentPage === 1">
     <div class="rec-section-header">
       <div class="rec-title-group">
         <h2 class="rec-title">Recomendados para ti</h2>
@@ -178,23 +190,11 @@
   </section>
 
   <!-- Indicador de Filtros Activos & Conteo -->
-  <div class="active-filters-bar" *ngIf="!isHome && (activeGenreName || searchTerm || activeQuickFilter || hasActiveAdvancedFilters)">
+  <div class="active-filters-bar" *ngIf="!isHome && activeFilterChips.length">
     <div class="chips-list">
-      <span class="active-chip" *ngIf="activeGenreName">
-        Categoría: {{ activeGenreName }}
-        <button type="button" class="chip-remove" (click)="selectGenre(null)">✕</button>
-      </span>
-      <span class="active-chip" *ngIf="searchTerm">
-        Búsqueda: «{{ searchTerm }}»
-        <button type="button" class="chip-remove" (click)="searchTerm = ''; fetchBooks()">✕</button>
-      </span>
-      <span class="active-chip" *ngIf="activeQuickFilter">
-        Filtro: {{ activeQuickFilter }}
-        <button type="button" class="chip-remove" (click)="toggleQuickFilter(activeQuickFilter)">✕</button>
-      </span>
-      <span class="active-chip" *ngIf="hasActiveAdvancedFilters">
-        Filtros avanzados activos
-        <button type="button" class="chip-remove" (click)="resetAdvancedFilters()">✕</button>
+      <span class="active-chip" *ngFor="let chip of activeFilterChips; trackBy: trackChip">
+        {{ chip.label }}
+        <button type="button" class="chip-remove" (click)="chip.remove()" [attr.aria-label]="'Quitar ' + chip.label">✕</button>
       </span>
     </div>
     <button class="clear-all-link" type="button" (click)="clearFilters()">Restablecer todo</button>

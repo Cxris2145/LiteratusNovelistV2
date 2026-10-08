@@ -99,6 +99,8 @@ export class AuthService {
   }
 
   setUser(user: UserProfile): void {
+    const previousBirthDate = this._currentUser()?.profile?.birth_date;
+    if (previousBirthDate !== user.profile?.birth_date) this.api.invalidate();
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this._currentUser.set(user);
   }
@@ -120,6 +122,8 @@ export class AuthService {
   }
 
   clearTokens(): void {
+    this.api.invalidate();
+    sessionStorage.removeItem('literatus_static_catalog_p1');
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_KEY);
     localStorage.removeItem(this.USER_KEY);
@@ -133,6 +137,8 @@ export class AuthService {
    * cuenta cargada: en ese caso hay que recargar la app (ver `logout`).
    */
   startSession(access: string, refresh: string, user: UserProfile | null | undefined): boolean {
+    this.api.invalidate();
+    sessionStorage.removeItem('literatus_static_catalog_p1');
     const previous = this._currentUser();
     const switchedAccount = !!previous && previous.id !== user?.id;
     void this.clearOfflineApiCache();

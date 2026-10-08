@@ -8,6 +8,8 @@ from .views import (
     UserInventoryViewSet,
     ReadingProgressViewSet,
     UserBookmarkViewSet,
+    UserHighlightViewSet,
+    UserPostItViewSet,
     AchievementCatalogViewSet,
     UserAchievementViewSet,
     ReadingSessionViewSet,
@@ -24,6 +26,10 @@ router.register(r'inventory', UserInventoryViewSet, basename='inventory')
 router.register(r'progress', ReadingProgressViewSet, basename='progress')
 # /api/v1/library/bookmarks/
 router.register(r'bookmarks', UserBookmarkViewSet, basename='bookmark')
+# /api/v1/library/highlights/?inventory=<id>  (subrayados del lector)
+router.register(r'highlights', UserHighlightViewSet, basename='highlight')
+# /api/v1/library/postits/?inventory=<id>  (post-its del lector, máx. 30 por libro)
+router.register(r'postits', UserPostItViewSet, basename='postit')
 # /api/v1/library/favorites/
 router.register(r'favorites', UserFavoriteViewSet, basename='favorite')
 # /api/v1/library/achievements/catalog/

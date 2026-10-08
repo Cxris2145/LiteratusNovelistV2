@@ -872,6 +872,7 @@
 
 .how-step {
   min-height: 72vh;
+  min-height: 72svh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -882,6 +883,7 @@
 
 .how-step:first-of-type {
   min-height: 56vh;
+  min-height: 56svh;
   justify-content: flex-start;
   padding-top: 12vh;
 }
@@ -1645,9 +1647,11 @@
   transition: all 260ms var(--ease-editorial, ease);
 }
 
-.carousel-dot:hover {
-  background: var(--home-ink, rgba(255, 255, 255, 0.7));
-  transform: scale(1.25);
+@media (hover: hover) and (pointer: fine) {
+  .carousel-dot:hover {
+    background: var(--home-ink, rgba(255, 255, 255, 0.7));
+    transform: scale(1.25);
+  }
 }
 
 .carousel-dot.active {
@@ -2190,6 +2194,7 @@
   .how-step,
   .how-step:first-of-type {
     min-height: 62vh;
+    min-height: 62svh;
     justify-content: flex-end;
     padding: 0 0 12vh;
   }

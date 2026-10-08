@@ -20,7 +20,8 @@ import { Capacitor } from '@capacitor/core';
 import { ReadingSessionService } from '../../core/services/reading-session.service';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { ReaderTabsService } from '../../core/services/reader-tabs.service';
-import { ReaderBlock, parseChapterBlocks } from '../../core/utils/chapter-parser.util';
+import { ReaderBlock, ReaderToken, WordBounds, parseChapterBlocks, setWordBounds } from '../../core/utils/chapter-parser.util';
+import { swapTheme } from '../../core/utils/theme-swap.util';
 import { VocabularyJump } from './vocabulary-panel/vocabulary-panel.component';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -42,6 +43,34 @@ interface PageBookmark {
   createdAt: string;
   /** "Pág. 34": se calcula al abrir el índice (medir cada vez que Angular revisa la vista sería caro). */
   pageLabel?: string;
+}
+
+type HighlightColor = 'gold' | 'blue' | 'green' | 'pink';
+
+/** Pasaje subrayado guardado en el backend (UserHighlight). */
+interface ReaderHighlight {
+  id: string;
+  chapter: string;
+  start_word: number;
+  end_word: number;
+  text: string;
+  color: HighlightColor;
+}
+
+// Post-its en el margen: tamaño del papelito y de su nota (deben coincidir con reader.component.css).
+const POSTIT_TAB_SIZE = 38;
+const POSTIT_CARD_WIDTH = 260;
+const POSTIT_CARD_HEIGHT = 190;
+// Curvas para las animaciones hechas con element.animate(): las mismas de los tokens CSS.
+const READER_EASE = 'cubic-bezier(0.165, 0.84, 0.44, 1)'; // = --reader-ease (entrar/salir)
+const EASE_IN_OUT = 'cubic-bezier(0.77, 0, 0.175, 1)';    // = --ease-in-out (moverse en pantalla)
+
+/** Post-it en el margen, anclado a una palabra de su línea (UserPostIt). Sin `id` = recién creado, sin guardar. */
+interface ReaderPostIt {
+  id: string;
+  chapter: string;
+  word: number;
+  text: string;
 }
 
 @Component({
@@ -136,6 +165,44 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   tocTab: 'chapters' | 'bookmarks' = 'chapters';
   bookmarkToastText: string = '';
   private bookmarkToastTimer: any = null;
+
+  // ── SUBRAYADOS ───────────────────────────────────────────────────
+  highlights: ReaderHighlight[] = [];
+  /** Subrayado abierto en la tarjeta flotante (cambiar color o quitar). */
+  activeHighlight: ReaderHighlight | null = null;
+  highlightPopoverX: number = 0;
+  highlightPopoverY: number = 0;
+  highlightPopoverBelow: boolean = false;
+  isHighlightBusy: boolean = false;
+  /** Palabras de la selección actual, leídas al aparecer el menú (al tocar un botón puede perderse). */
+  private pendingSelection: { start: number; end: number; text: string } | null = null;
+
+  // ── POST-ITS (en los márgenes de la página) ──────────────────────
+  readonly maxPostIts = 30;
+  postIts: ReaderPostIt[] = [];
+  /** Post-it abierto (o recién creado, sin `id`) en su nota. */
+  activePostIt: ReaderPostIt | null = null;
+  postItCardX: number = 0;
+  postItCardY: number = 0;
+  /** Lado del papelito: la nota se abre hacia dentro de la página y crece desde él. */
+  postItCardSide: 'left' | 'right' = 'right';
+  isEditingPostIt: boolean = false;
+  postItDraft: string = '';
+  isPostItBusy: boolean = false;
+
+  get postItCount(): number {
+    return this.postIts.filter(p => p.id).length;
+  }
+
+  /** Los post-its del capítulo abierto: los papelitos que van en los márgenes. */
+  get chapterPostIts(): ReaderPostIt[] {
+    const chapterId = this.chapters[this.currentPage - 1]?.id;
+    return this.postIts.filter(p => p.chapter === chapterId);
+  }
+
+  postItKey(postIt: ReaderPostIt): string {
+    return postIt.id || 'nuevo';
+  }
 
   toastIcon: string = '🔖';
   bookmarkResumeLabel: string = 'Reanudando marcador en';
@@ -441,7 +508,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Activar modo inmersivo nativo de OS apenas entra al lector
     this.toggleImmersiveMode(true);
 
-    this.saveProgressSubject.pipe(debounceTime(3000)).subscribe(p => this.syncProgressToBackend(p));
+    // El scroll avisa fuera de la zona de Angular; el guardado (y lo que muestre al volver) va dentro.
+    this.saveProgressSubject.pipe(debounceTime(3000)).subscribe(p => this.ngZone.run(() => this.syncProgressToBackend(p)));
 
     this.loadInitialData();
     this.loadInkBalance();
@@ -647,8 +715,33 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.rulerCanvasEl = canvas;
       canvas.addEventListener('mousemove', this.handleRulerMouseMove);
       canvas.addEventListener('mouseleave', this.handleRulerMouseLeave);
+      // Por lo mismo, el scroll (también el de cada giro de página en vista libro) y la
+      // selección de texto van fuera de la zona: solo vuelven a ella si cambia algo visible.
+      canvas.addEventListener('scroll', this.handleCanvasScroll, { passive: true });
+      canvas.addEventListener('pointerdown', this.handleCanvasPointerDown, { passive: true });
+      document.addEventListener('selectionchange', this.handleSelectionChange);
+      // Post-its en los márgenes: se arrastran desde su capa y se recolocan si el lienzo cambia de
+      // tamaño (letra, ancho, barra que se oculta); el scroll y los giros de página van por onCanvasScroll.
+      document.querySelector('.postit-margin-layer')?.addEventListener('pointerdown', this.handleMarginPointerDown as EventListener);
+      this.canvasResizeObserver = new ResizeObserver(() => this.scheduleMarginLayout());
+      this.canvasResizeObserver.observe(canvas);
     });
   }
+
+  private canvasResizeObserver: ResizeObserver | null = null;
+
+  private handleCanvasScroll = (event: Event) => this.onCanvasScroll(event);
+
+  /** Dónde empezó el último clic en el lienzo: un arrastre (seleccionar texto) no es un clic. */
+  private canvasPointerDown: { x: number; y: number; hadSelection: boolean; hadPopover: boolean } | null = null;
+  private handleCanvasPointerDown = (event: PointerEvent) => {
+    this.canvasPointerDown = {
+      x: event.clientX,
+      y: event.clientY,
+      hadSelection: this.showWordMenu || !!window.getSelection()?.toString().trim(),
+      hadPopover: !!this.activeHighlight || !!this.activePostIt
+    };
+  };
 
   loadInitialData() {
     if (this.isInitialDataLoaded || this.isLoadingInitialData) return;
@@ -725,8 +818,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.rulerCanvasEl) {
       this.rulerCanvasEl.removeEventListener('mousemove', this.handleRulerMouseMove);
       this.rulerCanvasEl.removeEventListener('mouseleave', this.handleRulerMouseLeave);
+      this.rulerCanvasEl.removeEventListener('scroll', this.handleCanvasScroll);
+      this.rulerCanvasEl.removeEventListener('pointerdown', this.handleCanvasPointerDown);
       this.rulerCanvasEl = null;
     }
+    document.removeEventListener('selectionchange', this.handleSelectionChange);
+    clearTimeout(this.selectionMenuTimer);
+    this.endPostItDrag();
+    document.querySelector('.postit-margin-layer')?.removeEventListener('pointerdown', this.handleMarginPointerDown as EventListener);
+    this.canvasResizeObserver?.disconnect();
+    if (this.marginLayoutRaf !== null) cancelAnimationFrame(this.marginLayoutRaf);
     if (this.rulerRafId !== null) {
       cancelAnimationFrame(this.rulerRafId);
       this.rulerRafId = null;
@@ -781,7 +882,28 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  onCanvasScroll(event: any) {
+  /**
+   * Scroll del lienzo. Corre FUERA de la zona de Angular (ver ngAfterViewInit): cada pasada de
+   * detección de cambios recorre las miles de palabras del capítulo, y el scroll dispara decenas
+   * de eventos por segundo (también al girar de pliego en vista libro). Solo se vuelve a la zona
+   * cuando cambia algo que el template muestra; la barra de progreso se mueve directo en el DOM.
+   */
+  onCanvasScroll(event: Event) {
+    this.scheduleMarginLayout(); // los papelitos acompañan su línea (y se ocultan si sale de la vista)
+    const before = this.scrollViewKey();
+    this.applyCanvasScroll(event.target as HTMLElement);
+    if (this.scrollViewKey() !== before) this.ngZone.run(() => this.cdr.markForCheck());
+  }
+
+  private scrollViewKey(): string {
+    return `${this.isToolbarHidden}|${this.isNearEnd}|${this.showBackToReadingBtn}|${!!this.activeHighlight}|${!!this.activePostIt}`;
+  }
+
+  private applyCanvasScroll(el: HTMLElement) {
+    // Las tarjetas (subrayado, post-it) flotan fijas sobre la página: si el texto se mueve, quedan
+    // descolgadas. Un post-it a medio escribir se deja abierto.
+    if (this.activeHighlight) this.closeHighlightPopover();
+    if (this.activePostIt && !this.isEditingPostIt) this.closePostIt();
     if (!this.isFullyRendered) return; // IGNORAR SCROLL HASTA QUE SE TERMINE DE RENDERIZAR TODO PARA NO SOBRESCRIBIR EL PROGRESO
 
     this.invalidateRulerLines(); // barato (sólo vacía el arreglo); el recálculo real es perezoso
@@ -790,7 +912,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isDoublePageView) return;
     this.updateNarrationMarker();
     this.scheduleVisibleRefresh();
-    const el = event.target;
     const currentScrollTop = el.scrollTop;
 
     // Ocultar/mostrar barra superior al hacer scroll
@@ -813,6 +934,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Actualizar barra de progreso visual y botón "Siguiente"
     this.chapterScrollPercent = Math.min(100, Math.max(0, scrollPercent * 100));
+    const bar = document.querySelector('.reading-progress-bar') as HTMLElement | null;
+    if (bar) bar.style.width = `${this.chapterScrollPercent}%`;
     this.isNearEnd = scrollPercent >= 0.98 || (scrollHeight - currentScrollTop) < 50 || scrollHeight <= 50;
 
     // Calcular página decimal exacta (ej. 1.5 significa mitad de capítulo 1)
@@ -862,8 +985,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onCanvasClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    // Ignorar si el usuario clickeó en un elemento interactivo (palabra, imagen, botón)
-    if (target.closest('.word') || target.closest('img') || target.closest('button')) {
+    const down = this.canvasPointerDown;
+    this.canvasPointerDown = null;
+
+    if (this.activeHighlight && !target.closest('.word')) this.closeHighlightPopover();
+    if (this.activePostIt && !this.isEditingPostIt) this.closePostIt();
+
+    // Soltar el mouse tras arrastrar para seleccionar texto (o tocar para cerrar el menú de la
+    // selección) también genera un clic: no es tocar una palabra ni pasar de página.
+    const dragged = !!down && Math.hypot(event.clientX - down.x, event.clientY - down.y) > 6;
+    if (dragged || down?.hadSelection || window.getSelection()?.toString().trim()) return;
+
+    // Las palabras no tienen un listener cada una: el clic se resuelve aquí.
+    const word = target.closest('.word') as HTMLElement | null;
+    if (word) {
+      const idx = parseInt(word.id.slice('word-'.length), 10);
+      if (!isNaN(idx)) this.onWordClick(idx);
+      return;
+    }
+    // Ignorar si el usuario clickeó en un elemento interactivo (imagen, botón), o si el toque
+    // solo cerró la tarjeta de un subrayado.
+    if (target.closest('img') || target.closest('button') || down?.hadPopover) {
       return;
     }
 
@@ -959,9 +1101,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   setTheme(theme: ReaderComponent['currentTheme']) {
-    this.currentTheme = theme;
-    this.applyTheme();
     localStorage.setItem('reader-theme', theme);
+    if (theme === this.currentTheme) return;
+    // De una vez y con un fundido corto: si no, el lienzo y las miles de palabras animan su color.
+    swapTheme(() => {
+      this.currentTheme = theme;
+      this.applyTheme();
+      this.cdr.detectChanges(); // la clase del contenedor ([ngClass]) cambia dentro del fundido
+    });
   }
 
   setHideProgress(value: boolean) {
@@ -1661,6 +1808,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.hasPremiumNarration = res.has_premium_narration;
           this.totalPages = res.chapters.length;
           this.loadBookmarks();
+          this.loadHighlights();
+          this.loadPostIts();
           if (this.currentPage > this.totalPages) { this.currentPage = this.totalPages; } else if (this.currentPage < 1) { this.currentPage = 1; }
           this.renderCurrentChapter();
           this.loadAvatars(); // Cargar personajes una vez tenemos el inventario
@@ -1694,22 +1843,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    *  de seguir empujando bloques viejos sobre `renderedBlocks` del capítulo nuevo. */
   private renderToken = 0;
 
-  isActiveSentence(sentence: any): boolean {
-    if (this.currentWordIndex < 0 || !sentence || !sentence.tokens) return false;
-    const words = sentence.tokens.filter((t: any) => t.isWord);
-    if (words.length === 0) return false;
-    const firstIdx = words[0].idx;
-    const lastIdx = words[words.length - 1].idx;
-    return this.currentWordIndex >= firstIdx && this.currentWordIndex <= lastIdx;
+  /** Se consulta por cada oración y párrafo en cada detección de cambios: los límites
+   *  vienen calculados de parseAndRenderChapter (setWordBounds), sin recorrer tokens. */
+  isActiveSentence(sentence: WordBounds): boolean {
+    const i = this.currentWordIndex;
+    return i >= 0 && sentence.firstWord! >= 0 && i >= sentence.firstWord! && i <= sentence.lastWord!;
   }
 
   /** Para "Modo de foco → Párrafo": ¿la palabra activa (clic o TTS) cae dentro
    *  de este bloque (párrafo/encabezado)? */
-  isActiveBlock(block: { tokens: Array<any> }): boolean {
-    if (this.currentWordIndex < 0 || !block || !block.tokens || block.tokens.length === 0) return false;
-    const words = block.tokens.filter((t: any) => t.isWord);
-    if (words.length === 0) return false;
-    return this.currentWordIndex >= words[0].idx && this.currentWordIndex <= words[words.length - 1].idx;
+  isActiveBlock(block: WordBounds): boolean {
+    const i = this.currentWordIndex;
+    return i >= 0 && block.firstWord! >= 0 && i >= block.firstWord! && i <= block.lastWord!;
   }
 
   /** Parsea el HTML del capítulo y crea la estructura de bloques/tokens para el *ngFor */
@@ -1829,7 +1974,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         const len = b.tokens.reduce((acc, t) => acc + (t.text?.length || 0), 0);
         b.long = len > this.LONG_PARA_CHARS;
       }
+      setWordBounds(b);
+      b.sentences?.forEach(setWordBounds);
     });
+
+    this.closeHighlightPopover();
+    this.closePostIt();
+    this.applyHighlightsToTokens();
 
     this.totalWordCount = wordCount;
     this.safeChapterHtml = this.sanitizer.bypassSecurityTrustHtml(''); // vaciar el fallback
@@ -1942,6 +2093,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** El capítulo terminó de renderizarse: medir pliegos (y otra vez cuando carguen las fuentes). */
   private onChapterLaidOut() {
+    this.scheduleMarginLayout();
     if (this.isDoublePageView) {
       setTimeout(() => this.recalculateSpreads(), 60);
       // Una fuente web que llega tarde cambia el ancho de cada renglón y con él los pliegos.
@@ -2245,6 +2397,22 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Si el Toque Fluido está activo, ignorar el click en palabras para evitar
     // el highlight accidental del audio al hacer scroll táctil
     if (this.tapToScrollActive) return;
+
+    // Tocar un pasaje subrayado abre su tarjeta (color, quitar) en vez de mover la narración.
+    const selecting = !!window.getSelection()?.toString().trim();
+    const highlight = this.highlightAtWord(wordIdx);
+    if (highlight && !selecting) {
+      this.openHighlightPopover(highlight);
+      return;
+    }
+    this.closeHighlightPopover();
+    this.closePostIt();
+
+    // Tocar otra vez la palabra marcada la desmarca (y con ella el foco de frase o párrafo).
+    if (wordIdx === this.currentWordIndex && this.canClearWordFocus) {
+      this.clearWordFocus();
+      return;
+    }
 
     if (this.currentAudioMode === 'pro') {
       this.audioService.seekToWord(wordIdx, this.currentChapterPlainText);
@@ -2718,6 +2886,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('window:resize')
   onWindowResize() {
     this.invalidateRulerLines(); // el reflow puede desplazar todas las líneas
+    this.scheduleMarginLayout();
     if (this.isDoublePageView) {
       this.recalculateSpreads(true);
     } else {
@@ -2818,7 +2987,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.visibleRefreshRaf !== null) return;
     this.visibleRefreshRaf = requestAnimationFrame(() => {
       this.visibleRefreshRaf = null;
+      const before = this.currentSpreadBookmark;
       this.refreshVisiblePage();
+      // Agendado desde el scroll (fuera de la zona): el ícono de marcador solo se repinta si cambió.
+      if (this.currentSpreadBookmark !== before && !NgZone.isInAngularZone()) {
+        this.ngZone.run(() => this.cdr.markForCheck());
+      }
     });
   }
 
@@ -3119,6 +3293,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ── NARRACIÓN DESDE EL LIBRO ──────────────────────────────────────
+
+  /** Hay una palabra marcada a mano (no la que va leyendo la narración en este momento). */
+  get canClearWordFocus(): boolean {
+    return this.currentWordIndex >= 0 && !this.isNarrationPlaying && !this.isAudioLoading;
+  }
+
+  /**
+   * Quita la palabra marcada y el foco de frase/párrafo que la acompaña. Esa palabra también es
+   * la posición guardada de la narración (por eso volvía al recargar): se borra, y "Escuchar"
+   * parte desde la página a la vista.
+   */
+  clearWordFocus() {
+    if (!this.canClearWordFocus) return;
+    this.currentWordIndex = -1;
+    this.lastAudioWordIndex = 0;
+    this.saveAudioPosition();
+    this.showBackToReadingBtn = false;
+  }
 
   get isNarrationPlaying(): boolean {
     if (this.currentAudioMode === 'kokoro') return this.kokoroVoice.isSpeaking$.value;
@@ -3522,8 +3714,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   dictionaryResult: any = null;
   isDictionaryLoading: boolean = false;
 
-  @HostListener('document:selectionchange', ['$event'])
+  /**
+   * selectionchange llega una vez por cuadro mientras se arrastra para seleccionar. Se escucha
+   * FUERA de la zona de Angular (ver ngAfterViewInit): el menú se arma una sola vez, cuando la
+   * selección se queda quieta, y solo entonces se vuelve a la zona.
+   */
+  private selectionMenuTimer: any = null;
+  private handleSelectionChange = () => this.onSelectionChange();
+
   onSelectionChange() {
+    clearTimeout(this.selectionMenuTimer);
     const selection = window.getSelection();
     if (selection && selection.toString().trim().length > 0) {
 
@@ -3531,22 +3731,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       const anchorNode = selection.anchorNode;
       const readingCanvas = document.querySelector('.reading-canvas');
       if (anchorNode && readingCanvas && !readingCanvas.contains(anchorNode)) {
-        this.showWordMenu = false;
+        if (this.showWordMenu) this.ngZone.run(() => (this.showWordMenu = false));
         return;
       }
 
-      // Usar setTimeout para dejar que el DOM se asiente
-      setTimeout(() => {
+      this.selectionMenuTimer = setTimeout(() => this.ngZone.run(() => {
         if (selection.rangeCount === 0) return;
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         this.selectedText = selection.toString().trim();
+        this.pendingSelection = this.selectionWords(range);
+        this.closeHighlightPopover();
+        this.closePostIt();
 
         // Coordenadas base
         this.wordMenuX = rect.left + (rect.width / 2);
 
-        // Control de bordes (si está muy arriba, mostrar abajo)
-        if (rect.top < 80) {
+        // Control de bordes: el menú mide ~300 px; si no cabe arriba y abajo hay más espacio, va abajo
+        if (rect.top < 320 && window.innerHeight - rect.bottom > rect.top) {
           this.wordMenuY = rect.bottom + 15;
           this.isMenuBelow = true;
         } else {
@@ -3555,11 +3757,603 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         this.showWordMenu = true;
-      }, 50);
-    } else {
-      this.showWordMenu = false;
-      this.selectedText = '';
+      }), 80);
+    } else if (this.showWordMenu || this.selectedText) {
+      this.ngZone.run(() => {
+        this.showWordMenu = false;
+        this.selectedText = '';
+      });
     }
+  }
+
+  // ── SUBRAYADOS ────────────────────────────────────────────────────
+  loadHighlights() {
+    if (!this.inventoryId) return;
+    this.api.get<ReaderHighlight[]>(`library/highlights/?inventory=${this.inventoryId}`).subscribe({
+      next: (list) => {
+        this.highlights = list || [];
+        this.applyHighlightsToTokens();
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.warn('No se pudieron cargar los subrayados', err)
+    });
+  }
+
+  /** Marca en cada palabra del capítulo abierto el color de su subrayado. */
+  private applyHighlightsToTokens() {
+    const chapterId = this.chapters[this.currentPage - 1]?.id;
+    const byWord = new Map<number, ReaderHighlight>();
+    for (const h of this.highlights) {
+      if (h.chapter !== chapterId) continue;
+      for (let i = h.start_word; i <= h.end_word; i++) byWord.set(i, h); // el más reciente queda encima
+    }
+    const paint = (tok: ReaderToken) => {
+      if (!tok.isWord) return;
+      const h = byWord.get(tok.idx);
+      tok.hl = h ? h.color : null;
+    };
+    this.titleTokens.forEach(paint);
+    this.parsedBlocks.forEach(block => block.tokens.forEach(paint));
+  }
+
+  private highlightAtWord(wordIdx: number): ReaderHighlight | null {
+    const chapterId = this.chapters[this.currentPage - 1]?.id;
+    let found: ReaderHighlight | null = null;
+    for (const h of this.highlights) {
+      if (h.chapter === chapterId && wordIdx >= h.start_word && wordIdx <= h.end_word) found = h;
+    }
+    return found;
+  }
+
+  /** Primera y última palabra (`word-N`) que toca la selección, con el texto completo de esas palabras. */
+  private selectionWords(range: Range): { start: number; end: number; text: string } | null {
+    const container = range.commonAncestorContainer;
+    const root = container instanceof HTMLElement ? container : container.parentElement;
+    if (!root) return null;
+    const textNodes = (el: HTMLElement) => {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const nodes: Node[] = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      return nodes;
+    };
+    // Una selección que termina justo al inicio de una palabra (o empieza al final) no la incluye.
+    const touches = (word: HTMLElement) => {
+      if (!range.intersectsNode(word)) return false;
+      const nodes = textNodes(word);
+      if (range.endOffset === 0 && range.endContainer === nodes[0]) return false;
+      const last = nodes[nodes.length - 1];
+      return !(range.startContainer === last && range.startOffset === (last?.textContent?.length ?? 0));
+    };
+    const single = root.closest('.word') as HTMLElement | null;
+    const words = single ? [single] : Array.from(root.querySelectorAll<HTMLElement>('.word')).filter(touches);
+    const indexed = words
+      .map(el => ({ el, idx: parseInt(el.id.replace('word-', ''), 10) }))
+      .filter(w => !isNaN(w.idx));
+    if (indexed.length === 0) return null;
+    return {
+      start: indexed[0].idx,
+      end: indexed[indexed.length - 1].idx,
+      text: indexed.map(w => w.el.textContent?.trim() || '').join(' ')
+    };
+  }
+
+  createHighlight(color: HighlightColor) {
+    const selection = this.pendingSelection;
+    const chapter = this.chapters[this.currentPage - 1];
+    if (!selection || !chapter || !this.inventoryId || this.isHighlightBusy) return;
+
+    const same = this.highlights.find(h =>
+      h.chapter === chapter.id && h.start_word === selection.start && h.end_word === selection.end);
+    this.dismissSelection();
+    if (same) { // subrayar otra vez el mismo pasaje solo le cambia el color
+      this.updateHighlight(same, color);
+      return;
+    }
+
+    this.isHighlightBusy = true;
+    this.api.post<ReaderHighlight>('library/highlights/', {
+      inventory: this.inventoryId, chapter: chapter.id,
+      start_word: selection.start, end_word: selection.end, text: selection.text, color
+    }).subscribe({
+      next: (created) => {
+        this.isHighlightBusy = false;
+        this.highlights.push(created);
+        this.applyHighlightsToTokens();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isHighlightBusy = false;
+        this.notificationService.error(this.apiErrorMessage(err, 'No se pudo guardar el subrayado.'), 'Subrayar');
+      }
+    });
+  }
+
+  openHighlightPopover(highlight: ReaderHighlight) {
+    const position = this.popoverPositionAt(highlight.end_word) || this.popoverPositionAt(highlight.start_word);
+    if (!position) return;
+    this.closePostIt();
+    [this.highlightPopoverX, this.highlightPopoverY, this.highlightPopoverBelow] = position;
+    this.activeHighlight = highlight;
+    this.showWordMenu = false;
+  }
+
+  closeHighlightPopover() {
+    this.activeHighlight = null;
+  }
+
+  recolorHighlight(color: HighlightColor) {
+    if (this.activeHighlight && this.activeHighlight.color !== color) {
+      this.updateHighlight(this.activeHighlight, color);
+    }
+  }
+
+  deleteHighlight() {
+    const highlight = this.activeHighlight;
+    if (!highlight || this.isHighlightBusy) return;
+    this.isHighlightBusy = true;
+    this.api.delete(`library/highlights/${highlight.id}/`).subscribe({
+      next: () => {
+        this.isHighlightBusy = false;
+        this.highlights = this.highlights.filter(h => h.id !== highlight.id);
+        this.closeHighlightPopover();
+        this.applyHighlightsToTokens();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isHighlightBusy = false;
+        this.notificationService.error(this.apiErrorMessage(err, 'No se pudo quitar el subrayado.'), 'Subrayar');
+      }
+    });
+  }
+
+  private updateHighlight(highlight: ReaderHighlight, color: HighlightColor) {
+    if (this.isHighlightBusy) return;
+    this.isHighlightBusy = true;
+    this.api.patch<ReaderHighlight>(`library/highlights/${highlight.id}/`, { color }).subscribe({
+      next: (saved) => {
+        this.isHighlightBusy = false;
+        Object.assign(highlight, saved); // misma referencia que `activeHighlight`
+        this.applyHighlightsToTokens();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isHighlightBusy = false;
+        this.notificationService.error(this.apiErrorMessage(err, 'No se pudo guardar el cambio.'), 'Subrayar');
+      }
+    });
+  }
+
+  // ── POST-ITS ──────────────────────────────────────────────────────
+  // Papelitos pegados al costado de la página, a la altura de una línea del texto. Por dentro
+  // siguen anclados a una palabra (`word-N`) de esa línea: así acompañan al texto con cualquier
+  // letra, ancho o vista. Vista libro: la página izquierda los lleva en su margen izquierdo y la
+  // derecha en el derecho; lectura continua: margen derecho.
+  loadPostIts() {
+    if (!this.inventoryId) return;
+    this.api.get<ReaderPostIt[]>(`library/postits/?inventory=${this.inventoryId}`).subscribe({
+      next: (list) => {
+        this.postIts = list || [];
+        this.cdr.detectChanges();
+        this.scheduleMarginLayout();
+      },
+      error: (err) => console.warn('No se pudieron cargar los post-its', err)
+    });
+  }
+
+  /**
+   * Botón "Post-it": aparece al instante a media altura de la página, con la nota abierta para
+   * escribir. Vista libro: en la página derecha, que es donde está el botón; lectura continua:
+   * a la altura del centro de la pantalla. Después se puede arrastrar a otra altura o página.
+   */
+  createPostIt() {
+    const chapter = this.chapters[this.currentPage - 1];
+    const canvas = this.canvasEl();
+    if (!chapter || !canvas || !this.inventoryId) return;
+    if (this.postItCount >= this.maxPostIts) {
+      this.warnPostItLimit();
+      return;
+    }
+    this.postIts = this.postIts.filter(p => p.id); // otro recién creado sin guardar se descarta
+    const area = canvas.getBoundingClientRect();
+    const probeX = this.isDoublePageView ? area.right - 2 : area.left + area.width / 2;
+    const word = this.nearestWord(probeX, area.top + area.height / 2);
+    if (!word) return;
+    const draft: ReaderPostIt = { id: '', chapter: chapter.id, word: this.wordIndexOf(word), text: '' };
+    this.closeHighlightPopover();
+    this.dismissSelection();
+    this.isSettingsOpen = false;
+    this.isTocOpen = false;
+    this.postIts = [...this.postIts, draft];
+    this.cdr.detectChanges();
+    this.layoutMarginPostIts(); // ya existe el papelito: se coloca (y aparece) antes de abrir la nota
+    this.openPostIt(draft);
+  }
+
+  onMarginPostItClick(postIt: ReaderPostIt) {
+    if (this.suppressPostItClick) { // el clic que llega al soltar un arrastre
+      this.suppressPostItClick = false;
+      return;
+    }
+    if (this.activePostIt === postIt) this.closePostIt();
+    else this.openPostIt(postIt);
+  }
+
+  openPostIt(postIt: ReaderPostIt) {
+    const tab = this.marginPostItEl(postIt);
+    if (!tab || !tab.hasAttribute('data-placed')) return;
+    this.closeHighlightPopover();
+    const r = tab.getBoundingClientRect();
+    this.postItCardSide = tab.dataset['side'] === 'left' ? 'left' : 'right';
+    // La nota se abre hacia dentro de la página, al lado del papelito, sin salirse de la pantalla.
+    const x = this.postItCardSide === 'left' ? r.right + 8 : r.left - 8 - POSTIT_CARD_WIDTH;
+    this.postItCardX = Math.min(Math.max(x, 8), window.innerWidth - POSTIT_CARD_WIDTH - 8);
+    this.postItCardY = Math.min(Math.max(r.top - 6, 8), window.innerHeight - POSTIT_CARD_HEIGHT - 8);
+    this.activePostIt = postIt;
+    this.postItDraft = postIt.text;
+    this.isEditingPostIt = !postIt.id; // uno recién creado abre listo para escribir
+    this.showWordMenu = false;
+    if (this.isEditingPostIt) this.focusPostItText();
+  }
+
+  /** Cierra la nota. Un post-it recién creado que no se llegó a pegar desaparece. */
+  closePostIt() {
+    const draft = this.activePostIt && !this.activePostIt.id ? this.activePostIt : null;
+    this.activePostIt = null;
+    this.isEditingPostIt = false;
+    this.postItDraft = '';
+    if (draft) this.removeMarginPostIt(draft, 'fade');
+  }
+
+  editPostIt() {
+    if (!this.activePostIt) return;
+    this.postItDraft = this.activePostIt.text;
+    this.isEditingPostIt = true;
+    this.focusPostItText();
+  }
+
+  cancelPostItEdit() {
+    if (!this.activePostIt?.id) this.closePostIt();
+    else this.isEditingPostIt = false;
+  }
+
+  savePostIt() {
+    const postIt = this.activePostIt;
+    const text = this.postItDraft.trim();
+    if (!postIt || !text || this.isPostItBusy || !this.inventoryId) return;
+    if (text === postIt.text) {
+      this.isEditingPostIt = false;
+      return;
+    }
+    this.isPostItBusy = true;
+    const request = postIt.id
+      ? this.api.patch<ReaderPostIt>(`library/postits/${postIt.id}/`, { text })
+      : this.api.post<ReaderPostIt>('library/postits/', {
+          inventory: this.inventoryId, chapter: postIt.chapter, word: postIt.word, text
+        });
+    request.subscribe({
+      next: (saved) => {
+        this.isPostItBusy = false;
+        Object.assign(postIt, saved); // misma referencia que `activePostIt` y que el papelito
+        this.isEditingPostIt = false;
+        this.cdr.detectChanges();
+        this.scheduleMarginLayout();
+      },
+      error: (err) => {
+        this.isPostItBusy = false;
+        this.notificationService.error(this.apiErrorMessage(err, 'No se pudo guardar el post-it.'), 'Post-its');
+      }
+    });
+  }
+
+  /** "Despegar": se borra y el papelito se despega de la página hacia afuera. */
+  deletePostIt() {
+    const postIt = this.activePostIt;
+    if (!postIt || this.isPostItBusy) return;
+    if (!postIt.id) {
+      this.closePostIt();
+      return;
+    }
+    this.isPostItBusy = true;
+    this.api.delete(`library/postits/${postIt.id}/`).subscribe({
+      next: () => {
+        this.isPostItBusy = false;
+        this.activePostIt = null;
+        this.isEditingPostIt = false;
+        this.removeMarginPostIt(postIt, 'peel');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isPostItBusy = false;
+        this.notificationService.error(this.apiErrorMessage(err, 'No se pudo despegar el post-it.'), 'Post-its');
+      }
+    });
+  }
+
+  /** Lo saca de la lista después de su animación de salida (o al tiro, si no hay papelito a la vista). */
+  private removeMarginPostIt(postIt: ReaderPostIt, exit: 'peel' | 'fade') {
+    const drop = () => this.ngZone.run(() => {
+      this.postIts = this.postIts.filter(p => p !== postIt);
+      this.cdr.detectChanges();
+      this.scheduleMarginLayout();
+    });
+    const paper = this.marginPostItEl(postIt)?.querySelector<HTMLElement>('.margin-postit-paper');
+    if (!paper || !this.marginPostItEl(postIt)!.hasAttribute('data-placed')) {
+      drop();
+      return;
+    }
+    const outward = this.marginPostItEl(postIt)!.dataset['side'] === 'left' ? -1 : 1;
+    const keyframes: Keyframe[] = exit === 'peel'
+      ? [{ opacity: 1 }, this.prefersReducedMotion()
+          ? { opacity: 0 }
+          : { opacity: 0, translate: `${outward * 14}px -10px`, rotate: `${outward * 16}deg` }]
+      : [{ opacity: 1 }, this.prefersReducedMotion() ? { opacity: 0 } : { opacity: 0, scale: '0.95' }];
+    paper.animate(keyframes, { duration: exit === 'peel' ? 200 : 150, easing: READER_EASE, fill: 'forwards' })
+      .finished.then(drop, drop);
+  }
+
+  private focusPostItText() {
+    setTimeout(() => (document.querySelector('.postit-card textarea') as HTMLTextAreaElement | null)?.focus(), 0);
+  }
+
+  private warnPostItLimit() {
+    this.notificationService.warning(
+      `Ya pegaste ${this.maxPostIts} post-its en este libro. Despega alguno para pegar otro.`, 'Post-its');
+  }
+
+  // ── Colocar los papelitos en los márgenes ──
+  private marginLayoutRaf: number | null = null;
+
+  /** Recoloca los papelitos en el próximo cuadro (fuera de la zona: no dispara detección de cambios). */
+  private scheduleMarginLayout() {
+    if (this.marginLayoutRaf !== null) return;
+    this.ngZone.runOutsideAngular(() => {
+      this.marginLayoutRaf = requestAnimationFrame(() => {
+        this.marginLayoutRaf = null;
+        this.layoutMarginPostIts();
+      });
+    });
+  }
+
+  /**
+   * Pone cada papelito en el margen de su página, a la altura de la línea de su palabra, y oculta
+   * los que no están a la vista (otro pliego, fuera del scroll). Escribe directo en el DOM porque
+   * corre con cada giro de página y cada scroll; con varios en la misma altura, se apilan.
+   */
+  private layoutMarginPostIts() {
+    const canvas = this.canvasEl();
+    const layer = document.querySelector('.postit-margin-layer');
+    if (!canvas || !layer) return;
+    const area = canvas.getBoundingClientRect();
+    const middle = area.left + area.width / 2;
+    const placed: { el: HTMLElement; side: 'left' | 'right'; y: number; x: number }[] = [];
+
+    layer.querySelectorAll<HTMLElement>('.margin-postit').forEach(el => {
+      if (el === this.postItDrag?.el) return; // al que se arrastra lo mueve el puntero
+      const postIt = this.chapterPostIts.find(p => this.postItKey(p) === el.dataset['postit']);
+      const word = postIt ? document.getElementById(`word-${postIt.word}`) : null;
+      const r = word?.getBoundingClientRect();
+      if (!r || r.width === 0 || r.right <= area.left || r.left >= area.right
+          || r.bottom <= area.top || r.top >= area.bottom) {
+        el.removeAttribute('data-placed');
+        return;
+      }
+      let side: 'left' | 'right' = 'right';
+      let x: number;
+      if (this.isDoublePageView) {
+        side = (r.left + r.right) / 2 < middle ? 'left' : 'right';
+        x = side === 'left' ? area.left - POSTIT_TAB_SIZE - 10 : area.right + 10;
+      } else {
+        // Lectura continua: al lado derecho del párrafo (el lienzo puede ser más ancho que el texto).
+        const block = (word!.closest('p, h1, h2') as HTMLElement | null)?.getBoundingClientRect();
+        x = Math.min((block ? block.right : area.right) + 12, window.innerWidth - POSTIT_TAB_SIZE - 6);
+      }
+      placed.push({ el, side, x: Math.max(4, x), y: (r.top + r.bottom) / 2 - POSTIT_TAB_SIZE / 2 });
+    });
+
+    for (const side of ['left', 'right']) {
+      let floor = -Infinity;
+      placed.filter(p => p.side === side).sort((a, b) => a.y - b.y).forEach(p => {
+        p.y = Math.max(p.y, floor);
+        floor = p.y + POSTIT_TAB_SIZE + 6;
+      });
+    }
+
+    for (const { el, side, x, y } of placed) {
+      el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+      el.dataset['side'] = side;
+      el.setAttribute('data-placed', '');
+      if (el.hasAttribute('data-enter')) { // recién creado: aparece la primera vez que se coloca
+        el.removeAttribute('data-enter');
+        this.popInMarginPostIt(el);
+      }
+    }
+  }
+
+  /** Aparece desde el borde de la página (no de la nada): de 0.9 a 1 con ease-out. */
+  private popInMarginPostIt(el: HTMLElement) {
+    const paper = el.querySelector<HTMLElement>('.margin-postit-paper');
+    if (!paper) return;
+    paper.style.transformOrigin = el.dataset['side'] === 'left' ? 'right center' : 'left center';
+    paper.animate(
+      this.prefersReducedMotion() ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, scale: '0.9' }, { opacity: 1, scale: '1' }],
+      { duration: 200, easing: READER_EASE });
+  }
+
+  private marginPostItEl(postIt: ReaderPostIt): HTMLElement | null {
+    return document.querySelector<HTMLElement>(`.margin-postit[data-postit="${this.postItKey(postIt)}"]`);
+  }
+
+  private wordIndexOf(word: HTMLElement): number {
+    return parseInt(word.id.slice('word-'.length), 10);
+  }
+
+  /** La palabra bajo un punto o, si cae en un margen o un espacio, la más cercana a él. */
+  private nearestWord(x: number, y: number): HTMLElement | null {
+    const hit = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('.word') as HTMLElement | null;
+    if (hit) return hit;
+    const canvas = this.canvasEl();
+    if (!canvas) return null;
+    let best: HTMLElement | null = null;
+    let bestDistance = Infinity;
+    canvas.querySelectorAll<HTMLElement>('.word').forEach(word => {
+      const r = word.getBoundingClientRect();
+      if (r.width === 0 || r.right < 0 || r.left > window.innerWidth) return; // en otro pliego
+      const dx = Math.max(r.left - x, 0, x - r.right);
+      const dy = Math.max(r.top - y, 0, y - r.bottom);
+      const distance = dx * dx + dy * dy;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = word;
+      }
+    });
+    return best;
+  }
+
+  private prefersReducedMotion(): boolean {
+    return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  // ── Arrastrar un papelito ──
+  // Se aprieta el papelito (se "levanta"), sigue al puntero y al soltarlo se asienta en el margen de
+  // la página donde se soltó, a la altura de esa línea. Un toque corto abre la nota. Corre FUERA de
+  // la zona de Angular (pointermove llega en cada cuadro); solo al soltar se guarda.
+  private postItDrag: {
+    postIt: ReaderPostIt; el: HTMLElement; pointerId: number; startX: number; startY: number;
+    grabX: number; grabY: number; active: boolean;
+  } | null = null;
+  private suppressPostItClick = false;
+
+  private handleMarginPointerDown = (event: PointerEvent) => {
+    const el = (event.target as HTMLElement).closest('.margin-postit') as HTMLElement | null;
+    if (!el || !event.isPrimary || event.button !== 0 || this.postItDrag) return; // un solo dedo a la vez
+    const postIt = this.chapterPostIts.find(p => this.postItKey(p) === el.dataset['postit']);
+    if (!postIt?.id) return; // uno recién creado se pega primero
+    const r = el.getBoundingClientRect();
+    this.postItDrag = {
+      postIt, el, pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+      grabX: event.clientX - r.left, grabY: event.clientY - r.top, active: false
+    };
+    window.addEventListener('pointermove', this.handlePostItDragMove);
+    window.addEventListener('pointerup', this.handlePostItDragEnd);
+    window.addEventListener('pointercancel', this.handlePostItDragEnd);
+  };
+
+  private handlePostItDragMove = (event: PointerEvent) => {
+    const drag = this.postItDrag;
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (!drag.active) {
+      if (Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < 6) return; // aún es un toque
+      drag.active = true;
+      drag.el.setPointerCapture(drag.pointerId);
+      drag.el.classList.add('is-lifted');
+      document.body.style.cursor = 'grabbing';
+      if (this.activePostIt) this.ngZone.run(() => this.closePostIt());
+    }
+    drag.el.style.transform = `translate(${event.clientX - drag.grabX}px, ${event.clientY - drag.grabY}px)`;
+  };
+
+  private handlePostItDragEnd = (event: PointerEvent) => {
+    const drag = this.postItDrag;
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    this.endPostItDrag();
+    if (!drag.active) return; // fue un toque: el clic abre la nota
+    this.suppressPostItClick = true;
+    setTimeout(() => (this.suppressPostItClick = false), 0); // por si el clic no llega
+
+    const canvas = this.canvasEl();
+    const from = drag.el.getBoundingClientRect();
+    let target: HTMLElement | null = null;
+    if (canvas && event.type === 'pointerup') {
+      const area = canvas.getBoundingClientRect();
+      // Página donde se soltó (vista libro: izquierda o derecha del lomo) y la línea a esa altura.
+      const left = this.isDoublePageView && event.clientX < area.left + area.width / 2;
+      const probeX = !this.isDoublePageView ? area.left + area.width / 2 : left ? area.left + 2 : area.right - 2;
+      const probeY = Math.min(Math.max(from.top + from.height / 2, area.top + 4), area.bottom - 4);
+      drag.el.style.pointerEvents = 'none'; // que el punto de prueba vea el texto, no el papelito
+      target = this.nearestWord(probeX, probeY);
+      drag.el.style.pointerEvents = '';
+    }
+    const word = target ? this.wordIndexOf(target) : drag.postIt.word;
+    const moved = !isNaN(word) && word !== drag.postIt.word;
+    const previous = drag.postIt.word;
+    if (moved) drag.postIt.word = word;
+
+    // Se asienta desde donde se soltó hasta su lugar en el margen (FLIP).
+    this.layoutMarginPostIts();
+    if (!this.prefersReducedMotion()) {
+      drag.el.animate(
+        [{ transform: `translate(${from.left}px, ${from.top}px)` }, { transform: drag.el.style.transform }],
+        { duration: 240, easing: EASE_IN_OUT });
+    }
+    if (moved) this.ngZone.run(() => this.savePostItPlace(drag.postIt, previous));
+  };
+
+  /** Termina (o cancela) un arrastre: suelta el papelito y quita los listeners. */
+  private endPostItDrag() {
+    const drag = this.postItDrag;
+    if (!drag) return;
+    this.postItDrag = null;
+    window.removeEventListener('pointermove', this.handlePostItDragMove);
+    window.removeEventListener('pointerup', this.handlePostItDragEnd);
+    window.removeEventListener('pointercancel', this.handlePostItDragEnd);
+    if (drag.el.hasPointerCapture?.(drag.pointerId)) drag.el.releasePointerCapture(drag.pointerId);
+    drag.el.classList.remove('is-lifted');
+    document.body.style.cursor = '';
+  }
+
+  /** Guarda la línea nueva; si falla, el papelito vuelve a donde estaba. */
+  private savePostItPlace(postIt: ReaderPostIt, previous: number) {
+    this.api.patch<ReaderPostIt>(`library/postits/${postIt.id}/`, { word: postIt.word }).subscribe({
+      next: (saved) => Object.assign(postIt, saved),
+      error: (err) => {
+        postIt.word = previous;
+        this.scheduleMarginLayout();
+        this.notificationService.error(this.apiErrorMessage(err, 'No se pudo mover el post-it.'), 'Post-its');
+      }
+    });
+  }
+
+  // ── TARJETAS FLOTANTES (subrayado y post-it) ──────────────────────
+  /** Dónde va una tarjeta de ~300 px junto a una palabra: [x, y, debajo]; null si la palabra no está. */
+  private popoverPositionAt(wordIdx: number): [number, number, boolean] | null {
+    const anchor = document.getElementById(`word-${wordIdx}`);
+    if (!anchor) return null;
+    const rect = anchor.getBoundingClientRect();
+    const half = 160; // media tarjeta: que no se salga por los lados
+    const x = Math.min(Math.max(rect.left + rect.width / 2, half), Math.max(half, window.innerWidth - half));
+    const below = rect.top < 280;
+    return [x, below ? rect.bottom + 12 : rect.top - 12, below];
+  }
+
+  /** Escape cierra lo que esté abierto (nota del post-it, tarjeta del subrayado) o, si no hay nada, quita la palabra marcada. */
+  @HostListener('document:keydown.escape')
+  onReaderEscape() {
+    if (this.activePostIt) {
+      this.closePostIt();
+      return;
+    }
+    if (this.activeHighlight) {
+      this.closeHighlightPopover();
+      return;
+    }
+    if (this.isSettingsOpen || this.isTocOpen || this.isCharPanelOpen || this.showWordMenu || this.showDictionaryModal) return;
+    this.clearWordFocus();
+  }
+
+  private dismissSelection() {
+    window.getSelection()?.removeAllRanges();
+    this.showWordMenu = false;
+    this.selectedText = '';
+    this.pendingSelection = null;
+  }
+
+  private apiErrorMessage(err: any, fallback: string): string {
+    const body = err?.error;
+    if (body && typeof body === 'object') {
+      const first = Object.values(body).flat().find(m => typeof m === 'string');
+      if (first) return first as string;
+    }
+    return fallback;
   }
 
   askCharacter() {

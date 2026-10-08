@@ -3,7 +3,7 @@ library/admin.py — Registro de modelos en el Django Admin.
 """
 from django.contrib import admin
 from .models import (
-    UserInventory, ReadingProgress, UserBookmark, UserFavorite,
+    UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt, UserFavorite,
     ReadingSession, Achievement, UserAchievement,
 )
 
@@ -56,6 +56,19 @@ class ReadingProgressAdmin(admin.ModelAdmin):
 class UserBookmarkAdmin(admin.ModelAdmin):
     list_display = ['inventory', 'position_cfi', 'color', 'created_at']
     search_fields = ['inventory__user__username']
+
+
+@admin.register(UserHighlight)
+class UserHighlightAdmin(admin.ModelAdmin):
+    list_display = ['inventory', 'chapter', 'color', 'created_at']
+    list_filter = ['color']
+    search_fields = ['inventory__user__username', 'text']
+
+
+@admin.register(UserPostIt)
+class UserPostItAdmin(admin.ModelAdmin):
+    list_display = ['inventory', 'chapter', 'word', 'created_at']
+    search_fields = ['inventory__user__username', 'text']
 
 
 @admin.register(UserFavorite)

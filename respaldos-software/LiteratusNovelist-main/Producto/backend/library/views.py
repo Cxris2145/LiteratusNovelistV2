@@ -20,7 +20,7 @@ from catalog import vocabulary as book_vocabulary
 from catalog.models import BookVocabulary, Chapter, ChapterAudio
 
 from .models import (
-    UserFavorite, UserInventory, ReadingProgress, UserBookmark,
+    UserFavorite, UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt,
     Achievement, UserAchievement, ReadingSession,
 )
 from .serializers import (
@@ -28,10 +28,15 @@ from .serializers import (
     UserInventorySerializer,
     ReadingProgressSerializer,
     UserBookmarkSerializer,
+    UserHighlightSerializer,
+    UserPostItSerializer,
     AchievementSerializer,
     UserAchievementSerializer,
     ReadingSessionSerializer,
 )
+
+
+from catalog.age import ensure_book_access, visible_books
 
 
 class UserFavoriteViewSet(viewsets.ModelViewSet):
@@ -43,7 +48,7 @@ class UserFavoriteViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'delete']
 
     def get_queryset(self):
-        return (
+        return visible_books((
             UserFavorite.objects
             .filter(user=self.request.user)
             .select_related('book')
@@ -53,7 +58,7 @@ class UserFavoriteViewSet(viewsets.ModelViewSet):
                 'book__editions',
                 'book__book_authors__author',
             )
-        )
+        ), self.request.user, 'book__')
 
     @action(detail=False, methods=['delete'], url_path=r'book/(?P<book_id>[^/.]+)')
     def remove_book(self, request, book_id=None):
@@ -90,28 +95,9 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['acquired_at', 'edition__book__title']
     ordering = ['-acquired_at']
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        book = instance.edition.book
-        if book.min_age > 0:
-            profile = getattr(request.user, 'profile', None)
-            if not profile or not profile.birth_date:
-                from rest_framework.response import Response
-                from rest_framework import status
-                return Response({'error': 'AGE_RESTRICTED', 'message': 'Por favor, registra tu fecha de nacimiento en tu perfil para leer este libro.'}, status=status.HTTP_403_FORBIDDEN)
-            from datetime import date
-            today = date.today()
-            born = profile.birth_date
-            age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
-            if age < book.min_age:
-                from rest_framework.response import Response
-                from rest_framework import status
-                return Response({'error': 'AGE_RESTRICTED', 'message': f'Este libro está restringido para mayores de {book.min_age} años.'}, status=status.HTTP_403_FORBIDDEN)
-        return super().retrieve(request, *args, **kwargs)
-
     def get_queryset(self):
         """Restringe el queryset estrictamente al dueño de la petición."""
-        return (
+        queryset = (
             UserInventory.objects
             .filter(user=self.request.user)
             .select_related('edition__book', 'progress')
@@ -122,6 +108,14 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
                 'edition__book__book_authors__author',
             )
         )
+        if self.action == 'list':
+            queryset = visible_books(queryset, self.request.user, 'edition__book__')
+        return queryset
+
+    def get_object(self):
+        inventory = super().get_object()
+        ensure_book_access(self.request.user, inventory.edition.book)
+        return inventory
 
     @action(detail=True, methods=['GET'], url_path='download')
     def download_edition(self, request, pk=None):
@@ -254,8 +248,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         if not slug:
             return Response({"error": "Falta parámetro 'slug'"}, status=400)
         
-        inventory_item = UserInventory.objects.filter(
-            user=request.user, 
+        inventory_item = visible_books(self.get_queryset(), request.user, 'edition__book__').filter(
             edition__book__slug=slug
         ).first()
 
@@ -271,15 +264,27 @@ class NarrationAudioView(APIView):
     """
     GET /api/v1/library/narration-audio/{id}/
     Sirve el MP3 de una narración que quedó solo en el disco del backend (sin SUPABASE_KEY).
-    Es pública porque <audio> no envía el token JWT; solo expone narraciones generadas.
+    Para obras restringidas, <audio> usa el permiso firmado devuelto al lector autorizado.
     Responde peticiones Range (206): sin ellas el navegador no puede saltar dentro del audio.
     """
     permission_classes = [permissions.AllowAny]
-    authentication_classes = []
     CHUNK_SIZE = 64 * 1024
 
     def get(self, request, pk):
-        audio = get_object_or_404(ChapterAudio, pk=pk)
+        audio = get_object_or_404(ChapterAudio.objects.select_related('chapter__book'), pk=pk)
+        listener = request.user
+        token = request.query_params.get('access')
+        if audio.chapter.book.min_age and not listener.is_authenticated and token:
+            from django.core import signing
+            from django.contrib.auth import get_user_model
+            try:
+                payload = signing.loads(token, salt='catalog:narration-age-v1', max_age=86400)
+                if payload.get('audio') == str(audio.pk):
+                    listener = get_user_model().objects.select_related('profile').filter(
+                        pk=payload.get('user'), is_active=True).first()
+            except (signing.BadSignature, ValueError, DjangoValidationError):
+                pass
+        ensure_book_access(listener, audio.chapter.book)
         if not (narration.is_azure(audio) and narration.is_ready(audio)):
             raise Http404("Narración no disponible.")
 
@@ -296,7 +301,8 @@ class NarrationAudioView(APIView):
             response['Content-Range'] = f'bytes {start}-{end}/{size}'
             response['Content-Length'] = str(end - start + 1)
         response['Accept-Ranges'] = 'bytes'
-        response['Cache-Control'] = 'public, max-age=86400'
+        response['Cache-Control'] = ('private, no-store' if audio.chapter.book.min_age
+                                     else 'public, max-age=86400')
         return response
 
     @staticmethod
@@ -337,7 +343,8 @@ class ReadingProgressViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # Filtramos por el usuario dueño a través del inventario
-        return ReadingProgress.objects.filter(inventory__user=self.request.user)
+        return visible_books(ReadingProgress.objects.filter(inventory__user=self.request.user),
+                             self.request.user, 'inventory__edition__book__')
 
 class UserBookmarkViewSet(viewsets.ModelViewSet):
     """
@@ -350,7 +357,8 @@ class UserBookmarkViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def get_queryset(self):
-        queryset = UserBookmark.objects.filter(inventory__user=self.request.user)
+        queryset = visible_books(UserBookmark.objects.filter(inventory__user=self.request.user),
+                                 self.request.user, 'inventory__edition__book__')
         inventory_id = self.request.query_params.get('inventory')
         if inventory_id:
             try:
@@ -367,6 +375,8 @@ class UserBookmarkViewSet(viewsets.ModelViewSet):
         inventory = serializer.validated_data.get('inventory')
         if inventory is not None and inventory.user != self.request.user:
             raise PermissionDenied("No puedes añadir marcadores a una librería que no te pertenece.")
+        if inventory is not None:
+            ensure_book_access(self.request.user, inventory.edition.book)
 
     def perform_create(self, serializer):
         self._check_owner(serializer)
@@ -375,6 +385,46 @@ class UserBookmarkViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         self._check_owner(serializer)
         serializer.save()
+
+
+class _ReaderNotesViewSet(viewsets.ModelViewSet):
+    """Base de subrayados y post-its: del usuario, de un libro con ?inventory=<id>, sin paginar."""
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    model = None
+    forbidden_message = ''
+
+    def get_queryset(self):
+        queryset = visible_books(self.model.objects.filter(inventory__user=self.request.user),
+                                 self.request.user, 'inventory__edition__book__')
+        inventory_id = self.request.query_params.get('inventory')
+        if inventory_id:
+            try:
+                queryset = queryset.filter(inventory_id=uuid.UUID(inventory_id))
+            except ValueError:
+                return queryset.none()
+        return queryset.order_by('created_at')
+
+    def perform_create(self, serializer):
+        if serializer.validated_data['inventory'].user != self.request.user:
+            raise PermissionDenied(self.forbidden_message)
+        ensure_book_access(self.request.user, serializer.validated_data['inventory'].edition.book)
+        serializer.save()
+
+
+class UserHighlightViewSet(_ReaderNotesViewSet):
+    """Subrayados del lector."""
+    serializer_class = UserHighlightSerializer
+    model = UserHighlight
+    forbidden_message = "No puedes subrayar en una librería que no te pertenece."
+
+
+class UserPostItViewSet(_ReaderNotesViewSet):
+    """Post-its del lector (máx. 30 por libro)."""
+    serializer_class = UserPostItSerializer
+    model = UserPostIt
+    forbidden_message = "No puedes pegar post-its en una librería que no te pertenece."
 
 
 class AchievementCatalogViewSet(viewsets.ReadOnlyModelViewSet):
@@ -444,7 +494,8 @@ class ReadingSessionViewSet(viewsets.ModelViewSet):
     http_method_names = ['post', 'patch', 'head', 'options']
 
     def get_queryset(self):
-        return ReadingSession.objects.filter(user=self.request.user)
+        return visible_books(ReadingSession.objects.filter(user=self.request.user),
+                             self.request.user, 'book__')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

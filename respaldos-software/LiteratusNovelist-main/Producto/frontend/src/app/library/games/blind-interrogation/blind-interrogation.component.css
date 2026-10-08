@@ -13,6 +13,7 @@
   position: relative;
   width: 100%;
   min-height: calc(100vh - var(--navbar-h, 150px));
+  min-height: calc(100svh - var(--navbar-h, 150px));
   padding: 20px 20px 48px;
   box-sizing: border-box;
   display: flex;
@@ -176,9 +177,11 @@
   transition: all 0.2s ease;
 }
 
-.rules-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .rules-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
 }
 
 .rules-btn .material-symbols-rounded {
@@ -360,10 +363,12 @@
   flex-shrink: 0;
 }
 
-.guess-cta-btn:hover {
-  background: linear-gradient(135deg, #0369a1, #1d4ed8);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+@media (hover: hover) and (pointer: fine) {
+  .guess-cta-btn:hover {
+    background: linear-gradient(135deg, #0369a1, #1d4ed8);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.5);
+  }
 }
 
 .guess-cta-btn .material-symbols-rounded {
@@ -472,10 +477,12 @@
   font-weight: 700;
 }
 
-.perk-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .perk-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #ffffff;
+  }
 }
 
 .perk-btn:disabled {
@@ -642,9 +649,11 @@
   flex-shrink: 0;
 }
 
-.send-question-btn:hover:not(:disabled) {
-  background: #1d4ed8;
-  transform: scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+  .send-question-btn:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: scale(1.04);
+  }
 }
 
 .send-question-btn:disabled {
@@ -849,8 +858,10 @@
   color: #ffffff;
 }
 
-.endgame-btn--primary:hover {
-  background: #1d4ed8;
+@media (hover: hover) and (pointer: fine) {
+  .endgame-btn--primary:hover {
+    background: #1d4ed8;
+  }
 }
 
 .endgame-btn--secondary {
@@ -859,9 +870,11 @@
   color: #cbd5e1;
 }
 
-.endgame-btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .endgame-btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
 }
 
 /* ── 8. MODAL DE SOSPECHOSOS (ADIVINAR) ── */
@@ -952,10 +965,12 @@
   position: relative;
 }
 
-.suspect-card:hover:not(.discarded) {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(56, 189, 248, 0.4);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .suspect-card:hover:not(.discarded) {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(56, 189, 248, 0.4);
+    transform: translateY(-2px);
+  }
 }
 
 .suspect-card.selected {
@@ -1270,5 +1285,12 @@
   .revealed-avatar-card {
     flex-direction: column;
     text-align: center;
+  }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .question-input {
+    font-size: 16px;
   }
 }

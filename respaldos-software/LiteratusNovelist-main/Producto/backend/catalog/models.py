@@ -301,6 +301,11 @@ class Book(TimeStampedModel):
         if not self.slug:
             base_slug = slugify(self.title)
             self.slug = self._unique_slug(base_slug)
+        from .age_classification import adult_rating_reason
+        if adult_rating_reason(self.slug, self.title, []):
+            self.min_age = max(self.min_age, 18)
+            if kwargs.get('update_fields'):
+                kwargs['update_fields'] = set(kwargs['update_fields']) | {'min_age'}
         super().save(*args, **kwargs)
 
     def _unique_slug(self, base_slug):
@@ -361,13 +366,15 @@ class Book(TimeStampedModel):
         y recomienda libros no leídos de esos géneros y tags similares.
         """
         from library.models import UserInventory
+        from .age import visible_books
+        visible = visible_books(Book.objects.all(), user)
         from django.db.models import Count, Q
 
         # Obtener IDs de libros que el usuario ya tiene
         user_book_ids = UserInventory.objects.filter(user=user).values_list('edition__book_id', flat=True)
 
         if not user_book_ids:
-            return Book.objects.filter(is_published=True, is_featured=True)[:5]
+            return visible.filter(is_published=True, is_featured=True)[:5]
 
         # Obtener los géneros de los libros que posee
         favorite_genres = Genre.objects.filter(
@@ -379,7 +386,7 @@ class Book(TimeStampedModel):
         if not favorite_genres.exists():
             # Si no hay géneros, intentar con tags
             user_tags = Tag.objects.filter(books__id__in=user_book_ids).distinct()
-            return Book.objects.filter(
+            return visible.filter(
                 is_published=True,
                 tags__in=user_tags
             ).exclude(id__in=user_book_ids).distinct()[:5]
@@ -387,7 +394,7 @@ class Book(TimeStampedModel):
         # Recomendar libros que compartan los géneros favoritos del usuario
         # Ordenados por la cantidad de géneros favoritos que tienen en común y vistas
         genre_ids = favorite_genres.values_list('id', flat=True)
-        return Book.objects.filter(
+        return visible.filter(
             genres__id__in=genre_ids,
             is_published=True
         ).exclude(
@@ -641,3 +648,33 @@ class ChapterAudio(TimeStampedModel):
     def __str__(self):
         return f"Audio: {self.chapter} ({self.voice_name})"
 
+
+
+class BookSummary(TimeStampedModel):
+    """
+    Resumen del libro completo (con desenlace) generado con IA una sola vez y compartido
+    por todos los lectores. Ver catalog/summary.py.
+    """
+    class Status(models.TextChoices):
+        GENERATING = 'generating', 'Generando'
+        READY = 'ready', 'Listo'
+        FAILED = 'failed', 'Falló'
+
+    book = models.OneToOneField(Book, on_delete=models.CASCADE, related_name='ai_summary')
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.GENERATING)
+    # {'overview': str, 'plot': [str], 'characters': [{'name', 'role'}], 'themes': [str]}
+    content = models.JSONField(default=dict, blank=True)
+    model_name = models.CharField(max_length=60, blank=True, default='')
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                     on_delete=models.SET_NULL, related_name='+')
+    requested_at = models.DateTimeField(null=True, blank=True)  # cuenta para el tope diario por lector
+    input_tokens = models.PositiveIntegerField(default=0)
+    output_tokens = models.PositiveIntegerField(default=0)
+    error = models.CharField(max_length=255, blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Book Summary'
+        verbose_name_plural = 'Book Summaries'
+
+    def __str__(self):
+        return f"Resumen de {self.book} ({self.get_status_display()})"

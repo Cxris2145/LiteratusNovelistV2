@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark, Achievement, UserAchievement, ReadingSession, InkTransaction
+from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt, Achievement, UserAchievement, ReadingSession, InkTransaction
 from catalog.models import Book
 from catalog.serializers import BookListSerializer, EditionSerializer
 
@@ -18,6 +18,11 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
         model = UserFavorite
         fields = ['id', 'book', 'book_id', 'created_at']
         read_only_fields = ['id', 'book', 'created_at']
+
+    def validate_book_id(self, book):
+        from catalog.age import ensure_book_access
+        ensure_book_access(self.context['request'].user, book)
+        return book
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -60,6 +65,81 @@ class UserBookmarkSerializer(serializers.ModelSerializer):
         model = UserBookmark
         fields = ['id', 'inventory', 'position_cfi', 'note', 'color', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+class UserHighlightSerializer(serializers.ModelSerializer):
+    """
+    Subrayados del lector. Al crear se fija el pasaje (capítulo y palabras); después solo cambia el color.
+    """
+    class Meta:
+        model = UserHighlight
+        fields = ['id', 'inventory', 'chapter', 'start_word', 'end_word', 'text', 'color', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def get_fields(self):
+        fields = super().get_fields()
+        if self.instance is not None:
+            for name in ('inventory', 'chapter', 'start_word', 'end_word', 'text'):
+                fields[name].read_only = True
+        return fields
+
+    def validate_text(self, value):
+        value = ' '.join(value.split())
+        if not value:
+            raise serializers.ValidationError('Selecciona el texto que quieres subrayar.')
+        return value[:2000]
+
+    def validate(self, attrs):
+        inventory = attrs.get('inventory') or self.instance.inventory
+        if self.instance is None:
+            if attrs['chapter'].book_id != inventory.edition.book_id:
+                raise serializers.ValidationError({'chapter': 'Ese capítulo no es de este libro.'})
+            start, end = attrs['start_word'], attrs['end_word']
+            if end < start:
+                raise serializers.ValidationError({'end_word': 'El pasaje termina antes de empezar.'})
+            if end - start + 1 > UserHighlight.MAX_WORDS:
+                raise serializers.ValidationError(
+                    {'end_word': f'Puedes subrayar hasta {UserHighlight.MAX_WORDS} palabras de una vez.'})
+            if UserHighlight.objects.filter(inventory=inventory).count() >= UserHighlight.MAX_HIGHLIGHTS_PER_BOOK:
+                raise serializers.ValidationError(
+                    f'Llegaste al máximo de {UserHighlight.MAX_HIGHLIGHTS_PER_BOOK} subrayados en este libro.')
+        return attrs
+
+
+class UserPostItSerializer(serializers.ModelSerializer):
+    """
+    Post-its del lector (máx. 30 por libro). Se pegan en un capítulo y una palabra; después se
+    puede cambiar el texto o arrastrarlo a otra palabra del mismo capítulo.
+    """
+    class Meta:
+        model = UserPostIt
+        fields = ['id', 'inventory', 'chapter', 'word', 'text', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def get_fields(self):
+        fields = super().get_fields()
+        if self.instance is not None:
+            for name in ('inventory', 'chapter'):
+                fields[name].read_only = True
+        return fields
+
+    def validate_text(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError('Escribe algo en el post-it.')
+        if len(value) > UserPostIt.MAX_CHARS:
+            raise serializers.ValidationError(f'El post-it admite hasta {UserPostIt.MAX_CHARS} caracteres.')
+        return value
+
+    def validate(self, attrs):
+        if self.instance is None:
+            inventory = attrs['inventory']
+            if attrs['chapter'].book_id != inventory.edition.book_id:
+                raise serializers.ValidationError({'chapter': 'Ese capítulo no es de este libro.'})
+            if UserPostIt.objects.filter(inventory=inventory).count() >= UserPostIt.MAX_PER_BOOK:
+                raise serializers.ValidationError(
+                    f'Ya pegaste {UserPostIt.MAX_PER_BOOK} post-its en este libro. Despega alguno para pegar otro.')
+        return attrs
+
 
 class UserInventorySerializer(serializers.ModelSerializer):
     """
@@ -161,6 +241,11 @@ class ReadingSessionSerializer(serializers.ModelSerializer):
             'chapters_read', 'created_at',
         ]
         read_only_fields = ['id', 'book_title', 'created_at']
+
+    def validate_book_id(self, book):
+        from catalog.age import ensure_book_access
+        ensure_book_access(self.context['request'].user, book)
+        return book
 
 class InkTransactionSerializer(serializers.ModelSerializer):
     """

@@ -55,9 +55,11 @@
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
-.report-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--color-border-strong);
+@media (hover: hover) and (pointer: fine) {
+  .report-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .card-icon-wrap {
@@ -128,8 +130,10 @@
   color: var(--color-on-primary);
 }
 
-.export-btn.primary:hover {
-  background: var(--color-primary-hover);
+@media (hover: hover) and (pointer: fine) {
+  .export-btn.primary:hover {
+    background: var(--color-primary-hover);
+  }
 }
 
 .export-btn.secondary {
@@ -138,9 +142,11 @@
   border: 1px solid var(--color-border);
 }
 
-.export-btn.secondary:hover {
-  background: var(--color-hover);
-  border-color: var(--color-border-strong);
+@media (hover: hover) and (pointer: fine) {
+  .export-btn.secondary:hover {
+    background: var(--color-hover);
+    border-color: var(--color-border-strong);
+  }
 }
 
 .loading-state {

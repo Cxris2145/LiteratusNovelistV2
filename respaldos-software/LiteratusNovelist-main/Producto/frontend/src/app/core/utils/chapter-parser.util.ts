@@ -18,18 +18,38 @@ export interface ReaderToken {
   alt?: string;
   bionicBold?: string;
   bionicNormal?: string;
+  /** Color del subrayado del lector en esta palabra. */
+  hl?: string | null;
 }
 
-export interface ReaderSentence {
+/** Primera y última palabra (`word-N`) de un grupo de tokens; -1 si no tiene palabras. */
+export interface WordBounds {
+  firstWord?: number;
+  lastWord?: number;
+}
+
+export interface ReaderSentence extends WordBounds {
   idx: number;
   tokens: ReaderToken[];
 }
 
-export interface ReaderBlock {
+export interface ReaderBlock extends WordBounds {
   tag: string;
   tokens: ReaderToken[];
   long?: boolean;
   sentences?: ReaderSentence[];
+}
+
+/** Calcula una vez los límites que el lector consulta en cada detección de cambios. */
+export function setWordBounds(group: WordBounds & { tokens: ReaderToken[] }): void {
+  let first = -1, last = -1;
+  for (const tok of group.tokens) {
+    if (!tok.isWord) continue;
+    if (first < 0) first = tok.idx;
+    last = tok.idx;
+  }
+  group.firstWord = first;
+  group.lastWord = last;
 }
 
 type BionicSplit = (word: string) => { bold: string; normal: string };

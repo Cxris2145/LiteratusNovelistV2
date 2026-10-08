@@ -1,5 +1,6 @@
 .cat-detail-page {
   min-height: 100vh;
+  min-height: 100svh;
   color: var(--home-ink);
 }
 
@@ -44,7 +45,9 @@
   border-color: var(--home-glass-border);
   box-shadow: none;
 }
-.back-btn:hover { color: var(--color-primary-text); background: var(--home-sage-surface); }
+@media (hover: hover) and (pointer: fine) {
+  .back-btn:hover { color: var(--color-primary-text); background: var(--home-sage-surface); }
+}
 
 .cat-badge {
   width: fit-content;
@@ -147,7 +150,9 @@
   min-height: 48px;
   transition: color 0.2s;
 }
-.search-clear:hover { color: var(--text-main); }
+@media (hover: hover) and (pointer: fine) {
+  .search-clear:hover { color: var(--text-main); }
+}
 
 .results-count {
   font-size: 0.85rem;
@@ -193,10 +198,12 @@
   text-decoration: none;
 }
 
-.book-card:hover {
-  transform: translateY(-6px);
-  border-color: var(--glass-border);
-  box-shadow: 0 6px 20px var(--home-shadow);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--glass-border);
+    box-shadow: 0 6px 20px var(--home-shadow);
+  }
 }
 
 /* Cuadrada: las portadas fuente son 800x800 con el titulo pegado a los bordes. */
@@ -292,10 +299,12 @@
   flex-shrink: 0;
 }
 
-.book-card:hover .card-page-count-badge {
-  background: color-mix(in srgb, var(--color-500) 22%, transparent);
-  border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
-  color: var(--color-text-strong);
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .card-page-count-badge {
+    background: color-mix(in srgb, var(--color-500) 22%, transparent);
+    border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
+    color: var(--color-text-strong);
+  }
 }
 
 .read-hint {
@@ -309,9 +318,11 @@
   transition: color 0.2s ease, gap 0.2s ease;
 }
 
-.book-card:hover .read-hint {
-  color: var(--text-main);
-  gap: 10px;
+@media (hover: hover) and (pointer: fine) {
+  .book-card:hover .read-hint {
+    color: var(--text-main);
+    gap: 10px;
+  }
 }
 
 /* Empty State */
@@ -341,7 +352,9 @@
   border-color: var(--home-ink);
   box-shadow: none;
 }
-.clear-btn:hover { transform: translateY(-2px); box-shadow: none; background: var(--home-ink-strong); color: var(--home-bg-surface); border-color: var(--home-ink-strong); }
+@media (hover: hover) and (pointer: fine) {
+  .clear-btn:hover { transform: translateY(-2px); box-shadow: none; background: var(--home-ink-strong); color: var(--home-bg-surface); border-color: var(--home-ink-strong); }
+}
 
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 768px) {
@@ -372,12 +385,21 @@
   cursor: pointer;
   transition: all 0.3s ease;
 }
-.load-more-btn:hover:not([disabled]) {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .load-more-btn:hover:not([disabled]) {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+  }
 }
 .load-more-btn[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .search-input {
+    font-size: 16px;
+  }
 }

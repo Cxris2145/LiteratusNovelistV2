@@ -284,6 +284,9 @@ AI_GEMINI_INPUT_USD_PER_MILLION = env('AI_GEMINI_INPUT_USD_PER_MILLION', default
 AI_GEMINI_OUTPUT_USD_PER_MILLION = env('AI_GEMINI_OUTPUT_USD_PER_MILLION', default='2.50')
 AI_DEEPSEEK_INPUT_USD_PER_MILLION = env('AI_DEEPSEEK_INPUT_USD_PER_MILLION', default='0.30')
 AI_DEEPSEEK_OUTPUT_USD_PER_MILLION = env('AI_DEEPSEEK_OUTPUT_USD_PER_MILLION', default='1.20')
+# Resumen del libro completo (catalog/summary.py): gratis y cacheado por libro; esto limita
+# cuántos libros SIN resumen puede mandar a generar cada lector al día.
+BOOK_SUMMARY_USER_DAILY = env.int('BOOK_SUMMARY_USER_DAILY', default=5)
 ELEVENLABS_API_KEY = env('ELEVENLABS_API_KEY', default='PLACEHOLDER_KEY')
 
 # ---------------------------------------------------------------------------
