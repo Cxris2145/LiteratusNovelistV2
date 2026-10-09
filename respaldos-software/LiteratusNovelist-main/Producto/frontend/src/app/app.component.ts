@@ -287,11 +287,15 @@ export class AppComponent implements OnInit {
     }, 400); // Duración de la animación
   }
 
-  onSearchType(): void {
-    this.searchSubject.next(this.globalSearchTerm);
-    if (!this.globalSearchTerm.trim()) {
+    onSearchType(): void {
+    if (this.globalSearchTerm.trim()) {
+      if (this.searchPredictions.length > 0) {
+        this.showPredictions = true;
+      }
+    } else {
       this.showPredictions = false;
     }
+    this.searchSubject.next(this.globalSearchTerm);
   }
 
   hasPredictionsType(type: string): boolean {
@@ -314,7 +318,7 @@ export class AppComponent implements OnInit {
     }
   }
   
-  @HostListener('document:click', [''])
+  @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.nav-search-form')) {
