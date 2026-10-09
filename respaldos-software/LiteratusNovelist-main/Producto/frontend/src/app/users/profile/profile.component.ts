@@ -26,9 +26,10 @@ export class ProfileComponent implements OnInit {
   fb = inject(FormBuilder);
   snackBar = inject(MatSnackBar);
   notificationService = inject(NotificationService);
-
   loading = false;
+  selectedTab: 'datos' | 'paleta' = 'datos';
   userInitials = 'V';
+
   avatarColor: string = '#3b82f6';
   availableColors = ['#3b82f6', '#f97316', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b', '#ec4899'];
   

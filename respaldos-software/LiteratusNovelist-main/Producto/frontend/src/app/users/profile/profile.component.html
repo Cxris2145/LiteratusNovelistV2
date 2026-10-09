@@ -30,11 +30,22 @@
       <span class="profile-equipped-title" *ngIf="equippedTitle">📜 {{ equippedTitle }}</span>
       <p class="subtitle">Gestiona tu identidad, paleta visual y accesibilidad en Literatus Novelist</p>
     </div>
+    <div class="profile-tabs">
+      <button type="button" class="tab-btn" [class.active]="selectedTab === 'datos'" (click)="selectedTab = 'datos'">
+        <span class="material-symbols-rounded">badge</span>
+        Datos del Lector
+      </button>
+      <button type="button" class="tab-btn" [class.active]="selectedTab === 'paleta'" (click)="selectedTab = 'paleta'">
+        <span class="material-symbols-rounded">palette</span>
+        Paleta de Colores
+      </button>
+    </div>
 
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-layout-grid">
+
       
       <!-- ═══ COLUMNA PRINCIPAL (IZQUIERDA): DATOS PERSONALES ═══ -->
-      <div class="profile-main-col">
+      <div class="profile-main-col" *ngIf="selectedTab === 'datos'">
         <div class="col-section-header">
           <span class="material-symbols-rounded col-header-icon">badge</span>
           <h3>Información del Lector</h3>
@@ -108,7 +119,7 @@
       </div>
 
       <!-- ═══ COLUMNA LATERAL (DERECHA): PALETA DE COLORES Y ACCESIBILIDAD ═══ -->
-      <aside class="profile-side-col">
+      <aside class="profile-side-col" *ngIf="selectedTab === 'paleta'">
         <div class="col-section-header">
           <span class="material-symbols-rounded col-header-icon">palette</span>
           <h3>Paleta de Colores & Temas</h3>

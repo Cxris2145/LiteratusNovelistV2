@@ -26,11 +26,12 @@
 
 /* ═══ GRID DE DOS COLUMNAS (CAMBIO DE LADO DE LA PALETA) ═══ */
 .profile-layout-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.15fr;
-  gap: 36px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
   box-sizing: border-box;
 }
 
@@ -40,12 +41,7 @@
   box-sizing: border-box;
 }
 
-@media (max-width: 860px) {
-  .profile-layout-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-}
+
 
 .col-section-header {
   display: flex;
@@ -584,3 +580,50 @@ label {
   }
 }
 
+
+
+.profile-tabs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 10px auto 32px auto;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 6px;
+  border-radius: 100px;
+  width: fit-content;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 14px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn span {
+  font-size: 18px;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255,255,255,0.05);
+}
+
+.tab-btn.active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 4px 12px var(--color-primary-shadow, rgba(0,0,0,0.3));
+}
