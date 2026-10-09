@@ -2164,16 +2164,13 @@
   .how-stage {
       order: 0;
       z-index: 3;
-      top: calc(var(--header-h, var(--navbar-h, 172px)) - 2px);
-      height: 240px;
+      top: calc(var(--header-h, var(--navbar-h, 172px)) + 8px);
+      height: 250px;
       display: flex;
       align-items: flex-start;
-      padding-top: 16px;
-      background: var(--home-bg);
-      margin-inline: calc(var(--home-gutter) * -1);
-      padding-inline: var(--home-gutter);
-      border-bottom: 1px solid var(--line);
-      box-shadow: 0 16px 24px -8px var(--home-bg);
+      justify-content: center;
+      background: transparent;
+      pointer-events: none;
     }
   
     .device {
@@ -2184,6 +2181,8 @@
       border-radius: 18px;
       transform: scale(0.70);
       transform-origin: top center;
+      pointer-events: auto;
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.9);
     }
 
   .page {
