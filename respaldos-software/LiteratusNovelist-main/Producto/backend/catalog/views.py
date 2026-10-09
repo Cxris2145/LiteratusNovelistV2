@@ -113,7 +113,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         return book
     
     # Búsqueda múltiple DRF: ?search=garcia
-    search_fields = ['title', 'synopsis', 'book_authors__author__full_name', 'genres__name']
+    search_fields = ['^title', '^book_authors__author__full_name', '^genres__name']
     
     # Ordenamiento DRF: ?ordering=-created_at
     ordering_fields = ['title', 'created_at', 'is_featured', 'ai_character_count']

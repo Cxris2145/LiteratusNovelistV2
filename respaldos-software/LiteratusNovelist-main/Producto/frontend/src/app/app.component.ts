@@ -116,7 +116,6 @@ export class AppComponent implements OnInit {
   ngOnInit() {
 
     this.searchSubject.pipe(
-      debounceTime(300),
       distinctUntilChanged(),
       switchMap(query => {
         if (!query.trim()) {
