@@ -44,8 +44,8 @@ dropdown_html = '''
 '''
 
 html = re.sub(
-    r"<div class=\"search-predictions-dropdown\" \*ngIf=\"showPredictions\">[\s\S]*?</div>\s*</div>",
-    dropdown_html.strip(),
+    r"<div class=\"search-predictions-dropdown\" \*ngIf=\"showPredictions\">[\s\S]*?</form>",
+    dropdown_html.strip() + "\n        </form>",
     html
 )
 

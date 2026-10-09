@@ -122,12 +122,12 @@ export class AppComponent implements OnInit {
           this.searchPredictions = [];
           return of({ results: [] });
         }
-        return this.apiService.get<any>(`catalog/books/?search=${query.trim()}&page_size=5`).pipe(
+        return this.apiService.get<any>(`catalog/autocomplete/?search=${query.trim()}`).pipe(
           catchError(() => of({ results: [] }))
         );
       })
     ).subscribe(res => {
-      this.searchPredictions = res.results || [];
+      this.searchPredictions = [...(res.books||[]), ...(res.authors||[]), ...(res.genres||[]), ...(res.sagas||[])];
       this.showPredictions = this.searchPredictions.length > 0;
     });
 
@@ -294,10 +294,24 @@ export class AppComponent implements OnInit {
     }
   }
 
+  hasPredictionsType(type: string): boolean {
+    return this.searchPredictions.some(p => p.type === type);
+  }
+
+  getPredictionsType(type: string): any[] {
+    return this.searchPredictions.filter(p => p.type === type);
+  }
+
   selectPrediction(prediction: any): void {
     this.globalSearchTerm = prediction.title;
     this.showPredictions = false;
-    this.router.navigate(['/book', prediction.slug || prediction.id]);
+    if (prediction.type === 'book') {
+      this.router.navigate(['/book', prediction.slug || prediction.id]);
+    } else if (prediction.type === 'author') {
+      this.router.navigate(['/author', prediction.slug || prediction.id]);
+    } else if (prediction.type === 'genre') {
+      this.router.navigate(['/catalog'], { queryParams: { search: prediction.title } });
+    }
   }
   
   @HostListener('document:click', [''])

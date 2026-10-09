@@ -1465,3 +1465,15 @@
   color: var(--color-primary-text);
   font-size: 13px;
 }
+\n
+.prediction-group-title {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-primary-text);
+  padding: 8px 16px 4px 16px;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}

@@ -5,7 +5,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     BookViewSet, AuthorViewSet, GenreViewSet, CatalogStatsView,
-    AuthorSubmitBookView, AuthorMySubmissionsView, AuthorSubmissionRequirementsView
+    AuthorSubmitBookView, AuthorMySubmissionsView, AuthorSubmissionRequirementsView, AutocompleteView
 )
 
 router = DefaultRouter()
@@ -23,6 +23,7 @@ urlpatterns = [
     path('author/requirements/', AuthorSubmissionRequirementsView.as_view(), name='author-requirements'),
 
     # /api/v1/catalog/stats/  → conteos en vivo del catálogo
+    path('autocomplete/', AutocompleteView.as_view(), name='catalog-autocomplete'),
     path('stats/', CatalogStatsView.as_view(), name='catalog-stats'),
     path('', include(router.urls)),
 ]
