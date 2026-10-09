@@ -6,9 +6,9 @@
 .ts-stage {
     position: relative;
     isolation: isolate;
-    overflow: hidden;
+    overflow: hidden; /* Restored to prevent ts-fit-light from creating scrollbars */
     width: 100%;
-    /* Limita el ancho basndose en la altura para que las proporciones cqw no exploten en pantallas muy anchas */
+    container-type: inline-size;
     max-width: calc(var(--th-stage-height, 560px) * 1.85);
     margin: 0 auto;
     height: var(--th-stage-height, 560px);
