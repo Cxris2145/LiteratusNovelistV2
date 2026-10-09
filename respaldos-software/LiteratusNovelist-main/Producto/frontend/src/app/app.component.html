@@ -34,6 +34,8 @@
             name="globalSearch"
             placeholder="Buscar libros, autores, géneros, sagas..."
             [(ngModel)]="globalSearchTerm"
+            (ngModelChange)="onSearchType()"
+            (focus)="onSearchType()"
             autocomplete="off"
             aria-label="Buscar en Literatus Novelist">
           <span class="search-tools">
@@ -62,6 +64,21 @@
           <button type="submit" class="search-submit-btn" aria-label="Buscar">
             <span class="material-symbols-rounded" aria-hidden="true">search</span>
           </button>
+        
+          <div class="search-predictions-dropdown" *ngIf="showPredictions">
+            <div class="prediction-item" *ngFor="let item of searchPredictions" (click)="selectPrediction(item)">
+              <img *ngIf="item.cover" [src]="item.cover" alt="" class="prediction-cover">
+              <span *ngIf="!item.cover" class="prediction-cover-placeholder"><span class="material-symbols-rounded">menu_book</span></span>
+              <div class="prediction-info">
+                <span class="prediction-title">{{ item.title }}</span>
+                <span class="prediction-author" *ngIf="item.author_name">{{ item.author_name }}</span>
+              </div>
+            </div>
+            <div class="prediction-item all-results" (click)="onGlobalSearch()">
+              <span>Ver todos los resultados para "{{ globalSearchTerm }}"</span>
+            </div>
+          </div>
+
         </form>
 
         <nav class="quick-filters" aria-label="Filtros rápidos">

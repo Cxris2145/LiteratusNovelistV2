@@ -1,8 +1,10 @@
 import { Component, inject, OnInit, HostListener } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
+import { ApiService } from './core/services/api.service';
 import { AuthService, userStorageKey } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
-import { filter } from 'rxjs/operators';
+import { filter, takeUntil, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
+import { Subject, Observable, of } from 'rxjs';
 import { routeTransitionAnimations, shakeAnimation } from './core/animations';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Location } from '@angular/common';
@@ -26,6 +28,7 @@ import { firstTimeThisSession } from './core/components/main-nav/main-nav.compon
 })
 export class AppComponent implements OnInit {
   title = 'frontend';
+  apiService = inject(ApiService);
   authService = inject(AuthService);
   chatService = inject(ChatService);
   settingsService = inject(SettingsService);
@@ -55,6 +58,9 @@ export class AppComponent implements OnInit {
 
   // Buscador global del navbar
   globalSearchTerm = '';
+  searchPredictions: any[] = [];
+  showPredictions = false;
+  private searchSubject = new Subject<string>();
   readonly quickGenres = QUICK_GENRES;
 
   /** Maguito saluda la primera vez por sesión; después solo parpadea y mira. */
@@ -264,6 +270,27 @@ export class AppComponent implements OnInit {
     }, 400); // Duración de la animación
   }
 
+  onSearchType(): void {
+    this.searchSubject.next(this.globalSearchTerm);
+    if (!this.globalSearchTerm.trim()) {
+      this.showPredictions = false;
+    }
+  }
+
+  selectPrediction(prediction: any): void {
+    this.globalSearchTerm = prediction.title;
+    this.showPredictions = false;
+    this.router.navigate(['/book', prediction.slug || prediction.id]);
+  }
+  
+  @HostListener('document:click', [''])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.nav-search-form')) {
+      this.showPredictions = false;
+    }
+  }
+
   onGlobalSearch(): void {
     const query = this.globalSearchTerm.trim();
     if (query) {
@@ -317,6 +344,8 @@ export class AppComponent implements OnInit {
 
   clearGlobalSearch(): void {
     this.globalSearchTerm = '';
+    this.showPredictions = false;
+    this.searchPredictions = [];
     if (this.isListeningSearch) {
       this.speechService.stopListening();
       this.isListeningSearch = false;
