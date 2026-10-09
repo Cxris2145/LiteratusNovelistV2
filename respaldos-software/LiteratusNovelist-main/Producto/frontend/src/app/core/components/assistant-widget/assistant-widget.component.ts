@@ -23,6 +23,7 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   @ViewChild('bubbleLottie') private bubbleLottie?: ElementRef<HTMLDivElement>;
 
   isOpen = false;
+  isEphemeral = false;
   isHistoryOpen = false;
   conversations: AssistantConversation[] = [];
   activeConversationId: string | null = null;
@@ -52,6 +53,7 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
       this.isOpen = v;
     });
     this.assistant.isHistoryOpen$.pipe(takeUntil(this.destroy$)).subscribe(v => this.isHistoryOpen = v);
+      this.assistant.isEphemeral$.pipe(takeUntil(this.destroy$)).subscribe(v => this.isEphemeral = v);
     this.assistant.conversations$.pipe(takeUntil(this.destroy$)).subscribe(v => this.conversations = v);
     this.assistant.activeConversationId$.pipe(takeUntil(this.destroy$)).subscribe(v => this.activeConversationId = v);
     this.assistant.isSending$.pipe(takeUntil(this.destroy$)).subscribe(v => {
@@ -170,7 +172,12 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
     this.assistant.toggleHistory();
   }
 
+  toggleEphemeral(): void {
+    this.assistant.setEphemeralMode(!this.isEphemeral);
+  }
+
   newConversation(): void {
+    if (this.isEphemeral) this.assistant.setEphemeralMode(false);
     this.assistant.startNewConversation();
   }
 

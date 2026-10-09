@@ -16,6 +16,7 @@ from .views import (
     AssistantConversationDetailView,
     AssistantMessageListView,
     AssistantChatView,
+    AssistantEphemeralChatView,
     InterrogationStatusView,
     InterrogationStartView,
     InterrogationAskView,
@@ -76,6 +77,7 @@ urlpatterns = [
 
     # POST /api/v1/ai/assistant/chat/
     path('assistant/chat/', AssistantChatView.as_view(), name='assistant-chat'),
+    path('assistant/chat/ephemeral/', AssistantEphemeralChatView.as_view(), name='assistant-chat-ephemeral'),
 
     # ── Minijuego: El Interrogatorio a Ciegas ──
     path('games/interrogation/status/', InterrogationStatusView.as_view(), name='interrogation-status'),

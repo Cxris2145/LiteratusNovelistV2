@@ -74,6 +74,8 @@ export class AssistantService {
 
   private _conversations$ = new BehaviorSubject<AssistantConversation[]>([]);
   readonly conversations$ = this._conversations$.asObservable();
+  private _isEphemeral$ = new BehaviorSubject<boolean>(false);
+  readonly isEphemeral$ = this._isEphemeral$.asObservable();
 
   private _activeConversationId$ = new BehaviorSubject<string | null>(null);
   readonly activeConversationId$ = this._activeConversationId$.asObservable();
@@ -170,7 +172,24 @@ export class AssistantService {
     return request$;
   }
 
+  setEphemeralMode(ephemeral: boolean): void {
+    this._isEphemeral$.next(ephemeral);
+    if (ephemeral) {
+      this._activeConversationId$.next(null);
+      this._messages$.next([{ role: 'assistant', content: ASSISTANT_GREETING }]);
+      this._isHistoryOpen$.next(false);
+    } else {
+      this.startNewConversation();
+    }
+  }
+
   startNewConversation(): void {
+    if (this._isEphemeral$.value) {
+      this._activeConversationId$.next(null);
+      this._messages$.next([{ role: 'assistant', content: ASSISTANT_GREETING }]);
+      this._isHistoryOpen$.next(false);
+      return;
+    }
     this.api.post<AssistantConversation>(`${this.BASE}/conversations/`, {}).subscribe({
       next: (conversation) => {
         this._conversations$.next([conversation, ...this._conversations$.value]);
@@ -216,9 +235,32 @@ export class AssistantService {
     });
   }
 
-  sendMessage(text: string): void {
+sendMessage(text: string): void {
     const trimmed = text.trim();
     if (!trimmed) return;
+
+    if (this._isEphemeral$.value) {
+      const history = [...this._messages$.value];
+      history.push({ role: 'user', content: trimmed });
+      this._messages$.next(history);
+      
+      const pMsg = { id: 'pending', role: 'assistant' as const, content: '', pending: true };
+      this._messages$.next([...history, pMsg]);
+      
+      this.api.post<AssistantMessage>(`${this.BASE}/assistant/chat/ephemeral/`, {
+        message: trimmed,
+        section: this.currentSection,
+        history: history.filter(m => !m.pending && m.role !== 'assistant' || m.content !== ASSISTANT_GREETING)
+      }).subscribe({
+        next: (reply) => {
+          this._messages$.next([...history, reply]);
+        },
+        error: () => {
+          this._messages$.next([...history, { role: 'assistant', content: 'Lo siento, hubo un error de conexión.' }]);
+        }
+      });
+      return;
+    }
 
     let conversationId = this._activeConversationId$.value;
     if (!conversationId) {
