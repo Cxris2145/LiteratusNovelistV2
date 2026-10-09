@@ -4,15 +4,16 @@
 }
 
 .ts-stage {
-  container-type: inline-size;
-  --ts-table-bottom: 50px;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  width: 100%;
-  height: var(--th-stage-height, 560px);
-  background: transparent;
-}
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    width: 100%;
+    /* Limita el ancho basndose en la altura para que las proporciones cqw no exploten en pantallas muy anchas */
+    max-width: calc(var(--th-stage-height, 560px) * 1.85);
+    margin: 0 auto;
+    height: var(--th-stage-height, 560px);
+    background: transparent;
+  }
 
 /* ── Ambiente: luces y velas ────────────────────────────────── */
 .ts-ambient-light {
