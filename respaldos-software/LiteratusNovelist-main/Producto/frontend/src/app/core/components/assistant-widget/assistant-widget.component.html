@@ -44,6 +44,9 @@
         <button type="button" class="lit-icon-btn" [class.active]="isHistoryOpen" (click)="toggleHistory()" title="Conversaciones anteriores" aria-label="Ver conversaciones anteriores">
           <span class="material-symbols-rounded">history</span>
         </button>
+        <button type="button" class="lit-icon-btn" [class.active]="isEphemeral" (click)="toggleEphemeral()" title="Modo efímero (sin guardar)" aria-label="Modo efímero">
+          <span class="material-symbols-rounded">visibility_off</span>
+        </button>
         <button type="button" class="lit-icon-btn" (click)="newConversation()" title="Nueva conversación" aria-label="Nueva conversación">
           <span class="material-symbols-rounded">add_comment</span>
         </button>
