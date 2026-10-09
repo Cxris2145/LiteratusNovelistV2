@@ -102,6 +102,11 @@
 
     <!-- MENSAJES -->
     <div class="lit-messages" #messagesEl *ngIf="!isHistoryOpen">
+      <div class="lit-ephemeral-notice" *ngIf="isEphemeral">
+        <span class="lit-ephemeral-text">Has entrado en modo efímero</span>
+        <div class="lit-ephemeral-separator"></div>
+      </div>
+
       <div
         *ngFor="let msg of messages; trackBy: trackByMessage"
         [class]="'lit-msg ' + (msg.role === 'user' ? 'lit-msg--user' : 'lit-msg--assistant')">
