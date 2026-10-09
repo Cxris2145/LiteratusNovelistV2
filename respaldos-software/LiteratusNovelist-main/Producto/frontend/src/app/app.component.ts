@@ -114,6 +114,24 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => {
+        if (!query.trim()) {
+          this.searchPredictions = [];
+          return of({ results: [] });
+        }
+        return this.apiService.get<any>(`catalog/books/?search=${query.trim()}&page_size=5`).pipe(
+          catchError(() => of({ results: [] }))
+        );
+      })
+    ).subscribe(res => {
+      this.searchPredictions = res.results || [];
+      this.showPredictions = this.searchPredictions.length > 0;
+    });
+
     this.isEnigma = this.router.url.includes('enigma');
     // Cargar la configuración global (Tema) apenas inicie
     // Sin sesión el perfil responde 401 y el interceptor enviaría al visitante a /login.
