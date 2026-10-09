@@ -1469,11 +1469,11 @@
 .prediction-group-title {
   display: block;
   font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--color-primary-text);
-  padding: 8px 16px 4px 16px;
-  letter-spacing: 0.05em;
-  opacity: 0.8;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #C9BEB0);
+  padding: 8px 16px;
+  background: var(--glass-border, rgba(255,255,255,0.05));
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.1));
+  text-align: center;
 }
