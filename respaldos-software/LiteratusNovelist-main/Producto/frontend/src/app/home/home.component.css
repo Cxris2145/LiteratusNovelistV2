@@ -2162,19 +2162,23 @@
   }
 
   .how-stage {
-    order: 0;
-    z-index: 3;
-    top: calc(var(--header-h, var(--navbar-h, 172px)) + 8px);
-    height: min(46svh, 400px);
-    padding-bottom: 12px;
-    background: var(--home-bg);
-  }
-
-  .device {
-    width: 100%;
-    max-height: none;
-    border-radius: 18px;
-  }
+      order: 0;
+      z-index: 3;
+      top: calc(var(--header-h, var(--navbar-h, 172px)) + 8px);
+      height: min(32svh, 260px);
+      padding-bottom: 12px;
+      background: var(--home-bg);
+    }
+  
+    .device {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      max-height: none;
+      border-radius: 18px;
+      transform: scale(0.75);
+      transform-origin: top center;
+    }
 
   .page {
     --pad-top: 18px;
@@ -2226,6 +2230,10 @@
 }
 
 @media (max-width: 560px) {
+  .device {
+      transform: scale(0.65);
+    }
+
   .hero-lede {
       font-size: 17px;
     }
