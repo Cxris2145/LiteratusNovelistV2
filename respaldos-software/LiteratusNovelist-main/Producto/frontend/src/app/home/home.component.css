@@ -771,7 +771,7 @@
    SECCIONES
    ═════════════════════════════════════════════════════════════════════════ */
 .band {
-  padding: clamp(80px, 10vw, 140px) var(--home-gutter);
+  padding: clamp(48px, 10vw, 140px) var(--home-gutter);
 }
 
 .band + .band {
@@ -2226,8 +2226,17 @@
 }
 
 @media (max-width: 560px) {
+  .hero-lede {
+      font-size: 17px;
+    }
+
+  .genre-grid {
+      grid-template-columns: 1fr;
+      grid-auto-rows: 200px;
+    }
+
   .hero-title {
-    font-size: clamp(40px, 11vw, 52px);
+    font-size: clamp(32px, 9vw, 42px);
   }
 
   .hero-actions .btn {

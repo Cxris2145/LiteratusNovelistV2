@@ -1,0 +1,502 @@
+<div class="home">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       HERO: muro de portadas reales + presentación
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-wall" aria-hidden="true">
+      <div class="wall-track">
+        <div class="wall-col" *ngFor="let col of wallColumns; let c = index; trackBy: trackByIndex"
+             [class.wall-col--down]="c % 2 === 1">
+          <div class="wall-strip">
+            <img *ngFor="let src of col; trackBy: trackByIndex" [src]="src" alt="" width="320" height="320" decoding="async" fetchpriority="low">
+            <img *ngFor="let src of col; trackBy: trackByIndex" [src]="src" alt="" width="320" height="320" decoding="async" fetchpriority="low">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scrim" aria-hidden="true"></div>
+
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="hero-pill">
+          <ng-container *ngIf="isLoggedIn && profileLoaded; else visitorPill">
+            <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
+            <span>{{ greeting }}<ng-container *ngIf="userName">, {{ userName }}</ng-container>. Llevas {{ userStreak }} {{ userStreak === 1 ? 'día' : 'días' }} de racha.</span>
+          </ng-container>
+          <ng-template #visitorPill>
+            <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+            <span>Biblioteca digital de clásicos en español</span>
+          </ng-template>
+        </p>
+
+        <h1 id="hero-title" class="hero-title">
+          <span class="line"><span class="line-inner">Lee los clásicos.</span></span>
+          <span class="line line--accent"><span class="line-inner">Después, conversa con ellos.</span></span>
+        </h1>
+
+        <p class="hero-lede">
+          Obras íntegras para leer gratis, escuchar con narración por voz y entender
+          hablando con sus personajes.
+        </p>
+
+        <div class="hero-actions">
+          <a routerLink="/catalog" class="btn btn--primary">
+            Explorar el catálogo
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+          </a>
+          <button type="button" class="btn btn--ghost" (click)="scrollToSection('como-funciona')">
+            Ver cómo funciona
+          </button>
+        </div>
+
+        <dl class="hero-stats">
+          <div class="hero-stat">
+            <dt>Obras íntegras</dt>
+            <dd data-stat="books">0</dd>
+          </div>
+          <div class="hero-stat">
+            <dt>Personajes con IA</dt>
+            <dd data-stat="characters">0</dd>
+          </div>
+          <div class="hero-stat">
+            <dt>Autores</dt>
+            <dd data-stat="authors">0</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- Los dos grupos comparten la misma celda: al cambiar de uno a otro,
+           el que sale y el que entra se cruzan en el mismo lugar. -->
+      <aside class="hero-cards" aria-label="Destacado" [style.--enter-delay]="cardsEnterDelay + 'ms'">
+        <div class="card-group card-group--visitor"
+             [class.is-shown]="cardsMode === 'visitor'"
+             [attr.aria-hidden]="cardsMode !== 'visitor'"
+             [attr.inert]="cardsMode !== 'visitor' ? '' : null">
+          <a routerLink="/catalog" class="float-card" style="--k: 0">
+            <span class="float-icon material-symbols-rounded" aria-hidden="true">lock_open</span>
+            <span class="float-text">
+              <strong>Lectura gratis</strong>
+              <span>Todo el catálogo, sin pagar por libro</span>
+            </span>
+            <span class="material-symbols-rounded float-go" aria-hidden="true">arrow_forward</span>
+          </a>
+          <button type="button" class="float-card" style="--k: 1" (click)="scrollToSection('como-funciona')">
+            <span class="float-icon float-icon--voice material-symbols-rounded" aria-hidden="true">graphic_eq</span>
+            <span class="float-text">
+              <strong>Narración por voz</strong>
+              <span>Escucha cada capítulo mientras lees</span>
+            </span>
+            <span class="material-symbols-rounded float-go" aria-hidden="true">arrow_forward</span>
+          </button>
+        </div>
+
+        <div class="card-group card-group--resume" *ngIf="continueItem"
+             [class.is-shown]="cardsMode === 'resume'"
+             [attr.aria-hidden]="cardsMode !== 'resume'"
+             [attr.inert]="cardsMode !== 'resume' ? '' : null">
+          <a [routerLink]="['/reader', continueItem.id]" class="float-card float-card--resume" style="--k: 0">
+            <img [src]="continueItem.cover" alt="" width="44" height="58">
+            <span class="float-text">
+              <strong>Sigue leyendo</strong>
+              <span class="float-title">{{ continueItem.title }}</span>
+              <span class="float-progress" [attr.aria-label]="continueItem.percent + '% leído'">
+                <span class="float-progress-fill" [style.--p]="continueItem.percent / 100"></span>
+              </span>
+            </span>
+            <span class="material-symbols-rounded float-go" aria-hidden="true">arrow_forward</span>
+          </a>
+        </div>
+      </aside>
+    </div>
+
+    <button type="button" class="scroll-cue" (click)="scrollToSection('como-funciona')">
+      <span>Desliza</span>
+      <span class="scroll-cue-line" aria-hidden="true"></span>
+    </button>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       CÓMO FUNCIONA: los pasos cambian el panel fijo
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section id="como-funciona" class="band how-section" aria-labelledby="how-title">
+    <header class="section-head reveal-on-scroll">
+      <h2 id="how-title" class="section-title">Una página, cuatro maneras de leerla</h2>
+      <p class="section-lede">
+        Todas las obras se abren en el mismo lector. Desliza para ver qué puedes hacer con cada página.
+      </p>
+    </header>
+
+    <div class="how-grid">
+      <div class="how-stage" aria-hidden="true">
+        <div class="device" [attr.data-step]="activeStep" [attr.data-mode]="readingMode">
+          <div class="device-bar">
+            <span class="device-book">La Odisea · Homero</span>
+            <span class="material-symbols-rounded device-mark">bookmark</span>
+          </div>
+
+          <div class="page">
+            <p class="page-kicker">Canto primero</p>
+            <p class="page-text" *ngFor="let para of passage; let p = index; trackBy: trackByIndex"><ng-container *ngFor="let w of para; let i = index; trackBy: trackByIndex"><span
+              class="w"
+              [class.is-spoken]="activeStep === 'listen' && passageOffsets[p] + i === spokenIndex"
+              [class.was-spoken]="activeStep === 'listen' && passageOffsets[p] + i < spokenIndex"><b class="w-head">{{ w.head }}</b>{{ w.tail }}</span>{{ ' ' }}</ng-container></p>
+            <span class="focus-ruler"></span>
+          </div>
+
+          <div class="device-foot">
+            <span>Canto I de XXIV</span>
+            <span class="device-progress"><span class="device-progress-fill"></span></span>
+          </div>
+
+          <div class="layer player">
+            <span class="player-play material-symbols-rounded">pause</span>
+            <span class="player-info">
+              <span class="player-title">Narración · Canto primero</span>
+              <span class="player-wave">
+                <i *ngFor="let bar of waveBars"></i>
+              </span>
+            </span>
+          </div>
+
+          <div class="layer mode-tag">
+            <span class="material-symbols-rounded">tune</span>
+            Modo {{ readingMode === 'normal' ? 'normal' : readingMode === 'focus' ? 'enfoque' : readingMode === 'bionic' ? 'biónica' : 'dislexia' }}
+          </div>
+
+          <div class="layer chat-sheet">
+            <p class="chat-note">Ejemplo de conversación</p>
+            <p class="bubble bubble--me">¿Por qué tardaste veinte años en volver a Ítaca?</p>
+            <p class="bubble bubble--them">
+              <span class="bubble-name">Odiseo</span>
+              Diez años me retuvo la guerra de Troya y otros diez el mar. Poseidón no me perdonó
+              que cegara a su hijo Polifemo.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="how-steps">
+        <div class="how-rail" aria-hidden="true">
+          <span class="how-rail-fill" [style.transform]="'scaleY(' + (steps.indexOf(activeStep) + 1) / steps.length + ')'"></span>
+        </div>
+
+        <article class="how-step" data-how-step="read" [class.is-active]="activeStep === 'read'">
+          <span class="how-icon material-symbols-rounded" aria-hidden="true">menu_book</span>
+          <h3>Lee la obra completa</h3>
+          <p>
+            Sin resúmenes ni adaptaciones: el texto íntegro, capítulo por capítulo.
+            El lector guarda tu avance y tus marcadores para que sigas donde quedaste.
+          </p>
+        </article>
+
+        <article class="how-step" data-how-step="listen" [class.is-active]="activeStep === 'listen'">
+          <span class="how-icon material-symbols-rounded" aria-hidden="true">headphones</span>
+          <h3>Escúchala mientras lees</h3>
+          <p>
+            Cada capítulo tiene narración por voz, y el texto marca la palabra que se está
+            leyendo para que no pierdas la línea.
+          </p>
+        </article>
+
+        <article class="how-step" data-how-step="adapt" [class.is-active]="activeStep === 'adapt'">
+          <span class="how-icon material-symbols-rounded" aria-hidden="true">tune</span>
+          <h3>Adáptala a tu forma de leer</h3>
+          <p>
+            Modos pensados para TDAH, dislexia y fatiga visual, además de temas de alto contraste.
+            Pruébalos en la página:
+          </p>
+          <div class="mode-chips" role="group" aria-label="Modos de lectura de ejemplo">
+            <button *ngFor="let m of readingModes" type="button" class="mode-chip"
+                    [class.is-on]="readingMode === m.id"
+                    [attr.aria-pressed]="readingMode === m.id"
+                    (click)="setReadingMode(m.id)">{{ m.label }}</button>
+          </div>
+        </article>
+
+        <article class="how-step" data-how-step="talk" [class.is-active]="activeStep === 'talk'">
+          <span class="how-icon material-symbols-rounded" aria-hidden="true">forum</span>
+          <h3>Pregúntale a sus personajes</h3>
+          <p>
+            Cada obra trae a sus personajes y a su autor como avatares de IA.
+            Te responden desde su propia historia, en el momento de la lectura en que estés.
+          </p>
+          <button type="button" class="text-link" (click)="goToCharacterChat(odysseus)">
+            {{ odysseus ? 'Hablar con Odiseo' : 'Conocer a los personajes' }}
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+          </button>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       PERSONAJES
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section class="band cast-section" aria-labelledby="cast-title">
+    <header class="section-head section-head--split reveal-on-scroll">
+      <div>
+        <h2 id="cast-title" class="section-title">Los personajes te están esperando</h2>
+        <p class="section-lede">
+          {{ totalCharacters.toLocaleString('es-CL') }} personajes y autores con IA. Conversa con ellos
+          durante la lectura o cuando la termines.
+        </p>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="round-btn" (click)="scrollShelf(castTrack, -1)" aria-label="Personajes anteriores">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <button type="button" class="round-btn" (click)="scrollShelf(castTrack, 1)" aria-label="Más personajes">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+        </button>
+        <a routerLink="/characters" class="text-link">Ver todos</a>
+      </div>
+    </header>
+
+    <div class="cast-track" #castTrack>
+      <ng-container *ngIf="castLoaded; else castSkeleton">
+        <div class="cast-row" data-scroll-reveal>
+          <button *ngFor="let c of cast; let i = index; trackBy: trackById" type="button" class="cast-card"
+                  [style.--i]="i" (click)="goToCharacterChat(c)"
+                  [attr.aria-label]="'Conversar con ' + c.name + ', de ' + c.bookTitle">
+            <span class="cast-media" [class.cast-media--portrait]="c.isPortrait">
+              <img [src]="c.image" alt="" loading="lazy" decoding="async" width="240" height="320">
+            </span>
+            <span class="cast-body">
+              <span class="cast-name">{{ c.name }}</span>
+              <span class="cast-book">{{ c.bookTitle }}</span>
+              <span class="cast-role">{{ c.role }}</span>
+            </span>
+          </button>
+        </div>
+      </ng-container>
+      <ng-template #castSkeleton>
+        <div class="cast-row">
+          <span class="cast-card cast-card--ghost" *ngFor="let s of [1,2,3,4,5]"></span>
+        </div>
+      </ng-template>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       GÉNEROS
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section class="band genres-section" aria-labelledby="genres-title">
+    <header class="section-head section-head--split reveal-on-scroll">
+      <div>
+        <h2 id="genres-title" class="section-title">Empieza por lo que ya te gusta</h2>
+        <p class="section-lede">
+          Cuentos, teatro, poesía, terror o filosofía: {{ totalGenres }} géneros para encontrar tu próxima lectura.
+        </p>
+      </div>
+      <div class="head-actions">
+        <a routerLink="/categories" class="text-link">Ver todas las categorías</a>
+      </div>
+    </header>
+
+    <div class="genre-grid" *ngIf="genreTiles.length" data-scroll-reveal>
+      <a *ngFor="let g of genreTiles.slice(0, 5); let i = index; trackBy: trackBySlug"
+         [routerLink]="['/categories', g.slug]" class="genre-tile" [class.genre-tile--lead]="i === 0" [style.--i]="i">
+        <span class="genre-art">
+          <img *ngIf="g.image" [src]="g.image" alt="" loading="lazy" decoding="async">
+        </span>
+        <span class="genre-meta">
+          <span class="genre-name">{{ g.name }}</span>
+          <span class="genre-count">{{ g.bookCount.toLocaleString('es-CL') }} obras</span>
+        </span>
+      </a>
+    </div>
+
+    <nav class="genre-more reveal-on-scroll" *ngIf="genreTiles.length > 5" aria-label="Más géneros">
+      <a *ngFor="let g of genreTiles.slice(5); trackBy: trackBySlug" [routerLink]="['/categories', g.slug]" class="genre-chip">
+        {{ g.name }} <span>{{ g.bookCount }}</span>
+      </a>
+    </nav>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       LIBROS PARA EMPEZAR
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section class="band shelf-section" aria-labelledby="shelf-title">
+    <header class="section-head section-head--split reveal-on-scroll">
+      <div>
+        <h2 id="shelf-title" class="section-title">Clásicos para empezar</h2>
+        <p class="section-lede">Obras conocidas, completas y con sus personajes listos para conversar.</p>
+      </div>
+      <div class="head-actions">
+        <button 
+          type="button" 
+          class="round-btn" 
+          [class.disabled]="!canShelfPrev"
+          [disabled]="!canShelfPrev"
+          (click)="scrollShelfPage(-1)" 
+          aria-label="Libros anteriores">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+        </button>
+        <button 
+          type="button" 
+          class="round-btn" 
+          [class.disabled]="!canShelfNext"
+          [disabled]="!canShelfNext"
+          (click)="scrollShelfPage(1)" 
+          aria-label="Más libros">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+        </button>
+        <a routerLink="/catalog" class="text-link">Ver catálogo completo</a>
+      </div>
+    </header>
+
+    <div class="shelf-carousel-wrap">
+      <div class="shelf-track" #shelfTrack (scroll)="onShelfScroll()">
+        <ul class="shelf-row" *ngIf="starterBooks.length; else shelfSkeleton" data-scroll-reveal>
+          <li *ngFor="let b of starterBooks; let i = index; trackBy: trackBySlug" class="shelf-item" [style.--i]="i">
+            <a [routerLink]="['/book', b.slug]" class="book-card">
+              <span class="book-cover">
+                <img [src]="b.cover" alt="" loading="lazy" decoding="async" width="360" height="480">
+              </span>
+              <span class="book-title">{{ b.title }}</span>
+              <span class="book-author">{{ b.author || 'Autor desconocido' }}</span>
+              <span class="book-genre" *ngIf="b.genre">{{ b.genre }}</span>
+            </a>
+          </li>
+        </ul>
+        <ng-template #shelfSkeleton>
+          <ul class="shelf-row">
+            <li class="shelf-item" *ngFor="let s of [1,2,3,4,5,6]">
+              <div class="book-card">
+                <span class="book-cover book-cover--ghost"></span>
+                <span class="book-title" style="min-height: 40px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; display: block;"></span>
+                <span class="book-author" style="min-height: 18px; width: 65%; background: rgba(255, 255, 255, 0.03); border-radius: 4px; display: block;"></span>
+              </div>
+            </li>
+          </ul>
+        </ng-template>
+      </div>
+
+      <!-- Indicadores de paginación interactivos (Dots) -->
+      <nav class="shelf-carousel-dots" *ngIf="starterBooks.length && shelfDots.length > 1" aria-label="Páginas del carrusel de libros">
+        <button 
+          *ngFor="let page of shelfDots; let idx = index" 
+          type="button" 
+          class="carousel-dot" 
+          [class.active]="shelfCurrentPage === idx"
+          (click)="goToShelfPage(idx)"
+          [attr.aria-label]="'Ir a la página ' + (idx + 1) + ' de libros'"
+          [attr.aria-current]="shelfCurrentPage === idx ? 'true' : null">
+        </button>
+      </nav>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       JUEGOS Y PROGRESO
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section class="band play-section" aria-labelledby="play-title">
+    <header class="section-head reveal-on-scroll">
+      <h2 id="play-title" class="section-title">Leer también suma</h2>
+      <p class="section-lede">
+        Lecciones, un enigma cada día y una racha que cuidar. Todo te da experiencia y Tinta,
+        que usas para conversar con los personajes.
+      </p>
+    </header>
+
+    <div class="play-grid" data-scroll-reveal>
+      <a class="play-tile play-tile--senda" [routerLink]="isLoggedIn ? '/learn' : '/register'" style="--i: 0">
+        <div class="play-visual" aria-hidden="true">
+          <span class="senda">
+            <svg class="senda-path" viewBox="0 0 200 320" focusable="false">
+              <polyline class="senda-line" [attr.points]="sendaPath" pathLength="1"></polyline>
+              <polyline class="senda-line senda-line--done" [attr.points]="sendaDonePath" pathLength="1"></polyline>
+            </svg>
+            <span *ngFor="let n of sendaNodes; let i = index" class="senda-node" [attr.data-state]="n.state"
+                  [style.left.%]="n.x / 2" [style.top.%]="n.y / 3.2" [style.--n]="i">
+              <span class="material-symbols-rounded">{{ n.state === 'done' ? 'check' : n.state === 'current' ? 'menu_book' : 'lock' }}</span>
+            </span>
+          </span>
+        </div>
+        <div class="play-body">
+          <h3>La Senda</h3>
+          <p>
+            Lecciones cortas de comprensión lectora, unidad por unidad. Las respuestas incorrectas
+            gastan corazones, que se recuperan con el tiempo.
+          </p>
+          <span class="play-link">{{ isLoggedIn ? 'Seguir la Senda' : 'Crear cuenta para empezar' }}</span>
+        </div>
+      </a>
+
+      <a class="play-tile play-tile--enigma" routerLink="/games/enigma" style="--i: 1">
+        <div class="play-visual" aria-hidden="true">
+          <span class="enigma">
+          <span class="enigma-word">
+            <span *ngFor="let l of enigmaLetters; let i = index" class="enigma-cell"
+                  [class.enigma-cell--gap]="l.ch === ' '" [class.enigma-cell--hidden]="!l.shown" [style.--n]="i">
+              {{ l.shown ? l.ch : '' }}
+            </span>
+          </span>
+          <span class="enigma-drops">
+            <span *ngFor="let d of inkDrops" class="material-symbols-rounded drop" [class.drop--spent]="!d">water_drop</span>
+          </span>
+          </span>
+        </div>
+        <div class="play-body">
+          <h3>El Enigma del Tintero</h3>
+          <p>
+            Un enigma literario al día: adivina la obra letra por letra antes de gastar tus
+            cinco gotas de tinta. Si lo resuelves, ganas 15 de Tinta.
+          </p>
+          <span class="play-link">Jugar el enigma de hoy</span>
+        </div>
+      </a>
+
+      <a class="play-tile play-tile--logros" [routerLink]="isLoggedIn ? '/achievements' : '/register'" style="--i: 2">
+        <div class="play-visual" aria-hidden="true">
+          <span class="logros">
+          <span class="streak">
+            <span class="material-symbols-rounded streak-flame">local_fire_department</span>
+            <span class="streak-num">{{ profileLoaded ? userStreak : 7 }}</span>
+            <span class="streak-label">{{ profileLoaded ? 'días de racha' : 'días seguidos' }}</span>
+          </span>
+          <span class="week">
+            <span *ngFor="let d of weekDays; let i = index" class="week-day"
+                  [class.week-day--on]="profileLoaded ? i < userStreak : true" [style.--n]="i">{{ d }}</span>
+          </span>
+          <span class="level">
+            <span class="level-label">
+              Nivel {{ profileLoaded ? userLevel : 3 }}<ng-container *ngIf="profileLoaded && userLevelName"> · {{ userLevelName }}</ng-container>
+            </span>
+            <span class="level-bar"><span class="level-fill" [style.--p]="(profileLoaded ? userXpPercent : 65) / 100"></span></span>
+          </span>
+          </span>
+        </div>
+        <div class="play-body">
+          <h3>Logros y racha</h3>
+          <p>
+            Lee un poco cada día para mantener tu racha, subir de nivel y completar misiones.
+            <ng-container *ngIf="profileLoaded">Hoy tienes {{ userInk.toLocaleString('es-CL') }} de Tinta.</ng-container>
+          </p>
+          <span class="play-link">{{ isLoggedIn ? 'Ver mis logros' : 'Crear cuenta para empezar' }}</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       CIERRE
+  ═══════════════════════════════════════════════════════════════════ -->
+  <section class="band closing" aria-labelledby="closing-title">
+    <div class="closing-inner reveal-on-scroll">
+      <h2 id="closing-title" class="closing-title">¿Por cuál empiezas?</h2>
+      <p class="section-lede">
+        Elige uno del catálogo o deja que la biblioteca elija por ti.
+      </p>
+      <div class="closing-actions">
+        <a *ngIf="!isLoggedIn" routerLink="/register" class="btn btn--primary">Crear cuenta gratis</a>
+        <a *ngIf="isLoggedIn" routerLink="/library" class="btn btn--primary">Ir a mi biblioteca</a>
+        <button type="button" class="btn btn--ghost btn--ghost-page" (click)="openRandomBook()">
+          <span class="material-symbols-rounded" aria-hidden="true">casino</span>
+          Elegir un libro al azar
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
