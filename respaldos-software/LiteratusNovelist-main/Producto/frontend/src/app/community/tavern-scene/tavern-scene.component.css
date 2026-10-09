@@ -4,16 +4,15 @@
 }
 
 .ts-stage {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden; /* Restored to prevent ts-fit-light from creating scrollbars */
-    width: 100%;
-    container-type: inline-size;
-    max-width: calc(var(--th-stage-height, 560px) * 1.85);
-    margin: 0 auto;
-    height: var(--th-stage-height, 560px);
-    background: transparent;
-  }
+  container-type: inline-size;
+  --ts-table-bottom: 50px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  height: var(--th-stage-height, 560px);
+  background: transparent;
+}
 
 /* ── Ambiente: luces y velas ────────────────────────────────── */
 .ts-ambient-light {
