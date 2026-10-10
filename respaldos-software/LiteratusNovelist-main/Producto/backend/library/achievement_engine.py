@@ -532,35 +532,14 @@ def _check_level_up(profile):
 
 def update_streak(user):
     """
-    Actualiza la racha de lectura del usuario (se llama cada vez que lee).
-    Se considera una racha si lee al menos una vez al dÃ­a.
+    Actualiza la racha de lectura del usuario delegando en el servicio unificado ensure_streak.
     """
-    from users.models import Profile
-    
-    today = timezone.localdate()
-    
     try:
-        profile = Profile.objects.select_for_update().get(user=user)
-        
-        # Si ya actualizÃ³ hoy, no hacer nada
-        if profile.streak_last_date == today:
-            return
-            
-        # Si ayer leyÃ³, aumentar la racha. Si no, reiniciar a 1.
-        yesterday = today - __import__('datetime').timedelta(days=1)
-        
-        if profile.streak_last_date == yesterday:
-            profile.streak_current += 1
-            # Dar recompensa por mantener racha
-            reward_activity(user, 'streak_bonus_day')
-        else:
-            profile.streak_current = 1
-            
-        profile.streak_last_date = today
-        profile.save(update_fields=['streak_current', 'streak_last_date'])
-        
-    except Profile.DoesNotExist:
+        from learning.services import ensure_streak
+        ensure_streak(user, 'chapter_read')
+    except Exception:
         pass
+
 
 
 def get_user_discount(user):

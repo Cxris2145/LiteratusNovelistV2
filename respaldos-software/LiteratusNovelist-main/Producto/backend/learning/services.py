@@ -186,8 +186,15 @@ def get_streak_details(user) -> dict:
     # Racha en peligro: si tiene racha activa, aún no asegura hoy y es tarde o la racha es frágil
     is_in_danger = (not is_secured_today and profile.streak_current > 0 and profile.streak_last_date == yesterday)
     
-    # Racha recuperable: si perdió la racha ayer y hoy tiene 0 o 1
-    can_repair = (profile.streak_last_date and profile.streak_last_date < yesterday and profile.streak_current <= 1)
+    # Racha recuperable: si la racha se rompió (no ha leído hoy o fue reiniciada a 1/0) y tenía un récord previo (> 1)
+    # Puede recuperarse si la última fecha válida fue antes de ayer o si la racha actual se desplomó a <= 1 teniendo streak_max > 1
+    has_lost_streak = (
+        profile.streak_max > 1 and (
+            profile.streak_current <= 1 or
+            (profile.streak_last_date and profile.streak_last_date < yesterday)
+        ) and profile.streak_current < profile.streak_max
+    )
+    can_repair = bool(has_lost_streak)
 
     # Últimos 30 días para el heatmap/calendario
     thirty_days_ago = today - timedelta(days=29)
@@ -674,6 +681,22 @@ def purchase_shop_item(user, item_code: str) -> dict:
 
     if item.item_type == ShopItem.ItemType.STREAK_SHIELD and profile.streak_shields >= 2:
         return {'success': False, 'error': 'MAX_SHIELDS', 'message': 'Ya tienes el máximo de 2 escudos protectores.'}
+
+    if item.item_type == ShopItem.ItemType.STREAK_REPAIR:
+        today = timezone.localdate()
+        yesterday = today - timedelta(days=1)
+        needs_repair = (
+            profile.streak_max > 1 and (
+                profile.streak_current <= 1 or
+                (profile.streak_last_date and profile.streak_last_date < yesterday)
+            ) and profile.streak_current < profile.streak_max
+        )
+        if not needs_repair:
+            return {
+                'success': False,
+                'error': 'STREAK_NOT_LOST',
+                'message': 'Tu racha no está perdida. Solo puedes recuperarla si se ha roto.'
+            }
 
     # Los cosméticos se compran una vez; volver a pagarlos no da nada nuevo.
     if (item.item_type in ONE_TIME_ITEM_TYPES

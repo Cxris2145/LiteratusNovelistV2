@@ -304,30 +304,59 @@ class StreakRepairView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
+        from django.utils import timezone
+        from datetime import timedelta
+        from library.models import InkTransaction
+
         profile = request.user.profile
+        today = timezone.localdate()
+        yesterday = today - timedelta(days=1)
+
+        # Solo cobrar y recuperar si la racha realmente se perdió
+        has_lost_streak = (
+            profile.streak_max > 1 and (
+                profile.streak_current <= 1 or
+                (profile.streak_last_date and profile.streak_last_date < yesterday)
+            ) and profile.streak_current < profile.streak_max
+        )
+
+        if not has_lost_streak:
+            return Response({
+                'success': False,
+                'error': 'STREAK_NOT_LOST',
+                'message': 'Tu racha no está perdida. Solo puedes recuperarla si se ha roto.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         if profile.ink_balance < 60:
             return Response({
                 'success': False,
                 'error': 'INSUFFICIENT_INK',
-                'message': 'Necesitas al menos 60 de Tinta para restaurar tu racha.'
+                'message': f'Necesitas al menos 60 de Tinta para restaurar tu racha. Tienes {profile.ink_balance} 🖋️.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Si racha actual <= 1 y tenía un récord mayor, restaurar
-        if profile.streak_max > 1:
-            profile.ink_balance -= 60
-            profile.streak_current = profile.streak_max
-            profile.save(update_fields=['ink_balance', 'streak_current'])
-            return Response({
-                'success': True,
-                'streak_current': profile.streak_current,
-                'ink_balance': profile.ink_balance,
-                'message': f'¡Tu racha de {profile.streak_current} días ha sido restaurada!'
-            })
+        # Restaurar racha y descontar tinta
+        profile.ink_balance -= 60
+        profile.streak_current = profile.streak_max
+        # streak_last_date se fija en hoy para que al continuar leyendo ese mismo día no se reinicie
+        profile.streak_last_date = today
+        profile.save(update_fields=['ink_balance', 'streak_current', 'streak_last_date'])
+
+        # Registrar en el libro de transacciones de tinta
+        InkTransaction.objects.create(
+            user=request.user,
+            amount=-60,
+            concept="streak_repair",
+            reference_id=f"streak:{profile.streak_current}",
+            balance_after=profile.ink_balance
+        )
 
         return Response({
-            'success': False,
-            'message': 'No hay racha previa que restaurar.'
-        }, status=status.HTTP_400_BAD_REQUEST)
+            'success': True,
+            'streak_current': profile.streak_current,
+            'ink_balance': profile.ink_balance,
+            'message': f'¡Tu racha de {profile.streak_current} días ha sido restaurada con éxito!'
+        })
+
 
 
 class HeartsStatusView(APIView):
