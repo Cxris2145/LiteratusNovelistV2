@@ -135,6 +135,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     Serializador del perfil del usuario.
     Expone datos de visualización, gamificación y preferencias literarias del onboarding.
     """
+    username = serializers.CharField(source='user.username', required=False, max_length=150)
     level_name = serializers.SerializerMethodField()
     xp_to_next_level = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
@@ -149,7 +150,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'id', 'avatar', 'avatar_color', 'bio', 'country', 'preferred_language', 
+            'id', 'username', 'avatar', 'avatar_color', 'bio', 'country', 'preferred_language', 
             'ink_balance', 'theme', 'xp', 'level', 'level_name', 
             'xp_to_next_level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',
@@ -162,6 +163,35 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['ink_balance', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title', 'has_completed_onboarding',
             'friend_code', 'outfit']
+
+    def validate_username(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError('El nombre de usuario no puede estar vacío.')
+        value = value.strip()
+        if len(value) < 3:
+            raise serializers.ValidationError('El nombre de usuario debe tener al menos 3 caracteres.')
+        if '@' in value:
+            raise serializers.ValidationError('El nombre de usuario no puede contener "@".')
+        users = User.objects.all()
+        if self.instance and hasattr(self.instance, 'user'):
+            users = users.exclude(pk=self.instance.user.pk)
+        if users.filter(username__iexact=value).exists():
+            raise serializers.ValidationError('Ese nombre de usuario ya está en uso.')
+        return value
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', None)
+        username = None
+        if isinstance(user_data, dict):
+            username = user_data.get('username')
+        elif 'username' in validated_data:
+            username = validated_data.pop('username')
+
+        if username and instance.user.username != username:
+            instance.user.username = username
+            instance.user.save(update_fields=['username'])
+
+        return super().update(instance, validated_data)
 
     def validate_birth_date(self, value):
         # Las cuentas anteriores al filtro de edad la registran aquí una vez; después queda fija

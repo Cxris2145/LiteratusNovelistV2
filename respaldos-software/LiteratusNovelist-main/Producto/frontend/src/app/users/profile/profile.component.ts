@@ -101,7 +101,7 @@ export class ProfileComponent implements OnInit {
 
   constructor() {
     this.profileForm = this.fb.group({
-      username: ['', Validators.required],
+      username: ['', [Validators.required, Validators.minLength(3)]],
       email: [{value: '', disabled: true}],
       tagline: ['', Validators.maxLength(TAGLINE_MAX)],
       bio: ['', Validators.maxLength(BIO_MAX)],
@@ -125,14 +125,19 @@ export class ProfileComponent implements OnInit {
     this.api.get<any>('users/profile/').subscribe({
       next: (profile) => {
         if (profile) {
+          const loadedUsername = profile.username || this.authService.currentUser()?.username || '';
           this.profileForm.patchValue({
-            username: profile.username || this.authService.currentUser()?.username,
+            username: loadedUsername,
             email: this.authService.currentUser()?.email,
             tagline: profile.tagline || '',
             bio: profile.bio,
             country: profile.country,
             birth_date: profile.birth_date || ''
           });
+          const current = this.authService.currentUser();
+          if (current && profile.username && current.username !== profile.username) {
+            this.authService.setUser({ ...current, username: profile.username });
+          }
           this.birthDateLocked = !!profile.birth_date;
           const birthDate = this.profileForm.get('birth_date');
           if (this.birthDateLocked) birthDate?.disable();
@@ -226,10 +231,18 @@ export class ProfileComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.profileForm.invalid) return;
+    if (this.profileForm.invalid) {
+      if (this.profileForm.get('username')?.invalid) {
+        this.notificationService.warning('Por favor ingresa un nombre de usuario válido (mínimo 3 caracteres).', 'Validación');
+      }
+      return;
+    }
     this.loading = true;
 
+    const newUsername = this.profileForm.get('username')?.value?.trim();
+
     const payload: Record<string, unknown> = {
+      username: newUsername || '',
       tagline: this.profileForm.get('tagline')?.value || '',
       bio: this.profileForm.get('bio')?.value || '',
       country: this.profileForm.get('country')?.value || '',
@@ -241,8 +254,19 @@ export class ProfileComponent implements OnInit {
     if (!this.birthDateLocked && birthDate) payload['birth_date'] = birthDate;
 
     this.api.patch('users/profile/', payload).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.loading = false;
+        const savedUsername = res?.username || newUsername;
+        if (savedUsername) {
+          const currentUser = this.authService.currentUser();
+          if (currentUser) {
+            this.authService.setUser({
+              ...currentUser,
+              username: savedUsername
+            });
+          }
+        }
+        this.updateInitials();
         this.notificationService.success('Perfil actualizado exitosamente.', 'Perfil');
         // Actualizar el estado global
         this.chatService.notifyProfileUpdate();
