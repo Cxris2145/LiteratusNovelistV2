@@ -678,3 +678,46 @@ class BookSummary(TimeStampedModel):
 
     def __str__(self):
         return f"Resumen de {self.book} ({self.get_status_display()})"
+
+
+class ChapterProgressSummary(TimeStampedModel):
+    """
+    Resumen acumulativo de la obra desde el capítulo 1 hasta el capítulo N (sin spoilers de capítulos posteriores).
+    Se genera con IA una vez por (book, up_to_chapter) y se comparte entre todos los lectores que alcancen ese punto.
+    """
+    class Status(models.TextChoices):
+        GENERATING = 'generating', 'Generando'
+        READY = 'ready', 'Listo'
+        FAILED = 'failed', 'Falló'
+
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='chapter_progress_summaries')
+    up_to_chapter = models.PositiveIntegerField(help_text="Hasta qué capítulo cubre este resumen (inclusive).")
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.GENERATING)
+    # {
+    #   'title': 'Resumen: Capítulos 1 al 4',
+    #   'overview': str,
+    #   'plot_recap': [str],
+    #   'key_events': [str],
+    #   'characters_status': [{'name': str, 'status': str}],
+    #   'current_cliffhanger': str
+    # }
+    content = models.JSONField(default=dict, blank=True)
+    model_name = models.CharField(max_length=60, blank=True, default='')
+    input_tokens = models.PositiveIntegerField(default=0)
+    output_tokens = models.PositiveIntegerField(default=0)
+    error = models.CharField(max_length=255, blank=True, default='')
+
+    class Meta:
+        verbose_name = 'Chapter Progress Summary'
+        verbose_name_plural = 'Chapter Progress Summaries'
+        ordering = ['book', 'up_to_chapter']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['book', 'up_to_chapter'],
+                name='unique_book_chapter_progress_summary',
+                violation_error_message="Este libro ya tiene un resumen registrado para ese capítulo."
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.book.title} - Caps 1 al {self.up_to_chapter} ({self.get_status_display()})"

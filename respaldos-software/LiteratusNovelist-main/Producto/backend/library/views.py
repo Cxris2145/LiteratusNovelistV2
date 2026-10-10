@@ -249,6 +249,32 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         response['Cache-Control'] = 'private, max-age=3600'
         return response
 
+    @action(detail=True, methods=['GET', 'POST'], url_path='reading-summary')
+    def reading_summary(self, request, pk=None):
+        """
+        GET / POST /api/v1/library/inventory/{id}/reading-summary/?up_to_chapter=4
+        Devuelve el resumen de los capítulos 1 al N de la obra que el estudiante está leyendo,
+        garantizando cero spoilers de lo que ocurre después.
+        """
+        inventory_item = self.get_object()
+        book = inventory_item.edition.book
+
+        raw_chapter = request.query_params.get('up_to_chapter') or request.data.get('up_to_chapter')
+        if not raw_chapter:
+            if hasattr(inventory_item, 'progress') and inventory_item.progress and inventory_item.progress.current_page:
+                raw_chapter = inventory_item.progress.current_page
+            else:
+                raw_chapter = 1
+
+        try:
+            up_to_chapter = int(raw_chapter)
+        except (ValueError, TypeError):
+            up_to_chapter = 1
+
+        from catalog.reading_summary import get_or_create_reading_summary
+        result = get_or_create_reading_summary(book, up_to_chapter, user=request.user)
+        return Response(result)
+
     @action(detail=False, methods=['GET'], url_path='check')
     def check_ownership(self, request):
         """

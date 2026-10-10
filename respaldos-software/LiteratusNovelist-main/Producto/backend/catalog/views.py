@@ -291,6 +291,27 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             result = book_summary.current_summary(book)
         return Response(book_summary.summary_payload(result))
 
+    @action(detail=True, methods=['GET', 'POST'], url_path='reading-summary')
+    def reading_summary(self, request, slug=None):
+        """
+        Resumen acumulativo hasta el capítulo N (sin spoilers de capítulos posteriores).
+        GET / POST /api/v1/catalog/books/{slug}/reading-summary/?up_to_chapter=4
+        """
+        book = self.get_object()
+        blocked = age_block_message(request.user, book)
+        if blocked:
+            return Response({'error': 'AGE_RESTRICTED', 'message': blocked}, status=status.HTTP_403_FORBIDDEN)
+
+        raw_chapter = request.query_params.get('up_to_chapter') or request.data.get('up_to_chapter') or 1
+        try:
+            up_to_chapter = int(raw_chapter)
+        except (ValueError, TypeError):
+            up_to_chapter = 1
+
+        from .reading_summary import get_or_create_reading_summary
+        result = get_or_create_reading_summary(book, up_to_chapter, user=request.user)
+        return Response(result)
+
     @action(detail=True, methods=['POST'])
     def purchase(self, request, slug=None):
         """

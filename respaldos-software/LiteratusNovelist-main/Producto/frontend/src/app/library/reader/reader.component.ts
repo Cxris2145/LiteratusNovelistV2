@@ -575,6 +575,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   showRestartModal: boolean = false;
   lastAudioWordIndex: number = 0;
 
+  // Modal: Resumen hasta donde voy (sin spoilers)
+  isSummaryModalOpen: boolean = false;
+  isSummaryLoading: boolean = false;
+  summaryError: string = '';
+  progressSummary: any = null;
+
   // Video Avatar / Manga Avatar
   @ViewChild('avatarVideo') avatarVideoElement!: ElementRef<HTMLVideoElement>;
   showVideoAvatar: boolean = false;
@@ -3861,6 +3867,46 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.jumpToWord(target.chapterIndex, target.wordIdx, 'Palabra en');
   }
 
+  // ── RESUMEN HASTA DONDE VOY (ANTI-SPOILERS) ──────────────────────
+  openProgressSummary(): void {
+    this.isSummaryModalOpen = true;
+    this.isTocOpen = false;
+    this.isSettingsOpen = false;
+    this.isCharPanelOpen = false;
+    this.isVocabularyOpen = false;
+    this.fetchProgressSummary();
+  }
+
+  closeProgressSummary(): void {
+    this.isSummaryModalOpen = false;
+  }
+
+  fetchProgressSummary(): void {
+    if (!this.inventoryId) return;
+    this.isSummaryLoading = true;
+    this.summaryError = '';
+    const chapterNum = this.currentPage;
+
+    this.api.post<any>(`library/inventory/${this.inventoryId}/reading-summary/`, {
+      up_to_chapter: chapterNum
+    }).subscribe({
+      next: (res) => {
+        this.isSummaryLoading = false;
+        if (res.status === 'ready' && res.summary) {
+          this.progressSummary = res.summary;
+        } else {
+          this.summaryError = res.message || 'No se pudo cargar el resumen.';
+        }
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isSummaryLoading = false;
+        this.summaryError = err.error?.message || err.error?.error || 'Error al conectar con el servicio de resúmenes.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
   // ── PERSONAJES ────────────────────────────────────────────────────
   toggleCharPanel() {
     this.isCharPanelOpen = !this.isCharPanelOpen;
@@ -4753,6 +4799,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Escape cierra lo que esté abierto (nota del post-it, tarjeta del subrayado) o, si no hay nada, quita la palabra marcada. */
   @HostListener('document:keydown.escape')
   onReaderEscape() {
+    if (this.isSummaryModalOpen) {
+      this.closeProgressSummary();
+      return;
+    }
     if (this.activePostIt) {
       this.closePostIt();
       return;

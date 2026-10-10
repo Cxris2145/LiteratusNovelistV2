@@ -30,6 +30,11 @@
         <button class="toc-trigger-btn hdr-book-dup hdr-optional" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
           <span class="material-symbols-rounded" style="font-size:1.3rem;">dictionary</span>
         </button>
+        <button class="toc-trigger-btn hdr-book-dup hdr-optional" (click)="openProgressSummary()"
+                [title]="'Resumen hasta donde voy (Capítulos 1 al ' + currentPage + ')'"
+                aria-label="Resumen hasta donde voy">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;">history_edu</span>
+        </button>
         <button class="toc-trigger-btn" (click)="toggleDoublePageView()"
                 [title]="isDoublePageView ? 'Cambiar a lectura continua' : 'Cambiar a libro abierto (doble página)'"
                 [attr.aria-label]="isDoublePageView ? 'Cambiar a lectura continua' : 'Cambiar a libro abierto'"
@@ -687,6 +692,19 @@
       </button>
     </div>
 
+    <!-- Banner de Resumen hasta donde voy (sin spoilers) -->
+    <div class="toc-summary-banner" *ngIf="tocTab === 'chapters'" (click)="openProgressSummary()"
+         [title]="'Resumen acumulativo de los capítulos 1 al ' + currentPage + ' sin spoilers'">
+      <div class="toc-summary-icon">
+        <span class="material-symbols-rounded">history_edu</span>
+      </div>
+      <div class="toc-summary-info">
+        <span class="toc-summary-title">Resumen hasta donde voy</span>
+        <span class="toc-summary-sub">Capítulos 1 al {{ currentPage }} · Sin spoilers</span>
+      </div>
+      <span class="material-symbols-rounded toc-summary-arrow">chevron_right</span>
+    </div>
+
     <ul class="toc-list" *ngIf="tocTab === 'chapters'">
       <li *ngFor="let chapter of chapters; let i = index"
           [class.active]="i === (currentPage - 1)"
@@ -1009,6 +1027,10 @@
           </button>
           <button type="button" class="lb-btn" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
             <span class="material-symbols-rounded" aria-hidden="true">dictionary</span>
+          </button>
+          <button type="button" class="lb-btn" (click)="openProgressSummary()"
+                  title="Resumen hasta donde voy (sin spoilers)" aria-label="Resumen hasta donde voy">
+            <span class="material-symbols-rounded" aria-hidden="true">history_edu</span>
           </button>
         </div>
 
@@ -1458,7 +1480,123 @@
     </div>
   </div>
 
+  <!-- MODAL DE RESUMEN HASTA DONDE VOY (ANTI-SPOILERS) -->
+  <div class="summary-modal-overlay" *ngIf="isSummaryModalOpen" (click)="closeProgressSummary()">
+    <div class="summary-modal-card glass-panel" (click)="$event.stopPropagation()">
+      <div class="summary-modal-header">
+        <div class="summary-header-top-row">
+          <div class="summary-shield-badge">
+            <span class="material-symbols-rounded">verified_user</span>
+            <span>Garantía Anti-spoilers</span>
+          </div>
+          <button type="button" class="summary-close-btn" (click)="closeProgressSummary()" aria-label="Cerrar resumen">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <h3 class="summary-modal-title">
+          <span class="material-symbols-rounded summary-title-icon">history_edu</span>
+          Resumen hasta donde voy
+        </h3>
+        <p class="summary-modal-subtitle">
+          Recopilación de los capítulos 1 al {{ currentPage }} de <em>{{ bookTitle || 'este libro' }}</em>.
+          No incluye ningún detalle de capítulos posteriores.
+        </p>
+      </div>
 
+      <div class="summary-modal-body">
+        <!-- ESTADO: CARGANDO -->
+        <div class="summary-state-box loading" *ngIf="isSummaryLoading">
+          <div class="summary-spinner"></div>
+          <p class="summary-state-title">Analizando la lectura acumulada...</p>
+          <p class="summary-state-text">Sintetizando la trama sin revelar eventos futuros.</p>
+        </div>
+
+        <!-- ESTADO: ERROR -->
+        <div class="summary-state-box error" *ngIf="!isSummaryLoading && summaryError">
+          <span class="material-symbols-rounded error-icon">error_outline</span>
+          <p class="summary-state-title">No se pudo cargar el resumen</p>
+          <p class="summary-state-text">{{ summaryError }}</p>
+          <button type="button" class="summary-retry-btn" (click)="fetchProgressSummary()">
+            <span class="material-symbols-rounded">refresh</span>
+            Reintentar
+          </button>
+        </div>
+
+        <!-- ESTADO: CONTENIDO LISTO -->
+        <div class="summary-content-wrapper" *ngIf="!isSummaryLoading && !summaryError && progressSummary">
+          <!-- Overview / Panorama -->
+          <div class="summary-section summary-overview-card" *ngIf="progressSummary.overview">
+            <h4 class="summary-section-label">
+              <span class="material-symbols-rounded">auto_stories</span>
+              Panorama general
+            </h4>
+            <p class="summary-overview-text">{{ progressSummary.overview }}</p>
+          </div>
+
+          <!-- Puntos clave del argumento -->
+          <div class="summary-section" *ngIf="progressSummary.plot_recap?.length">
+            <h4 class="summary-section-label">
+              <span class="material-symbols-rounded">timeline</span>
+              Lo ocurrido hasta ahora
+            </h4>
+            <div class="summary-plot-paragraphs">
+              <p *ngFor="let paragraph of progressSummary.plot_recap" class="summary-plot-p">
+                {{ paragraph }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Acontecimientos destacados -->
+          <div class="summary-section" *ngIf="progressSummary.key_events?.length">
+            <h4 class="summary-section-label">
+              <span class="material-symbols-rounded">flag</span>
+              Hitos y revelaciones clave
+            </h4>
+            <ul class="summary-bullet-list">
+              <li *ngFor="let evt of progressSummary.key_events">
+                <span class="bullet-dot">✦</span>
+                <span>{{ evt }}</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Estado de personajes -->
+          <div class="summary-section" *ngIf="progressSummary.characters_status?.length">
+            <h4 class="summary-section-label">
+              <span class="material-symbols-rounded">groups</span>
+              Estado de los personajes al capítulo {{ currentPage }}
+            </h4>
+            <div class="summary-characters-grid">
+              <div class="summary-character-card" *ngFor="let char of progressSummary.characters_status">
+                <div class="character-card-name">{{ char.name }}</div>
+                <div class="character-card-status">{{ char.status }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dónde te quedaste / Cliffhanger -->
+          <div class="summary-section summary-cliffhanger-card" *ngIf="progressSummary.current_cliffhanger">
+            <h4 class="summary-section-label">
+              <span class="material-symbols-rounded">bookmark_added</span>
+              Punto exacto donde te quedaste
+            </h4>
+            <p class="summary-cliffhanger-text">{{ progressSummary.current_cliffhanger }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-modal-footer">
+        <button type="button" class="summary-footer-btn outline" (click)="fetchProgressSummary()" [disabled]="isSummaryLoading" title="Actualizar resumen">
+          <span class="material-symbols-rounded">sync</span>
+          Actualizar
+        </button>
+        <button type="button" class="summary-footer-btn primary" (click)="closeProgressSummary()">
+          Continuar lectura
+          <span class="material-symbols-rounded">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
 </div>
 
