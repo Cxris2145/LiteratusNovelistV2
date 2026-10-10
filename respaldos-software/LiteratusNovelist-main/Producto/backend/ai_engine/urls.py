@@ -8,6 +8,7 @@ from .views import (
     AvatarDetailView,
     GlobalAvatarListView,
     RecentChatsView,
+    UserConversationsView,
     ChatSessionView,
     ChatHistoryView,
     TTSGenerateView,
@@ -33,6 +34,10 @@ urlpatterns = [
     # Personajes recientes con los que se ha chateado
     # GET /api/v1/ai/hub/recent/
     path('hub/recent/', RecentChatsView.as_view(), name='ai-hub-recent'),
+
+    # Conversaciones reales del usuario con personajes
+    # GET /api/v1/ai/conversations/
+    path('conversations/', UserConversationsView.as_view(), name='ai-user-conversations'),
 
     # Lista de personajes con estado de desbloqueo
 

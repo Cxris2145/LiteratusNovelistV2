@@ -1,15 +1,18 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
-import { ChatService, HubAvatar } from '../../core/services/chat.service';
+import { AuthService, userStorageKey } from '../../core/services/auth.service';
 
 export interface CharacterConversation {
+  sessionId?: string;
   avatarId: string;
   name: string;
   bookTitle: string;
   bookSlug?: string;
   avatarUrl: string;
   lastMessage: string;
+  lastMessageRole?: string;
+  rawTimestamp?: string;
   timestamp: string;
   unread: boolean;
   tag: string;
@@ -33,7 +36,7 @@ export interface SystemNotice {
 })
 export class MessagesComponent implements OnInit {
   private api = inject(ApiService);
-  private chatService = inject(ChatService);
+  public authService = inject(AuthService);
   private router = inject(Router);
 
   activeTab: 'characters' | 'notices' = 'characters';
@@ -69,159 +72,272 @@ export class MessagesComponent implements OnInit {
   loadConversations(): void {
     this.isLoading = true;
 
-    // Consultamos los avatares disponibles en el hub de IA
-    this.api.getCached<any>('ai/hub/avatars/?sort=popularity&page_size=20', undefined, 10 * 60 * 1000).subscribe({
+    if (!this.authService.isLoggedIn()) {
+      this.conversations = [];
+      this.isLoading = false;
+      this.syncUnreadCount();
+      return;
+    }
+
+    this.api.get<any[]>('ai/conversations/').subscribe({
       next: (res) => {
-        const avatars: HubAvatar[] = Array.isArray(res) ? res : (res?.results || []);
-        this.buildConversations(avatars);
+        const rawList = Array.isArray(res) ? res : [];
+        this.buildConversations(rawList);
         this.isLoading = false;
       },
-      error: () => {
-        this.buildConversations([]);
+      error: (err) => {
+        console.error('Error cargando conversaciones de usuario', err);
+        this.conversations = [];
         this.isLoading = false;
+        this.syncUnreadCount();
       }
     });
   }
 
-  private buildConversations(avatars: HubAvatar[]): void {
-    const predefinedTemplates: Record<string, { lastMessage: string; time: string; unread: boolean; tag: string }> = {
-      'sherlock': {
-        lastMessage: 'El juego ha comenzado, querido amigo. He examinado el último capítulo y tengo una hipótesis fascinante que compartirte...',
-        time: 'Hace 12 min',
-        unread: true,
-        tag: 'Misterio & Lógica'
-      },
-      'quijote': {
-        lastMessage: '¡Apercíbete, noble lector! En estas páginas aguardan gigantes disfrazados de dudas que demandan nuestro coraje.',
-        time: 'Hace 45 min',
-        unread: true,
-        tag: 'Aventura Caballeresca'
-      },
-      'poe': {
-        lastMessage: 'En la penumbra de la medianoche, las palabras cobran un eco que jamás perecerá. ¿Qué secretos guardas bajo tu mirada?',
-        time: 'Hace 2 horas',
-        unread: false,
-        tag: 'Gótico & Terror'
-      },
-      'alicia': {
-        lastMessage: '¿Sabías que a veces pienso en seis cosas imposibles antes del desayuno? Dime, ¿qué acertijo estás descifrando hoy?',
-        time: 'Ayer',
-        unread: false,
-        tag: 'Fantasía Curiosa'
-      },
-      'dracula': {
-        lastMessage: 'Escuchadlos... los hijos de la noche. ¡Qué hermosa melodía entonan! Bienvenidos seáis a mi biblioteca de sombras eternas.',
-        time: 'Hace 2 días',
-        unread: false,
-        tag: 'Gótico Clásico'
+  private buildConversations(rawList: any[]): void {
+    const readConvMap = this.getReadConversationsMap();
+
+    this.conversations = rawList.map(item => {
+      const avatarId = item.avatar_id;
+      const rawTime = item.timestamp;
+      const lastRead = readConvMap[avatarId];
+
+      let isUnread = false;
+      if (!lastRead) {
+        isUnread = item.last_message_role === 'assistant';
+      } else if (lastRead === 'all') {
+        isUnread = false;
+      } else {
+        const lastReadDate = new Date(lastRead);
+        const msgDate = new Date(rawTime);
+        isUnread = item.last_message_role === 'assistant' && msgDate > lastReadDate;
       }
-    };
 
-    const convList: CharacterConversation[] = [];
+      return {
+        sessionId: item.session_id,
+        avatarId: avatarId,
+        name: item.name,
+        bookTitle: item.book_title || 'Literatura Universal',
+        bookSlug: item.book_slug,
+        avatarUrl: item.avatar_url || 'assets/default_avatar.png',
+        lastMessage: item.last_message || 'Diálogo iniciado.',
+        lastMessageRole: item.last_message_role || 'assistant',
+        rawTimestamp: rawTime,
+        timestamp: this.formatRelativeTime(rawTime),
+        unread: isUnread,
+        tag: item.tag || 'Personaje IA'
+      };
+    });
 
-    // Si tenemos avatares de backend, los sincronizamos
-    if (avatars.length > 0) {
-      for (const av of avatars.slice(0, 8)) {
-        const nameKey = av.name.toLowerCase();
-        let matched = Object.entries(predefinedTemplates).find(([k]) => nameKey.includes(k));
-
-        convList.push({
-          avatarId: av.id,
-          name: av.name,
-          bookTitle: av.book_title || 'Literatura Universal',
-          bookSlug: av.book_slug || undefined,
-          avatarUrl: av.avatar_image_url || 'assets/default_avatar.png',
-          lastMessage: matched ? matched[1].lastMessage : `Saludos, lector. Es un honor coincidir entre las páginas de ${av.book_title || 'este relato'}. ¿En qué punto de la trama te encuentras?`,
-          timestamp: matched ? matched[1].time : 'Reciente',
-          unread: matched ? matched[1].unread : false,
-          tag: matched ? matched[1].tag : (av.tags?.[0] || 'Personaje IA')
-        });
-      }
-    }
-
-    // Si por alguna razón la API devolvió menos, completamos con los canónicos
-    if (convList.length === 0) {
-      convList.push(
-        {
-          avatarId: 'sherlock-holmes',
-          name: 'Sherlock Holmes',
-          bookTitle: 'Estudio en Escarlata',
-          avatarUrl: 'assets/default_avatar.png',
-          lastMessage: 'El juego ha comenzado, querido amigo. He examinado el último capítulo y tengo una hipótesis fascinante que compartirte...',
-          timestamp: 'Hace 12 min',
-          unread: true,
-          tag: 'Misterio & Deducción'
-        },
-        {
-          avatarId: 'don-quijote',
-          name: 'Don Quijote de la Mancha',
-          bookTitle: 'El Ingenioso Hidalgo',
-          avatarUrl: 'assets/default_avatar.png',
-          lastMessage: '¡Apercíbete, noble lector! En estas páginas aguardan gigantes disfrazados de dudas que demandan nuestro coraje.',
-          timestamp: 'Hace 45 min',
-          unread: true,
-          tag: 'Aventura Épica'
-        },
-        {
-          avatarId: 'edgar-allan-poe',
-          name: 'Edgar Allan Poe',
-          bookTitle: 'Cuentos de lo Grotesco',
-          avatarUrl: 'assets/default_avatar.png',
-          lastMessage: 'En la penumbra de la medianoche, las palabras cobran un eco que jamás perecerá. ¿Qué secretos guardas bajo tu mirada?',
-          timestamp: 'Hace 2 horas',
-          unread: false,
-          tag: 'Terror Gótico'
-        }
-      );
-    }
-
-    this.conversations = convList;
+    this.syncUnreadCount();
   }
 
   loadNotices(): void {
-    this.notices = [
+    // Avisos legítimos del sistema y catálogo (sin Tinta inventada)
+    const baseSystemNotices: SystemNotice[] = [
       {
-        id: '1',
+        id: 'sys-catalog-1',
         title: '¡Nueva edición agregada al catálogo!',
         content: 'Ya se encuentra disponible la edición anotada con acompañamiento IA de "La Divina Comedia" de Dante Alighieri.',
         category: 'book',
-        timestamp: 'Hoy, 10:30',
+        timestamp: 'Reciente',
         unread: true,
         actionUrl: '/catalog',
         actionLabel: 'Explorar Catálogo'
       },
       {
-        id: '2',
-        title: 'Bono diario de Tinta en La Taberna',
-        content: 'Has recibido tu bonificación de tinta diaria para dialogar con los personajes clásicos en la taberna.',
-        category: 'ink',
-        timestamp: 'Ayer',
-        unread: false,
-        actionUrl: '/tavern?bazar=ropero',
-        actionLabel: 'Ir al Bazar'
-      },
-      {
-        id: '3',
+        id: 'sys-reader-1',
         title: 'Actualización del Lector Inmersivo',
         content: 'Hemos añadido nuevos modos de visualización tipográfica sepia y sincronización de audiolibros.',
         category: 'event',
-        timestamp: 'Hace 3 días',
+        timestamp: 'Reciente',
         unread: false
       }
     ];
+
+    if (!this.authService.isLoggedIn()) {
+      this.applyReadStateToNotices(baseSystemNotices);
+      return;
+    }
+
+    // Consultamos el historial real de Tinta para avisar únicamente sobre recompensas reales recibidas
+    this.api.get<any[]>('library/ink-history/').subscribe({
+      next: (txs) => {
+        const rewardNotices: SystemNotice[] = [];
+        if (Array.isArray(txs)) {
+          const rewards = txs.filter(t => t.amount > 0).slice(0, 10);
+          for (const tx of rewards) {
+            rewardNotices.push(this.mapTransactionToNotice(tx));
+          }
+        }
+        const allNotices = [...rewardNotices, ...baseSystemNotices];
+        this.applyReadStateToNotices(allNotices);
+      },
+      error: () => {
+        this.applyReadStateToNotices(baseSystemNotices);
+      }
+    });
+  }
+
+  private mapTransactionToNotice(tx: any): SystemNotice {
+    let title = 'Recompensa de Tinta';
+    let content = `Has recibido +${tx.amount} gotas de Tinta en tu saldo.`;
+    let actionUrl: string | undefined = undefined;
+    let actionLabel: string | undefined = undefined;
+
+    switch (tx.concept) {
+      case 'daily_reward':
+        title = '¡Bono Diario de Tinta Reclamado!';
+        content = `Has recibido tu bonificación de +${tx.amount} gotas de Tinta diaria en La Taberna.`;
+        actionUrl = '/tavern';
+        actionLabel = 'Ir a La Taberna';
+        break;
+      case 'achievement_unlocked':
+      case 'achievement':
+        title = '¡Logro Desbloqueado!';
+        content = `Has obtenido +${tx.amount} gotas de Tinta por tus hazañas de lectura.`;
+        actionUrl = '/achievements';
+        actionLabel = 'Ver Logros';
+        break;
+      case 'chapter_read':
+        title = 'Recompensa por Lectura';
+        content = `Has ganado +${tx.amount} de Tinta por avanzar en un capítulo.`;
+        break;
+      case 'book_completed':
+        title = 'Recompensa por Completar Obra';
+        content = `¡Gran lector! Has ganado +${tx.amount} de Tinta por terminar un libro completo.`;
+        break;
+      case 'daily_enigma':
+        title = 'Recompensa de El Enigma';
+        content = `Has obtenido +${tx.amount} de Tinta por resolver el enigma literario.`;
+        actionUrl = '/games/enigma';
+        actionLabel = 'El Enigma';
+        break;
+      case 'ink_purchase':
+        title = 'Recarga de Tinta Confirmada';
+        content = `Se han acreditado +${tx.amount} de Tinta a tu saldo.`;
+        break;
+      case 'ad_reward':
+        title = 'Tinta por Anuncio';
+        content = `Has recibido +${tx.amount} de Tinta por apoyar la plataforma.`;
+        break;
+      case 'subscription_bonus':
+        title = 'Bonificación de Membresía';
+        content = `Has recibido tu recarga mensual de +${tx.amount} de Tinta por tu suscripción activa.`;
+        actionUrl = '/planes';
+        actionLabel = 'Ver Membresía';
+        break;
+    }
+
+    return {
+      id: `ink-${tx.id}`,
+      title,
+      content,
+      category: 'ink',
+      timestamp: this.formatRelativeTime(tx.created_at),
+      unread: true,
+      actionUrl,
+      actionLabel
+    };
+  }
+
+  private applyReadStateToNotices(allNotices: SystemNotice[]): void {
+    const readNoticeIds = this.getReadNoticeIds();
+    this.notices = allNotices.map(n => ({
+      ...n,
+      unread: !readNoticeIds.includes(n.id)
+    }));
+    this.syncUnreadCount();
   }
 
   openChat(conv: CharacterConversation): void {
-    conv.unread = false;
+    if (conv.unread) {
+      conv.unread = false;
+      const readMap = this.getReadConversationsMap();
+      readMap[conv.avatarId] = new Date().toISOString();
+      localStorage.setItem(userStorageKey('literatus_read_conversations'), JSON.stringify(readMap));
+      this.syncUnreadCount();
+    }
     this.router.navigate(['/demo-chat', conv.avatarId]);
+  }
+
+  markNoticeAsRead(notice: SystemNotice): void {
+    if (notice.unread) {
+      notice.unread = false;
+      const readNoticeIds = this.getReadNoticeIds();
+      if (!readNoticeIds.includes(notice.id)) {
+        readNoticeIds.push(notice.id);
+        localStorage.setItem(userStorageKey('literatus_read_notices'), JSON.stringify(readNoticeIds));
+      }
+      this.syncUnreadCount();
+    }
   }
 
   markAllAsRead(): void {
     this.conversations.forEach(c => c.unread = false);
+    const readMap = this.getReadConversationsMap();
+    this.conversations.forEach(c => {
+      readMap[c.avatarId] = new Date().toISOString();
+    });
+    localStorage.setItem(userStorageKey('literatus_read_conversations'), JSON.stringify(readMap));
+
     this.notices.forEach(n => n.unread = false);
+    const readNoticeIds = this.getReadNoticeIds();
+    this.notices.forEach(n => {
+      if (!readNoticeIds.includes(n.id)) {
+        readNoticeIds.push(n.id);
+      }
+    });
+    localStorage.setItem(userStorageKey('literatus_read_notices'), JSON.stringify(readNoticeIds));
+
+    this.syncUnreadCount();
   }
 
   goToCharactersHub(): void {
     this.router.navigate(['/characters']);
+  }
+
+  private getReadConversationsMap(): Record<string, string> {
+    try {
+      const raw = localStorage.getItem(userStorageKey('literatus_read_conversations'));
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private getReadNoticeIds(): string[] {
+    try {
+      const raw = localStorage.getItem(userStorageKey('literatus_read_notices'));
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private syncUnreadCount(): void {
+    const totalUnread = this.unreadCharactersCount + this.unreadNoticesCount;
+    localStorage.setItem(userStorageKey('literatus_unread_messages_count'), String(totalUnread));
+    window.dispatchEvent(new CustomEvent('literatus-messages-updated'));
+  }
+
+  private formatRelativeTime(dateString: string): string {
+    if (!dateString) return 'Reciente';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+
+    const now = new Date();
+    const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffSec < 60) return 'Hace un momento';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `Hace ${diffMin} min`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `Hace ${diffHours} h`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return 'Ayer';
+    if (diffDays < 7) return `Hace ${diffDays} días`;
+
+    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
 }

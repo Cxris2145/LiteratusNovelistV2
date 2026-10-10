@@ -74,7 +74,7 @@ export class AppComponent implements OnInit {
   // Contadores de accesos rápidos
   cartCount = 0;
   favoritesCount = 0;
-  unreadMessagesCount = 1;
+  unreadMessagesCount = 0;
 
   // DEBUGGING: Global Error Catcher
   globalError: string | null = null;
@@ -157,17 +157,25 @@ export class AppComponent implements OnInit {
       this.updateCartCount();
     });
 
+    // Sincronizar contador de mensajes y correspondencia
+    this.updateUnreadMessagesCount();
+    window.addEventListener('literatus-messages-updated', () => {
+      this.updateUnreadMessagesCount();
+    });
+
     // Escuchar cambios en el estado de login para cargar datos
     this.authService.isLoggedIn$.subscribe(loggedIn => {
       if (loggedIn) {
         this.chatService.loadInitialInk();
         this.loadUserProfile();
+        this.updateUnreadMessagesCount();
         this.gamificationService.loadInitialProfile();
         this.gamificationService.checkDailyRewardStatus();
         this.achievementsService.scheduleCheck();
       } else {
         this.achievementsService.reset();
         this.userEquippedFrame = this.userEquippedTitle = '';
+        this.unreadMessagesCount = 0;
       }
     });
 
@@ -427,6 +435,19 @@ export class AppComponent implements OnInit {
       this.cartCount = 0;
     }
     if (previous > 0 && this.cartCount > previous) this.bumpBadge('cart');
+  }
+
+  updateUnreadMessagesCount(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.unreadMessagesCount = 0;
+      return;
+    }
+    try {
+      const stored = localStorage.getItem(userStorageKey('literatus_unread_messages_count'));
+      this.unreadMessagesCount = stored !== null ? Math.max(0, parseInt(stored, 10) || 0) : 0;
+    } catch {
+      this.unreadMessagesCount = 0;
+    }
   }
 
   /**

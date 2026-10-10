@@ -119,6 +119,7 @@
       <span class="empty-icon">✉️</span>
       <h3>No se encontraron conversaciones</h3>
       <p *ngIf="searchTerm">No hay personajes que coincidan con «{{ searchTerm }}».</p>
+      <p *ngIf="!searchTerm">Aún no has iniciado conversaciones con personajes literarios. ¡Elige un personaje y comienza tu diálogo!</p>
       <button type="button" class="btn-primary" (click)="goToCharactersHub()">
         Explorar Hub de Personajes
       </button>
@@ -130,7 +131,8 @@
   <div class="notices-list" *ngIf="activeTab === 'notices'">
     <div class="glass-panel notice-card"
          *ngFor="let n of notices"
-         [class.unread]="n.unread">
+         [class.unread]="n.unread"
+         (click)="markNoticeAsRead(n)">
       <div class="notice-icon-wrap" [attr.data-cat]="n.category">
         <span class="material-symbols-rounded" *ngIf="n.category === 'book'">auto_stories</span>
         <span class="material-symbols-rounded" *ngIf="n.category === 'ink'">ink_pen</span>
@@ -145,11 +147,18 @@
         <p class="notice-text">{{ n.content }}</p>
 
         <div class="notice-action" *ngIf="n.actionUrl && n.actionLabel">
-          <a [routerLink]="n.actionUrl" class="notice-link-btn">
+          <a [routerLink]="n.actionUrl" class="notice-link-btn" (click)="$event.stopPropagation(); markNoticeAsRead(n)">
             {{ n.actionLabel }} →
           </a>
         </div>
       </div>
+    </div>
+
+    <!-- Sin avisos -->
+    <div class="empty-state glass-panel" *ngIf="notices.length === 0">
+      <span class="empty-icon">🔔</span>
+      <h3>No tienes avisos pendientes</h3>
+      <p>Aquí verás tus recompensas reales de tinta y avisos de la biblioteca.</p>
     </div>
   </div>
 

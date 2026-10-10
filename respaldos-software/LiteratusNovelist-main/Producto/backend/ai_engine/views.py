@@ -160,6 +160,54 @@ class RecentChatsView(APIView):
         return Response(serializer.data)
 
 
+class UserConversationsView(APIView):
+    """
+    GET /api/v1/ai/conversations/
+    Devuelve las conversaciones reales del usuario autenticado con personajes de IA,
+    incluyendo el último mensaje intercambiado, remitente y fecha de actividad.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        qs = ChatSession.objects.filter(user=request.user).select_related(
+            'avatar__edition__book'
+        ).order_by('-updated_at')
+        sessions = visible_books(qs, request.user, 'avatar__edition__book__')[:40]
+
+        results = []
+        for s in sessions:
+            last_msg = s.messages.order_by('-created_at').first()
+            avatar = s.avatar
+            avatar_url = request.build_absolute_uri(avatar.avatar_image.url) if avatar.avatar_image else None
+
+            msg_content = last_msg.content if last_msg else avatar.greeting_message
+            msg_role = last_msg.role if last_msg else 'assistant'
+            msg_time = last_msg.created_at.isoformat() if last_msg else s.updated_at.isoformat()
+
+            tag = 'Personaje IA'
+            if getattr(avatar, 'tags', None) and len(avatar.tags) > 0:
+                tag = avatar.tags[0]
+            elif avatar.is_major_character:
+                tag = 'Personaje Principal'
+            elif avatar.is_author:
+                tag = 'Autor'
+
+            results.append({
+                'session_id': str(s.id),
+                'avatar_id': str(avatar.id),
+                'name': avatar.name,
+                'book_title': avatar.edition.book.title if avatar.edition and avatar.edition.book else 'Literatura Universal',
+                'book_slug': avatar.edition.book.slug if avatar.edition and avatar.edition.book else None,
+                'avatar_url': avatar_url,
+                'last_message': msg_content,
+                'last_message_role': msg_role,
+                'timestamp': msg_time,
+                'tag': tag,
+            })
+
+        return Response(results)
+
+
 class ChatSessionView(APIView):
     """
     GET  /api/v1/ai/sessions/?avatar_id=<int> → Recuperar o crear sesión
