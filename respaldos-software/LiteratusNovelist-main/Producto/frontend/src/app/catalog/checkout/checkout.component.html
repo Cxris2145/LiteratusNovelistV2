@@ -36,12 +36,20 @@
         <div class="product-details">
           <div class="product-type-badge"><svg lucideSparkles [size]="16" class="lucide-icon"></svg> Recarga de Tinta</div>
           <h2 class="product-title">{{ inkPackage.label }}</h2>
-          <p class="product-synopsis">Recibirás <strong>{{ inkPackage.amount }} Tinta</strong> en tu cuenta, disponibles de inmediato.</p>
+          <p class="product-synopsis">
+            Recibirás <strong>{{ inkPackage.totalInk | number:'1.0-0' }} Tinta</strong>
+            <span *ngIf="quantity > 1"> ({{ quantity }} cofres de {{ inkPackage.amount | number:'1.0-0' }})</span>
+            en tu cuenta, disponibles de inmediato.
+          </p>
         </div>
       </div>
+      <div class="price-row" *ngIf="quantity > 1">
+        <span class="price-label">Precio unitario</span>
+        <span class="price-value">{{ inkPackage.unitPriceFormatted }} CLP</span>
+      </div>
       <div class="price-row">
-        <span class="price-label">Total a pagar</span>
-        <span class="price-value">{{ inkPackage.price }} CLP</span>
+        <span class="price-label">Total a pagar {{ quantity > 1 ? '(' + quantity + ' cofres)' : '' }}</span>
+        <span class="price-value">{{ inkPackage.priceFormatted }} CLP</span>
       </div>
     </div>
 

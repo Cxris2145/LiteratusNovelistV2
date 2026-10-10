@@ -10,6 +10,7 @@ import { ApiService } from '../../core/services/api.service';
 export class CheckoutComponent implements OnInit {
   itemType = '';
   itemReference = '';
+  quantity = 1;
   isLoading = false;
   errorMsg = '';
   
@@ -22,6 +23,11 @@ export class CheckoutComponent implements OnInit {
   private api = inject(ApiService);
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(qParams => {
+      const q = qParams.get('quantity');
+      this.quantity = Math.max(1, parseInt(q || '1', 10) || 1);
+    });
+
     this.route.paramMap.subscribe(params => {
       this.itemType = params.get('type') || '';
       this.itemReference = params.get('reference') || '';
@@ -33,8 +39,20 @@ export class CheckoutComponent implements OnInit {
         this.api.get<any[]>('finance/ink-packages/').subscribe({ next: packages => {
           const pack = packages.find(value => String(value.amount) === this.itemReference);
           if (!pack) { this.errorMsg = 'Paquete de Tinta no válido.'; return; }
-          this.inkPackage = { ...pack, label: `${pack.amount.toLocaleString('es-CL')} Tinta`,
-            price: `$${Number(pack.price).toLocaleString('es-CL')}` };
+          const unitPrice = Number(pack.price);
+          const totalPrice = unitPrice * this.quantity;
+          const totalInk = pack.amount * this.quantity;
+          this.inkPackage = {
+            ...pack,
+            unitPrice,
+            totalPrice,
+            totalInk,
+            label: this.quantity > 1
+              ? `${this.quantity} × Cofre de ${pack.amount.toLocaleString('es-CL')} Tinta`
+              : `${pack.amount.toLocaleString('es-CL')} Tinta`,
+            priceFormatted: `$${totalPrice.toLocaleString('es-CL')}`,
+            unitPriceFormatted: `$${unitPrice.toLocaleString('es-CL')}`
+          };
         }, error: () => this.errorMsg = 'No se pudo consultar el precio del cofre.' });
       } else {
         this.errorMsg = 'Tipo de compra no reconocido.';
@@ -57,6 +75,7 @@ export class CheckoutComponent implements OnInit {
     this.api.post<any>('finance/pay/', {
       item_type: this.itemType,
       item_reference: this.itemReference,
+      quantity: this.quantity,
       return_base_url: window.location.origin
     }).subscribe({
       next: (data) => {

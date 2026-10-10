@@ -196,10 +196,12 @@ export class CartComponent implements OnInit {
 
     if (this.cartItems.length === 0) return;
 
-    // Si hay un paquete de tinta, redirigimos al checkout oficial de tinta
+    // Si hay un paquete de tinta, redirigimos al checkout oficial de tinta con la cantidad seleccionada
     const inkItem = this.cartItems.find(i => i.type === 'ink');
     if (inkItem) {
-      this.router.navigate(['/checkout', 'ink', inkItem.reference]);
+      this.router.navigate(['/checkout', 'ink', inkItem.reference], {
+        queryParams: { quantity: inkItem.quantity }
+      });
     } else {
       const bookItem = this.cartItems.find(i => i.type === 'book');
       if (bookItem) {

@@ -72,7 +72,14 @@ def initiate_payment(request):
             return Response({
                 'error': f'Paquete de tinta inválido. Opciones: {list(INK_PACKAGES.keys())}'
             }, status=400)
-        amount = INK_PACKAGES[item_reference]
+        try:
+            quantity = max(1, min(100, int(request.data.get('quantity', 1))))
+        except (ValueError, TypeError):
+            quantity = 1
+        unit_price = INK_PACKAGES[item_reference]
+        amount = unit_price * quantity
+    else:
+        quantity = 1
 
     # --- Generar IDs únicos ---
     buy_order = f"LN-{uuid.uuid4().hex[:12].upper()}"
@@ -94,7 +101,7 @@ def initiate_payment(request):
                 item_type=item_type,
                 item_reference=item_reference,
                 response_code='0',
-                metadata={'note': 'Free purchase'}
+                metadata={'note': 'Free purchase', 'quantity': quantity}
             )
             # 2. Entregar ítem
             _deliver_item(txn)
@@ -117,6 +124,12 @@ def initiate_payment(request):
 
     return_base_url = settings.FRONTEND_URL.rstrip('/')
 
+    metadata = {'quantity': quantity}
+    if item_type == 'ink':
+        metadata['unit_price'] = str(unit_price)
+    if return_base_url:
+        metadata['return_base_url'] = return_base_url
+
     # --- Guardar transacción en DB ---
     Transaction.objects.create(
         user=request.user,
@@ -127,7 +140,7 @@ def initiate_payment(request):
         status='iniciada',
         item_type=item_type,
         item_reference=item_reference,
-        metadata={'return_base_url': return_base_url} if return_base_url else {}
+        metadata=metadata
     )
 
     return Response({
@@ -210,13 +223,25 @@ def _deliver_item(local_txn: Transaction):
             edition=edition,
         )
     elif local_txn.item_type == 'ink':
-        ink_amount = int(local_txn.item_reference)
+        qty = 1
+        if local_txn.metadata and isinstance(local_txn.metadata, dict):
+            try:
+                qty = max(1, int(local_txn.metadata.get('quantity', 1)))
+            except (ValueError, TypeError):
+                qty = 1
+        ink_unit = int(local_txn.item_reference)
+        total_ink = ink_unit * qty
         profile = Profile.objects.select_for_update().get(user=local_txn.user)
-        profile.ink_balance += ink_amount
+        profile.ink_balance += total_ink
         profile.save(update_fields=['ink_balance'])
         from library.models import InkTransaction
-        InkTransaction.objects.create(user=local_txn.user, amount=ink_amount, concept='ink_purchase',
-            reference_id=local_txn.buy_order, balance_after=profile.ink_balance)
+        InkTransaction.objects.create(
+            user=local_txn.user,
+            amount=total_ink,
+            concept='ink_purchase',
+            reference_id=local_txn.buy_order,
+            balance_after=profile.ink_balance
+        )
 
 
 def _redirect_to_frontend(base_url: str, result: str, message: str = '', buy_order: str = ''):
