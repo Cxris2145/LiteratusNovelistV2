@@ -16,6 +16,12 @@
   --mg-sleeve: #e39a2e;
   --mg-sleeve-hi: #f7c15e;
 }
+:host([data-cape="midnight"]) {
+  --mg-cape-a: #6f79bf;
+  --mg-cape-b: #303b78;
+  --mg-cape-c: #182045;
+  --mg-cape-seam: #c5b778;
+}
 :host([data-cape="royal"]) {
   --mg-cape-a: #c39bff;
   --mg-cape-b: #7e44d6;

@@ -665,3 +665,6 @@
     font-size: 16px;
   }
 }
+
+.bz-exclusive { color: var(--th-gold); font-size: .72rem; }
+.bz-thumb app-cosmetic-preview { width: 100%; }

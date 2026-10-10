@@ -199,7 +199,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         except (Chapter.DoesNotExist, ValueError, DjangoValidationError):
             raise Http404("El capítulo no pertenece a este libro.")
 
-        result = narration.request_chapter_narration(chapter, request.user)
+        result = narration.request_chapter_narration(chapter, request.user, voice=request.data.get('voice'))
         payload = narration.narration_payload(request, result)
         if result.status == narration.READY:
             return Response(payload)
@@ -210,6 +210,17 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             'empty': status.HTTP_422_UNPROCESSABLE_ENTITY,
         }.get(result.reason, status.HTTP_429_TOO_MANY_REQUESTS)
         return Response(payload, status=unavailable_status)
+
+    @action(detail=False, methods=['GET'], url_path='narration-voices')
+    def narration_voices(self, request):
+        """
+        GET /api/v1/library/inventory/narration-voices/
+        Voces de Azure que el lector puede elegir para la narración (la primera es la predeterminada).
+        """
+        return Response({
+            'default': narration.narrator_voice(),
+            'voices': narration.narrator_voices(),
+        })
 
     @action(detail=True, methods=['GET'], url_path='vocabulary')
     def book_vocabulary(self, request, pk=None):
@@ -434,7 +445,7 @@ class AchievementCatalogViewSet(viewsets.ReadOnlyModelViewSet):
     GET /api/v1/library/achievements/catalog/
     """
     serializer_class = AchievementSerializer
-    queryset = Achievement.objects.all()
+    queryset = Achievement.objects.select_related('reward_item')
     permission_classes = [permissions.AllowAny]
     pagination_class = None
 
@@ -461,7 +472,7 @@ class UserAchievementViewSet(viewsets.GenericViewSet,
         return (
             UserAchievement.objects
             .filter(user=self.request.user)
-            .select_related('achievement')
+            .select_related('achievement', 'achievement__reward_item')
             .order_by('achievement__sort_order', 'achievement__category')
         )
 

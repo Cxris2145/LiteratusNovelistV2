@@ -37,7 +37,9 @@
    | `GOOGLE_API_KEY` | Tu clave de Google AI Studio |
    | `WEBPAY_RETURN_URL` | `https://NOMBRE-DE-TU-SERVICIO.onrender.com/api/v1/finance/confirm/` |
    | `FRONTEND_URL` | `https://literatus-novelist.vercel.app` *(provisional)* |
-   | El resto (`GOOGLE_API_KEY_2`, `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`, `KOKORO_API_URL`, `EMAIL_HOST_PASSWORD`) | Déjalos vacíos, la app arranca igual |
+   | `EMAIL_HOST_PASSWORD` | Clave de Resend (solo en el panel de Render, nunca en Git) |
+   | `DEFAULT_FROM_EMAIL` | `Literatus <no-reply@TU-DOMINIO-VERIFICADO>`; el dominio debe estar verificado en Resend |
+   | El resto (`GOOGLE_API_KEY_2`, `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`, `KOKORO_API_URL`) | Déjalos vacíos, la app arranca igual |
 
 7. **Apply** / **Create**. Render instala y despliega (5-10 min la primera vez).
 8. Cuando termine, arriba verás la URL: `https://NOMBRE-DE-TU-SERVICIO.onrender.com`.
@@ -86,8 +88,8 @@ El backend solo acepta peticiones del frontend si conoce su URL exacta.
 
 1. Vuelve a Render → tu servicio → pestaña **Environment**.
 2. Corrige estas dos variables con la URL **real** de Vercel (paso 2.2, punto 4):
-   - `CORS_ALLOWED_ORIGINS` = `https://TU-URL-REAL.vercel.app`
-   - `FRONTEND_URL` = `https://TU-URL-REAL.vercel.app`
+   - `CORS_ALLOWED_ORIGINS` = `https://literatus-novelist-v2.vercel.app`
+   - `FRONTEND_URL` = `https://literatus-novelist-v2.vercel.app`
 3. **Save Changes** → Render redesplega solo (~2 min).
 4. Abre tu URL de Vercel, entra a la app, intenta iniciar sesión o abrir el catálogo.
    - Si el catálogo carga → listo ✅
@@ -106,8 +108,21 @@ El backend solo acepta peticiones del frontend si conoce su URL exacta.
 
 ---
 
-## Cosas que NO se resuelven aquí
+## Correo de recuperación con Resend
+
+La integración se probó en el backend local y el usuario confirmó que recibió el correo de prueba. Para habilitar el envío a los demás usuarios en el sitio publicado:
+
+1. Registrar un dominio propio o usar uno que ya controles. La dirección `.vercel.app` del sitio no sirve como dominio de envío de Resend.
+2. En Resend, añadir ese dominio y copiar sus registros de verificación al proveedor DNS del dominio. Esperar hasta que Resend indique **Verified**.
+3. En el servicio existente de Render, abrir **Environment** y configurar `EMAIL_HOST_PASSWORD` con la clave de Resend y `DEFAULT_FROM_EMAIL` con una dirección del dominio verificado.
+4. Mantener `FRONTEND_URL=https://literatus-novelist-v2.vercel.app` para que los enlaces de activación abran el sitio publicado.
+5. Publicar los cambios del backend y frontend, aplicar la migración `users/0013_password_reset_challenge.py` y probar la recuperación con una cuenta registrada y verificada en esa base.
+
+El remitente `onboarding@resend.dev` sirve para enviar pruebas únicamente al correo de la cuenta de Resend. No habilita el envío a los demás usuarios. La clave local no se copia automáticamente a Render.
+
+Detalles y pruebas en [Recuperación de contraseña](docs/RECUPERACION_CONTRASENA.md). Referencia: [dominios verificados de Resend](https://resend.com/docs/dashboard/domains/introduction).
+
+## Otras notas
 
 - **Dominio `novelatus.tech`:** si no controlas el registrador del dominio, no puedes usarlo. Quédate con las URLs `.vercel.app` y `.onrender.com`.
-- **Correos de recuperación de contraseña:** necesitan un dominio propio + cuenta en Resend. Opcional, la app funciona sin eso.
 - **Admin de Django sin estilos:** cosmético (falta `whitenoise`). No afecta la API ni la app. Se arregla en 5 min si lo necesitas para la defensa.

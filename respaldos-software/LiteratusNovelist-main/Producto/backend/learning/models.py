@@ -248,6 +248,10 @@ class ShopItem(TimeStampedModel):
         help_text="Identificador técnico aplicado al equipar (ej. 'frame-gold', 'title-erudite')."
     )
     is_active = models.BooleanField(default=True)
+    is_purchasable = models.BooleanField(
+        default=True,
+        help_text="Falso = exclusivo: no se vende en El Bazar, solo se gana con un logro."
+    )
     sort_order = models.PositiveIntegerField(default=0)
 
     class Meta:

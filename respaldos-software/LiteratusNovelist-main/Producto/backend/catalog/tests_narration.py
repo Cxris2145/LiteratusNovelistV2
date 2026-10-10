@@ -1,6 +1,8 @@
 import re
 import shutil
 import tempfile
+import threading
+import time
 from types import SimpleNamespace
 from unittest import mock
 
@@ -151,8 +153,13 @@ class CharacterVoiceTests(SimpleTestCase):
 
 
 class FakeSession:
-    """Reemplaza el WebSocket de Azure: cada palabra dura 0,3 s y cada una produce un cuadro MP3."""
-    calls = 0
+    """
+    Reemplaza el WebSocket de Azure: cada palabra dura 0,3 s y cada una produce un cuadro MP3.
+    `delays` hace que los fragmentos que contienen cierta palabra tarden más (para mezclar el orden).
+    """
+    calls = active = max_active = 0
+    delays = {}
+    _lock = threading.Lock()
 
     def __enter__(self):
         return self
@@ -160,12 +167,24 @@ class FakeSession:
     def __exit__(self, *exc_info):
         return False
 
-    def synthesize(self, ssml):
-        FakeSession.calls += 1
-        body = re.sub(r'<break[^>]*/>', ' ', ssml.split('>', 2)[2].rsplit('</voice>', 1)[0])
-        words = body.split()
-        timings = [azure_tts.WordTiming(w.strip('.,;:!?'), i * 0.3, i * 0.3 + 0.25) for i, w in enumerate(words)]
-        return MP3_FRAME * (len(words) * 13), timings  # 13 cuadros ≈ 0,31 s por palabra
+    def synthesize(self, ssml, on_words=None):
+        with FakeSession._lock:
+            FakeSession.calls += 1
+            FakeSession.active += 1
+            FakeSession.max_active = max(FakeSession.max_active, FakeSession.active)
+        try:
+            body = re.sub(r'<break[^>]*/>', ' ', ssml.split('>', 2)[2].rsplit('</voice>', 1)[0])
+            words = body.split()
+            if on_words:
+                on_words(len(words) // 2)  # Azure va mandando los tiempos mientras lee
+            for keyword, seconds in FakeSession.delays.items():
+                if keyword in body:
+                    time.sleep(seconds)
+            timings = [azure_tts.WordTiming(w.strip('.,;:!?'), i * 0.3, i * 0.3 + 0.25) for i, w in enumerate(words)]
+            return MP3_FRAME * (len(words) * 13), timings  # 13 cuadros ≈ 0,31 s por palabra
+        finally:
+            with FakeSession._lock:
+                FakeSession.active -= 1
 
 
 @override_settings(AZURE_SPEECH_KEY='test-key', AZURE_SPEECH_REGION='westus',
@@ -187,7 +206,8 @@ class ChapterNarrationAPITests(APITestCase):
             patcher = mock.patch(target, replacement)
             patcher.start()
             self.addCleanup(patcher.stop)
-        FakeSession.calls = 0
+        FakeSession.calls = FakeSession.active = FakeSession.max_active = 0
+        FakeSession.delays = {}
 
         self.user = User.objects.create_user(username='lector', email='lector@example.com', password='x-pass-123')
         self.book = Book.objects.create(title='El farol', status=Book.StatusChoices.PUBLISHED, is_published=True)
@@ -287,6 +307,100 @@ class ChapterNarrationAPITests(APITestCase):
 
     def test_quota_errors_are_reported_and_not_retried_immediately(self):
         with mock.patch.object(FakeSession, 'synthesize', side_effect=azure_tts.AzureTTSQuotaError('sin cupo')):
+            self.client.post(self.url)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        self.assertEqual(response.data['reason'], 'quota')
+
+    def test_each_voice_is_generated_and_kept_apart(self):
+        self.client.post(self.url)
+        catalina = self.client.post(self.url)
+        self.assertEqual(catalina.data['voice_name'], 'Azure · es-CL-CatalinaNeural')
+
+        self.client.post(self.url, {'voice': 'es-MX-JorgeNeural'}, format='json')
+        jorge = self.client.post(self.url, {'voice': 'es-MX-JorgeNeural'}, format='json')
+        self.assertEqual(jorge.status_code, status.HTTP_200_OK)
+        self.assertEqual(jorge.data['voice_name'], 'Azure · es-MX-JorgeNeural')
+        self.assertNotEqual(jorge.data['audio_url'], catalina.data['audio_url'])
+        self.assertEqual(FakeSession.calls, 2)
+
+    def test_unknown_voices_fall_back_to_the_default_one(self):
+        self.client.post(self.url, {'voice': 'en-US-JennyNeural'}, format='json')
+        response = self.client.post(self.url, {'voice': 'en-US-JennyNeural'}, format='json')
+        self.assertEqual(response.data['voice_name'], 'Azure · es-CL-CatalinaNeural')
+
+    def test_voice_list_starts_with_the_default_voice(self):
+        response = self.client.get('/api/v1/library/inventory/narration-voices/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['default'], 'es-CL-CatalinaNeural')
+        self.assertEqual(response.data['voices'][0]['id'], 'es-CL-CatalinaNeural')
+        self.assertIn('es-MX-JorgeNeural', [v['id'] for v in response.data['voices']])
+
+    def test_regenerating_a_lost_mp3_still_counts_what_it_cost(self):
+        self.client.post(self.url)
+        first_cost = narration.monthly_chars_used()
+        self.assertGreater(first_cost, 0)
+
+        audio = ChapterAudio.objects.get(chapter=self.chapter)
+        audio.audio_file.storage.delete(audio.audio_file.name)  # Render reinició y se perdió el MP3
+        self.client.post(self.url)
+        self.assertEqual(FakeSession.calls, 2)
+        self.assertEqual(narration.monthly_chars_used(), first_cost * 2)
+
+    def _long_chapter(self):
+        """Capítulo de ~4.000 caracteres: se reparte en varios fragmentos."""
+        sentences = [f'La oración número {n} cuenta algo distinto del puerto.' for n in range(1, 81)]
+        sentences[0] = 'Primera oración del capítulo, que Azure tarda en leer.'
+        self.chapter.content_html = '<p>' + ' '.join(sentences[:40]) + '</p><p>' + ' '.join(sentences[40:]) + '</p>'
+        self.chapter.save()
+        words, pauses = narration.chapter_words(self.chapter.content_html)
+        return words, narration.chapter_chunks(words, pauses)
+
+    def test_long_chapters_are_read_in_parallel_and_rebuilt_in_order(self):
+        words, chunks = self._long_chapter()
+        self.assertGreaterEqual(len(chunks), 2)
+        FakeSession.delays = {'Primera': 0.2, 'número': 0.05}  # el primer fragmento termina último
+
+        self.client.post(self.url)
+        ready = self.client.post(self.url)
+        self.assertEqual(ready.status_code, status.HTTP_200_OK)
+        self.assertEqual(FakeSession.calls, len(chunks))
+        self.assertGreater(FakeSession.max_active, 1)
+
+        alignment = ready.data['alignment']
+        self.assertEqual(alignment['word_count'], len(words))
+        self.assertEqual(alignment['word_starts_ms'], sorted(alignment['word_starts_ms']))
+        self.assertEqual(alignment['word_starts_ms'][0], 0)  # la primera palabra abre el audio
+
+    def test_progress_is_saved_while_azure_reads(self):
+        self._long_chapter()
+        FakeSession.delays = {'Primera': 0.15, 'número': 0.15}
+        saved = []
+        real_set_meta = narration._set_meta
+
+        def record(audio, meta, **changes):
+            if 'progress' in changes and 'status' not in changes:
+                saved.append(changes['progress'])
+            return real_set_meta(audio, meta, **changes)
+
+        with mock.patch.object(narration, 'PROGRESS_SAVE_SECONDS', 0.01),                 mock.patch.object(narration, '_set_meta', side_effect=record):
+            self.client.post(self.url)
+
+        self.assertTrue(saved)
+        self.assertEqual(saved, sorted(saved))
+        self.assertTrue(all(0 < p < 1 for p in saved))
+        self.assertEqual(self.client.post(self.url).status_code, status.HTTP_200_OK)
+
+    def test_a_failing_fragment_marks_the_chapter_as_failed(self):
+        self._long_chapter()
+        real_synthesize = FakeSession.synthesize
+
+        def flaky(session, ssml, on_words=None):
+            if 'número 50' in ssml:
+                raise azure_tts.AzureTTSQuotaError('sin cupo')
+            return real_synthesize(session, ssml, on_words)
+
+        with mock.patch.object(FakeSession, 'synthesize', flaky):
             self.client.post(self.url)
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)

@@ -629,9 +629,195 @@
 }
 
 
+/* RESUMEN DEL LIBRO: botón de la tarjeta y ventana con el resumen */
+.summary-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-500) 35%, transparent);
+  background: color-mix(in srgb, var(--color-500) 8%, transparent);
+  color: var(--color-primary-text);
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.summary-card-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .summary-card-btn:hover {
+    background: color-mix(in srgb, var(--color-500) 22%, transparent);
+    border-color: color-mix(in srgb, var(--color-500) 60%, transparent);
+    color: var(--color-text-strong);
+  }
+}
+
+.summary-card-btn:focus-visible,
+.summary-dialog-close:focus-visible {
+  outline: 2px solid var(--color-primary-text);
+  outline-offset: 2px;
+}
+
+.summary-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: summary-fade 0.2s ease-out;
+}
+
+.summary-dialog {
+  width: 100%;
+  max-width: 720px;
+  max-height: 88vh;
+  max-height: 88dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--home-bg-surface);
+  border: 1px solid var(--home-glass-border);
+  box-shadow: 0 24px 60px var(--home-shadow);
+  cursor: default;
+  animation: summary-rise 0.24s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.summary-dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.75rem 2rem 1.25rem;
+  border-bottom: 1px solid var(--home-glass-border);
+}
+
+.summary-dialog-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--home-ink-muted);
+}
+
+.summary-dialog-heading h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.2;
+  color: var(--home-ink-strong);
+}
+
+.summary-dialog-author {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--home-ink-muted);
+}
+
+.summary-spoiler-tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-warning);
+  border: 1px solid currentColor;
+  border-radius: 50px;
+  padding: 0.2rem 0.75rem;
+}
+
+.summary-dialog-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--home-glass-border);
+  background: transparent;
+  color: var(--home-ink);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.summary-dialog-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .summary-dialog-close:hover {
+    background: var(--home-sage-surface);
+  }
+}
+
+.summary-dialog-body {
+  padding: 1.5rem 2rem 2rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@keyframes summary-fade {
+  from { opacity: 0; }
+}
+
+@keyframes summary-rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .summary-overlay,
+  .summary-dialog {
+    animation: none;
+  }
+}
+
+/* En celular la ventana sube desde abajo y ocupa casi toda la pantalla. */
+@media (max-width: 600px) {
+  .summary-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .summary-dialog {
+    max-width: none;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+  }
+  .summary-dialog-header {
+    padding: 1.25rem 1.25rem 1rem;
+  }
+  .summary-dialog-heading h2 {
+    font-size: 1.4rem;
+  }
+  .summary-dialog-body {
+    padding: 1.25rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+  }
+}
+
 /* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
 @media (pointer: coarse) {
   .library-search-input {
     font-size: 16px;
+  }
+  .summary-card-btn {
+    min-height: 44px;
   }
 }

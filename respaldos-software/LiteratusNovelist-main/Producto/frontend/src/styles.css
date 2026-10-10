@@ -1183,8 +1183,7 @@ body:has(.container.dashboard-mode) {
   }
 }
 
-/* Cosméticos de Maestro: el servidor controla su vigencia. */
-.frame-maestro { outline: 3px double var(--color-warning); outline-offset: 5px; border-radius: 50%; }
+/* Cosméticos de Maestro: el servidor controla su vigencia (el marco lo dibuja <app-avatar-frame>). */
 .maestro-insignia { display: inline-flex; align-items: center; padding: .25rem .65rem; border: 1px solid var(--color-warning); border-radius: 2rem; color: var(--color-warning); font: 600 .8rem var(--font-ui); }
 
 /* Taberna: filtros del Bazar con document.startViewTransition. La clase solo existe durante

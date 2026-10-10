@@ -191,13 +191,25 @@ class AchievementSerializer(serializers.ModelSerializer):
     Serializer de solo lectura para el catálogo público de logros.
     Expone todos los campos visibles sin información de usuario.
     """
+    reward = serializers.SerializerMethodField()
+
     class Meta:
         model = Achievement
         fields = [
-            'id', 'code', 'title', 'description', 'category',
-            'icon', 'badge_image', 'threshold', 'ink_reward', 'sort_order',
+            'id', 'code', 'title', 'description', 'category', 'rarity',
+            'icon', 'badge_image', 'threshold', 'ink_reward', 'sort_order', 'reward',
         ]
         read_only_fields = fields
+
+    def get_reward(self, obj):
+        """Marco, título o accesorio que regala el logro (exclusivo si no se vende en El Bazar)."""
+        item = obj.reward_item
+        if item is None:
+            return None
+        return {
+            'code': item.code, 'item_type': item.item_type, 'name': item.name,
+            'value': item.value, 'icon': item.icon, 'is_exclusive': not item.is_purchasable,
+        }
 
 
 class UserAchievementSerializer(serializers.ModelSerializer):

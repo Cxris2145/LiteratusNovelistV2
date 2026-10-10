@@ -1,9 +1,41 @@
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings as jwt_settings
+from rest_framework_simplejwt.utils import get_md5_hash_password
+from django.utils.crypto import constant_time_compare
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import User, Profile
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=254)
+
+    def validate_email(self, value):
+        return value.strip().lower()
+
+
+class PasswordResetVerifySerializer(PasswordResetRequestSerializer):
+    code = serializers.RegexField(r'^[0-9]{6}$', min_length=6, max_length=6,
+                                 error_messages={'invalid': 'Ingresa el código de seis dígitos.'})
+
+
+class PasswordResetConfirmSerializer(PasswordResetRequestSerializer):
+    reset_token = serializers.CharField(max_length=128, trim_whitespace=False)
+    new_password = serializers.CharField(max_length=128, trim_whitespace=False, write_only=True)
+    confirm_password = serializers.CharField(max_length=128, trim_whitespace=False, write_only=True)
+
+class PasswordAwareTokenRefreshSerializer(TokenRefreshSerializer):
+    """SimpleJWT comprueba el hash al autenticar, pero también debe hacerlo al refrescar."""
+
+    def validate(self, attrs):
+        token = self.token_class(attrs['refresh'])
+        user = User.objects.filter(pk=token.get(jwt_settings.USER_ID_CLAIM)).first()
+        if (not user or not user.is_active or not constant_time_compare(
+                token.get(jwt_settings.REVOKE_TOKEN_CLAIM, ''), get_md5_hash_password(user.password))):
+            raise AuthenticationFailed('Tu contraseña ha cambiado. Inicia sesión de nuevo.', code='password_changed')
+        return super().validate(attrs)
 
 
 def level_name_for(level):

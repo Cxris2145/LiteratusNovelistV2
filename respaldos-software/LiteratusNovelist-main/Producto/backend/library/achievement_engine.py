@@ -22,9 +22,23 @@ EVALUADORES IMPLEMENTADOS:
         - classic_explorer_3, classic_explorer_10: libros de un mismo gÃ©nero
 """
 
+import threading
+
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Count, F
+
+# Disparadores por actividad de reward_activity (Senda, juegos, reseñas).
+ACTIVITY_TRIGGERS = {
+    'quiz_passed': 'learning',
+    'daily_enigma': 'games',
+    'interrogation_win': 'games',
+    'review_written': 'reader',
+}
+
+# Un logro da XP y la XP puede subir de nivel, que a su vez evalúa logros de colección:
+# las evaluaciones anidadas se posponen hasta que termine la que está en curso.
+_evaluating = threading.local()
 
 
 def evaluate_for_user(user, trigger: str, session=None, progress=None, chat_session_id=None):
@@ -34,22 +48,52 @@ def evaluate_for_user(user, trigger: str, session=None, progress=None, chat_sess
 
     Args:
         user: instancia de User
-        trigger: 'session' | 'progress' | 'chat'
+        trigger: 'session' | 'progress' | 'chat' | 'friends' | 'learning' | 'games' | 'reader' | 'collection'
         session: instancia de ReadingSession (trigger='session')
         progress: instancia de ReadingProgress (trigger='progress')
         chat_session_id: ID de la sesiÃ³n de chat (trigger='chat')
     """
+    if getattr(_evaluating, 'active', False):
+        # Llamada anidada (p. ej. un logro dio XP y eso subió de nivel): se evalúa al terminar.
+        if trigger in _DEFERRABLE:
+            _evaluating.pending.add(trigger)
+        return
+    _evaluating.active = True
+    _evaluating.pending = set()
     try:
-        if trigger == 'session' and session:
-            _evaluate_streak(user, session)
-            _evaluate_time_based(user, session)
-        elif trigger == 'progress' and progress:
-            _evaluate_reading_milestones(user, progress)
-            _evaluate_genre_exploration(user, progress)
-        elif trigger == 'chat':
-            _evaluate_social_milestones(user, chat_session_id)
-        elif trigger == 'friends':
-            _evaluate_tavern_milestones(user)
+        _run_evaluators(user, trigger, session, progress, chat_session_id)
+        while _evaluating.pending:
+            _run_evaluators(user, _evaluating.pending.pop())
+    finally:
+        _evaluating.active = False
+
+
+# Disparadores que no necesitan contexto: se pueden posponer si llegan anidados.
+_DEFERRABLE = {'friends', 'learning', 'games', 'reader', 'collection'}
+
+
+def _run_evaluators(user, trigger, session=None, progress=None, chat_session_id=None):
+    try:
+        # Punto de guardado propio: si un evaluador falla, no rompe la transacción de quien llamó.
+        with transaction.atomic():
+            if trigger == 'session' and session:
+                _evaluate_streak(user, session)
+                _evaluate_time_based(user, session)
+            elif trigger == 'progress' and progress:
+                _evaluate_reading_milestones(user, progress)
+                _evaluate_genre_exploration(user, progress)
+            elif trigger == 'chat':
+                _evaluate_social_milestones(user, chat_session_id)
+            elif trigger == 'friends':
+                _evaluate_tavern_milestones(user)
+            elif trigger == 'learning':
+                _evaluate_learning(user)
+            elif trigger == 'games':
+                _evaluate_games(user)
+            elif trigger == 'reader':
+                _evaluate_reader_activity(user)
+            elif trigger == 'collection':
+                _evaluate_collection(user)
     except Exception:
         # El motor de logros NO debe bloquear el flujo principal.
         # Errores se ignoran silenciosamente para no romper la sesiÃ³n
@@ -108,7 +152,7 @@ def _evaluate_streak(user, session):
                 break
 
     # Actualizar logros de racha
-    for code, days in [('streak_3', 3), ('streak_7', 7), ('streak_30', 30)]:
+    for code, days in [('streak_3', 3), ('streak_7', 7), ('streak_14', 14), ('streak_30', 30), ('streak_100', 100)]:
         _unlock_or_update(user, code, current=streak, threshold=days)
 
 
@@ -136,8 +180,9 @@ def _evaluate_time_based(user, session):
             is_active=True,
             started_at__hour__lt=5,
         ).count()
-        _unlock_or_update(user, 'night_owl', current=min(night_count, 1), threshold=1)
+        _unlock_or_update(user, 'night_owl', current=night_count, threshold=1)
         _unlock_or_update(user, 'night_owl_10', current=night_count, threshold=10)
+        _unlock_or_update(user, 'night_owl_25', current=night_count, threshold=25)
 
     # Sesiones madrugadoras (05:00 - 07:59)
     elif 5 <= local_hour < 8:
@@ -147,7 +192,8 @@ def _evaluate_time_based(user, session):
             started_at__hour__gte=5,
             started_at__hour__lt=8,
         ).count()
-        _unlock_or_update(user, 'early_bird', current=min(early_count, 1), threshold=1)
+        _unlock_or_update(user, 'early_bird', current=early_count, threshold=1)
+        _unlock_or_update(user, 'early_bird_10', current=early_count, threshold=10)
 
 
 # ---------------------------------------------------------------------------
@@ -181,6 +227,7 @@ def _evaluate_reading_milestones(user, progress):
             ('first_book', 1),
             ('books_5', 5),
             ('books_10', 10),
+            ('books_25', 25),
         ]:
             _unlock_or_update(user, code, current=completed_count, threshold=threshold)
 
@@ -219,6 +266,82 @@ def _evaluate_genre_exploration(user, progress):
     ]:
         _unlock_or_update(user, code, current=max_in_genre, threshold=threshold)
 
+    distinct_genres = len([g for g in genre_counts if g['inventory__edition__book__genres__name']])
+    _unlock_or_update(user, 'genres_5', current=distinct_genres, threshold=5)
+
+
+# ---------------------------------------------------------------------------
+# LA SENDA, JUEGOS, LECTURA ACTIVA Y COLECCIÓN
+# Cuentan sobre las tablas reales, así no dependen de cuándo se disparó cada evento.
+# ---------------------------------------------------------------------------
+
+def _evaluate_learning(user):
+    """Niveles aprobados, niveles con 3 estrellas y la última unidad (La Cumbre)."""
+    from learning.models import LearningLevel, LearningUnit, UserLevelProgress
+
+    done = UserLevelProgress.objects.filter(user=user, is_completed=True)
+    passed = done.count()
+    _unlock_or_update(user, 'senda_first', current=passed, threshold=1)
+    _unlock_or_update(user, 'senda_10', current=passed, threshold=10)
+    _unlock_or_update(user, 'senda_50', current=passed, threshold=50)
+    _unlock_or_update(user, 'senda_stars_10', current=done.filter(stars__gte=3).count(), threshold=10)
+
+    last_unit = LearningUnit.objects.order_by('-unit_number').first()
+    if last_unit:
+        total = LearningLevel.objects.filter(unit=last_unit).count()
+        mine = done.filter(level__unit=last_unit).count()
+        _unlock_or_update(user, 'senda_summit', current=int(total > 0 and mine >= total), threshold=1)
+
+
+def _evaluate_games(user):
+    """Enigmas descifrados (cada uno paga Tinta una vez al día) e interrogatorios ganados."""
+    from ai_engine.models import BlindInterrogationSession
+    from .models import InkTransaction
+
+    enigmas = InkTransaction.objects.filter(user=user, concept='daily_enigma').count()
+    _unlock_or_update(user, 'enigma_first', current=enigmas, threshold=1)
+    _unlock_or_update(user, 'enigma_10', current=enigmas, threshold=10)
+
+    wins = BlindInterrogationSession.objects.filter(user=user, status='won').count()
+    _unlock_or_update(user, 'interrogation_first', current=wins, threshold=1)
+    _unlock_or_update(user, 'interrogation_10', current=wins, threshold=10)
+
+
+def _evaluate_reader_activity(user):
+    """Subrayados, post-its, marcadores, reseñas y favoritos."""
+    from catalog.models import Review
+    from .models import UserBookmark, UserFavorite, UserHighlight, UserPostIt
+
+    highlights = UserHighlight.objects.filter(inventory__user=user).count()
+    _unlock_or_update(user, 'highlight_first', current=highlights, threshold=1)
+    _unlock_or_update(user, 'highlights_50', current=highlights, threshold=50)
+    _unlock_or_update(user, 'postits_10', current=UserPostIt.objects.filter(inventory__user=user).count(), threshold=10)
+    _unlock_or_update(user, 'bookmarks_10', current=UserBookmark.objects.filter(inventory__user=user).count(), threshold=10)
+
+    reviews = Review.objects.filter(user=user).count()
+    _unlock_or_update(user, 'review_first', current=reviews, threshold=1)
+    _unlock_or_update(user, 'reviews_10', current=reviews, threshold=10)
+    _unlock_or_update(user, 'favorites_10', current=UserFavorite.objects.filter(user=user).count(), threshold=10)
+
+
+def _evaluate_collection(user):
+    """Nivel de lector, cosméticos reunidos (comprados o ganados) y Maguito vestido entero."""
+    from learning.models import ShopItem, UserInventoryItem
+    from learning.wearables import WEAR_SLOTS
+    from users.models import Profile
+
+    profile = Profile.objects.filter(user=user).only('level', 'outfit').first()
+    if profile is None:
+        return
+    _unlock_or_update(user, 'level_5', current=profile.level, threshold=5)
+
+    cosmetic_types = [ShopItem.ItemType.PROFILE_FRAME, ShopItem.ItemType.TITLE, ShopItem.ItemType.MAGUITO_WEAR]
+    owned = UserInventoryItem.objects.filter(user=user, quantity__gt=0, item__item_type__in=cosmetic_types).count()
+    _unlock_or_update(user, 'bazar_5', current=owned, threshold=5)
+
+    dressed = sum(1 for slot in WEAR_SLOTS if (profile.outfit or {}).get(slot))
+    _unlock_or_update(user, 'maguito_full', current=dressed, threshold=len(WEAR_SLOTS))
+
 
 # ---------------------------------------------------------------------------
 # HELPER CENTRAL DE ESCRITURA
@@ -238,7 +361,7 @@ def _unlock_or_update(user, achievement_code: str, current: int, threshold: int)
     from users.models import Profile
 
     try:
-        achievement = Achievement.objects.get(code=achievement_code)
+        achievement = Achievement.objects.select_related('reward_item').get(code=achievement_code)
     except Achievement.DoesNotExist:
         # El logro no estÃ¡ en el catÃ¡logo aÃºn (seed pendiente), ignorar
         return
@@ -256,13 +379,21 @@ def _unlock_or_update(user, achievement_code: str, current: int, threshold: int)
             ua.save(update_fields=['current_progress', 'updated_at'])
 
     # Desbloquear si alcanzÃ³ el threshold y aÃºn no estaba desbloqueado
+    # Manda el umbral del catálogo (editable en el admin): así coincide con lo que muestra la página.
+    threshold = achievement.threshold
     if ua.current_progress >= threshold and ua.unlocked_at is None:
         ua.unlocked_at = timezone.now()
         ua.save(update_fields=['unlocked_at', 'updated_at'])
 
-        # Otorgar Tinta como recompensa si aplica
-        if achievement.ink_reward > 0:
-            reward_activity(user, 'achievement_unlocked', str(ua.id), custom_ink=achievement.ink_reward)
+        # Premio cosmético (marco, título o accesorio), gratis y de una vez.
+        if achievement.reward_item_id:
+            from learning.models import UserInventoryItem
+            UserInventoryItem.objects.get_or_create(
+                user=user, item_id=achievement.reward_item_id, defaults={'quantity': 1})
+            evaluate_for_user(user, 'collection')  # cuenta para "Coleccionista"
+
+        # También entrega la XP configurada cuando el logro no da Tinta.
+        reward_activity(user, 'achievement_unlocked', str(ua.id), custom_ink=achievement.ink_reward)
 
 
 # ---------------------------------------------------------------------------
@@ -285,6 +416,9 @@ def reward_activity(user, activity_type: str, reference_id: str = '', custom_ink
     xp_reward = custom_xp if custom_xp is not None else rewards.get(activity_type, {}).get('xp', 0)
 
     if ink_reward == 0 and xp_reward == 0:
+        trigger = ACTIVITY_TRIGGERS.get(activity_type)
+        if trigger:
+            evaluate_for_user(user, trigger)
         return
 
     # Usamos select_for_update para evitar condiciones de carrera en el perfil
@@ -304,10 +438,16 @@ def reward_activity(user, activity_type: str, reference_id: str = '', custom_ink
             balance_after=profile.ink_balance
         )
         
-    if xp_reward > 0:
-        _check_level_up(profile)
-        
+    leveled_up = _check_level_up(profile) if xp_reward > 0 else False
+
     _update_missions(user, activity_type)
+
+    # Logros que dependen de esta actividad (Senda, juegos, reseñas) y del nivel de lector.
+    trigger = ACTIVITY_TRIGGERS.get(activity_type)
+    if trigger:
+        evaluate_for_user(user, trigger)
+    if leveled_up:
+        evaluate_for_user(user, 'collection')
 
 
 def _log_daily_activity(user, xp: int, ink: int):
@@ -375,7 +515,7 @@ def _check_level_up(profile):
     
     levels = getattr(settings, 'READER_LEVELS', [])
     if not levels:
-        return
+        return False
         
     # Encontrar el nivel mÃ¡s alto que el usuario puede tener
     new_level = profile.level
@@ -386,7 +526,10 @@ def _check_level_up(profile):
     if new_level > profile.level:
         profile.level = new_level
         profile.save(update_fields=['level'])
-        
+        return True
+    return False
+
+
 def update_streak(user):
     """
     Actualiza la racha de lectura del usuario (se llama cada vez que lee).
@@ -449,7 +592,7 @@ def _evaluate_tavern_milestones(user):
     from community.services import friend_ids
 
     friends = len(friend_ids(user))
-    _unlock_or_update(user, 'tavern_first_friend', current=min(friends, 1), threshold=1)
+    _unlock_or_update(user, 'tavern_first_friend', current=friends, threshold=1)
     _unlock_or_update(user, 'tavern_full_table', current=friends, threshold=5)
     toasts = Brindis.objects.filter(receiver=user).count()
     _unlock_or_update(user, 'tavern_toasted', current=toasts, threshold=10)

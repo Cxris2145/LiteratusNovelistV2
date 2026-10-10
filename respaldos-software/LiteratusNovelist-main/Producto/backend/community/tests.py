@@ -244,7 +244,8 @@ class PrivacyTests(CommunityAPITestCase):
 
         data = self.as_user(self.ana).get(f'{API}profiles/{code_of(self.bruno)}/').data
 
-        self.assertEqual(set(data), {'full', 'friend_code', 'username', 'outfit', 'relation', 'request_id'})
+        self.assertEqual(set(data), {'full', 'friend_code', 'username', 'outfit', 'equipped_frame', 'equipped_title',
+                                     'relation', 'request_id'})
         self.assertFalse(data['full'])
 
     def test_friends_see_the_full_profile_with_stats(self):

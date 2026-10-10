@@ -6,16 +6,19 @@ Flujo:
 2. Si el capítulo ya tiene un ChapterAudio listo, se devuelve al instante (no gasta cupo).
 3. Si no, se reserva una fila de ChapterAudio como "en generación" (la restricción única
    chapter + voice_name impide que dos lectores generen el mismo capítulo a la vez) y un
-   hilo en segundo plano sintetiza el capítulo por fragmentos, con el tiempo de cada palabra.
+   hilo en segundo plano sintetiza el capítulo por fragmentos (varios a la vez), con el
+   tiempo de cada palabra. El avance se guarda cada segundo para que el lector lo muestre.
 4. El MP3 se guarda en disco y en Supabase. Los tiempos quedan en `alignment_data` con el
    mismo índice de palabras que el lector (`word-N`), para resaltar exactamente lo que se lee.
 
 No agrega tablas ni columnas: el estado de cada generación vive en `alignment_data['meta']`.
 """
 import logging
+import math
 import re
 import threading
 import unicodedata
+from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import timedelta
 from xml.sax.saxutils import escape
@@ -40,6 +43,9 @@ WORD_TIMES_FORMAT = 'word-times-v1'
 READY, GENERATING, FAILED = 'ready', 'generating', 'failed'
 
 MAX_CHUNK_CHARS = 6000             # ~6-7 min de audio; Azure acepta hasta 10 min por síntesis
+MIN_CHUNK_CHARS = 1500             # un capítulo más corto no vale la pena repartirlo
+PARALLEL_CHUNKS = 3                # fragmentos que Azure sintetiza a la vez (el plan F0 admite 20 por minuto)
+PROGRESS_SAVE_SECONDS = 1.0        # cada cuánto se guarda el avance mientras se sintetiza
 BLOCK_PAUSE_MS = 500               # pausa al final de cada párrafo o título
 LINE_BREAK_PAUSE_MS = 300          # pausa en cada <br> (versos, diálogos)
 STALE_AFTER = timedelta(minutes=10)            # una generación sin avances se considera caída
@@ -176,9 +182,22 @@ def chunk_body(words, pauses, start, end):
     return ' '.join(parts)
 
 
+def chunk_chars_for(words):
+    """
+    Tamaño de fragmento que reparte el capítulo en PARALLEL_CHUNKS partes, para sintetizarlas a la vez.
+    El 15 % extra evita que el corte entre oraciones deje un cuarto fragmento esperando turno.
+    """
+    total = sum(len(w) + 1 for w in words)
+    return min(MAX_CHUNK_CHARS, max(MIN_CHUNK_CHARS, math.ceil(total * 1.15 / PARALLEL_CHUNKS)))
+
+
+def chapter_chunks(words, pauses):
+    return split_chunks(words, pauses, chunk_chars_for(words))
+
+
 def billed_chars(words, pauses):
     """Caracteres que Azure cobrará por narrar el capítulo completo (estimación)."""
-    return sum(len(chunk_body(words, pauses, s, e)) for s, e in split_chunks(words, pauses))
+    return sum(len(chunk_body(words, pauses, s, e)) for s, e in chapter_chunks(words, pauses))
 
 
 # ---------------------------------------------------------------------------
@@ -303,6 +322,35 @@ def mp3_duration_seconds(data):
 # Estado de las narraciones (vive en alignment_data['meta'])
 # ---------------------------------------------------------------------------
 
+# Voces que el lector puede elegir. Cada una se genera y se guarda aparte por capítulo,
+# así que cada voz nueva gasta cupo de Azure la primera vez que alguien la pide.
+NARRATOR_VOICES = (
+    ('es-CL-CatalinaNeural', 'Catalina', 'Chile · mujer'),
+    ('es-CL-LorenzoNeural', 'Lorenzo', 'Chile · hombre'),
+    ('es-MX-DaliaNeural', 'Dalia', 'México · mujer'),
+    ('es-MX-JorgeNeural', 'Jorge', 'México · hombre'),
+    ('es-ES-ElviraNeural', 'Elvira', 'España · mujer'),
+    ('es-ES-AlvaroNeural', 'Álvaro', 'España · hombre'),
+)
+
+
+def narrator_voices():
+    """Voces para el selector del lector; la predeterminada (AZURE_TTS_NARRATOR_VOICE) va primero."""
+    default = settings.AZURE_TTS_NARRATOR_VOICE
+    voices = [{'id': voice, 'name': name, 'detail': detail} for voice, name, detail in NARRATOR_VOICES]
+    if default not in {v['id'] for v in voices}:
+        name = re.sub(r'^[a-z]{2,3}-[A-Z]{2}-|Neural$', '', default)
+        voices.append({'id': default, 'name': name, 'detail': ''})
+    return sorted(voices, key=lambda v: v['id'] != default)
+
+
+def narrator_voice(requested=None):
+    """La voz pedida si está en la lista; si no, la predeterminada."""
+    if requested and requested in {v['id'] for v in narrator_voices()}:
+        return requested
+    return settings.AZURE_TTS_NARRATOR_VOICE
+
+
 def narrator_voice_name(voice=None):
     return f"Azure · {voice or settings.AZURE_TTS_NARRATOR_VOICE}"
 
@@ -348,11 +396,14 @@ def _today():
 
 
 def monthly_chars_used():
-    """Caracteres de narración de capítulos gastados (o reservados) este mes."""
+    """
+    Caracteres de narración de capítulos gastados (o reservados) este mes. Incluye lo que costó
+    generar antes un capítulo que se volvió a narrar (por ejemplo, porque su MP3 se perdió).
+    """
     values = (ChapterAudio.all_objects
               .filter(alignment_data__meta__engine='azure', alignment_data__meta__month=_this_month())
-              .values_list('alignment_data__meta__chars', flat=True))
-    return sum(int(v or 0) for v in values)
+              .values_list('alignment_data__meta__chars', 'alignment_data__meta__spent_before'))
+    return sum(int(chars or 0) + int(spent_before or 0) for chars, spent_before in values)
 
 
 def _user_generations_today(user):
@@ -379,16 +430,16 @@ def _set_meta(audio, meta, **changes):
 # API del servicio
 # ---------------------------------------------------------------------------
 
-def request_chapter_narration(chapter, user, run_async=True):
+def request_chapter_narration(chapter, user, voice=None, run_async=True):
     """
-    Devuelve la narración lista del capítulo o empieza a generarla.
+    Devuelve la narración lista del capítulo con la voz pedida o empieza a generarla.
     Un audio cargado a mano (no generado por Azure) siempre tiene prioridad.
     """
     for audio in chapter.audios.all():
         if not is_azure(audio) and audio.audio_file:
             return NarrationResult(READY, audio=audio, progress=1.0)
 
-    voice = settings.AZURE_TTS_NARRATOR_VOICE
+    voice = narrator_voice(voice)
     voice_name = narrator_voice_name(voice)
     existing = ChapterAudio.all_objects.filter(chapter=chapter, voice_name=voice_name).first()
     if is_ready(existing):
@@ -461,6 +512,10 @@ def _claim(chapter, voice_name, voice, chars, user):
             return audio, False
 
         # Fila caída, fallida, borrada o con el MP3 perdido: se reutiliza para regenerar.
+        # Lo que ya se gastó en ella este mes sigue contando para el tope mensual.
+        previous = _meta(audio)
+        if previous.get('month') == meta['month']:
+            meta['spent_before'] = int(previous.get('spent_before') or 0) + int(previous.get('chars') or 0)
         audio.deleted_at = None
         audio.is_active = True
         audio.alignment_data = {'meta': meta}
@@ -483,6 +538,47 @@ def _generate_in_background(audio_id):
         connection.close()  # el hilo tiene su propia conexión a la base de datos
 
 
+def _synthesize_chunk(index, body, voice, word_count, heard, billed):
+    """
+    Sintetiza un fragmento en su propia conexión con Azure. Corre en un hilo del pool:
+    solo anota su avance en `heard` y su costo en `billed`; no toca la base de datos.
+    """
+    def on_words(count):
+        heard[index] = min(count, word_count)
+
+    with azure_tts.SynthesisSession() as session:
+        result = session.synthesize(azure_tts.build_ssml(body, voice), on_words=on_words)
+    heard[index] = word_count
+    billed[index] = len(body)
+    return result
+
+
+def _synthesize_chapter(chunks, bodies, voice, billed, on_progress):
+    """
+    Sintetiza los fragmentos de a PARALLEL_CHUNKS a la vez y devuelve (mp3, tiempos) en orden.
+    `on_progress(fracción)` se llama desde este hilo, el único que escribe en la base de datos.
+    Si un fragmento falla, los que no empezaron se cancelan y se relanza ese error.
+    """
+    heard = [0] * len(chunks)
+    total_words = sum(end - start for start, end in chunks) or 1
+    workers = max(1, min(PARALLEL_CHUNKS, len(chunks)))
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix='narration-chunk') as pool:
+        futures = [pool.submit(_synthesize_chunk, index, body, voice, end - start, heard, billed)
+                   for index, ((start, end), body) in enumerate(zip(chunks, bodies))]
+        pending, saved = set(futures), 0.0
+        while pending:
+            done, pending = wait(pending, timeout=PROGRESS_SAVE_SECONDS, return_when=FIRST_EXCEPTION)
+            if any(future.exception() for future in done):
+                for future in pending:
+                    future.cancel()
+                break
+            progress = round(min(sum(heard) / total_words, 0.99), 3)
+            if progress > saved:
+                on_progress(progress)
+                saved = progress
+    return [future.result() for future in futures]
+
+
 def generate_narration(audio_id):
     """Sintetiza el capítulo de una fila reservada y la deja lista (o marcada como fallida)."""
     audio = ChapterAudio.all_objects.select_related('chapter').get(pk=audio_id)
@@ -490,27 +586,29 @@ def generate_narration(audio_id):
     voice = meta.get('voice') or settings.AZURE_TTS_NARRATOR_VOICE
 
     words, pauses = chapter_words(audio.chapter.content_html)
-    chunks = split_chunks(words, pauses)
-    starts, ends = [None] * len(words), [None] * len(words)
-    mp3, offset, billed = bytearray(), 0.0, 0
+    chunks = chapter_chunks(words, pauses)
+    bodies = [chunk_body(words, pauses, start, end) for start, end in chunks]
+    billed_by_chunk = [0] * len(chunks)
 
     try:
-        with azure_tts.SynthesisSession() as session:
-            for index, (start, end) in enumerate(chunks):
-                body = chunk_body(words, pauses, start, end)
-                chunk_mp3, timings = session.synthesize(azure_tts.build_ssml(body, voice))
-                billed += len(body)
-                starts[start:end], ends[start:end] = map_word_timings(words[start:end], timings, offset)
-                mp3 += chunk_mp3
-                offset += mp3_duration_seconds(chunk_mp3)
-                _set_meta(audio, meta, progress=round((index + 1) / len(chunks), 3))
+        results = _synthesize_chapter(chunks, bodies, voice, billed_by_chunk,
+                                      on_progress=lambda progress: _set_meta(audio, meta, progress=progress))
     except azure_tts.AzureTTSQuotaError as e:
-        _set_meta(audio, meta, status=FAILED, reason='quota', message=str(e), chars=billed)
+        _set_meta(audio, meta, status=FAILED, reason='quota', message=str(e), chars=sum(billed_by_chunk))
         return audio
     except Exception:
-        _set_meta(audio, meta, status=FAILED, reason='failed', chars=billed,
+        _set_meta(audio, meta, status=FAILED, reason='failed', chars=sum(billed_by_chunk),
                   message='No se pudo generar la narración. Intenta de nuevo en unos minutos.')
         raise
+
+    # Los fragmentos terminan en cualquier orden; el audio y los tiempos se arman en el del texto.
+    starts, ends = [None] * len(words), [None] * len(words)
+    mp3, offset = bytearray(), 0.0
+    for (start, end), (chunk_mp3, timings) in zip(chunks, results):
+        starts[start:end], ends[start:end] = map_word_timings(words[start:end], timings, offset)
+        mp3 += chunk_mp3
+        offset += mp3_duration_seconds(chunk_mp3)
+    billed = sum(billed_by_chunk)
 
     starts_ms, ends_ms = fill_gaps(starts, ends)
     data = bytes(mp3)

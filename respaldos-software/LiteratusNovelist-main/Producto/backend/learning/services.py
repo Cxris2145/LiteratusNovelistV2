@@ -413,6 +413,10 @@ def evaluate_and_record_attempt(user, level_id: str, answers_payload: dict, dura
         prog.completed_at = timezone.now()
         prog.save()
 
+        # El nivel debe estar guardado antes de contar niveles y estrellas (también al practicar).
+        from library.achievement_engine import evaluate_for_user
+        evaluate_for_user(user, 'learning')
+
     # Guardar auditoría del intento
     UserExerciseAttempt.objects.create(
         user=user,
@@ -608,6 +612,9 @@ def submit_skip_test(user, target, answers_payload: dict, duration_seconds: int 
                     progress.completed_at = now
                     progress.save(update_fields=['is_completed', 'completed_at'])
 
+        from library.achievement_engine import evaluate_for_user
+        evaluate_for_user(user, 'learning')
+
     # El intento queda registrado en la prueba de la última unidad saltada.
     anchor_levels = list(skipped[-1].levels.all()) if skipped else list(target.levels.all())
     anchor = next((lvl for lvl in anchor_levels if lvl.is_exam), anchor_levels[-1] if anchor_levels else None)
@@ -653,6 +660,10 @@ def purchase_shop_item(user, item_code: str) -> dict:
         item = ShopItem.objects.get(code=item_code, is_active=True)
     except ShopItem.DoesNotExist:
         return {'success': False, 'error': 'ITEM_NOT_FOUND', 'message': 'Artículo no disponible en El Bazar.'}
+
+    if not item.is_purchasable:
+        return {'success': False, 'error': 'NOT_FOR_SALE',
+                'message': 'Este artículo no se vende: se gana desbloqueando un logro.'}
 
     if profile.ink_balance < item.cost_ink:
         return {
@@ -721,6 +732,11 @@ def purchase_shop_item(user, item_code: str) -> dict:
         profile.outfit = {**(profile.outfit or {}), slot: variant}
         profile.save(update_fields=['outfit'])
 
+    if item.item_type in ONE_TIME_ITEM_TYPES:
+        _evaluate_collection_achievements(user)
+        # Un logro puede añadir Tinta: devolver el saldo después de esos premios.
+        profile.refresh_from_db()
+
     return {
         'success': True,
         'item_name': item.name,
@@ -740,7 +756,7 @@ def equip_cosmetic_item(user, item_code: str) -> dict:
     """
     profile = Profile.objects.select_for_update().get(user=user)
     try:
-        inv = UserInventoryItem.objects.select_related('item').get(user=user, item__code=item_code)
+        inv = UserInventoryItem.objects.select_related('item').get(user=user, item__code=item_code, quantity__gt=0)
     except UserInventoryItem.DoesNotExist:
         return {'success': False, 'error': 'NOT_OWNED', 'message': 'Debes adquirir este artículo primero en El Bazar.'}
 
@@ -750,7 +766,7 @@ def equip_cosmetic_item(user, item_code: str) -> dict:
         profile.save(update_fields=['equipped_frame'])
 
     elif item.item_type == ShopItem.ItemType.TITLE:
-        profile.equipped_title = item.name
+        profile.equipped_title = item.value or item.name
         profile.save(update_fields=['equipped_title'])
 
     elif item.item_type == ShopItem.ItemType.THEME:
@@ -764,6 +780,7 @@ def equip_cosmetic_item(user, item_code: str) -> dict:
         slot, variant = wear
         profile.outfit = {**(profile.outfit or {}), slot: variant}
         profile.save(update_fields=['outfit'])
+        _evaluate_collection_achievements(user)
 
     return {
         'success': True,
@@ -777,7 +794,17 @@ def equip_cosmetic_item(user, item_code: str) -> dict:
 
 @transaction.atomic
 def unequip_wearable(user, slot: str) -> dict:
-    """Quita el accesorio de un espacio: Maguito vuelve a llevar lo de siempre ahí."""
+    """
+    Quita el accesorio de un espacio (Maguito vuelve a llevar lo de siempre ahí),
+    o el marco ('frame') o el título ('title') del perfil.
+    """
+    if slot in ('frame', 'title'):
+        profile = Profile.objects.select_for_update().get(user=user)
+        field = 'equipped_frame' if slot == 'frame' else 'equipped_title'
+        setattr(profile, field, '')
+        profile.save(update_fields=[field])
+        return {'success': True, 'message': 'Listo, lo guardaste en el baúl.',
+                'equipped_frame': profile.equipped_frame, 'equipped_title': profile.equipped_title}
     if slot not in WEAR_SLOTS:
         return {'success': False, 'error': 'INVALID_SLOT', 'message': 'Ese espacio de vestuario no existe.'}
     profile = Profile.objects.select_for_update().get(user=user)
@@ -786,3 +813,9 @@ def unequip_wearable(user, slot: str) -> dict:
     profile.outfit = outfit
     profile.save(update_fields=['outfit'])
     return {'success': True, 'message': 'Accesorio guardado en el baúl.', 'outfit': outfit}
+
+
+def _evaluate_collection_achievements(user):
+    """Logros de colección (Coleccionista, Maguito de Gala). Nunca interrumpe la compra."""
+    from library.achievement_engine import evaluate_for_user
+    evaluate_for_user(user, 'collection')

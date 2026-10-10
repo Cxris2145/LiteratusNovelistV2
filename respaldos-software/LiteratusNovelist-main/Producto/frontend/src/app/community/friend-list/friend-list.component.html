@@ -11,8 +11,8 @@
   <!-- Solicitudes -->
   <div class="fl-requests" *ngIf="incoming.length || outgoing.length">
     <article class="fl-request is-incoming" *ngFor="let request of incoming; trackBy: trackRequest">
-      <app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
-                   [interactive]="false" [followPointer]="false"></app-maguito>
+      <app-avatar-frame [frame]="request.user.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
+                   [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
       <div class="fl-who">
         <strong>{{ request.user.username }}</strong>
         <span>Quiere sentarse a tu mesa</span>
@@ -23,8 +23,8 @@
       </div>
     </article>
     <article class="fl-request" *ngFor="let request of outgoing; trackBy: trackRequest">
-      <app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
-                   [interactive]="false" [followPointer]="false"></app-maguito>
+      <app-avatar-frame [frame]="request.user.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
+                   [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
       <div class="fl-who">
         <strong>{{ request.user.username }}</strong>
         <span>Esperando respuesta</span>
@@ -48,12 +48,13 @@
     <li class="fl-friend" *ngFor="let friend of friends; trackBy: trackFriend">
       <a class="fl-friend-link" [routerLink]="['/tavern/amigo', friend.friend_code]">
         <span class="fl-avatar-wrap">
-          <app-maguito class="fl-avatar" crop="bust" [outfit]="friend.outfit" [paused]="true" [calm]="true"
-                       [interactive]="false" [followPointer]="false"></app-maguito>
+          <app-avatar-frame [frame]="friend.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="friend.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
           <span class="th-dot fl-status-dot" [ngClass]="friend.status.kind" aria-hidden="true"></span>
         </span>
         <span class="fl-who">
           <strong>{{ friend.username }}</strong>
+          <span class="fl-title" *ngIf="friend.equipped_title">{{ friend.equipped_title }}</span>
           <span class="fl-status" [ngClass]="friend.status.kind">{{ friend.status.label }}</span>
         </span>
       </a>

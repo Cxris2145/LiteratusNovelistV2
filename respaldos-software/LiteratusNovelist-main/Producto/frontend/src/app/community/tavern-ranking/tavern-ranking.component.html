@@ -24,16 +24,16 @@
             <span *ngIf="entry.rank === 1" class="material-symbols-rounded" aria-hidden="true">crown</span>
             <span [class.sr-only]="entry.rank === 1">{{ entry.rank }}</span>
           </span>
-          <app-maguito class="rk-avatar" crop="bust" [outfit]="entry.outfit" [paused]="true" [calm]="true"
-                       [interactive]="false" [followPointer]="false"></app-maguito>
-          <span class="rk-name">{{ entry.is_me ? entry.username + ' (tú)' : entry.username }}</span>
+          <app-avatar-frame [frame]="entry.equipped_frame" size="sm"><app-maguito class="rk-avatar" crop="bust" [outfit]="entry.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
+          <span class="rk-name"><span>{{ entry.is_me ? entry.username + ' (tú)' : entry.username }}</span><small *ngIf="entry.equipped_title">{{ entry.equipped_title }}</small></span>
           <span class="rk-points"><span class="material-symbols-rounded rk-quill" aria-hidden="true">history_edu</span>{{ points(entry.points) }}</span>
         </li>
         <li *ngIf="myRowOutside as me" class="rk-row is-me is-outside">
           <span class="rk-rank">{{ me.rank }}</span>
-          <app-maguito class="rk-avatar" crop="bust" [outfit]="me.outfit" [paused]="true" [calm]="true"
-                       [interactive]="false" [followPointer]="false"></app-maguito>
-          <span class="rk-name">{{ me.username }} (tú)</span>
+          <app-avatar-frame [frame]="me.equipped_frame" size="sm"><app-maguito class="rk-avatar" crop="bust" [outfit]="me.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
+          <span class="rk-name"><span>{{ me.username }} (tú)</span><small *ngIf="me.equipped_title">{{ me.equipped_title }}</small></span>
           <span class="rk-points"><span class="material-symbols-rounded rk-quill" aria-hidden="true">history_edu</span>{{ points(me.points) }}</span>
         </li>
       </ol>

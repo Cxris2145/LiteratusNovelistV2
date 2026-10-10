@@ -73,6 +73,43 @@ interface ReaderPostIt {
   text: string;
 }
 
+type ReaderPresetId = 'clasico' | 'noche' | 'enfoque' | 'accesible';
+
+/** Todo lo que se ajusta en la hoja "Aa" (para "Restablecer" y su "Deshacer"). */
+interface ReaderSettings {
+  fontSize: number;
+  fontFamily: ReaderComponent['currentFontFamily'];
+  theme: ReaderComponent['currentTheme'];
+  lineHeight: number;
+  readingWidth: ReaderComponent['readingWidth'];
+  textAlign: ReaderComponent['textAlign'];
+  paraSpacing: ReaderComponent['paraSpacing'];
+  letterSpacing: number;
+  wordSpacing: number;
+  brightness: number;
+  highContrast: boolean;
+  highlightColor: ReaderComponent['highlightColor'];
+  doublePage: boolean;
+  sceneImages: boolean;
+  hideProgress: boolean;
+  bionic: boolean;
+  focusMode: ReaderComponent['focusMode'];
+  ruler: boolean;
+  concentration: boolean;
+  longParaSplit: boolean;
+  tapToScroll: boolean;
+  autoScroll: boolean;
+  autoScrollSpeed: number;
+  sessionMinutes: number;
+}
+
+/** Voz de Azure que el lector puede elegir para la narración (GET library/inventory/narration-voices/). */
+interface NarratorVoice {
+  id: string;      // p. ej. 'es-CL-CatalinaNeural'
+  name: string;    // 'Catalina'
+  detail: string;  // 'Chile · mujer'
+}
+
 @Component({
   selector: 'app-reader',
   templateUrl: './reader.component.html',
@@ -335,6 +372,41 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     { id: 'nocturno', label: 'OLED' },
   ];
 
+  readonly settingsTabs: { id: ReaderComponent['settingsTab']; label: string; icon: string }[] = [
+    { id: 'texto', label: 'Texto', icon: 'text_fields' },
+    { id: 'apariencia', label: 'Apariencia', icon: 'palette' },
+    { id: 'enfoque', label: 'Lectura asistida', icon: 'psychology' },
+  ];
+
+  readonly lineHeightOptions: { value: number; label: string }[] = [
+    { value: 1.4, label: 'Libro' },
+    { value: 1.5, label: 'Compacto' },
+    { value: 1.75, label: 'Normal' },
+    { value: 2, label: 'Amplio' },
+  ];
+
+  readonly readerPresets: { id: ReaderPresetId; label: string; icon: string; detail: string }[] = [
+    { id: 'clasico', label: 'Clásico', icon: 'menu_book', detail: 'Times y justificado' },
+    { id: 'noche', label: 'Noche', icon: 'dark_mode', detail: 'Fondo negro, brillo bajo' },
+    { id: 'enfoque', label: 'Enfoque', icon: 'center_focus_strong', detail: 'Foco por frase y regla' },
+    { id: 'accesible', label: 'Accesible', icon: 'accessibility_new', detail: 'Letra legible y más aire' },
+  ];
+
+  /** Cómo viene el lector de fábrica (lo que aplica "Restablecer"). */
+  private readonly DEFAULT_READER_SETTINGS: ReaderSettings = {
+    fontSize: this.DEFAULT_FONT_SIZE, fontFamily: 'times', theme: 'light', lineHeight: 1.4,
+    readingWidth: 'medium', textAlign: 'justify', paraSpacing: 'tight', letterSpacing: 0, wordSpacing: 0,
+    brightness: 1, highContrast: false, highlightColor: 'gold', doublePage: true, sceneImages: true,
+    hideProgress: false, bionic: false, focusMode: 'off', ruler: false, concentration: false,
+    longParaSplit: false, tapToScroll: false, autoScroll: false, autoScrollSpeed: 35, sessionMinutes: 0,
+  };
+  /** Ajustes previos a "Restablecer", mientras se ofrece "Deshacer". */
+  private settingsBeforeReset: ReaderSettings | null = null;
+  resetNotice = false;
+  private resetNoticeTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Botón que abrió la hoja: recupera el foco al cerrarla. */
+  private settingsReturnFocus: HTMLElement | null = null;
+
   // ── PERSONAJES / CHAT ─────────────────────────────────────────────
   isCharPanelOpen: boolean = false;
   avatars: any[] = [];
@@ -366,6 +438,44 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.stopAudio(true);
       this.currentAudioMode = mode;
     }
+    localStorage.setItem('reader-audio-mode', mode);
+  }
+
+  // ── Ajustes de la voz neural (Azure) ──────────────────────────────
+  /** Modo de voz, voz de Azure y velocidad elegidos antes; sin elección previa se parte con la voz neural. */
+  private loadNarrationPrefs() {
+    const savedMode = localStorage.getItem('reader-audio-mode');
+    if (savedMode === 'native' || savedMode === 'pro' || savedMode === 'wasm') {
+      this.currentAudioMode = savedMode;
+    }
+
+    const savedSpeed = parseFloat(localStorage.getItem('reader-audio-speed') || '');
+    if (!isNaN(savedSpeed)) this.audioService.setSpeed(savedSpeed);
+
+    this.api.get<{ default: string; voices: NarratorVoice[] }>('library/inventory/narration-voices/').subscribe({
+      next: (res) => {
+        this.narratorVoices = res.voices || [];
+        const saved = localStorage.getItem('reader-narrator-voice');
+        this.narratorVoice = this.narratorVoices.some(v => v.id === saved) ? saved! : res.default;
+      },
+      error: () => {} // sin la lista se narra con la voz predeterminada del servidor
+    });
+  }
+
+  /** Cambiar de voz con la narración en curso la retoma con la voz nueva. */
+  setNarratorVoice(voiceId: string) {
+    if (voiceId === this.narratorVoice) return;
+    this.narratorVoice = voiceId;
+    localStorage.setItem('reader-narrator-voice', voiceId);
+    if (this.currentAudioMode === 'pro' && (this.isNarrationPlaying || this.isAudioLoading)) {
+      this.stopAudio(true);
+      this.playAudio();
+    }
+  }
+
+  setNarrationSpeed(rate: number) {
+    this.audioService.setSpeed(rate);
+    localStorage.setItem('reader-audio-speed', String(this.audioService.playbackRate));
   }
 
   // Getters para separar autor de personajes en el panel
@@ -385,7 +495,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   inkBalance: number = 0;
 
   // Audio Control
-  currentAudioMode: 'native' | 'pro' | 'kokoro' | 'wasm' | 'native-android' = 'native';
+  currentAudioMode: 'native' | 'pro' | 'kokoro' | 'wasm' | 'native-android' = 'pro';
+  // Voz de Azure elegida para la narración (la lista la da el servidor)
+  narratorVoices: NarratorVoice[] = [];
+  narratorVoice = '';
   currentWordIndex: number = -1;
   isAudioLoading: boolean = false;
   // Voz neural: aviso visible mientras el servidor genera el capítulo (o si no está disponible)
@@ -393,8 +506,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private narrationNoticeTimer: any = null;
   private narrationPollTimer: any = null;
   private narrationRequestId = 0;
-  private readonly NARRATION_POLL_MS = 3000;
-  private readonly NARRATION_MAX_POLLS = 200; // ~10 minutos
+  private readonly NARRATION_POLL_MS = 2000;   // el servidor guarda el avance cada segundo
+  private readonly NARRATION_MAX_POLLS = 300;  // ~10 minutos
   // WasmTTS (Piper) Voces - Solo dejamos MMS porque Piper no tiene port oficial Web
   wasmVoices = [
     { id: 'Xenova/mms-tts-spa', name: 'MMS Español (Meta) - Pesado' }
@@ -563,6 +676,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (savedShowImages !== null) {
       this.showSceneImages = savedShowImages === 'true';
     }
+
+    this.loadNarrationPrefs();
 
     // Auto-abrir chat si venimos redirigidos por un personaje
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -815,6 +930,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private _bookIdForSession: string | null = null;
 
   ngOnDestroy() {
+    if (this.resetNoticeTimer) clearTimeout(this.resetNoticeTimer);
     if (this.rulerCanvasEl) {
       this.rulerCanvasEl.removeEventListener('mousemove', this.handleRulerMouseMove);
       this.rulerCanvasEl.removeEventListener('mouseleave', this.handleRulerMouseLeave);
@@ -1124,7 +1240,140 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── HOJA "Aa" — Ajustes de lectura ───────────────────────────────
   toggleSettings() {
     this.isSettingsOpen = !this.isSettingsOpen;
-    if (this.isSettingsOpen) { this.isTocOpen = false; this.isCharPanelOpen = false; }
+    if (this.isSettingsOpen) {
+      this.isTocOpen = false;
+      this.isCharPanelOpen = false;
+      this.settingsReturnFocus = document.activeElement as HTMLElement | null;
+      setTimeout(() => document.getElementById(`sheet-tab-${this.settingsTab}`)?.focus());
+    } else {
+      this.settingsReturnFocus?.focus();
+      this.settingsReturnFocus = null;
+    }
+  }
+
+  /** Flechas, Inicio y Fin recorren las pestañas (patrón de pestañas WAI-ARIA). */
+  onSettingsTabKey(event: KeyboardEvent) {
+    const ids = this.settingsTabs.map(t => t.id);
+    const current = ids.indexOf(this.settingsTab);
+    const target: Record<string, number> = { ArrowRight: current + 1, ArrowLeft: current - 1, Home: 0, End: ids.length - 1 };
+    if (!(event.key in target)) return;
+    event.preventDefault();
+    this.setSettingsTab(ids[(target[event.key] + ids.length) % ids.length]);
+    setTimeout(() => document.getElementById(`sheet-tab-${this.settingsTab}`)?.focus());
+  }
+
+  // Textos de la hoja (valores legibles para la vista previa y los deslizadores)
+  get currentFontLabel(): string {
+    return this.fontOptions.find(f => f.id === this.currentFontFamily)?.label || '';
+  }
+  get currentFontNote(): string {
+    return this.fontOptions.find(f => f.id === this.currentFontFamily)?.note || '';
+  }
+  get lineHeightLabel(): string {
+    return (this.lineHeightOptions.find(o => o.value === this.lineHeight)?.label || '').toLowerCase();
+  }
+  get letterSpacingLabel(): string {
+    if (this.letterSpacing === 0) return 'Normal';
+    return `${this.letterSpacing > 0 ? '+' : '−'}${Math.abs(this.letterSpacing)} em`;
+  }
+  get wordSpacingLabel(): string {
+    return this.wordSpacing === 0 ? 'Normal' : `+${this.wordSpacing} em`;
+  }
+  get brightnessLabel(): string {
+    return `${Math.round(this.brightness * 100)} %`;
+  }
+  /** Parte llena del deslizador (la pinta el CSS con --fill). */
+  rangeFill(value: number, min: number, max: number): string {
+    return `${((value - min) / (max - min)) * 100}%`;
+  }
+
+  /** Un ajuste rápido se marca cuando lo que tienes puesto coincide con lo que él aplica. */
+  isPresetActive(id: ReaderPresetId): boolean {
+    switch (id) {
+      case 'clasico':
+        return this.currentFontFamily === 'times' && this.readingWidth === 'medium' && this.lineHeight === 1.4
+          && this.paraSpacing === 'tight' && this.textAlign === 'justify' && this.letterSpacing === 0;
+      case 'noche':
+        return this.currentTheme === 'nocturno' && this.brightness === 0.82;
+      case 'enfoque':
+        return this.readingWidth === 'narrow' && this.lineHeight === 2 && this.paraSpacing === 'relaxed'
+          && this.concentrationMode && this.focusMode === 'sentence' && this.rulerActive;
+      case 'accesible':
+        return this.currentFontFamily === 'atkinson' && this.fontSize >= 20 && this.lineHeight === 2
+          && this.paraSpacing === 'relaxed' && this.letterSpacing === 0.02 && this.highContrast;
+    }
+  }
+
+  // ── Restablecer (con deshacer) ──
+  get hasCustomReaderSettings(): boolean {
+    const current = this.captureReaderSettings();
+    return (Object.keys(this.DEFAULT_READER_SETTINGS) as (keyof ReaderSettings)[])
+      .some(key => current[key] !== this.DEFAULT_READER_SETTINGS[key]);
+  }
+
+  resetReaderSettings() {
+    this.settingsBeforeReset = this.captureReaderSettings();
+    this.restoreReaderSettings(this.DEFAULT_READER_SETTINGS);
+    this.resetNotice = true;
+    if (this.resetNoticeTimer) clearTimeout(this.resetNoticeTimer);
+    this.resetNoticeTimer = setTimeout(() => {
+      this.resetNotice = false;
+      this.settingsBeforeReset = null;
+    }, 8000);
+  }
+
+  undoResetReaderSettings() {
+    if (this.settingsBeforeReset) this.restoreReaderSettings(this.settingsBeforeReset);
+    this.settingsBeforeReset = null;
+    this.resetNotice = false;
+    if (this.resetNoticeTimer) clearTimeout(this.resetNoticeTimer);
+  }
+
+  private captureReaderSettings(): ReaderSettings {
+    return {
+      fontSize: this.fontSize, fontFamily: this.currentFontFamily, theme: this.currentTheme,
+      lineHeight: this.lineHeight, readingWidth: this.readingWidth, textAlign: this.textAlign,
+      paraSpacing: this.paraSpacing, letterSpacing: this.letterSpacing, wordSpacing: this.wordSpacing,
+      brightness: this.brightness, highContrast: this.highContrast, highlightColor: this.highlightColor,
+      doublePage: this.isDoublePageView, sceneImages: this.showSceneImages, hideProgress: this.hideProgressOnScroll,
+      bionic: this.bionicReadingActive, focusMode: this.focusMode, ruler: this.rulerActive,
+      concentration: this.concentrationMode, longParaSplit: this.longParaSplit, tapToScroll: this.tapToScrollActive,
+      autoScroll: this.autoScrollActive, autoScrollSpeed: this.autoScrollSpeed, sessionMinutes: this.sessionTimerMinutes,
+    };
+  }
+
+  /** Aplica cada ajuste con su setter, así se guarda y se re-maqueta igual que al tocarlo a mano. */
+  private restoreReaderSettings(s: ReaderSettings) {
+    if (this.fontSize !== s.fontSize) {
+      this.fontSize = s.fontSize;
+      this.applyFontSize();
+      localStorage.setItem('reader-font-size', String(s.fontSize));
+    }
+    if (this.currentFontFamily !== s.fontFamily) this.setFontFamily(s.fontFamily);
+    this.setTheme(s.theme);
+    this.setLineHeight(s.lineHeight);
+    this.setReadingWidth(s.readingWidth);
+    this.setTextAlign(s.textAlign);
+    this.setParaSpacing(s.paraSpacing);
+    this.setLetterSpacing(s.letterSpacing);
+    this.setWordSpacing(s.wordSpacing);
+    this.setBrightness(s.brightness);
+    this.setHighContrast(s.highContrast);
+    this.setHighlightColor(s.highlightColor);
+    if (this.isDoublePageView !== s.doublePage) this.toggleDoublePageView(s.doublePage);
+    if (this.showSceneImages !== s.sceneImages) this.toggleSceneImages();
+    // El modo sin distracciones oculta la línea de progreso al activarse: va antes que ella.
+    if (this.concentrationMode !== s.concentration) this.setConcentrationMode(s.concentration);
+    this.setHideProgress(s.hideProgress);
+    this.setBionicReading(s.bionic);
+    this.setFocusMode(s.focusMode);
+    if (this.rulerActive !== s.ruler) this.toggleRuler(s.ruler);
+    if (this.longParaSplit !== s.longParaSplit) this.toggleLongParaSplit(s.longParaSplit);
+    // El avance automático apaga el toque para avanzar: el toque va primero.
+    if (this.tapToScrollActive !== s.tapToScroll) this.toggleTapToScroll();
+    this.setAutoScrollSpeed(s.autoScrollSpeed);
+    if (this.autoScrollActive !== s.autoScroll) this.toggleAutoScroll(s.autoScroll);
+    if (this.sessionTimerMinutes !== s.sessionMinutes) this.setSessionTimer(s.sessionMinutes);
   }
 
   resetFontSize() {
@@ -1149,7 +1398,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /** Presets rápidos — sólo aplican configuraciones que ya existen. */
-  applyPreset(name: 'clasico' | 'noche' | 'enfoque' | 'accesible') {
+  applyPreset(name: ReaderPresetId) {
     switch (name) {
       case 'clasico':
         // Como un libro impreso: Times, justificado, sangría y sin espacio entre párrafos.
@@ -2275,8 +2524,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     let polls = 0;
     this.isAudioLoading = true;
 
+    const body = this.narratorVoice ? { voice: this.narratorVoice } : {};
     const request = () => {
-      this.api.post<any>(url, {}).subscribe({
+      this.api.post<any>(url, body).subscribe({
         next: (res) => {
           if (requestId !== this.narrationRequestId) return; // el lector detuvo el audio o cambió de capítulo
 
@@ -4336,7 +4586,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.closeHighlightPopover();
       return;
     }
-    if (this.isSettingsOpen || this.isTocOpen || this.isCharPanelOpen || this.showWordMenu || this.showDictionaryModal) return;
+    if (this.isSettingsOpen) {
+      this.toggleSettings(); // la hoja de ajustes es un diálogo: Escape la cierra y devuelve el foco
+      return;
+    }
+    if (this.isTocOpen || this.isCharPanelOpen || this.showWordMenu || this.showDictionaryModal) return;
     this.clearWordFocus();
   }
 

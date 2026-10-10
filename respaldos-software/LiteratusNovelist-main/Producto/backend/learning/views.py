@@ -392,19 +392,31 @@ class HeartsRefillView(APIView):
 class ShopListView(APIView):
     """
     GET /api/v1/learning/shop/
-    Catálogo de consumibles y cosméticos de El Bazar.
+    Catálogo de consumibles y cosméticos de El Bazar. Los exclusivos (premios de logros)
+    solo aparecen si ya los tienes; con ?scope=collection aparecen todos, con el logro
+    que los regala (`earned_by`), para la pestaña Colección de Logros.
     """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        from django.db.models import Q
+        from library.models import Achievement
         from users.models import Profile
 
+        inventory = {inv.item_id: inv for inv in UserInventoryItem.objects.filter(user=request.user, quantity__gt=0)}
         items = ShopItem.objects.filter(is_active=True).order_by('sort_order', 'cost_ink')
+        if request.query_params.get('scope') != 'collection':
+            items = items.filter(Q(is_purchasable=True) | Q(id__in=list(inventory)))
         context = {
             'request': request,
-            'inventory': {inv.item_id: inv for inv in UserInventoryItem.objects.filter(user=request.user)},
+            'inventory': inventory,
             'profile': Profile.objects.filter(user=request.user)
                 .only('outfit', 'equipped_frame', 'equipped_title', 'theme').first(),
+            'earned_by': {
+                a['reward_item_id']: {'code': a['code'], 'title': a['title']}
+                for a in Achievement.objects.filter(reward_item__isnull=False)
+                    .values('reward_item_id', 'code', 'title')
+            },
         }
         serializer = ShopItemSerializer(items, many=True, context=context)
         return Response(serializer.data)
@@ -451,7 +463,8 @@ class ShopEquipView(APIView):
 class ShopUnequipView(APIView):
     """
     POST /api/v1/learning/shop/unequip/
-    Quita el accesorio de Maguito de un espacio (head, eyes, face, neck, cape).
+    Quita el accesorio de Maguito de un espacio (head, eyes, face, neck, cape),
+    o el marco ("frame") o el título ("title") del perfil.
     Body: { "slot": "head" }
     """
     permission_classes = [permissions.IsAuthenticated]

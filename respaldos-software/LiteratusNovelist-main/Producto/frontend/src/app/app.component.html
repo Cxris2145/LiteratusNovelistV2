@@ -167,16 +167,17 @@
                     [class.is-open]="profileMenuOpen"
                     (menuOpened)="profileMenuOpen = true" (menuClosed)="profileMenuOpen = false"
                     aria-label="Abrir menú de perfil">
-              <span class="avatar-circle">
+              <app-avatar-frame [frame]="userEquippedFrame" size="sm"><span class="avatar-circle">
                 <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="" class="user-avatar"
                   onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
                 <span *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</span>
-              </span>
+              </span></app-avatar-frame>
               <span class="profile-caret material-symbols-rounded" aria-hidden="true">expand_more</span>
             </button>
             <mat-menu #profileMenu="matMenu" class="dark-premium-menu" xPosition="before">
               <div class="menu-header">
                 <span class="user-name">{{ userName }}</span>
+                <span class="menu-equipped-title" *ngIf="userEquippedTitle">{{ userEquippedTitle }}</span>
               </div>
               <mat-divider></mat-divider>
               <button mat-menu-item routerLink="/profile">

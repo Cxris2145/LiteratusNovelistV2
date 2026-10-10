@@ -48,11 +48,12 @@
 
   <!-- Aún no es tu amigo: tarjeta mínima -->
   <section class="th-panel fp-stranger" *ngIf="minimal as card">
-    <div class="fp-stranger-avatar">
+    <app-avatar-frame [frame]="card.equipped_frame" size="lg"><div class="fp-stranger-avatar">
       <app-maguito crop="bust" [outfit]="card.outfit" [followPointer]="false" [calm]="true"
                    [label]="'Maguito de ' + card.username"></app-maguito>
-    </div>
+    </div></app-avatar-frame>
     <h1>{{ card.username }}</h1>
+    <p class="fp-equipped-title" *ngIf="card.equipped_title">{{ card.equipped_title }}</p>
     <p class="th-code fp-code">#{{ card.friend_code }}</p>
     <p class="th-empty">
       {{ card.relation === 'incoming' ? card.username + ' quiere sentarse a tu mesa.' :

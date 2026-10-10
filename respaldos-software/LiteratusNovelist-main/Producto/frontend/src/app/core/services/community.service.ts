@@ -15,6 +15,8 @@ export interface TavernCard {
   friend_code: string;
   username: string;
   outfit: MaguitoOutfit;
+  equipped_frame: string;
+  equipped_title: string;
   relation: Relation;
   request_id: string | null;
 }
@@ -33,10 +35,11 @@ export interface CommunityProfile {
   tagline: string;
   bio: string;
   outfit: MaguitoOutfit;
+  equipped_frame: string;
+  equipped_title: string;
   level: number;
   level_name: string;
   xp: number;
-  equipped_title: string;
   favorite_genres: { name: string; slug: string }[];
   stats: ProfileStats;
   member_since: string;
@@ -59,10 +62,11 @@ export interface FriendCard {
   friend_code: string;
   username: string;
   outfit: MaguitoOutfit;
+  equipped_frame: string;
+  equipped_title: string;
   tagline: string;
   level: number;
   level_name: string;
-  equipped_title: string;
   status: FriendStatus;
   brindis_given: boolean;
 }
@@ -78,6 +82,8 @@ export interface RankingEntry {
   username: string;
   friend_code: string;
   outfit: MaguitoOutfit;
+  equipped_frame: string;
+  equipped_title: string;
   points: number;
   is_me: boolean;
 }

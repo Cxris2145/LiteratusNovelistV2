@@ -11,6 +11,7 @@ dist/
 **/dist/
 .npm
 *.log
+*.pid
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -39,6 +40,7 @@ venv.bak/
 # Database
 *.sqlite3
 *.db
+.tmp-achievements*/
 
 # Media generada en runtime (portadas/imagenes/epubs procesados) — 2+ GB, no versionar
 **/backend/media/

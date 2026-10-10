@@ -10,5 +10,9 @@ if os.environ.get('LITERATUS_TEST_DATABASE_URL'):
     DATABASES = {'default': env.db_url('LITERATUS_TEST_DATABASE_URL')}
 PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+if os.environ.get('LITERATUS_PREVIEW_EMAIL_DIR'):
+    EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+    EMAIL_FILE_PATH = os.environ['LITERATUS_PREVIEW_EMAIL_DIR']
 ALLOWED_HOSTS = ['testserver', 'localhost', '127.0.0.1']
 DEBUG = True
+CORS_ALLOWED_ORIGINS = ['http://localhost:4300', 'http://127.0.0.1:4300']

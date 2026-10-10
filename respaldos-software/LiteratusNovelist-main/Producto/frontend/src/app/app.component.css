@@ -1479,3 +1479,5 @@
   border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.1));
   text-align: center;
 }
+
+.menu-equipped-title { display: block; margin-top: 5px; color: var(--color-accent-text); font: 500 1rem var(--font-display); }

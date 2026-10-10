@@ -1,0 +1,38 @@
+{
+  "checks": [
+    "Enlace desde login solicita el código y el correo llega a la bandeja aislada.",
+    "Código admite autocompletado; reenvío espera 60 segundos.",
+    "Código incorrecto muestra un error sin cambiar la contraseña.",
+    "Código válido abre la contraseña nueva; permiso fuera de URL y localStorage.",
+    "Confirmación diferente se rechaza.",
+    "Servidor rechaza la contraseña anterior y permite corregirla.",
+    "Reglas de seguridad del servidor se muestran en la página.",
+    "Contraseña distinta se guarda y presenta acceso a iniciar sesión.",
+    "La contraseña anterior ya no inicia sesión; la nueva sí.",
+    "Abrir o recargar directamente la página exige un código nuevo."
+  ],
+  "screenshots": [
+    "email-default-1440.png",
+    "email-default-390.png",
+    "email-light-gallery-1440.png",
+    "email-light-gallery-390.png",
+    "code-default-1440.png",
+    "code-default-390.png",
+    "code-light-gallery-1440.png",
+    "code-light-gallery-390.png",
+    "new-password-default-1440.png",
+    "new-password-default-390.png",
+    "new-password-light-gallery-1440.png",
+    "new-password-light-gallery-390.png",
+    "previous-password-error-default-1440.png",
+    "previous-password-error-default-390.png",
+    "previous-password-error-light-gallery-1440.png",
+    "previous-password-error-light-gallery-390.png",
+    "success-default-1440.png",
+    "success-default-390.png",
+    "success-light-gallery-1440.png",
+    "success-light-gallery-390.png"
+  ],
+  "runtimeErrors": [],
+  "overflows": []
+}

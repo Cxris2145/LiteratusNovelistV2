@@ -2,14 +2,16 @@
   <div class="glass-panel profile-card">
     <div class="profile-header">
       <div class="avatar-section">
-        <div class="avatar-wrapper" [class]="equippedFrame">
-          <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Foto de perfil" class="profile-avatar-img">
-          <div *ngIf="!avatarUrl" class="initials-avatar-large" [style.background-color]="avatarColor">{{ userInitials }}</div>
-          
-          <button type="button" class="avatar-edit-badge" (click)="fileInput.click()" title="Subir o cambiar foto">
-            <span class="material-symbols-rounded">photo_camera</span>
-          </button>
-        </div>
+        <app-avatar-frame class="profile-frame" [frame]="equippedFrame" size="lg">
+          <div class="avatar-wrapper">
+            <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Foto de perfil" class="profile-avatar-img">
+            <div *ngIf="!avatarUrl" class="initials-avatar-large" [style.background-color]="avatarColor">{{ userInitials }}</div>
+
+            <button type="button" class="avatar-edit-badge" (click)="fileInput.click()" title="Subir o cambiar foto">
+              <span class="material-symbols-rounded">photo_camera</span>
+            </button>
+          </div>
+        </app-avatar-frame>
 
         <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/webp, image/gif" style="display: none;">
 
@@ -27,7 +29,9 @@
 
       <h2>Tu Perfil</h2>
       <span class="maestro-insignia" *ngIf="maestroActive">✦ Maestro</span>
-      <span class="profile-equipped-title" *ngIf="equippedTitle">📜 {{ equippedTitle }}</span>
+      <span class="profile-equipped-title" *ngIf="equippedTitle">
+        <span class="material-symbols-rounded" aria-hidden="true">military_tech</span>{{ equippedTitle }}
+      </span>
       <p class="subtitle">Gestiona tu identidad, paleta visual y accesibilidad en Literatus Novelist</p>
     </div>
     <div class="profile-tabs">

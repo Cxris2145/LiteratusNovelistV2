@@ -212,10 +212,12 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
-    # ── Límites por vista (ScopedRateThrottle): solo La Taberna los usa ───────
+    # ── Límites por vista: La Taberna y recuperación de contraseña ───────────
     'DEFAULT_THROTTLE_RATES': {
         'community_search': '30/min',
         'community_write': '60/hour',
+        'password_reset_request': '10/hour',
+        'password_reset_verify': '30/min',
     },
 }
 
@@ -242,6 +244,8 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
+    'CHECK_REVOKE_TOKEN': True,
+    'TOKEN_REFRESH_SERIALIZER': 'users.serializers.PasswordAwareTokenRefreshSerializer',
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
     'AUTH_HEADER_TYPES': ('Bearer',),

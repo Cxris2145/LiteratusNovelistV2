@@ -1,62 +1,58 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AuthService, PasswordRecoverySession } from '../../core/services/auth.service';
+import { passwordResetError } from '../password-reset-error';
 
 @Component({
   selector: 'app-reset-password',
   templateUrl: './reset-password.component.html',
-  styleUrls: ['./reset-password.component.css']
+  styleUrls: ['../password-recovery.css']
 })
 export class ResetPasswordComponent implements OnInit {
-  uid = '';
-  token = '';
+  session: PasswordRecoverySession | null = null;
   newPassword = '';
   confirmPassword = '';
-  
+  showPassword = false;
   isLoading = false;
   message = '';
   error = '';
-  isInvalidLink = false;
+  private destroyRef = inject(DestroyRef);
 
-  constructor(
-    private route: ActivatedRoute,
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      this.uid = params['uid'];
-      this.token = params['token'];
-
-      if (!this.uid || !this.token) {
-        this.isInvalidLink = true;
-        this.error = 'El enlace de recuperación es inválido o está incompleto.';
-      }
-    });
+    this.session = this.authService.getPasswordRecovery();
   }
 
-  onSubmit() {
-    if (this.isInvalidLink || !this.newPassword || !this.confirmPassword) return;
-
+  onSubmit(): void {
+    if (this.isLoading || !this.session) return;
+    this.error = '';
     if (this.newPassword !== this.confirmPassword) {
       this.error = 'Las contraseñas no coinciden.';
       return;
     }
-    
+    if (!this.authService.getPasswordRecovery()) {
+      this.session = null;
+      this.error = 'La verificación ha caducado. Solicita un código nuevo.';
+      return;
+    }
     this.isLoading = true;
-    this.message = '';
-    this.error = '';
-
-    this.authService.confirmPasswordReset(this.uid, this.token, this.newPassword).subscribe({
-      next: (res: any) => {
-        this.isLoading = false;
-        this.message = res.message || 'Contraseña actualizada con éxito.';
-      },
-      error: (err: any) => {
-        this.isLoading = false;
-        this.error = err.error?.error || 'Ha ocurrido un error al actualizar la contraseña.';
-      }
-    });
+    this.authService.confirmPasswordReset(this.session.email, this.session.token, this.newPassword, this.confirmPassword)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: res => {
+          this.isLoading = false;
+          this.message = res.message;
+          this.newPassword = this.confirmPassword = '';
+          this.authService.clearPasswordRecovery();
+        },
+        error: err => {
+          this.isLoading = false;
+          this.error = passwordResetError(err, 'No pudimos cambiar la contraseña. Inténtalo de nuevo.');
+          if (err.error?.code === 'RESET_INVALID') {
+            this.session = null;
+            this.authService.clearPasswordRecovery();
+          }
+        }
+      });
   }
 }

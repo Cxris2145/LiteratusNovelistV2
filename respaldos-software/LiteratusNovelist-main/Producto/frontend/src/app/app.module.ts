@@ -55,9 +55,13 @@ import { MessagesComponent } from './characters/messages/messages.component';
 import { CartComponent } from './catalog/cart/cart.component';
 import { AssistantWidgetComponent } from './core/components/assistant-widget/assistant-widget.component';
 import { AchievementsComponent } from './library/achievements/achievements.component';
+import { AvatarFrameComponent } from './core/components/avatar-frame/avatar-frame.component';
+import { CosmeticPreviewComponent } from './core/components/cosmetic-preview/cosmetic-preview.component';
+import { achievementInterceptor } from './core/interceptors/achievement.interceptor';
 import { EnigmaGameComponent } from './library/games/enigma-game/enigma-game.component';
 import { BlindInterrogationComponent } from './library/games/blind-interrogation/blind-interrogation.component';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
+import { BookSummaryComponent } from './core/components/book-summary/book-summary.component';
 import { ScrollRevealDirective } from './core/directives/scroll-reveal.directive';
 import { CountUpDirective } from './core/directives/count-up.directive';
 import { TiltDirective } from './core/directives/tilt.directive';
@@ -108,8 +112,11 @@ import { FriendProfileComponent } from './community/friend-profile/friend-profil
     CartComponent,
     AssistantWidgetComponent,
     AchievementsComponent,
+    AvatarFrameComponent,
+    CosmeticPreviewComponent,
     EnigmaGameComponent,
     GuideDialogComponent,
+    BookSummaryComponent,
     ScrollRevealDirective,
     CountUpDirective,
     TiltDirective,
@@ -154,7 +161,7 @@ import { FriendProfileComponent } from './community/friend-profile/friend-profil
 })
   ],
   providers: [
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, achievementInterceptor])),
     { provide: RouteReuseStrategy, useClass: AppRouteReuseStrategy }
   ],
   bootstrap: [AppComponent]

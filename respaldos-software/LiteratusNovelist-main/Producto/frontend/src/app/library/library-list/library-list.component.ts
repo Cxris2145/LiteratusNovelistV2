@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +10,7 @@ import { coverThumb } from '../../core/utils/cover-thumb.util';
   templateUrl: './library-list.component.html',
   styleUrls: ['./library-list.component.css']
 })
-export class LibraryListComponent implements OnInit {
+export class LibraryListComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
   public auth = inject(AuthService);
@@ -26,6 +26,10 @@ export class LibraryListComponent implements OnInit {
 
   private readonly EAGER_COVERS = 6;
   readonly skeletons = [0, 1, 2, 3, 4, 5];
+
+  /** Libro cuyo resumen con IA está abierto en la ventana (null = cerrada). */
+  summaryItem: any | null = null;
+  @ViewChild('summaryClose') summaryClose?: ElementRef<HTMLButtonElement>;
 
   get filteredItems(): any[] {
     let items = this.inventoryItems;
@@ -102,6 +106,27 @@ export class LibraryListComponent implements OnInit {
       return;
     }
     this.fetchInventory();
+  }
+
+  ngOnDestroy(): void {
+    document.body.style.overflow = '';
+  }
+
+  // ── Resumen del libro (ventana) ───────────────────────────────
+  /** La tarjeta entera lleva al lector: el botón del resumen no debe dejar pasar el clic. */
+  openSummary(item: any, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.summaryItem = item;
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => this.summaryClose?.nativeElement.focus());
+  }
+
+  @HostListener('document:keydown.escape')
+  closeSummary(): void {
+    if (!this.summaryItem) return;
+    this.summaryItem = null;
+    document.body.style.overflow = '';
   }
 
   private decorate(list: any[]): any[] {

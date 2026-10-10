@@ -4,7 +4,9 @@ library/signals.py — Señales de la app Library.
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import UserInventory, ReadingProgress, ReadingSession
+from .models import (
+    ReadingProgress, ReadingSession, UserBookmark, UserFavorite, UserHighlight, UserInventory, UserPostIt,
+)
 
 
 @receiver(post_save, sender=UserInventory)
@@ -77,3 +79,16 @@ def evaluate_progress_achievements(sender, instance, **kwargs):
         from .models import InkTransaction
         if not InkTransaction.objects.filter(user=user, concept='book_completed', reference_id=str(instance.inventory.edition.book.id)).exists():
             reward_activity(user, 'book_completed', str(instance.inventory.edition.book.id))
+
+
+@receiver(post_save, sender=UserHighlight)
+@receiver(post_save, sender=UserPostIt)
+@receiver(post_save, sender=UserBookmark)
+@receiver(post_save, sender=UserFavorite)
+def evaluate_reader_achievements(sender, instance, created, **kwargs):
+    """Logros de lector activo: subrayados, post-its, marcadores y favoritos (al crearlos)."""
+    if not created:
+        return
+    from .achievement_engine import evaluate_for_user
+    user = instance.user if sender is UserFavorite else instance.inventory.user
+    evaluate_for_user(user, trigger='reader')

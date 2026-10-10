@@ -1,0 +1,239 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   MARCOS DE AVATAR
+   El anillo es el ::before del host, pintado con --af-paint y recortado con una
+   máscara (content-box XOR border-box). .af-ornament queda detrás: lleva el
+   resplandor y, en tamaño lg, los adornos de cada marco (moño, lazo, picos...).
+   ═══════════════════════════════════════════════════════════════════════ */
+:host {
+  --af-w: 4px;           /* grosor del anillo */
+  --af-gap: 3px;         /* aire entre el avatar y el anillo */
+  --af-paint: transparent;
+  --af-glow: transparent;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 50%;
+  isolation: isolate;
+}
+:host([data-size="sm"]) { --af-w: 2px; --af-gap: 1.5px; }
+:host([data-size="lg"]) { --af-w: 6px; --af-gap: 4px; }
+
+:host([data-frame])::before,
+.af-ornament {
+  content: '';
+  position: absolute;
+  inset: calc((var(--af-w) + var(--af-gap)) * -1);
+  border-radius: 50%;
+  pointer-events: none;
+}
+:host([data-frame])::before {
+  z-index: 2;
+  padding: var(--af-w);
+  background: var(--af-paint);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+.af-ornament {
+  display: none;
+  z-index: -1;
+  box-shadow: 0 0 calc(var(--af-w) * 2.5) var(--af-glow);
+}
+:host([data-frame]) .af-ornament { display: block; }
+.af-ornament::before,
+.af-ornament::after {
+  content: none;
+  position: absolute;
+}
+
+/* ── Papiro dorado ── */
+:host([data-frame="frame-gold"]) {
+  --af-paint: conic-gradient(from 210deg, #fff1b8, #d4a017 18%, #8a6410 32%, #f7d66b 50%, #b8860b 68%, #fff1b8 84%, #d4a017);
+  --af-glow: rgba(245, 158, 11, 0.45);
+}
+
+/* ── Noche victoriana: plata y amatista ── */
+:host([data-frame="frame-victorian"]) {
+  --af-paint: repeating-conic-gradient(#dfe3ec 0 10deg, #7c3aed 10deg 14deg, #a5adc2 14deg 24deg, #4c1d95 24deg 28deg);
+  --af-glow: rgba(139, 92, 246, 0.4);
+}
+
+/* ── Maestro: doble anillo ── */
+:host([data-frame="frame-maestro"]) {
+  --af-paint: linear-gradient(#f59e0b, #f59e0b);
+  --af-glow: rgba(245, 158, 11, 0.3);
+}
+:host([data-frame="frame-maestro"]) .af-ornament {
+  outline: 1.5px solid #f59e0b;
+  outline-offset: calc(var(--af-gap) + 1px);
+}
+
+/* ── Pergamino ── */
+:host([data-frame="frame-parchment"]) {
+  --af-paint: conic-gradient(#f3e3bf, #d9c08f 12%, #efdcb2 25%, #c9a874 38%, #f3e3bf 52%, #dcc391 66%, #efdcb2 80%, #f3e3bf);
+  --af-glow: rgba(201, 168, 116, 0.25);
+}
+
+/* ── Tinta azul, con su gota ── */
+:host([data-frame="frame-inkblue"]) {
+  --af-paint: conic-gradient(from 90deg, #0b1f5c, #1d4ed8 25%, #60a5fa 40%, #1e3a8a 60%, #0b1f5c 80%, #2563eb 92%, #0b1f5c);
+  --af-glow: rgba(37, 99, 235, 0.35);
+}
+:host([data-size="lg"][data-frame="frame-inkblue"]) .af-ornament::after {
+  content: '';
+  width: 16%;
+  aspect-ratio: 1;
+  right: 6%;
+  bottom: 6%;
+  border-radius: 50% 0 50% 50%;
+  background: radial-gradient(circle at 35% 35%, #60a5fa, #1d4ed8 60%, #0b1f5c);
+  transform: rotate(45deg);
+}
+
+/* ── Hojas de otoño ── */
+:host([data-frame="frame-autumn"]) {
+  --af-paint: repeating-conic-gradient(from 8deg, #b45309 0 14deg, #dc2626 14deg 22deg, #f59e0b 22deg 34deg, #7c2d12 34deg 40deg);
+  --af-glow: rgba(217, 119, 6, 0.3);
+}
+
+/* ── Constelación: cielo que gira despacio ── */
+:host([data-frame="frame-constellation"]) {
+  --af-paint:
+    radial-gradient(1.4px 1.4px at 18% 22%, #fff 98%, transparent),
+    radial-gradient(1.2px 1.2px at 72% 14%, #fff 98%, transparent),
+    radial-gradient(1.6px 1.6px at 88% 58%, #fef3c7 98%, transparent),
+    radial-gradient(1.2px 1.2px at 60% 90%, #fff 98%, transparent),
+    radial-gradient(1.4px 1.4px at 10% 70%, #e0e7ff 98%, transparent),
+    radial-gradient(1.2px 1.2px at 40% 6%, #fff 98%, transparent),
+    linear-gradient(135deg, #0b1640, #312e81 55%, #0b1640);
+  --af-glow: rgba(99, 102, 241, 0.35);
+}
+:host([data-size="lg"][data-frame="frame-constellation"])::before {
+  animation: af-spin 60s linear infinite;
+}
+:host([data-size="lg"][data-frame="frame-constellation"]) .af-ornament::after {
+  content: '';
+  width: 12%;
+  aspect-ratio: 1;
+  top: 2%;
+  right: 12%;
+  background: #fef3c7;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+  animation: af-twinkle 3.2s ease-in-out infinite;
+}
+
+/* ── Laurel (racha de 30), con moño dorado ── */
+:host([data-frame="frame-laurel"]) {
+  --af-paint: repeating-conic-gradient(#2f6b2a 0 7deg, #6aa84f 7deg 11deg, #3f8a36 11deg 18deg, #1f4d1c 18deg 20deg);
+  --af-glow: rgba(212, 175, 55, 0.3);
+}
+:host([data-size="lg"][data-frame="frame-laurel"]) .af-ornament::after {
+  content: '';
+  width: 26%;
+  height: 11%;
+  left: 37%;
+  bottom: -3%;
+  background: linear-gradient(#f5d36b, #c9971c);
+  clip-path: polygon(0 0, 50% 45%, 100% 0, 100% 100%, 50% 55%, 0 100%);
+}
+
+/* ── Llama eterna (racha de 100) ── */
+:host([data-frame="frame-eternal-flame"]) {
+  --af-paint: conic-gradient(#ff3d00, #ff9100, #ffd600, #ff6d00, #ff1744, #ff9100, #ffd600, #ff3d00);
+  --af-glow: rgba(255, 109, 0, 0.55);
+}
+:host([data-size="lg"][data-frame="frame-eternal-flame"])::before {
+  animation: af-spin 7s linear infinite;
+}
+:host([data-size="lg"][data-frame="frame-eternal-flame"]) .af-ornament {
+  animation: af-flicker 1.8s ease-in-out infinite alternate;
+}
+:host([data-size="lg"][data-frame="frame-eternal-flame"]) .af-ornament::after {
+  content: '';
+  width: 14%;
+  height: 20%;
+  left: 43%;
+  top: -12%;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 75%, #ffd600, #ff6d00 55%, #ff1744);
+  animation: af-flicker-tip 1.4s ease-in-out infinite alternate;
+}
+
+/* ── Biblioteca (25 obras): lomos de colores ── */
+:host([data-frame="frame-library"]) {
+  --af-paint: repeating-conic-gradient(
+    #7f1d1d 0 9deg, #1c1917 9deg 10deg, #1e3a8a 10deg 19deg, #1c1917 19deg 20deg,
+    #065f46 20deg 29deg, #1c1917 29deg 30deg, #92400e 30deg 39deg, #1c1917 39deg 40deg,
+    #4c1d95 40deg 49deg, #1c1917 49deg 50deg);
+  --af-glow: rgba(201, 162, 39, 0.25);
+}
+:host([data-size="lg"][data-frame="frame-library"]) { --af-w: 8px; }
+:host([data-frame="frame-library"]) .af-ornament {
+  outline: 1px solid #c9a227;
+  outline-offset: 0;
+}
+
+/* ── Búho: plumas y orejas ── */
+:host([data-frame="frame-owl"]) {
+  --af-paint: repeating-conic-gradient(#5b4126 0 6deg, #a47c48 6deg 9deg, #e8d5b0 9deg 11deg, #7a5a33 11deg 15deg);
+  --af-glow: rgba(251, 191, 36, 0.28);
+}
+:host([data-size="lg"][data-frame="frame-owl"]) .af-ornament::before,
+:host([data-size="lg"][data-frame="frame-owl"]) .af-ornament::after {
+  content: '';
+  width: 13%;
+  height: 16%;
+  top: -7%;
+  background: linear-gradient(#a47c48, #5b4126);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+:host([data-size="lg"][data-frame="frame-owl"]) .af-ornament::before { left: 18%; transform: rotate(-24deg); }
+:host([data-size="lg"][data-frame="frame-owl"]) .af-ornament::after { right: 18%; transform: rotate(24deg); }
+
+/* ── Cumbre (La Senda): nieve y picos ── */
+:host([data-frame="frame-summit"]) {
+  --af-paint: conic-gradient(from 180deg, #e2e8f0, #94a3b8 20%, #f8fafc 35%, #64748b 55%, #e2e8f0 75%, #cbd5e1 90%, #e2e8f0);
+  --af-glow: rgba(186, 230, 253, 0.4);
+}
+:host([data-size="lg"][data-frame="frame-summit"]) .af-ornament::after {
+  content: '';
+  width: 42%;
+  height: 16%;
+  left: 29%;
+  bottom: -6%;
+  background: linear-gradient(#f8fafc 0 34%, #64748b 34%);
+  clip-path: polygon(0 100%, 28% 22%, 44% 58%, 62% 0, 100% 100%);
+}
+
+/* ── Mesa de la Taberna: roble y latón ── */
+:host([data-frame="frame-tavern"]) {
+  --af-paint: repeating-conic-gradient(#6b3f1d 0 5deg, #8b5a2b 5deg 9deg, #5a3417 9deg 12deg, #7a4a22 12deg 16deg);
+  --af-glow: rgba(201, 162, 39, 0.3);
+}
+:host([data-frame="frame-tavern"]) .af-ornament {
+  outline: 1.5px solid #c9a227;
+  outline-offset: 1px;
+}
+
+/* En el menú (sm) solo el anillo: sin adornos ni movimiento, para que se lea a 40 px. */
+:host([data-size="sm"]) .af-ornament::before,
+:host([data-size="sm"]) .af-ornament::after { content: none; }
+:host([data-size="sm"]) .af-ornament { outline: none; box-shadow: 0 0 4px var(--af-glow); }
+
+@keyframes af-spin { to { transform: rotate(1turn); } }
+@keyframes af-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+@keyframes af-flicker {
+  from { box-shadow: 0 0 calc(var(--af-w) * 2) rgba(255, 109, 0, 0.45); }
+  to   { box-shadow: 0 0 calc(var(--af-w) * 4) rgba(255, 145, 0, 0.7); }
+}
+@keyframes af-flicker-tip {
+  from { transform: scaleY(0.9) translateY(4%); }
+  to   { transform: scaleY(1.08) translateY(-4%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host::before,
+  .af-ornament,
+  .af-ornament::before,
+  .af-ornament::after { animation: none !important; }
+}

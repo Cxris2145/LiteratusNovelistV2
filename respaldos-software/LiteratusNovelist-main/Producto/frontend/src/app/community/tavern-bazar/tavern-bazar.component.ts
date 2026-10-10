@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { MaguitoOutfit, SLOT_LABELS, WEAR_SLOTS, WearSlot, parseWear } from '../../core/components/maguito/maguito-outfit';
 import { ChatService } from '../../core/services/chat.service';
+import { AuthService } from '../../core/services/auth.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { LearningService, ShopItem } from '../../core/services/learning.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -40,6 +41,7 @@ export function isBazarTab(value: string | null | undefined): value is BazarTab 
 export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   private learning = inject(LearningService);
   private chat = inject(ChatService);
+  private auth = inject(AuthService);
   private rewards = inject(GamificationService);
   private notification = inject(NotificationService);
   private destroy$ = new Subject<void>();
@@ -66,6 +68,7 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   };
 
   balance = 0;
+  profile: any = null;
   items: ShopItem[] = [];
   visibleItems: ShopItem[] = [];
   tabs: BazarTab[] = [];
@@ -94,6 +97,10 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     this.chat.inkBalance$.pipe(takeUntil(this.destroy$)).subscribe(value => this.balance = value);
+    this.chat.getUserProfile().pipe(takeUntil(this.destroy$)).subscribe({
+      next: profile => this.profile = { ...profile, username: this.auth.currentUser()?.username || 'Lector' },
+      error: () => {},
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -274,14 +281,17 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   /** Quita la prenda: ese espacio vuelve a lo de siempre (sombrero de mago, lentes redondos…). */
   unequip(item: ShopItem): void {
     const wear = parseWear(item.value);
-    if (!wear || this.busy) return;
+    const slot = wear?.slot || (item.item_type === 'profile_frame' ? 'frame' : item.item_type === 'title' ? 'title' : null);
+    if (!slot || this.busy) return;
     this.busy = item.code;
-    this.learning.unequipShopSlot(wear.slot).pipe(takeUntil(this.destroy$)).subscribe({
+    this.learning.unequipShopSlot(slot).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {
         this.busy = '';
-        const outfit: MaguitoOutfit = { ...this.currentOutfit };
-        delete outfit[wear.slot];
-        this.saveOutfit(result?.outfit ?? outfit);
+        if (wear) {
+          const outfit: MaguitoOutfit = { ...this.currentOutfit };
+          delete outfit[wear.slot];
+          this.saveOutfit(result?.outfit ?? outfit);
+        }
         this.chat.notifyProfileUpdate();
         this.notification.success(result?.message || `${item.name} volvió a tu baúl.`, 'Bazar');
         this.reload();
@@ -307,7 +317,7 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   // ── Ayudas para la plantilla ──────────────────────────────
 
   isWear(item: ShopItem): boolean { return item.item_type === 'maguito_wear'; }
-  canBuy(item: ShopItem): boolean { return !item.is_owned || CONSUMABLES.includes(item.item_type); }
+  canBuy(item: ShopItem): boolean { return item.is_purchasable && (!item.is_owned || CONSUMABLES.includes(item.item_type)); }
   canEquip(item: ShopItem): boolean { return item.is_owned && (this.isWear(item) || TAB_ITEMS.perfil.includes(item.item_type)); }
   wearSlot(item: ShopItem): WearSlot { return parseWear(item.value)?.slot ?? 'head'; }
   slotLabel(item: ShopItem): string { return SLOT_LABELS[this.wearSlot(item)]; }

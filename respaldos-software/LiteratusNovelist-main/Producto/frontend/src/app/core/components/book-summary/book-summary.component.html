@@ -1,0 +1,38 @@
+<ng-container *ngIf="!summary">
+  <p class="summary-status" *ngIf="summaryState === 'loading'" role="status">
+    Buscando el resumen…
+  </p>
+  <p class="summary-status" *ngIf="summaryState === 'generating'" role="status">
+    Leyendo el libro completo… puede tardar uno o dos minutos.
+    Puedes cerrar esta ventana: el resumen se seguirá preparando.
+  </p>
+  <ng-container *ngIf="summaryState === 'unavailable'">
+    <p class="summary-status summary-status--error" role="alert">{{ summaryMessage }}</p>
+    <button type="button" class="summary-btn" (click)="requestSummary()">Intentar de nuevo</button>
+  </ng-container>
+</ng-container>
+
+<div class="summary-body" *ngIf="summary">
+  <p class="summary-overview">{{ summary.overview }}</p>
+
+  <h4>Argumento</h4>
+  <p class="summary-paragraph" *ngFor="let paragraph of summary.plot">{{ paragraph }}</p>
+
+  <ng-container *ngIf="summary.characters.length">
+    <h4>Personajes principales</h4>
+    <ul class="summary-characters">
+      <li *ngFor="let character of summary.characters">
+        <strong>{{ character.name }}</strong> — {{ character.role }}
+      </li>
+    </ul>
+  </ng-container>
+
+  <ng-container *ngIf="summary.themes.length">
+    <h4>Temas</h4>
+    <ul class="summary-themes">
+      <li *ngFor="let theme of summary.themes">{{ theme }}</li>
+    </ul>
+  </ng-container>
+
+  <p class="summary-note">Generado con IA: puede contener imprecisiones.</p>
+</div>

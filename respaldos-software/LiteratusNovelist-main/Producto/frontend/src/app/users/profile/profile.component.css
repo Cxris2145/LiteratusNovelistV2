@@ -445,21 +445,13 @@ label {
   letter-spacing: 0.03em;
 }
 
-.avatar-wrapper.frame-gold {
-  position: relative;
-  outline: 4px solid #f59e0b;
-  outline-offset: 4px;
-  border-radius: 50%;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+/* El marco equipado lo dibuja <app-avatar-frame>; aquí solo se centra y el botón de la cámara queda encima. */
+.profile-frame {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
 }
-
-.avatar-wrapper.frame-victorian {
-  position: relative;
-  outline: 4px dashed #8b5cf6;
-  outline-offset: 4px;
-  border-radius: 50%;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
-}
+.profile-frame .avatar-edit-badge { z-index: 3; }
 
 /* ── La Taberna: frase, código de amigo y Maguito ── */
 .field-count { margin: 6px 0 0; }

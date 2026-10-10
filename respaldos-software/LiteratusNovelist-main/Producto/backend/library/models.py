@@ -293,11 +293,30 @@ class Achievement(TimeStampedModel):
         EXPLORATION = 'exploration', 'Exploración'
         TIME = 'time', 'Horario'
         SOCIAL = 'social', 'Social'
+        LEARNING = 'learning', 'La Senda'
+        GAMES = 'games', 'Juegos'
+        READER = 'reader', 'Lector activo'
+        COLLECTION = 'collection', 'Colección'
+
+    class Rarity(models.TextChoices):
+        COMMON = 'common', 'Común'
+        RARE = 'rare', 'Raro'
+        EPIC = 'epic', 'Épico'
+        LEGENDARY = 'legendary', 'Legendario'
 
     code = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=150)
     description = models.TextField()
     category = models.CharField(max_length=20, choices=Category.choices)
+    rarity = models.CharField(max_length=12, choices=Rarity.choices, default=Rarity.COMMON)
+    reward_item = models.ForeignKey(
+        'learning.ShopItem',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reward_for',
+        help_text="Marco, título o accesorio que se regala al desbloquearlo (puede ser exclusivo)."
+    )
     icon = models.CharField(max_length=10, default='🏆')
     badge_image = models.ImageField(
         upload_to='achievements/',

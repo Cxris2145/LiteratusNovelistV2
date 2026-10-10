@@ -102,6 +102,8 @@ def minimal_card(profile, relation='none', request_id=None) -> dict:
         'friend_code': profile.friend_code,
         'username': profile.user.username,
         'outfit': profile.outfit or {},
+        'equipped_frame': profile.equipped_frame,
+        'equipped_title': profile.equipped_title,
         'relation': relation,
         'request_id': request_id,
     }
@@ -133,6 +135,7 @@ def full_card(profile, relation) -> dict:
         'level': profile.level,
         'level_name': level_name_for(profile.level),
         'xp': profile.xp,
+        'equipped_frame': profile.equipped_frame,
         'equipped_title': profile.equipped_title,
         'favorite_genres': [{'name': g.name, 'slug': g.slug} for g in profile.favorite_genres.all()[:6]],
         'stats': profile_stats(user),
@@ -245,6 +248,7 @@ def friends_list(me) -> list:
         'tagline': p.tagline,
         'level': p.level,
         'level_name': level_name_for(p.level),
+        'equipped_frame': p.equipped_frame,
         'equipped_title': p.equipped_title,
         'status': statuses[p.user_id],
         'brindis_given': p.user_id in toasted,
@@ -452,6 +456,8 @@ def ranking(me, scope='week', limit=5):
             'username': profile.user.username,
             'friend_code': profile.friend_code,
             'outfit': profile.outfit or {},
+            'equipped_frame': profile.equipped_frame,
+            'equipped_title': profile.equipped_title,
             'points': value,
             'is_me': profile.user_id == me.pk,
         })

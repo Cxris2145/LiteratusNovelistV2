@@ -6,18 +6,24 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
-import { Subject, takeUntil, combineLatest } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { LearningService, ShopItem } from '../../core/services/learning.service';
+import { MaguitoOutfit, parseWear } from '../../core/components/maguito/maguito-outfit';
 import { NotificationService } from '../../core/services/notification.service';
 import {
   AchievementsService,
   UserAchievement,
   Achievement,
+  AchievementCategory,
+  AchievementRarity,
 } from '../../core/services/achievements.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { ChatService } from '../../core/services/chat.service';
 
-type CategoryFilter = 'all' | 'reading' | 'streak' | 'exploration' | 'time' | 'social';
+type CategoryFilter = 'all' | AchievementCategory;
+type MainTab = 'achievements' | 'collection' | 'history' | 'missions' | 'levels';
 
 interface CategoryTab {
   key: CategoryFilter;
@@ -42,7 +48,17 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   profile: any = null;
   inkHistory: any[] = [];
   missions: any[] = [];
-  activeTab: 'achievements' | 'history' | 'missions' | 'levels' = 'achievements';
+  activeTab: MainTab = 'achievements';
+  loadError = '';
+  collectionError = '';
+  collectionLoading = true;
+  collection: ShopItem[] = [];
+  collectionFilter: 'profile_frame' | 'title' | 'maguito_wear' = 'profile_frame';
+  busyItem = '';
+  previewItem: ShopItem | null = null;
+  readonly rarityLabels: Record<AchievementRarity, string> = {
+    common: 'Común', rare: 'Raro', epic: 'Épico', legendary: 'Legendario',
+  };
 
   // Recompensa Diaria
   dailyReward: any = null;
@@ -55,20 +71,42 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     { key: 'streak',      label: 'Racha',        icon: '⚡' },
     { key: 'exploration', label: 'Exploración',  icon: '🗺️' },
     { key: 'time',        label: 'Horario',      icon: '🕐' },
+    { key: 'social',      label: 'Social',       icon: '🥂' },
+    { key: 'learning',    label: 'La Senda',     icon: '🥾' },
+    { key: 'games',       label: 'Juegos',       icon: '🧩' },
+    { key: 'reader',      label: 'Lector activo', icon: '✍️' },
+    { key: 'collection',  label: 'Colección',    icon: '🎖️' },
   ];
 
   constructor(
     private achievementsService: AchievementsService,
     private gamificationService: GamificationService,
     private chatService: ChatService,
-    private snack: MatSnackBar,
+    private learningService: LearningService,
+    private route: ActivatedRoute,
+    private auth: AuthService,
     private cdr: ChangeDetectorRef,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      if (params.get('tab') === 'collection') {
+        this.activeTab = 'collection';
+        this.cdr.markForCheck();
+      }
+    });
+    this.gamificationService.profile$.pipe(takeUntil(this.destroy$)).subscribe(profile => {
+      this.profile = profile ? { ...profile, username: this.auth.currentUser()?.username || 'Lector' } : null;
+      this.cdr.markForCheck();
+    });
+    this.achievementsService.changed$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.loadAchievements();
+      this.loadCollection();
+    });
     this.loadData();
     this.loadDailyReward();
+    this.loadCollection();
   }
 
   loadDailyReward(): void {
@@ -147,18 +185,6 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   }
 
   loadData(): void {
-    this.isLoading = true;
-
-    // Load Gamification profile
-    this.gamificationService.profile$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(profile => {
-        if (profile) {
-          this.profile = profile;
-          this.cdr.markForCheck();
-        }
-      });
-
     // Ensure profile is loaded if it hasn't been yet
     this.gamificationService.loadInitialProfile();
 
@@ -176,24 +202,23 @@ export class AchievementsComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
 
-    // Cargar catálogo completo (incluye logros aún no iniciados por el usuario)
-    this.achievementsService.getCatalog()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(catalog => {
-        this.catalogAchievements = catalog;
-        this.cdr.markForCheck();
-      });
+    this.loadAchievements();
+  }
 
-    // Cargar progreso del usuario
-    this.achievementsService.getMyAchievements()
+  loadAchievements(): void {
+    this.isLoading = true;
+    this.loadError = '';
+    forkJoin({ catalog: this.achievementsService.getCatalog(), mine: this.achievementsService.getMyAchievements() })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (myAchievements) => {
-          this.userAchievements = myAchievements;
+        next: ({ catalog, mine }) => {
+          this.catalogAchievements = catalog;
+          this.userAchievements = mine;
           this.isLoading = false;
           this.cdr.markForCheck();
         },
         error: () => {
+          this.loadError = 'No pudimos cargar tus logros. Revisa tu conexión y vuelve a intentarlo.';
           this.isLoading = false;
           this.cdr.markForCheck();
         },
@@ -204,7 +229,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     this.activeFilter = filter;
   }
 
-  switchTab(tab: 'achievements' | 'history' | 'missions' | 'levels') {
+  switchTab(tab: MainTab) {
     this.activeTab = tab;
   }
 
@@ -213,7 +238,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
    * Los logros del catálogo que el usuario aún no tiene se muestran
    * como bloqueados (progreso 0).
    */
-  get mergedAchievements(): UserAchievement[] {
+  get allAchievements(): UserAchievement[] {
     const userMap = new Map(
       this.userAchievements.map(ua => [ua.achievement.code, ua])
     );
@@ -235,9 +260,85 @@ export class AchievementsComponent implements OnInit, OnDestroy {
       } as UserAchievement;
     });
 
-    // Filtrar por categoría activa
-    if (this.activeFilter === 'all') return merged;
-    return merged.filter(ua => ua.achievement.category === this.activeFilter);
+    return merged;
+  }
+
+  get mergedAchievements(): UserAchievement[] {
+    return this.allAchievements.filter(ua => this.activeFilter === 'all' || ua.achievement.category === this.activeFilter);
+  }
+
+  get almostThere(): UserAchievement[] {
+    return this.allAchievements.filter(ua => !ua.is_unlocked && ua.current_progress > 0)
+      .sort((a, b) => b.progress_percentage - a.progress_percentage).slice(0, 3);
+  }
+
+  loadCollection(): void {
+    this.collectionError = '';
+    this.learningService.getShopItems('collection').pipe(takeUntil(this.destroy$)).subscribe({
+      next: items => {
+        this.collection = items.filter(item => ['profile_frame', 'title', 'maguito_wear'].includes(item.item_type));
+        this.collectionLoading = false;
+        if (this.previewItem) this.previewItem = this.collection.find(item => item.code === this.previewItem?.code) || null;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.collectionLoading = false;
+        this.collectionError = 'No pudimos abrir tu colección. Vuelve a intentarlo.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  get visibleCollection(): ShopItem[] {
+    return this.collection.filter(item => item.item_type === this.collectionFilter);
+  }
+
+  get ownedCount(): number { return this.collection.filter(item => item.is_owned).length; }
+
+  get previewFrame(): string {
+    return this.previewItem?.item_type === 'profile_frame' ? this.previewItem.value : this.profile?.equipped_frame || '';
+  }
+
+  get previewTitle(): string {
+    return this.previewItem?.item_type === 'title' ? this.previewItem.value : this.profile?.equipped_title || '';
+  }
+
+  outfitFor(value?: string): MaguitoOutfit {
+    const wear = parseWear(value);
+    return wear ? { ...this.profile?.outfit, [wear.slot]: wear.variant } : this.profile?.outfit || {};
+  }
+
+  toggleItem(item: ShopItem): void {
+    if (this.busyItem || !item.is_owned) return;
+    const slot = item.item_type === 'profile_frame' ? 'frame' : item.item_type === 'title' ? 'title' : parseWear(item.value)?.slot;
+    if (!slot) return;
+    this.busyItem = item.code;
+    const action = item.is_equipped ? this.learningService.unequipShopSlot(slot) : this.learningService.equipShopItem(item.code);
+    action.pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => {
+        this.busyItem = '';
+        this.profile = { ...this.profile, ...res };
+        this.previewItem = null;
+        this.loadCollection();
+        this.gamificationService.loadInitialProfile();
+        this.chatService.notifyProfileUpdate();
+        this.notificationService.success(res.message || 'Tu colección está actualizada.');
+        this.cdr.markForCheck();
+      },
+      error: err => {
+        this.busyItem = '';
+        this.notificationService.error(err.error?.message || 'No pudimos cambiar este objeto. Inténtalo otra vez.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  showEarnedBy(item: ShopItem): void {
+    if (!item.earned_by) return;
+    this.activeTab = 'achievements';
+    const achievement = this.catalogAchievements.find(a => a.code === item.earned_by?.code);
+    this.activeFilter = achievement?.category || 'all';
+    setTimeout(() => document.getElementById('achievement-' + item.earned_by?.code)?.scrollIntoView({ block: 'center' }));
   }
 
   get unlockedCount(): number {
@@ -251,6 +352,10 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   get progressPercent(): number {
     if (this.totalCount === 0) return 0;
     return Math.round((this.unlockedCount / this.totalCount) * 100);
+  }
+
+  get xpProgress(): number {
+    return this.profile?.xp_to_next_level ? Math.min(100, this.profile.xp / this.profile.xp_to_next_level * 100) : 100;
   }
 
   formatUnlockDate(dateStr: string): string {

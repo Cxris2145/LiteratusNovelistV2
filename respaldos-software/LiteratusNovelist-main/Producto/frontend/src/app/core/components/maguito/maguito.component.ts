@@ -43,6 +43,8 @@ const DETAIL_FRAMES: Record<WearSlot, string> = {
 const HEAD_FRAMES: Record<string, string> = {
   crown: '147 96 148 90', tophat: '139 70 171 118', pirate: '126 84 198 102',
   beret: '149 102 157 80', aviator: '143 78 164 155',
+  graduate: '129 94 188 98', feather: '126 48 200 141',
+  laurel: '144 108 165 85', deerstalker: '131 93 190 98',
 };
 
 /**

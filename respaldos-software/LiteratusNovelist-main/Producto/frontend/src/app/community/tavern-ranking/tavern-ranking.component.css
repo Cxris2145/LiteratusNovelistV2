@@ -95,3 +95,7 @@
   color: var(--th-gold);
 }
 .rk-hint { margin-top: 12px; font-size: .82rem; }
+
+.rk-name { display: flex; flex-direction: column; gap: 3px; }
+.rk-name > span, .rk-name small { overflow: hidden; text-overflow: ellipsis; }
+.rk-name small { font-size: .7rem; color: var(--th-gold); }

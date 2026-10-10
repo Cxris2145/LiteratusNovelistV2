@@ -1,4 +1,8 @@
 <section class="gamification-page">
+  <div class="page-heading">
+    <div><h1>Logros del lector</h1><p>Cada historia deja una huella. Reúne las tuyas.</p></div>
+    <a class="collection-link" routerLink="/tavern" [queryParams]="{ bazar: 'perfil' }">Visitar El Bazar</a>
+  </div>
 
   <!-- ── GAMIFICATION PROFILE HEADER ───────────────────────────── -->
   <header class="gamification-header" *ngIf="profile">
@@ -11,7 +15,7 @@
           <circle
             class="ring-fill level-fill"
             cx="18" cy="18" r="15.9"
-            [style.strokeDasharray]="(profile.xp / profile.xp_to_next_level * 100) + ' 100'"
+            [style.strokeDasharray]="xpProgress + ' 100'"
           />
         </svg>
         <div class="level-number">{{ profile.level }}</div>
@@ -21,7 +25,7 @@
     <!-- USER INFO & STATS -->
     <div class="gamification-stats-container">
       <div class="gamification-title-area">
-        <h1 class="gamification-title">{{ profile.level_name }}</h1>
+        <h2 class="gamification-title">{{ profile.level_name }}</h2>
         <p class="gamification-xp-text">{{ profile.xp }} / {{ profile.xp_to_next_level }} XP</p>
       </div>
       
@@ -85,9 +89,12 @@
   </header>
 
   <!-- ── MAIN TABS (Logros / Historial) ───────────────────────────── -->
-  <nav class="main-tabs" role="tablist">
+  <nav class="main-tabs" aria-label="Secciones de Logros">
     <button class="main-tab-btn" [class.active]="activeTab === 'achievements'" (click)="switchTab('achievements')">
       Logros
+    </button>
+    <button class="main-tab-btn" [class.active]="activeTab === 'collection'" (click)="switchTab('collection')">
+      Colección <span class="tab-count">{{ ownedCount }}</span>
     </button>
     <button class="main-tab-btn" [class.active]="activeTab === 'missions'" (click)="switchTab('missions')">
       Misiones
@@ -214,21 +221,34 @@
        TAB: ACHIEVEMENTS
   =========================================== -->
   <div *ngIf="activeTab === 'achievements'" class="tab-content">
+    <section class="almost-there" *ngIf="!isLoading && almostThere.length" aria-labelledby="almost-title">
+      <div class="section-intro"><h2 id="almost-title">Casi lo tienes</h2><p>Tu siguiente medalla está cerca.</p></div>
+      <div class="almost-list">
+        <button type="button" *ngFor="let ua of almostThere; trackBy: trackByCode" (click)="setFilter(ua.achievement.category)"
+          class="almost-item" [attr.aria-label]="ua.achievement.title + ': ' + ua.current_progress + ' de ' + ua.achievement.threshold">
+          <span class="almost-icon" aria-hidden="true">{{ ua.achievement.icon }}</span>
+          <span class="almost-body"><strong>{{ ua.achievement.title }}</strong>
+            <span class="progress-bar"><span class="progress-bar__fill" [style.width.%]="ua.progress_percentage"></span></span>
+          </span>
+          <span class="progress-text">{{ ua.current_progress }} / {{ ua.achievement.threshold }}</span>
+        </button>
+      </div>
+    </section>
     
     <!-- ── TABS DE CATEGORÍA ─────────────────────────────────────── -->
-    <nav class="achievements-tabs" role="tablist" aria-label="Filtrar logros">
+    <nav class="achievements-tabs" aria-label="Filtrar logros">
       <button
         *ngFor="let tab of tabs"
         class="achievements-tabs__btn"
         [class.achievements-tabs__btn--active]="activeFilter === tab.key"
-        role="tab"
-        [attr.aria-selected]="activeFilter === tab.key"
+        [attr.aria-pressed]="activeFilter === tab.key"
         (click)="setFilter(tab.key)"
       >
         <span class="tab-icon" aria-hidden="true">{{ tab.icon }}</span>
         <span class="tab-label">{{ tab.label }}</span>
       </button>
     </nav>
+    <div class="achievements-empty" *ngIf="loadError" role="alert"><p>{{ loadError }}</p><button class="collection-action" (click)="loadAchievements()">Reintentar</button></div>
 
     <!-- ── SKELETON LOADER ───────────────────────────────────────── -->
     <div class="achievements-grid" *ngIf="isLoading" aria-busy="true">
@@ -249,6 +269,8 @@
       <li
         *ngFor="let ua of mergedAchievements; trackBy: trackByCode"
         class="achievement-card"
+        [id]="'achievement-' + ua.achievement.code"
+        [attr.data-rarity]="ua.achievement.rarity"
         [class.achievement-card--unlocked]="ua.is_unlocked"
         [class.achievement-card--locked]="!ua.is_unlocked"
         role="listitem"
@@ -275,6 +297,7 @@
 
         <!-- Contenido textual -->
         <div class="achievement-card__body">
+          <span class="rarity-label">{{ rarityLabels[ua.achievement.rarity] }}</span>
           <h3 class="achievement-card__title">{{ ua.achievement.title }}</h3>
           <p class="achievement-card__desc">{{ ua.achievement.description }}</p>
 
@@ -303,7 +326,12 @@
           <!-- Recompensa de Tinta -->
           <div class="achievement-card__reward" *ngIf="ua.achievement.ink_reward > 0">
             <span class="reward-icon" aria-hidden="true">🖋️</span>
-            <span class="reward-amount">+{{ ua.achievement.ink_reward }} tinta</span>
+            <span class="reward-amount">+{{ ua.achievement.ink_reward }} Tinta <span class="xp-reward">+25 XP</span></span>
+          </div>
+          <div class="cosmetic-reward" *ngIf="ua.achievement.reward as reward" [class.is-title]="reward.item_type === 'title'">
+            <app-cosmetic-preview [item]="reward" [avatar]="profile?.avatar" [avatarColor]="profile?.avatar_color || '#655099'"
+              [initial]="profile?.username?.charAt(0) || 'L'" [outfit]="profile?.outfit"></app-cosmetic-preview>
+            <span><small>{{ ua.is_unlocked ? 'Premio obtenido' : 'Premio exclusivo' }}</small><strong>{{ reward.name }}</strong></span>
           </div>
         </div>
       </li>
@@ -312,12 +340,66 @@
     <!-- ── ESTADO VACÍO ───────────────────────────────────────────── -->
     <div
       class="achievements-empty"
-      *ngIf="!isLoading && mergedAchievements.length === 0"
+      *ngIf="!isLoading && !loadError && mergedAchievements.length === 0"
       role="status"
     >
       <p>No hay logros en esta categoría aún.</p>
     </div>
   </div>
+
+  <section *ngIf="activeTab === 'collection'" class="collection-tab" aria-label="Tu colección de cosméticos">
+    <div class="collection-intro"><h2>Tu colección</h2><p>{{ ownedCount }} de {{ collection.length }} objetos reunidos. Prueba un objeto antes de ponértelo.</p></div>
+    <div class="collection-layout">
+      <aside class="collection-mirror" aria-label="Vista previa de tu perfil">
+        <app-avatar-frame [frame]="previewFrame" size="lg">
+          <span class="mirror-avatar" [style.background]="profile?.avatar_color || '#655099'">
+            <img *ngIf="profile?.avatar" [src]="profile.avatar" alt="Tu avatar">
+            <span *ngIf="!profile?.avatar">{{ profile?.username?.charAt(0) || 'L' }}</span>
+          </span>
+        </app-avatar-frame>
+        <strong class="mirror-name">{{ profile?.username || 'Tu perfil' }}</strong>
+        <span class="mirror-title" *ngIf="previewTitle">{{ previewTitle }}</span>
+        <app-maguito class="mirror-maguito" [outfit]="outfitFor(previewItem?.item_type === 'maguito_wear' ? previewItem?.value : undefined)"
+          [calm]="true" [interactive]="false" [followPointer]="false" label="Vista previa de Maguito"></app-maguito>
+        <p role="status">{{ previewItem ? 'Probando: ' + previewItem.name : 'Así luces ahora' }}</p>
+        <button *ngIf="previewItem" type="button" class="collection-action subtle" (click)="previewItem = null">Terminar prueba</button>
+      </aside>
+      <div class="collection-content">
+        <nav class="achievements-tabs" aria-label="Tipo de objeto">
+          <button type="button" class="achievements-tabs__btn" [class.achievements-tabs__btn--active]="collectionFilter === 'profile_frame'"
+            [attr.aria-pressed]="collectionFilter === 'profile_frame'" (click)="collectionFilter = 'profile_frame'">Marcos</button>
+          <button type="button" class="achievements-tabs__btn" [class.achievements-tabs__btn--active]="collectionFilter === 'title'"
+            [attr.aria-pressed]="collectionFilter === 'title'" (click)="collectionFilter = 'title'">Títulos</button>
+          <button type="button" class="achievements-tabs__btn" [class.achievements-tabs__btn--active]="collectionFilter === 'maguito_wear'"
+            [attr.aria-pressed]="collectionFilter === 'maguito_wear'" (click)="collectionFilter = 'maguito_wear'">Accesorios</button>
+        </nav>
+        <p *ngIf="collectionLoading" role="status">Abriendo tu baúl…</p>
+        <div *ngIf="collectionError" role="alert"><p>{{ collectionError }}</p><button class="collection-action" (click)="loadCollection()">Reintentar</button></div>
+        <ul class="collection-grid">
+          <li class="collection-item" *ngFor="let item of visibleCollection" [class.is-equipped]="item.is_equipped">
+            <div class="collection-state">{{ item.is_equipped ? 'Equipado' : item.is_owned ? 'En tu baúl' : item.is_purchasable ? 'En El Bazar' : 'Exclusivo de logro' }}</div>
+            <button type="button" class="preview-button" (click)="previewItem = item" [attr.aria-label]="'Probar ' + item.name"
+              [attr.aria-pressed]="previewItem?.code === item.code">
+              <app-cosmetic-preview [item]="item" [avatar]="profile?.avatar" [avatarColor]="profile?.avatar_color || '#655099'"
+                [initial]="profile?.username?.charAt(0) || 'L'" [outfit]="profile?.outfit"></app-cosmetic-preview>
+            </button>
+            <h3>{{ item.name }}</h3><p>{{ item.description }}</p>
+            <div class="collection-item-actions">
+              <button *ngIf="item.is_owned" type="button" class="collection-action" (click)="toggleItem(item)" [disabled]="!!busyItem">
+                {{ busyItem === item.code ? 'Guardando…' : item.is_equipped ? 'Quitar' : 'Equipar' }}
+              </button>
+              <a *ngIf="!item.is_owned && item.is_purchasable" class="collection-action" routerLink="/tavern"
+                [queryParams]="{ bazar: item.item_type === 'maguito_wear' ? 'ropero' : 'perfil' }">El Bazar · {{ item.cost_ink }} Tinta</a>
+              <button *ngIf="!item.is_owned && !item.is_purchasable" type="button" class="earned-link" (click)="showEarnedBy(item)">
+                Se gana con el logro «{{ item.earned_by?.title || 'Por descubrir' }}»
+              </button>
+              <button type="button" class="collection-action subtle" (click)="previewItem = item">Probar</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
 
   <!-- ==========================================

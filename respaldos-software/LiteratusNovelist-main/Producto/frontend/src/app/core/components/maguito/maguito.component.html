@@ -213,6 +213,17 @@
         </g>
 
         <!-- Cara: se desplaza un poco hacia donde mira (giro de cabeza) -->
+        <g class="mg-neck" *ngIf="look.neck === 'quill'">
+          <path d="M221 275Q249 264 254 277Q249 297 218 310Q231 292 221 275Z" fill="#f5d67b" stroke="#9c681e" stroke-width="1.8"/>
+          <path d="M218 313L246 279M226 302L241 298M232 294L247 287" stroke="#9c681e" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="219" cy="313" r="3" fill="#d5a33f"/>
+        </g>
+        <g class="mg-neck" *ngIf="look.neck === 'medal'">
+          <path d="M191 271L216 315L229 308L209 276M260 271L235 315L222 308L242 276" fill="#733b9b" stroke="#b98ade" stroke-width="1.5"/>
+          <circle cx="226" cy="321" r="17" [attr.fill]="refs['metal']" stroke="#9c681e" stroke-width="2"/>
+          <circle cx="226" cy="321" r="12" fill="none" stroke="#fff0b8" stroke-width="1.5"/>
+          <path d="M218 316L226 319L234 316V328L226 331L218 328ZM226 319V331" fill="none" stroke="#805217" stroke-width="1.8"/>
+        </g>
         <g class="mg-face">
           <g class="mg-eye" [attr.clip-path]="refs['eye-l']">
             <circle cx="182" cy="215" r="26" [attr.fill]="refs['sclera']"/>
@@ -255,6 +266,12 @@
             <circle cx="282" cy="210" r="2.5" [attr.fill]="refs['metal']" stroke="none"/>
           </g>
           <!-- Monóculo del erudito -->
+          <g *ngIf="look.eyes === 'reading'" class="mg-eyewear" fill="none" stroke="#b5a080" stroke-linecap="round">
+            <circle cx="182" cy="220" r="22" [attr.fill]="refs['lens']" stroke-width="2.6"/>
+            <circle cx="252" cy="220" r="22" [attr.fill]="refs['lens']" stroke-width="2.6"/>
+            <path d="M204 219Q217 210 230 219M160 217L150 212M274 217L298 210" stroke-width="2.6"/>
+            <path d="M169 211L179 201M239 211L249 201" stroke="#fff" stroke-width="2" opacity=".5"/>
+          </g>
           <g *ngIf="look.eyes === 'monocle'" class="mg-eyewear" fill="none" stroke-linecap="round">
             <circle cx="252" cy="215" r="29" [attr.stroke]="refs['metal']" stroke-width="5" [attr.fill]="refs['lens']"/>
             <circle cx="252" cy="215" r="25.7" stroke="#fff0b8" stroke-width="1" opacity="0.55"/>
@@ -304,6 +321,34 @@
         <!-- Sombrero: el de mago es el de siempre; los demás se compran en El Bazar.
              Todos comparten el pivote y las animaciones de .mg-hat. -->
         <g class="mg-hat" [ngSwitch]="look.head">
+          <g *ngSwitchCase="'graduate'">
+            <path d="M173 142L274 142V173Q225 160 173 173Z" fill="#232838" stroke="#121722" stroke-width="2"/>
+            <path d="M134 127L225 98L316 127L225 156Z" fill="#343a4c" stroke="#121722" stroke-width="2.5"/>
+            <path d="M145 127L225 104L300 127" fill="none" stroke="#64708b" stroke-width="2"/>
+            <path d="M225 125L291 139V172" stroke="#eac55c" stroke-width="3" fill="none"/>
+            <circle cx="225" cy="125" r="4" fill="#eac55c"/>
+            <path d="M287 173L284 185H298L295 173Z" fill="#eac55c"/>
+          </g>
+          <g *ngSwitchCase="'feather'">
+            <ellipse cx="225" cy="165" rx="91" ry="18" fill="#382d48" stroke="#211929" stroke-width="2"/>
+            <path d="M169 162L179 105Q226 91 267 105L281 162Z" fill="#564063" stroke="#211929" stroke-width="2"/>
+            <path d="M171 148Q225 156 276 148V160Q225 168 169 160Z" fill="#ad7440"/>
+            <path d="M254 151Q257 82 298 51Q311 87 270 148Z" fill="#ece0bf" stroke="#b6a786" stroke-width="1.5"/>
+            <path d="M255 158L294 63M267 134L290 123M276 112L299 96M283 91L296 80" stroke="#ad9b76" stroke-width="1.5" fill="none"/>
+          </g>
+          <g *ngSwitchCase="'laurel'">
+            <path d="M163 160Q169 117 216 126M287 160Q281 117 234 126" fill="none" stroke="#50772c" stroke-width="5"/>
+            <path d="M166 154Q142 139 154 129Q171 132 166 154M176 135Q160 114 174 110Q191 115 176 135M194 126Q188 106 202 110Q217 119 194 126M284 154Q308 139 296 129Q279 132 284 154M274 135Q290 114 276 110Q259 115 274 135M256 126Q262 106 248 110Q233 119 256 126" fill="#83a74b" stroke="#3d6528" stroke-width="1.5"/>
+            <path d="M165 160Q224 174 285 160" fill="none" stroke="#d9b955" stroke-width="3"/>
+            <path d="M220 171L211 181L222 178L225 185L230 172" fill="#d9b955"/>
+          </g>
+          <g *ngSwitchCase="'deerstalker'">
+            <path d="M154 157Q155 104 223 101Q286 104 297 157Z" fill="#a88963" stroke="#5e4932" stroke-width="2"/>
+            <path d="M175 115L173 158M195 106L197 158M217 103L220 158M239 105L243 158M260 111L266 158M157 137H292M154 150H296" stroke="#5e4932" stroke-width="2" opacity=".6"/>
+            <path d="M139 158Q223 139 310 158Q286 183 224 165Q159 183 139 158Z" fill="#8b6b49" stroke="#5e4932" stroke-width="2"/>
+            <path d="M158 151L151 174L168 181L182 156M290 151L299 174L282 181L268 156" fill="#b99a76" stroke="#5e4932" stroke-width="2"/>
+            <circle cx="224" cy="101" r="5" fill="#5e4932"/>
+          </g>
           <!-- Corona del Rey Lector -->
           <g *ngSwitchCase="'crown'">
             <path d="M180 164L172 118L200 140L212 104L225 136L238 104L250 140L278 118L270 164Z" [attr.fill]="refs['crown']"/>

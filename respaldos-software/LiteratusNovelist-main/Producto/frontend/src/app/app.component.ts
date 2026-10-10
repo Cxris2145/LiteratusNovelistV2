@@ -13,6 +13,7 @@ import { SettingsService } from './core/services/settings.service';
 import { environment } from '../environments/environment';
 import { FavoritesService } from './core/services/favorites.service';
 import { GamificationService, GamificationNotification } from './core/services/gamification.service';
+import { AchievementsService } from './core/services/achievements.service';
 import { NotificationService, AppNotification } from './core/services/notification.service';
 import { MatDialog } from '@angular/material/dialog';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
@@ -34,6 +35,7 @@ export class AppComponent implements OnInit {
   settingsService = inject(SettingsService);
   favoritesService = inject(FavoritesService);
   gamificationService = inject(GamificationService);
+  achievementsService = inject(AchievementsService);
   notificationService = inject(NotificationService);
   dialog = inject(MatDialog);
   speechService = inject(SpeechRecognitionService);
@@ -92,6 +94,8 @@ export class AppComponent implements OnInit {
   }
   
   userAvatarUrl: string | null = null;
+  userEquippedFrame = '';
+  userEquippedTitle = '';
   userAvatarColor: string = localStorage.getItem(userStorageKey('user_avatar_color')) || '#7c3aed';
 
   // Animación Tinta
@@ -160,6 +164,10 @@ export class AppComponent implements OnInit {
         this.loadUserProfile();
         this.gamificationService.loadInitialProfile();
         this.gamificationService.checkDailyRewardStatus();
+        this.achievementsService.scheduleCheck();
+      } else {
+        this.achievementsService.reset();
+        this.userEquippedFrame = this.userEquippedTitle = '';
       }
     });
 
@@ -171,6 +179,7 @@ export class AppComponent implements OnInit {
     // Suscribirse a actualizaciones de perfil
     this.chatService.profileUpdated$.subscribe(() => {
       this.loadUserProfile();
+      this.gamificationService.loadInitialProfile();
     });
 
     // Suscribirse al flujo unificado de notificaciones
@@ -253,6 +262,8 @@ export class AppComponent implements OnInit {
   loadUserProfile() {
     this.chatService.getUserProfile().subscribe({
       next: (profile) => {
+        this.userEquippedFrame = profile?.equipped_frame || '';
+        this.userEquippedTitle = profile?.equipped_title || '';
         if (profile && profile.avatar) {
           this.userAvatarUrl = profile.avatar;
         }

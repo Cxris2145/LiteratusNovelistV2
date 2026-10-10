@@ -114,6 +114,8 @@ export interface ShopItem {
   value: string;
   sort_order: number;
   is_owned: boolean;
+  is_purchasable: boolean;
+  earned_by: { code: string; title: string } | null;
   is_equipped: boolean;
   quantity: number;
 }
@@ -231,8 +233,8 @@ export class LearningService {
     );
   }
 
-  getShopItems(): Observable<ShopItem[]> {
-    return this.http.get<ShopItem[]>(`${this.baseUrl}shop/`);
+  getShopItems(scope?: 'collection'): Observable<ShopItem[]> {
+    return this.http.get<ShopItem[]>(`${this.baseUrl}shop/${scope ? '?scope=' + scope : ''}`);
   }
 
   buyShopItem(itemCode: string): Observable<any> {

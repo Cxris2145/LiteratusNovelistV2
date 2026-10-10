@@ -6,23 +6,6 @@ import { LiyumiService } from '../../core/services/liyumi.service';
 import { ChatService } from '../../core/services/chat.service';
 import { NotificationService } from '../../core/services/notification.service';
 
-/** Resumen del libro completo con IA (GET/POST catalog/books/<slug>/summary/). */
-interface BookSummaryContent {
-  overview: string;
-  plot: string[];
-  characters: { name: string; role: string }[];
-  themes: string[];
-}
-
-interface BookSummaryResponse {
-  status: 'ready' | 'generating' | 'missing' | 'unavailable';
-  summary?: BookSummaryContent;
-  message?: string;
-}
-
-const SUMMARY_POLL_MS = 4000;
-const SUMMARY_POLL_LIMIT_MS = 5 * 60 * 1000;
-
 @Component({
   selector: 'app-book-detail-page',
   templateUrl: './book-detail-page.component.html',
@@ -76,14 +59,6 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   isSubmittingReview = false;
   reviewErrorMsg = '';
 
-  // Resumen completo (incluye el final: se muestra solo si el lector lo abre)
-  summaryState: 'idle' | 'loading' | 'generating' | 'unavailable' = 'idle';
-  summary: BookSummaryContent | null = null;
-  summaryMessage = '';
-  showSummary = false;
-  private summaryPoll: ReturnType<typeof setTimeout> | null = null;
-  private summaryPollDeadline = 0;
-
   ngOnInit(): void {
     window.scrollTo({ top: 0, behavior: 'instant' });
     this.route.paramMap.subscribe(params => {
@@ -104,7 +79,6 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
       clearInterval(this.autoScrollInterval);
     }
     this.stopSynopsis();
-    this.stopSummaryPoll();
     document.body.style.overflow = '';
   }
 
@@ -132,8 +106,6 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
 
   loadBookDetails(slug: string): void {
     this.isLoading = true;
-    this.resetSummary();
-    this.loadSummary(slug);
     this.api.get<any>(`catalog/books/${slug}/details/`).subscribe({
       next: (data) => {
         this.book = data;
@@ -205,87 +177,6 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
     window.speechSynthesis.cancel();
     this.isTalking = false;
     this.liyumi.stopSpeaking();
-  }
-
-  // ── Resumen completo con IA ───────────────────────────────────
-  get summaryButtonLabel(): string {
-    if (this.summaryState === 'loading') return 'Abriendo…';
-    if (this.summaryState === 'generating') return 'Generando resumen…';
-    return this.summary ? 'Mostrar resumen' : 'Generar resumen con IA';
-  }
-
-  /** Al abrir la ficha solo se consulta si ya existe; nunca se genera sin que el lector lo pida. */
-  private loadSummary(slug: string): void {
-    this.api.get<BookSummaryResponse>(`catalog/books/${slug}/summary/`).subscribe({
-      next: (res) => {
-        if (res.status === 'ready' && res.summary && slug === this.slug) this.summary = res.summary;
-      },
-      error: () => {} // libro restringido u otro error: el botón lo explicará al usarlo
-    });
-  }
-
-  openSummary(): void {
-    if (this.summary) {
-      this.showSummary = true;
-      return;
-    }
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-      return;
-    }
-    if (!this.slug || this.summaryState === 'loading' || this.summaryState === 'generating') return;
-    this.summaryState = 'loading';
-    this.summaryMessage = '';
-    const slug = this.slug;
-    this.api.post<BookSummaryResponse>(`catalog/books/${slug}/summary/`, {}).subscribe({
-      next: (res) => {
-        this.summaryPollDeadline = Date.now() + SUMMARY_POLL_LIMIT_MS;
-        this.handleSummary(slug, res);
-      },
-      error: (err) => this.summaryFailed(err.error?.message || err.error?.error)
-    });
-  }
-
-  private handleSummary(slug: string, res: BookSummaryResponse): void {
-    if (slug !== this.slug) return; // el lector ya pasó a otro libro
-    if (res.status === 'ready' && res.summary) {
-      this.summary = res.summary;
-      this.summaryState = 'idle';
-      this.showSummary = true;
-    } else if (res.status === 'generating') {
-      this.summaryState = 'generating';
-      if (Date.now() > this.summaryPollDeadline) {
-        this.summaryFailed('El resumen está tardando más de lo normal. Vuelve a intentarlo en unos minutos.');
-        return;
-      }
-      this.summaryPoll = setTimeout(() => {
-        this.api.get<BookSummaryResponse>(`catalog/books/${slug}/summary/`).subscribe({
-          next: (next) => this.handleSummary(slug, next),
-          error: (err) => this.summaryFailed(err.error?.message)
-        });
-      }, SUMMARY_POLL_MS);
-    } else {
-      this.summaryFailed(res.message);
-    }
-  }
-
-  private summaryFailed(message?: string): void {
-    this.stopSummaryPoll();
-    this.summaryState = 'unavailable';
-    this.summaryMessage = message || 'No se pudo generar el resumen. Intenta de nuevo en unos minutos.';
-  }
-
-  private stopSummaryPoll(): void {
-    if (this.summaryPoll) clearTimeout(this.summaryPoll);
-    this.summaryPoll = null;
-  }
-
-  private resetSummary(): void {
-    this.stopSummaryPoll();
-    this.summary = null;
-    this.summaryState = 'idle';
-    this.summaryMessage = '';
-    this.showSummary = false;
   }
 
 handleAction(): void {

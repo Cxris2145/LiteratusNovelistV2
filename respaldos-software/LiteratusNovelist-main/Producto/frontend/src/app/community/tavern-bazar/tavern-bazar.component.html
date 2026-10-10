@@ -102,7 +102,11 @@
           <span class="bz-thumb-hint" aria-hidden="true">{{ isTrying(item) ? 'Probando' : 'Probar' }}</span>
         </button>
         <ng-template #objectArt>
-          <span class="bz-thumb is-object" aria-hidden="true"><span class="material-symbols-rounded">{{ item.icon || 'shopping_bag' }}</span></span>
+          <span class="bz-thumb is-object" *ngIf="item.item_type === 'profile_frame' || item.item_type === 'title'; else plainObject">
+            <app-cosmetic-preview [item]="item" [avatar]="profile?.avatar" [avatarColor]="profile?.avatar_color || '#655099'"
+              [initial]="profile?.username?.charAt(0) || 'L'"></app-cosmetic-preview>
+          </span>
+          <ng-template #plainObject><span class="bz-thumb is-object" aria-hidden="true"><span class="material-symbols-rounded">{{ item.icon || 'shopping_bag' }}</span></span></ng-template>
         </ng-template>
 
         <span class="bz-state" *ngIf="item.is_owned">
@@ -122,7 +126,8 @@
         </div>
 
         <footer class="bz-foot">
-          <span class="bz-price"><span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>{{ format(item.cost_ink) }}<span class="sr-only"> Tinta</span></span>
+          <span class="bz-price" *ngIf="item.is_purchasable"><span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>{{ format(item.cost_ink) }}<span class="sr-only"> Tinta</span></span>
+          <span class="bz-exclusive" *ngIf="!item.is_purchasable">Premio de logro</span>
           <span class="bz-actions">
             <button *ngIf="isWear(item) && !item.is_equipped" type="button" class="bz-btn ghost" (click)="tryOn(item)" [attr.aria-pressed]="isTrying(item)">
               {{ isTrying(item) ? 'Probando' : 'Probar' }}
@@ -131,7 +136,7 @@
               {{ busy === item.code ? 'Canjeando…' : 'Canjear' }}
             </button>
             <ng-container *ngIf="canEquip(item)">
-              <button *ngIf="item.is_equipped && isWear(item)" type="button" class="bz-btn ghost" (click)="unequip(item)" [disabled]="!!busy">
+              <button *ngIf="item.is_equipped && (isWear(item) || item.item_type === 'profile_frame' || item.item_type === 'title')" type="button" class="bz-btn ghost" (click)="unequip(item)" [disabled]="!!busy">
                 {{ busy === item.code ? 'Guardando…' : 'Quitar' }}
               </button>
               <button *ngIf="!item.is_equipped" type="button" class="bz-btn" (click)="equip(item)" [disabled]="!!busy">

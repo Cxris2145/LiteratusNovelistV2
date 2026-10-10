@@ -166,6 +166,12 @@
             </svg>
           </div>
         </div>
+
+        <button type="button" class="summary-card-btn" (click)="openSummary(item, $event)"
+                [attr.aria-label]="'Resumen de ' + (item.book_title || item.edition?.book?.title || 'este libro')">
+          <svg lucideSparkles aria-hidden="true"></svg>
+          <span>Resumen del libro</span>
+        </button>
       </div>
     </div>
   </div>
@@ -187,6 +193,27 @@
       <button type="button" class="clear-filter-btn" *ngIf="activeFilter !== 'all'" (click)="setFilter('all')">
         Ver todos mis libros ({{ inventoryItems.length }})
       </button>
+    </div>
+  </div>
+
+  <!-- Resumen del libro con IA: incluye el final, por eso se abre solo cuando el lector lo pide -->
+  <div class="summary-overlay" *ngIf="summaryItem" (click)="closeSummary()">
+    <div class="summary-dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="library-summary-title"
+         (click)="$event.stopPropagation()">
+      <header class="summary-dialog-header">
+        <div class="summary-dialog-heading">
+          <p class="summary-dialog-kicker">Resumen del libro</p>
+          <h2 id="library-summary-title">{{ summaryItem.book_title || summaryItem.edition?.book?.title || 'Sin Título' }}</h2>
+          <p class="summary-dialog-author">{{ summaryItem.author_name || summaryItem.edition?.book?.author_name || 'Autor Desconocido' }}</p>
+          <span class="summary-spoiler-tag">Contiene spoilers: incluye el final</span>
+        </div>
+        <button #summaryClose type="button" class="summary-dialog-close" (click)="closeSummary()" aria-label="Cerrar resumen">
+          <svg lucideX aria-hidden="true"></svg>
+        </button>
+      </header>
+      <div class="summary-dialog-body">
+        <app-book-summary [slug]="summaryItem.book_slug"></app-book-summary>
+      </div>
     </div>
   </div>
 

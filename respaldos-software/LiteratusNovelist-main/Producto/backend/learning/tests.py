@@ -279,7 +279,10 @@ class SkipTestAPITests(APITestCase):
         result = self._submit(3, answers).data
         self.assertTrue(result['passed'])
         self.assertEqual(result['unlocked_unit'], 3)
-        self.assertEqual(result['xp_earned'], 80)
+        self.assertEqual(result['xp_earned'], 60)  # 30 XP por cada una de las dos unidades saltadas.
+        from library.models import UserAchievement
+        self.assertTrue(UserAchievement.objects.filter(
+            user=self.user, achievement__code='senda_10', unlocked_at__isnull=False).exists())
 
         done = UserLevelProgress.objects.filter(user=self.user, level__unit__unit_number__in=[1, 2], is_completed=True)
         self.assertEqual(done.count(), 10)
@@ -314,7 +317,7 @@ class ShopWearableTests(APITestCase):
         from learning.models import ShopItem
         wearables = ShopItem.objects.filter(item_type='maguito_wear')
 
-        self.assertEqual(wearables.count(), 14)
+        self.assertEqual(wearables.count(), 25)  # 14 (0003) + 3 de la Taberna (0004) + 8 de Logros 2.0 (0005)
         self.assertTrue(wearables.filter(code='wear_head_crown', value='head:crown').exists())
 
     def test_buying_charges_ink_and_puts_it_on(self):
@@ -354,7 +357,7 @@ class ShopWearableTests(APITestCase):
         self.buy('wear_head_crown')
         self.buy('wear_head_tophat')  # reemplaza a la corona en la cabeza
 
-        with self.assertNumQueries(3):  # inventario, perfil y artículos, sin importar cuántos haya
+        with self.assertNumQueries(4):  # inventario, perfil, logros que regalan artículos y artículos, sin importar cuántos haya
             items = {i['code']: i for i in self.client.get('/api/v1/learning/shop/').data}
 
         self.assertTrue(items['wear_head_crown']['is_owned'])

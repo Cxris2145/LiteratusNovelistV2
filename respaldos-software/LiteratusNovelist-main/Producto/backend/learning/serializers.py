@@ -180,13 +180,14 @@ class ShopItemSerializer(serializers.ModelSerializer):
     is_owned = serializers.SerializerMethodField()
     is_equipped = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
+    earned_by = serializers.SerializerMethodField()
 
     class Meta:
         model = ShopItem
         fields = [
             'id', 'code', 'name', 'description', 'item_type',
-            'cost_ink', 'icon', 'asset_url', 'value', 'sort_order',
-            'is_owned', 'is_equipped', 'quantity'
+            'cost_ink', 'icon', 'asset_url', 'value', 'sort_order', 'is_purchasable',
+            'is_owned', 'is_equipped', 'quantity', 'earned_by'
         ]
 
     """
@@ -228,7 +229,7 @@ class ShopItemSerializer(serializers.ModelSerializer):
         if obj.item_type == Type.PROFILE_FRAME:
             return profile.equipped_frame == (obj.value or obj.code)
         if obj.item_type == Type.TITLE:
-            return profile.equipped_title == obj.name
+            return profile.equipped_title == (obj.value or obj.name)
         if obj.item_type == Type.THEME:
             return profile.theme == (obj.value or obj.code)
         return False
@@ -236,3 +237,10 @@ class ShopItemSerializer(serializers.ModelSerializer):
     def get_quantity(self, obj):
         inv = self._inventory_item(obj)
         return inv.quantity if inv else 0
+
+    def get_earned_by(self, obj):
+        """Logro que regala este artículo ({code, title}), o None. El listado lo pasa en `earned_by`."""
+        if 'earned_by' in self.context:
+            return self.context['earned_by'].get(obj.id)
+        achievement = obj.reward_for.only('code', 'title').first()
+        return {'code': achievement.code, 'title': achievement.title} if achievement else None

@@ -6,6 +6,7 @@ import logging
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.throttling import ScopedRateThrottle
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -16,6 +17,7 @@ from django.db.models import Q
 from .serializers import (
     MyTokenObtainPairSerializer, UserWriteSerializer, UserReadSerializer, ProfileSerializer,
     find_user_by_login,
+    PasswordResetRequestSerializer, PasswordResetVerifySerializer, PasswordResetConfirmSerializer,
 )
 from .utils import email_is_configured, send_verification_email
 
@@ -211,8 +213,11 @@ class SpendInkView(APIView):
 
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-from django.contrib.auth.tokens import default_token_generator
-from .utils import send_password_reset_email, email_verification_token
+from .utils import email_verification_token
+from .password_reset import (
+    request_recovery_code, verify_recovery_code, confirm_recovery_password,
+    CODE_LIFETIME_SECONDS, RESET_LIFETIME_SECONDS, RESEND_COOLDOWN_SECONDS,
+)
 
 class VerifyEmailView(APIView):
     """
@@ -245,65 +250,61 @@ class VerifyEmailView(APIView):
         return Response({'error': 'El enlace de verificación es inválido o ha expirado.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PasswordResetRequestView(APIView):
-    """
-    Endpoint POST /api/v1/users/password-reset/
-    Recibe un email y, si existe el usuario, le envía un enlace de recuperación.
-    """
+class PasswordRecoveryView(APIView):
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [ScopedRateThrottle]
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        response['Cache-Control'] = 'no-store'
+        return response
+
+
+class PasswordResetRequestView(PasswordRecoveryView):
+    """Enviar un código sin revelar si la cuenta existe."""
+    throttle_scope = 'password_reset_request'
 
     def post(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        if not email:
-            return Response({'error': 'Debes proveer un correo electrónico.'}, status=status.HTTP_400_BAD_REQUEST)
-            
-        try:
-            user = User.objects.get(email__iexact=email.strip())
-            send_password_reset_email(user)
-        except User.DoesNotExist:
-            # Por seguridad, no revelamos si el correo existe o no, 
-            # simplemente decimos que se envió (evita enumeración de usuarios).
-            pass
-        except Exception as e:
-            print(f"Error enviando correo de reset de password: {e}")
-            
-        return Response({'message': 'Si tu correo está registrado, recibirás un enlace de recuperación pronto.'}, status=status.HTTP_200_OK)
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if not email_is_configured():
+            logger.error('Recuperación de contraseña sin proveedor de correo configurado.')
+            return Response({'error': 'No pudimos enviar el código. Inténtalo de nuevo más tarde.',
+                             'code': 'EMAIL_UNAVAILABLE'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        request_recovery_code(serializer.validated_data['email'])
+        return Response({
+            'message': 'Si tu correo está registrado, recibirás un código de recuperación. Revisa también la carpeta de spam.',
+            'expires_in': CODE_LIFETIME_SECONDS, 'resend_after': RESEND_COOLDOWN_SECONDS,
+        })
 
 
-class PasswordResetConfirmView(APIView):
-    """
-    Endpoint POST /api/v1/users/password-reset-confirm/
-    Recibe uid, token y nueva contraseña (new_password) para resetearla.
-    """
-    permission_classes = [permissions.AllowAny]
+class PasswordResetVerifyView(PasswordRecoveryView):
+    throttle_scope = 'password_reset_verify'
 
     def post(self, request, *args, **kwargs):
-        uidb64 = request.data.get('uid')
-        token = request.data.get('token')
-        new_password = request.data.get('new_password')
-        
-        if not all([uidb64, token, new_password]):
-            return Response({'error': 'Faltan parámetros requeridos.'}, status=status.HTTP_400_BAD_REQUEST)
-            
-        try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-            user = None
-            
-        if user is not None and default_token_generator.check_token(user, token):
-            from django.contrib.auth.password_validation import validate_password
-            from django.core.exceptions import ValidationError as DjangoValidationError
-            try:
-                validate_password(new_password, user=user)
-            except DjangoValidationError as e:
-                return Response({'error': 'Contraseña débil.', 'details': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PasswordResetVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = verify_recovery_code(**serializer.validated_data)
+        if token is None:
+            return Response({'error': 'El código es incorrecto, ha caducado o ya se usó. Solicita uno nuevo si no puedes verificarlo.',
+                             'code': 'CODE_INVALID'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'reset_token': token, 'expires_in': RESET_LIFETIME_SECONDS})
 
-            user.set_password(new_password)
-            user.save()
-            return Response({'message': 'Contraseña actualizada exitosamente. Ya puedes iniciar sesión.'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': 'El enlace de recuperación es inválido o ha expirado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+class PasswordResetConfirmView(PasswordRecoveryView):
+    """Exige el permiso obtenido al verificar el código y una contraseña distinta."""
+    throttle_scope = 'password_reset_verify'
+
+    def post(self, request, *args, **kwargs):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        if data['new_password'] != data['confirm_password']:
+            return Response({'error': 'Las contraseñas no coinciden.', 'code': 'PASSWORD_MISMATCH'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        confirm_recovery_password(data['email'], data['reset_token'], data['new_password'])
+        return Response({'message': 'Contraseña actualizada. Ya puedes iniciar sesión con tu contraseña nueva.'})
 
 
 class OnboardingView(APIView):

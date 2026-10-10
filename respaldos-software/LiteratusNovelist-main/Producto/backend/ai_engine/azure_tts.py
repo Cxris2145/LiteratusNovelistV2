@@ -281,7 +281,8 @@ class SynthesisSession:
             except Exception:
                 pass
 
-    def synthesize(self, ssml):
+    def synthesize(self, ssml, on_words=None):
+        """`on_words(n)` avisa cuántas palabras lleva leídas Azure, a medida que llegan sus tiempos."""
         request_id = uuid.uuid4().hex
         self._send('synthesis.context', 'application/json', self._SYNTHESIS_CONTEXT, request_id)
         self._send('ssml', 'application/ssml+xml', ssml, request_id)
@@ -300,6 +301,8 @@ class SynthesisSession:
                 path = _header_value(raw_headers, 'Path')
                 if path == 'audio.metadata':
                     words.extend(_word_timings(body))
+                    if on_words:
+                        on_words(len(words))
                 elif path == 'turn.end':
                     break
         except TimeoutError as e:

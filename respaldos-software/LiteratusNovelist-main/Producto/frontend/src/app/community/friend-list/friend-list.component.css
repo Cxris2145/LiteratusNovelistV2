@@ -91,3 +91,5 @@
 .fl-menu-icon { margin-right: 10px; font-size: 20px; vertical-align: middle; }
 
 .fl-empty { display: grid; gap: 12px; justify-items: start; }
+
+.fl-who .fl-title { color: var(--th-gold); font-size: .7rem; }

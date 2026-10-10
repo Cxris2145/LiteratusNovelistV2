@@ -1,0 +1,30 @@
+{
+  "checks": [
+    "45 logros cargados desde SQLite; aviso de desbloqueo con premio mostrado al iniciar.",
+    "Aviso marcado como notificado en el backend.",
+    "Ver premio abre la pestaña Colección.",
+    "Equipar un marco desde Colección actualiza el perfil y el menú.",
+    "Quitar marco limpia el perfil.",
+    "Equipar y quitar título desde Colección guarda el texto correcto.",
+    "Los ocho accesorios nuevos se pueden probar en Maguito, incluidos los exclusivos bloqueados.",
+    "El Bazar oculta exclusivos bloqueados y permite usar premios obtenidos.",
+    "Vestir el quinto espacio desbloquea Maguito de Gala y muestra su aviso.",
+    "Marco y título visibles en tarjeta, amigos, ranking y menú de la Taberna.",
+    "Perfil de amigo muestra el mismo marco recibido en su tarjeta.",
+    "El perfil propio muestra el marco equipado."
+  ],
+  "screenshots": [
+    "achievement-unlock.png",
+    "achievements-default-1440.png",
+    "collection-default-1440.png",
+    "achievements-default-390.png",
+    "collection-default-390.png",
+    "achievements-light-gallery-1440.png",
+    "collection-light-gallery-1440.png",
+    "achievements-light-gallery-390.png",
+    "collection-light-gallery-390.png",
+    "tavern-desktop.png"
+  ],
+  "runtimeErrors": [],
+  "overflows": []
+}

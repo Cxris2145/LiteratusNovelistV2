@@ -62,7 +62,7 @@ services:
       - key: FRONTEND_URL
         sync: false                       # https://tu-frontend.vercel.app
 
-      # --- Voz / correo (opcionales, la app funciona sin esto) ---
+      # --- Voz (opcional) ---
       - key: AZURE_SPEECH_KEY
         sync: false                       # Azure -> recurso de Speech (plan F0) -> Claves y punto de conexion
       - key: AZURE_SPEECH_REGION
@@ -71,5 +71,9 @@ services:
         sync: false
       - key: KOKORO_API_URL
         sync: false
+
+      # --- Resend: recuperación de contraseña y verificación de cuentas ---
       - key: EMAIL_HOST_PASSWORD
-        sync: false
+        sync: false                       # API key de Resend; guardarla solo en Render
+      - key: DEFAULT_FROM_EMAIL
+        sync: false                       # Literatus <no-reply@TU-DOMINIO-VERIFICADO>

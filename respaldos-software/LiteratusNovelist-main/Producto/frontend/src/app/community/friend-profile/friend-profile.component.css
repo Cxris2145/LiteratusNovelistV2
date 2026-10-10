@@ -112,3 +112,5 @@
   45% { transform: scaleX(-1) translateX(6px) rotate(18deg); }
   70% { transform: scaleX(-1) rotate(4deg); }
 }
+
+.fp-equipped-title { color: var(--th-gold); margin: 0; font-family: var(--font-display); }

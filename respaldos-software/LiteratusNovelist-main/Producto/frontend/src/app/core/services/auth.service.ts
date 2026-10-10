@@ -1,5 +1,5 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
 
 export interface UserProfile {
@@ -15,6 +15,12 @@ export interface UserProfile {
 }
 
 const USER_KEY = 'user_profile';
+
+export interface PasswordRecoverySession {
+  email: string;
+  token: string;
+  expiresAt: number;
+}
 
 /**
  * Clave de localStorage propia de la cuenta activa (o de la visita sin sesión).
@@ -54,6 +60,8 @@ export class AuthService {
   public readonly currentUser = this._currentUser.asReadonly();
 
   private api = inject(ApiService);
+  // El permiso de recuperación queda solo en memoria, fuera de URLs y localStorage.
+  private passwordRecovery: PasswordRecoverySession | null = null;
 
   constructor() {
     this.dropLegacySharedKeys();
@@ -75,12 +83,28 @@ export class AuthService {
     return this.api.post(`users/verify-email/resend/`, { [field]: identifier });
   }
 
-  requestPasswordReset(email: string): Observable<any> {
+  requestPasswordReset(email: string): Observable<{ message: string; expires_in: number; resend_after: number }> {
+    this.clearPasswordRecovery();
     return this.api.post(`users/password-reset/`, { email });
   }
 
-  confirmPasswordReset(uid: string, token: string, new_password: string): Observable<any> {
-    return this.api.post(`users/password-reset-confirm/`, { uid, token, new_password });
+  verifyPasswordResetCode(email: string, code: string): Observable<{ reset_token: string; expires_in: number }> {
+    return this.api.post<{ reset_token: string; expires_in: number }>(`users/password-reset-verify/`, { email, code }).pipe(
+      tap(res => this.passwordRecovery = { email, token: res.reset_token, expiresAt: Date.now() + res.expires_in * 1000 })
+    );
+  }
+
+  getPasswordRecovery(): PasswordRecoverySession | null {
+    if (this.passwordRecovery && this.passwordRecovery.expiresAt <= Date.now()) this.clearPasswordRecovery();
+    return this.passwordRecovery;
+  }
+
+  clearPasswordRecovery(): void {
+    this.passwordRecovery = null;
+  }
+
+  confirmPasswordReset(email: string, reset_token: string, new_password: string, confirm_password: string): Observable<{ message: string }> {
+    return this.api.post(`users/password-reset-confirm/`, { email, reset_token, new_password, confirm_password });
   }
 
   private loadUserFromStorage(): UserProfile | null {

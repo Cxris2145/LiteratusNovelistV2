@@ -194,3 +194,22 @@ class Profile(TimeStampedModel):
             if update_fields is not None:
                 kwargs['update_fields'] = {*update_fields, 'friend_code'}
         super().save(*args, **kwargs)
+
+
+class PasswordResetChallenge(models.Model):
+    """Una recuperación vigente por cuenta; nunca guarda el código en claro."""
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True,
+                               related_name='password_reset_challenge')
+    email = models.EmailField()
+    nonce = models.CharField(max_length=64)
+    code_digest = models.CharField(max_length=64, blank=True)
+    password_fingerprint = models.CharField(max_length=64)
+    sent_at = models.DateTimeField()
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    request_window_start = models.DateTimeField()
+    request_count = models.PositiveSmallIntegerField(default=1)
+    reset_token_digest = models.CharField(max_length=64, blank=True, default='')
+    verified_expires_at = models.DateTimeField(null=True, blank=True)
+    consumed_at = models.DateTimeField(null=True, blank=True)
