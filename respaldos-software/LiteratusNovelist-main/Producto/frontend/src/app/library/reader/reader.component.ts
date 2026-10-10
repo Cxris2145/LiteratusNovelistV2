@@ -101,6 +101,8 @@ interface ReaderSettings {
   autoScroll: boolean;
   autoScrollSpeed: number;
   sessionMinutes: number;
+  wpm?: number;
+  showReadingTime?: boolean;
 }
 
 /** Voz de Azure que el lector puede elegir para la narración (GET library/inventory/narration-voices/). */
@@ -399,6 +401,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     brightness: 1, highContrast: false, highlightColor: 'gold', doublePage: true, sceneImages: true,
     hideProgress: false, bionic: false, focusMode: 'off', ruler: false, concentration: false,
     longParaSplit: false, tapToScroll: false, autoScroll: false, autoScrollSpeed: 35, sessionMinutes: 0,
+    wpm: 200, showReadingTime: true,
   };
   /** Ajustes previos a "Restablecer", mientras se ofrece "Deshacer". */
   private settingsBeforeReset: ReaderSettings | null = null;
@@ -546,6 +549,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   isNearEnd: boolean = false;
   showBookmarkToast: boolean = false;
 
+  // ── TIEMPO DE LECTURA RESTANTE (ADAPTATIVO) ──────────────────────
+  currentWpm: number = 200;                                     // Palabras por minuto (adaptativo)
+  isWpmAutoCalibrating: boolean = true;                         // Calibración automática según avance
+  showReadingTime: boolean = true;                              // Interruptor visible/oculto
+  remainingReadingTimeText: string = '';                        // 'Te quedan 15 minutos para terminar este capítulo'
+  remainingReadingTimeShort: string = '';                       // '15 min restantes'
+  readingPaceTooltip: string = '';                              // Detalle de velocidad y palabras restantes
+  remainingMinutes: number = 0;                                 // Minutos restantes calculados
+  private lastActivityPaceTs: number = 0;
+  private paceTrackingStartTs: number = 0;
+  private paceTrackingStartWord: number = 0;
+
   // Resaltado temporal de marcador al reanudar lectura (5 segundos)
   private bookmarkHighlightTimer: any = null;
   private activeBookmarkEl: HTMLElement | null = null;
@@ -678,6 +693,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.loadNarrationPrefs();
+    this.initReadingPaceSettings();
 
     // Auto-abrir chat si venimos redirigidos por un personaje
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -1012,7 +1028,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private scrollViewKey(): string {
-    return `${this.isToolbarHidden}|${this.isNearEnd}|${this.showBackToReadingBtn}|${!!this.activeHighlight}|${!!this.activePostIt}`;
+    return `${this.isToolbarHidden}|${this.isNearEnd}|${this.showBackToReadingBtn}|${!!this.activeHighlight}|${!!this.activePostIt}|${this.remainingMinutes}|${this.remainingReadingTimeText}`;
   }
 
   private applyCanvasScroll(el: HTMLElement) {
@@ -1053,6 +1069,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     const bar = document.querySelector('.reading-progress-bar') as HTMLElement | null;
     if (bar) bar.style.width = `${this.chapterScrollPercent}%`;
     this.isNearEnd = scrollPercent >= 0.98 || (scrollHeight - currentScrollTop) < 50 || scrollHeight <= 50;
+
+    this.trackReadingPace(scrollPercent);
+    this.updateRemainingReadingTime(scrollPercent);
 
     // Calcular página decimal exacta (ej. 1.5 significa mitad de capítulo 1)
     const exactPage = (this.currentPage - 1) + scrollPercent;
@@ -1238,8 +1257,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ── HOJA "Aa" — Ajustes de lectura ───────────────────────────────
-  toggleSettings() {
-    this.isSettingsOpen = !this.isSettingsOpen;
+  toggleSettings(tab?: 'texto' | 'apariencia' | 'enfoque') {
+    if (tab) {
+      this.settingsTab = tab;
+      if (!this.isSettingsOpen) {
+        this.isSettingsOpen = true;
+      }
+    } else {
+      this.isSettingsOpen = !this.isSettingsOpen;
+    }
     if (this.isSettingsOpen) {
       this.isTocOpen = false;
       this.isCharPanelOpen = false;
@@ -1339,6 +1365,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       bionic: this.bionicReadingActive, focusMode: this.focusMode, ruler: this.rulerActive,
       concentration: this.concentrationMode, longParaSplit: this.longParaSplit, tapToScroll: this.tapToScrollActive,
       autoScroll: this.autoScrollActive, autoScrollSpeed: this.autoScrollSpeed, sessionMinutes: this.sessionTimerMinutes,
+      wpm: this.currentWpm, showReadingTime: this.showReadingTime,
     };
   }
 
@@ -1374,6 +1401,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.setAutoScrollSpeed(s.autoScrollSpeed);
     if (this.autoScrollActive !== s.autoScroll) this.toggleAutoScroll(s.autoScroll);
     if (this.sessionTimerMinutes !== s.sessionMinutes) this.setSessionTimer(s.sessionMinutes);
+    if (s.wpm !== undefined) this.setManualWpm(s.wpm);
+    if (s.showReadingTime !== undefined) this.toggleShowReadingTime(s.showReadingTime);
   }
 
   resetFontSize() {
@@ -1472,6 +1501,139 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.wordSpacing = Math.min(0.6, Math.max(0, Math.round(v * 100) / 100));
     localStorage.setItem('reader-word-spacing', String(this.wordSpacing));
     this.applyReaderVars();
+  }
+
+  // ── RITMO Y TIEMPO RESTANTE DE LECTURA ────────────────────────────
+  getChapterWordCount(): number {
+    if (this.totalWordCount > 0) return this.totalWordCount;
+    if (this.currentChapterPlainText) {
+      const w = this.currentChapterPlainText.trim().split(/\s+/).filter(Boolean).length;
+      if (w > 0) return w;
+    }
+    const currentChapter = this.chapters[this.currentPage - 1];
+    if (currentChapter?.content_html) {
+      const text = currentChapter.content_html.replace(/<[^>]*>/g, ' ');
+      const w = text.trim().split(/\s+/).filter(Boolean).length;
+      if (w > 0) return w;
+    }
+    return 0;
+  }
+
+  initReadingPaceSettings() {
+    const savedWpm = parseInt(localStorage.getItem('reader-wpm') || '', 10);
+    if (!isNaN(savedWpm) && savedWpm >= 80 && savedWpm <= 500) {
+      this.currentWpm = savedWpm;
+    } else {
+      this.currentWpm = 200;
+    }
+
+    const savedAutoWpm = localStorage.getItem('reader-wpm-auto');
+    if (savedAutoWpm !== null) {
+      this.isWpmAutoCalibrating = savedAutoWpm === 'true';
+    }
+
+    const savedShowRt = localStorage.getItem('reader-show-reading-time');
+    if (savedShowRt !== null) {
+      this.showReadingTime = savedShowRt === 'true';
+    }
+  }
+
+  setManualWpm(wpm: number) {
+    this.currentWpm = Math.max(80, Math.min(500, Math.round(wpm)));
+    this.isWpmAutoCalibrating = false;
+    localStorage.setItem('reader-wpm', String(this.currentWpm));
+    localStorage.setItem('reader-wpm-auto', 'false');
+    this.updateRemainingReadingTime();
+  }
+
+  toggleAutoWpm(enabled?: boolean) {
+    this.isWpmAutoCalibrating = enabled !== undefined ? enabled : !this.isWpmAutoCalibrating;
+    localStorage.setItem('reader-wpm-auto', String(this.isWpmAutoCalibrating));
+    this.updateRemainingReadingTime();
+  }
+
+  toggleShowReadingTime(enabled?: boolean) {
+    this.showReadingTime = enabled !== undefined ? enabled : !this.showReadingTime;
+    localStorage.setItem('reader-show-reading-time', String(this.showReadingTime));
+  }
+
+  initChapterReadingPace() {
+    this.paceTrackingStartTs = Date.now();
+    this.lastActivityPaceTs = Date.now();
+    const progress = this.isDoublePageView
+      ? (this.totalSpreads > 1 ? this.currentSpreadIndex / (this.totalSpreads - 1) : 0)
+      : (this.chapterScrollPercent / 100);
+    const totalWords = this.getChapterWordCount();
+    this.paceTrackingStartWord = Math.round(totalWords * Math.max(0, Math.min(1, progress)));
+    this.updateRemainingReadingTime(progress);
+  }
+
+  trackReadingPace(currentProgressFraction: number) {
+    if (!this.isWpmAutoCalibrating) return;
+    const now = Date.now();
+    const totalWords = this.getChapterWordCount();
+    if (totalWords <= 0) return;
+
+    const currentWord = Math.round(totalWords * Math.max(0, Math.min(1, currentProgressFraction)));
+
+    // Si pasaron más de 25 segundos sin interacción, el usuario pausó la lectura
+    if (this.lastActivityPaceTs > 0 && (now - this.lastActivityPaceTs) > 25000) {
+      this.paceTrackingStartTs = now;
+      this.paceTrackingStartWord = currentWord;
+    }
+    this.lastActivityPaceTs = now;
+
+    const wordsDelta = currentWord - this.paceTrackingStartWord;
+    const elapsedSeconds = (now - this.paceTrackingStartTs) / 1000;
+
+    // Calibración adaptativa tras al menos 15 segundos de lectura activa sostenida y al menos 25 palabras
+    if (elapsedSeconds >= 15 && wordsDelta >= 25) {
+      const measuredWpm = Math.round((wordsDelta / elapsedSeconds) * 60);
+      if (measuredWpm >= 90 && measuredWpm <= 450) {
+        // Media móvil exponencial suave (EMA): 85% inercia + 15% nueva medición
+        this.currentWpm = Math.round(this.currentWpm * 0.85 + measuredWpm * 0.15);
+        this.currentWpm = Math.max(90, Math.min(450, this.currentWpm));
+        localStorage.setItem('reader-wpm', String(this.currentWpm));
+      }
+      this.paceTrackingStartTs = now;
+      this.paceTrackingStartWord = currentWord;
+    }
+  }
+
+  updateRemainingReadingTime(progressFraction?: number) {
+    let progress = progressFraction !== undefined
+      ? progressFraction
+      : (this.isDoublePageView
+          ? (this.totalSpreads > 1 ? this.currentSpreadIndex / (this.totalSpreads - 1) : 0)
+          : (this.chapterScrollPercent / 100));
+    progress = Math.max(0, Math.min(1, progress || 0));
+
+    const totalWords = this.getChapterWordCount();
+    if (totalWords <= 0) {
+      this.remainingReadingTimeText = '';
+      this.remainingReadingTimeShort = '';
+      this.remainingMinutes = 0;
+      return;
+    }
+
+    const remainingWords = Math.max(0, Math.round(totalWords * (1 - progress)));
+    const wpm = Math.max(80, this.currentWpm || 200);
+    const minutes = Math.ceil(remainingWords / wpm);
+    this.remainingMinutes = minutes;
+
+    if (progress >= 0.98 || remainingWords <= 20) {
+      this.remainingReadingTimeText = 'Capítulo completado';
+      this.remainingReadingTimeShort = 'Completado';
+    } else if (minutes <= 1) {
+      this.remainingReadingTimeText = 'Te queda 1 minuto para terminar este capítulo';
+      this.remainingReadingTimeShort = '1 min restante';
+    } else {
+      this.remainingReadingTimeText = `Te quedan ${minutes} minutos para terminar este capítulo`;
+      this.remainingReadingTimeShort = `${minutes} min restantes`;
+    }
+
+    const paceMode = this.isWpmAutoCalibrating ? 'adaptado automáticamente' : 'fijo';
+    this.readingPaceTooltip = `Ritmo: ${this.currentWpm} palabras/min (${paceMode}). Te quedan aprox. ${remainingWords.toLocaleString()} palabras de este capítulo.`;
   }
 
   // ── LECTURA ASISTIDA ──────────────────────────────────────────────
@@ -1966,6 +2128,15 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     const asSpeed = parseFloat(localStorage.getItem('reader-autoscroll-speed') || '');
     if (!isNaN(asSpeed) && asSpeed >= 10 && asSpeed <= 120) this.autoScrollSpeed = asSpeed;
 
+    const savedWpm = parseInt(localStorage.getItem('reader-wpm') || '', 10);
+    if (!isNaN(savedWpm) && savedWpm >= 80 && savedWpm <= 500) this.currentWpm = savedWpm;
+
+    const savedAutoWpm = localStorage.getItem('reader-wpm-auto');
+    if (savedAutoWpm !== null) this.isWpmAutoCalibrating = savedAutoWpm === 'true';
+
+    const savedShowRt = localStorage.getItem('reader-show-reading-time');
+    if (savedShowRt !== null) this.showReadingTime = savedShowRt === 'true';
+
     this.applyReaderVars();
   }
 
@@ -2233,6 +2404,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.totalWordCount = wordCount;
     this.safeChapterHtml = this.sanitizer.bypassSecurityTrustHtml(''); // vaciar el fallback
+    this.initChapterReadingPace();
 
     // Invalidar cualquier renderizado por chunks todavía en curso de un capítulo anterior
     const myRenderToken = ++this.renderToken;
@@ -2986,6 +3158,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       : 1;
     this.chapterScrollPercent = Math.min(100, Math.max(0, Math.round(progress * 100)));
     this.isNearEnd = this.currentSpreadIndex >= this.totalSpreads - 1;
+
+    this.trackReadingPace(progress);
+    this.updateRemainingReadingTime(progress);
 
     const exactPage = (this.currentPage - 1) + (this.totalSpreads > 1 ? (this.currentSpreadIndex / this.totalSpreads) : 0);
     this.saveProgressSubject.next(exactPage);

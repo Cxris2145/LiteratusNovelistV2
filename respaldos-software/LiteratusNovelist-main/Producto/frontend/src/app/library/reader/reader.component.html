@@ -55,6 +55,19 @@
     <div class="reading-progress-bar" [style.width.%]="chapterScrollPercent"></div>
   </div>
 
+  <!-- Pastilla flotante: Tiempo de lectura restante adaptado al ritmo del estudiante -->
+  <div class="reading-time-pill"
+       *ngIf="!isDoublePageView && showReadingTime && remainingReadingTimeText && !concentrationMode"
+       [class.toolbar-hidden]="isToolbarHidden && !isNearEnd"
+       [title]="readingPaceTooltip"
+       (click)="toggleSettings('enfoque')"
+       role="status"
+       aria-live="polite">
+    <span class="material-symbols-rounded pill-icon" aria-hidden="true">schedule</span>
+    <span class="pill-text-full">{{ remainingReadingTimeText }}</span>
+    <span class="pill-text-short">{{ remainingReadingTimeShort }}</span>
+  </div>
+
 
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- OVERLAY COMPARTIDO (click fuera cierra cualquier panel)         -->
@@ -306,6 +319,11 @@
             <span class="switch-text">Línea de progreso<small>Barra fina con tu avance en el capítulo (en lectura continua)</small></span>
             <span class="switch" aria-hidden="true"></span>
           </button>
+          <button type="button" class="switch-row" role="switch" [attr.aria-checked]="showReadingTime"
+                  (click)="toggleShowReadingTime()">
+            <span class="switch-text">Tiempo restante<small>Estima los minutos para terminar el capítulo según tu ritmo</small></span>
+            <span class="switch" aria-hidden="true"></span>
+          </button>
         </section>
       </div>
 
@@ -376,6 +394,29 @@
                      (input)="setAutoScrollSpeed(+$any($event.target).value)">
               <span class="material-symbols-rounded" aria-hidden="true">speed</span>
             </div>
+          </div>
+        </section>
+
+        <section class="sheet-group" aria-labelledby="grp-ritmo">
+          <h3 class="sheet-group-title" id="grp-ritmo">Ritmo de lectura</h3>
+          <div class="sheet-field">
+            <div class="sheet-row">
+              <span class="sheet-row-label">Velocidad de lectura</span>
+              <span class="sheet-value">{{ currentWpm }} ppm</span>
+            </div>
+            <p class="sheet-hint reading-time-hint" *ngIf="remainingReadingTimeText">
+              <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+              <span>{{ remainingReadingTimeText }}</span>
+            </p>
+            <div class="segmented segmented-4" role="group" aria-label="Ajustar ritmo de lectura">
+              <button type="button" [class.on]="currentWpm === 150 && !isWpmAutoCalibrating" (click)="setManualWpm(150)">Lento (150)</button>
+              <button type="button" [class.on]="currentWpm === 200 && !isWpmAutoCalibrating" (click)="setManualWpm(200)">Medio (200)</button>
+              <button type="button" [class.on]="currentWpm === 280 && !isWpmAutoCalibrating" (click)="setManualWpm(280)">Rápido (280)</button>
+              <button type="button" [class.on]="isWpmAutoCalibrating" (click)="toggleAutoWpm()">
+                {{ isWpmAutoCalibrating ? '✓ Auto' : 'Auto' }}
+              </button>
+            </div>
+            <p class="sheet-hint">El modo automático calibra la estimación a tu ritmo real según el avance entre páginas y párrafos.</p>
           </div>
         </section>
 
@@ -1084,7 +1125,12 @@
 
         <!-- Pie de la página derecha: capítulo y "escuchar desde aquí" -->
         <div class="lb-foot lb-foot-right">
-          <span class="lb-chapter-name">{{ chapterTitle }}</span>
+          <span class="lb-chapter-name" [title]="chapterTitle">{{ chapterTitle }}</span>
+          <span class="lb-time-remaining" *ngIf="showReadingTime && remainingReadingTimeText" [title]="readingPaceTooltip" (click)="toggleSettings('enfoque')">
+            <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+            <span class="lb-time-full">{{ remainingReadingTimeText }}</span>
+            <span class="lb-time-short">{{ remainingReadingTimeShort }}</span>
+          </span>
           <button type="button" class="lb-btn" (click)="narrateFromHere()"
                   title="Escuchar desde esta página" aria-label="Escuchar desde esta página">
             <span class="material-symbols-rounded" aria-hidden="true">record_voice_over</span>
@@ -1117,7 +1163,13 @@
       <span class="material-symbols-rounded">chevron_left</span>
       <span class="chapter-nav-txt">Anterior</span>
     </button>
-    <span class="chapter-nav-pos">{{ currentPage }} / {{ totalPages }}</span>
+    <div class="chapter-nav-center">
+      <span class="chapter-nav-pos">{{ currentPage }} / {{ totalPages }}</span>
+      <span class="chapter-nav-time" *ngIf="showReadingTime && remainingReadingTimeText" [title]="readingPaceTooltip">
+        <span class="material-symbols-rounded">schedule</span>
+        <span>{{ remainingReadingTimeShort }}</span>
+      </span>
+    </div>
     <button class="chapter-nav-btn next" (click)="nextPage()"
             [disabled]="currentPage >= totalPages" aria-label="Capítulo siguiente">
       <span class="chapter-nav-txt">Siguiente</span>

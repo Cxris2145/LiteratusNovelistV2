@@ -1,4 +1,4 @@
-﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SISTEMA DE TOKENS DE COLOR â€” CSS Variables por tema
    ConvenciÃ³n de nombres:
      --th-bg-*       : fondos (bg = background)
@@ -5253,6 +5253,111 @@ h2.chapter-heading { font-size: 1.28em; }
 }
 .session-timer-badge .material-symbols-rounded { font-size: 1rem; color: var(--reader-accent, #d4af37); }
 .workbench-container.immersive .session-timer-badge { opacity: 0.55; }
+
+/* ── TIEMPO DE LECTURA RESTANTE (Pastilla flotante Wattpad/Kindle style) ── */
+.reading-time-pill {
+  position: fixed;
+  top: calc(59px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  z-index: 1098;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--reader-surface, var(--th-bg-sidebar, #14261d));
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.28));
+  color: var(--reader-text, #e6ede8);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  user-select: none;
+  transition: top 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reading-time-pill.toolbar-hidden {
+  top: calc(8px + env(safe-area-inset-top, 0px));
+  opacity: 0.88;
+}
+
+.reading-time-pill:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.26);
+  border-color: var(--reader-accent, #d4af37);
+}
+
+.reading-time-pill .pill-icon {
+  font-size: 0.95rem;
+  color: var(--reader-accent, #d4af37);
+}
+
+.reading-time-pill .pill-text-short {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .reading-time-pill {
+    left: 10px;
+    font-size: 0.74rem;
+    padding: 4px 10px;
+    max-width: 200px;
+  }
+  .reading-time-pill .pill-text-full {
+    display: none;
+  }
+  .reading-time-pill .pill-text-short {
+    display: inline;
+  }
+}
+
+.workbench-container.rc-concentration .reading-time-pill {
+  display: none !important;
+}
+
+/* ── Tiempo restante en navegación inferior de capítulo ── */
+.chapter-nav-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chapter-nav-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--reader-accent, #d4af37);
+  font-weight: 600;
+  font-family: var(--font-ui, sans-serif);
+  white-space: nowrap;
+}
+
+.chapter-nav-time .material-symbols-rounded {
+  font-size: 0.85rem;
+}
+
+/* ── Hint de tiempo restante en hoja de ajustes ── */
+.sheet-hint.reading-time-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--reader-accent, #d4af37);
+  font-weight: 600;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.sheet-hint.reading-time-hint .material-symbols-rounded {
+  font-size: 1.05rem;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .back-to-reading-btn { animation: none; }

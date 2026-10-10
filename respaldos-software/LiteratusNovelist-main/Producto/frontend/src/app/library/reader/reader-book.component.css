@@ -374,6 +374,40 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.lb-time-remaining {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--lb-ink) 75%, transparent);
+  background: color-mix(in srgb, var(--lb-ink) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lb-ink) 12%, transparent);
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.lb-time-remaining:hover {
+  background: color-mix(in srgb, var(--lb-ink) 12%, transparent);
+  transform: translateY(-1px);
+}
+.lb-time-remaining .material-symbols-rounded {
+  font-size: 0.88rem;
+  color: var(--reader-accent, #d4af37);
+}
+.lb-time-short {
+  display: none;
+}
+@media (max-width: 900px) {
+  .lb-time-full {
+    display: none;
+  }
+  .lb-time-short {
+    display: inline;
+  }
+}
 
 /* La línea del libro: se arrastra para ir a cualquier página */
 .lb-slider {
