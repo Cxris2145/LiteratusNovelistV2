@@ -33,6 +33,7 @@ import { DemoChatPageComponent } from './characters/demo-chat-page/demo-chat-pag
 import { CategoriesComponent } from './categories/categories.component';
 import { CategoryDetailComponent } from './categories/category-detail/category-detail.component';
 import { FavoritesComponent } from './library/favorites/favorites.component';
+import { FlashcardsComponent } from './library/flashcards/flashcards.component';
 import { MessagesComponent } from './characters/messages/messages.component';
 import { CartComponent } from './catalog/cart/cart.component';
 import { AchievementsComponent } from './library/achievements/achievements.component';
@@ -43,6 +44,7 @@ import { enigmaExitGuard } from './core/guards/enigma-exit.guard';
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'favorites', component: FavoritesComponent, canActivate: [authGuard] },
+  { path: 'flashcards', component: FlashcardsComponent, canActivate: [authGuard] },
   { path: 'achievements', component: AchievementsComponent, canActivate: [authGuard] },
   { path: 'games/enigma', component: EnigmaGameComponent, canDeactivate: [enigmaExitGuard] },
   { path: 'enigma', redirectTo: 'games/enigma', pathMatch: 'full' },

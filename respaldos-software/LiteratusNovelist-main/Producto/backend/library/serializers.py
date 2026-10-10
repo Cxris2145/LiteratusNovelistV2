@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from .models import UserFavorite, UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt, Achievement, UserAchievement, ReadingSession, InkTransaction
-from catalog.models import Book
+from .models import (
+    UserFavorite, UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt,
+    Achievement, UserAchievement, ReadingSession, InkTransaction, UserVocabulary
+)
+from catalog.models import Book, Chapter
 from catalog.serializers import BookListSerializer, EditionSerializer
 
 
@@ -293,3 +296,103 @@ class UserMissionSerializer(serializers.ModelSerializer):
             return 0
         p = (obj.current_count / obj.mission.target_count) * 100
         return min(100, round(p))
+
+
+class UserVocabularySerializer(serializers.ModelSerializer):
+    """
+    Serializador para las tarjetas de vocabulario del usuario.
+    Permite registrar palabras durante la lectura o gestionarlas en modo práctica.
+    """
+    book_title = serializers.CharField(source='book.title', read_only=True)
+    chapter_title = serializers.CharField(source='chapter.title', read_only=True, default='')
+    book_id = serializers.PrimaryKeyRelatedField(
+        queryset=Book.objects.filter(is_published=True),
+        source='book',
+        required=True
+    )
+    chapter_id = serializers.PrimaryKeyRelatedField(
+        queryset=Chapter.objects.all(),
+        source='chapter',
+        required=False,
+        allow_null=True
+    )
+
+    class Meta:
+        model = UserVocabulary
+        fields = [
+            'id',
+            'book_id',
+            'book_title',
+            'chapter_id',
+            'chapter_title',
+            'word',
+            'definition',
+            'context_sentence',
+            'is_learned',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'book_title', 'chapter_title', 'created_at', 'updated_at']
+
+    def validate_book_id(self, book):
+        from catalog.age import ensure_book_access
+        ensure_book_access(self.context['request'].user, book)
+        return book
+
+    def validate_word(self, value):
+        val = value.strip()
+        if not val:
+            raise serializers.ValidationError('La palabra no puede estar vacía.')
+        return val
+
+    def to_internal_value(self, data):
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+        if 'book' in data and 'book_id' not in data:
+            data['book_id'] = data['book']
+        if 'chapter' in data and 'chapter_id' not in data:
+            data['chapter_id'] = data['chapter']
+        return super().to_internal_value(data)
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        book = validated_data['book']
+        word = validated_data['word']
+        chapter = validated_data.get('chapter')
+        definition = validated_data.get('definition', '')
+        context_sentence = validated_data.get('context_sentence', '')
+
+        existing = UserVocabulary.objects.filter(user=user, book=book, word=word).first()
+        if existing:
+            if definition:
+                existing.definition = definition
+            if context_sentence:
+                existing.context_sentence = context_sentence
+            if chapter:
+                existing.chapter = chapter
+            existing.save()
+            return existing
+
+        deleted = (
+            UserVocabulary.all_objects
+            .filter(user=user, book=book, word=word, deleted_at__isnull=False)
+            .order_by('-updated_at')
+            .first()
+        )
+        if deleted:
+            deleted.restore()
+            if definition:
+                deleted.definition = definition
+            if context_sentence:
+                deleted.context_sentence = context_sentence
+            if chapter:
+                deleted.chapter = chapter
+            deleted.is_learned = False
+            deleted.save()
+            return deleted
+
+        validated_data['user'] = user
+        return super().create(validated_data)
+

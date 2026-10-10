@@ -21,7 +21,7 @@ from catalog.models import BookVocabulary, Chapter, ChapterAudio
 
 from .models import (
     UserFavorite, UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt,
-    Achievement, UserAchievement, ReadingSession,
+    Achievement, UserAchievement, ReadingSession, UserVocabulary,
 )
 from .serializers import (
     UserFavoriteSerializer,
@@ -33,6 +33,7 @@ from .serializers import (
     AchievementSerializer,
     UserAchievementSerializer,
     ReadingSessionSerializer,
+    UserVocabularySerializer,
 )
 
 
@@ -179,6 +180,9 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             })
             
         return Response({
+            'book_id': str(book.id),
+            'book_title': book.title,
+            'book_slug': book.slug,
             'has_premium_narration': inventory_item.has_premium_narration,
             'chapters': data
         })
@@ -886,3 +890,81 @@ class DailyRewardViewSet(viewsets.ViewSet):
                 'status': 'unsolved',
                 'can_play': False
             }, status=status.HTTP_200_OK)
+
+
+class UserVocabularyViewSet(viewsets.ModelViewSet):
+    """
+    Controlador para Tarjetas de Vocabulario (Flashcards).
+    Permite:
+    - Guardar una palabra desde el lector (POST).
+    - Listar y filtrar palabras del usuario por libro o estado de aprendizaje (GET).
+    - Obtener tarjetas para el modo práctica (GET /practice/).
+    - Marcar o desmarcar una palabra como aprendida (PATCH /<id>/ o PATCH /<id>/status/).
+    - Eliminar una palabra (DELETE /<id>/).
+    """
+    serializer_class = UserVocabularySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = UserVocabulary.objects.filter(user=user).select_related('book', 'chapter')
+
+        book_id = self.request.query_params.get('book_id')
+        if book_id:
+            qs = qs.filter(book_id=book_id)
+
+        is_learned = self.request.query_params.get('is_learned')
+        if is_learned is not None:
+            if is_learned.lower() in ('true', '1'):
+                qs = qs.filter(is_learned=True)
+            elif is_learned.lower() in ('false', '0'):
+                qs = qs.filter(is_learned=False)
+
+        q = self.request.query_params.get('q')
+        if q:
+            qs = qs.filter(word__icontains=q.strip())
+
+        return qs
+
+    @action(detail=False, methods=['get'])
+    def practice(self, request):
+        """
+        Retorna las tarjetas para el modo práctica.
+        Parámetros:
+        - `book_id`: opcional, UUID del libro
+        - `mode`: 'unlearned' (por defecto), 'all', 'learned'
+        - `shuffle`: 'true' para orden aleatorio
+        """
+        qs = self.get_queryset()
+        mode = request.query_params.get('mode', 'unlearned')
+        if mode == 'unlearned':
+            qs = qs.filter(is_learned=False)
+        elif mode == 'learned':
+            qs = qs.filter(is_learned=True)
+
+        if request.query_params.get('shuffle', 'false').lower() in ('true', '1'):
+            qs = qs.order_by('?')
+        else:
+            qs = qs.order_by('-created_at')
+
+        serializer = self.get_serializer(qs, many=True)
+        return Response({
+            'count': qs.count(),
+            'cards': serializer.data
+        })
+
+    @action(detail=True, methods=['patch'])
+    def status(self, request, pk=None):
+        """
+        Alterna o define el estado 'is_learned' de una tarjeta.
+        """
+        item = self.get_object()
+        if 'is_learned' in request.data:
+            item.is_learned = bool(request.data['is_learned'])
+        else:
+            item.is_learned = not item.is_learned
+        item.save(update_fields=['is_learned', 'updated_at'])
+        serializer = self.get_serializer(item)
+        return Response(serializer.data)
+

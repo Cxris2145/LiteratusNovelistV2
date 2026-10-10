@@ -1,0 +1,298 @@
+<div class="flashcards-wrapper">
+  <!-- Encabezado Principal -->
+  <header class="flashcards-header">
+    <div class="header-nav">
+      <button type="button" class="back-link-btn" (click)="goToLibrary()">
+        <span class="material-symbols-rounded">arrow_back</span>
+        <span>Volver a Mi Biblioteca</span>
+      </button>
+    </div>
+
+    <div class="header-badge">
+      <span class="material-symbols-rounded">style</span>
+      <span>Modo de Estudio</span>
+    </div>
+
+    <h1 class="glow-title">Tarjetas de Vocabulario</h1>
+    <p class="subtitle">
+      Domina y practica las palabras desconocidas recolectadas en tus lecturas mediante repetición activa.
+    </p>
+
+    <!-- Métricas del Vocabulario -->
+    <div class="stats-cards-row" *ngIf="totalCount > 0">
+      <div class="stat-card glass-panel">
+        <span class="stat-icon total"><span class="material-symbols-rounded">menu_book</span></span>
+        <div class="stat-data">
+          <span class="stat-value">{{ totalCount }}</span>
+          <span class="stat-label">Total Palabras</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-panel">
+        <span class="stat-icon pending"><span class="material-symbols-rounded">schedule</span></span>
+        <div class="stat-data">
+          <span class="stat-value">{{ unlearnedCount }}</span>
+          <span class="stat-label">Por Aprender</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-panel">
+        <span class="stat-icon learned"><span class="material-symbols-rounded">check_circle</span></span>
+        <div class="stat-data">
+          <span class="stat-value">{{ learnedCount }}</span>
+          <span class="stat-label">Aprendidas</span>
+        </div>
+      </div>
+
+      <div class="stat-card glass-panel">
+        <span class="stat-icon mastery"><span class="material-symbols-rounded">auto_awesome</span></span>
+        <div class="stat-data">
+          <span class="stat-value">{{ masteryPercentage }}%</span>
+          <span class="stat-label">Dominio</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Filtros y Herramientas -->
+  <section class="toolbar-section glass-panel" *ngIf="!isLoading && totalCount > 0">
+    <div class="filter-tabs">
+      <button type="button" class="tab-btn" [class.active]="filterMode === 'unlearned'" (click)="onFilterChange('unlearned')">
+        Por Aprender ({{ unlearnedCount }})
+      </button>
+      <button type="button" class="tab-btn" [class.active]="filterMode === 'all'" (click)="onFilterChange('all')">
+        Todas ({{ totalCount }})
+      </button>
+      <button type="button" class="tab-btn" [class.active]="filterMode === 'learned'" (click)="onFilterChange('learned')">
+        Aprendidas ({{ learnedCount }})
+      </button>
+    </div>
+
+    <div class="toolbar-actions">
+      <!-- Selector de Libro -->
+      <div class="book-select-wrap" *ngIf="uniqueBooks.length > 1">
+        <span class="material-symbols-rounded select-icon">auto_stories</span>
+        <select class="book-select" [value]="selectedBookId" (change)="onBookChange($any($event.target).value)">
+          <option value="">Todos los libros</option>
+          <option *ngFor="let b of uniqueBooks" [value]="b.id">{{ b.title }}</option>
+        </select>
+      </div>
+
+      <!-- Botón Mezclar -->
+      <button type="button" class="tool-btn" (click)="shuffleCards()" [disabled]="cards.length <= 1" title="Mezclar tarjetas">
+        <span class="material-symbols-rounded">shuffle</span>
+        <span>Mezclar</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Estado de Carga -->
+  <div class="loading-container glass-panel" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Cargando tus tarjetas de vocabulario...</p>
+  </div>
+
+  <!-- Estado de Error -->
+  <div class="error-container glass-panel" *ngIf="!isLoading && errorMsg">
+    <span class="material-symbols-rounded error-icon">error_outline</span>
+    <h3>Ocurrió un error</h3>
+    <p>{{ errorMsg }}</p>
+    <button type="button" class="primary-btn" (click)="loadCards()">Reintentar</button>
+  </div>
+
+  <!-- Estado Vacío (Sin palabras en la selección) -->
+  <div class="empty-state glass-panel" *ngIf="!isLoading && !errorMsg && cards.length === 0">
+    <div class="empty-icon-wrap">
+      <span class="material-symbols-rounded">style</span>
+    </div>
+    <ng-container *ngIf="totalCount === 0; else emptyFiltered">
+      <h3>Tu mazo de vocabulario está vacío</h3>
+      <p>
+        Mientras lees cualquier obra en el lector digital, selecciona una palabra para ver su definición
+        y presiona <strong>«Guardar en Flashcards»</strong> para estudiarla aquí.
+      </p>
+      <button type="button" class="primary-btn" (click)="goToLibrary()">
+        <span class="material-symbols-rounded">menu_book</span>
+        <span>Explorar Mi Biblioteca</span>
+      </button>
+    </ng-container>
+    <ng-template #emptyFiltered>
+      <h3>¡Excelente trabajo!</h3>
+      <p>No hay tarjetas pendientes bajo este filtro seleccionado.</p>
+      <button type="button" class="primary-btn" (click)="onFilterChange('all')">
+        <span>Ver todas las tarjetas</span>
+      </button>
+    </ng-template>
+  </div>
+
+  <!-- ESCENARIO DE FLASHCARD ACTIVA -->
+  <main class="flashcard-stage" *ngIf="!isLoading && !errorMsg && currentCard as card">
+    <!-- Barra de Progreso Superior -->
+    <div class="stage-progress-bar">
+      <div class="progress-info">
+        <span class="progress-label">Tarjeta {{ currentIndex + 1 }} de {{ cards.length }}</span>
+        <span class="progress-percentage">{{ progressPercentage }}%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+      </div>
+    </div>
+
+    <!-- Contenedor 3D de la Tarjeta -->
+    <div class="flashcard-scene" (click)="flipCard()">
+      <div class="flashcard-card" [class.is-flipped]="isFlipped">
+        
+        <!-- CARA FRONTAL (PALABRA) -->
+        <div class="flashcard-face flashcard-front">
+          <div class="card-decor-corner top-left"></div>
+          <div class="card-decor-corner top-right"></div>
+          <div class="card-decor-corner bottom-left"></div>
+          <div class="card-decor-corner bottom-right"></div>
+
+          <!-- Topbar de la cara frontal -->
+          <div class="card-header">
+            <span class="book-badge" title="Libro de origen">
+              <span class="material-symbols-rounded">book</span>
+              <span class="book-name">{{ card.book_title }}</span>
+            </span>
+
+            <div class="card-badges">
+              <span class="learned-status-tag" [class.is-learned]="card.is_learned">
+                <span class="material-symbols-rounded">{{ card.is_learned ? 'check_circle' : 'schedule' }}</span>
+                <span>{{ card.is_learned ? 'Aprendida' : 'Por repasar' }}</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Centro de la cara frontal: La Palabra -->
+          <div class="card-body front-body">
+            <div class="word-container">
+              <h2 class="main-word">{{ card.word }}</h2>
+              <button type="button" class="audio-btn" (click)="speakWord($event)" [disabled]="isSpeaking" title="Escuchar pronunciación">
+                <span class="material-symbols-rounded">{{ isSpeaking ? 'volume_up' : 'volume_down' }}</span>
+              </button>
+            </div>
+            <p class="chapter-hint" *ngIf="card.chapter_title">
+              {{ card.chapter_title }}
+            </p>
+          </div>
+
+          <!-- Footer de la cara frontal -->
+          <div class="card-footer">
+            <div class="flip-hint">
+              <span class="material-symbols-rounded flip-icon">touch_app</span>
+              <span>Haz clic o presiona <strong>Espacio</strong> para voltear</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARA TRASERA (DEFINICIÓN Y CONTEXTO) -->
+        <div class="flashcard-face flashcard-back">
+          <div class="card-decor-corner top-left"></div>
+          <div class="card-decor-corner top-right"></div>
+          <div class="card-decor-corner bottom-left"></div>
+          <div class="card-decor-corner bottom-right"></div>
+
+          <!-- Topbar de la cara trasera -->
+          <div class="card-header">
+            <div class="back-title-wrap">
+              <h3 class="back-word-title">{{ card.word }}</h3>
+              <button type="button" class="audio-btn mini" (click)="speakWord($event)" title="Pronunciación">
+                <span class="material-symbols-rounded">volume_down</span>
+              </button>
+            </div>
+
+            <button type="button" class="delete-card-btn" (click)="deleteCurrentCard($event)" title="Eliminar palabra del mazo">
+              <span class="material-symbols-rounded">delete</span>
+            </button>
+          </div>
+
+          <!-- Centro de la cara trasera -->
+          <div class="card-body back-body">
+            <!-- Definición -->
+            <div class="info-block definition-block">
+              <span class="block-label">
+                <span class="material-symbols-rounded">dictionary</span>
+                <span>Significado</span>
+              </span>
+              <p class="definition-text">
+                {{ card.definition || 'Sin definición guardada aún.' }}
+              </p>
+            </div>
+
+            <!-- Oración de Contexto -->
+            <div class="info-block context-block" *ngIf="card.context_sentence">
+              <span class="block-label">
+                <span class="material-symbols-rounded">format_quote</span>
+                <span>En el relato (contexto original)</span>
+              </span>
+              <blockquote class="context-quote">
+                «{{ card.context_sentence }}»
+              </blockquote>
+              <div class="context-citation">
+                <span class="material-symbols-rounded">auto_stories</span>
+                <span>{{ card.book_title }}<ng-container *ngIf="card.chapter_title"> · {{ card.chapter_title }}</ng-container></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer de la cara trasera: Acción de Estado -->
+          <div class="card-footer back-footer">
+            <button
+              type="button"
+              class="learned-action-btn"
+              [class.is-learned]="card.is_learned"
+              (click)="toggleLearnedStatus($event)"
+              [disabled]="isToggling"
+            >
+              <span class="material-symbols-rounded">
+                {{ card.is_learned ? 'cancel' : 'check_circle' }}
+              </span>
+              <span>
+                {{ card.is_learned ? 'Marcar como Por Aprender' : '¡La sé! Marcar como Aprendida' }}
+              </span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Controles de Navegación del Mazo -->
+    <div class="deck-controls">
+      <button
+        type="button"
+        class="nav-btn prev-btn"
+        (click)="prevCard()"
+        [disabled]="currentIndex === 0"
+        title="Tarjeta anterior (←)"
+      >
+        <span class="material-symbols-rounded">arrow_back</span>
+        <span>Anterior</span>
+      </button>
+
+      <button type="button" class="nav-btn flip-btn" (click)="flipCard()" title="Voltear tarjeta (Espacio)">
+        <span class="material-symbols-rounded">sync</span>
+        <span>Voltear</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-btn next-btn"
+        (click)="nextCard()"
+        [disabled]="currentIndex >= cards.length - 1"
+        title="Siguiente tarjeta (→)"
+      >
+        <span>Siguiente</span>
+        <span class="material-symbols-rounded">arrow_forward</span>
+      </button>
+    </div>
+
+    <!-- Atajos de teclado -->
+    <div class="keyboard-legend">
+      <span><kbd>Espacio</kbd> Voltear</span>
+      <span><kbd>←</kbd> <kbd>→</kbd> Navegar</span>
+      <span><kbd>L</kbd> Alternar aprendida</span>
+    </div>
+  </main>
+</div>

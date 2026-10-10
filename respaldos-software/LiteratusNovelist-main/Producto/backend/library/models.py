@@ -484,3 +484,53 @@ class UserMission(TimeStampedModel):
 
     def __str__(self):
         return f"{self.user.username} - {self.mission.code} ({self.current_count}/{self.mission.target_count})"
+
+
+class UserVocabulary(TimeStampedModel):
+    """
+    Palabra guardada por el usuario durante la lectura para practicar con flashcards.
+    Almacena la palabra, su definición, la oración en la que apareció (contexto),
+    el libro y capítulo de origen, y el estado de aprendizaje.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='vocabulary_words',
+    )
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='user_vocabularies',
+    )
+    chapter = models.ForeignKey(
+        'catalog.Chapter',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_vocabularies',
+    )
+    word = models.CharField(max_length=200)
+    definition = models.TextField(blank=True, default='')
+    context_sentence = models.TextField(blank=True, default='')
+    is_learned = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'User Vocabulary'
+        verbose_name_plural = 'User Vocabularies'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'book', 'word'],
+                condition=models.Q(deleted_at__isnull=True),
+                name='unique_active_user_vocabulary_word',
+                violation_error_message='Esta palabra ya está en tu vocabulario para este libro.',
+            )
+        ]
+        indexes = [
+            models.Index(fields=['user', 'is_learned']),
+            models.Index(fields=['user', 'book']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} — «{self.word}» ({self.book.title})"
+

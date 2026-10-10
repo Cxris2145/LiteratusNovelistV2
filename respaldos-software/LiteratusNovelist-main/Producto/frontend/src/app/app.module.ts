@@ -51,6 +51,7 @@ import { VerifyEmailComponent } from './auth/verify-email/verify-email.component
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
 import { FavoritesComponent } from './library/favorites/favorites.component';
+import { FlashcardsComponent } from './library/flashcards/flashcards.component';
 import { MessagesComponent } from './characters/messages/messages.component';
 import { CartComponent } from './catalog/cart/cart.component';
 import { AssistantWidgetComponent } from './core/components/assistant-widget/assistant-widget.component';
@@ -108,6 +109,7 @@ import { FriendProfileComponent } from './community/friend-profile/friend-profil
     ForgotPasswordComponent,
     ResetPasswordComponent,
     FavoritesComponent,
+    FlashcardsComponent,
     MessagesComponent,
     CartComponent,
     AssistantWidgetComponent,

@@ -1216,6 +1216,9 @@
     <button class="menu-action-btn" (click)="defineWord()">
       <span class="icon">📖</span> Definición
     </button>
+    <button class="menu-action-btn" (click)="saveToVocabulary()">
+      <span class="icon">🗂️</span> Guardar en Flashcards
+    </button>
     <button class="menu-action-btn" (click)="saveBookmark()">
       <span class="icon">🔖</span> Guardar Marcador
     </button>
@@ -1308,7 +1311,12 @@
         </a>
       </div>
       <div *ngIf="!isDictionaryLoading && !dictionaryResult?.error && dictionaryResult">
-        <h5 class="dict-word">{{ dictionaryResult.word }}</h5>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h5 class="dict-word" style="margin:0;">{{ dictionaryResult.word }}</h5>
+          <button type="button" class="glass-btn" style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; font-size:0.8rem; cursor:pointer;" (click)="saveToVocabulary(dictionaryResult)">
+            <span>🗂️ Guardar Flashcard</span>
+          </button>
+        </div>
         <p class="dict-phonetic" *ngIf="dictionaryResult.phonetic">{{ dictionaryResult.phonetic }}</p>
         <div class="dict-meanings">
           <div *ngFor="let meaning of dictionaryResult.meanings" class="dict-meaning">

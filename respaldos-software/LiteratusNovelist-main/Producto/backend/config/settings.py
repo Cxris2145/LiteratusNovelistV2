@@ -26,7 +26,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DEBUG=(bool, True),
 )
-environ.Env.read_env(BASE_DIR / '.env')
+if (BASE_DIR / '.env').exists():
+    environ.Env.read_env(BASE_DIR / '.env')
+elif (BASE_DIR / 'env').exists():
+    environ.Env.read_env(BASE_DIR / 'env')
+
 
 # ---------------------------------------------------------------------------
 # Ajustes de seguridad

@@ -24,6 +24,7 @@ import { ReaderBlock, ReaderToken, WordBounds, parseChapterBlocks, setWordBounds
 import { swapTheme } from '../../core/utils/theme-swap.util';
 import { VocabularyJump } from './vocabulary-panel/vocabulary-panel.component';
 import { NotificationService } from '../../core/services/notification.service';
+import { VocabularyService } from '../../core/services/vocabulary.service';
 
 export interface ProgressData {
   percentage: number;
@@ -149,6 +150,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private favorites = inject(FavoritesService);
   private readerTabs = inject(ReaderTabsService);
   private notificationService = inject(NotificationService);
+  private vocabularyService = inject(VocabularyService);
 
   // ── LECTURA ──────────────────────────────────────────────────────
 
@@ -2229,6 +2231,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       next: (res: any) => {
         if (res && res.chapters && res.chapters.length > 0) {
           this.chapters = res.chapters;
+          if (res.book_id) this._bookIdForSession = res.book_id;
+          if (res.book_title) this.bookTitle = res.book_title;
           this.chapterTextLengths = res.chapters.map((c: any) => this.textLength(c.content_html));
           this.chapterParagraphLengths = res.chapters.map((c: any) => this.paragraphLengths(c.content_html));
           this.hasPremiumNarration = res.has_premium_narration;
@@ -5131,6 +5135,77 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   closeDictionary() {
     this.showDictionaryModal = false;
     this.dictionaryResult = null;
+  }
+
+  saveToVocabulary(dictResult?: any) {
+    const rawWord = (dictResult?.word || this.selectedText || '').trim().split(/\s+/)[0];
+    const word = rawWord.replace(/^[^\wáéíóúÁÉÍÓÚñÑ]+|[^\wáéíóúÁÉÍÓÚñÑ]+$/g, '');
+    if (!word) {
+      this.notificationService.warning('Por favor selecciona una palabra válida.', 'Flashcards');
+      return;
+    }
+
+    const bookId = this._bookIdForSession;
+    if (!bookId) {
+      this.notificationService.error('No se pudo identificar el libro actual.', 'Flashcards');
+      return;
+    }
+
+    const chapter = this.chapters[this.currentPage - 1];
+    const chapterId = chapter?.id || null;
+
+    let contextSentence = '';
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const node = sel.anchorNode;
+      const text = node?.textContent || '';
+      if (text.length > word.length) {
+        const offset = sel.anchorOffset;
+        const before = text.slice(0, offset);
+        const after = text.slice(offset);
+        const startMatch = before.match(/[^.!?]*$/);
+        const endMatch = after.match(/^[^.!?]*/);
+        const start = startMatch ? before.length - startMatch[0].length : 0;
+        const end = endMatch ? offset + endMatch[0].length : text.length;
+        contextSentence = text.slice(start, end).trim();
+      }
+    }
+    if (!contextSentence && this.selectedText) {
+      contextSentence = this.selectedText.trim();
+    }
+
+    let definition = '';
+    const meanings = dictResult?.meanings || this.dictionaryResult?.meanings;
+    if (meanings && meanings.length > 0) {
+      const firstMeaning = meanings[0];
+      const firstDef = firstMeaning?.definitions?.[0]?.definition;
+      if (firstDef) {
+        definition = `(${firstMeaning.partOfSpeech || ''}) ${firstDef}`.trim();
+      }
+    }
+
+    this.vocabularyService.saveWord({
+      book_id: bookId,
+      chapter_id: chapterId,
+      word,
+      definition,
+      context_sentence: contextSentence
+    }).subscribe({
+      next: () => {
+        this.flashToast('🗂️', `«${word}» guardada en Flashcards`);
+        this.notificationService.success(`«${word}» guardada en tus tarjetas de vocabulario.`, 'Flashcards');
+        this.showWordMenu = false;
+        if (dictResult) {
+          this.closeDictionary();
+        }
+      },
+      error: (err) => {
+        this.notificationService.error(
+          err?.error?.message || 'No se pudo guardar la palabra.',
+          'Flashcards'
+        );
+      }
+    });
   }
 
   private syncProgressToBackend(exactPage: number, wordId: string = '') {
