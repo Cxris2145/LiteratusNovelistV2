@@ -1,5 +1,7 @@
 import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { CharacterChatService } from '../../core/services/character-chat.service';
+import { NotebookService } from '../../notebook/notebook.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
@@ -14,6 +16,8 @@ export class LibraryListComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private route = inject(ActivatedRoute);
   public auth = inject(AuthService);
+  private characterChat = inject(CharacterChatService);
+  private notebook = inject(NotebookService);
   getBookPages = getBookPages;
 
   inventoryItems: any[] = [];
@@ -114,6 +118,19 @@ export class LibraryListComponent implements OnInit, OnDestroy {
 
   // ── Resumen del libro (ventana) ───────────────────────────────
   /** La tarjeta entera lleva al lector: el botón del resumen no debe dejar pasar el clic. */
+  /** Conversar con los personajes del libro en la ventana rápida, sin abrir el lector. */
+  openCharacters(item: any, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.characterChat.openForBook(item.id);
+  }
+
+  /** Cuaderno del libro: apuntes propios y sus subrayados, notas y palabras guardadas. */
+  openNotebook(item: any, event: Event): void {
+    event.stopPropagation();
+    if (item?.id) this.notebook.openForBook(String(item.id));
+  }
+
   openSummary(item: any, event: Event): void {
     event.stopPropagation();
     event.preventDefault();

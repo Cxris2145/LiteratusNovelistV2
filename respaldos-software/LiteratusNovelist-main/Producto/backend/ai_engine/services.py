@@ -121,10 +121,49 @@ class AIService:
         base_prompt = f"Eres {self.avatar.name}. \n\nDirectrices:\n{self.avatar.system_prompt}\n"
         if self.avatar.behavioral_context:
             base_prompt += f"\nContexto emocional:\n{self.avatar.behavioral_context}\n"
-        
+
+        base_prompt += self._reader_context()
         base_prompt += "\nREGLA: No digas que eres IA. Mantén la inmersión total."
             
         return base_prompt
+
+    def _reader_context(self):
+        """
+        Hasta dónde leyó el usuario, para que el personaje no adelante la historia (todos los
+        personajes están abiertos desde el capítulo 1). Si ya existe un resumen anti-spoilers
+        listo para ese capítulo, se agrega como lo que el lector ya sabe; nunca se genera uno aquí.
+        """
+        try:
+            from library.models import ReadingProgress
+            from catalog.models import Chapter, ChapterProgressSummary
+            user = getattr(self.session, 'user', None)
+            edition = self.avatar.edition
+            if not user or not edition:
+                return ''
+            book = edition.book
+            titles = list(Chapter.objects.filter(book=book).order_by('order').values_list('title', flat=True))
+            if not titles:
+                return ''
+            page = ReadingProgress.objects.filter(
+                inventory__user=user, inventory__edition=edition
+            ).values_list('current_page', flat=True).first() or 1
+            chapter = min(max(int(page), 1), len(titles))
+            title = titles[chapter - 1]
+            where = f'el capítulo {chapter} de {len(titles)}' + (f' («{title}»)' if title else '')
+            text = (
+                f"\nLECTURA DEL USUARIO: va en {where} de «{book.title}». Habla solo de lo ocurrido hasta ese punto. "
+                "Si te pregunta por algo que pasa después, no lo cuentes: esquívalo con tu propia personalidad "
+                "(por ejemplo, invitándolo a seguir leyendo) sin decir que es un spoiler.\n"
+            )
+            summary = ChapterProgressSummary.objects.filter(
+                book=book, up_to_chapter=chapter, status=ChapterProgressSummary.Status.READY
+            ).values_list('content', flat=True).first()
+            overview = summary.get('overview') if isinstance(summary, dict) else ''
+            if overview:
+                text += f"Lo que el lector ya sabe de la historia: {overview[:1500]}\n"
+            return text
+        except Exception:
+            return ''
 
     def _format_history(self, limit=10):
         history_qs = self.session.messages.order_by('-created_at')[:limit]

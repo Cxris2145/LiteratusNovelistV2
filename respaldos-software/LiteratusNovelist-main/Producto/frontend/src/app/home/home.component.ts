@@ -5,6 +5,7 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, takeUntil } from 'rxjs/operators';
 
 import { ApiService } from '../core/services/api.service';
+import { CharacterChatService } from '../core/services/character-chat.service';
 import { AuthService } from '../core/services/auth.service';
 import { ScrollRevealService } from '../core/services/scroll-reveal.service';
 import { coverThumb } from '../core/utils/cover-thumb.util';
@@ -113,6 +114,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
   public auth = inject(AuthService);
   private router = inject(Router);
+  private characterChat = inject(CharacterChatService);
   private cdr = inject(ChangeDetectorRef);
   private zone = inject(NgZone);
   private host = inject(ElementRef<HTMLElement>);
@@ -453,16 +455,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
       this.router.navigate(['/characters']);
       return;
     }
-    if (!this.isLoggedIn) {
-      this.router.navigate(['/demo-chat', card.id]);
-      return;
-    }
-    this.api.get<any>(`library/inventory/check/?slug=${card.bookSlug}`).subscribe({
-      next: res => res?.owned
-        ? this.router.navigate(['/reader', res.inventory_id], { queryParams: { chatWith: card.id } })
-        : this.router.navigate(['/book', card.bookSlug]),
-      error: () => this.router.navigate(['/book', card.bookSlug])
-    });
+    // Ventana rápida: sin pasar por el lector; con o sin sesión (sin sesión, la demo).
+    this.characterChat.open(card.id);
   }
 
   openRandomBook(): void {

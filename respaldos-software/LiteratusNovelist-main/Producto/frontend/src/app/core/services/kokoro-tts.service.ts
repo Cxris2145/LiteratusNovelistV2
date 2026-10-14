@@ -114,6 +114,15 @@ export class KokoroTtsService {
 
     if (this.downloadPromise) return this.downloadPromise;
 
+    // En celulares (o equipos con poca memoria) el modelo local pesa demasiado: ~2 MB de código
+    // más ~90 MB de modelo y CPU al máximo. Ahí se queda la voz del servidor.
+    const lowEnd = (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches)
+      || ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) < 4;
+    if (lowEnd) {
+      this.error$.next('En este dispositivo se usa la voz del servidor: la voz local necesita un computador.');
+      return;
+    }
+
     this.downloadPromise = (async () => {
       this.isDownloadingModel$.next(true);
       this.downloadProgress$.next(0);

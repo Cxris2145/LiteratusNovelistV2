@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
+import { CharacterChatService } from '../../core/services/character-chat.service';
 import { AuthService, userStorageKey } from '../../core/services/auth.service';
 
 export interface CharacterConversation {
@@ -38,6 +39,7 @@ export class MessagesComponent implements OnInit {
   private api = inject(ApiService);
   public authService = inject(AuthService);
   private router = inject(Router);
+  private characterChat = inject(CharacterChatService);
 
   activeTab: 'characters' | 'notices' = 'characters';
   searchTerm = '';
@@ -258,7 +260,7 @@ export class MessagesComponent implements OnInit {
       localStorage.setItem(userStorageKey('literatus_read_conversations'), JSON.stringify(readMap));
       this.syncUnreadCount();
     }
-    this.router.navigate(['/demo-chat', conv.avatarId]);
+    this.characterChat.open(conv.avatarId);
   }
 
   markNoticeAsRead(notice: SystemNotice): void {

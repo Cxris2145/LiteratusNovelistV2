@@ -534,3 +534,42 @@ class UserVocabulary(TimeStampedModel):
     def __str__(self):
         return f"{self.user.username} — «{self.word}» ({self.book.title})"
 
+
+class NotebookTab(TimeStampedModel):
+    """
+    Pestaña del cuaderno flotante (el botón de cuaderno, como el Bloc de notas de Windows).
+
+    Una pestaña libre no tiene libro; la de un libro (`inventory`) es única por usuario y, además
+    de los apuntes, reúne sus subrayados, post-its y palabras guardadas.
+    `content` es el documento del editor (JSON de TipTap) y `drawing`, los trazos a mano alzada.
+    `revision` sube con cada guardado: una edición basada en una revisión vieja (otro dispositivo
+    guardó antes) se rechaza en vez de pisar lo escrito.
+    """
+    MAX_TABS = 50
+    MAX_CONTENT_CHARS = 400_000     # JSON del documento: unos 100.000 caracteres de texto con formato
+    MAX_DRAWING_CHARS = 1_500_000
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notebook_tabs')
+    inventory = models.ForeignKey(UserInventory, on_delete=models.CASCADE, null=True, blank=True,
+                                  related_name='notebook_tabs')
+    title = models.CharField(max_length=80)
+    position = models.PositiveIntegerField(default=0)
+    content = models.JSONField(default=dict, blank=True)
+    drawing = models.JSONField(default=list, blank=True)
+    revision = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Notebook Tab'
+        verbose_name_plural = 'Notebook Tabs'
+        ordering = ['position', 'created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'inventory'],
+                condition=models.Q(inventory__isnull=False, deleted_at__isnull=True),
+                name='unique_notebook_tab_per_book',
+            )
+        ]
+        indexes = [models.Index(fields=['user', 'position'])]
+
+    def __str__(self):
+        return f"Cuaderno «{self.title}» [{self.user.username}]"

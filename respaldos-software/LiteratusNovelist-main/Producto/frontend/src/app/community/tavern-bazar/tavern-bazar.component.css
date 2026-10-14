@@ -17,9 +17,9 @@
 .bz-drawer {
   position: fixed;
   z-index: 90;
-  top: var(--navbar-h, 182px);
+  top: var(--header-offset, var(--navbar-h, 182px));
   right: 0;
-  bottom: 0;
+  bottom: var(--bottom-nav-h, 0px);
   width: var(--bz-width);
   display: flex;
   flex-direction: column;

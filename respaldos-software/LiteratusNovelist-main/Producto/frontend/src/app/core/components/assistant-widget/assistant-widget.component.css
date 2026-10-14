@@ -310,6 +310,7 @@
 .lit-history-drawer {
   flex: 1 1 auto;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 8px;
 }
 
@@ -485,6 +486,7 @@
 .lit-messages {
   flex: 1 1 auto;
   overflow-y: auto;
+  overscroll-behavior: contain; /* llegar al final no arrastra la página de atrás */
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -673,15 +675,20 @@
     height: 58px;
   }
 
+  /* En el celular el Asistente ocupa toda la pantalla y su barra de escribir queda sobre el
+     teclado: --kb-inset y --vv-top los publica core/utils/keyboard-inset.util.ts. */
   .lit-panel {
-    bottom: 12px;
-    right: 12px;
-    left: 12px;
+    top: var(--vv-top, 0px);
+    bottom: var(--kb-inset, 0px);
+    right: 0;
+    left: 0;
     width: auto;
     max-width: none;
-    height: min(620px, calc(100vh - 88px));
-    height: min(620px, calc(100dvh - 88px));
-    border-radius: 18px;
+    height: auto;
+    max-height: none;
+    border: none;
+    border-radius: 0;
+    padding-top: env(safe-area-inset-top, 0px);
   }
 }
 
@@ -696,7 +703,15 @@
 .lit-bubble, .lit-panel {
   margin-bottom: env(safe-area-inset-bottom, 0px);
 }
-\n
+@media (max-width: 640px) {
+  /* A pantalla completa la barra de escribir lleva el margen de la barra de inicio por dentro. */
+  .lit-panel { margin-bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  :host-context(body.keyboard-open) .lit-panel { padding-bottom: 0; }
+  /* Con la barra inferior de secciones, la burbuja va encima de ella. */
+  :host-context(body.has-bottom-nav) .lit-bubble { bottom: 76px; }
+  :host-context(body.keyboard-open) .lit-bubble { display: none; }
+}
+
 .lit-ephemeral-notice {
   display: flex;
   flex-direction: column;

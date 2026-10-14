@@ -1,0 +1,139 @@
+/* Barra inferior: solo en pantallas angostas (en las anchas está la fila de secciones del encabezado). */
+:host {
+  display: none;
+  --bn-accent: var(--color-accent-text, #FFB353);
+}
+
+@media (max-width: 640px) {
+  :host { display: block; }
+}
+/* Mientras se escribe, la barra no flota sobre el teclado. */
+:host-context(body.keyboard-open) {
+  display: none;
+}
+
+.bn {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: color-mix(in srgb, var(--color-surface, #14291F) 94%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.bn-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 2px;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary, #bbaea0);
+  text-decoration: none;
+  font: 500 11px/1.1 var(--font-ui, system-ui, sans-serif);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bn-item .material-symbols-rounded {
+  font-size: 24px;
+  transition: transform 160ms ease;
+}
+.bn-item.is-active {
+  color: var(--bn-accent);
+}
+.bn-item.is-active .material-symbols-rounded {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.bn-item:active .material-symbols-rounded { transform: scale(0.9); }
+.bn-item:focus-visible { outline: 2px solid var(--color-focus, #FFB353); outline-offset: -4px; border-radius: 12px; }
+.bn-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bn-dot {
+  position: absolute;
+  top: 9px;
+  left: calc(50% + 8px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f43f5e;
+  box-shadow: 0 0 0 2px var(--color-surface, #14291F);
+}
+
+/* ── "Más": hoja desde abajo con el resto de las secciones ── */
+.bn-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 898;
+  background: rgba(3, 10, 18, 0.45);
+  animation: bn-fade 160ms ease-out;
+}
+.bn-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  z-index: 899;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  max-height: calc(100dvh - 140px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 12px 12px;
+  background: var(--color-surface, #14291F);
+  border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.25);
+  animation: bn-rise 220ms cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.bn-grabber {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  margin-left: -18px;
+  border-radius: 2px;
+  background: var(--color-border, rgba(255, 255, 255, 0.2));
+}
+.bn-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--color-text-primary, #fcfaf2);
+  text-decoration: none;
+  font: 500 14px/1.2 var(--font-ui, system-ui, sans-serif);
+  background: color-mix(in srgb, var(--color-text-primary, #fcfaf2) 5%, transparent);
+  -webkit-tap-highlight-color: transparent;
+}
+.bn-sheet-item .material-symbols-rounded { font-size: 22px; color: var(--color-text-secondary, #bbaea0); }
+.bn-sheet-item.is-active { color: var(--bn-accent); }
+.bn-sheet-item.is-active .material-symbols-rounded { color: inherit; }
+.bn-sheet-item:focus-visible { outline: 2px solid var(--color-focus, #FFB353); outline-offset: -2px; }
+.bn-sheet-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@keyframes bn-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bn-rise { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .bn-backdrop, .bn-sheet { animation: none; }
+}

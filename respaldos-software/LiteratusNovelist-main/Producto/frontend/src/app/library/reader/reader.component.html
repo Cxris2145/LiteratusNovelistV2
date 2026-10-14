@@ -14,6 +14,10 @@
                 [attr.aria-pressed]="isCharPanelOpen" [class.active]="isCharPanelOpen">
           <span class="material-symbols-rounded" style="font-size:1.3rem;">group</span>
         </button>
+        <button type="button" class="toc-trigger-btn hdr-book-dup" (click)="notebook.openForBook(inventoryId)"
+                title="Cuaderno de este libro" aria-label="Cuaderno de este libro">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;" aria-hidden="true">stylus_note</span>
+        </button>
         <button class="toc-trigger-btn hdr-book-dup" (click)="toggleAudioPanel()" title="Escuchar (narración por voz)" aria-label="Escuchar"
                 [attr.aria-pressed]="isAudioPanelOpen" [class.active]="isAudioPanelOpen">
           <svg lucideVolume2 [size]="20" class="lucide-icon"></svg>
@@ -26,6 +30,9 @@
         </button>
         <button class="toc-trigger-btn hdr-book-dup" (click)="createPostIt()" title="Pegar un post-it" aria-label="Pegar un post-it">
           <span class="material-symbols-rounded" style="font-size:1.3rem;">sticky_note_2</span>
+        </button>
+        <button class="toc-trigger-btn hdr-book-dup hdr-optional" (click)="openSearch()" title="Buscar en el libro (Ctrl+F)" aria-label="Buscar en el libro">
+          <span class="material-symbols-rounded" style="font-size:1.3rem;">search</span>
         </button>
         <button class="toc-trigger-btn hdr-book-dup hdr-optional" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
           <span class="material-symbols-rounded" style="font-size:1.3rem;">dictionary</span>
@@ -654,6 +661,7 @@
           </p>
         </div>
 
+        <app-ink-day-pass *ngIf="offerPass" [usage]="offerPass" (activated)="onPassActivated()"></app-ink-day-pass>
         <div class="chat-input-box">
           <input type="text"
                  [(ngModel)]="chatInput"
@@ -740,6 +748,10 @@
       </ul>
     </div>
 
+    <button type="button" class="toc-vocab-btn" (click)="openSearch()">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      Buscar en el libro
+    </button>
     <button type="button" class="toc-vocab-btn" (click)="openVocabulary()">
       <span class="material-symbols-rounded" aria-hidden="true">dictionary</span>
       Vocabulario del libro
@@ -990,6 +1002,10 @@
                   title="Personajes IA" aria-label="Personajes">
             <span class="material-symbols-rounded" aria-hidden="true">group</span>
           </button>
+          <button type="button" class="lb-btn" (click)="notebook.openForBook(inventoryId)"
+                  title="Cuaderno de este libro: tus apuntes, subrayados, notas y palabras" aria-label="Cuaderno de este libro">
+            <span class="material-symbols-rounded" aria-hidden="true">stylus_note</span>
+          </button>
         </div>
 
         <!-- Cabecera de la página izquierda: título y autor, como en un libro impreso -->
@@ -1024,6 +1040,9 @@
           <button type="button" class="lb-btn" (click)="createPostIt()"
                   title="Pegar un post-it en esta página" aria-label="Pegar un post-it en esta página">
             <span class="material-symbols-rounded" aria-hidden="true">sticky_note_2</span>
+          </button>
+          <button type="button" class="lb-btn" (click)="openSearch()" title="Buscar en el libro (Ctrl+F)" aria-label="Buscar en el libro">
+            <span class="material-symbols-rounded" aria-hidden="true">search</span>
           </button>
           <button type="button" class="lb-btn" (click)="openVocabulary()" title="Vocabulario del libro" aria-label="Vocabulario del libro">
             <span class="material-symbols-rounded" aria-hidden="true">dictionary</span>
@@ -1142,7 +1161,9 @@
                  (change)="onBookSliderChange($any($event.target).value)"
                  aria-label="Ir a una página del libro"
                  [attr.aria-valuetext]="'Página ' + bookPageCurrent + ' de ' + bookPageTotal">
-          <span class="lb-page-label" aria-live="polite">{{ sliderPreviewLabel || (bookPageCurrent + ' de ' + bookPageTotal) }}</span>
+          <span class="lb-page-label" aria-live="polite">{{ sliderPreviewLabel || (bookPageCurrent + ' de ' + bookPageTotal) }}<span
+                class="lb-time-inline" *ngIf="showReadingTime && remainingReadingTimeShort && !sliderPreviewLabel"
+                (click)="toggleSettings('enfoque')"> · {{ remainingReadingTimeShort }}</span></span>
         </div>
 
         <!-- Pie de la página derecha: capítulo y "escuchar desde aquí" -->
@@ -1381,6 +1402,15 @@
                         (closed)="isVocabularyOpen = false">
   </app-vocabulary-panel>
 
+  <!-- BUSCAR EN EL LIBRO -->
+  <app-book-search-panel *ngIf="isSearchOpen"
+                         [bookTitle]="bookTitle"
+                         [chapters]="chapters"
+                         [pageLabel]="vocabularyPageLabel"
+                         (jump)="goToSearchResult($event)"
+                         (closed)="isSearchOpen = false">
+  </app-book-search-panel>
+
   <!-- OVERLAY DE CARGA (Maguito animado por partes) -->
   <div class="reader-loading-overlay glass-panel" [class.hidden]="!isOverlayActive">
     <div class="reader-loading-content">
@@ -1429,6 +1459,34 @@
         (currentAudioMode === 'native-android' && (nativeTts.isSpeaking$ | async)) || 
         (currentAudioMode !== 'kokoro' && currentAudioMode !== 'native-android' && (audioService.isPlaying$ | async))
       )">pause</span>
+    </button>
+  </div>
+
+  <!-- RESULTADOS DE LA BÚSQUEDA: se recorren sin volver a abrir la lista -->
+  <div class="search-results-bar" *ngIf="bookSearch.isActive && !isSearchOpen" role="toolbar" aria-label="Resultados de la búsqueda">
+    <button type="button" class="srb-main" (click)="openSearch()" title="Ver la lista de resultados">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <span class="srb-query">{{ bookSearch.query }}</span>
+      <span class="srb-count" aria-live="polite">
+        @if (bookSearch.activeIndex >= 0) {
+          {{ bookSearch.activeIndex + 1 }} de {{ bookSearch.results.length }}{{ bookSearch.isTruncated ? '+' : '' }}
+        } @else {
+          {{ bookSearch.results.length }}{{ bookSearch.isTruncated ? '+' : '' }} resultados
+        }
+      </span>
+    </button>
+    <button type="button" class="srb-btn" (click)="stepSearchResult(-1)" title="Resultado anterior" aria-label="Resultado anterior">
+      <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_up</span>
+    </button>
+    <button type="button" class="srb-btn" (click)="stepSearchResult(1)" title="Resultado siguiente" aria-label="Resultado siguiente">
+      <span class="material-symbols-rounded" aria-hidden="true">keyboard_arrow_down</span>
+    </button>
+    <button type="button" class="srb-btn" *ngIf="bookSearch.origin" (click)="returnFromSearch()"
+            title="Volver a donde estaba" aria-label="Volver a donde estaba">
+      <span class="material-symbols-rounded" aria-hidden="true">undo</span>
+    </button>
+    <button type="button" class="srb-btn" (click)="closeSearch()" title="Terminar la búsqueda" aria-label="Terminar la búsqueda">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
     </button>
   </div>
 
@@ -1506,7 +1564,7 @@
           Resumen hasta donde voy
         </h3>
         <p class="summary-modal-subtitle">
-          Recopilación de los capítulos 1 al {{ currentPage }} de <em>{{ bookTitle || 'este libro' }}</em>.
+          Recopilación de los capítulos 1 al {{ summaryUpToChapter }} de <em>{{ bookTitle || 'este libro' }}</em>.
           No incluye ningún detalle de capítulos posteriores.
         </p>
       </div>
@@ -1572,7 +1630,7 @@
           <div class="summary-section" *ngIf="progressSummary.characters_status?.length">
             <h4 class="summary-section-label">
               <span class="material-symbols-rounded">groups</span>
-              Estado de los personajes al capítulo {{ currentPage }}
+              Estado de los personajes al capítulo {{ summaryUpToChapter }}
             </h4>
             <div class="summary-characters-grid">
               <div class="summary-character-card" *ngFor="let char of progressSummary.characters_status">

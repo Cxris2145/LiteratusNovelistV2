@@ -1,7 +1,7 @@
 <div class="hub-container">
 
   <!-- 1. HERO CAROUSEL (Personajes al azar destacados) -->
-  <section class="hero-section" *ngIf="!isLoading || heroCharacters.length > 0">
+  <section class="hero-section" *ngIf="!isSearching && heroCharacters.length > 0">
     <div class="hero-carousel">
       <div class="hero-slide" *ngFor="let char of heroCharacters; let i = index; trackBy: trackById"
         [class.active]="i === currentHeroIndex">
@@ -19,7 +19,7 @@
           <div class="hero-content">
             <span class="hero-badge">Destacado</span>
             <h1 class="hero-name">{{ char.name }}</h1>
-            <p class="hero-book">{{ char.book_title }}</p>
+            <p class="hero-book">{{ bookLabel(char) }}</p>
             <p class="hero-desc">{{ char.excerpt }}</p>
             <div class="hero-actions">
               <button class="btn-primary" (click)="openChat(char)">
@@ -31,7 +31,7 @@
           <div class="hero-image-container">
              <img [src]="char.portrait" [alt]="char.name" class="hero-portrait"
                decoding="async" width="480" height="640"
-               (error)="onImgError($event)">
+               (error)="onImgError($event, char.avatar_image_url)">
           </div>
         </div>
       </div>
@@ -43,6 +43,11 @@
       </div>
     </div>
   </section>
+
+  <!-- Mientras cargan los personajes el hero guarda su alto: sin él, la búsqueda quedaba
+       metida bajo el menú y saltaba hacia abajo al llegar los datos. -->
+  <section class="hero-section hero-skeleton" *ngIf="!isSearching && isLoading && heroCharacters.length === 0"
+    aria-hidden="true"></section>
 
   <!-- 2. SEARCH BAR -->
   <section class="search-section">
@@ -59,23 +64,33 @@
   <!-- 3. RESULTADOS DE BÚSQUEDA -->
   <section class="results-section" *ngIf="isSearching">
     <h2 class="section-title">Resultados de "{{ searchQuery }}"</h2>
+    <p class="section-subtitle" *ngIf="searchTotal && !isLoading">
+      {{ searchTotal }} {{ searchTotal === 1 ? 'personaje' : 'personajes' }} · mostrando {{ filteredCharacters.length }}
+    </p>
     <div class="character-grid">
       <div class="char-card premium-card" *ngFor="let char of filteredCharacters; trackBy: trackById"
-        (click)="openChat(char)">
+        (click)="openChat(char)" role="button" tabindex="0"
+          (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
         <div class="card-img-wrapper">
           <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
-            loading="lazy" decoding="async" width="240" height="240"
-            (error)="onImgError($event)">
+            loading="lazy" decoding="async" width="300" height="375"
+            (error)="onImgError($event, char.avatar_image_url)">
           <div class="overlay-gradient"></div>
         </div>
         <div class="card-content">
           <h3 class="char-name">{{ char.name }}</h3>
-          <p class="book-origin">{{ char.book_title }}</p>
+          <p class="book-origin">{{ bookLabel(char) }}</p>
         </div>
       </div>
       <div class="no-results" *ngIf="filteredCharacters.length === 0 && !isLoading">
         <p>No se encontraron personajes que coincidan con tu búsqueda.</p>
       </div>
+    </div>
+
+    <!-- La búsqueda también carga más al bajar (antes se quedaba en los primeros 48). -->
+    <div #scrollSentinel class="scroll-sentinel" *ngIf="!isLoading"></div>
+    <div class="loading-more" *ngIf="isLoadingMore">
+      <span class="spinner"></span> Cargando más resultados...
     </div>
   </section>
 
@@ -89,11 +104,12 @@
       </div>
       <div class="horizontal-scroll stagger-group">
         <div class="char-card mini-card has-enter-sheen" *ngFor="let char of recentCharacters; trackBy: trackById"
-          (click)="openChat(char)">
+          (click)="openChat(char)" role="button" tabindex="0"
+          (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
-              loading="lazy" decoding="async" width="200" height="160"
-              (error)="onImgError($event)">
+              loading="lazy" decoding="async" width="160" height="200"
+              (error)="onImgError($event, char.avatar_image_url)">
             <div class="overlay-gradient"></div>
           </div>
           <div class="card-content">
@@ -112,11 +128,12 @@
 
       <div class="horizontal-scroll stagger-group" *ngIf="!isLoading">
         <div class="char-card premium-card has-enter-sheen" *ngFor="let char of featuredCharacters; trackBy: trackById"
-          (click)="openChat(char)">
+          (click)="openChat(char)" role="button" tabindex="0"
+          (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
-              loading="lazy" decoding="async" width="240" height="240"
-              (error)="onImgError($event)">
+              loading="lazy" decoding="async" width="300" height="375"
+              (error)="onImgError($event, char.avatar_image_url)">
             <div class="overlay-gradient"></div>
             <div class="trend-overlay">
               <span class="chat-count"><svg lucideUsers [size]="14" class="lucide-icon inline-icon"></svg> {{ char.chat_count || 0 }}</span>
@@ -124,7 +141,7 @@
           </div>
           <div class="card-content">
             <h3 class="char-name">{{ char.name }}</h3>
-            <p class="book-origin">{{ char.book_title }}</p>
+            <p class="book-origin">{{ bookLabel(char) }}</p>
             <div class="badges-container">
               <span class="badge" *ngFor="let tag of char.tags; trackBy: trackByTag">{{ tag }}</span>
             </div>
@@ -147,23 +164,24 @@
     <!-- EXPLORAR TODOS -->
     <section class="hub-section reveal-section">
       <div class="section-header">
-        <h2 class="section-title"><span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Todos los Personajes</h2>
+        <h2 class="section-title"><span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Más personajes</h2>
         <p class="section-subtitle" *ngIf="totalCount">
-          Mostrando {{ allCharacters.length }} de {{ totalCount }}.
+          {{ allCharacters.length }} de {{ totalCount }} personajes únicos cargados.
         </p>
       </div>
       <div class="character-grid stagger-group">
-        <div class="char-card premium-card has-enter-sheen" *ngFor="let char of allCharacters; trackBy: trackById"
-          (click)="openChat(char)">
+        <div class="char-card premium-card has-enter-sheen" *ngFor="let char of catalogCharacters; trackBy: trackById"
+          (click)="openChat(char)" role="button" tabindex="0"
+          (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
-              loading="lazy" decoding="async" width="240" height="240"
-              (error)="onImgError($event)">
+              loading="lazy" decoding="async" width="300" height="375"
+              (error)="onImgError($event, char.avatar_image_url)">
             <div class="overlay-gradient"></div>
           </div>
           <div class="card-content">
             <h3 class="char-name">{{ char.name }}</h3>
-            <p class="book-origin">{{ char.book_title }}</p>
+            <p class="book-origin">{{ bookLabel(char) }}</p>
           </div>
         </div>
       </div>
@@ -179,3 +197,17 @@
   </ng-container>
 
 </div>
+
+<ng-template #bookPicker let-character let-dialogRef="dialogRef">
+  <div class="book-picker">
+    <div class="book-picker-header">
+      <h2>{{ character.name }}</h2>
+      <button class="book-picker-close" (click)="dialogRef.close()" aria-label="Cerrar selector de libros">Cerrar</button>
+    </div>
+    <p>Elige la obra para conversar con este personaje.</p>
+    <div class="book-picker-list">
+      <button class="book-choice" *ngFor="let work of character.works"
+        (click)="dialogRef.close(work.avatar_id)">{{ work.book_title }}</button>
+    </div>
+  </div>
+</ng-template>

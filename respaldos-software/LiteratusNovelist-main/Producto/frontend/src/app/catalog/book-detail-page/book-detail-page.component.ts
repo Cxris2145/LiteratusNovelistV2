@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, inject, ViewChild, ElementRef, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
+import { CharacterChatService } from '../../core/services/character-chat.service';
 import { AuthService } from '../../core/services/auth.service';
 import { LiyumiService } from '../../core/services/liyumi.service';
 import { ChatService } from '../../core/services/chat.service';
@@ -33,6 +34,7 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   private chatService = inject(ChatService);
   private notificationService = inject(NotificationService);
   public auth = inject(AuthService);
+  private characterChat = inject(CharacterChatService);
 
   slug: string | null = null;
   book: any = null;
@@ -266,6 +268,13 @@ handleAction(): void {
   closeAvatarModal(): void {
     this.selectedAvatar = null;
     document.body.style.overflow = '';
+  }
+
+  /** Conversar con el personaje en la ventana rápida, sin abrir el libro. */
+  chatWithAvatar(avatar: any): void {
+    if (!avatar?.id) return;
+    this.closeAvatarModal();
+    this.characterChat.open(avatar.id);
   }
 
   downloadPDF(): void {

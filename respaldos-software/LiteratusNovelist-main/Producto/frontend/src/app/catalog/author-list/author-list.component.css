@@ -430,3 +430,24 @@
     font-size: 16px;
   }
 }
+
+/* CELULAR: dos autores por fila (antes, un retrato de 250 px y una biografía por pantalla). */
+@media (max-width: 640px) {
+  .authors-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .author-image-wrapper { height: 150px; }
+  .book-badge { padding: 4px 8px; font-size: 0.8rem; }
+  .author-info { padding: 12px; }
+  .author-name { font-size: 1.05rem; line-height: 1.2; }
+  .author-nationality { font-size: 0.75rem; }
+  .author-bio {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

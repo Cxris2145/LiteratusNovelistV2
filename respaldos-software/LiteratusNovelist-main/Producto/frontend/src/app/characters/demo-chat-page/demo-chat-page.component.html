@@ -164,6 +164,7 @@
 
       <!-- Limit reached banner -->
       <app-ai-usage-meter *ngIf="sessionId" [sessionId]="sessionId"></app-ai-usage-meter>
+      <app-ink-day-pass *ngIf="offerPass" [usage]="offerPass" (activated)="onPassActivated()"></app-ink-day-pass>
       <p role="alert" *ngIf="chatError">{{ chatError }}</p>
       <div class="dchat-limit-banner" *ngIf="limitReached">
         <span class="material-symbols-rounded">lock</span>
@@ -184,6 +185,7 @@
           </button>
           <textarea
             class="dchat-input"
+            enterkeyhint="send"
             [(ngModel)]="inputText"
             (keydown)="onKeydown($event)"
             [placeholder]="isCallMode ? 'Escribe o habla por el micrófono...' : ('Escribe algo a ' + avatar.name + '...')"

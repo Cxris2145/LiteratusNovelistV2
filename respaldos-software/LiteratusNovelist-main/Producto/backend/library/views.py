@@ -4,6 +4,8 @@ library/views.py — Vistas para la Biblioteca del Usuario.
 import re
 import uuid
 
+from django.db import IntegrityError, transaction
+from django.db.models import Max
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
@@ -21,7 +23,7 @@ from catalog.models import BookVocabulary, Chapter, ChapterAudio
 
 from .models import (
     UserFavorite, UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt,
-    Achievement, UserAchievement, ReadingSession, UserVocabulary,
+    Achievement, UserAchievement, ReadingSession, UserVocabulary, NotebookTab,
 )
 from .serializers import (
     UserFavoriteSerializer,
@@ -34,6 +36,8 @@ from .serializers import (
     UserAchievementSerializer,
     ReadingSessionSerializer,
     UserVocabularySerializer,
+    NotebookTabListSerializer,
+    NotebookTabSerializer,
 )
 
 
@@ -278,6 +282,12 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         from catalog.reading_summary import get_or_create_reading_summary
         result = get_or_create_reading_summary(book, up_to_chapter, user=request.user)
         return Response(result)
+
+    @action(detail=True, methods=['GET'], url_path='notebook-digest')
+    def notebook_digest(self, request, pk=None):
+        """Lo que el cuaderno muestra en la pestaña de un libro: subrayados, post-its y palabras."""
+        from .notebook import build_digest
+        return Response(build_digest(self.get_object()))
 
     @action(detail=False, methods=['GET'], url_path='check')
     def check_ownership(self, request):
@@ -968,3 +978,87 @@ class UserVocabularyViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(item)
         return Response(serializer.data)
 
+
+class NotebookTabViewSet(viewsets.ModelViewSet):
+    """
+    Pestañas del cuaderno flotante.
+
+    - GET    /notebook/            pestañas sin contenido · POST crea una pestaña libre
+    - GET    /notebook/<id>/       pestaña completa
+    - PATCH  /notebook/<id>/       guarda; exige `base_revision` y responde 409 si otro
+                                   dispositivo guardó antes (devuelve la versión actual)
+    - DELETE /notebook/<id>/       borra la pestaña
+    - POST   /notebook/for-book/   abre (o crea) la pestaña de un libro: {inventory}
+    - POST   /notebook/reorder/    nuevo orden de las pestañas: {ids: [...]}
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_queryset(self):
+        return (NotebookTab.objects.filter(user=self.request.user)
+                .select_related('inventory__edition__book').order_by('position', 'created_at'))
+
+    def get_serializer_class(self):
+        return NotebookTabListSerializer if self.action == 'list' else NotebookTabSerializer
+
+    def _check_room(self):
+        if NotebookTab.objects.filter(user=self.request.user).count() >= NotebookTab.MAX_TABS:
+            raise PermissionDenied(f'Puedes tener hasta {NotebookTab.MAX_TABS} pestañas. Cierra alguna para abrir otra.')
+
+    def _next_position(self):
+        last = NotebookTab.objects.filter(user=self.request.user).aggregate(last=Max('position'))['last']
+        return 0 if last is None else last + 1
+
+    def perform_create(self, serializer):
+        self._check_room()
+        serializer.save(user=self.request.user, position=self._next_position(),
+                        title=serializer.validated_data.get('title') or 'Sin título')
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            base_revision = int(request.data.get('base_revision'))
+        except (TypeError, ValueError):
+            return Response({'detail': 'Falta la revisión de la pestaña.'}, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            tab = get_object_or_404(self.get_queryset().select_for_update(of=('self',)), pk=kwargs['pk'])
+            if tab.revision != base_revision:
+                return Response({'detail': 'Esta pestaña se guardó desde otro lugar.',
+                                 'tab': NotebookTabSerializer(tab).data}, status=status.HTTP_409_CONFLICT)
+            serializer = NotebookTabSerializer(tab, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(revision=tab.revision + 1)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['POST'], url_path='for-book')
+    def for_book(self, request):
+        try:
+            inventory = UserInventory.objects.select_related('edition__book').get(
+                pk=uuid.UUID(str(request.data.get('inventory'))), user=request.user, is_active=True)
+        except (ValueError, UserInventory.DoesNotExist):
+            raise Http404
+        ensure_book_access(request.user, inventory.edition.book)
+        tab = self.get_queryset().filter(inventory=inventory).first()
+        if tab is None:
+            self._check_room()
+            try:
+                with transaction.atomic():
+                    tab = NotebookTab.objects.create(
+                        user=request.user, inventory=inventory, position=self._next_position(),
+                        title=inventory.edition.book.title[:80] or 'Libro')
+            except IntegrityError:  # otra pestaña del navegador la creó al mismo tiempo
+                tab = self.get_queryset().get(inventory=inventory)
+        return Response(NotebookTabSerializer(tab).data)
+
+    @action(detail=False, methods=['POST'], url_path='reorder')
+    def reorder(self, request):
+        ids = request.data.get('ids')
+        if not isinstance(ids, list) or len(ids) > NotebookTab.MAX_TABS:
+            return Response({'detail': 'Orden inválido.'}, status=status.HTTP_400_BAD_REQUEST)
+        tabs = {str(tab.pk): tab for tab in self.get_queryset()}
+        for position, tab_id in enumerate(ids):
+            tab = tabs.get(str(tab_id))
+            if tab is not None and tab.position != position:
+                tab.position = position
+                tab.save(update_fields=['position', 'updated_at'])
+        return Response(NotebookTabListSerializer(self.get_queryset(), many=True).data)

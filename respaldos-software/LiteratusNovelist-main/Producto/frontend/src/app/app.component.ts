@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, HostListener } from '@angular/core';
+import { Component, ComponentRef, ElementRef, inject, NgZone, OnInit, HostListener, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { ApiService } from './core/services/api.service';
 import { AuthService, userStorageKey } from './core/services/auth.service';
@@ -20,6 +20,10 @@ import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialo
 import { SpeechRecognitionService } from './core/services/speech-recognition.service';
 import { QUICK_GENRES } from './core/components/main-nav/nav-genres';
 import { firstTimeThisSession } from './core/components/main-nav/main-nav.component';
+import { watchKeyboard } from './core/utils/keyboard-inset.util';
+import { CharacterChatService } from './core/services/character-chat.service';
+import { ScrollRevealService } from './core/services/scroll-reveal.service';
+import { NotebookService } from './notebook/notebook.service';
 
 @Component({
   selector: 'app-root',
@@ -49,7 +53,44 @@ export class AppComponent implements OnInit {
   /** Partida de La Senda en modo concentración: sin header ni asistente (tapaba la bandeja). */
   isPlayingLevel = false;
   isNavBubblesHidden = false;
-  private lastScrollTop = 0;
+
+  // ── Encabezado que se esconde al bajar (celular) ──
+  private readonly zone = inject(NgZone);
+  private readonly hostEl: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private headerEl: HTMLElement | null = null;
+  private headerObserver: ResizeObserver | null = null;
+  private headerMeasureFrame: number | null = null;
+  private headerHidden = false;
+  private lastScrollY = 0;
+
+  @ViewChild('mainHeader') set mainHeaderRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.observeHeader(ref?.nativeElement || null);
+  }
+
+  /** Revela al hacer scroll las secciones .reveal-section/.stagger-group de cualquier página
+   *  (re-escanea tras cada navegación). Se crea aquí para que exista desde el primer momento. */
+  private readonly scrollReveal = inject(ScrollRevealService);
+
+  // ── Ventana rápida de chat con personajes ──
+  private readonly characterChat = inject(CharacterChatService);
+  @ViewChild('chatSheetHost', { read: ViewContainerRef, static: true }) private chatSheetHost!: ViewContainerRef;
+  private chatSheet: Promise<ComponentRef<unknown>> | null = null;
+
+  /** El código de la ventana se descarga solo cuando alguien abre un chat. */
+  private ensureChatSheet() {
+    this.chatSheet ??= import('./characters/chat-sheet/chat-sheet.component')
+      .then(m => this.chatSheetHost.createComponent(m.ChatSheetComponent));
+  }
+
+  // ── Cuaderno flotante (editor, dibujo y PDF se descargan al abrirlo por primera vez) ──
+  private readonly notebook = inject(NotebookService);
+  @ViewChild('notebookHost', { read: ViewContainerRef, static: true }) private notebookHost!: ViewContainerRef;
+  private notebookWindow: Promise<ComponentRef<unknown>> | null = null;
+
+  private ensureNotebookWindow() {
+    this.notebookWindow ??= import('./notebook/notebook-window/notebook-window.component')
+      .then(m => this.notebookHost.createComponent(m.NotebookWindowComponent));
+  }
   
   // Unified Notifications & Toasts
   notifications: AppNotification[] = [];
@@ -114,7 +155,80 @@ export class AppComponent implements OnInit {
         this.isEnigma = url.includes('enigma');
         this.isTavernHall = /^\/tavern\/?(?:[?#]|$)/.test(url);
         this.isPlayingLevel = url.startsWith('/learn/play') || url.startsWith('/learn/skip');
+        // La barra inferior (celular) se muestra donde se ve el encabezado de la tienda.
+        document.body.classList.toggle('has-bottom-nav', !this.isDashboard && !this.isPlayingLevel);
+        this.setHeaderHidden(false);
       });
+    this.zone.runOutsideAngular(() => {
+      window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+      watchKeyboard();
+    });
+    this.characterChat.request$.subscribe(request => {
+      if (request) this.ensureChatSheet();
+    });
+    this.notebook.visibility$.subscribe(visibility => {
+      if (visibility !== 'closed' && this.authService.isLoggedIn()) this.ensureNotebookWindow();
+    });
+  }
+
+  /**
+   * En el celular el encabezado ocupaba un cuarto de la pantalla: se esconde al bajar y vuelve
+   * al subir. Corre fuera de Angular (sin detección de cambios en cada scroll) y no se esconde
+   * con el buscador enfocado, un menú abierto o cerca del inicio de la página.
+   */
+  private onWindowScroll = () => {
+    const y = window.scrollY;
+    const delta = y - this.lastScrollY;
+    this.lastScrollY = y;
+    if (!this.headerEl || window.innerWidth > 768 || y < 120) {
+      this.setHeaderHidden(false);
+      return;
+    }
+    if (Math.abs(delta) < 6) return;
+    const busy = this.headerEl.contains(document.activeElement) || this.profileMenuOpen || this.showPredictions;
+    this.setHeaderHidden(delta > 0 && !busy);
+  };
+
+  private setHeaderHidden(hidden: boolean) {
+    if (hidden === this.headerHidden) return;
+    this.headerHidden = hidden;
+    this.headerEl?.classList.toggle('header-hidden', hidden);
+    // Lo que se pega bajo el encabezado (top: var(--header-offset, var(--navbar-h))) sube con él.
+    if (hidden) this.hostEl.style.setProperty('--header-offset', '0px');
+    else this.hostEl.style.removeProperty('--header-offset');
+  }
+
+  /** El fondo sigue el alto real; la taberna conserva el alto abierto para anclar su mesa. */
+  private observeHeader(el: HTMLElement | null) {
+    if (el === this.headerEl) return;
+    this.headerObserver?.disconnect();
+    this.headerObserver = null;
+    if (this.headerMeasureFrame !== null) cancelAnimationFrame(this.headerMeasureFrame);
+    this.headerMeasureFrame = null;
+    this.headerEl = el;
+    this.headerHidden = false;
+    this.hostEl.style.removeProperty('--header-offset');
+    this.hostEl.style.removeProperty('--navbar-h');
+    this.hostEl.style.removeProperty('--navbar-expanded-h');
+    this.hostEl.style.removeProperty('--tavern-nav-fill');
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    this.headerObserver = new ResizeObserver(() => {
+      // Publicar medidas fuera del callback evita el ciclo ResizeObserver → layout → ResizeObserver.
+      if (this.headerMeasureFrame !== null) return;
+      this.headerMeasureFrame = requestAnimationFrame(() => {
+        this.headerMeasureFrame = null;
+        const nav = el.querySelector<HTMLElement>('.nav-bubbles-bar');
+        const navContent = nav?.querySelector<HTMLElement>('app-main-nav');
+        const actualHeight = el.offsetHeight;
+        // El contenido conserva su alto al plegar max-height; en móvil display:none mide cero.
+        const openNavHeight = Math.min(navContent?.offsetHeight || 0, 120);
+        const expandedHeight = actualHeight - (nav?.offsetHeight || 0) + openNavHeight;
+        this.hostEl.style.setProperty('--navbar-h', `${actualHeight}px`);
+        this.hostEl.style.setProperty('--navbar-expanded-h', `${expandedHeight}px`);
+        this.hostEl.style.setProperty('--tavern-nav-fill', `${Math.max(0, expandedHeight - actualHeight)}px`);
+      });
+    });
+    this.headerObserver.observe(el);
   }
 
   ngOnInit() {

@@ -18,6 +18,7 @@ from .views import (
     DailyRewardViewSet,
     NarrationAudioView,
     UserVocabularyViewSet,
+    NotebookTabViewSet,
 )
 
 router = DefaultRouter()
@@ -35,6 +36,8 @@ router.register(r'postits', UserPostItViewSet, basename='postit')
 router.register(r'favorites', UserFavoriteViewSet, basename='favorite')
 # /api/v1/library/vocabulary/
 router.register(r'vocabulary', UserVocabularyViewSet, basename='user-vocabulary')
+# /api/v1/library/notebook/  (cuaderno flotante: pestañas, apuntes y dibujos)
+router.register(r'notebook', NotebookTabViewSet, basename='notebook')
 # /api/v1/library/achievements/catalog/
 router.register(r'achievements/catalog', AchievementCatalogViewSet, basename='achievement-catalog')
 # /api/v1/library/achievements/me/ + /api/v1/library/achievements/me/unnotified/

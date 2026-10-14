@@ -31,6 +31,7 @@ from .serializers import (
 from .services import AIService, AssistantAIService
 from .tts_service import TTSService
 from .kokoro_service import KokoroTTSService
+from .hub import group_hub_avatars, hydrate_hub_groups
 from . import azure_tts
 from core.decorators import consume_ink
 from django.utils.decorators import method_decorator
@@ -86,13 +87,25 @@ class AvatarDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
-        avatar = get_object_or_404(AIAvatar, pk=pk)
+        avatar = get_object_or_404(AIAvatar.objects.select_related('edition__book'), pk=pk)
         ensure_book_access(request.user, avatar.edition.book)
-        serializer = GlobalHubAvatarSerializer(
-            avatar,
-            context={'request': request}
-        )
-        return Response(serializer.data)
+        data = GlobalHubAvatarSerializer(avatar, context={'request': request}).data
+
+        # Lo que necesita la ventana de chat para abrirse con una sola llamada: si la obra es
+        # del lector (o el personaje es público), si se puede agregar gratis y el resto del elenco.
+        inventory = UserInventory.objects.filter(user=request.user, edition=avatar.edition).only('id').first()
+        data['owned'] = bool(inventory)
+        data['inventory_id'] = str(inventory.id) if inventory else None
+        data['can_chat'] = bool(inventory) or avatar.is_major_character or avatar.is_author
+        data['book_is_free'] = (avatar.edition.price or 0) == 0
+        cast = AIAvatar.objects.filter(edition=avatar.edition).order_by(
+            '-is_author', '-is_major_character', 'unlock_at_chapter', 'name')[:12]
+        data['cast'] = [{
+            'id': str(member.id),
+            'name': member.name,
+            'avatar_image_url': request.build_absolute_uri(member.avatar_image.url) if member.avatar_image else None,
+        } for member in cast]
+        return Response(data)
 
 
 class GlobalAvatarListView(generics.ListAPIView):
@@ -108,6 +121,13 @@ class GlobalAvatarListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = GlobalHubAvatarSerializer
     pagination_class = StandardResultsSetPagination
+
+    def list(self, request, *args, **kwargs):
+        groups = group_hub_avatars(self.get_queryset(), request.query_params.get('sort', 'name'))
+        page = self.paginate_queryset(groups)
+        avatars = hydrate_hub_groups(page if page is not None else groups)
+        data = self.get_serializer(avatars, many=True).data
+        return self.get_paginated_response(data) if page is not None else Response(data)
 
     def get_queryset(self):
         params = self.request.query_params
@@ -148,9 +168,10 @@ class RecentChatsView(APIView):
         # Usamos updated_at de la sesión o created_at. TimeStampedModel tiene ambos.
         sessions = visible_books(ChatSession.objects.filter(
             user=request.user
-        ), request.user, 'avatar__edition__book__').select_related('avatar__edition__book').order_by('-updated_at')[:12]
-        
-        avatars = [s.avatar for s in sessions]
+        ), request.user, 'avatar__edition__book__').order_by('-updated_at', '-id')
+        recent_ids = list(dict.fromkeys(sessions.values_list('avatar_id', flat=True)))
+        groups = group_hub_avatars(AIAvatar.objects.filter(pk__in=recent_ids), recent_ids=recent_ids)
+        avatars = hydrate_hub_groups(groups[:12])
         
         serializer = GlobalHubAvatarSerializer(
             avatars,

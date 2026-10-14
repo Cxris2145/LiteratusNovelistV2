@@ -1,22 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { MatDialog } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
 import { SubscriptionService, AIUsage } from './subscription.service';
 
-describe('SubscriptionService · consentimiento e idempotencia', () => {
+describe('SubscriptionService · plan, pase del día e idempotencia', () => {
   let service: SubscriptionService;
   let http: HttpTestingController;
-  let decision: Subject<boolean>;
   const usage: AIUsage = { date: '2026-09-30', server_now: new Date().toISOString(), resets_at: new Date(Date.now()+3600000).toISOString(),
     tokens_used: 0, tokens_reserved: 0, token_limit: 100000, tokens_remaining: 100000,
     active_seconds: 0, time_limit: 18000, plan_available: true, has_plan: true, ink_balance: 20 };
 
   beforeEach(() => {
-    decision = new Subject<boolean>();
-    TestBed.configureTestingModule({ imports: [HttpClientTestingModule], providers: [
-      { provide: MatDialog, useValue: { open: () => ({ afterClosed: () => decision }) } }
-    ] });
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
     service = TestBed.inject(SubscriptionService); http = TestBed.inject(HttpTestingController);
   });
   afterEach(() => http.verify());
@@ -31,24 +25,19 @@ describe('SubscriptionService · consentimiento e idempotencia', () => {
     chat.flush({ reply: 'Hola', usage });
   });
 
-  it('cancelar la cotización no envía un chat pagado', () => {
-    let cancelled = false;
-    service.sendChat('session', 'Hola').subscribe({ error: err => cancelled = err.cancelled });
-    endpoint('/ai/usage/').flush({ ...usage, plan_available: false });
-    endpoint('/ai/chat/quote/').flush({ quote_id: 'quote', ink_cost: 2 });
+  it('sin plan ni pase no envía nada y pide el pase del día', () => {
+    let needsPass = false;
+    service.sendChat('session', 'Hola').subscribe({ error: err => needsPass = err.needsPass });
+    endpoint('/ai/usage/').flush({ ...usage, plan_available: false, ink_pass_active: false });
     http.expectNone(req => req.url.endsWith('/ai/chat/'));
-    decision.next(false);
-    expect(cancelled).toBeTrue();
+    expect(needsPass).toBeTrue();
   });
 
-  it('sólo envía Tinta después de aceptar la cotización vinculada', () => {
+  it('con el pase del día conversa sin pedir confirmación', () => {
     service.sendChat('session', 'Hola').subscribe();
-    endpoint('/ai/usage/').flush({ ...usage, plan_available: false });
-    endpoint('/ai/chat/quote/').flush({ quote_id: 'quote', ink_cost: 2 });
-    decision.next(true);
+    endpoint('/ai/usage/').flush({ ...usage, plan_available: false, ink_pass_active: true });
     const chat = endpoint('/ai/chat/');
-    expect(chat.request.body.quote_id).toBe('quote');
-    expect(chat.request.body.payment_mode).toBe('ink');
+    expect(chat.request.body.payment_mode).toBe('pass');
     chat.flush({ reply: 'Hola', usage });
   });
 
@@ -64,15 +53,12 @@ describe('SubscriptionService · consentimiento e idempotencia', () => {
     retry.flush({ reply: 'Respuesta recuperada', usage });
   });
 
-  it('si otra pestaña agota el cupo, pide consentimiento antes de usar Tinta', () => {
+  it('si otra pestaña agota el cupo del plan, sigue con el pase del día', () => {
     service.sendChat('session', 'Hola').subscribe();
     endpoint('/ai/usage/').flush(usage);
-    endpoint('/ai/chat/').flush({ error: 'AI_TOKEN_LIMIT', usage: { ...usage, plan_available: false } }, { status: 402, statusText: 'Payment Required' });
-    endpoint('/ai/chat/quote/').flush({ quote_id: 'quote', ink_cost: 2 });
-    http.expectNone(req => req.url.endsWith('/ai/chat/'));
-    decision.next(true);
+    endpoint('/ai/chat/').flush({ error: 'AI_TOKEN_LIMIT', usage: { ...usage, plan_available: false, ink_pass_active: true } }, { status: 402, statusText: 'Payment Required' });
     const chat = endpoint('/ai/chat/');
-    expect(chat.request.body.payment_mode).toBe('ink');
+    expect(chat.request.body.payment_mode).toBe('pass');
     chat.flush({ reply: 'Hola', usage });
   });
 

@@ -41,6 +41,7 @@ venv.bak/
 *.sqlite3
 *.db
 .tmp-achievements*/
+.tmp-portrait*/
 
 # Media generada en runtime (portadas/imagenes/epubs procesados) — 2+ GB, no versionar
 **/backend/media/

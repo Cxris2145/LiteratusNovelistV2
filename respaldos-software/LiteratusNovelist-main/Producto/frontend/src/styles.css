@@ -1248,3 +1248,9 @@ html.theme-fade::view-transition-new(root) { animation-duration: .2s; animation-
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(248, 113, 113, 0.25) !important;
 }
 
+/* Los diálogos y menús de Material (p. ej. aceptar el precio en Tinta de un mensaje) van sobre
+   las ventanas propias de la app: el chat rápido (3100), el Asistente (3000) y los modales de 9999.
+   Con el valor por defecto (1000) quedaban detrás y el chat parecía no responder nunca. */
+.cdk-overlay-container {
+  z-index: 10000;
+}

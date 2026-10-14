@@ -5,7 +5,9 @@
   /* Solo los tres paneles grandes desenfocan lo de atrás: el resto usa fondos opacos. */
   --th-panel-filter: blur(12px);
   --th-panel-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.15), 0 14px 38px rgba(0, 0, 0, 0.55);
-  --th-stage-height: max(440px, calc(100svh - var(--navbar-h, 182px) - 138px));
+  /* La fila que se recoge libera fondo, pero no cambia la altura de la mesa. */
+  --th-stage-height: max(440px, calc(100svh - var(--navbar-expanded-h, var(--navbar-h, 182px)) - 138px));
+  --th-top-pad: calc(16px + var(--tavern-nav-fill, 0px));
   --th-pad: clamp(16px, 2vw, 40px);
   --th-gap: 20px;
   --th-profile-w: clamp(260px, 18vw, 310px);
@@ -19,7 +21,7 @@
   isolation: isolate;
   min-height: calc(100svh - var(--navbar-h, 182px));
   width: 100%;
-  padding: 16px var(--th-pad) 24px;
+  padding: var(--th-top-pad) var(--th-pad) 24px;
   background-color: #1c1320;
 }
 /* Antes era un fondo con background-attachment: fixed, que obliga a repintar toda la página en
@@ -28,17 +30,18 @@
 .th-backdrop {
   --th-backdrop-h: calc(100svh - var(--navbar-h, 182px));
   position: sticky;
-  top: var(--navbar-h, 182px);
+  top: var(--header-offset, var(--navbar-h, 182px));
   z-index: -1;
   height: var(--th-backdrop-h);
-  margin: -16px calc(-1 * var(--th-pad)) calc(16px - var(--th-backdrop-h));
+  /* El fondo cubre también el espacio de la navegación recogida; el contenido conserva su sitio. */
+  margin: calc(-1 * var(--th-top-pad)) calc(-1 * var(--th-pad)) calc(var(--th-top-pad) - var(--th-backdrop-h));
   pointer-events: none;
   background-image:
     linear-gradient(90deg, rgba(12, 10, 20, .48), rgba(12, 10, 20, .08) 35%, rgba(12, 10, 20, .08) 65%, rgba(12, 10, 20, .48)),
     linear-gradient(0deg, rgba(12, 10, 20, .5), transparent 45%),
     url('/assets/images/tavern-backdrop.jpg');
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
   background-repeat: no-repeat;
 }
 
@@ -206,7 +209,7 @@
 .area-profile,
 .area-side {
   position: sticky;
-  top: calc(var(--navbar-h, 182px) + 20px);
+  top: calc(var(--header-offset, var(--navbar-h, 182px)) + var(--tavern-nav-fill, 0px) + 20px);
   max-height: var(--th-stage-height);
   border-radius: 18px;
 }
@@ -305,8 +308,10 @@
 }
 
 @media (max-width: 700px) {
-  :host { --th-stage-height: max(360px, calc(100svh - var(--navbar-h, 196px) - 178px)); }
-  .th-hall { padding: 16px 12px 24px; }
+  :host {
+    --th-pad: 12px;
+    --th-stage-height: max(360px, calc(100svh - var(--navbar-expanded-h, var(--navbar-h, 196px)) - var(--bottom-nav-h, 0px) - 178px));
+  }
   .th-hero { padding: 12px; gap: 10px; margin-bottom: 12px; }
   .th-title { gap: 8px; font-size: clamp(1.4rem, 5.6vw, 1.7rem); }
   .th-title-icon { font-size: 28px; }

@@ -5,7 +5,7 @@
      rápidos (centro), accesos con avisos (der) y, abajo, la navegación
      con menús amplios y el botón "Sé parte de Literatus".
 ═════════════════════════════════════════════════════════════════════ -->
-<header class="main-header glass-navbar" *ngIf="!isDashboard && !isPlayingLevel" aria-label="Navegación principal">
+<header #mainHeader class="main-header glass-navbar" *ngIf="!isDashboard && !isPlayingLevel" aria-label="Navegación principal">
 
   <!-- Fila 1: Marca + Buscador + Accesos rápidos -->
   <div class="header-top-bar">
@@ -115,7 +115,7 @@
       <!-- Derecha: Accesos rápidos con avisos -->
       <div class="header-right">
 
-        <button type="button" class="quick-action-btn" (click)="goToFavorites()" title="Mis Favoritos"
+        <button type="button" class="quick-action-btn qa-secondary" (click)="goToFavorites()" title="Mis Favoritos"
                 [attr.aria-label]="favoritesCount > 0 ? 'Favoritos, ' + favoritesCount : 'Favoritos'">
           <span class="action-icon-wrap">
             <span class="material-symbols-rounded" aria-hidden="true">favorite</span>
@@ -133,7 +133,7 @@
           <span class="action-label" aria-hidden="true">Mensajes</span>
         </button>
 
-        <button type="button" class="quick-action-btn" (click)="goToCart()" title="Carrito de compras"
+        <button type="button" class="quick-action-btn qa-secondary" (click)="goToCart()" title="Carrito de compras"
                 [attr.aria-label]="cartCount > 0 ? 'Carrito, ' + cartCount : 'Carrito'">
           <span class="action-icon-wrap">
             <span class="material-symbols-rounded" aria-hidden="true">shopping_cart</span>
@@ -233,7 +233,7 @@
 </header>
 
 <!-- ═══ SITE BODY: Contenido a ancho completo ═══ -->
-<div class="site-body" *ngIf="!isDashboard">
+<div class="site-body" *ngIf="!isDashboard" [class.with-bottom-nav]="!isPlayingLevel">
   <div class="site-content">
     <!-- DEBUGGING: Global Error Banner -->
     <div *ngIf="globalError" style="background: red; color: white; padding: 20px; font-weight: bold; z-index: 9999; position: relative;">
@@ -260,9 +260,19 @@
   </main>
 </ng-container>
 
+<!-- Celular: barra inferior con las secciones (reemplaza a la fila de secciones del encabezado). -->
+<app-bottom-nav *ngIf="!isDashboard && !isPlayingLevel" [rewardReady]="dailyRewardClaimable$ | async"></app-bottom-nav>
+
 <!-- Asistente global de la plataforma: solo para usuarios con sesión iniciada,
      oculto en el panel de administración. -->
 <app-assistant-widget *ngIf="isLoggedIn && !isDashboard && !isPlayingLevel"></app-assistant-widget>
+
+<!-- Ventana rápida de chat con personajes (CharacterChatService.open); se crea al abrirla por primera vez. -->
+<ng-container #chatSheetHost></ng-container>
+
+<!-- Cuaderno flotante: el botón siempre (con sesión); la ventana se crea al abrirlo por primera vez. -->
+<app-notebook-launcher *ngIf="isLoggedIn && !isDashboard && !isPlayingLevel"></app-notebook-launcher>
+<ng-container #notebookHost></ng-container>
 
 <!-- ═════════════════════════════════════════════════════════════════════
      SISTEMA UNIFICADO DE NOTIFICACIONES (POP-UP CENTRAL BOUTIQUE)

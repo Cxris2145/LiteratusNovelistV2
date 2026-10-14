@@ -567,6 +567,9 @@
   user-select: text;
 }
 
+/* Deslizar el dedo de lado pasa la página (handleCanvasPointerUp): el navegador no se queda con el gesto. */
+.reading-canvas.double-page-active { touch-action: pan-y pinch-zoom; }
+
 /* Sin cortes feos: títulos, citas e imágenes no se parten entre páginas */
 .reading-canvas.double-page-active h1,
 .reading-canvas.double-page-active h2,
@@ -874,4 +877,12 @@
   .lb-foot-left { width: calc(100% - 2 * var(--lb-outer) - 52px); }
   .lb-foot-right { width: auto; }
   .lb-ribbon { left: calc(50% - 10px); }
+}
+
+/* Celular: "21 min restantes" tapaba "1 de 1387". En pantalla angosta el tiempo va junto al
+   número de página (lb-time-inline) y el pie derecho queda solo con "Escuchar desde aquí". */
+.lb-time-inline { display: none; cursor: pointer; }
+@media (max-width: 820px) {
+  .lb-foot-right .lb-time-remaining { display: none; }
+  .lb-time-inline { display: inline; }
 }

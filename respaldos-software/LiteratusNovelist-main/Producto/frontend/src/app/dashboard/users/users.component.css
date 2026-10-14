@@ -442,3 +442,45 @@
     font-size: 16px;
   }
 }
+
+/* Celular: la tabla (969 px) obligaba a deslizar de lado; cada usuario pasa a ser una tarjeta
+   con sus datos en filas "etiqueta — valor" (las etiquetas salen de data-label). */
+@media (max-width: 760px) {
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td {
+    display: block;
+    width: 100%;
+  }
+  .data-table thead {
+    display: none;
+  }
+  .data-table tr {
+    margin-bottom: 12px;
+    padding: 6px 4px;
+    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+    border-radius: 12px;
+  }
+  .data-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 40px;
+    padding: 6px 12px;
+    border: none;
+    text-align: right;
+  }
+  .data-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    font-weight: 600;
+    opacity: 0.7;
+    text-align: left;
+  }
+  .data-table td.email-td {
+    overflow-wrap: anywhere;
+  }
+}

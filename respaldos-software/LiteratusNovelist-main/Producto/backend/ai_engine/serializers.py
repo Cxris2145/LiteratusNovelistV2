@@ -25,12 +25,9 @@ class AIAvatarListSerializer(serializers.ModelSerializer):
         ]
 
     def get_is_unlocked(self, obj):
-        # El autor siempre está disponible para chatear
-        if obj.is_author:
-            return True
-        # El contexto 'current_chapter' es inyectado por la vista
-        current_chapter = self.context.get('current_chapter', 0)
-        return current_chapter >= obj.unlock_at_chapter
+        # Todos los personajes están abiertos: el personaje cuida los spoilers según el capítulo
+        # del lector (ver AIService._reader_context). El campo queda por compatibilidad.
+        return True
 
     def get_avatar_image_url(self, obj):
         request = self.context.get('request')
@@ -108,13 +105,32 @@ class GlobalHubAvatarSerializer(serializers.ModelSerializer):
     avatar_image_url = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     trend_level = serializers.SerializerMethodField()
+    group_key = serializers.SerializerMethodField()
+    works = serializers.SerializerMethodField()
+    book_count = serializers.SerializerMethodField()
+    chat_count = serializers.SerializerMethodField()
 
     class Meta:
         model = AIAvatar
         fields = [
             'id', 'name', 'book_title', 'book_slug', 'description', 'avatar_image_url',
-            'tags', 'trend_level', 'chat_count'
+            'tags', 'trend_level', 'chat_count', 'group_key', 'works', 'book_count'
         ]
+
+    def get_group_key(self, obj):
+        return getattr(obj, 'hub_group', {}).get('key', str(obj.pk))
+
+    def get_works(self, obj):
+        return getattr(obj, 'hub_group', {}).get('works', [{
+            'avatar_id': str(obj.pk), 'book_title': obj.edition.book.title,
+            'book_slug': obj.edition.book.slug,
+        }])
+
+    def get_book_count(self, obj):
+        return len(self.get_works(obj))
+
+    def get_chat_count(self, obj):
+        return getattr(obj, 'hub_group', {}).get('chat_count', obj.chat_count)
 
     def get_avatar_image_url(self, obj):
         request = self.context.get('request')

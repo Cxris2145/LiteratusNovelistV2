@@ -55,6 +55,8 @@ export function setWordBounds(group: WordBounds & { tokens: ReaderToken[] }): vo
 type BionicSplit = (word: string) => { bold: string; normal: string };
 
 const BLOCK_TAGS = new Set(['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'li', 'ul', 'ol', 'section', 'article', 'figure']);
+// Keep word-N aligned with catalog/narration.py; hidden HTML cannot shift spoiler gates.
+const SKIPPED_TAGS = new Set(['script', 'style', 'template', 'head', 'title', 'noscript']);
 
 /**
  * Un bloque solo cuenta si tiene contenido real (palabra, imagen o salto de línea).
@@ -88,6 +90,7 @@ export function parseChapterBlocks(html: string, bionicSplit?: BionicSplit): { b
       } else if (child.nodeType === Node.ELEMENT_NODE) {
         const el = child as Element;
         const tag = el.tagName.toLowerCase();
+        if (SKIPPED_TAGS.has(tag)) return;
         if (tag === 'img') {
           const img = el as HTMLImageElement;
           tokens.push({
@@ -108,6 +111,7 @@ export function parseChapterBlocks(html: string, bionicSplit?: BionicSplit): { b
     if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node as Element;
       const tag = el.tagName.toLowerCase();
+      if (SKIPPED_TAGS.has(tag)) return;
 
       if (tag === 'img') {
         const img = el as HTMLImageElement;

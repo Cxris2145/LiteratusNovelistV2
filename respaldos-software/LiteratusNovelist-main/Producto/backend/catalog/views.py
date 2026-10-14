@@ -331,7 +331,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         from library.achievement_engine import get_user_discount
         discount_percent = get_user_discount(request.user)
         base_cost = int(edition.price)
-        cost = max(1, int(base_cost * (100 - discount_percent) / 100)) if discount_percent > 0 else base_cost
+        cost = max(1, int(base_cost * (100 - discount_percent) / 100)) if discount_percent > 0 and base_cost > 0 else base_cost
         
         with transaction.atomic():
             # Bloquear la fila del perfil para evitar race conditions

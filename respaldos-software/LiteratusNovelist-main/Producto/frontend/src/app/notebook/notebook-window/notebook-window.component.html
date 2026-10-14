@@ -1,0 +1,347 @@
+<div class="lit-notebook" (keydown)="onKeydown($event)">
+  <section class="nb-window" role="dialog" aria-modal="false" aria-label="Cuaderno"
+           [class.nb-off]="visibility !== 'open'" [class.nb-max]="geometry.maximized && !mobile"
+           [class.nb-mobile]="mobile" [class.nb-paper]="prefs.paper === 'light'"
+           [style.left.px]="mobile || geometry.maximized ? null : geometry.x"
+           [style.top.px]="mobile || geometry.maximized ? null : geometry.y"
+           [style.width.px]="mobile || geometry.maximized ? null : geometry.w"
+           [style.height.px]="mobile || geometry.maximized ? null : geometry.h">
+
+    <!-- Barra de título: pestañas (como el Bloc de notas) y botones de la ventana. Se arrastra desde aquí. -->
+    <header class="nb-titlebar" (pointerdown)="onTitlebarDown($event)" (dblclick)="toggleMaximize()">
+      <span class="material-symbols-rounded nb-app-icon" aria-hidden="true">stylus_note</span>
+      <div class="nb-tabs" role="tablist" aria-label="Pestañas del cuaderno">
+        <div class="nb-tab" *ngFor="let tab of tabs; trackBy: trackTab" role="tab" tabindex="0"
+             [class.on]="tab.id === activeId" [attr.aria-selected]="tab.id === activeId"
+             [title]="tab.inventory ? 'Libro: ' + tab.book_title : tab.title"
+             draggable="true" (dragstart)="onTabDragStart(tab, $event)" (dragover)="$event.preventDefault()"
+             (drop)="onTabDrop(tab, $event)" (click)="selectTab(tab)" (keydown.enter)="selectTab(tab)"
+             (dblclick)="startRename(tab); $event.stopPropagation()">
+          <span class="material-symbols-rounded nb-tab-icon" aria-hidden="true">{{ tabIcon(tab) }}</span>
+          <input *ngIf="renamingId === tab.id; else tabLabel" #renameInput class="nb-rename" [(ngModel)]="renameValue"
+                 maxlength="80" aria-label="Nombre de la pestaña" (keydown.enter)="commitRename()"
+                 (keydown.escape)="cancelRename()" (blur)="commitRename()" (click)="$event.stopPropagation()">
+          <ng-template #tabLabel><span class="nb-tab-title">{{ tab.title }}</span></ng-template>
+          <span class="nb-unsaved" *ngIf="saveStates[tab.id] === 'pending' || saveStates[tab.id] === 'saving'"
+                title="Guardando…" aria-hidden="true"></span>
+          <button type="button" class="nb-tab-close" (click)="askDelete(tab, $event)"
+                  [attr.aria-label]="'Cerrar la pestaña ' + tab.title" title="Cerrar pestaña">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <button type="button" class="nb-tab-add" (click)="newTab()" title="Nueva pestaña" aria-label="Nueva pestaña">
+          <span class="material-symbols-rounded" aria-hidden="true">add</span>
+        </button>
+      </div>
+      <div class="nb-winbtns">
+        <button type="button" (click)="minimize()" title="Minimizar" aria-label="Minimizar el cuaderno">
+          <span class="material-symbols-rounded" aria-hidden="true">remove</span>
+        </button>
+        <button type="button" *ngIf="!mobile" (click)="toggleMaximize()"
+                [title]="geometry.maximized ? 'Restaurar' : 'Maximizar'"
+                [attr.aria-label]="geometry.maximized ? 'Restaurar el tamaño' : 'Maximizar el cuaderno'">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ geometry.maximized ? 'filter_none' : 'crop_square' }}</span>
+        </button>
+        <button type="button" class="nb-close" (click)="close()" title="Cerrar" aria-label="Cerrar el cuaderno">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Menús y barra de formato -->
+    <div class="nb-menubar">
+      <nav class="nb-menus" aria-label="Menú del cuaderno">
+        <button type="button" class="nb-menu-btn" [matMenuTriggerFor]="fileMenu">Archivo</button>
+        <button type="button" class="nb-menu-btn" [matMenuTriggerFor]="editMenu" [matMenuTriggerRestoreFocus]="false">Editar</button>
+        <button type="button" class="nb-menu-btn" [matMenuTriggerFor]="viewMenu">Ver</button>
+      </nav>
+
+      <div class="nb-toolbar" role="toolbar" aria-label="Formato" *ngIf="mode === 'write'; else drawTools">
+        <button type="button" class="nb-tool nb-tool-text" [matMenuTriggerFor]="blockMenu" [matMenuTriggerRestoreFocus]="false" [disabled]="!activeTab"
+                title="Estilo del párrafo" aria-label="Estilo del párrafo">
+          {{ blockLabel() }}<span class="material-symbols-rounded nb-caret" aria-hidden="true">expand_more</span>
+        </button>
+        <button type="button" class="nb-tool" [matMenuTriggerFor]="listMenu" [matMenuTriggerRestoreFocus]="false" [disabled]="!activeTab" title="Listas" aria-label="Listas"
+                [class.on]="isActive('bulletList') || isActive('orderedList') || isActive('taskList')">
+          <span class="material-symbols-rounded" aria-hidden="true">format_list_bulleted</span>
+          <span class="material-symbols-rounded nb-caret" aria-hidden="true">expand_more</span>
+        </button>
+        <span class="nb-sep" aria-hidden="true"></span>
+        <button type="button" class="nb-tool" [class.on]="isActive('bold')" [disabled]="!activeTab"
+                (click)="chain().toggleBold().run()" title="Negrita (Ctrl+B)" aria-label="Negrita">
+          <span class="material-symbols-rounded" aria-hidden="true">format_bold</span>
+        </button>
+        <button type="button" class="nb-tool" [class.on]="isActive('italic')" [disabled]="!activeTab"
+                (click)="chain().toggleItalic().run()" title="Cursiva (Ctrl+I)" aria-label="Cursiva">
+          <span class="material-symbols-rounded" aria-hidden="true">format_italic</span>
+        </button>
+        <button type="button" class="nb-tool nb-hide-xs" [class.on]="isActive('underline')" [disabled]="!activeTab"
+                (click)="chain().toggleUnderline().run()" title="Subrayado (Ctrl+U)" aria-label="Subrayado">
+          <span class="material-symbols-rounded" aria-hidden="true">format_underlined</span>
+        </button>
+        <button type="button" class="nb-tool" [class.on]="isActive('strike')" [disabled]="!activeTab"
+                (click)="chain().toggleStrike().run()" title="Tachado" aria-label="Tachado">
+          <span class="material-symbols-rounded" aria-hidden="true">strikethrough_s</span>
+        </button>
+        <button type="button" class="nb-tool" [matMenuTriggerFor]="colorMenu" [matMenuTriggerRestoreFocus]="false" [disabled]="!activeTab" title="Color del texto" aria-label="Color del texto">
+          <span class="material-symbols-rounded" aria-hidden="true">format_color_text</span>
+        </button>
+        <button type="button" class="nb-tool" [matMenuTriggerFor]="markMenu" [matMenuTriggerRestoreFocus]="false" [disabled]="!activeTab" [class.on]="isActive('highlight')"
+                title="Resaltar" aria-label="Resaltar">
+          <span class="material-symbols-rounded" aria-hidden="true">ink_highlighter</span>
+        </button>
+        <span class="nb-sep" aria-hidden="true"></span>
+        <button type="button" class="nb-tool" [class.on]="isActive('link')" [disabled]="!activeTab"
+                (click)="openLink()" title="Enlace" aria-label="Enlace">
+          <span class="material-symbols-rounded" aria-hidden="true">link</span>
+        </button>
+        <button type="button" class="nb-tool" [matMenuTriggerFor]="tableMenu" [matMenuTriggerRestoreFocus]="false" [disabled]="!activeTab" [class.on]="isActive('table')"
+                title="Tabla" aria-label="Tabla">
+          <span class="material-symbols-rounded" aria-hidden="true">table</span>
+          <span class="material-symbols-rounded nb-caret" aria-hidden="true">expand_more</span>
+        </button>
+        <button type="button" class="nb-tool nb-hide-xs" [matMenuTriggerFor]="alignMenu" [matMenuTriggerRestoreFocus]="false" [disabled]="!activeTab" title="Alineación" aria-label="Alineación">
+          <span class="material-symbols-rounded" aria-hidden="true">format_align_left</span>
+        </button>
+        <button type="button" class="nb-tool" [disabled]="!activeTab" (click)="chain().unsetAllMarks().clearNodes().run()"
+                title="Quitar formato" aria-label="Quitar formato">
+          <span class="material-symbols-rounded" aria-hidden="true">format_clear</span>
+        </button>
+      </div>
+
+      <ng-template #drawTools>
+        <div class="nb-toolbar" role="toolbar" aria-label="Dibujo">
+          <button type="button" class="nb-tool" [class.on]="inkTool === 'pen'" (click)="setInkTool('pen')" title="Lápiz" aria-label="Lápiz">
+            <span class="material-symbols-rounded" aria-hidden="true">stylus</span>
+          </button>
+          <button type="button" class="nb-tool" [class.on]="inkTool === 'marker'" (click)="setInkTool('marker')" title="Marcador" aria-label="Marcador">
+            <span class="material-symbols-rounded" aria-hidden="true">ink_highlighter</span>
+          </button>
+          <button type="button" class="nb-tool" [class.on]="inkTool === 'eraser'" (click)="setInkTool('eraser')" title="Borrador (borra trazos enteros)" aria-label="Borrador">
+            <span class="material-symbols-rounded" aria-hidden="true">ink_eraser</span>
+          </button>
+          <span class="nb-sep" aria-hidden="true"></span>
+          <div class="nb-swatches" role="radiogroup" aria-label="Color del trazo">
+            <button type="button" *ngFor="let color of inkColors" class="nb-swatch" role="radio"
+                    [style.background]="color" [class.on]="inkColor === color && inkTool !== 'eraser'"
+                    [attr.aria-checked]="inkColor === color" [attr.aria-label]="'Color ' + color" (click)="setInkColor(color)"></button>
+          </div>
+          <label class="nb-size" title="Grosor">
+            <span class="material-symbols-rounded" aria-hidden="true">line_weight</span>
+            <input type="range" min="1" max="12" step="1" [ngModel]="inkSize" (ngModelChange)="setInkSize($event)" aria-label="Grosor del trazo">
+          </label>
+          <span class="nb-sep" aria-hidden="true"></span>
+          <button type="button" class="nb-tool" (click)="undo()" [disabled]="!canUndo()" title="Deshacer trazo" aria-label="Deshacer trazo">
+            <span class="material-symbols-rounded" aria-hidden="true">undo</span>
+          </button>
+          <button type="button" class="nb-tool" (click)="redo()" [disabled]="!canRedo()" title="Rehacer trazo" aria-label="Rehacer trazo">
+            <span class="material-symbols-rounded" aria-hidden="true">redo</span>
+          </button>
+        </div>
+      </ng-template>
+
+      <div class="nb-modes" role="group" aria-label="Modo">
+        <button type="button" class="nb-tool" [class.on]="mode === 'write'" (click)="setMode('write')"
+                title="Escribir" aria-label="Escribir" [attr.aria-pressed]="mode === 'write'">
+          <span class="material-symbols-rounded" aria-hidden="true">edit_note</span>
+        </button>
+        <button type="button" class="nb-tool" [class.on]="mode === 'draw'" (click)="setMode('draw')" [disabled]="!activeTab"
+                title="Dibujar" aria-label="Dibujar" [attr.aria-pressed]="mode === 'draw'">
+          <span class="material-symbols-rounded" aria-hidden="true">draw</span>
+        </button>
+        <button type="button" class="nb-tool" *ngIf="activeTab?.inventory" [class.on]="bookPanelOpen"
+                (click)="bookPanelOpen = !bookPanelOpen" title="Subrayados, notas y palabras del libro"
+                aria-label="Mostrar lo del libro" [attr.aria-pressed]="bookPanelOpen">
+          <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+        </button>
+      </div>
+    </div>
+
+    <form class="nb-bar nb-linkbar" *ngIf="linkOpen" (submit)="applyLink(); $event.preventDefault()">
+      <span class="material-symbols-rounded" aria-hidden="true">link</span>
+      <input #linkInput name="href" [(ngModel)]="linkValue" placeholder="https://…" aria-label="Dirección del enlace"
+             (keydown.escape)="linkOpen = false">
+      <button type="submit">Aplicar</button>
+      <button type="button" (click)="linkValue = ''; applyLink()">Quitar</button>
+      <button type="button" (click)="linkOpen = false">Cancelar</button>
+    </form>
+
+    <div class="nb-bar nb-warn" *ngIf="conflict" role="alert">
+      <span>Esta pestaña también se editó en otro dispositivo. ¿Qué versión quieres conservar?</span>
+      <button type="button" (click)="resolveConflict('mine')">La de este equipo</button>
+      <button type="button" (click)="resolveConflict('theirs')">La otra</button>
+    </div>
+
+    <div class="nb-bar nb-warn" *ngIf="confirmDelete as tab" role="alertdialog" aria-label="Confirmar">
+      <span>¿Cerrar «{{ tab.title }}»? Se borrará lo que escribiste y dibujaste en ella.</span>
+      <button type="button" class="nb-danger" (click)="deleteTab(tab)">Borrar pestaña</button>
+      <button type="button" (click)="confirmDelete = null">Cancelar</button>
+    </div>
+
+    <div class="nb-bar nb-toast" *ngIf="toast" role="status">
+      <span>{{ toast }}</span>
+      <button type="button" (click)="toast = ''" aria-label="Cerrar aviso">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </div>
+
+    <!-- Hoja: el texto y, encima, la capa de dibujo -->
+    <div class="nb-body">
+      <div class="nb-scroller" #scroller>
+        <div class="nb-sheet" #sheet [class.nb-drawing]="mode === 'draw'" [class.nb-empty-tab]="!activeTab">
+          <div class="nb-editor" #editorHost></div>
+          <canvas class="nb-ink" #inkCanvas role="img" aria-label="Dibujo de la pestaña"></canvas>
+        </div>
+        <div class="nb-state" *ngIf="loadingTab || tabError">
+          <span *ngIf="loadingTab">Abriendo la pestaña…</span>
+          <span *ngIf="tabError">{{ tabError }}</span>
+        </div>
+      </div>
+      <aside class="nb-book" *ngIf="showBookPanel" aria-label="Del libro">
+        <app-notebook-book-panel [inventoryId]="activeTab!.inventory!" (goTo)="goToPassage($event)"
+                                 (copy)="insertFragment($event)" (close)="bookPanelOpen = false"
+                                 (loaded)="onDigest($event)"></app-notebook-book-panel>
+      </aside>
+    </div>
+
+    <footer class="nb-status">
+      <span>Ln {{ status.line }}, Col {{ status.col }}</span>
+      <span>{{ status.chars | number }} caracteres</span>
+      <span class="nb-save" [attr.data-state]="saveState" aria-live="polite">{{ saveLabel() }}</span>
+      <span class="nb-grow"></span>
+      <span class="nb-hide-sm">{{ fontLabel() }} · {{ prefs.size }} pt</span>
+      <button type="button" class="nb-zoom" (click)="zoom(0)" title="Restablecer el zoom">{{ prefs.zoom }}%</button>
+      <span class="nb-hide-sm">{{ mode === 'draw' ? 'Dibujo' : 'Texto con formato' }}</span>
+    </footer>
+
+    <ng-container *ngIf="!mobile && !geometry.maximized">
+      <div class="nb-resize nb-resize-e" (pointerdown)="onResizeDown('e', $event)" aria-hidden="true"></div>
+      <div class="nb-resize nb-resize-s" (pointerdown)="onResizeDown('s', $event)" aria-hidden="true"></div>
+      <div class="nb-resize nb-resize-se" (pointerdown)="onResizeDown('se', $event)" aria-hidden="true"></div>
+    </ng-container>
+  </section>
+
+  <!-- Minimizado: una pestañita abajo; al tocarla vuelve donde estaba -->
+  <button type="button" class="nb-pill" *ngIf="visibility === 'minimized'" (click)="restore()"
+          [attr.aria-label]="'Abrir el cuaderno' + (activeTab ? ': ' + activeTab.title : '')">
+    <span class="material-symbols-rounded" aria-hidden="true">stylus_note</span>
+    <span class="nb-pill-title">{{ activeTab?.title || 'Cuaderno' }}</span>
+    <span class="nb-unsaved" *ngIf="saveState === 'pending' || saveState === 'saving'" aria-hidden="true"></span>
+  </button>
+</div>
+
+<!-- ── Menús ── -->
+<mat-menu #fileMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item (click)="newTab()"><span class="material-symbols-rounded">add</span> Nueva pestaña</button>
+  <button mat-menu-item (click)="activeTab && startRename(activeTab)" [disabled]="!activeTab">
+    <span class="material-symbols-rounded">edit</span> Renombrar pestaña
+  </button>
+  <button mat-menu-item (click)="downloadPdf()" [disabled]="!activeTab || exporting">
+    <span class="material-symbols-rounded">picture_as_pdf</span> {{ exporting ? 'Generando PDF…' : 'Descargar PDF' }}
+  </button>
+  <button mat-menu-item (click)="activeTab && askDelete(activeTab)" [disabled]="!activeTab">
+    <span class="material-symbols-rounded">tab_close</span> Cerrar pestaña…
+  </button>
+  <div class="nb-menu-divider"></div>
+  <button mat-menu-item (click)="minimize()"><span class="material-symbols-rounded">remove</span> Minimizar</button>
+  <button mat-menu-item (click)="close()"><span class="material-symbols-rounded">close</span> Cerrar cuaderno</button>
+</mat-menu>
+
+<mat-menu #editMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item (click)="undo()" [disabled]="!canUndo()"><span class="material-symbols-rounded">undo</span> Deshacer</button>
+  <button mat-menu-item (click)="redo()" [disabled]="!canRedo()"><span class="material-symbols-rounded">redo</span> Rehacer</button>
+  <div class="nb-menu-divider"></div>
+  <button mat-menu-item (click)="setMode('write'); chain().selectAll().run()" [disabled]="!activeTab">
+    <span class="material-symbols-rounded">select_all</span> Seleccionar todo
+  </button>
+  <button mat-menu-item (click)="setMode('write'); insertDate()" [disabled]="!activeTab">
+    <span class="material-symbols-rounded">schedule</span> Insertar fecha y hora
+  </button>
+  <button mat-menu-item (click)="chain().unsetAllMarks().clearNodes().run()" [disabled]="!activeTab">
+    <span class="material-symbols-rounded">format_clear</span> Quitar formato
+  </button>
+  <div class="nb-menu-divider"></div>
+  <button mat-menu-item (click)="clearDrawing()" [disabled]="!activeTab?.drawing?.length">
+    <span class="material-symbols-rounded">ink_eraser</span> Borrar todo el dibujo
+  </button>
+</mat-menu>
+
+<mat-menu #viewMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item [matMenuTriggerFor]="fontMenu"><span class="material-symbols-rounded">font_download</span> Tipografía</button>
+  <button mat-menu-item [matMenuTriggerFor]="sizeMenu"><span class="material-symbols-rounded">format_size</span> Tamaño de letra</button>
+  <div class="nb-menu-divider"></div>
+  <button mat-menu-item (click)="zoom(10)"><span class="material-symbols-rounded">zoom_in</span> Acercar</button>
+  <button mat-menu-item (click)="zoom(-10)"><span class="material-symbols-rounded">zoom_out</span> Alejar</button>
+  <button mat-menu-item (click)="zoom(0)"><span class="material-symbols-rounded">fit_screen</span> Restablecer zoom ({{ prefs.zoom }}%)</button>
+  <div class="nb-menu-divider"></div>
+  <button mat-menu-item (click)="setPrefs({ paper: prefs.paper === 'light' ? 'theme' : 'light' })">
+    <span class="material-symbols-rounded">{{ prefs.paper === 'light' ? 'check_box' : 'check_box_outline_blank' }}</span> Hoja de papel clara
+  </button>
+  <button mat-menu-item *ngIf="activeTab?.inventory" (click)="bookPanelOpen = !bookPanelOpen">
+    <span class="material-symbols-rounded">{{ bookPanelOpen ? 'check_box' : 'check_box_outline_blank' }}</span> Panel del libro
+  </button>
+</mat-menu>
+
+<mat-menu #fontMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item *ngFor="let font of fonts" (click)="setPrefs({ font: font.name })" [style.font-family]="font.css">
+    <span class="material-symbols-rounded">{{ prefs.font === font.name ? 'check' : '' }}</span> {{ font.label }}
+  </button>
+</mat-menu>
+
+<mat-menu #sizeMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item *ngFor="let size of sizes" (click)="setPrefs({ size: size })">
+    <span class="material-symbols-rounded">{{ prefs.size === size ? 'check' : '' }}</span> {{ size }} pt
+  </button>
+</mat-menu>
+
+<mat-menu #blockMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item (click)="setBlock(0)"><span class="nb-menu-sample">¶</span> Texto</button>
+  <button mat-menu-item (click)="setBlock(1)"><span class="nb-menu-sample nb-h1">H1</span> Título 1</button>
+  <button mat-menu-item (click)="setBlock(2)"><span class="nb-menu-sample nb-h2">H2</span> Título 2</button>
+  <button mat-menu-item (click)="setBlock(3)"><span class="nb-menu-sample nb-h3">H3</span> Título 3</button>
+</mat-menu>
+
+<mat-menu #listMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item (click)="chain().toggleBulletList().run()"><span class="material-symbols-rounded">format_list_bulleted</span> Viñetas</button>
+  <button mat-menu-item (click)="chain().toggleOrderedList().run()"><span class="material-symbols-rounded">format_list_numbered</span> Lista numerada</button>
+  <button mat-menu-item (click)="chain().toggleTaskList().run()"><span class="material-symbols-rounded">checklist</span> Lista de tareas</button>
+  <div class="nb-menu-divider"></div>
+  <button mat-menu-item (click)="chain().sinkListItem(isActive('taskItem') ? 'taskItem' : 'listItem').run()">
+    <span class="material-symbols-rounded">format_indent_increase</span> Aumentar sangría
+  </button>
+  <button mat-menu-item (click)="chain().liftListItem(isActive('taskItem') ? 'taskItem' : 'listItem').run()">
+    <span class="material-symbols-rounded">format_indent_decrease</span> Disminuir sangría
+  </button>
+</mat-menu>
+
+<mat-menu #colorMenu="matMenu" class="nb-menu-panel">
+  <div class="nb-menu-swatches" (click)="$event.stopPropagation()">
+    <button type="button" *ngFor="let color of textColors" class="nb-swatch" [style.background]="color"
+            [attr.aria-label]="'Color ' + color" (click)="chain().setColor(color).run()"></button>
+  </div>
+  <button mat-menu-item (click)="chain().unsetColor().run()"><span class="material-symbols-rounded">format_color_reset</span> Automático</button>
+</mat-menu>
+
+<mat-menu #markMenu="matMenu" class="nb-menu-panel">
+  <div class="nb-menu-swatches" (click)="$event.stopPropagation()">
+    <button type="button" *ngFor="let color of highlightColors" class="nb-swatch" [style.background]="color"
+            [attr.aria-label]="'Resaltar ' + color" (click)="chain().toggleHighlight({ color: color }).run()"></button>
+  </div>
+  <button mat-menu-item (click)="chain().unsetHighlight().run()"><span class="material-symbols-rounded">format_color_reset</span> Sin resaltado</button>
+</mat-menu>
+
+<mat-menu #tableMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item (click)="insertTable()"><span class="material-symbols-rounded">table</span> Insertar tabla 3 × 3</button>
+  <div class="nb-menu-divider"></div>
+  <button mat-menu-item (click)="chain().addRowAfter().run()" [disabled]="!isActive('table')"><span class="material-symbols-rounded">table_rows</span> Agregar fila</button>
+  <button mat-menu-item (click)="chain().addColumnAfter().run()" [disabled]="!isActive('table')"><span class="material-symbols-rounded">view_column</span> Agregar columna</button>
+  <button mat-menu-item (click)="chain().deleteRow().run()" [disabled]="!isActive('table')"><span class="material-symbols-rounded">remove</span> Eliminar fila</button>
+  <button mat-menu-item (click)="chain().deleteColumn().run()" [disabled]="!isActive('table')"><span class="material-symbols-rounded">remove</span> Eliminar columna</button>
+  <button mat-menu-item (click)="chain().deleteTable().run()" [disabled]="!isActive('table')"><span class="material-symbols-rounded">delete</span> Eliminar tabla</button>
+</mat-menu>
+
+<mat-menu #alignMenu="matMenu" class="nb-menu-panel">
+  <button mat-menu-item (click)="chain().setTextAlign('left').run()"><span class="material-symbols-rounded">format_align_left</span> Izquierda</button>
+  <button mat-menu-item (click)="chain().setTextAlign('center').run()"><span class="material-symbols-rounded">format_align_center</span> Centro</button>
+  <button mat-menu-item (click)="chain().setTextAlign('right').run()"><span class="material-symbols-rounded">format_align_right</span> Derecha</button>
+</mat-menu>

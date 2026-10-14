@@ -20,6 +20,9 @@ export interface HubAvatar {
   tags: string[];
   trend_level: string;
   chat_count: number;
+  group_key?: string;
+  book_count?: number;
+  works?: { avatar_id: string; book_title: string; book_slug: string | null }[];
 }
 
 /** Envoltorio de DRF PageNumberPagination. */

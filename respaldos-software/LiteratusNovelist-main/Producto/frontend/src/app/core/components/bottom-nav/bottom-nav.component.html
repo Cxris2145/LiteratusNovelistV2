@@ -1,0 +1,25 @@
+<div class="bn-backdrop" *ngIf="isMoreOpen" (click)="isMoreOpen = false" aria-hidden="true"></div>
+
+<div class="bn-sheet" id="bn-more" *ngIf="isMoreOpen" role="dialog" aria-label="Más secciones">
+  <span class="bn-grabber" aria-hidden="true"></span>
+  <a *ngFor="let item of more" class="bn-sheet-item" [routerLink]="item.link" [class.is-active]="isActive(item)"
+     [attr.aria-current]="isActive(item) ? 'page' : null" (click)="isMoreOpen = false">
+    <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
+    <span class="bn-sheet-label">{{ item.label }}</span>
+    <span *ngIf="item.link === '/achievements' && rewardReady" class="bn-gift" title="¡Recompensa diaria disponible!">🎁</span>
+  </a>
+</div>
+
+<nav class="bn" aria-label="Secciones">
+  <a *ngFor="let item of primary" class="bn-item" [routerLink]="item.link" [class.is-active]="isActive(item) && !isMoreOpen"
+     [attr.aria-current]="isActive(item) ? 'page' : null">
+    <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
+    <span class="bn-label">{{ item.short }}</span>
+  </a>
+  <button type="button" class="bn-item" [class.is-active]="isMoreOpen || isMoreActive"
+          [attr.aria-expanded]="isMoreOpen" aria-controls="bn-more" (click)="toggleMore()">
+    <span class="material-symbols-rounded" aria-hidden="true">{{ isMoreOpen ? 'close' : 'menu' }}</span>
+    <span class="bn-label">Más</span>
+    <span *ngIf="rewardReady" class="bn-dot" aria-hidden="true"></span>
+  </button>
+</nav>

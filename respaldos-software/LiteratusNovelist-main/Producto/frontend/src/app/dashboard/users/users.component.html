@@ -86,14 +86,14 @@
       </thead>
       <tbody>
         <tr *ngFor="let u of filteredUsers">
-          <td>
+          <td data-label="Usuario">
             <div class="user-main-cell">
               <div class="user-avatar-sm">{{ u.username.slice(0, 2).toUpperCase() }}</div>
               <span class="user-username">{{ u.username }}</span>
             </div>
           </td>
-          <td class="email-td">{{ u.email }}</td>
-          <td>
+          <td class="email-td" data-label="Correo">{{ u.email }}</td>
+          <td data-label="Rol">
             <div class="role-selector-wrap">
               <span class="role-tag">{{ u.role }}</span>
               <button class="role-menu-btn" [matMenuTriggerFor]="roleMenu" (click)="selectedUserForRole = u" title="Cambiar rol">
@@ -101,16 +101,16 @@
               </button>
             </div>
           </td>
-          <td>
+          <td data-label="Tinta">
             <button class="ink-pill-btn" (click)="openInkModal(u)" title="Ajustar saldo de tinta">
               <span class="material-symbols-outlined">water_drop</span>
               {{ u.ink_balance | number }}
               <span class="add-ink-icon">+</span>
             </button>
           </td>
-          <td>{{ u.chats_count }}</td>
-          <td class="date-cell">{{ u.last_login ? (u.last_login | date:'dd/MM/yyyy HH:mm') : 'Sin registro' }}</td>
-          <td>
+          <td data-label="Chats activos">{{ u.chats_count }}</td>
+          <td class="date-cell" data-label="Última conexión">{{ u.last_login ? (u.last_login | date:'dd/MM/yyyy HH:mm') : 'Sin registro' }}</td>
+          <td data-label="Acciones">
             <div class="actions-cell">
               <button 
                 class="action-icon-btn block-btn" 

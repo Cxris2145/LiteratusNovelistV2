@@ -914,7 +914,7 @@
 
 .favorite-toast {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + var(--bottom-nav-h, 0px)); /* sobre la barra inferior del celular */
   right: 24px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--glow-gold, #D4AF37);
@@ -1841,4 +1841,63 @@
 /* iPhone: estos elementos fijos quedan sobre la barra de inicio, no debajo (0 donde no hay barra). */
 .favorite-toast {
   margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CELULAR: los filtros rápidos van en una sola fila que se desliza (antes se apilaban de a uno
+   junto al orden) y "Recomendados" es un estante horizontal de portadas chicas (antes, un libro
+   por pantalla).
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .sub-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .quick-chips-wrapper {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -10px;
+    padding: 2px 10px;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .quick-chips-wrapper::-webkit-scrollbar { display: none; }
+  .quick-chip,
+  .audience-toggle { flex: 0 0 auto; }
+  .sort-dropdown-container { align-self: flex-end; }
+
+  .recommendations-section {
+    padding: 16px 0 18px;
+    border-radius: 16px;
+  }
+  .rec-section-header {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 0 16px;
+    margin-bottom: 14px;
+  }
+  .rec-cards-row {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 0 16px 4px;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 16px;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .rec-cards-row::-webkit-scrollbar { display: none; }
+  .rec-card {
+    flex: 0 0 148px;
+    scroll-snap-align: start;
+  }
+}
+
+/* El botón "Ordenar" quedaba cortado a la derecha, y a 3 columnas no cabía el pie de la tarjeta. */
+@media (max-width: 640px) {
+  .sort-dropdown-container { align-self: flex-start; }
+}
+@media (max-width: 480px) {
+  .grid-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 }

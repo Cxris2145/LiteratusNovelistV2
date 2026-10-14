@@ -288,6 +288,11 @@ AI_SUBSCRIPTION_MODEL = env('AI_SUBSCRIPTION_MODEL', default='gemini-2.5-flash')
 AI_DEEPSEEK_MODEL = env('AI_DEEPSEEK_MODEL', default='deepseek-flash')
 AI_MAX_OUTPUT_TOKENS = 512
 AI_USAGE_TIME_ZONE = 'America/Santiago'
+# Pase del día con Tinta (ai_engine/usage.py::buy_day_pass): un pago y se conversa con todos los
+# personajes hasta la medianoche de Chile. El tope de tokens es de uso justo (el cupo del plan
+# Maestro, ~150 respuestas): no se muestra, solo evita que un pase se vuelva un costo sin techo.
+AI_INK_DAY_PASS_PRICE = 20
+AI_INK_DAY_PASS_TOKEN_LIMIT = 300000
 AI_GEMINI_INPUT_USD_PER_MILLION = env('AI_GEMINI_INPUT_USD_PER_MILLION', default='0.30')
 AI_GEMINI_OUTPUT_USD_PER_MILLION = env('AI_GEMINI_OUTPUT_USD_PER_MILLION', default='2.50')
 AI_DEEPSEEK_INPUT_USD_PER_MILLION = env('AI_DEEPSEEK_INPUT_USD_PER_MILLION', default='0.30')

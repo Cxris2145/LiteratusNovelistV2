@@ -27,6 +27,8 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   private subscriptions = inject(SubscriptionService);
   sessionId: string | null = null;
   chatError = '';
+  /** Sin plan ni pase: oferta del pase del día sobre el campo de escribir. */
+  offerPass: any = null;
   private destroy$ = new Subject<void>();
   public kokoroVoice = inject(KokoroTtsService);
   public speechService = inject(SpeechRecognitionService);
@@ -134,7 +136,8 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
       error: (err) => {
         if (this.sessionId) {
           this.messages.pop(); this.inputText = msg; this.isSending = false;
-          if (!err.cancelled) this.chatError = err.error?.message || 'No se pudo confirmar la respuesta. Intenta de nuevo; no se duplicará el cargo.';
+          if (err.needsPass) { this.offerPass = err.usage; return; }
+          this.chatError = err.error?.message || 'No se pudo confirmar la respuesta. Intenta de nuevo; no se duplicará el cargo.';
           return;
         }
         const errData = err?.error;
@@ -152,6 +155,12 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
         setTimeout(() => this.scrollToBottom(), 60);
       }
     });
+  }
+
+  /** Pase activado: el mensaje que quedó en el campo se envía solo. */
+  onPassActivated(): void {
+    this.offerPass = null;
+    this.sendMessage();
   }
 
   onKeydown(e: KeyboardEvent): void {

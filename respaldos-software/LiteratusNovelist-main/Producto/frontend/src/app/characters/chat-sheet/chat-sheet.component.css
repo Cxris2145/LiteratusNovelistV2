@@ -1,0 +1,72 @@
+/* Encima de todo lo de la página (el Asistente usa 3000) pero bajo los diálogos de Material. */
+.cs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3090;
+  background: rgba(3, 10, 18, 0.45);
+  animation: cs-fade 160ms ease-out;
+}
+
+.cs-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3100;
+  display: flex;
+  flex-direction: column;
+  width: min(440px, 100vw);
+  background: var(--color-surface, #14291F);
+  border-left: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.35);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  animation: cs-in 240ms cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.cs-panel > app-character-chat { flex: 1; min-height: 0; }
+
+.cs-state {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-secondary, #bbaea0);
+}
+.cs-state .material-symbols-rounded { font-size: 2rem; }
+.cs-spin { animation: cs-spin 1s linear infinite; }
+.cs-close {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.2));
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Celular: pantalla completa y sobre el teclado (--kb-inset y --vv-top: keyboard-inset.util.ts). */
+@media (max-width: 640px) {
+  .cs-backdrop { display: none; }
+  .cs-panel {
+    top: var(--vv-top, 0px);
+    bottom: var(--kb-inset, 0px);
+    width: 100vw;
+    border-left: none;
+    box-shadow: none;
+    animation-name: cs-up;
+  }
+  :host-context(body.keyboard-open) .cs-panel { padding-bottom: 0; }
+}
+
+@keyframes cs-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cs-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cs-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cs-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cs-backdrop, .cs-panel { animation: none; }
+  .cs-spin { animation: none; }
+}

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     UserFavorite, UserInventory, ReadingProgress, UserBookmark, UserHighlight, UserPostIt,
-    Achievement, UserAchievement, ReadingSession, InkTransaction, UserVocabulary
+    Achievement, UserAchievement, ReadingSession, InkTransaction, UserVocabulary, NotebookTab
 )
 from catalog.models import Book, Chapter
 from catalog.serializers import BookListSerializer, EditionSerializer
@@ -396,3 +396,35 @@ class UserVocabularySerializer(serializers.ModelSerializer):
         validated_data['user'] = user
         return super().create(validated_data)
 
+
+class NotebookTabListSerializer(serializers.ModelSerializer):
+    """Pestañas del cuaderno sin su contenido (la barra de pestañas carga el contenido aparte)."""
+    book_title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = NotebookTab
+        fields = ['id', 'title', 'position', 'inventory', 'book_title', 'revision', 'updated_at']
+        read_only_fields = fields
+
+    def get_book_title(self, tab):
+        return tab.inventory.edition.book.title if tab.inventory_id else ''
+
+
+class NotebookTabSerializer(NotebookTabListSerializer):
+    """Una pestaña completa. El libro solo se asigna con `for-book`; el orden, con `reorder`."""
+
+    class Meta(NotebookTabListSerializer.Meta):
+        fields = NotebookTabListSerializer.Meta.fields + ['content', 'drawing']
+        read_only_fields = ['id', 'position', 'inventory', 'book_title', 'revision', 'updated_at']
+        extra_kwargs = {'title': {'required': False, 'allow_blank': True}}
+
+    def validate_title(self, value):
+        return value.strip()[:80] or 'Sin título'
+
+    def validate_content(self, value):
+        from .notebook import clean_content
+        return clean_content(value)
+
+    def validate_drawing(self, value):
+        from .notebook import clean_drawing
+        return clean_drawing(value)

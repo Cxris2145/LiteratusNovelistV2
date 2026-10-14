@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, ViewChild, ElementRef } from '@angular/core';
-import { Subject } from 'rxjs';
-import { debounceTime, takeUntil } from 'rxjs/operators';
+import { Subject, Subscription, TimeoutError, EMPTY, of, timer } from 'rxjs';
+import { catchError, concatMap, debounce, finalize, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { AudioService } from '../../core/services/audio.service';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,8 +23,13 @@ import { ReaderTabsService } from '../../core/services/reader-tabs.service';
 import { ReaderBlock, ReaderToken, WordBounds, parseChapterBlocks, setWordBounds } from '../../core/utils/chapter-parser.util';
 import { swapTheme } from '../../core/utils/theme-swap.util';
 import { VocabularyJump } from './vocabulary-panel/vocabulary-panel.component';
+import { BookSearchService } from './book-search.service';
+import { CharacterChatService } from '../../core/services/character-chat.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { VocabularyService } from '../../core/services/vocabulary.service';
+import { ReaderProgressSnapshot, readerProgressPayload } from './reader-progress.util';
+import { NotebookService } from '../../notebook/notebook.service';
+import { ReadingSummaryContent, ReadingSummaryService } from '../../core/services/reading-summary.service';
 
 export interface ProgressData {
   percentage: number;
@@ -118,6 +123,8 @@ interface NarratorVoice {
   templateUrl: './reader.component.html',
   // La vista libro (tapa, papel, barras, línea del libro, índice con marcadores) va aparte.
   styleUrls: ['./reader.component.css', './reader-book.component.css'],
+  // La búsqueda dentro del libro vive con cada lector abierto (su índice se libera al salir).
+  providers: [BookSearchService],
   animations: [
     // Panel TOC (derecha) y Panel de Personajes (izquierda)
     trigger('slideFromRight', [
@@ -134,6 +141,7 @@ interface NarratorVoice {
 })
 export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
+  private readingSummary = inject(ReadingSummaryService);
   public audioService = inject(AudioService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -151,6 +159,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private readerTabs = inject(ReaderTabsService);
   private notificationService = inject(NotificationService);
   private vocabularyService = inject(VocabularyService);
+  readonly bookSearch = inject(BookSearchService);
+  private characterChat = inject(CharacterChatService);
+  readonly notebook = inject(NotebookService);
+  private unregisterNotebook?: () => void;
+  /** Pasaje pedido desde el cuaderno (?ir=<capítulo>:<palabra>) antes de que lleguen los capítulos. */
+  private pendingPassage: { chapterId: string; word: number; lastWord: number } | null = null;
 
   // ── LECTURA ──────────────────────────────────────────────────────
 
@@ -248,6 +262,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   toastIcon: string = '🔖';
   bookmarkResumeLabel: string = 'Reanudando marcador en';
   private nextJumpLabel: string = '';
+  /** Última palabra a resaltar en el próximo salto (una frase de la búsqueda); -1 = solo una. */
+  private nextJumpLastWord: number = -1;
   /** Primera palabra de la página a la vista: al cambiar la letra se vuelve a ella. */
   private spreadAnchorWord: number = -1;
   private flipTimer: any = null;
@@ -256,6 +272,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ── VOCABULARIO, FAVORITO Y PESTAÑA ──────────────────────────────
   isVocabularyOpen: boolean = false;
+  isSearchOpen: boolean = false;
   bookCover: string | null = null;
 
   /** Pestaña que baja línea a línea por el margen mientras habla la narración. */
@@ -543,7 +560,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   audioLevel: number = 0;
   partialTranscript: string = '';
 
-  private saveProgressSubject = new Subject<number>();
+  private saveProgressSubject = new Subject<ReaderProgressSnapshot>();
   private destroy$ = new Subject<void>();
   private savedProgressData: ProgressData | null = null;
 
@@ -581,7 +598,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   isSummaryModalOpen: boolean = false;
   isSummaryLoading: boolean = false;
   summaryError: string = '';
-  progressSummary: any = null;
+  progressSummary: ReadingSummaryContent | null = null;
+  summaryUpToChapter = 1;
+  private progressSummaryRequest: Subscription | null = null;
 
   // Video Avatar / Manga Avatar
   @ViewChild('avatarVideo') avatarVideoElement!: ElementRef<HTMLVideoElement>;
@@ -631,6 +650,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.inventoryId = this.route.snapshot.paramMap.get('id') || '';
+    // "Ir al pasaje" del cuaderno salta aquí mismo, sin recargar el libro.
+    this.unregisterNotebook = this.notebook.registerReader(this.inventoryId,
+      (chapterId, word, lastWord) => this.ngZone.run(() => this.goToPassage(chapterId, word, lastWord ?? -1)));
 
     // Mientras carga, los textos de Maguito van cambiando
     this.loadingTipInterval = setInterval(() => {
@@ -641,11 +663,22 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.requestWakeLock();
     document.addEventListener('visibilitychange', this.handleVisibilityChange);
 
-    // Activar modo inmersivo nativo de OS apenas entra al lector
-    this.toggleImmersiveMode(true);
+    // Ya no entra en pantalla completa sola al abrir un libro (molestaba): queda el interruptor
+    // "Pantalla completa" de Ajustes → Menos distracciones.
 
     // El scroll avisa fuera de la zona de Angular; el guardado (y lo que muestre al volver) va dentro.
-    this.saveProgressSubject.pipe(debounceTime(3000)).subscribe(p => this.ngZone.run(() => this.syncProgressToBackend(p)));
+    // Capture chapter/word before debouncing; serialize saves so an older request cannot
+    // overwrite a newer position. An immediate save flushes the debounce.
+    this.saveProgressSubject.pipe(
+      debounce(snapshot => snapshot.immediate ? of(0) : timer(3000)),
+      concatMap(snapshot => {
+        if (!this.progressId || !this.totalPages) return EMPTY;
+        return this.api.patch(`library/progress/${this.progressId}/`, readerProgressPayload(snapshot, this.totalPages)).pipe(
+          catchError(() => EMPTY),
+        );
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe();
 
     this.loadInitialData();
     this.loadInkBalance();
@@ -703,25 +736,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loadNarrationPrefs();
     this.initReadingPaceSettings();
 
-    // Auto-abrir chat si venimos redirigidos por un personaje
+    // Enlaces viejos con ?chatWith: el chat se abre en la ventana rápida, sin esperar al libro.
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
-      const avatarId = params['chatWith'];
-      if (avatarId) {
-        // Esperar a que los avatares carguen para poder iniciar el chat
-        const checkAvatars = setInterval(() => {
-          if (this.avatars && this.avatars.length > 0) {
-            clearInterval(checkAvatars);
-            // Usar toString() para comparar UUIDs de forma segura
-            const avatar = this.avatars.find(a => String(a.id) === String(avatarId));
-            if (avatar) {
-              this.startChat(avatar);
-            } else {
-              console.warn(`Avatar con ID ${avatarId} no encontrado.`);
-            }
-          }
-        }, 200);
-        // Timeout de seguridad de 10 segundos
-        setTimeout(() => clearInterval(checkAvatars), 10000);
+      if (params['chatWith']) this.characterChat.open(params['chatWith']);
+      // Desde el cuaderno con el libro cerrado: /reader/<id>?ir=<capítulo>:<palabra>[-<última>]
+      const [chapterId, range] = String(params['ir'] || '').split(':');
+      const [first, last] = (range || '').split('-');
+      if (chapterId && /^\d+$/.test(first || '')) {
+        this.goToPassage(chapterId, Number(first), /^\d+$/.test(last || '') ? Number(last) : -1);
       }
     });
 
@@ -830,7 +852,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.pendingSpreadIndex = null;
           this.pendingSpreadFraction = null;
           this.parseAndRenderChapter();
-          this.saveProgressSubject.next(this.currentPage - 1);
+          this.queueProgress(this.currentPage - 1);
           // Iniciar narración del siguiente capítulo automáticamente
           setTimeout(() => this.playAudio(), 600);
         }, 500);
@@ -858,6 +880,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       // selección de texto van fuera de la zona: solo vuelven a ella si cambia algo visible.
       canvas.addEventListener('scroll', this.handleCanvasScroll, { passive: true });
       canvas.addEventListener('pointerdown', this.handleCanvasPointerDown, { passive: true });
+      canvas.addEventListener('pointerup', this.handleCanvasPointerUp, { passive: true });
       document.addEventListener('selectionchange', this.handleSelectionChange);
       // Post-its en los márgenes: se arrastran desde su capa y se recolocan si el lienzo cambia de
       // tamaño (letra, ancho, barra que se oculta); el scroll y los giros de página van por onCanvasScroll.
@@ -872,14 +895,34 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private handleCanvasScroll = (event: Event) => this.onCanvasScroll(event);
 
   /** Dónde empezó el último clic en el lienzo: un arrastre (seleccionar texto) no es un clic. */
-  private canvasPointerDown: { x: number; y: number; hadSelection: boolean; hadPopover: boolean } | null = null;
+  private canvasPointerDown: { x: number; y: number; t: number; touch: boolean; hadSelection: boolean; hadPopover: boolean } | null = null;
   private handleCanvasPointerDown = (event: PointerEvent) => {
     this.canvasPointerDown = {
       x: event.clientX,
       y: event.clientY,
+      t: event.timeStamp,
+      touch: event.pointerType !== 'mouse',
       hadSelection: this.showWordMenu || !!window.getSelection()?.toString().trim(),
       hadPopover: !!this.activeHighlight || !!this.activePostIt
     };
+  };
+
+  /**
+   * En la vista libro, deslizar el dedo de lado pasa la página. No cuenta si el gesto empezó
+   * pegado al borde de la pantalla (ahí viven los gestos de atrás/adelante del sistema), si fue
+   * lento o más vertical que horizontal, o si se estaba seleccionando texto.
+   */
+  private handleCanvasPointerUp = (event: PointerEvent) => {
+    const down = this.canvasPointerDown;
+    if (!down || !down.touch || !this.isDoublePageView) return;
+    const dx = event.clientX - down.x;
+    const dy = event.clientY - down.y;
+    const SYSTEM_EDGE = 24;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.5 || event.timeStamp - down.t > 600) return;
+    if (down.x < SYSTEM_EDGE || down.x > window.innerWidth - SYSTEM_EDGE) return;
+    if (down.hadSelection || down.hadPopover || window.getSelection()?.toString().trim()) return;
+    this.canvasPointerDown = null; // el clic que pueda venir después no es un toque
+    this.ngZone.run(() => (dx < 0 ? this.turnSpreadNext() : this.turnSpreadPrev()));
   };
 
   loadInitialData() {
@@ -954,12 +997,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private _bookIdForSession: string | null = null;
 
   ngOnDestroy() {
+    this.unregisterNotebook?.();
     if (this.resetNoticeTimer) clearTimeout(this.resetNoticeTimer);
     if (this.rulerCanvasEl) {
       this.rulerCanvasEl.removeEventListener('mousemove', this.handleRulerMouseMove);
       this.rulerCanvasEl.removeEventListener('mouseleave', this.handleRulerMouseLeave);
       this.rulerCanvasEl.removeEventListener('scroll', this.handleCanvasScroll);
       this.rulerCanvasEl.removeEventListener('pointerdown', this.handleCanvasPointerDown);
+      this.rulerCanvasEl.removeEventListener('pointerup', this.handleCanvasPointerUp);
       this.rulerCanvasEl = null;
     }
     document.removeEventListener('selectionchange', this.handleSelectionChange);
@@ -1084,8 +1129,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Calcular página decimal exacta (ej. 1.5 significa mitad de capítulo 1)
     const exactPage = (this.currentPage - 1) + scrollPercent;
 
-    // No guardamos palabra aquí, solo porcentaje exacto
-    this.saveProgressSubject.next(exactPage);
+    this.queueProgress(exactPage);
 
     this.checkBackToReadingVisibility();
   }
@@ -2240,6 +2284,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.loadBookmarks();
           this.loadHighlights();
           this.loadPostIts();
+          const passage = this.pendingPassage;
+          const passageIndex = passage ? this.chapters.findIndex(chapter => String(chapter.id) === passage.chapterId) : -1;
+          this.pendingPassage = null;
+          if (passage && passageIndex >= 0) {
+            // Llegó desde el cuaderno: abre en el pasaje y no en la última posición leída.
+            this.currentPage = passageIndex + 1;
+            this.savedProgressData = { percentage: 0, wordId: `word-${passage.word}`, timestamp: Date.now() };
+            this.nextJumpLabel = 'Pasaje en';
+            this.nextJumpLastWord = passage.lastWord;
+          }
           if (this.currentPage > this.totalPages) { this.currentPage = this.totalPages; } else if (this.currentPage < 1) { this.currentPage = 1; }
           this.renderCurrentChapter();
           this.loadAvatars(); // Cargar personajes una vez tenemos el inventario
@@ -2262,6 +2316,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   renderCurrentChapter() {
+    this.isFullyRendered = false;
     // Defer to next task so the Lottie animation keeps running
     // (avoids blocking the main thread during heavy chapter tokenization)
     setTimeout(() => this.parseAndRenderChapter(), 0);
@@ -2349,14 +2404,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Si el primer bloque contiene el título del capítulo, lo extraemos para el encabezado premium.
     if (this.parsedBlocks.length > 0) {
       const firstBlock = this.parsedBlocks[0];
-      const titleToCompare = this.chapterTitle.toLowerCase().replace(/\s+/g, ' ').trim();
+      // Se compara sin signos ni tildes: "Capítulo 1 - De lo que…" y "Capítulo 1 De lo que…" son el mismo título.
+      const normTitle = (text: string) => text.toLowerCase().normalize('NFD').replace(/[^\p{L}\p{N}]/gu, '');
+      const titleToCompare = normTitle(this.chapterTitle);
 
       let accumulatedText = '';
       let splitIndex = -1;
 
       for (let i = 0; i < firstBlock.tokens.length; i++) {
         accumulatedText += firstBlock.tokens[i].text;
-        const normalizedAccumulated = accumulatedText.toLowerCase().replace(/\s+/g, ' ').trim();
+        const normalizedAccumulated = normTitle(accumulatedText);
 
         if (normalizedAccumulated === titleToCompare) {
           splitIndex = i + 1;
@@ -2385,7 +2442,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         // grande ya extraído — se ve duplicado en pantalla. Si el/los siguientes
         // bloques son EXACTAMENTE ese mismo texto, se descartan también.
         const normalizeBlockText = (b: typeof this.parsedBlocks[0]) =>
-          b.tokens.map(t => t.text).join('').toLowerCase().replace(/\s+/g, ' ').trim();
+          normTitle(b.tokens.map(t => t.text).join(''));
         let guard = 0;
         while (
           this.parsedBlocks.length > 0 &&
@@ -2724,6 +2781,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           }
 
           this.narrationNotice = '';
+          this.setNarrationMediaInfo();
           this.audioService.playRecorded(res.audio_url, res.alignment, startWord).subscribe({
             next: () => this.isAudioLoading = false,
             error: (err) => {
@@ -2786,6 +2844,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (fallbackAudioUrl) {
       console.log('Usando fallback hardcodeado MP3:', fallbackAudioUrl);
+      this.setNarrationMediaInfo();
       this.audioService.playRecorded(fallbackAudioUrl).subscribe({
         next: () => {
           this.isAudioLoading = false;
@@ -2996,9 +3055,20 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.activeBookmarkEl = el;
     el.classList.add('bookmark-word-highlight');
-    this.bookmarkResumeWordText = el.textContent?.trim() || '';
+    const words = [el.textContent?.trim() || ''];
+    // Una frase encontrada con la búsqueda se resalta completa (con un tope por si es muy larga).
+    const first = Number(el.id.replace('word-', ''));
+    const last = Math.min(this.nextJumpLastWord, first + 30);
+    for (let i = first + 1; i <= last; i++) {
+      const next = document.getElementById(`word-${i}`);
+      if (!next) break;
+      next.classList.add('bookmark-word-highlight');
+      words.push(next.textContent?.trim() || '');
+    }
+    this.bookmarkResumeWordText = words.join(' ');
     this.bookmarkResumeLabel = this.nextJumpLabel || 'Reanudando marcador en';
     this.nextJumpLabel = '';
+    this.nextJumpLastWord = -1;
     this.showBookmarkResumeBadge = true;
     this.cdr.detectChanges();
 
@@ -3074,7 +3144,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.currentPage = index + 1;
     this.currentSpreadIndex = 0;
     this.renderCurrentChapter();
-    this.saveProgressSubject.next(index);
+    this.queueProgress(index, `word-${target.wordIdx ?? 0}`);
     this.loadAvatars(); // los personajes se desbloquean por capítulo
   }
 
@@ -3173,7 +3243,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.updateRemainingReadingTime(progress);
 
     const exactPage = (this.currentPage - 1) + (this.totalSpreads > 1 ? (this.currentSpreadIndex / this.totalSpreads) : 0);
-    this.saveProgressSubject.next(exactPage);
+    this.queueProgress(exactPage);
     this.checkBackToReadingVisibility();
   }
 
@@ -3335,7 +3405,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
       return;
     }
-    if (this.isVocabularyOpen) return; // el panel de vocabulario tiene su propio teclado
+    if (this.isVocabularyOpen || this.isSearchOpen) return; // esos paneles tienen su propio teclado
+    // Ctrl/Cmd+F busca en todo el libro: la búsqueda del navegador solo ve el capítulo abierto.
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      this.openSearch();
+      return;
+    }
     // Izquierda/derecha cambian de página o capítulo en cualquier modo de vista:
     // turnSpreadNext/turnSpreadPrev ya delegan a nextPage/previousPage cuando no
     // está activa la doble página, así que no hace falta repetir esa rama aquí.
@@ -3587,9 +3663,20 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly vocabularyPageLabel = (chapterIndex: number, wordIdx: number, wordCount: number): string =>
     `pág. ${this.bookPageOfWord(chapterIndex, wordIdx, wordCount)}`;
 
-  /** Lleva a una palabra de cualquier capítulo y la resalta unos segundos. */
-  private jumpToWord(chapterIndex: number, wordIdx: number, label: string) {
+  /** Cuaderno → lector: abre el capítulo del pasaje y lo resalta (espera a los capítulos si aún no llegan). */
+  private goToPassage(chapterId: string, wordIdx: number, lastWordIdx = -1) {
+    const index = this.chapters.findIndex(chapter => String(chapter.id) === chapterId);
+    if (index >= 0) {
+      this.jumpToWord(index, wordIdx, 'Pasaje en', lastWordIdx);
+    } else if (!this.chapters.length) {
+      this.pendingPassage = { chapterId, word: wordIdx, lastWord: lastWordIdx };
+    }
+  }
+
+  /** Lleva a una palabra de cualquier capítulo y la resalta unos segundos (hasta `lastWordIdx`, si es una frase). */
+  private jumpToWord(chapterIndex: number, wordIdx: number, label: string, lastWordIdx: number = -1) {
     this.nextJumpLabel = label;
+    this.nextJumpLastWord = lastWordIdx;
     if (chapterIndex === this.currentPage - 1) {
       this.scrollWordIntoView(wordIdx, true);
     } else {
@@ -3767,6 +3854,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /** Título, libro y portada para la pantalla bloqueada mientras suena la narración. */
+  private setNarrationMediaInfo() {
+    this.audioService.mediaInfo = { title: this.chapterTitle || this.bookTitle, artist: this.bookTitle, artwork: this.bookCover };
+  }
+
   /** Narra desde la primera palabra de la página que se está viendo. */
   narrateFromHere() {
     const range = this.visibleWordRange();
@@ -3871,6 +3963,47 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.jumpToWord(target.chapterIndex, target.wordIdx, 'Palabra en');
   }
 
+  // ── BUSCAR EN EL LIBRO ────────────────────────────────────────────
+
+  openSearch() {
+    if (!this.chapters.length) return;
+    this.isSearchOpen = true;
+    this.isTocOpen = false;
+    this.isSettingsOpen = false;
+    this.isVocabularyOpen = false;
+  }
+
+  /** Lleva al resultado `index` de la búsqueda. El primer salto recuerda dónde estaba el lector. */
+  goToSearchResult(index: number) {
+    const result = this.bookSearch.results[index];
+    if (!result) return;
+    this.isSearchOpen = false;
+    if (!this.bookSearch.origin) {
+      this.bookSearch.origin = { chapterIndex: this.currentPage - 1, wordIdx: this.visibleWordRange()?.[0] ?? 0 };
+    }
+    this.bookSearch.activeIndex = index;
+    this.jumpToWord(result.chapterIndex, result.firstWord, 'Resultado', result.lastWord);
+  }
+
+  /** Siguiente (+1) o anterior (-1) resultado, aunque esté en otro capítulo. */
+  stepSearchResult(delta: number) {
+    const index = this.bookSearch.step(delta);
+    if (index >= 0) this.goToSearchResult(index);
+  }
+
+  /** Vuelve a la página donde estaba antes de recorrer los resultados. */
+  returnFromSearch() {
+    const origin = this.bookSearch.origin;
+    if (!origin) return;
+    this.bookSearch.origin = null;
+    this.jumpToWord(origin.chapterIndex, origin.wordIdx, 'De vuelta en');
+  }
+
+  closeSearch() {
+    this.bookSearch.reset();
+    this.clearBookmarkHighlight();
+  }
+
   // ── RESUMEN HASTA DONDE VOY (ANTI-SPOILERS) ──────────────────────
   openProgressSummary(): void {
     this.isSummaryModalOpen = true;
@@ -3883,19 +4016,29 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   closeProgressSummary(): void {
     this.isSummaryModalOpen = false;
+    this.progressSummaryRequest?.unsubscribe();
+    this.progressSummaryRequest = null;
   }
 
   fetchProgressSummary(): void {
-    if (!this.inventoryId) return;
-    this.isSummaryLoading = true;
+    if (this.isSummaryLoading) return;
+    this.progressSummary = null;
     this.summaryError = '';
-    const chapterNum = this.currentPage;
+    this.summaryUpToChapter = this.currentPage;
+    if (!this.inventoryId) {
+      this.summaryError = 'No se pudo identificar el libro. Vuelve a abrirlo desde tu biblioteca.';
+      return;
+    }
+    this.isSummaryLoading = true;
 
-    this.api.post<any>(`library/inventory/${this.inventoryId}/reading-summary/`, {
-      up_to_chapter: chapterNum
-    }).subscribe({
-      next: (res) => {
+    this.progressSummaryRequest = this.readingSummary.load(this.inventoryId, this.summaryUpToChapter).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
         this.isSummaryLoading = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (res) => {
         if (res.status === 'ready' && res.summary) {
           this.progressSummary = res.summary;
         } else {
@@ -3904,8 +4047,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: (err) => {
-        this.isSummaryLoading = false;
-        this.summaryError = err.error?.message || err.error?.error || 'Error al conectar con el servicio de resúmenes.';
+        this.summaryError = err instanceof TimeoutError
+          ? 'El resumen está tardando más de lo normal. Vuelve a intentarlo en unos segundos.'
+          : err.error?.message || err.error?.error || 'Error al conectar con el servicio de resúmenes.';
         this.cdr.markForCheck();
       }
     });
@@ -4028,15 +4172,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         this.speakChatReply(res.reply);
       },
       error: (err) => {
-        console.error('Error en el chat', err);
         this.isSendingMessage = false;
         this.stopThinkingAnimation();
-        this.aiStatus = 'error';
         // Eliminar mensaje optimista si hubo error
         this.chatMessages.pop();
         this.chatInput = content;
+        // Sin plan ni pase del día: la oferta aparece sobre el campo y el mensaje espera ahí.
+        if (err?.needsPass) {
+          this.offerPass = err.usage;
+          return;
+        }
+        console.error('Error en el chat', err);
+        this.aiStatus = 'error';
       }
     });
+  }
+
+  /** Pase del día activado: el mensaje que esperaba en el campo se envía solo. */
+  offerPass: any = null;
+  onPassActivated() {
+    this.offerPass = null;
+    this.sendMessage();
   }
 
   formatMessage(text: string): string {
@@ -4803,6 +4959,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Escape cierra lo que esté abierto (nota del post-it, tarjeta del subrayado) o, si no hay nada, quita la palabra marcada. */
   @HostListener('document:keydown.escape')
   onReaderEscape() {
+    if (this.isSearchOpen) return; // el panel de búsqueda se cierra solo
     if (this.isSummaryModalOpen) {
       this.closeProgressSummary();
       return;
@@ -5209,30 +5366,16 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private syncProgressToBackend(exactPage: number, wordId: string = '') {
-    if (!this.progressId || this.totalPages === 0) return;
+    this.queueProgress(exactPage, wordId, true);
+  }
 
-    const percentage = Math.round((exactPage / this.totalPages) * 100);
-    const safePercentage = Math.min(Math.max(percentage, 0), 100); // Evitar > 100%
-    const intPage = Math.min(Math.floor(exactPage) + 1, this.totalPages); // Capitulo actual como entero
-
-    // Calcular el porcentaje de scroll dentro del capítulo (0 a 1)
-    const scrollPercent = exactPage - Math.floor(exactPage);
-
-    // Crear el objeto ProgressData tipado
-    const progressData: ProgressData = {
-      percentage: safePercentage,
-      wordId: wordId,
-      timestamp: Date.now(),
-      scrollPercent: scrollPercent
-    };
-
-    this.api.patch(`library/progress/${this.progressId}/`, {
-      current_page: intPage,
-      completion_percentage: safePercentage,
-      current_cfi: JSON.stringify(progressData)
-    }).subscribe({
-      next: () => console.log(`✅ Progreso guardado: Cap ${intPage} (${safePercentage}%), Palabra: ${wordId}`),
-      error: (err) => console.error('Error guardando progreso', err)
+  private queueProgress(exactPage: number, wordId = '', immediate = false) {
+    const firstWord = this.isFullyRendered ? this.visibleWordRange()?.[0] : undefined;
+    this.saveProgressSubject.next({
+      chapter: this.currentPage,
+      exactPage,
+      wordId: wordId || (firstWord !== undefined ? `word-${firstWord}` : ''),
+      immediate,
     });
   }
 

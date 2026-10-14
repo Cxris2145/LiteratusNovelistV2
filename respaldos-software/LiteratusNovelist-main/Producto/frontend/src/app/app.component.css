@@ -1481,3 +1481,43 @@
 }
 
 .menu-equipped-title { display: block; margin-top: 5px; color: var(--color-accent-text); font: 500 1rem var(--font-display); }
+
+/* ═════════════════════════════════════════════════════════════════════
+   CELULAR: el encabezado se esconde al bajar (app.component.ts → onWindowScroll)
+   y la fila de secciones cede su lugar a la barra inferior (app-bottom-nav).
+   Sin will-change: crearía un bloque contenedor para los menús fijos del header.
+   ═════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .main-header.glass-navbar {
+    transition: transform 260ms var(--ease-out, ease);
+  }
+  .main-header.glass-navbar.header-hidden {
+    transform: translateY(-100%);
+    box-shadow: none;
+  }
+}
+@media (max-width: 640px) {
+  .nav-bubbles-bar,
+  .nav-toggle-btn {
+    display: none;
+  }
+  .site-body.with-bottom-nav {
+    --bottom-nav-h: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--bottom-nav-h);
+  }
+  /* Con el teclado abierto la barra inferior se esconde (ver keyboard-inset.util.ts). */
+  :host-context(body.keyboard-open) .site-body.with-bottom-nav {
+    --bottom-nav-h: 0px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .main-header.glass-navbar { transition: none; }
+}
+
+/* Celular angosto: Favoritos y Carrito pasan al menú "Más" de la barra inferior; así la marca,
+   Mensajes, la Tinta y el perfil caben en una sola fila (con sesión el encabezado usaba tres). */
+@media (max-width: 480px) {
+  .quick-action-btn.qa-secondary {
+    display: none;
+  }
+}

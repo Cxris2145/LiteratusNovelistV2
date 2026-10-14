@@ -11,6 +11,7 @@
 
 /* OpenDyslexic — tipografía diseñada para dislexia (Lectura asistida).
    Solo dos pesos (regular/bold) vía jsDelivr (paquete npm "open-dyslexic"). */
+
 @font-face {
   font-family: 'OpenDyslexic';
   font-weight: 400;
@@ -1650,7 +1651,7 @@
   border-left: 1px solid rgba(255,255,255,0.1);
   background: rgba(15, 23, 42, 0.88);
   backdrop-filter: blur(15px);
-  padding: 2rem;
+  padding: 2rem 2rem calc(2rem + env(safe-area-inset-bottom, 0px));
   box-shadow: -10px 0 30px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
@@ -5230,6 +5231,77 @@ h2.chapter-heading { font-size: 1.28em; }
 .back-to-reading-btn .material-symbols-rounded { font-size: 0.9rem; }
 /* "Quitar marca" usa la misma píldora; si también está "Volver a mi lectura", va encima. */
 .clear-focus-btn.stacked { bottom: calc(126px + env(safe-area-inset-bottom, 0px)); }
+
+/* ── Barra de resultados de "Buscar en el libro": recorre las coincidencias sin abrir la lista ── */
+.search-results-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 951;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  max-width: calc(100vw - 32px);
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--reader-surface, #14261d);
+  border: 1px solid var(--reader-border, rgba(212, 175, 55, 0.15));
+  color: var(--reader-text, #fcfaf2);
+  font-family: var(--font-ui, sans-serif);
+  box-shadow: var(--reader-shadow-panel, 0 10px 30px rgba(0, 0, 0, 0.3));
+  animation: srbIn 0.22s var(--reader-ease);
+}
+/* Propia (no sheetIn): conserva el translateX(-50%) que la centra. */
+@keyframes srbIn {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.srb-main,
+.srb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.srb-main {
+  gap: 8px;
+  min-width: 0;
+  padding: 0 12px 0 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.srb-btn { flex: 0 0 auto; width: 40px; }
+.srb-main .material-symbols-rounded,
+.srb-btn .material-symbols-rounded { font-size: 1.2rem; }
+.srb-query {
+  min-width: 0;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.srb-count {
+  flex: 0 0 auto;
+  color: var(--reader-text-muted, #bbaea0);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.srb-main:focus-visible,
+.srb-btn:focus-visible { outline: 2px solid var(--reader-accent, #d4af37); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) {
+  .srb-main:hover,
+  .srb-btn:hover { background: var(--reader-hover-bg, rgba(212, 175, 55, 0.12)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-results-bar { animation: none; }
+}
 
 /* ── Insignia del temporizador de sesión ── */
 .session-timer-badge {

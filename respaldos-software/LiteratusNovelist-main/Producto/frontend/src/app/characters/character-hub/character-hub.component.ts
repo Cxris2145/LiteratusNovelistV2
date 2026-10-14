@@ -7,18 +7,22 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  TemplateRef,
   inject
 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { Subject, Subscription, interval } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 import { ApiService } from '../../core/services/api.service';
+import { CharacterChatService } from '../../core/services/character-chat.service';
+import { ScrollRevealService } from '../../core/services/scroll-reveal.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ChatService, HubAvatar } from '../../core/services/chat.service';
 
 /** Retrato de respaldo mientras el personaje no tenga imagen generada. */
-const FALLBACK_AVATAR = 'assets/images/default-avatar.svg';
+import { FALLBACK_AVATAR, hubIdentity, portraitThumbnail, uniqueCharacters } from './character-hub.util';
 
 /**
  * Diapositiva del carrusel. Lleva precalculados el extracto y las URLs de imagen
@@ -42,13 +46,19 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   api = inject(ApiService);
   router = inject(Router);
   auth = inject(AuthService);
+  private characterChat = inject(CharacterChatService);
+  /** Las secciones se pintan al llegar los datos: hay que pedir que se revelen. */
+  private scrollReveal = inject(ScrollRevealService);
   private cdr = inject(ChangeDetectorRef);
   private zone = inject(NgZone);
+  private dialog = inject(MatDialog);
+  @ViewChild('bookPicker') private bookPicker!: TemplateRef<unknown>;
 
   readonly fallbackAvatar = FALLBACK_AVATAR;
 
   // Datos para las secciones
   allCharacters: HubAvatar[] = [];
+  catalogCharacters: HubAvatar[] = [];
   heroCharacters: HeroSlide[] = [];
   featuredCharacters: HubAvatar[] = [];
   recentCharacters: HubAvatar[] = [];
@@ -69,6 +79,11 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   // Paginación del grid "Todos los Personajes"
   private page = 1;
   private hasMore = true;
+
+  // Paginación de la búsqueda (antes solo se veía la primera página de resultados)
+  private searchPage = 1;
+  private searchHasMore = false;
+  searchTotal = 0;
 
   private readonly search$ = new Subject<string>();
   private readonly subs = new Subscription();
@@ -98,12 +113,12 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.subs.add(this.chatService.getGlobalAvatars('', 'popularity', 1).subscribe({
       next: (res) => {
         this.totalCount = res.count;
-        this.allCharacters = res.results;
-        this.featuredCharacters = res.results.slice(0, 12);
-        this.heroCharacters = this.shuffle(res.results).slice(0, 5).map(c => this.toSlide(c));
+        this.allCharacters = uniqueCharacters(res.results);
+        this.updateSections();
         this.hasMore = !!res.next;
         this.isLoading = false;
         this.cdr.markForCheck();
+        this.scrollReveal.debouncedScan();
       },
       error: () => {
         this.isLoading = false;
@@ -118,7 +133,11 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
    * el navegador puede digerir.
    */
   loadMore() {
-    if (this.isLoading || this.isLoadingMore || !this.hasMore || this.isSearching) return;
+    if (this.isSearching) {
+      this.loadMoreResults();
+      return;
+    }
+    if (this.isLoading || this.isLoadingMore || !this.hasMore) return;
 
     this.isLoadingMore = true;
     this.cdr.markForCheck();
@@ -126,10 +145,35 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.subs.add(this.chatService.getGlobalAvatars('', 'popularity', this.page + 1).subscribe({
       next: (res) => {
         this.page += 1;
-        this.allCharacters = [...this.allCharacters, ...res.results];
+        this.allCharacters = uniqueCharacters([...this.allCharacters, ...res.results]);
+        this.updateSections();
         this.hasMore = !!res.next;
         this.isLoadingMore = false;
         this.cdr.markForCheck();
+        this.scrollReveal.debouncedScan();
+      },
+      error: () => {
+        this.isLoadingMore = false;
+        this.cdr.markForCheck();
+      }
+    }));
+  }
+
+  /** Siguiente página de la búsqueda, con el mismo scroll infinito del listado general. */
+  private loadMoreResults() {
+    const q = this.searchQuery.trim();
+    if (!q || this.isLoading || this.isLoadingMore || !this.searchHasMore) return;
+    this.isLoadingMore = true;
+    this.cdr.markForCheck();
+    this.subs.add(this.chatService.getGlobalAvatars(q, 'name', this.searchPage + 1).subscribe({
+      next: (res) => {
+        this.isLoadingMore = false;
+        if (this.searchQuery.trim() !== q) return; // la búsqueda cambió mientras cargaba
+        this.searchPage += 1;
+        this.filteredCharacters = uniqueCharacters([...this.filteredCharacters, ...res.results]);
+        this.searchHasMore = !!res.next;
+        this.cdr.markForCheck();
+        this.scrollReveal.debouncedScan();
       },
       error: () => {
         this.isLoadingMore = false;
@@ -141,8 +185,10 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   private loadRecent() {
     this.subs.add(this.chatService.getRecentAvatars().subscribe({
       next: (data) => {
-        this.recentCharacters = data;
+        this.recentCharacters = uniqueCharacters(data);
+        this.updateSections();
         this.cdr.markForCheck();
+        this.scrollReveal.debouncedScan();
       },
       error: (err) => console.warn('No se pudieron cargar recientes', err)
     }));
@@ -167,9 +213,13 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
         })
       ).subscribe({
         next: (res) => {
-          this.filteredCharacters = res.results;
+          this.filteredCharacters = uniqueCharacters(res.results);
+          this.searchPage = 1;
+          this.searchHasMore = !!res.next;
+          this.searchTotal = res.count;
           this.isLoading = false;
           this.cdr.markForCheck();
+          this.scrollReveal.debouncedScan();
         },
         error: () => {
           this.isLoading = false;
@@ -253,18 +303,15 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
    * completa para pintarlo en una tarjeta de 200px.
    */
   thumb(url: string | null | undefined, width: number = 300): string {
-    if (!url) return FALLBACK_AVATAR;
-    if (url.includes('/storage/v1/object/public/')) {
-      return url.replace('/object/public/', '/render/image/public/')
-        + (url.includes('?') ? '&' : '?') + `width=${width}&quality=60&resize=cover`;
-    }
-    return url;
+    return portraitThumbnail(url, width);
   }
 
   /** Comprueba antes de reasignar: si no, una imagen rota reentra en bucle. */
-  onImgError(event: Event): void {
+  onImgError(event: Event, original?: string | null): void {
     const img = event.target as HTMLImageElement;
-    if (!img.src.endsWith(FALLBACK_AVATAR)) {
+    if (original && img.src.includes('/storage/v1/render/image/public/')) {
+      img.src = original;
+    } else if (!img.src.endsWith(FALLBACK_AVATAR)) {
       img.src = FALLBACK_AVATAR;
     }
   }
@@ -272,7 +319,7 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   // ─── trackBy ─────────────────────────────────────────────────────────────────
 
   trackById(_: number, char: HubAvatar): string {
-    return char.id;
+    return hubIdentity(char);
   }
 
   trackByIndex(index: number): number {
@@ -285,38 +332,38 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
 
   // ─── Navegación ──────────────────────────────────────────────────────────────
 
+  /**
+   * El chat se abre al instante en la ventana rápida, sin pasar por el lector (que descargaba
+   * el libro entero). Si el libro no está en la biblioteca, la ventana ofrece agregarlo.
+   */
   openChat(character: HubAvatar) {
     if (!character) return;
-
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/demo-chat', character.id]);
+    if ((character.works?.length || 0) > 1) {
+      const picker = this.dialog.open(this.bookPicker, {
+        data: character, width: '480px', maxWidth: 'calc(100vw - 32px)',
+        maxHeight: '80vh', ariaLabel: `Elegir libro de ${character.name}`,
+      });
+      this.subs.add(picker.afterClosed().subscribe((avatarId?: string) => {
+        if (avatarId) this.characterChat.open(avatarId);
+      }));
       return;
     }
+    this.characterChat.open(character.id);
+  }
 
-    if (!character.book_slug) {
-      this.router.navigate(['/demo-chat', character.id]);
-      return;
-    }
+  bookLabel(character: HubAvatar): string {
+    return (character.book_count || 1) > 1
+      ? `${character.book_count} libros · Elegir obra`
+      : character.book_title || '';
+  }
 
-    // Verificar si el usuario ya posee el libro
-    this.api.get<any>(`library/inventory/check/?slug=${character.book_slug}`).subscribe({
-      next: (res: any) => {
-        if (res.owned) {
-          // Si lo tiene, ir al lector con el personaje pre-seleccionado
-          this.router.navigate(['/reader', res.inventory_id], {
-            queryParams: { chatWith: character.id }
-          });
-        } else {
-          // Si no lo tiene, ir a la vista del libro (sinopsis)
-          this.router.navigate(['/book', character.book_slug]);
-        }
-      },
-      error: (err: any) => {
-        console.error('Error verificando propiedad', err);
-        // Fallback: ir a la sinopsis
-        this.router.navigate(['/book', character.book_slug]);
-      }
-    });
+  private updateSections(): void {
+    const recent = new Set(this.recentCharacters.map(hubIdentity));
+    const available = this.allCharacters.filter(character => !recent.has(hubIdentity(character)));
+    this.featuredCharacters = available.slice(0, 12);
+    this.heroCharacters = available.slice(12, 17).map(character => this.toSlide(character));
+    this.catalogCharacters = available.slice(17);
+    this.currentHeroIndex %= this.heroCharacters.length || 1;
   }
 
   // ─── Utilidades ──────────────────────────────────────────────────────────────
@@ -336,13 +383,4 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     return text.length > max ? `${text.slice(0, max)}...` : text;
   }
 
-  /** Fisher-Yates. El `sort(() => 0.5 - Math.random())` anterior estaba sesgado. */
-  private shuffle<T>(items: T[]): T[] {
-    const out = [...items];
-    for (let i = out.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [out[i], out[j]] = [out[j], out[i]];
-    }
-    return out;
-  }
 }

@@ -1,0 +1,75 @@
+<div class="bs-overlay" (click)="close()">
+  <section class="bs-card" role="dialog" aria-modal="true" aria-labelledby="bs-title" (click)="$event.stopPropagation()">
+
+    <header class="bs-head">
+      <div class="bs-titles">
+        <h2 id="bs-title">Buscar en el libro</h2>
+        <p>{{ bookTitle }}</p>
+      </div>
+      <button type="button" class="bs-icon-btn" (click)="close()" aria-label="Cerrar la búsqueda">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="bs-toolbar">
+      <label class="bs-search">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+        <input #queryInput type="search" placeholder="Palabra o frase, por ejemplo: Dulcinea"
+               aria-label="Buscar en el libro" autocomplete="off" spellcheck="false" enterkeyhint="search"
+               [value]="query" (input)="onInput($any($event.target).value)" (keydown.enter)="onEnter()">
+        <button *ngIf="query" type="button" class="bs-clear" (click)="clear()" aria-label="Borrar la búsqueda">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </label>
+      <button type="button" class="bs-chip" [class.on]="wholeWord" [attr.aria-pressed]="wholeWord"
+              (click)="toggleWholeWord()" title="Solo la palabra exacta, sin las que empiezan igual">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ wholeWord ? 'check' : 'match_word' }}</span>
+        Palabra completa
+      </button>
+    </div>
+
+    <p class="bs-summary" *ngIf="search.state === 'ready' && status === 'results'" role="status">
+      {{ formatNumber(search.total) }} {{ search.total === 1 ? 'resultado' : 'resultados' }}
+      en {{ search.chapterHits }} {{ search.chapterHits === 1 ? 'capítulo' : 'capítulos' }}
+    </p>
+
+    <div class="bs-body" #resultsBody>
+      <div class="bs-state" *ngIf="search.state !== 'ready'" role="status">
+        <span class="material-symbols-rounded bs-spin" aria-hidden="true">progress_activity</span>
+        Preparando la búsqueda… {{ search.progress }} %
+      </div>
+
+      <ng-container *ngIf="search.state === 'ready'">
+        <div class="bs-state" *ngIf="status === 'short'">
+          <span class="material-symbols-rounded" aria-hidden="true">manage_search</span>
+          <strong>Busca en todo el libro</strong>
+          <span>Escribe al menos {{ MIN_QUERY }} letras: un nombre, una palabra o una frase.</span>
+        </div>
+
+        <div class="bs-state" *ngIf="status === 'empty'" role="status">
+          <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
+          <strong>No aparece en este libro</strong>
+          <span>Revisa cómo está escrita{{ wholeWord ? ' o desactiva «Palabra completa»' : '' }}.</span>
+        </div>
+
+        <ng-container *ngIf="status === 'results'">
+          <section class="bs-group" *ngFor="let group of search.groups; trackBy: trackGroup">
+            <h3>
+              <span class="bs-group-title">{{ group.title }}</span>
+              <span class="bs-count">{{ group.count }}</span>
+            </h3>
+            <button type="button" class="bs-hit" *ngFor="let i of group.resultIndexes; trackBy: trackIndex"
+                    [id]="'bs-result-' + i" [class.active]="i === search.activeIndex" (click)="goTo(i)">
+              <span class="bs-hit-page">{{ pageLabels[i] }}</span>
+              <span class="bs-hit-text">…{{ search.results[i].snippet.before }}<mark>{{ search.results[i].snippet.match }}</mark>{{ search.results[i].snippet.after }}…</span>
+            </button>
+          </section>
+          <p class="bs-hint" *ngIf="search.isTruncated">
+            Se muestran los primeros {{ formatNumber(MAX_RESULTS) }} de {{ formatNumber(search.total) }} resultados.
+            Agrega otra palabra para afinar la búsqueda.
+          </p>
+        </ng-container>
+      </ng-container>
+    </div>
+  </section>
+</div>

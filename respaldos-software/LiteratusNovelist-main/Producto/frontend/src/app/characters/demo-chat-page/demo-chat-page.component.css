@@ -411,6 +411,7 @@
 .dchat-messages {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain; /* llegar al final no arrastra la página de atrás */
   padding: 24px;
   display: flex;
   flex-direction: column;

@@ -59,6 +59,7 @@ urlpatterns = [
     # POST /api/v1/ai/chat/
     path('chat/', usage_views.MeteredChatView.as_view(), name='ai-chat'),
     path('chat/quote/', usage_views.ink_quote, name='ai-chat-quote'),
+    path('chat/day-pass/', usage_views.day_pass, name='ai-chat-day-pass'),
     path('usage/', usage_views.daily_usage, name='ai-usage'),
     path('usage/heartbeat/', usage_views.activity, name='ai-usage-heartbeat'),
 

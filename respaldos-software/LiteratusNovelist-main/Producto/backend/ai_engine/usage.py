@@ -39,12 +39,11 @@ def bounds_for_date(date):
 def check_avatar(user, avatar):
     from catalog.age import ensure_book_access
     ensure_book_access(user, avatar.edition.book)
-    owned = UserInventory.objects.filter(user=user, edition=avatar.edition).first()
+    owned = UserInventory.objects.filter(user=user, edition=avatar.edition).exists()
     if not owned and not (avatar.is_major_character or avatar.is_author):
         raise PermissionDenied('Añade esta obra a tu biblioteca para conversar con sus personajes.')
-    page = ReadingProgress.objects.filter(inventory=owned).values_list('current_page', flat=True).first() if owned else 0
-    if not avatar.is_author and (page or 0) < avatar.unlock_at_chapter:
-        raise PermissionDenied('Continúa leyendo para desbloquear este personaje.')
+    # Ya no hay candado por capítulo: todos los personajes de una obra propia están abiertos y
+    # el personaje evita los spoilers con el capítulo del lector (AIService._reader_context).
 
 
 def settle_activity(user, usage, now):
@@ -64,7 +63,7 @@ def settle_activity(user, usage, now):
 
 def release_event(event, profile, attempts=None):
     usage = DailyAIUsage.objects.select_for_update().get(pk=event.usage_id)
-    if event.mode == 'plan':
+    if event.mode in ('plan', 'pass'):
         usage.tokens_reserved = max(0, usage.tokens_reserved - event.reserved_tokens)
         usage.save(update_fields=['tokens_reserved'])
     elif event.ink_cost:
@@ -107,7 +106,38 @@ def snapshot(user):
             'tokens_used': usage.tokens_used, 'tokens_reserved': usage.tokens_reserved,
             'token_limit': tokens_limit, 'tokens_remaining': remaining,
             'active_seconds': usage.active_seconds, 'time_limit': time_limit,
-            'plan_available': available, 'has_plan': active, 'ink_balance': profile.ink_balance}
+            'plan_available': available, 'has_plan': active, 'ink_balance': profile.ink_balance,
+            'ink_pass_active': day_pass_active(user, usage.date),
+            'ink_pass_price': settings.AI_INK_DAY_PASS_PRICE}
+
+
+DAY_PASS_CONCEPT = 'ai_chat_day_pass'
+
+
+def day_pass_active(user, date):
+    """El pase del día es un movimiento de Tinta con la fecha (hora de Chile) como referencia."""
+    return InkTransaction.objects.filter(user=user, concept=DAY_PASS_CONCEPT, reference_id=str(date)).exists()
+
+
+def buy_day_pass(user):
+    """
+    Un pago de Tinta y se conversa con todos los personajes hasta la medianoche. Comprarlo dos
+    veces el mismo día no cobra de nuevo: el perfil queda bloqueado mientras se revisa y se cobra.
+    """
+    now = timezone.now()
+    price = settings.AI_INK_DAY_PASS_PRICE
+    with transaction.atomic():
+        profile = Profile.objects.select_for_update().get(user=user)
+        date = day_bounds(now)[0]
+        if not day_pass_active(user, date):
+            if profile.ink_balance < price:
+                raise UsageDenied('INSUFFICIENT_INK',
+                    f'Necesitas {price} de Tinta para el pase del día; tienes {profile.ink_balance}.')
+            profile.ink_balance -= price
+            profile.save(update_fields=['ink_balance'])
+            InkTransaction.objects.create(user=user, amount=-price, concept=DAY_PASS_CONCEPT,
+                reference_id=str(date), balance_after=profile.ink_balance)
+    return snapshot(user)
 
 
 def heartbeat(user, session, client_id, active):
@@ -164,6 +194,13 @@ def reserve(user, session, message, request_id, mode, quote_id, token_ceiling):
                 raise UsageDenied('AI_TOKEN_LIMIT', 'Tu magia necesita descansar. El cupo restante no alcanza para esta respuesta y su contexto.')
             usage.tokens_reserved += token_ceiling
             usage.save(update_fields=['tokens_reserved'])
+        elif mode == 'pass':
+            if not day_pass_active(user, usage.date):
+                raise UsageDenied('NO_DAY_PASS', 'Activa el pase del día para seguir conversando.')
+            if usage.tokens_used + usage.tokens_reserved + token_ceiling > settings.AI_INK_DAY_PASS_TOKEN_LIMIT:
+                raise UsageDenied('AI_TOKEN_LIMIT', 'Por hoy ya conversaste muchísimo. Tu pase se renueva a medianoche.')
+            usage.tokens_reserved += token_ceiling
+            usage.save(update_fields=['tokens_reserved'])
         else:
             accepted = InkChatQuote.objects.select_for_update().filter(pk=quote_id, user=user, session=session,
                 message_hash=digest(message), used=False, expires_at__gt=now).first()
@@ -177,7 +214,7 @@ def reserve(user, session, message, request_id, mode, quote_id, token_ceiling):
             profile.ink_balance -= ink_cost
             profile.save(update_fields=['ink_balance'])
         return AIUsageEvent.objects.create(request_id=request_id, user=user, session=session, usage=usage,
-            message_hash=digest(message), mode=mode, reserved_tokens=token_ceiling if mode == 'plan' else 0,
+            message_hash=digest(message), mode=mode, reserved_tokens=token_ceiling if mode in ('plan', 'pass') else 0,
             subscription_plan=sub.plan if has_paid_access(sub, now) else None,
             ink_cost=ink_cost, expires_at=now + timedelta(minutes=3)), False
 
@@ -191,10 +228,10 @@ def finish(event, message, result):
                 release_event(event, profile, result.get('attempts'))
             raise UsageDenied('REQUEST_EXPIRED', 'La respuesta llegó tarde. No se descontó cuota ni Tinta.')
         usage = DailyAIUsage.objects.select_for_update().get(pk=event.usage_id)
-        if event.mode == 'plan' and result['total_tokens'] > event.reserved_tokens:
+        if event.mode in ('plan', 'pass') and result['total_tokens'] > event.reserved_tokens:
             release_event(event, profile, result.get('attempts'))
             raise UsageDenied('INVALID_USAGE', 'No fue posible validar el consumo. No se realizó ningún cargo.')
-        if event.mode == 'plan':
+        if event.mode in ('plan', 'pass'):
             usage.tokens_reserved -= event.reserved_tokens
             usage.tokens_used += result['total_tokens']
             usage.save(update_fields=['tokens_reserved', 'tokens_used'])

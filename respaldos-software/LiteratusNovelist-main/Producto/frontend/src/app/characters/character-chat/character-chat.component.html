@@ -1,0 +1,85 @@
+<header class="cc-head">
+  <div class="cc-who">
+    <img *ngIf="avatar?.avatar_image_url; else initial" class="cc-photo" [src]="avatar?.avatar_image_url" [alt]="avatar?.name || ''">
+    <ng-template #initial><span class="cc-photo cc-photo--initial" aria-hidden="true">{{ (avatar?.name || '?').charAt(0) }}</span></ng-template>
+    <div class="cc-names">
+      <h2 id="cc-title">{{ avatar?.name || 'Cargando…' }}</h2>
+      <a *ngIf="avatar?.book_slug" class="cc-book" [routerLink]="['/book', avatar?.book_slug]" (click)="closed.emit()">
+        {{ avatar?.book_title }}
+      </a>
+    </div>
+  </div>
+  <div class="cc-actions">
+    <button *ngIf="canExpand && state === 'ready' && !isDemo" type="button" class="cc-icon-btn"
+            (click)="expand.emit(currentId)" title="Abrir en página completa (llamada y voz)" aria-label="Abrir en página completa">
+      <span class="material-symbols-rounded" aria-hidden="true">open_in_full</span>
+    </button>
+    <button type="button" class="cc-icon-btn" (click)="closed.emit()" title="Cerrar (Esc)" aria-label="Cerrar el chat">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+  </div>
+</header>
+
+<!-- Elenco del mismo libro: cambiar de personaje sin cerrar la ventana -->
+<nav class="cc-cast" *ngIf="(avatar?.cast?.length || 0) > 1" aria-label="Otros personajes del libro">
+  <button *ngFor="let member of avatar?.cast; trackBy: trackCast" type="button" class="cc-chip"
+          [class.is-current]="member.id === currentId" [attr.aria-current]="member.id === currentId ? 'true' : null"
+          (click)="member.id !== currentId && pick.emit(member.id)">
+    <img *ngIf="member.avatar_image_url; else chipInitial" [src]="member.avatar_image_url" alt="" loading="lazy">
+    <ng-template #chipInitial><span class="cc-chip-initial" aria-hidden="true">{{ member.name.charAt(0) }}</span></ng-template>
+    <span>{{ member.name }}</span>
+  </button>
+</nav>
+
+<div class="cc-feed" #feed role="log" aria-live="polite" aria-labelledby="cc-title">
+  <div class="cc-state" *ngIf="state === 'loading'">
+    <span class="material-symbols-rounded cc-spin" aria-hidden="true">progress_activity</span>
+    Abriendo la conversación…
+  </div>
+
+  <div class="cc-state" *ngIf="state === 'error'">
+    <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+    <strong>{{ error }}</strong>
+  </div>
+
+  <div class="cc-state cc-library" *ngIf="state === 'needs-library'">
+    <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>
+    <strong>Para conversar con {{ avatar?.name }}, agrega «{{ avatar?.book_title }}» a tu biblioteca.</strong>
+    <button *ngIf="avatar?.book_is_free" type="button" class="cc-primary" (click)="addBookAndChat()" [disabled]="isAdding">
+      {{ isAdding ? 'Agregando…' : 'Agregar gratis y conversar' }}
+    </button>
+    <a *ngIf="!avatar?.book_is_free" class="cc-primary" [routerLink]="['/book', avatar?.book_slug]" (click)="closed.emit()">Ver el libro</a>
+    <p class="cc-error" *ngIf="error">{{ error }}</p>
+  </div>
+
+  <ng-container *ngIf="state === 'ready'">
+    <app-ai-usage-meter *ngIf="sessionId" [sessionId]="sessionId"></app-ai-usage-meter>
+    <div *ngFor="let line of messages; trackBy: trackLine" class="cc-line" [class.cc-line--me]="line.role === 'user'">
+      <p class="cc-bubble">{{ line.content }}</p>
+    </div>
+    <app-ink-day-pass *ngIf="offerPass" [usage]="offerPass" (activated)="onPassActivated()"></app-ink-day-pass>
+    <div class="cc-line" *ngIf="isSending" [attr.aria-label]="(avatar?.name || 'El personaje') + ' está escribiendo'">
+      <p class="cc-bubble cc-typing"><span></span><span></span><span></span></p>
+    </div>
+  </ng-container>
+</div>
+
+<footer class="cc-compose" *ngIf="state === 'ready'">
+  <p class="cc-error" *ngIf="error">{{ error }}</p>
+  <p class="cc-demo" *ngIf="isDemo && !limitReached && remaining !== null">
+    Te quedan {{ remaining }} {{ remaining === 1 ? 'mensaje' : 'mensajes' }} de prueba.
+    <a routerLink="/register" (click)="closed.emit()">Crea tu cuenta</a> para seguir.
+  </p>
+  <p class="cc-demo" *ngIf="limitReached">
+    Se acabaron los mensajes de prueba. <a routerLink="/register" (click)="closed.emit()">Crea tu cuenta gratis</a> para seguir conversando.
+  </p>
+  <div class="cc-input-row" *ngIf="!limitReached">
+    <textarea #input class="cc-input" rows="1" maxlength="1000" enterkeyhint="send"
+              [placeholder]="'Escríbele a ' + (avatar?.name || 'este personaje') + '…'"
+              [attr.aria-label]="'Mensaje para ' + (avatar?.name || 'el personaje')"
+              [(ngModel)]="draft" (input)="autosize()" (keydown)="onKeydown($event)" [disabled]="isSending"></textarea>
+    <button type="button" class="cc-send" (click)="send()" [disabled]="!draft.trim() || isSending" aria-label="Enviar">
+      <span class="material-symbols-rounded" aria-hidden="true">send</span>
+    </button>
+  </div>
+</footer>

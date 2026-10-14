@@ -270,10 +270,10 @@
     <h2 class="avatar-modal-name">{{ selectedAvatar.name }}</h2>
     <p class="avatar-modal-desc">{{ selectedAvatar.description }}</p>
     
-    <div class="avatar-modal-info">
-      <svg lucideInfo class="icon-sm" style="margin-right:0.5rem;"></svg>
-      Este personaje interactuará contigo durante la lectura.
-    </div>
+    <button type="button" class="avatar-modal-chat" (click)="chatWithAvatar(selectedAvatar)">
+      <span class="material-symbols-rounded" aria-hidden="true">forum</span>
+      Conversar con {{ selectedAvatar.name }}
+    </button>
   </div>
 </div>
 

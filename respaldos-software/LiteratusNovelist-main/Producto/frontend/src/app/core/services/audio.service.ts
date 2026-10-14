@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
 import { ApiService } from './api.service';
 import { WasmTtsService } from './wasm-tts.service';
 import { BehaviorSubject, Subject, Observable } from 'rxjs';
@@ -71,6 +71,14 @@ export class AudioService {
   private textChunks: TextChunk[] = [];
   private currentChunkIndex: number = 0;
   private wasmTts = inject(WasmTtsService);
+  private zone = inject(NgZone);
+
+  /**
+   * Lo que muestran la pantalla bloqueada y la notificación del celular mientras suena la
+   * narración del servidor (título, libro y portada). Lo fija el lector antes de reproducir.
+   */
+  mediaInfo: { title: string; artist?: string; artwork?: string | null } | null = null;
+  private mediaHandlersReady = false;
 
   constructor() {
     if (window.speechSynthesis) {
@@ -398,6 +406,7 @@ export class AudioService {
 
       this.proAudio.play().then(() => {
         this.isPlayingSubject.next(true);
+        this.updateMediaSession('playing');
         observer.next({ success: true });
         observer.complete();
       }).catch(err => {
@@ -467,6 +476,7 @@ export class AudioService {
       this.wasmTts.pause();
     } else if (this.proAudio) {
       this.proAudio.pause();
+      this.updateMediaSession('paused');
     }
   }
 
@@ -478,6 +488,7 @@ export class AudioService {
       this.wasmTts.resume();
     } else if (this.proAudio) {
       this.proAudio.play();
+      this.updateMediaSession('playing');
     }
     this.isPlayingSubject.next(true);
     this.isPausedSubject.next(false);
@@ -499,5 +510,35 @@ export class AudioService {
     }
     this.wasmTts.stop();
     this.isPlayingSubject.next(false);
+    this.updateMediaSession('none');
+  }
+
+  /**
+   * Controles de la pantalla bloqueada (Media Session). Solo sirven para el audio del
+   * servidor: la voz del navegador y Kokoro se cortan al bloquear el teléfono.
+   */
+  private updateMediaSession(state: MediaSessionPlaybackState) {
+    const session = 'mediaSession' in navigator ? navigator.mediaSession : null;
+    if (!session) return;
+    try {
+      if (state === 'playing' && this.mediaInfo && typeof MediaMetadata !== 'undefined') {
+        const { title, artist, artwork } = this.mediaInfo;
+        session.metadata = new MediaMetadata({
+          title,
+          artist: artist || '',
+          album: 'Literatus Novelist',
+          artwork: artwork ? [{ src: artwork, sizes: '512x768' }] : [],
+        });
+      }
+      session.playbackState = state;
+      if (!this.mediaHandlersReady) {
+        this.mediaHandlersReady = true;
+        session.setActionHandler('play', () => this.zone.run(() => this.resume()));
+        session.setActionHandler('pause', () => this.zone.run(() => this.pause()));
+        session.setActionHandler('stop', () => this.zone.run(() => this.stop()));
+      }
+    } catch {
+      // Navegadores con Media Session a medias: la narración sigue igual, sin controles.
+    }
   }
 }

@@ -40,6 +40,16 @@ def activity(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def day_pass(request):
+    """POST /api/v1/ai/chat/day-pass/ — Pase del día con Tinta (todos los personajes hasta medianoche)."""
+    try:
+        return Response(usage.buy_day_pass(request.user))
+    except usage.UsageDenied as exc:
+        return Response({**exc.detail, 'usage': usage.snapshot(request.user)}, status=exc.status_code)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def ink_quote(request):
     data = QuoteInput(data=request.data)
     data.is_valid(raise_exception=True)
@@ -50,7 +60,7 @@ def ink_quote(request):
 
 class ChatInput(QuoteInput):
     request_id = serializers.UUIDField()
-    payment_mode = serializers.ChoiceField(choices=['plan', 'ink'], default='plan')
+    payment_mode = serializers.ChoiceField(choices=['plan', 'ink', 'pass'], default='plan')
     quote_id = serializers.UUIDField(required=False, allow_null=True)
 
 

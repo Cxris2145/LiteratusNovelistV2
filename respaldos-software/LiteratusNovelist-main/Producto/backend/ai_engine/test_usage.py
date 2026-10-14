@@ -159,13 +159,64 @@ class QuotaTests(TestCase):
         _, start, end = usage.day_bounds(datetime(2026, 4, 4, 12, tzinfo=utc.utc))
         self.assertEqual((end-start).total_seconds(), 25*3600)
 
-    def test_progress_lock_remains_even_with_maestro(self):
+    def test_day_pass_charges_once_per_day(self):
+        Profile.objects.filter(user=self.user).update(ink_balance=50)
+        first = self.client.post('/api/v1/ai/chat/day-pass/')
+        self.assertEqual(first.status_code, 200)
+        self.assertTrue(first.data['ink_pass_active'])
+        self.assertEqual(first.data['ink_balance'], 30)
+        again = self.client.post('/api/v1/ai/chat/day-pass/')
+        self.assertEqual(again.data['ink_balance'], 30)
+        self.assertEqual(InkTransaction.objects.filter(user=self.user, concept=usage.DAY_PASS_CONCEPT).count(), 1)
+
+    def test_day_pass_needs_enough_ink(self):
+        Profile.objects.filter(user=self.user).update(ink_balance=5)
+        response = self.client.post('/api/v1/ai/chat/day-pass/')
+        self.assertEqual(response.data['error'], 'INSUFFICIENT_INK')
+        self.assertFalse(response.data['usage']['ink_pass_active'])
+        self.assertEqual(Profile.objects.get(user=self.user).ink_balance, 5)
+
+    @patch('ai_engine.usage_views.MeteredAIService.generate_metered')
+    def test_day_pass_chats_without_charging_ink(self, generate):
+        generate.return_value = self.result()
+        data = {'session_id': str(self.session.pk), 'message': 'Hola', 'request_id': str(uuid.uuid4()), 'payment_mode': 'pass'}
+        self.assertEqual(self.client.post('/api/v1/ai/chat/', data).data['error'], 'NO_DAY_PASS')
+        Profile.objects.filter(user=self.user).update(ink_balance=50)
+        self.client.post('/api/v1/ai/chat/day-pass/')
+        data['request_id'] = str(uuid.uuid4())
+        response = self.client.post('/api/v1/ai/chat/', data)
+        self.assertEqual(response.status_code, 200)
+        # Sin cobro por mensaje (el saldo puede subir por logros de la primera conversación).
+        self.assertFalse(InkTransaction.objects.filter(user=self.user, concept='ai_chat').exists())
+        self.assertEqual(AIUsageEvent.objects.get(pk=data['request_id']).ink_cost, 0)
+        self.assertEqual(DailyAIUsage.objects.get(user=self.user).tokens_used, 100)
+
+    def test_yesterdays_day_pass_does_not_count_today(self):
+        yesterday = usage.day_bounds()[0] - timedelta(days=1)
+        InkTransaction.objects.create(user=self.user, amount=-20, concept=usage.DAY_PASS_CONCEPT,
+            reference_id=str(yesterday), balance_after=0)
+        self.assertFalse(usage.snapshot(self.user)['ink_pass_active'])
+
+    def test_every_character_is_open_once_the_book_is_owned(self):
+        # Sin candado por capítulo: basta con tener la obra; los spoilers los cuida el prompt.
         self.avatar.unlock_at_chapter = 3
+        self.avatar.is_major_character = False
+        self.avatar.is_author = False
         self.avatar.save()
         with self.assertRaises(PermissionDenied): usage.check_avatar(self.user, self.avatar)
-        inventory = UserInventory.objects.create(user=self.user, edition=self.edition)
-        ReadingProgress.objects.filter(inventory=inventory).update(current_page=3)
+        UserInventory.objects.create(user=self.user, edition=self.edition)
         usage.check_avatar(self.user, self.avatar)
+
+    def test_prompt_tells_the_character_where_the_reader_is(self):
+        from catalog.models import Chapter
+        for order in (1, 2, 3):
+            Chapter.objects.create(book=self.edition.book, order=order, title=f'Parte {order}', content_html='<p>x</p>')
+        inventory = UserInventory.objects.create(user=self.user, edition=self.edition)
+        ReadingProgress.objects.filter(inventory=inventory).update(current_page=2)
+        service = MeteredAIService(self.avatar, self.session)
+        service.prepare('Hola')
+        self.assertIn('capítulo 2 de 3', service.messages[0]['content'])
+        self.assertIn('Parte 2', service.messages[0]['content'])
 
     def test_last_message_is_only_included_once(self):
         ChatMessage.objects.create(session=self.session, role='assistant', content='Antes')

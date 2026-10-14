@@ -1,3 +1,4 @@
+import { ScrollRevealService } from '../core/services/scroll-reveal.service';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
@@ -59,6 +60,7 @@ const CATEGORY_METADATA: Record<string, { desc: string; family: 'fiction' | 'tho
 export class CategoriesComponent implements OnInit {
   private router = inject(Router);
   private api = inject(ApiService);
+  private scrollReveal = inject(ScrollRevealService);
 
   searchTerm = '';
   isLoading = true;
@@ -156,6 +158,7 @@ export class CategoriesComponent implements OnInit {
         }
 
         this.isLoading = false;
+        this.scrollReveal.debouncedScan(); // la grilla .stagger-group recién se pinta
 
         // Conteo general en vivo de libros
         this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000).subscribe({

@@ -171,9 +171,13 @@
 .card-actions {
   margin-top: auto;
   display: flex;
+  flex-wrap: wrap; /* en tarjetas angostas "Continuar Lectura" baja a su línea en vez de salirse */
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px 10px;
+}
+.card-actions .read-btn {
+  flex: 1 0 auto;
 }
 
 .card-page-count-badge {
@@ -820,4 +824,72 @@
   .summary-card-btn {
     min-height: 44px;
   }
+}
+
+/* Resumen, Cuaderno y Personajes: tres botones iguales (ícono arriba, nombre abajo).
+   En una sola fila con ícono y texto al lado no cabían y se montaban unos sobre otros. */
+.card-extra-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+.card-extra-actions .summary-card-btn {
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  margin-top: 0;
+  padding: 7px 4px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  line-height: 1.15;
+}
+.card-extra-actions .summary-card-btn > span:last-child {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-extra-actions .material-symbols-rounded {
+  font-size: 18px;
+}
+.card-extra-actions .summary-card-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CELULAR: cada libro ocupaba una pantalla entera (portada cuadrada a lo ancho). Ahora es
+   una fila: portada chica a la izquierda y título, progreso y acciones a la derecha.
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .grid-container { gap: 14px; }
+  .book-card {
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    height: auto;
+  }
+  .card-image {
+    aspect-ratio: auto;
+    height: 100%;
+    min-height: 168px;
+    border-bottom: none;
+    border-right: 1px solid var(--glass-border);
+  }
+  .progress-badge { display: none; } /* el porcentaje ya está en la barra de progreso */
+  .card-content { padding: 12px 14px; min-width: 0; }
+  .book-title {
+    font-size: 1.02rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .edition-info { margin-bottom: 10px; font-size: 0.8rem; }
+  .progress-section { margin-bottom: 12px; }
+  .card-actions { flex-wrap: wrap; gap: 8px; }
+  .card-page-count-badge { display: none; } /* poco útil y no cabía junto a "Continuar" */
+  .card-actions .read-btn { flex: 1; justify-content: center; }
+  .card-extra-actions { gap: 5px; margin-top: 8px; }
+  .card-extra-actions .summary-card-btn { padding: 6px 0; font-size: 0.68rem; letter-spacing: 0; }
 }

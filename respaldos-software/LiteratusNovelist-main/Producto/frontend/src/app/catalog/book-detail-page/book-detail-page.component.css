@@ -977,4 +977,22 @@
     background: rgba(180, 50, 50, 0.3);
     box-shadow: none;
   }
+}
+
+/* Conversar con el personaje desde su ficha (abre la ventana rápida de chat). */
+.avatar-modal-chat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 1rem;
+  padding: 0 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-accent, #FFB353);
+  color: var(--color-on-accent, #1a1206);
+  font: 600 0.95rem var(--font-ui, system-ui, sans-serif);
+  cursor: pointer;
 }
+.avatar-modal-chat:focus-visible { outline: 2px solid var(--color-focus, #FFB353); outline-offset: 3px; }
