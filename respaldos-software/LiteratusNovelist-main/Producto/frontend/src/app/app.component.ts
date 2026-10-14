@@ -9,7 +9,8 @@ import { routeTransitionAnimations, shakeAnimation } from './core/animations';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Location } from '@angular/common';
 
-import { SettingsService } from './core/services/settings.service';
+import { APP_THEMES, SettingsService } from './core/services/settings.service';
+import { copyText } from './community/clipboard.util';
 import { environment } from '../environments/environment';
 import { FavoritesService } from './core/services/favorites.service';
 import { GamificationService, GamificationNotification } from './core/services/gamification.service';
@@ -146,6 +147,14 @@ export class AppComponent implements OnInit {
   // Recompensa Diaria indicador
   dailyRewardClaimable$ = this.gamificationService.dailyRewardClaimable$;
 
+  // ── Menú del avatar: nivel, racha, código de amigo y tema rápido ──
+  /** Perfil de users/profile/ que ya carga la gamificación al iniciar sesión. */
+  readerProfile$ = this.gamificationService.profile$;
+  readonly themes = APP_THEMES;
+  currentTheme$ = this.settingsService.currentTheme$;
+  friendCodeCopied = false;
+  private friendCodeTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
@@ -169,6 +178,8 @@ export class AppComponent implements OnInit {
     this.notebook.visibility$.subscribe(visibility => {
       if (visibility !== 'closed' && this.authService.isLoggedIn()) this.ensureNotebookWindow();
     });
+    this.settingsService.themeSaveFailed$.subscribe(() =>
+      this.notificationService.warning('El tema se aplicó, pero no se pudo guardar en tu cuenta.', 'Tema'));
   }
 
   /**
@@ -411,6 +422,35 @@ export class AppComponent implements OnInit {
 
   openInkTopUp() {
     this.router.navigate(['/planes'], { fragment: 'tinta' });
+  }
+
+  /** Mismo cálculo que la página de Logros, para que ambas barras coincidan. */
+  xpPercent(profile: { xp?: number; xp_to_next_level?: number } | null): number {
+    return profile?.xp_to_next_level ? Math.min(100, (profile.xp || 0) / profile.xp_to_next_level * 100) : 100;
+  }
+
+  themeLabel(themeId: string | null): string {
+    return this.themes.find(theme => theme.id === themeId)?.label || this.themes[0].label;
+  }
+
+  /** Cambia el tema en vivo sin cerrar el menú; SettingsService lo guarda en la cuenta. */
+  pickTheme(themeId: string, event: Event) {
+    event.stopPropagation();
+    this.settingsService.chooseTheme(themeId);
+  }
+
+  async copyFriendCode(code: string, event: Event) {
+    event.stopPropagation();
+    if (await copyText('#' + code)) {
+      this.friendCodeCopied = true;
+      if (this.friendCodeTimer) clearTimeout(this.friendCodeTimer);
+      this.friendCodeTimer = setTimeout(() => {
+        this.friendCodeCopied = false;
+        this.friendCodeTimer = null;
+      }, 1600);
+    } else {
+      this.notificationService.info(`Tu código es #${code}.`, 'La Taberna');
+    }
   }
 
   triggerShake() {

@@ -1,4 +1,4 @@
-import { Component, HostListener, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, forkJoin } from 'rxjs';
@@ -16,6 +16,7 @@ import { BazarGesture, BazarTab, isBazarTab } from '../tavern-bazar/tavern-bazar
 import { SceneGuest } from '../tavern-scene/tavern-scene.component';
 import { TavernTableAction } from '../tavern-table/tavern-table.types';
 import { TavernAudioService } from '../../core/services/tavern-audio.service';
+import { prefersReducedMotion } from '../../core/utils/motion.util';
 
 const POLL_MS = 8000;
 
@@ -91,6 +92,12 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     this.cinemaMode = !this.cinemaMode;
   }
 
+  // ── /tavern#mi-perfil ("Ver mi perfil público" del menú del avatar) ──
+  @ViewChild('profileCard', { read: ElementRef }) private profileCardRef?: ElementRef<HTMLElement>;
+  private wantsProfileSpotlight = false;
+  profileSpotlight = false;
+  private spotlightTimer: ReturnType<typeof setTimeout> | null = null;
+
   me: CommunityMe | null = null;
   friends: FriendCard[] = [];
   incoming: FriendRequestItem[] = [];
@@ -144,6 +151,12 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.onBazarPreview(null);
       }
     });
+    // #mi-perfil: tu tarjeta es tu perfil público; se centra y brilla un momento.
+    this.route.fragment.pipe(takeUntil(this.destroy$)).subscribe(fragment => {
+      if (fragment !== 'mi-perfil') return;
+      this.wantsProfileSpotlight = true;
+      this.spotlightProfile();
+    });
     this.loadAll();
     this.community.changed$.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadAll());
     this.zone.runOutsideAngular(() => {
@@ -158,6 +171,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     this.audio.stop();
     if (this.poll) clearInterval(this.poll);
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    if (this.spotlightTimer) clearTimeout(this.spotlightTimer);
     document.removeEventListener('visibilitychange', this.onVisibility);
     this.destroy$.next();
     this.destroy$.complete();
@@ -183,11 +197,34 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.recentReactions = data.activity.reactions;
         this.setInvitations(data.activity.invitations);
         this.loading = false;
+        this.spotlightProfile();
       },
       error: () => {
         this.loading = false;
         this.error = 'No pudimos abrir la taberna. Revisa tu conexión e inténtalo de nuevo.';
       },
+    });
+  }
+
+  /** Espera a tener tu perfil cargado; luego quita el #mi-perfil para que el menú pueda volver a pedirlo. */
+  private spotlightProfile(): void {
+    if (!this.wantsProfileSpotlight || !this.me) return;
+    this.wantsProfileSpotlight = false;
+    this.cinemaMode = false;
+    this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'preserve', replaceUrl: true });
+    this.profileSpotlight = false;
+    if (this.spotlightTimer) clearTimeout(this.spotlightTimer);
+    // Un cuadro después: la tarjeta ya se ve (sin modo cine) y la clase vuelve a disparar la animación.
+    requestAnimationFrame(() => {
+      this.profileCardRef?.nativeElement.scrollIntoView({
+        block: 'center',
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      });
+      this.profileSpotlight = true;
+      this.spotlightTimer = setTimeout(() => {
+        this.profileSpotlight = false;
+        this.spotlightTimer = null;
+      }, 1700);
     });
   }
 

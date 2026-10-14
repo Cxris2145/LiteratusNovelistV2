@@ -795,6 +795,471 @@
   color: var(--color-error) !important;
 }
 
+/* ── Menú del avatar: "Tinta y oro" ───────────────────────────────────
+   El panel vive en el overlay (fuera de :host): solo tokens globales que todos los
+   temas definen. El oro es decorativo (--pm-gold); el texto dorado usa --pm-gold-ink,
+   que en los temas claros pasa al color de texto primario para que se lea. */
+::ng-deep .mat-mdc-menu-panel.profile-menu {
+  --pm-gold: var(--color-accent);
+  --pm-gold-ink: var(--color-accent-text);
+  --pm-coral-ink: var(--home-coral-ink);
+  --pm-line: color-mix(in srgb, var(--pm-gold) 14%, var(--color-border));
+  width: 300px;
+  max-width: min(320px, calc(100vw - 24px)) !important;
+  border-radius: 18px !important;
+  border: 1px solid color-mix(in srgb, var(--pm-gold) 22%, var(--color-border)) !important;
+  background:
+    radial-gradient(120% 70% at 50% -12%, color-mix(in srgb, var(--pm-gold) 13%, transparent), transparent 62%),
+    linear-gradient(180deg, var(--color-surface), var(--color-bg-primary)) !important;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Sin :is(): el compilador de Angular encapsula lo que va dentro y la regla no aplicaría. */
+::ng-deep [data-theme="light-gallery"] .mat-mdc-menu-panel.profile-menu,
+::ng-deep [data-theme="sepia"] .mat-mdc-menu-panel.profile-menu,
+::ng-deep [data-theme="high-contrast-light"] .mat-mdc-menu-panel.profile-menu {
+  --pm-gold-ink: var(--color-primary-text);
+  --pm-coral-ink: #B23A1B;
+  box-shadow: 0 18px 44px var(--color-shadow) !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content {
+  padding: 4px 0 8px !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-divider {
+  margin: 6px 0 !important;
+  border-top-color: var(--pm-line) !important;
+}
+
+/* Cabecera: avatar, nombre, título, nivel, racha y XP */
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-head {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 12px;
+  cursor: default;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-avatar {
+  width: 48px;
+  height: 48px;
+  border-color: color-mix(in srgb, var(--pm-gold) 55%, transparent);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .user-name {
+  overflow: hidden;
+  color: var(--color-text-strong);
+  font: 600 1.2rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .menu-equipped-title {
+  margin-top: 2px;
+  color: var(--pm-gold-ink);
+  font-size: 0.95rem;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px 3px 7px;
+  border-radius: 999px;
+  font: 600 0.75rem/1.3 var(--font-ui);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chip .mat-symbol {
+  color: inherit !important;
+  font-size: 16px !important;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chip--level {
+  background: var(--color-accent-soft);
+  color: var(--pm-gold-ink);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chip--streak {
+  background: color-mix(in srgb, var(--home-accent-coral) 16%, transparent);
+  color: var(--pm-coral-ink);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-flame {
+  transform-origin: 50% 85%;
+  animation: pm-flicker 900ms var(--ease-in-out) 350ms 1 backwards;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-xp {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text-primary) 12%, transparent);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-xp-fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--pm-gold), color-mix(in srgb, var(--pm-gold) 55%, #ffffff));
+  transform: scaleX(var(--pm-xp, 0));
+  transform-origin: left center;
+  animation: pm-xp-grow 700ms var(--ease-out) 150ms backwards;
+}
+
+/* Un brillo que cruza la barra una sola vez, cuando termina de llenarse. */
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-xp-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.6) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: pm-sheen 900ms var(--ease-in-out) 800ms 1 both;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-xp-text {
+  justify-self: end;
+  margin-top: -4px;
+  color: var(--color-text-secondary);
+  font: 500 0.72rem var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ítems */
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item {
+  width: calc(100% - 12px);
+  min-height: 44px;
+  margin: 0 6px;
+  padding: 0 12px 0 14px !important;
+  border-radius: 10px;
+  color: var(--color-text-primary) !important;
+  font: 500 0.9rem var(--font-ui) !important;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 160ms var(--ease-out) !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  font: inherit !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-symbol {
+  color: var(--color-text-secondary) !important;
+  transition:
+    color 150ms ease,
+    transform 160ms var(--ease-out),
+    font-variation-settings 150ms ease !important;
+}
+
+/* Barra dorada a la izquierda: entra al pasar el mouse o con el foco del teclado. */
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch)::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--pm-gold);
+  transform: scaleY(0);
+  transition: transform 160ms var(--ease-out);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch).cdk-keyboard-focused {
+  background: color-mix(in srgb, var(--pm-gold) 10%, transparent) !important;
+  color: var(--color-text-strong) !important;
+}
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch).cdk-keyboard-focused::before {
+  transform: scaleY(1);
+}
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch).cdk-keyboard-focused .mat-symbol {
+  color: var(--pm-gold-ink) !important;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
+  transform: translateX(2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch):hover {
+    background: color-mix(in srgb, var(--pm-gold) 10%, transparent) !important;
+    color: var(--color-text-strong) !important;
+  }
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch):hover::before {
+    transform: scaleY(1);
+  }
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch):hover .mat-symbol {
+    color: var(--pm-gold-ink) !important;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
+    transform: translateX(2px);
+  }
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item:not(.pm-swatch):active {
+  transform: scale(0.98);
+}
+
+/* Código de amigo */
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item.pm-code {
+  min-height: 54px;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-label small {
+  color: var(--color-text-secondary);
+  font: 500 0.72rem var(--font-ui);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-label strong {
+  color: var(--color-text-strong);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-state {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--pm-gold) 35%, transparent);
+  border-radius: 999px;
+  color: var(--pm-gold-ink);
+  font: 600 0.72rem/1.4 var(--font-ui);
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-state .mat-symbol {
+  color: inherit !important;
+  font-size: 15px !important;
+  transform: none !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-state.is-copied {
+  border-color: transparent;
+  background: var(--color-accent-soft);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-state.is-copied .mat-symbol {
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 20 !important;
+  animation: pm-pop 220ms var(--ease-gentle);
+}
+
+/* Tema rápido: muestras redondas (son mat-menu-item para recorrerlas con las flechas) */
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-themes {
+  padding: 6px 16px 8px;
+  cursor: default;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-themes-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-section-label {
+  color: var(--color-text-secondary);
+  font: 700 0.68rem var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-theme-name {
+  overflow: hidden;
+  color: var(--pm-gold-ink);
+  font: 500 0.8rem var(--font-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 2px;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item.pm-swatch {
+  flex: none;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 !important;
+  border: 1.5px solid var(--sw-border);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sw-bg) 0 55%, var(--sw-accent) 55% 100%) !important;
+  box-shadow: 0 0 0 0 transparent;
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow 160ms ease !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch .mat-mdc-menu-item-text {
+  justify-content: center;
+  gap: 0;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch.is-active {
+  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--pm-gold);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch.cdk-keyboard-focused {
+  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-focus);
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch-check {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--pm-gold);
+  color: var(--color-on-accent) !important;
+  font-size: 13px !important;
+  font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 0, 'opsz' 20 !important;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 150ms ease,
+    transform 220ms var(--ease-gentle) !important;
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch.is-active .pm-swatch-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch:hover {
+    transform: scale(1.08);
+  }
+}
+
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch:active {
+  transform: scale(0.94);
+}
+
+/* Cerrar sesión conserva su rojo */
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item.logout-btn,
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item.logout-btn .mat-symbol {
+  color: var(--color-error) !important;
+}
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item.logout-btn::before {
+  background: var(--color-error);
+}
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item.logout-btn.cdk-keyboard-focused {
+  background: var(--color-error-bg) !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item.logout-btn:hover {
+    background: var(--color-error-bg) !important;
+  }
+}
+
+/* Entrada escalonada: cada bloque sube 6px y aparece, uno tras otro.
+   El contenido se vuelve a insertar en cada apertura, así que se repite sola.
+   `backwards` (no `both`) para no fijar transform y dejar libre el :active. */
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > * {
+  animation: pm-rise 240ms var(--ease-out) backwards;
+  animation-delay: calc(var(--pm-i, 12) * 25ms);
+}
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(1) { --pm-i: 0; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(2) { --pm-i: 1; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(3) { --pm-i: 2; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(4) { --pm-i: 3; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(5) { --pm-i: 4; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(6) { --pm-i: 5; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(7) { --pm-i: 6; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(8) { --pm-i: 7; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(9) { --pm-i: 8; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(10) { --pm-i: 9; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(11) { --pm-i: 10; }
+::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > :nth-child(12) { --pm-i: 11; }
+
+@keyframes pm-rise {
+  from { opacity: 0; transform: translateY(6px); }
+}
+
+@keyframes pm-fade {
+  from { opacity: 0; }
+}
+
+@keyframes pm-xp-grow {
+  from { transform: scaleX(0); }
+}
+
+@keyframes pm-sheen {
+  to { transform: translateX(100%); }
+}
+
+@keyframes pm-pop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pm-flicker {
+  0%, 100% { transform: scale(1) rotate(0); }
+  30% { transform: scale(1.18) rotate(-6deg); }
+  60% { transform: scale(0.94) rotate(4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-content > * {
+    animation: pm-fade 160ms ease backwards;
+    animation-delay: 0ms;
+  }
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .pm-flame,
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .pm-xp-fill,
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .pm-xp-fill::after,
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .pm-code-state .mat-symbol {
+    animation: none !important;
+  }
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item,
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .mat-mdc-menu-item .mat-symbol,
+  ::ng-deep .mat-mdc-menu-panel.profile-menu .pm-swatch-check {
+    transform: none !important;
+  }
+}
+
 /* La portada comparte tinta, papel y ancho editorial con su navegación y pie. */
 :host:has(app-home, app-book-list, app-categories, app-category-detail, app-author-list, app-author-detail-page, app-character-hub, app-demo-chat-page, app-tavern, app-library-list, app-book-detail-page, app-checkout, app-payment-success, app-payment-failure, app-login, app-register, app-forgot-password, app-reset-password, app-verify-email, app-profile) {
   --bg-color: var(--home-bg);

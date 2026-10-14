@@ -57,7 +57,8 @@
   <!-- Una sola ilustración cubre el salón; los paneles flotan a sus lados. -->
   <div class="th-layout" [class.is-bazar-open]="bazarOpen" *ngIf="loggedIn; else visitor">
     <!-- Columna izquierda: Tu perfil -->
-    <app-profile-card class="area-profile" [compact]="true" [card]="me" [mine]="true" [crowned]="weeklyLeader"
+    <app-profile-card #profileCard class="area-profile" [class.is-spotlight]="profileSpotlight"
+                      [compact]="true" [card]="me" [mine]="true" [crowned]="weeklyLeader"
                       [dressing]="bazarOpen" (dress)="openBazar('ropero')"></app-profile-card>
 
     <!-- Columna central: mesa interactiva y chat sobre el fondo compartido. -->

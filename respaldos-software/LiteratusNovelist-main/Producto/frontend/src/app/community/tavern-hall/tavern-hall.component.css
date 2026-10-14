@@ -186,6 +186,22 @@
 .area-profile {
   grid-area: profile;
 }
+/* /tavern#mi-perfil: un anillo dorado que se abre y se desvanece sobre tu tarjeta. */
+.area-profile.is-spotlight {
+  animation: th-spotlight 1.6s var(--ease-out) 1;
+}
+@keyframes th-spotlight {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--th-gold) 75%, transparent); }
+  35% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--th-gold) 45%, transparent); }
+  100% { box-shadow: 0 0 0 16px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .area-profile.is-spotlight {
+    animation: none;
+    outline: 2px solid var(--th-gold);
+    outline-offset: 4px;
+  }
+}
 .area-scene-wrap {
   position: relative;
   grid-area: scene;

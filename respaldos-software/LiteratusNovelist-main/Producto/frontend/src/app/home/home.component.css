@@ -187,6 +187,12 @@
   --on-accent: #15233B;
   --ghost-ink: var(--hero-ink);
   --ghost-line: rgba(242, 245, 250, 0.34);
+  /* Cuánto tapa el velo al muro de portadas (centro, derecha y borde). */
+  --scrim-mid: 78%;
+  --scrim-far: 42%;
+  --scrim-end: 58%;
+  --scrim-mobile: 70%;
+  --wall-filter: none;
 
   position: relative;
   isolation: isolate;
@@ -206,6 +212,32 @@
   --on-accent: var(--color-on-primary);
 }
 
+/* Temas claros: el hero toma el papel del tema (antes quedaba azul tinta) y el muro
+   se ve a través de un velo de ese mismo color. */
+:host-context([data-theme="light-gallery"]) .hero,
+:host-context([data-theme="sepia"]) .hero {
+  --hero-bg: var(--color-bg-primary);
+  --hero-ink: var(--color-text-strong);
+  --hero-muted: var(--color-text-secondary);
+  --hero-line: color-mix(in srgb, var(--color-text-strong) 18%, transparent);
+  --hero-glass: color-mix(in srgb, var(--color-surface) 86%, transparent);
+  --accent: var(--color-primary);
+  --on-accent: var(--color-on-primary);
+  --ghost-line: color-mix(in srgb, var(--color-text-strong) 40%, transparent);
+  --scrim-mid: 80%;
+  --scrim-far: 38%;
+  --scrim-end: 52%;
+  /* Sobre papel claro las portadas oscuras quedan en medios tonos: más velo bajo el texto. */
+  --scrim-mobile: 88%;
+  --wall-filter: saturate(0.85);
+}
+
+:host-context([data-theme="sepia"]) .hero {
+  --wall-filter: sepia(0.55) saturate(0.85);
+}
+
+/* Alto contraste: el muro también se ve, en blanco y negro y bajo un velo más
+   denso, para que el texto conserve todo su contraste. */
 :host-context([data-theme="high-contrast-dark"]) .hero,
 :host-context([data-theme="high-contrast-light"]) .hero {
   --hero-bg: var(--color-bg-primary);
@@ -216,13 +248,19 @@
   --accent: var(--color-primary);
   --on-accent: var(--color-on-primary);
   --ghost-line: var(--color-border-strong);
+  --scrim-mid: 92%;
+  --scrim-far: 62%;
+  --scrim-end: 70%;
+  --scrim-mobile: 92%;
+  --wall-filter: grayscale(1) contrast(1.05);
 }
 
-:host-context([data-theme="high-contrast-dark"]) .hero-wall,
-:host-context([data-theme="high-contrast-light"]) .hero-wall,
-:host-context([data-theme="high-contrast-dark"]) .hero-scrim,
-:host-context([data-theme="high-contrast-light"]) .hero-scrim {
-  display: none;
+:host-context([data-theme="light-gallery"]) .float-icon--voice,
+:host-context([data-theme="sepia"]) .float-icon--voice,
+:host-context([data-theme="high-contrast-dark"]) .float-icon--voice,
+:host-context([data-theme="high-contrast-light"]) .float-icon--voice {
+  background: color-mix(in srgb, var(--hero-ink) 10%, transparent);
+  color: var(--hero-ink);
 }
 
 /* Muro de portadas */
@@ -257,6 +295,8 @@
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 10px;
+  /* Filtro fijo por imagen: se pinta una vez con la tira y luego solo se desplaza. */
+  filter: var(--wall-filter);
 }
 
 .hero-scrim {
@@ -267,9 +307,9 @@
     linear-gradient(90deg,
       var(--hero-bg) 0%,
       var(--hero-bg) 34%,
-      color-mix(in srgb, var(--hero-bg) 78%, transparent) 50%,
-      color-mix(in srgb, var(--hero-bg) 42%, transparent) 72%,
-      color-mix(in srgb, var(--hero-bg) 58%, transparent) 100%),
+      color-mix(in srgb, var(--hero-bg) var(--scrim-mid), transparent) 50%,
+      color-mix(in srgb, var(--hero-bg) var(--scrim-far), transparent) 72%,
+      color-mix(in srgb, var(--hero-bg) var(--scrim-end), transparent) 100%),
     linear-gradient(0deg, var(--hero-bg) 0%, transparent 30%),
     linear-gradient(180deg, color-mix(in srgb, var(--hero-bg) 70%, transparent) 0%, transparent 22%);
 }
@@ -2141,7 +2181,7 @@
 
   .hero-scrim {
     background:
-      linear-gradient(0deg, var(--hero-bg) 0%, var(--hero-bg) 38%, color-mix(in srgb, var(--hero-bg) 70%, transparent) 70%, color-mix(in srgb, var(--hero-bg) 45%, transparent) 100%);
+      linear-gradient(0deg, var(--hero-bg) 0%, var(--hero-bg) 38%, color-mix(in srgb, var(--hero-bg) var(--scrim-mobile), transparent) 70%, color-mix(in srgb, var(--hero-bg) var(--scrim-far), transparent) 100%);
   }
 
   .hero-cards {

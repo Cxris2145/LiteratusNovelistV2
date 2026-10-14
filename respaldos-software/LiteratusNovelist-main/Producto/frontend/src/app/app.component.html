@@ -174,15 +174,58 @@
               </span></app-avatar-frame>
               <span class="profile-caret material-symbols-rounded" aria-hidden="true">expand_more</span>
             </button>
-            <mat-menu #profileMenu="matMenu" class="dark-premium-menu" xPosition="before">
-              <div class="menu-header">
-                <span class="user-name">{{ userName }}</span>
-                <span class="menu-equipped-title" *ngIf="userEquippedTitle">{{ userEquippedTitle }}</span>
+            <mat-menu #profileMenu="matMenu" class="dark-premium-menu profile-menu" xPosition="before">
+              <!-- Cabecera: quién eres y cómo vas (no cierra el menú al tocarla) -->
+              <div class="pm-head" (click)="$event.stopPropagation()">
+                <div class="pm-identity">
+                  <app-avatar-frame [frame]="userEquippedFrame" size="md"><span class="avatar-circle pm-avatar">
+                    <img *ngIf="userAvatarUrl" [src]="userAvatarUrl" alt="" class="user-avatar"
+                      onerror="this.onerror=null;this.src='assets/images/default-avatar.svg'">
+                    <span *ngIf="!userAvatarUrl" class="initials-avatar" [style.background-color]="userAvatarColor">{{ userInitials }}</span>
+                  </span></app-avatar-frame>
+                  <div class="pm-names">
+                    <span class="user-name">{{ userName }}</span>
+                    <span class="menu-equipped-title" *ngIf="userEquippedTitle">{{ userEquippedTitle }}</span>
+                  </div>
+                </div>
+                <ng-container *ngIf="readerProfile$ | async as stats">
+                  <div class="pm-chips">
+                    <span class="pm-chip pm-chip--level">
+                      <span class="mat-symbol" aria-hidden="true">workspace_premium</span>
+                      Nivel {{ stats.level }}<ng-container *ngIf="stats.level_name"> · {{ stats.level_name }}</ng-container>
+                    </span>
+                    <span class="pm-chip pm-chip--streak" *ngIf="stats.streak_current > 0"
+                          [title]="'Racha de ' + stats.streak_current + (stats.streak_current === 1 ? ' día' : ' días') + ' leyendo'">
+                      <span class="mat-symbol pm-flame" aria-hidden="true">local_fire_department</span>
+                      {{ stats.streak_current }} {{ stats.streak_current === 1 ? 'día' : 'días' }}
+                    </span>
+                  </div>
+                  <div class="pm-xp" role="progressbar" aria-label="Experiencia hacia el siguiente nivel"
+                       aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="xpPercent(stats) | number:'1.0-0'">
+                    <span class="pm-xp-fill" [style.--pm-xp]="xpPercent(stats) / 100"></span>
+                  </div>
+                  <span class="pm-xp-text">{{ stats.xp }} / {{ stats.xp_to_next_level }} XP</span>
+                </ng-container>
               </div>
+              <ng-container *ngIf="(readerProfile$ | async)?.friend_code as friendCode">
+                <button mat-menu-item class="pm-code" (click)="copyFriendCode(friendCode, $event)"
+                        [attr.aria-label]="'Copiar mi código de amigo #' + friendCode">
+                  <span class="mat-symbol" aria-hidden="true">badge</span>
+                  <span class="pm-code-label"><small>Código de amigo</small><strong>#{{ friendCode }}</strong></span>
+                  <span class="pm-code-state" [class.is-copied]="friendCodeCopied" aria-live="polite">
+                    <span class="mat-symbol" aria-hidden="true">{{ friendCodeCopied ? 'check' : 'content_copy' }}</span>
+                    {{ friendCodeCopied ? '¡Copiado!' : 'Copiar' }}
+                  </span>
+                </button>
+              </ng-container>
               <mat-divider></mat-divider>
               <button mat-menu-item routerLink="/profile">
                 <span class="mat-symbol">manage_accounts</span>
                 <span>Editar Perfil</span>
+              </button>
+              <button mat-menu-item routerLink="/tavern" fragment="mi-perfil">
+                <span class="mat-symbol">id_card</span>
+                <span>Ver mi perfil público</span>
               </button>
               <button mat-menu-item routerLink="/tavern">
                 <span class="mat-symbol">group</span>
@@ -200,6 +243,25 @@
                 <span class="mat-symbol">help_outline</span>
                 <span>Guía de Literatus</span>
               </button>
+              <mat-divider></mat-divider>
+              <!-- Tema rápido: las muestras son ítems del menú (se recorren con las flechas) y no lo cierran -->
+              <div class="pm-themes" role="group" aria-labelledby="pm-themes-label" (click)="$event.stopPropagation()">
+                <div class="pm-themes-head">
+                  <span class="pm-section-label" id="pm-themes-label">Tema</span>
+                  <span class="pm-theme-name">{{ themeLabel(currentTheme$ | async) }}</span>
+                </div>
+                <div class="pm-swatches">
+                  <button mat-menu-item *ngFor="let theme of themes" class="pm-swatch" role="menuitemradio"
+                          [attr.aria-checked]="(currentTheme$ | async) === theme.id"
+                          [class.is-active]="(currentTheme$ | async) === theme.id"
+                          [attr.aria-label]="'Tema ' + theme.label" [title]="theme.label"
+                          [style.--sw-bg]="theme.previewBg" [style.--sw-accent]="theme.previewAccent"
+                          [style.--sw-border]="theme.previewBorder"
+                          (click)="pickTheme(theme.id, $event)">
+                    <span class="pm-swatch-check mat-symbol" aria-hidden="true">check</span>
+                  </button>
+                </div>
+              </div>
               <ng-container *ngIf="isAdmin">
                 <mat-divider></mat-divider>
                 <button mat-menu-item routerLink="/dashboard/overview">

@@ -1,9 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { ChatService } from '../../core/services/chat.service';
-import { SettingsService } from '../../core/services/settings.service';
+import { APP_THEMES, SettingsService } from '../../core/services/settings.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../core/services/notification.service';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
@@ -34,56 +35,7 @@ export class ProfileComponent implements OnInit {
   availableColors = ['#3b82f6', '#f97316', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b', '#ec4899'];
   
   settingsService = inject(SettingsService);
-  availableThemes = [
-    { 
-      id: 'default', 
-      label: 'Azul Tinta', 
-      desc: 'Predeterminado · Azul profundo y detalles dorados',
-      previewBg: '#15233B',
-      previewAccent: '#5E80B3',
-      previewBorder: '#263B61'
-    },
-    { 
-      id: 'high-contrast-dark', 
-      label: 'Alto Contraste Oscuro', 
-      desc: 'Accesible · Negro puro (#000000) y texto blanco',
-      previewBg: '#000000',
-      previewAccent: '#FCD34D',
-      previewBorder: '#FFFFFF'
-    },
-    { 
-      id: 'high-contrast-light', 
-      label: 'Alto Contraste Diurno', 
-      desc: 'Accesible · Blanco puro (#FFFFFF) y tinta carbón',
-      previewBg: '#FFFFFF',
-      previewAccent: '#000000',
-      previewBorder: '#9CA3AF'
-    },
-    { 
-      id: 'sepia', 
-      label: 'Modo Lectura Sepia', 
-      desc: 'Cálido · Pergamino suave y descanso visual',
-      previewBg: '#FBF0D9',
-      previewAccent: '#92400E',
-      previewBorder: '#D7BA89'
-    },
-    { 
-      id: 'light-gallery', 
-      label: 'Galería Minimalista', 
-      desc: 'Claro · Gris luminoso y acento azul zafiro',
-      previewBg: '#F8F9FA',
-      previewAccent: '#2563EB',
-      previewBorder: '#E5E7EB'
-    },
-    { 
-      id: 'neon', 
-      label: 'Cyber Neon', 
-      desc: 'Nocturno · Negro espacial y cian vibrante',
-      previewBg: '#0D0F18',
-      previewAccent: '#00FFCC',
-      previewBorder: '#1F293D'
-    }
-  ];
+  availableThemes = APP_THEMES;
   selectedTheme: string = 'default';
 
   equippedFrame: string = '';
@@ -108,6 +60,10 @@ export class ProfileComponent implements OnInit {
       country: [''],
       birth_date: ['']
     });
+    // La paleta muestra el tema activo, también si se cambia desde el menú del avatar
+    // (así "Guardar Cambios" no reenvía un tema viejo).
+    this.settingsService.currentTheme$.pipe(takeUntilDestroyed())
+      .subscribe(theme => this.selectedTheme = theme);
   }
 
   async copyFriendCode() {
@@ -146,7 +102,6 @@ export class ProfileComponent implements OnInit {
           this.outfit = profile.outfit || {};
           this.avatarUrl = profile.avatar || null;
           this.avatarColor = profile.avatar_color || '#3b82f6';
-          this.selectedTheme = profile.theme || 'default';
           this.equippedFrame = profile.equipped_frame || '';
           this.equippedTitle = profile.equipped_title || '';
           this.maestroActive = !!profile.subscription_cosmetics?.maestro;
@@ -154,7 +109,7 @@ export class ProfileComponent implements OnInit {
           if (profile.ink_balance !== undefined) {
             this.chatService.updateInkBalance(profile.ink_balance);
           }
-          this.settingsService.setThemeDirectly(this.selectedTheme);
+          this.settingsService.applySavedTheme(profile.theme || 'default');
         }
       }
     });

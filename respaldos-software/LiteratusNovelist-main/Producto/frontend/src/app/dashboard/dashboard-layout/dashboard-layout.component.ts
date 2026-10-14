@@ -184,7 +184,7 @@ export class DashboardLayoutComponent implements OnInit {
   }
 
   setThemeDirect(theme: string): void {
-    this.settingsService.updateSettings({ theme }).subscribe();
+    this.settingsService.chooseTheme(theme);
   }
 
   logout(): void {

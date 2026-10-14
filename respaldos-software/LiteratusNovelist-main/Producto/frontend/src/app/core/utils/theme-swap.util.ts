@@ -7,6 +7,8 @@
  * el tema (html.theme-switching, ver styles.css) y, si el navegador lo permite, la página hace
  * un fundido corto con View Transitions, que la GPU pinta como una sola imagen.
  */
+let activeFades = 0;
+
 export function swapTheme(apply: () => void): void {
   const root = document.documentElement;
   const run = () => {
@@ -18,12 +20,22 @@ export function swapTheme(apply: () => void): void {
     root.classList.remove('theme-switching');
   };
 
-  const start = (document as any).startViewTransition as ((cb: () => void) => { finished: Promise<void> }) | undefined;
+  const start = (document as any).startViewTransition as
+    ((cb: () => void) => { ready: Promise<void>; finished: Promise<void> }) | undefined;
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   if (!start || reduceMotion || document.visibilityState !== 'visible') {
     run();
     return;
   }
+  // Con dos cambios seguidos, el primer fundido termina (se omite) mientras corre el segundo:
+  // solo el último quita la clase.
   root.classList.add('theme-fade');
-  start.call(document, run).finished.finally(() => root.classList.remove('theme-fade'));
+  activeFades++;
+  const transition = start.call(document, run);
+  // Un fundido omitido rechaza `ready` con AbortError; sin este catch llegaba como
+  // promesa no atendida y mostraba el aviso rojo de error global.
+  transition.ready.catch(() => {});
+  transition.finished.finally(() => {
+    if (--activeFades === 0) root.classList.remove('theme-fade');
+  });
 }
