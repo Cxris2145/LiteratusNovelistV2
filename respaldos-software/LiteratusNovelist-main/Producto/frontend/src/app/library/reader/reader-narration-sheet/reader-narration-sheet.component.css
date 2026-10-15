@@ -345,9 +345,6 @@
   letter-spacing: 0.05em;
 }
 
-:host-context(.theme-light) .status-label {
-  color: #7e22ce;
-}
 
 @media (max-width: 768px) {
   .audio-controls-panel {
@@ -374,3 +371,119 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* ── Celular: hoja inferior con asa (después del bloque de 768 px, que la dejaba colgando arriba). ── */
+.sheet-backdrop,
+.sheet-grabber { display: none; }
+
+@media (max-width: 640px), (max-height: 500px) {
+  .sheet-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1095;
+    background: rgba(0, 0, 0, 0.28);
+  }
+  .audio-controls-panel {
+    --sheet-mode: bottom;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin-inline: auto;
+    width: min(100%, 640px) !important;
+    max-height: min(85dvh, 640px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: 1100;
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    animation: sheetUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .sheet-grabber {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 9px 0 5px;
+    cursor: grab;
+  }
+  .sheet-grabber::before {
+    content: '';
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: currentColor;
+    opacity: 0.28;
+  }
+  .sheet-grabber,
+  .audio-controls-panel .toc-header { touch-action: none; }
+  .audio-controls-panel .close-btn { min-width: 44px; min-height: 44px; }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .audio-controls-panel { animation: none; }
+}
+
+/* Con el dedo: controles de al menos 44 px. La barra de velocidad agarra en 44 px de alto pero se
+   sigue dibujando de 4 px (su fondo queda centrado). */
+@media (pointer: coarse) {
+  .voice-dropdown,
+  .voice-select { min-height: 44px; }
+  .audio-btn,
+  .audio-btn.reset { width: 44px; height: 44px; }
+  .speed-slider {
+    height: 44px;
+    background-size: 100% 4px;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+}
+
+/* ── Colores del tema del lector (claro, sepia, gris, oscuro y nocturno). Antes era un cristal oscuro
+   también sobre papel claro; ahora toma --rd-* de reader-paged.css. Va al final: gana a lo de arriba. ── */
+.audio-controls-panel {
+  background: var(--rd-surface, #fbfaf7);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border: 1px solid var(--rd-line);
+  border-radius: 14px;
+  color: var(--rd-ink);
+  box-shadow: 0 18px 48px -12px rgba(0, 0, 0, 0.35);
+}
+.audio-controls-panel .toc-header { border-bottom-color: var(--rd-line); box-shadow: none; }
+.audio-controls-panel .section-label,
+.voice-option,
+.voice-hint { color: var(--rd-muted); }
+.config-label { color: var(--rd-muted); opacity: 1; }
+.close-btn { color: var(--rd-muted); opacity: 1; }
+.voice-selector,
+.audio-main-controls { background: var(--rd-hover); border-color: var(--rd-line); box-shadow: none; }
+.voice-option.active {
+  background: color-mix(in srgb, var(--rd-accent) 12%, var(--rd-surface));
+  border-color: var(--rd-accent);
+  color: var(--rd-ink);
+  box-shadow: none;
+}
+.voice-option.premium-locked { border-color: var(--rd-line); }
+.voice-dropdown { background-color: var(--rd-paper); border-color: var(--rd-line); color: var(--rd-ink); }
+.voice-dropdown:focus { border-color: var(--rd-accent); box-shadow: 0 0 0 1px var(--rd-accent); }
+.audio-btn { background: var(--rd-surface); border-color: var(--rd-line); color: var(--rd-ink); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12); }
+.audio-btn.play,
+.audio-btn.resume { background: var(--rd-accent); border-color: var(--rd-accent); color: var(--rd-paper); }
+.audio-btn.pause { background: var(--rd-marker); border-color: var(--rd-marker); color: var(--rd-paper); }
+@media (hover: hover) and (pointer: fine) {
+  .audio-btn.play:hover { background: color-mix(in srgb, var(--rd-accent) 85%, var(--rd-ink)); }
+}
+.speed-slider { background-image: linear-gradient(to right, var(--rd-accent) 0%, var(--rd-accent) 50%, var(--rd-line) 50%); }
+.speed-slider::-webkit-slider-thumb { background: var(--rd-accent); box-shadow: none; }
+.ink-cost { color: var(--rd-marker); }
+/* "Gratis" va en el color de acento; las etiquetas con fondo propio (HD, WASM, Nativo), en blanco. */
+.unlocked-badge { color: var(--rd-accent) !important; text-shadow: none; }
+.unlocked-badge[style*="background"] { color: #ffffff !important; padding: 1px 6px; border-radius: 4px; }
+.status-label { color: var(--rd-accent); }

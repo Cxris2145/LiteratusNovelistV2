@@ -1,5 +1,6 @@
 /* Superficie e-reader: papel a pantalla completa, sin tapa ni escenario de libro. */
 .workbench-container {
+  -webkit-tap-highlight-color: transparent;
   --rd-paper: #f7f6f2;
   --rd-surface: #fbfaf7;
   --rd-ink: #16130f;
@@ -309,4 +310,17 @@
 @media (prefers-reduced-motion: reduce) {
   .reader-viewport.rd-paged .reading-canvas { transition: opacity 120ms linear; }
   .narration-marker { transition: opacity 160ms ease; }
+}
+
+/* Solo para lectores de pantalla (el aviso de página). */
+.rd-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }

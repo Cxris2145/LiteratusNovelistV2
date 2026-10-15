@@ -148,3 +148,18 @@
   .rd-chrome { transition: none; }
   .rd-spinner { animation: none; }
 }
+
+/* Barras: un toque no deja destello ni selecciona sus textos (en el celular, mantener presionado
+   un botón abría la lupa y el menú de copiar). */
+:host { -webkit-tap-highlight-color: transparent; }
+.rd-topbar,
+.rd-bottombar {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Con el dedo la línea del libro se agarra en una franja de 44 px (la línea dibujada sigue igual de fina). */
+@media (pointer: coarse) {
+  .rd-progress-slider { height: 44px; }
+}

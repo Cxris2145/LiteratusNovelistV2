@@ -1,8 +1,9 @@
 <section class="reader-sheet" role="dialog" aria-labelledby="sheet-title"
+         rdSheet (rdSheetClose)="reader.toggleSettings()" rdFocusTrap
          (click)="$event.stopPropagation()">
-  <span class="sheet-grabber" aria-hidden="true"></span>
+  <span class="sheet-grabber" aria-hidden="true" data-sheet-grip></span>
 
-  <header class="sheet-header">
+  <header class="sheet-header" data-sheet-grip>
     <h2 id="sheet-title">Ajustes de lectura</h2>
     <button type="button" class="sheet-text-btn" (click)="reset()"
             [disabled]="!hasCustom" title="Volver a los ajustes de fábrica">

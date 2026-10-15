@@ -1,9 +1,10 @@
 <aside class="toc-sidebar glass-panel" [class.toc-closed]="!r.isTocOpen"
        [attr.aria-hidden]="!r.isTocOpen" [attr.inert]="r.isTocOpen ? null : ''"
-       [@slideFromRight]="r.isTocOpen ? 'in' : 'out'" aria-label="Índice del libro">
-  <div class="toc-header">
+       rdSheet (rdSheetClose)="r.toggleToc()" [rdFocusTrap]="r.isTocOpen" role="dialog" aria-label="Índice del libro">
+  <span class="sheet-grabber" aria-hidden="true" data-sheet-grip></span>
+  <div class="toc-header" data-sheet-grip>
     <h3>Índice</h3>
-    <button class="close-btn" (click)="r.toggleToc()" aria-label="Cerrar índice">✕</button>
+    <button type="button" class="close-btn" (click)="r.toggleToc()" aria-label="Cerrar índice">✕</button>
   </div>
 
   <div class="toc-tabs" role="tablist" aria-label="Contenido del índice">

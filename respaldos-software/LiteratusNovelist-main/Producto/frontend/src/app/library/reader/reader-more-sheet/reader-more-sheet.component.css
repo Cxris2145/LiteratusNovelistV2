@@ -55,3 +55,31 @@ button:focus-visible { outline: 2px solid var(--rd-accent); outline-offset: -2px
   .rd-more-actions { grid-template-columns: 1fr; }
   .rd-more-action { min-height: 48px; }
 }
+/* Siempre es hoja inferior: se cierra también bajándola por el asa o la cabecera (ReaderSheetDirective). */
+.rd-more-sheet { --sheet-mode: bottom; animation: sheetUp 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+.rd-more-content { overscroll-behavior: contain; }
+.rd-more-header { padding-top: 2px; }
+.sheet-grabber {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 9px 0 5px;
+  cursor: grab;
+}
+.sheet-grabber::before {
+  content: '';
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: currentColor;
+  opacity: 0.28;
+}
+.sheet-grabber,
+.rd-more-header { touch-action: none; }
+@keyframes sheetUp {
+  from { transform: translate(-50%, 100%); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-more-sheet { animation: none; }
+}

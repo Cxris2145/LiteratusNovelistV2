@@ -40,16 +40,18 @@
             [class.tap-to-scroll-active]="!isPagedView && tapToScrollActive"
             [class.ruler-guide-active]="rulerActive" [class.rc-focus-word]="focusMode === 'word'"
             [class.rc-focus-sentence]="focusMode === 'sentence'" [class.rc-focus-paragraph]="focusMode === 'paragraph'"
-            [class.rc-has-focus]="currentWordIndex >= 0" [class.rc-long-para]="longParaSplit">
+            [class.rc-long-para]="longParaSplit">
     <!-- Capítulo: una palabra = un <span class="word" id="word-N"> (narración, foco, subrayados).
-         Control de flujo nativo (@for/@if) y el id por interpolación: el capítulo tiene miles de
-         tokens y cada detección de cambios recorre todos. Los clics en palabras se atienden con un
-         solo listener en el lienzo (onCanvasClick), no uno por palabra. -->
+         Va congelado (rdFrozen): se vuelve a revisar solo si cambia algo de la lista (capítulo, título,
+         subrayados, biónica, imágenes), no en cada pasada del lector. La palabra activa, su frase y su
+         párrafo los marca ReaderHighlighter directo en el DOM; los clics en palabras los atiende un solo
+         listener en el lienzo (onCanvasClick). -->
+    <ng-template [rdFrozen]="[titleTokens, renderedBlocks, chapterTitle, bionicReadingActive, showSceneImages, textVersion]"
+                 (rdFrozenRefreshed)="onTextRefreshed()">
     <h1 class="chapter-title-main">
       @for (tok of titleTokens; track trackByToken($index, tok)) {
         @if (tok.isWord) {
           <span class="word" id="word-{{ tok.idx }}"
-                [class.active-word]="tok.idx === currentWordIndex"
                 [attr.data-hl]="tok.hl || null">@if (bionicReadingActive) {<strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span>} @else {{{ tok.text }}}</span>
         } @else if (tok.isImg) {
           @if (showSceneImages) {
@@ -61,11 +63,10 @@
 
     <ng-template #blockSentences let-block>
       @for (sentence of block.sentences; track sentence) {
-        <span class="sentence-wrap" [class.active-paragraph-text]="isActiveSentence(sentence)">
+        <span class="sentence-wrap">
           @for (tok of sentence.tokens; track trackByToken($index, tok)) {
             @if (tok.isWord) {
               <span class="word" id="word-{{ tok.idx }}"
-                    [class.active-word]="tok.idx === currentWordIndex"
                     [attr.data-hl]="tok.hl || null">@if (bionicReadingActive) {<strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span>} @else {{{ tok.text }}}</span>
             } @else if (tok.isBr) {
               <br>
@@ -88,19 +89,20 @@
           </figure>
         }
       } @else if (block.tag === 'h1') {
-        <h1 class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
+        <h1 class="chapter-heading">
           <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
         </h1>
       } @else if (block.tag === 'h2') {
-        <h2 class="chapter-heading" [class.active-paragraph]="isActiveBlock(block)">
+        <h2 class="chapter-heading">
           <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
         </h2>
       } @else if (block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote') {
-        <p [class.active-paragraph]="isActiveBlock(block)" [class.long-para]="block.long">
+        <p [class.long-para]="block.long">
           <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
         </p>
       }
     }
+    </ng-template>
   </main>
       <div class="reading-ruler" *ngIf="rulerActive" [class.col-left]="rulerColumn === 'left'"
            [class.col-right]="rulerColumn === 'right'" [class.col-full]="rulerColumn === 'full'"
@@ -119,6 +121,8 @@
     </div>
   </section>
   <div class="rd-dimmer" aria-hidden="true"></div>
+  <!-- Lectores de pantalla: "Página 5 de 20" (o "Páginas 5 y 6 de 20") al pasar de página -->
+  <div class="rd-sr-only" aria-live="polite" aria-atomic="true">{{ pageAnnouncement }}</div>
 
   <!-- Menú de la selección, tarjeta del subrayado y diccionario -->
   <app-reader-selection-menu #selectionMenu></app-reader-selection-menu>
@@ -150,7 +154,7 @@
 
   <!-- MODAL DE CONFIRMACIÓN PARA REINICIAR AUDIO -->
   <div class="restart-modal-overlay" *ngIf="showRestartModal" (click)="closeRestartModal()">
-    <div class="restart-modal-card glass-panel" (click)="$event.stopPropagation()">
+    <div class="restart-modal-card glass-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" rdFocusTrap>
       <div class="restart-modal-header">
         <span class="restart-modal-icon">↺</span>
         <h4>¿Reiniciar Audio?</h4>
@@ -270,12 +274,12 @@
   <div class="session-timer-badge" *ngIf="sessionTimerRunning" (click)="setSessionTimer(0)"
        title="Toca para apagar el temporizador">
     <span class="material-symbols-rounded">hourglass_top</span>
-    <span>{{ sessionTimerLabel }}</span>
+    <span #sessionTimerText>{{ sessionTimerLabel }}</span>
   </div>
 
   <!-- MODAL DE RECORDATORIO DE PAUSA -->
   <div class="restart-modal-overlay" *ngIf="showBreakModal" (click)="keepReading()">
-    <div class="restart-modal-card glass-panel" (click)="$event.stopPropagation()">
+    <div class="restart-modal-card glass-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" rdFocusTrap>
       <div class="restart-modal-header">
         <span class="restart-modal-icon">☕</span>
         <h4>Es un buen momento para una pausa</h4>
@@ -292,7 +296,8 @@
 
   <!-- MODAL DE RESUMEN HASTA DONDE VOY (ANTI-SPOILERS) -->
   <div class="summary-modal-overlay" *ngIf="isSummaryModalOpen" (click)="closeProgressSummary()">
-    <div class="summary-modal-card glass-panel" (click)="$event.stopPropagation()">
+    <div class="summary-modal-card glass-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true"
+         aria-labelledby="summary-modal-title" rdFocusTrap>
       <div class="summary-modal-header">
         <div class="summary-header-top-row">
           <div class="summary-shield-badge">
@@ -303,7 +308,7 @@
             <span class="material-symbols-rounded">close</span>
           </button>
         </div>
-        <h3 class="summary-modal-title">
+        <h3 class="summary-modal-title" id="summary-modal-title">
           <span class="material-symbols-rounded summary-title-icon">history_edu</span>
           Resumen hasta donde voy
         </h3>

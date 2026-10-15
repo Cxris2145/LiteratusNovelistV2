@@ -272,6 +272,7 @@ describe('interacciones del e-reader', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1440 });
     applyLayout();
     reader.onWindowResize();
+    tick(150); // se re-maqueta una vez, cuando la ventana deja de cambiar
     expect(reader.columnsPerSpread).toBe(2);
     internals.showSpreadOf(document.getElementById('word-190'), false);
     tick(0);
@@ -292,6 +293,7 @@ describe('interacciones del e-reader', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
     applyLayout();
     reader.onWindowResize();
+    tick(150); // se re-maqueta una vez, cuando la ventana deja de cambiar
     expect(reader.columnsPerSpread).toBe(1);
     expect(internals.isWordVisible(spreadAnchor)).toBeTrue();
   }));
@@ -306,8 +308,30 @@ describe('interacciones del e-reader', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 });
     applyLayout();
     reader.onWindowResize();
+    tick(150); // se re-maqueta una vez, cuando la ventana deja de cambiar
     expect(internals.isWordVisible(anchor)).toBeTrue();
     expect(reader.currentSpreadIndex).toBeGreaterThan(0);
+  }));
+
+  it('girar y volver deja la misma palabra ancla (re-maquetar no la mueve)', fakeAsync(() => {
+    useFlowLayout();
+    const portraitWidth = flowWidth;
+    internals.showSpreadOf(document.getElementById('word-130'), false);
+    tick(0);
+    const anchor = internals.spreadAnchorWord;
+    flowWidth = 1000;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1440 });
+    applyLayout();
+    reader.onWindowResize();
+    tick(150);
+    expect(internals.isWordVisible(anchor)).toBeTrue();
+    flowWidth = portraitWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 800 });
+    applyLayout();
+    reader.onWindowResize();
+    tick(150);
+    expect(internals.spreadAnchorWord).toBe(anchor);
+    expect(internals.isWordVisible(anchor)).toBeTrue();
   }));
 
   it('guarda la primera palabra del destino al comenzar la animación, con una y dos columnas', fakeAsync(() => {
@@ -364,7 +388,7 @@ describe('interacciones del e-reader', () => {
     settings.update({ fontSize: 26 });
     tick(20);
     settings.update({ lineHeight: 1.75 });
-    tick(80);
+    tick(150); // espera 150 ms tras el último cambio
     expect(internals.isWordVisible(anchor)).toBeTrue();
     expect(reader.currentSpreadIndex).toBeGreaterThan(0);
   }));

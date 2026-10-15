@@ -11,7 +11,9 @@ import { Capacitor } from '@capacitor/core';
 import { ReadingSessionService } from '../../core/services/reading-session.service';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { ReaderTabsService } from '../../core/services/reader-tabs.service';
-import { ReaderBlock, ReaderToken, WordBounds, parseChapterBlocks, setWordBounds, splitBionic } from '../../core/utils/chapter-parser.util';
+import { ReaderBlock, ReaderToken } from '../../core/utils/chapter-parser.util';
+import { ChapterCache, PreparedChapter, prepareChapter } from './reader-chapter';
+import { ReaderHighlighter } from './reader-highlighter';
 import { VocabularyJump } from './vocabulary-panel/vocabulary-panel.component';
 import { BookSearchService } from './book-search.service';
 import { CharacterChatService } from '../../core/services/character-chat.service';
@@ -209,7 +211,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   get rulerY(): number { return this.ruler.y; }
   get rulerColumn() { return this.ruler.column; }
   readonly highlightColorOptions = HIGHLIGHT_COLOR_OPTIONS;
-  private readonly LONG_PARA_CHARS = 420;                       // umbral para considerar un párrafo "largo"
 
   // Avance automático (auto-scroll tipo teleprompter)
   autoScrollActive: boolean = false;
@@ -224,6 +225,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   sessionTimerRunning: boolean = false;
   showBreakModal: boolean = false;
   private sessionTimerInterval: any = null;
+  @ViewChild('sessionTimerText') private sessionTimerTextRef?: ElementRef<HTMLElement>;
 
   // Botón flotante "volver a mi lectura" — aparece si el usuario se aleja
   // de su posición de lectura (scroll manual, exploración) más allá de lo visible.
@@ -234,8 +236,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── NARRACIÓN (voces y reproducción en ReaderNarrationService) ────
   readonly narration = inject(ReaderNarrationService);
   isAudioPanelOpen: boolean = false;
+  /** Marca la palabra activa, su frase y su párrafo directo en el DOM (sin detección de cambios). */
+  private readonly highlighter = new ReaderHighlighter(() => this.canvasEl());
   /** Palabra marcada: la que lee la narración o la que se tocó (foco de lectura). */
-  currentWordIndex: number = -1;
+  get currentWordIndex(): number { return this.highlighter.current; }
+  set currentWordIndex(index: number) { this.highlighter.set(index); }
   get isAudioLoading(): boolean { return this.narration.isLoading; }
   get narrationNotice(): string { return this.narration.notice; }
 
@@ -246,6 +251,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   // Renderizado de palabras (para highlighting nativo de Angular)
   parsedBlocks: ReaderBlock[] = [];
   renderedBlocks: ReaderBlock[] = [];
+  /** Sube cuando cambian los tokens por dentro (subrayados): el texto congelado se vuelve a pintar. */
+  textVersion = 0;
   titleTokens: any[] = [];
   private totalWordCount: number = 0;
 
@@ -296,6 +303,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       await this.requestWakeLock();
     }
   };
+  private handleBeforeUnload = () => this.saveAudioPosition();
   private handleFullscreenChange = () => {
     this.isFullscreenActive = !!document.fullscreenElement;
   };
@@ -327,10 +335,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.unregisterNotebook = this.notebook.registerReader(this.inventoryId,
       (chapterId, word, lastWord) => this.ngZone.run(() => this.goToPassage(chapterId, word, lastWord ?? -1)));
 
-    // Mientras carga, los textos de Maguito van cambiando
-    this.loadingTipInterval = setInterval(() => {
+    // Mientras carga, los textos de Maguito van cambiando. Fuera de la zona: con el libro ya abierto
+    // el intervalo no vuelve a revisar toda la página cada 3,8 s (onMascotClick repinta solo el lector).
+    this.loadingTipInterval = this.ngZone.runOutsideAngular(() => setInterval(() => {
       if (this.isOverlayActive) this.onMascotClick();
-    }, 3800);
+    }, 3800));
 
     // Pedir Wake Lock para mantener la pantalla encendida
     this.requestWakeLock();
@@ -418,11 +427,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    // Guardar posición al cerrar/salir
-    window.addEventListener('beforeunload', () => this.saveAudioPosition());
+    // Guardar posición al cerrar/salir (se quita en ngOnDestroy: antes quedaba uno por cada libro abierto)
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
   }
 
   ngAfterViewInit() {
+    this.syncThemeColor();
     // El seguimiento de la regla de lectura se engancha fuera de la zona de Angular:
     // mousemove dispara decenas de eventos por segundo y, dentro de la zona, cada
     // uno forzaría un ciclo completo de detección de cambios sobre toda la página
@@ -558,7 +568,36 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Book UUID para el tracking de sesión de logros */
   private _bookIdForSession: string | null = null;
 
+  // ── Barra del sistema (celular): toma el color del papel mientras el lector está abierto ──
+  private themeColorMeta: HTMLMetaElement | null = null;
+  private themeColorBefore: string | null = null;
+
+  private syncThemeColor(): void {
+    const container = document.querySelector('.workbench-container');
+    const paper = container ? getComputedStyle(container).getPropertyValue('--rd-paper').trim() : '';
+    if (!paper) return;
+    if (!this.themeColorMeta) {
+      const existing = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+      this.themeColorBefore = existing?.content ?? null;
+      this.themeColorMeta = existing ?? document.head.appendChild(Object.assign(document.createElement('meta'), { name: 'theme-color' }));
+    }
+    this.themeColorMeta.content = paper;
+  }
+
+  /** Al salir del lector la barra vuelve al color de la app. */
+  private restoreThemeColor(): void {
+    if (!this.themeColorMeta) return;
+    if (this.themeColorBefore === null) this.themeColorMeta.remove();
+    else this.themeColorMeta.content = this.themeColorBefore;
+    this.themeColorMeta = null;
+  }
+
+  /** Ya se cerró el lector: lo que estaba programado fuera de la zona no hace nada. */
+  private destroyed = false;
+
   ngOnDestroy() {
+    this.destroyed = true;
+    this.restoreThemeColor();
     this.unregisterNotebook?.();
     if (this.rulerCanvasEl) {
       this.rulerCanvasEl.removeEventListener('mousemove', this.handleRulerMouseMove);
@@ -581,10 +620,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.stopAutoScroll();
     this.clearSessionInterval();
     clearInterval(this.loadingTipInterval);
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
+    clearTimeout(this.resizeTimer);
     clearTimeout(this.flipTimer);
     clearTimeout(this.relayoutTimer);
     clearTimeout(this.bookmarkToastTimer);
-    if (this.loadingTipInterval) clearInterval(this.loadingTipInterval);
     if (this.visibleRefreshRaf !== null) cancelAnimationFrame(this.visibleRefreshRaf);
 
     // Restaurar las barras del OS al salir del lector
@@ -815,7 +855,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private onSettingsChanged(keys: (keyof ReaderSettings)[]) {
     const changed = (...names: (keyof ReaderSettings)[]) => names.some(name => keys.includes(name));
     const viewAnchor = changed('layoutMode') ? this.spreadAnchorWord : -1;
-    if (changed('theme')) this.cdr.detectChanges(); // la clase del contenedor cambia dentro del fundido
+    if (changed('theme')) {
+      this.cdr.detectChanges(); // la clase del contenedor cambia dentro del fundido
+      this.syncThemeColor();
+    }
     if (changed('layoutMode')) {
       this.relayoutForView(viewAnchor);
     } else if (changed('fontSize', 'fontFamily', 'lineHeight', 'margins', 'textAlign', 'paraSpacing', 'letterSpacing', 'wordSpacing', 'sceneImages', 'bionic', 'longParaSplit')) {
@@ -967,16 +1010,21 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private startSessionInterval() {
     this.clearSessionInterval();
-    this.sessionTimerInterval = setInterval(() => {
+    // Cada segundo cambia solo el texto de la insignia: se escribe directo, sin revisar toda la página.
+    this.sessionTimerInterval = this.ngZone.runOutsideAngular(() => setInterval(() => {
       if (!this.sessionTimerRunning) return;
       this.sessionTimeRemainingSec--;
       if (this.sessionTimeRemainingSec <= 0) {
-        this.sessionTimerRunning = false;
-        this.showBreakModal = true;
-        this.clearSessionInterval();
-        this.cdr.detectChanges();
+        this.ngZone.run(() => {
+          this.sessionTimerRunning = false;
+          this.showBreakModal = true;
+          this.clearSessionInterval();
+        });
+        return;
       }
-    }, 1000);
+      const badge = this.sessionTimerTextRef?.nativeElement;
+      if (badge) badge.textContent = this.sessionTimerLabel;
+    }, 1000));
   }
 
   private clearSessionInterval() {
@@ -1085,18 +1133,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    *  de seguir empujando bloques viejos sobre `renderedBlocks` del capítulo nuevo. */
   private renderToken = 0;
 
-  /** Se consulta por cada oración y párrafo en cada detección de cambios: los límites
-   *  vienen calculados de parseAndRenderChapter (setWordBounds), sin recorrer tokens. */
-  isActiveSentence(sentence: WordBounds): boolean {
-    const i = this.currentWordIndex;
-    return i >= 0 && sentence.firstWord! >= 0 && i >= sentence.firstWord! && i <= sentence.lastWord!;
+  /** Los últimos capítulos analizados; el siguiente se prepara mientras el navegador está ocioso. */
+  private readonly chapterCache = new ChapterCache(3);
+
+  /** El capítulo `index` analizado (de la caché si ya estaba). */
+  private preparedChapter(index: number): PreparedChapter | null {
+    const chapter = this.chapters[index];
+    if (!chapter) return null;
+    const title = chapter.title || `Capítulo ${index + 1}`;
+    return this.chapterCache.get(`${chapter.id}|${title}`, () =>
+      prepareChapter(chapter.content_html || '', title, environment.apiUrl.split('/api/v1/')[0]));
   }
 
-  /** Para "Modo de foco → Párrafo": ¿la palabra activa (clic o TTS) cae dentro
-   *  de este bloque (párrafo/encabezado)? */
-  isActiveBlock(block: WordBounds): boolean {
-    const i = this.currentWordIndex;
-    return i >= 0 && block.firstWord! >= 0 && i >= block.firstWord! && i <= block.lastWord!;
+  /** Deja listo el capítulo siguiente sin trabar la lectura: abrirlo ya no espera el análisis. */
+  private prefetchNextChapter() {
+    const next = this.currentPage; // índice del capítulo siguiente
+    if (next >= this.chapters.length) return;
+    const idle: (cb: () => void) => void = (window as any).requestIdleCallback?.bind(window)
+      ?? ((cb: () => void) => setTimeout(cb, 300));
+    this.ngZone.runOutsideAngular(() => idle(() => {
+      if (!this.destroyed) this.preparedChapter(next);
+    }));
   }
 
   /** Parsea el HTML del capítulo y crea la estructura de bloques/tokens para el *ngFor */
@@ -1116,122 +1173,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.chapterTitle = chapter.title || `Capítulo ${this.currentPage}`;
 
-    // 1. Calcular backendUrl y limpiar HTML primero para evitar que el navegador
-    // cargue imágenes relativas erróneas al procesar el texto plano.
-    const backendUrl = environment.apiUrl.split('/api/v1/')[0];
-    const cleanHtml = chapter.content_html.replace(/src=(["'])(\/?)media\//g, `src=$1${backendUrl}/media/`);
-
-    // 2. Actualizar texto plano para SpeechSynthesis (usando HTML ya limpio)
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = cleanHtml;
-    this.currentChapterPlainText = tempDiv.textContent || '';
-
-    // 3. Parsear el HTML limpio preservando la estructura (ver core/utils/chapter-parser.util.ts)
-    const { blocks, wordCount } = parseChapterBlocks(cleanHtml, splitBionic);
-
-    // 4. Agrupar tokens por oraciones (punto a punto) para resaltar como ReadEra
-    let globalSentenceIdx = 0;
-    blocks.forEach(block => {
-      if (block.tag === 'img-block') return;
-
-      const sentences = [];
-      let currentTokens = [];
-
-      for (let i = 0; i < block.tokens.length; i++) {
-        const tok = block.tokens[i];
-        currentTokens.push(tok);
-
-        if (tok.isWord) {
-          if (/[.!?]["'»”)]*$/.test(tok.text)) {
-            sentences.push({ idx: globalSentenceIdx++, tokens: currentTokens });
-            currentTokens = [];
-          }
-        } else if (tok.isBr) {
-          sentences.push({ idx: globalSentenceIdx++, tokens: currentTokens });
-          currentTokens = [];
-        }
-      }
-
-      if (currentTokens.length > 0) {
-        sentences.push({ idx: globalSentenceIdx++, tokens: currentTokens });
-      }
-
-      block.sentences = sentences;
-    });
-
-    this.parsedBlocks = blocks;
-    this.titleTokens = [];
-
-    // 4. GESTIÓN DEL TÍTULO: Evitar duplicación y permitir sincronización.
-    // Si el primer bloque contiene el título del capítulo, lo extraemos para el encabezado premium.
-    if (this.parsedBlocks.length > 0) {
-      const firstBlock = this.parsedBlocks[0];
-      // Se compara sin signos ni tildes: "Capítulo 1 - De lo que…" y "Capítulo 1 De lo que…" son el mismo título.
-      const normTitle = (text: string) => text.toLowerCase().normalize('NFD').replace(/[^\p{L}\p{N}]/gu, '');
-      const titleToCompare = normTitle(this.chapterTitle);
-
-      let accumulatedText = '';
-      let splitIndex = -1;
-
-      for (let i = 0; i < firstBlock.tokens.length; i++) {
-        accumulatedText += firstBlock.tokens[i].text;
-        const normalizedAccumulated = normTitle(accumulatedText);
-
-        if (normalizedAccumulated === titleToCompare) {
-          splitIndex = i + 1;
-          break;
-        }
-        // Si nos pasamos mucho del largo, abortamos búsqueda
-        if (normalizedAccumulated.length > titleToCompare.length + 5) break;
-      }
-
-      if (splitIndex !== -1) {
-        // Extraer los tokens del título
-        this.titleTokens = firstBlock.tokens.splice(0, splitIndex);
-
-        // Limpiar espacios en blanco sobrantes al inicio del párrafo restante
-        while (firstBlock.tokens.length > 0 && !firstBlock.tokens[0].isWord && !firstBlock.tokens[0].isImg) {
-          firstBlock.tokens.shift();
-        }
-
-        // Si el bloque quedó vacío (era solo el título), lo eliminamos
-        if (firstBlock.tokens.length === 0) {
-          this.parsedBlocks.shift();
-        }
-
-        // Algunos libros repiten el título del capítulo (p.ej. "Primera Parte")
-        // como su propio encabezado dentro del cuerpo, justo debajo del título
-        // grande ya extraído — se ve duplicado en pantalla. Si el/los siguientes
-        // bloques son EXACTAMENTE ese mismo texto, se descartan también.
-        const normalizeBlockText = (b: typeof this.parsedBlocks[0]) =>
-          normTitle(b.tokens.map(t => t.text).join(''));
-        let guard = 0;
-        while (
-          this.parsedBlocks.length > 0 &&
-          this.parsedBlocks[0].tag !== 'img-block' &&
-          normalizeBlockText(this.parsedBlocks[0]) === titleToCompare &&
-          guard++ < 5
-        ) {
-          this.parsedBlocks.shift();
-        }
-      }
-    }
-
-    // Marcar párrafos largos (para la división visual opcional en Lectura asistida)
-    blocks.forEach(b => {
-      if (b.tag === 'p') {
-        const len = b.tokens.reduce((acc, t) => acc + (t.text?.length || 0), 0);
-        b.long = len > this.LONG_PARA_CHARS;
-      }
-      setWordBounds(b);
-      b.sentences?.forEach(setWordBounds);
-    });
+    // Texto plano para la voz, bloques con sus oraciones y el título aparte (ver reader-chapter.ts).
+    // Si el capítulo ya estaba preparado (el siguiente se prepara en un rato ocioso), no se analiza otra vez.
+    const prepared = this.preparedChapter(this.currentPage - 1)!;
+    this.currentChapterPlainText = prepared.plainText;
+    this.parsedBlocks = prepared.blocks;
+    this.titleTokens = prepared.titleTokens;
 
     this.closeHighlightPopover();
     this.closePostIt();
     this.applyHighlightsToTokens();
 
-    this.totalWordCount = wordCount;
+    this.totalWordCount = prepared.wordCount;
     this.pace.start(this.chapterProgress(), this.getChapterWordCount());
 
     // Invalidar cualquier renderizado por chunks todavía en curso de un capítulo anterior
@@ -1280,8 +1233,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       // sin tocar `renderedBlocks` (que ya pertenece al capítulo nuevo).
       if (myRenderToken !== this.renderToken) return;
 
-      // Usar un chunk más grande si estamos tratando de alcanzar rápido el progreso
-      const chunkSize = (startIndex <= targetBlockIndex || needsFullRender) ? 50 : 15;
+      // Trozos grandes solo para alcanzar rápido el progreso guardado; un capítulo que abre en su
+      // primera página parte con uno chico (sin una tarea larga al pasar de capítulo).
+      const chunkSize = (startIndex < targetBlockIndex || needsFullRender) ? 50 : 15;
       const chunk = this.parsedBlocks.slice(startIndex, startIndex + chunkSize);
 
       if (chunk.length > 0) {
@@ -1349,6 +1303,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   /** El capítulo terminó de renderizarse: medir pliegos (y otra vez cuando carguen las fuentes). */
   private onChapterLaidOut() {
     this.scheduleMarginLayout();
+    this.prefetchNextChapter();
     if (this.isPagedView) {
       setTimeout(() => {
         this.recalculateSpreads();
@@ -1804,7 +1759,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.updateSpreadPages();
     this.updateSpreadProgress();
+    const keptAnchor = anchorEl ? this.spreadAnchorWord : -1;
     this.afterSpreadChange();
+    // Re-maquetar no es leer: mientras siga a la vista, el ancla es la misma palabra de antes. Si no,
+    // girar el teléfono y volver retrocedía hasta el comienzo de la página apaisada.
+    if (keptAnchor >= 0 && this.isWordVisible(keptAnchor)) this.spreadAnchorWord = keptAnchor;
     this.cdr.detectChanges();
   }
 
@@ -1909,6 +1868,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Tras cambiar de pliego: marcador de la página, ancla de lectura y pestaña de la voz. */
   private afterSpreadChange() {
     this.refreshVisiblePage();
+    this.announcePage();
     this.updateNarrationMarker();
     this.checkBackToReadingVisibility(); // con el pliego nuevo ya a la vista
     this.scheduleMarginLayout();
@@ -1924,6 +1884,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private columnGap(canvas: HTMLElement): number {
     const gap = parseFloat(getComputedStyle(canvas).columnGap);
     return isNaN(gap) ? 0 : gap;
+  }
+
+  /** Lo que oye un lector de pantalla al pasar de página (región aria-live del lector). */
+  pageAnnouncement = '';
+
+  private announcePage() {
+    if (!this.isPagedView) return;
+    const left = this.currentLeftPageNum;
+    const pages = this.columnsPerSpread === 2 && left < this.chapterPageCount
+      ? `Páginas ${left} y ${left + 1}`
+      : `Página ${left}`;
+    this.pageAnnouncement = `${pages} de ${this.chapterPageCount}`;
   }
 
   /** Ventana inmóvil: recorta el texto y sirve de origen a regla, post-its y narración. */
@@ -1973,11 +1945,31 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private scheduleRelayout() {
     if (!this.isPagedView || !this.isFullyRendered) return;
     clearTimeout(this.relayoutTimer);
-    this.relayoutTimer = setTimeout(() => this.recalculateSpreads(true), 80);
+    this.relayoutTimer = setTimeout(() => this.recalculateSpreads(true), 150);
   }
 
+  private resizeTimer: any = null;
+  private resizePending = false;
+
+  /**
+   * Girar el teléfono re-maqueta al primer evento (sin un instante con el texto desarmado) y,
+   * si la ventana siguió cambiando (arrastrarla manda decenas de eventos), una vez más al final.
+   */
   @HostListener('window:resize')
   onWindowResize() {
+    if (this.resizeTimer === null) this.relayoutAfterResize();
+    else this.resizePending = true;
+    clearTimeout(this.resizeTimer);
+    this.resizeTimer = setTimeout(() => {
+      this.resizeTimer = null;
+      if (this.resizePending) {
+        this.resizePending = false;
+        this.relayoutAfterResize();
+      }
+    }, 150);
+  }
+
+  private relayoutAfterResize() {
     this.invalidateRulerLines(); // el reflow puede desplazar todas las líneas
     this.scheduleMarginLayout();
     if (this.isPagedView) {
@@ -2000,6 +1992,12 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'f') {
       event.preventDefault();
       this.openSearch();
+      return;
+    }
+    // B marca o desmarca la página (como la esquina doblada).
+    if (event.key.toLowerCase() === 'b' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      this.toggleBookmarkHere();
       return;
     }
     // Izquierda/derecha cambian de página o capítulo en cualquier modo de vista:
@@ -2386,15 +2384,24 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Palabra que está leyendo la narración (cualquier motor). -1 = se detuvo. */
   private onNarrationWord(idx: number) {
-    this.currentWordIndex = idx;
+    this.currentWordIndex = idx; // palabra, frase y párrafo se marcan directo en el DOM
     if (idx !== -1) {
       this.lastAudioWordIndex = idx;
       this.saveAudioPosition();
+      // La voz llega fuera de la zona: solo pasar de página cambia lo que muestran las barras y el pie.
+      if (this.wordLeavesSpread(idx)) this.ngZone.run(() => this.scrollWordIntoView(idx));
+      else this.scrollWordIntoView(idx);
     }
-    this.cdr.detectChanges(); // Forzar re-render sin borrar el DOM
-    if (idx !== -1) this.scrollWordIntoView(idx);
     this.narrationWordIdx = idx;
     this.updateNarrationMarker();
+  }
+
+  /** En Páginas: ¿la palabra está en otro pliego? (en Desplazamiento el scroll avisa por su cuenta) */
+  private wordLeavesSpread(idx: number): boolean {
+    if (!this.isPagedView) return false;
+    const el = document.getElementById(`word-${idx}`);
+    const canvas = this.canvasEl();
+    return !!el && !!canvas && this.spreadOfElement(el, canvas) !== this.currentSpreadIndex;
   }
 
   /**
@@ -2580,6 +2587,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chatService.loadInitialInk();
   }
 
+  /** El texto congelado se volvió a pintar (capítulo, subrayados, biónica): se vuelve a marcar la palabra. */
+  onTextRefreshed(): void {
+    this.highlighter.refresh();
+  }
+
   trackByToken(index: number, token: any): number {
     return token.idx >= 0 ? token.idx : -(index + 1);
   }
@@ -2603,6 +2615,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     this.titleTokens.forEach(paint);
     this.parsedBlocks.forEach(block => block.tokens.forEach(paint));
+    this.textVersion++; // los tokens cambiaron por dentro: el texto congelado se vuelve a pintar
   }
 
   /** Se creó, recoloreó o quitó un subrayado: se repintan las palabras. */
@@ -2653,28 +2666,29 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.playAudio(), 150); // que la detención alcance a hacer efecto
   }
 
-  /** Escape cierra lo que esté abierto (nota del post-it, tarjeta del subrayado) o, si no hay nada, quita la palabra marcada. */
+  /**
+   * Escape cierra lo que esté encima, de lo último que se abre hacia el texto: imagen, avisos, resumen,
+   * diccionario, nota, subrayado, menú de la selección, Más, Aa, narración e índice. Si no hay nada
+   * abierto quita la palabra marcada. Buscar y Vocabulario se cierran solos.
+   */
   @HostListener('document:keydown.escape')
   onReaderEscape() {
-    if (this.isMoreOpen) { this.isMoreOpen = false; return; }
-    if (this.isSearchOpen) return; // el panel de búsqueda se cierra solo
-    if (this.isSummaryModalOpen) {
-      this.closeProgressSummary();
+    if (this.isSearchOpen || this.isVocabularyOpen) return;
+    if (this.showImageModal) return this.closeImageModal();
+    if (this.showBreakModal) return this.keepReading();
+    if (this.showRestartModal) return this.closeRestartModal();
+    if (this.isSummaryModalOpen) return this.closeProgressSummary();
+    if (this.menu?.showDictionaryModal) return this.menu.closeDictionary();
+    if (this.activePostIt) return this.closePostIt();
+    if (this.activeHighlight) return this.closeHighlightPopover();
+    if (this.menu?.showWordMenu) return this.dismissSelection();
+    if (this.isMoreOpen) {
+      this.isMoreOpen = false;
       return;
     }
-    if (this.activePostIt) {
-      this.closePostIt();
-      return;
-    }
-    if (this.activeHighlight) {
-      this.closeHighlightPopover();
-      return;
-    }
-    if (this.isSettingsOpen) {
-      this.toggleSettings(); // la hoja de ajustes es un diálogo: Escape la cierra y devuelve el foco
-      return;
-    }
-    if (this.isTocOpen || this.menu?.showWordMenu || this.menu?.showDictionaryModal) return;
+    if (this.isSettingsOpen) return this.toggleSettings(); // devuelve el foco al botón que la abrió
+    if (this.isAudioPanelOpen) return this.toggleAudioPanel();
+    if (this.isTocOpen) return this.toggleToc();
     this.clearWordFocus();
   }
 

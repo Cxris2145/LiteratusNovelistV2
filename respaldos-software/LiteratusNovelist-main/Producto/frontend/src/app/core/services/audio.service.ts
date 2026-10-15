@@ -52,6 +52,12 @@ export class AudioService {
   private wordIndexSubject   = new BehaviorSubject<number>(-1);
   currentWordIndex$ = this.wordIndexSubject.asObservable();
 
+  /** La palabra que va sonando. Llega fuera de la zona de Angular (ver playCurrentChunk y playRecorded):
+   *  quien la muestre la marca en el DOM o vuelve a la zona si cambia algo de la página. */
+  private emitWord(index: number): void {
+    if (index !== this.wordIndexSubject.getValue()) this.wordIndexSubject.next(index);
+  }
+
   /** Emite `true` cuando un capítulo termina de forma natural (no por stop) */
   chapterEnd$ = new Subject<void>();
 
@@ -257,7 +263,9 @@ export class AudioService {
       this.utterance.rate  = this.playbackRate;
       if (this.selectedVoice) this.utterance.voice = this.selectedVoice;
 
-      this.utterance.onboundary = (event: SpeechSynthesisEvent) => {
+      // Se asigna fuera de la zona: cada palabra llega ahí y no revisa toda la app por palabra.
+      const utterance = this.utterance;
+      this.zone.runOutsideAngular(() => utterance.onboundary = (event: SpeechSynthesisEvent) => {
         boundaryFired = true;
         this.clearNativeInterval();
         
@@ -265,8 +273,8 @@ export class AudioService {
 
         const before = textToSpeak.substring(0, event.charIndex);
         const localIdx = before.split(/\s+/).filter(w => w.length > 0).length;
-        this.wordIndexSubject.next(baseWordOffset + localIdx);
-      };
+        this.emitWord(baseWordOffset + localIdx);
+      });
 
       this.utterance.onstart = () => {
         this.isPlayingSubject.next(true);
@@ -274,15 +282,15 @@ export class AudioService {
           if (!boundaryFired && !this.nativeFallbackInterval) {
             const currentWords = textToSpeak.split(/\s+/).filter(w => w.length > 0);
             const msPerWord = 1000 / (2.5 * this.playbackRate);
-            this.nativeFallbackInterval = setInterval(() => {
+            this.nativeFallbackInterval = this.zone.runOutsideAngular(() => setInterval(() => {
               if (!this.isPausedSubject.getValue()) {
                 if (simulatedIdx < currentWords.length) {
-                  this.wordIndexSubject.next(baseWordOffset + simulatedIdx);
+                  this.emitWord(baseWordOffset + simulatedIdx);
                   this.lastCharIndex = chunk.startCharIndex + localFromChar + (simulatedIdx * 5);
                   simulatedIdx++;
                 }
               }
-            }, msPerWord);
+            }, msPerWord));
           }
         }, 500);
       };
@@ -357,12 +365,14 @@ export class AudioService {
         this.proAudio.currentTime = (this.proAlign.word_starts_ms[startWordIndex] ?? 0) / 1000;
       }
 
-      this.proAudio.ontimeupdate = () => {
+      // timeupdate llega ~4 veces por segundo: fuera de la zona, y solo avisa si cambió la palabra.
+      const audio = this.proAudio;
+      this.zone.runOutsideAngular(() => audio.ontimeupdate = () => {
         if (this.proAudio && this.proAlign) {
           const currentTime = this.proAudio.currentTime;
           if (isWordTimes(this.proAlign)) {
             const wordIdx = this.lastWordStartedAt(this.proAlign.word_starts_ms, currentTime * 1000);
-            if (wordIdx !== -1) this.wordIndexSubject.next(wordIdx);
+            if (wordIdx !== -1) this.emitWord(wordIdx);
             return;
           }
           const starts = this.proAlign.character_start_times_seconds;
@@ -384,10 +394,10 @@ export class AudioService {
             const textBefore = fullText.substring(0, lastCharIdx + 1);
             // Contar palabras (separadas por espacio)
             const wordIdx = textBefore.trim().split(/\s+/).length - 1;
-            this.wordIndexSubject.next(wordIdx);
+            this.emitWord(wordIdx);
           }
         }
-      };
+      });
 
       this.proAudio.oncanplaythrough = () => {
         console.log('AudioService: Audio listo para reproducir');

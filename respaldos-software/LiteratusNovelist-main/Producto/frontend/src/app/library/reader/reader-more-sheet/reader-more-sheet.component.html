@@ -1,6 +1,8 @@
 <div class="rd-more-backdrop" (click)="close()" aria-hidden="true"></div>
-<section class="rd-more-sheet" id="reader-more-sheet" role="dialog" aria-modal="true" aria-labelledby="reader-more-title">
-  <header class="rd-more-header">
+<section class="rd-more-sheet" id="reader-more-sheet" role="dialog" aria-modal="true" aria-labelledby="reader-more-title"
+         rdSheet (rdSheetClose)="close()" rdFocusTrap>
+  <span class="sheet-grabber" aria-hidden="true" data-sheet-grip></span>
+  <header class="rd-more-header" data-sheet-grip>
     <h2 id="reader-more-title">Más</h2>
     <button type="button" class="rd-more-close" (click)="close()" aria-label="Cerrar más opciones">
       <span class="material-symbols-rounded" aria-hidden="true">close</span>

@@ -45,10 +45,10 @@
 </div>
 
 <!-- MODAL DE DICCIONARIO PEQUEÑO -->
-<div class="dictionary-modal glass-panel" *ngIf="showDictionaryModal">
+<div class="dictionary-modal glass-panel" *ngIf="showDictionaryModal" role="dialog" aria-label="Diccionario" rdFocusTrap>
   <div class="dict-header">
     <h4>📖 Diccionario</h4>
-    <button class="close-btn" (click)="closeDictionary()">✕</button>
+    <button type="button" class="close-btn" (click)="closeDictionary()" aria-label="Cerrar el diccionario">✕</button>
   </div>
   <div class="dict-body">
     <div *ngIf="isDictionaryLoading" class="dict-loading">

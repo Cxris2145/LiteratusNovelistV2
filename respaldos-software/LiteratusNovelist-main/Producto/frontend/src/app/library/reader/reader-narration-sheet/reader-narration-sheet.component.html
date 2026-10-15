@@ -1,7 +1,10 @@
-<div class="audio-controls-panel glass-panel">
-  <div class="toc-header">
+<!-- En el celular es una hoja inferior: tocar fuera o bajarla por el asa la cierra -->
+<div class="sheet-backdrop" (click)="reader.toggleAudioPanel()" aria-hidden="true"></div>
+<div class="audio-controls-panel glass-panel" rdSheet (rdSheetClose)="reader.toggleAudioPanel()" role="dialog" aria-label="Narración">
+  <span class="sheet-grabber" aria-hidden="true" data-sheet-grip></span>
+  <div class="toc-header" data-sheet-grip>
     <span class="section-label">Narración</span>
-    <button class="close-btn" (click)="reader.toggleAudioPanel()">✕</button>
+    <button type="button" class="close-btn" (click)="reader.toggleAudioPanel()" aria-label="Cerrar narración">✕</button>
   </div>
 
   <!-- Selector de modo -->

@@ -835,3 +835,49 @@
   font-family: 'Cinzel', Georgia, serif;
   letter-spacing: 0.02em;
 }
+
+/* ── Celular: hoja inferior con asa. Se cierra arrastrándola hacia abajo (ReaderSheetDirective). ── */
+@media (max-width: 640px), (max-height: 500px) {
+  .reader-sheet {
+    --sheet-mode: bottom;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin-inline: auto;
+    width: min(100%, 640px);
+    max-width: none;
+    max-height: min(88dvh, 760px);
+    border-bottom: 0;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: sheetUp 0.28s var(--sheet-ease);
+  }
+  .sheet-grabber {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 9px 0 5px;
+    cursor: grab;
+  }
+  .sheet-grabber::before {
+    content: '';
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: currentColor;
+    opacity: 0.28;
+  }
+  .sheet-grabber,
+  .sheet-header { touch-action: none; }
+  .sheet-grabber + .sheet-header { padding-top: 2px; }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-sheet { animation: none; }
+}
