@@ -1,0 +1,376 @@
+/* Panel "Narración" (antes en reader.component.css). Las reglas de .toc-header, .close-btn,
+   .section-label, .loader-spin y .status-label son copias: el índice del lector usa las suyas. */
+.section-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 0.6rem;
+  font-family: 'Outfit', sans-serif;
+}
+
+.toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.toc-header h3 {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  color: var(--glow-accent);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.audio-controls-panel {
+  position: fixed;
+  top: 70px;
+  bottom: auto;
+  right: 20px;
+  background: linear-gradient(180deg, #2a2c33 0%, #1e2024 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid #3f4248;
+  border-top: 1px solid #5a5d63;
+  border-radius: 8px; /* Bordes más rectos */
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  width: 230px;
+  color: #e2e8f0;
+  font-family: 'Outfit', sans-serif;
+}
+
+.audio-controls-panel .toc-header {
+  border-bottom: 1px solid #111;
+  padding-bottom: 0.4rem;
+  margin-bottom: 0;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.audio-controls-panel .section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8b92a5;
+  font-weight: 700;
+}
+
+.voice-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: #111215;
+  padding: 0.3rem;
+  border-radius: 6px;
+  border: 1px solid #2a2c33;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.voice-option {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 0.4rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #8b92a5;
+}
+
+.voice-option.active {
+  background: linear-gradient(180deg, #383c47 0%, #2b2e36 100%);
+  border: 1px solid #4b505c;
+  border-top: 1px solid #5d6373;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.voice-info span {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.voice-info small {
+  font-size: 0.65rem;
+  display: block;
+  opacity: 0.7;
+  margin-top: 1px;
+}
+
+.audio-config {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.config-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8b92a5;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.voice-dropdown {
+  background: #111215;
+  border: 1px solid #3f4248;
+  color: #e2e8f0;
+  padding: 0.4rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  width: 100%;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%238b92a5%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem top 50%;
+  background-size: 0.6rem auto;
+}
+
+.voice-dropdown:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.voice-hint {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: #8b92a5;
+}
+
+.audio-main-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.25rem;
+  padding: 0.5rem;
+  background: #111215;
+  border-radius: 6px;
+  border: 1px solid #2a2c33;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.audio-btn {
+  background: linear-gradient(180deg, #383c47 0%, #2b2e36 100%);
+  border: 1px solid #4b505c;
+  color: #e2e8f0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+.audio-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.audio-btn.play {
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  border-color: #60a5fa;
+  color: white;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .audio-btn.play:hover {
+    background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+  }
+}
+
+.audio-btn.pause {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+  border-color: #fbbf24;
+  color: white;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);
+}
+
+.audio-btn.resume {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+  border-color: #34d399;
+  color: white;
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.4);
+}
+
+.audio-btn.reset {
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
+}
+
+.voice-option.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.ink-cost {
+  font-size: 0.7rem;
+  color: #fbbf24;
+  font-weight: 700;
+  white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
+}
+
+.unlocked-badge {
+  color: #22d3ee !important;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.7);
+}
+
+.voice-option.premium-locked {
+  opacity: 0.8;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.config-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  font-family: 'Outfit', sans-serif;
+  color: #e2e8f0;
+}
+
+.voice-dropdown {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.95rem;
+  font-family: 'Outfit', sans-serif;
+  cursor: pointer;
+  outline: none;
+}
+
+.voice-dropdown:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.speed-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, #3b82f6 0%, #3b82f6 50%, rgba(255,255,255,0.2) 50%);
+  outline: none;
+  cursor: pointer;
+}
+
+.speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .speed-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+  }
+}
+
+.speed-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  opacity: 0.5;
+  font-family: 'Outfit', sans-serif;
+}
+
+.voice-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.voice-info span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+}
+
+.voice-info small {
+  font-size: 0.68rem;
+  opacity: 0.6;
+}
+
+.loader-spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  color: #c084fc;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+:host-context(.theme-light) .status-label {
+  color: #7e22ce;
+}
+
+@media (max-width: 768px) {
+  .audio-controls-panel {
+    width: calc(100vw - 24px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    top: 60px !important;
+    bottom: auto !important;
+    max-height: 70vh;
+    max-height: 70dvh;
+    overflow-y: auto;
+  }
+}
+
+.audio-controls-panel .toc-header {
+  margin-bottom: 0.5rem;
+}
+
+.kokoro-progress-bar { width: 100%; height: 6px; background: #222; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+
+.kokoro-progress-fill { height: 100%; background: #ffff55; transition: width 0.2s ease; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

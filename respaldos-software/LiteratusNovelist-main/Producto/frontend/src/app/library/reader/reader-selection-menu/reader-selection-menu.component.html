@@ -1,0 +1,85 @@
+<!-- MENU FLOTANTE DE ACCIONES SOBRE EL TEXTO -->
+<div class="word-action-menu glass-panel" *ngIf="showWordMenu"
+     [class.menu-below]="isMenuBelow"
+     [class.menu-above]="!isMenuBelow"
+     [style.left.px]="wordMenuX"
+     [style.top.px]="wordMenuY">
+  <div class="menu-highlight-row" role="group" aria-label="Subrayar el pasaje">
+    <span class="menu-highlight-label">Subrayar</span>
+    <button type="button" class="hl-swatch" *ngFor="let h of highlightColorOptions"
+            [style.background-color]="h.hex" [disabled]="isHighlightBusy"
+            [attr.aria-label]="'Subrayar en ' + h.label" [title]="'Subrayar en ' + h.label"
+            (click)="createHighlight(h.id)"></button>
+  </div>
+  <button class="menu-action-btn" (click)="defineWord()">
+    <span class="icon">📖</span> Definición
+  </button>
+  <button class="menu-action-btn" (click)="saveToVocabulary()">
+    <span class="icon">🗂️</span> Guardar en Flashcards
+  </button>
+  <button class="menu-action-btn" (click)="playAudioFromSelection()">
+    <span class="icon">▶️</span> Narrar desde aquí
+  </button>
+  <button class="menu-action-btn" (click)="askCharacter()">
+    <span class="icon">🎭</span> Preguntar a Personaje
+  </button>
+</div>
+
+<!-- TARJETA DEL SUBRAYADO: cambiar color o quitar -->
+<div class="highlight-popover" *ngIf="activeHighlight" role="dialog" aria-label="Subrayado"
+     [class.menu-below]="highlightPopoverBelow"
+     [class.menu-above]="!highlightPopoverBelow"
+     [style.left.px]="highlightPopoverX"
+     [style.top.px]="highlightPopoverY">
+  <div class="hl-popover-bar">
+    <button type="button" class="hl-swatch" *ngFor="let h of highlightColorOptions"
+            [class.on]="activeHighlight.color === h.id" [style.background-color]="h.hex"
+            [attr.aria-pressed]="activeHighlight.color === h.id"
+            [attr.aria-label]="'Color ' + h.label" [title]="h.label"
+            [disabled]="isHighlightBusy" (click)="recolorHighlight(h.id)"></button>
+    <span class="hl-popover-spacer"></span>
+    <button type="button" class="hl-icon-btn" (click)="deleteHighlight()" [disabled]="isHighlightBusy"
+            aria-label="Quitar subrayado" title="Quitar subrayado">🗑️</button>
+    <button type="button" class="hl-icon-btn" (click)="closeHighlightPopover()" aria-label="Cerrar" title="Cerrar">✕</button>
+  </div>
+</div>
+
+<!-- MODAL DE DICCIONARIO PEQUEÑO -->
+<div class="dictionary-modal glass-panel" *ngIf="showDictionaryModal">
+  <div class="dict-header">
+    <h4>📖 Diccionario</h4>
+    <button class="close-btn" (click)="closeDictionary()">✕</button>
+  </div>
+  <div class="dict-body">
+    <div *ngIf="isDictionaryLoading" class="dict-loading">
+      <span class="loader-spin">◷</span> Buscando definición...
+    </div>
+    <div *ngIf="!isDictionaryLoading && dictionaryResult?.error" class="dict-error">
+      {{ dictionaryResult?.error }}
+      <br><br>
+      <a [href]="'https://es.wiktionary.org/wiki/' + selectedText" target="_blank" class="glass-btn">
+        Buscar en Wiktionary
+      </a>
+    </div>
+    <div *ngIf="!isDictionaryLoading && !dictionaryResult?.error && dictionaryResult">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h5 class="dict-word" style="margin:0;">{{ dictionaryResult.word }}</h5>
+        <button type="button" class="glass-btn" style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; font-size:0.8rem; cursor:pointer;" (click)="saveToVocabulary(dictionaryResult)">
+          <span>🗂️ Guardar Flashcard</span>
+        </button>
+      </div>
+      <p class="dict-phonetic" *ngIf="dictionaryResult.phonetic">{{ dictionaryResult.phonetic }}</p>
+      <div class="dict-meanings">
+        <div *ngFor="let meaning of dictionaryResult.meanings" class="dict-meaning">
+          <span class="dict-pos">{{ meaning.partOfSpeech }}</span>
+          <ul>
+            <li *ngFor="let def of meaning.definitions | slice:0:3">
+              {{ def.definition }}
+              <em class="dict-example" *ngIf="def.example">"{{ def.example }}"</em>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

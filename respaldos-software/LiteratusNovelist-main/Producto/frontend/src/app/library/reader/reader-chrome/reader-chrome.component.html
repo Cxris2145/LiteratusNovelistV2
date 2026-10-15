@@ -1,0 +1,62 @@
+<div class="rd-chrome" [class.is-visible]="r.chromeVisible()"
+     [attr.aria-hidden]="!r.chromeVisible()" [attr.inert]="r.chromeVisible() ? null : ''">
+  <header class="rd-topbar" aria-label="Controles de lectura">
+    <a class="rd-control rd-library" routerLink="/library" title="Volver a la biblioteca" aria-label="Volver a la biblioteca">
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      <span class="rd-library-label">Biblioteca</span>
+    </a>
+
+    <div class="rd-book-heading">
+      <span class="rd-book-title" [title]="r.bookTitle">{{ r.bookTitle }}</span>
+      <span class="rd-chapter-title" [title]="r.chapterTitle">{{ r.chapterTitle }}</span>
+    </div>
+
+    <nav class="rd-actions" aria-label="Herramientas del libro">
+      <button type="button" class="rd-control" (click)="open('search')" title="Buscar en el libro" aria-label="Buscar en el libro">
+        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      </button>
+      <button type="button" class="rd-control" (click)="open('toc')" [class.is-active]="r.isTocOpen"
+              [attr.aria-expanded]="r.isTocOpen" title="Índice y marcadores" aria-label="Índice y marcadores">
+        <span class="material-symbols-rounded" aria-hidden="true">format_list_bulleted</span>
+      </button>
+      <button type="button" class="rd-control rd-type-control" (click)="open('settings')" [class.is-active]="r.isSettingsOpen"
+              [attr.aria-expanded]="r.isSettingsOpen" title="Ajustes de lectura" aria-label="Ajustes de lectura">Aa</button>
+      <button type="button" class="rd-control" (click)="toggleMore()" [class.is-active]="r.isMoreOpen"
+              [attr.aria-expanded]="r.isMoreOpen" aria-controls="reader-more-sheet" title="Más opciones" aria-label="Más opciones">
+        <span class="material-symbols-rounded" aria-hidden="true">more_horiz</span>
+      </button>
+    </nav>
+  </header>
+
+  <footer class="rd-bottombar" aria-label="Narración y posición de lectura">
+    <div class="rd-listen-controls">
+      <button type="button" class="rd-listen rd-control" (click)="r.toggleNarration()"
+              [disabled]="r.isAudioLoading" [attr.aria-pressed]="r.isNarrationPlaying"
+              [attr.aria-label]="r.isNarrationPlaying ? 'Pausar la narración' : 'Escuchar el libro'">
+        <span class="material-symbols-rounded" [class.rd-spinner]="r.isAudioLoading" aria-hidden="true">{{ r.isAudioLoading ? 'progress_activity' : (r.isNarrationPlaying ? 'pause' : 'play_arrow') }}</span>
+        <span>{{ r.isNarrationPlaying ? 'Pausar' : 'Escuchar' }}</span>
+      </button>
+      <button type="button" class="rd-control rd-voice" (click)="open('audio')" [class.is-active]="r.isAudioPanelOpen"
+              [attr.aria-expanded]="r.isAudioPanelOpen" title="Voz y velocidad" aria-label="Elegir voz y velocidad">
+        <span class="material-symbols-rounded" aria-hidden="true">expand_more</span>
+      </button>
+    </div>
+
+    <div class="rd-book-line" *ngIf="!r.hideProgressOnScroll">
+      <input type="range" class="rd-progress-slider" min="1" step="1"
+             [max]="r.bookPageTotal" [value]="r.bookPageCurrent"
+             [style.--rd-progress]="r.sliderFillPercent + '%'"
+             (input)="r.onBookSliderInput($any($event.target).value)"
+             (change)="r.onBookSliderChange($any($event.target).value)"
+             aria-label="Posición en el libro"
+             [attr.aria-valuetext]="r.sliderPreviewLabel || (r.bookProgressPercent + ' % del libro')">
+      <span class="rd-slider-preview" *ngIf="r.sliderPreviewLabel">{{ r.sliderPreviewLabel }}</span>
+    </div>
+
+    <div class="rd-position">
+      <span class="rd-page-position" *ngIf="r.layoutMode === 'paged'">Pág. {{ r.currentLeftPageNum }} de {{ r.chapterPageCount }}</span>
+      <span class="rd-chapter-position">Cap. {{ r.currentPage }}<span *ngIf="r.showReadingTime && r.remainingReadingTimeShort"> · {{ r.remainingReadingTimeShort }}</span></span>
+      <span class="rd-book-percent">{{ r.bookProgressPercent }} % del libro</span>
+    </div>
+  </footer>
+</div>

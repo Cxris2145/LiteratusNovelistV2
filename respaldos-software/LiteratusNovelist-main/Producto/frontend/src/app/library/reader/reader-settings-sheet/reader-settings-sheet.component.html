@@ -1,0 +1,370 @@
+<section class="reader-sheet" role="dialog" aria-labelledby="sheet-title"
+         (click)="$event.stopPropagation()">
+  <span class="sheet-grabber" aria-hidden="true"></span>
+
+  <header class="sheet-header">
+    <h2 id="sheet-title">Ajustes de lectura</h2>
+    <button type="button" class="sheet-text-btn" (click)="reset()"
+            [disabled]="!hasCustom" title="Volver a los ajustes de fábrica">
+      <span class="material-symbols-rounded" aria-hidden="true">restart_alt</span>
+      Restablecer
+    </button>
+    <button type="button" class="sheet-icon-btn" (click)="reader.toggleSettings()" aria-label="Cerrar ajustes">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <div class="sheet-undo" *ngIf="resetNotice" role="status">
+    <span>Se restablecieron los ajustes.</span>
+    <button type="button" (click)="undoReset()">Deshacer</button>
+  </div>
+
+  <!-- Muestra en vivo: la hoja tapa el libro en el celular, aquí se ve el efecto de cada ajuste -->
+  <figure class="sheet-preview" aria-label="Vista previa del texto">
+    <p class="sheet-preview-text" [ngClass]="'font-' + s.fontFamily"
+       [style.font-size.px]="s.fontSize"
+       [style.line-height]="s.lineHeight"
+       [style.letter-spacing.em]="s.letterSpacing"
+       [style.word-spacing.em]="s.wordSpacing"
+       [style.text-align]="s.textAlign"
+       [style.text-indent]="(s.paraSpacing === 'tight' || s.textAlign === 'justify') ? '1.5em' : '0'">En un lugar de la Mancha, de cuyo nombre no quiero acordarme, no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero, adarga antigua, rocín flaco y galgo corredor.</p>
+    <figcaption>{{ currentFontLabel }} · {{ s.fontSize }} px · interlineado {{ lineHeightLabel }}</figcaption>
+  </figure>
+
+  <div class="sheet-scroll">
+    <!-- Ajustes rápidos: marcan el que coincide con lo que tienes puesto -->
+    <div class="sheet-presets" role="group" aria-label="Ajustes rápidos">
+      <button type="button" class="preset-card" *ngFor="let p of readerPresets"
+              [class.on]="settings.activePresets[p.id]" [attr.aria-pressed]="settings.activePresets[p.id]"
+              (click)="settings.applyPreset(p.id)">
+        <span class="material-symbols-rounded preset-icon" aria-hidden="true">{{ p.icon }}</span>
+        <span class="preset-text">
+          <span class="preset-name">{{ p.label }}</span>
+          <span class="preset-detail">{{ p.detail }}</span>
+        </span>
+      </button>
+    </div>
+
+    <div class="sheet-tabs" role="tablist" aria-label="Secciones de ajustes" (keydown)="onSettingsTabKey($event)">
+      <button type="button" role="tab" *ngFor="let t of settingsTabs"
+              [id]="'sheet-tab-' + t.id" [attr.aria-controls]="'sheet-panel-' + t.id"
+              [attr.aria-selected]="reader.settingsTab === t.id" [attr.tabindex]="reader.settingsTab === t.id ? 0 : -1"
+              [class.on]="reader.settingsTab === t.id" (click)="setTab(t.id)">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ t.icon }}</span>
+        {{ t.label }}
+      </button>
+    </div>
+
+    <!-- ══ TEXTO ══ -->
+    <div class="sheet-panel" role="tabpanel" id="sheet-panel-texto" aria-labelledby="sheet-tab-texto"
+         *ngIf="reader.settingsTab === 'texto'">
+      <section class="sheet-group" aria-labelledby="grp-letra">
+        <h3 class="sheet-group-title" id="grp-letra">Letra</h3>
+
+        <div class="sheet-row">
+          <span class="sheet-row-label" id="lbl-size">Tamaño</span>
+          <div class="stepper" role="group" aria-labelledby="lbl-size">
+            <button type="button" (click)="changeFontSize(-1)" [disabled]="s.fontSize <= FONT_MIN" aria-label="Letra más pequeña">
+              <span class="material-symbols-rounded" aria-hidden="true">remove</span>
+            </button>
+            <output class="stepper-val" aria-live="polite">{{ s.fontSize }} px</output>
+            <button type="button" (click)="changeFontSize(1)" [disabled]="s.fontSize >= FONT_MAX" aria-label="Letra más grande">
+              <span class="material-symbols-rounded" aria-hidden="true">add</span>
+            </button>
+          </div>
+        </div>
+        <button type="button" class="sheet-link" *ngIf="s.fontSize !== DEFAULT_FONT_SIZE" (click)="resetFontSize()">
+          Volver a {{ DEFAULT_FONT_SIZE }} px
+        </button>
+
+        <div class="sheet-field">
+          <span class="sheet-row-label">Tipografía</span>
+          <div class="font-groups">
+            <div class="font-group" *ngFor="let g of fontGroups; trackBy: trackGroup" role="group" [attr.aria-label]="g.name">
+              <span class="font-group-name" aria-hidden="true">{{ g.name }}</span>
+              <div class="font-grid">
+                <button type="button" *ngFor="let f of g.fonts; trackBy: trackFont"
+                        class="font-tile" [ngClass]="'preview-' + f.id"
+                        [class.on]="s.fontFamily === f.id" [attr.aria-pressed]="s.fontFamily === f.id"
+                        (click)="set({ fontFamily: f.id })" [attr.title]="f.note || null">
+                  <span class="font-tile-aa" aria-hidden="true">Aa</span>
+                  <span class="font-tile-name">{{ f.label }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <p class="sheet-hint" *ngIf="currentFontNote">{{ currentFontNote }}</p>
+        </div>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-espacio">
+        <h3 class="sheet-group-title" id="grp-espacio">Espaciado</h3>
+
+        <div class="sheet-field">
+          <span class="sheet-row-label" id="lbl-lh">Interlineado</span>
+          <div class="segmented" role="group" aria-labelledby="lbl-lh">
+            <button type="button" *ngFor="let o of lineHeightOptions" [class.on]="s.lineHeight === o.value"
+                    [attr.aria-pressed]="s.lineHeight === o.value" (click)="set({ lineHeight: o.value })">{{ o.label }}</button>
+          </div>
+        </div>
+
+        <div class="sheet-field">
+          <span class="sheet-row-label" id="lbl-para">Entre párrafos</span>
+          <div class="segmented" role="group" aria-labelledby="lbl-para">
+            <button type="button" [class.on]="s.paraSpacing === 'tight'" [attr.aria-pressed]="s.paraSpacing === 'tight'" (click)="set({ paraSpacing: 'tight' })">Con sangría</button>
+            <button type="button" [class.on]="s.paraSpacing === 'normal'" [attr.aria-pressed]="s.paraSpacing === 'normal'" (click)="set({ paraSpacing: 'normal' })">Una línea</button>
+            <button type="button" [class.on]="s.paraSpacing === 'relaxed'" [attr.aria-pressed]="s.paraSpacing === 'relaxed'" (click)="set({ paraSpacing: 'relaxed' })">Dos líneas</button>
+          </div>
+        </div>
+
+        <div class="sheet-field">
+          <label class="sheet-row" for="rng-letters">
+            <span class="sheet-row-label">Entre letras</span>
+            <span class="sheet-value">{{ letterSpacingLabel }}</span>
+          </label>
+          <input id="rng-letters" type="range" class="sheet-range" min="-0.01" max="0.08" step="0.005"
+                 [value]="s.letterSpacing" [style.--fill]="rangeFill(s.letterSpacing, -0.01, 0.08)"
+                 [attr.aria-valuetext]="letterSpacingLabel"
+                 (input)="set({ letterSpacing: +$any($event.target).value })">
+        </div>
+
+        <div class="sheet-field">
+          <label class="sheet-row" for="rng-words">
+            <span class="sheet-row-label">Entre palabras</span>
+            <span class="sheet-value">{{ wordSpacingLabel }}</span>
+          </label>
+          <input id="rng-words" type="range" class="sheet-range" min="0" max="0.6" step="0.02"
+                 [value]="s.wordSpacing" [style.--fill]="rangeFill(s.wordSpacing, 0, 0.6)"
+                 [attr.aria-valuetext]="wordSpacingLabel"
+                 (input)="set({ wordSpacing: +$any($event.target).value })">
+        </div>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-pagina">
+        <h3 class="sheet-group-title" id="grp-pagina">Página</h3>
+
+        <div class="sheet-field">
+          <span class="sheet-row-label" id="lbl-align">Alineación</span>
+          <div class="segmented" role="group" aria-labelledby="lbl-align">
+            <button type="button" [class.on]="s.textAlign === 'left'" [attr.aria-pressed]="s.textAlign === 'left'" (click)="set({ textAlign: 'left' })">
+              <span class="material-symbols-rounded" aria-hidden="true">format_align_left</span>Izquierda
+            </button>
+            <button type="button" [class.on]="s.textAlign === 'justify'" [attr.aria-pressed]="s.textAlign === 'justify'" (click)="set({ textAlign: 'justify' })">
+              <span class="material-symbols-rounded" aria-hidden="true">format_align_justify</span>Justificado
+            </button>
+          </div>
+        </div>
+
+        <div class="sheet-field">
+          <span class="sheet-row-label" id="lbl-width">Márgenes</span>
+          <div class="segmented" role="group" aria-labelledby="lbl-width">
+            <button type="button" [class.on]="s.margins === 'narrow'" [attr.aria-pressed]="s.margins === 'narrow'" (click)="set({ margins: 'narrow' })">Estrechos</button>
+            <button type="button" [class.on]="s.margins === 'normal'" [attr.aria-pressed]="s.margins === 'normal'" (click)="set({ margins: 'normal' })">Normales</button>
+            <button type="button" [class.on]="s.margins === 'wide'" [attr.aria-pressed]="s.margins === 'wide'" (click)="set({ margins: 'wide' })">Amplios</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ══ APARIENCIA ══ -->
+    <div class="sheet-panel" role="tabpanel" id="sheet-panel-apariencia" aria-labelledby="sheet-tab-apariencia"
+         *ngIf="reader.settingsTab === 'apariencia'">
+      <section class="sheet-group" aria-labelledby="grp-vista">
+        <h3 class="sheet-group-title" id="grp-vista">Vista</h3>
+        <div class="segmented" role="group" aria-labelledby="grp-vista">
+          <button type="button" [class.on]="s.layoutMode === 'paged'" [attr.aria-pressed]="s.layoutMode === 'paged'" (click)="set({ layoutMode: 'paged' })">Páginas</button>
+          <button type="button" [class.on]="s.layoutMode === 'scroll'" [attr.aria-pressed]="s.layoutMode === 'scroll'" (click)="set({ layoutMode: 'scroll' })">Desplazamiento</button>
+        </div>
+        <div class="sheet-field" *ngIf="s.layoutMode === 'paged'">
+          <span class="sheet-row-label" id="lbl-page-turn">Paso de página</span>
+          <div class="segmented" role="group" aria-labelledby="lbl-page-turn">
+            <button type="button" [class.on]="s.pageTurn === 'slide'" [attr.aria-pressed]="s.pageTurn === 'slide'" (click)="set({ pageTurn: 'slide' })">Deslizar</button>
+            <button type="button" [class.on]="s.pageTurn === 'none'" [attr.aria-pressed]="s.pageTurn === 'none'" (click)="set({ pageTurn: 'none' })">Sin animación</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-tema">
+        <h3 class="sheet-group-title" id="grp-tema">Tema</h3>
+        <div class="theme-grid" role="group" aria-labelledby="grp-tema">
+          <button type="button" *ngFor="let t of themeOptions" class="theme-tile" [attr.data-th]="t.id"
+                  [class.on]="s.theme === t.id" [attr.aria-pressed]="s.theme === t.id" (click)="set({ theme: t.id })">
+            <span class="theme-page" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="theme-name">{{ t.label }}</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-luz">
+        <h3 class="sheet-group-title" id="grp-luz">Luz y color</h3>
+
+        <div class="sheet-field">
+          <label class="sheet-row" for="rng-bright">
+            <span class="sheet-row-label">Atenuar</span>
+            <span class="sheet-value">{{ brightnessLabel }}</span>
+          </label>
+          <div class="range-with-icons">
+            <span class="material-symbols-rounded" aria-hidden="true">brightness_low</span>
+            <input id="rng-bright" type="range" class="sheet-range" min="0.6" max="1" step="0.01"
+                   [value]="s.brightness" [style.--fill]="rangeFill(s.brightness, 0.6, 1)"
+                   [attr.aria-valuetext]="brightnessLabel"
+                   (input)="set({ brightness: +$any($event.target).value })">
+            <span class="material-symbols-rounded" aria-hidden="true">brightness_high</span>
+          </div>
+        </div>
+
+        <div class="sheet-field">
+          <span class="sheet-row-label" id="lbl-hl">Color de resaltado</span>
+          <div class="swatch-row" role="group" aria-labelledby="lbl-hl">
+            <button type="button" *ngFor="let h of highlightColorOptions" class="swatch"
+                    [class.on]="s.highlightColor === h.id" [attr.aria-pressed]="s.highlightColor === h.id"
+                    (click)="set({ highlightColor: h.id })">
+              <span class="swatch-dot" [style.background]="h.hex" aria-hidden="true"></span>
+              <span class="swatch-name">{{ h.label }}</span>
+            </button>
+          </div>
+          <p class="sheet-hint">Lo usan la palabra que se está leyendo, la frase marcada y la regla de lectura.</p>
+        </div>
+
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="s.highContrast"
+                (click)="set({ highContrast: !s.highContrast })">
+          <span class="switch-text">Alto contraste<small>Texto en negro o blanco puro, según el tema</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-detalles">
+        <h3 class="sheet-group-title" id="grp-detalles">Detalles de lectura</h3>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="s.sceneImages"
+                (click)="set({ sceneImages: !s.sceneImages })">
+          <span class="switch-text">Imágenes de escena<small>Muestra las ilustraciones dentro del capítulo</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="!s.hideProgress"
+                (click)="set({ hideProgress: !s.hideProgress })">
+          <span class="switch-text">Línea de progreso<small>Muestra tu avance en el libro dentro de los controles</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="s.showReadingTime"
+                (click)="set({ showReadingTime: !s.showReadingTime })">
+          <span class="switch-text">Tiempo restante<small>Estima los minutos para terminar el capítulo según tu ritmo</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+      </section>
+    </div>
+
+    <!-- ══ LECTURA ASISTIDA (TDAH / neurodivergencias) ══ -->
+    <div class="sheet-panel" role="tabpanel" id="sheet-panel-enfoque" aria-labelledby="sheet-tab-enfoque"
+         *ngIf="reader.settingsTab === 'enfoque'">
+      <p class="sheet-intro">Herramientas opcionales para sostener la atención en lecturas largas. Actívalas solo si te ayudan.</p>
+
+      <section class="sheet-group" aria-labelledby="grp-foco">
+        <h3 class="sheet-group-title" id="grp-foco">Foco de lectura</h3>
+        <div class="segmented segmented-4" role="group" aria-labelledby="grp-foco">
+          <button type="button" [class.on]="s.focusMode === 'off'" [attr.aria-pressed]="s.focusMode === 'off'" (click)="set({ focusMode: 'off' })">Ninguno</button>
+          <button type="button" [class.on]="s.focusMode === 'word'" [attr.aria-pressed]="s.focusMode === 'word'" (click)="set({ focusMode: 'word' })">Palabra</button>
+          <button type="button" [class.on]="s.focusMode === 'sentence'" [attr.aria-pressed]="s.focusMode === 'sentence'" (click)="set({ focusMode: 'sentence' })">Frase</button>
+          <button type="button" [class.on]="s.focusMode === 'paragraph'" [attr.aria-pressed]="s.focusMode === 'paragraph'" (click)="set({ focusMode: 'paragraph' })">Párrafo</button>
+        </div>
+        <p class="sheet-hint">{{ s.focusMode === 'off' ? 'Atenúa el resto del texto para que solo destaque lo que estás leyendo.' : 'Toca una palabra o inicia la narración para marcar el foco.' }}</p>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-guias">
+        <h3 class="sheet-group-title" id="grp-guias">Guías visuales</h3>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="s.ruler" (click)="set({ ruler: !s.ruler })">
+          <span class="switch-text">Regla de lectura<small>Franja horizontal que sigue la línea que lees</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="s.bionic" (click)="set({ bionic: !s.bionic })">
+          <span class="switch-text">Lectura biónica<small>Destaca el inicio de cada palabra para guiar la vista</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="s.longParaSplit" (click)="set({ longParaSplit: !s.longParaSplit })">
+          <span class="switch-text">Marcar párrafos largos<small>Señala con una línea los bloques de texto densos</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-calma">
+        <h3 class="sheet-group-title" id="grp-calma">Menos distracciones</h3>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="s.concentration" (click)="set({ concentration: !s.concentration })">
+          <span class="switch-text">Modo sin distracciones<small>Oculta barras y controles secundarios</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="reader.isFullscreenActive" (click)="reader.toggleImmersiveButton()">
+          <span class="switch-text">Pantalla completa<small>Usa toda la pantalla del dispositivo</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-avance">
+        <h3 class="sheet-group-title" id="grp-avance">Avanzar el texto</h3>
+        <button type="button" class="switch-row" role="switch" *ngIf="s.layoutMode === 'scroll'" [attr.aria-checked]="s.tapToScroll" (click)="set({ tapToScroll: !s.tapToScroll })">
+          <span class="switch-text">Toque para avanzar<small>Avanza el texto al tocar la pantalla</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="switch-row" role="switch" [attr.aria-checked]="reader.autoScrollActive" (click)="reader.toggleAutoScroll(!reader.autoScrollActive)">
+          <span class="switch-text">Avance automático<small>{{ s.layoutMode === 'paged' ? 'Pasa la página según tu ritmo de lectura' : 'El texto sube solo, a velocidad constante' }}</small></span>
+          <span class="switch" aria-hidden="true"></span>
+        </button>
+        <div class="sheet-field sheet-subfield" *ngIf="s.layoutMode === 'scroll'" [class.is-off]="!reader.autoScrollActive">
+          <label class="sheet-row" for="rng-auto">
+            <span class="sheet-row-label">Velocidad</span>
+            <span class="sheet-value">{{ s.autoScrollSpeed }} px/s</span>
+          </label>
+          <div class="range-with-icons">
+            <span class="material-symbols-rounded" aria-hidden="true">slow_motion_video</span>
+            <input id="rng-auto" type="range" class="sheet-range" min="10" max="120" step="5"
+                   [value]="s.autoScrollSpeed" [style.--fill]="rangeFill(s.autoScrollSpeed, 10, 120)"
+                   [attr.aria-valuetext]="s.autoScrollSpeed + ' píxeles por segundo'"
+                   (input)="set({ autoScrollSpeed: +$any($event.target).value })">
+            <span class="material-symbols-rounded" aria-hidden="true">speed</span>
+          </div>
+        </div>
+        <p class="sheet-hint" *ngIf="s.layoutMode === 'paged'">Cada página permanece el tiempo necesario para leer sus palabras a {{ s.wpm }} ppm. Ajusta el ritmo más abajo.</p>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-ritmo">
+        <h3 class="sheet-group-title" id="grp-ritmo">Ritmo de lectura</h3>
+        <div class="sheet-field">
+          <div class="sheet-row">
+            <span class="sheet-row-label">Velocidad de lectura</span>
+            <span class="sheet-value">{{ s.wpm }} ppm</span>
+          </div>
+          <p class="sheet-hint reading-time-hint" *ngIf="reader.remainingReadingTimeText">
+            <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+            <span>{{ reader.remainingReadingTimeText }}</span>
+          </p>
+          <div class="segmented segmented-4" role="group" aria-label="Ajustar ritmo de lectura">
+            <button type="button" [class.on]="s.wpm === 150 && !s.wpmAuto" (click)="set({ wpm: 150, wpmAuto: false })">Lento (150)</button>
+            <button type="button" [class.on]="s.wpm === 200 && !s.wpmAuto" (click)="set({ wpm: 200, wpmAuto: false })">Medio (200)</button>
+            <button type="button" [class.on]="s.wpm === 280 && !s.wpmAuto" (click)="set({ wpm: 280, wpmAuto: false })">Rápido (280)</button>
+            <button type="button" [class.on]="s.wpmAuto" (click)="set({ wpmAuto: !s.wpmAuto })">
+              {{ s.wpmAuto ? '✓ Auto' : 'Auto' }}
+            </button>
+          </div>
+          <p class="sheet-hint">El modo automático calibra la estimación a tu ritmo real según el avance entre páginas y párrafos.</p>
+        </div>
+      </section>
+
+      <section class="sheet-group" aria-labelledby="grp-pausas">
+        <h3 class="sheet-group-title" id="grp-pausas">Pausas</h3>
+        <div class="sheet-field">
+          <span class="sheet-row-label" id="lbl-timer">Recordarme descansar cada</span>
+          <div class="segmented" role="group" aria-labelledby="lbl-timer">
+            <button type="button" *ngFor="let m of reader.sessionTimerOptions" [class.on]="reader.sessionTimerMinutes === m"
+                    [attr.aria-pressed]="reader.sessionTimerMinutes === m" (click)="reader.setSessionTimer(m)">{{ m === 0 ? 'Nunca' : (m + ' min') }}</button>
+          </div>
+          <p class="sheet-hint" *ngIf="reader.sessionTimerRunning" aria-live="polite">Próxima pausa sugerida en {{ reader.sessionTimerLabel }}.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Tinta (siempre visible al pie) -->
+  <a class="sheet-ink" routerLink="/planes" fragment="tinta">
+    <span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>
+    <span class="sheet-ink-count">Tinta: {{ reader.inkBalance }}</span>
+    <span class="sheet-ink-cta">Recargar</span>
+  </a>
+</section>

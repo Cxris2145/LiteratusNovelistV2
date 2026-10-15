@@ -1,11 +1,11 @@
-/* Panel de vocabulario. Toma el papel y la tinta del libro (tokens --lb-* del lector). */
+/* Panel de vocabulario. Toma el papel y la tinta del libro (tokens --rd-* del lector). */
 :host {
   --vp-noun: #0d9488;
   --vp-name: #7c3aed;
   --vp-verb: #d97706;
   --vp-adj: #e11d48;
-  --vp-line: color-mix(in srgb, var(--lb-ink, #1c1917) 12%, transparent);
-  --vp-muted: color-mix(in srgb, var(--lb-ink, #1c1917) 58%, transparent);
+  --vp-line: color-mix(in srgb, var(--rd-ink, #1c1917) 12%, transparent);
+  --vp-muted: color-mix(in srgb, var(--rd-ink, #1c1917) 58%, transparent);
 }
 
 .vp-overlay {
@@ -25,8 +25,8 @@
   height: min(780px, calc(100dvh - 32px));
   display: flex;
   flex-direction: column;
-  background: var(--lb-paper, #fbfaf6);
-  color: var(--lb-ink, #1c1917);
+  background: var(--rd-paper, #fbfaf6);
+  color: var(--rd-ink, #1c1917);
   border-radius: 14px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
   font-family: var(--font-ui, system-ui, -apple-system, 'Segoe UI', sans-serif);
@@ -98,9 +98,9 @@
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 .vp-type.on {
-  color: var(--lb-ink, #1c1917);
-  border-color: color-mix(in srgb, var(--lb-ink, #1c1917) 30%, transparent);
-  background: color-mix(in srgb, var(--lb-ink, #1c1917) 5%, transparent);
+  color: var(--rd-ink, #1c1917);
+  border-color: color-mix(in srgb, var(--rd-ink, #1c1917) 30%, transparent);
+  background: color-mix(in srgb, var(--rd-ink, #1c1917) 5%, transparent);
 }
 .vp-type:not(.on) .vp-dot { opacity: 0.35; }
 
@@ -135,15 +135,15 @@
   color: inherit;
   font: 0.88rem var(--font-ui, system-ui, sans-serif);
 }
-.vp-search:focus-within { border-color: color-mix(in srgb, var(--lb-ink, #1c1917) 45%, transparent); }
+.vp-search:focus-within { border-color: color-mix(in srgb, var(--rd-ink, #1c1917) 45%, transparent); }
 .vp-sort { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--vp-muted); }
 .vp-sort select {
   height: 34px;
   padding: 0 10px;
   border: 1px solid var(--vp-line);
   border-radius: 999px;
-  background: var(--lb-paper, #fbfaf6);
-  color: var(--lb-ink, #1c1917);
+  background: var(--rd-paper, #fbfaf6);
+  color: var(--rd-ink, #1c1917);
   font: 0.85rem var(--font-ui, system-ui, sans-serif);
 }
 
@@ -166,7 +166,7 @@
   text-align: center;
   font-size: 0.92rem;
 }
-.vp-state strong { color: var(--lb-ink, #1c1917); font-size: 1rem; }
+.vp-state strong { color: var(--rd-ink, #1c1917); font-size: 1rem; }
 .vp-state .material-symbols-rounded { font-size: 2rem; }
 .vp-spin { animation: vp-spin 1s linear infinite; }
 
@@ -195,18 +195,18 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .vp-row:not(.vp-row-head):hover {
-    background: color-mix(in srgb, var(--lb-accent, #0e7490) 10%, transparent);
-    color: var(--lb-accent, #0e7490);
+    background: color-mix(in srgb, var(--rd-accent, #0e7490) 10%, transparent);
+    color: var(--rd-accent, #0e7490);
   }
 }
-.vp-row:focus-visible { outline: 2px solid var(--lb-accent, #0e7490); outline-offset: -2px; }
+.vp-row:focus-visible { outline: 2px solid var(--rd-accent, #0e7490); outline-offset: -2px; }
 .vp-row-head {
   cursor: default;
   color: var(--vp-muted);
   font-size: 0.78rem;
   position: sticky;
   top: 0;
-  background: var(--lb-paper, #fbfaf6);
+  background: var(--rd-paper, #fbfaf6);
 }
 .vp-lemma {
   text-transform: uppercase;
@@ -236,7 +236,7 @@
   border: none;
   border-radius: 8px;
   background: none;
-  color: var(--lb-ink, #1c1917);
+  color: var(--rd-ink, #1c1917);
   font: 600 0.88rem var(--font-ui, system-ui, sans-serif);
   cursor: pointer;
 }
@@ -268,15 +268,15 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
-  font: 0.95rem/1.45 var(--lb-font, Georgia, 'Times New Roman', serif);
+  font: 0.95rem/1.45 var(--rd-font, Georgia, 'Times New Roman', serif);
 }
 @media (hover: hover) and (pointer: fine) {
-  .vp-occ:hover { background: color-mix(in srgb, var(--lb-accent, #0e7490) 9%, transparent); }
+  .vp-occ:hover { background: color-mix(in srgb, var(--rd-accent, #0e7490) 9%, transparent); }
 }
-.vp-occ:focus-visible { outline: 2px solid var(--lb-accent, #0e7490); outline-offset: -2px; }
+.vp-occ:focus-visible { outline: 2px solid var(--rd-accent, #0e7490); outline-offset: -2px; }
 .vp-occ-page {
   font: 600 0.8rem var(--font-ui, system-ui, sans-serif);
-  color: var(--lb-accent, #0e7490);
+  color: var(--rd-accent, #0e7490);
   padding-top: 3px;
 }
 .vp-occ mark {

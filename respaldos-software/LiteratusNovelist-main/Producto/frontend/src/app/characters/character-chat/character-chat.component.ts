@@ -61,6 +61,13 @@ export class CharacterChatComponent implements OnDestroy {
   @Input() set avatarId(id: string | null) {
     if (id && id !== this.currentId) this.load(id);
   }
+  /** Mensaje que queda escrito en el campo al abrir, sin enviarse (p. ej., una cita del lector). */
+  @Input() set initialDraft(text: string | null | undefined) {
+    this.startDraft = text || '';
+    this.draft = this.startDraft;
+    if (this.startDraft) this.afterRender();
+  }
+  private startDraft = '';
 
   @Output() closed = new EventEmitter<void>();
   @Output() expand = new EventEmitter<string>();
@@ -107,7 +114,7 @@ export class CharacterChatComponent implements OnDestroy {
     this.messages = [];
     this.sessionId = null;
     this.error = '';
-    this.draft = '';
+    this.draft = this.startDraft;
     this.isSending = false;
     this.offerPass = null;
     this.state = 'loading';

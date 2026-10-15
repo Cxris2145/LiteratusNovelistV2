@@ -1,0 +1,43 @@
+<!-- POST-ITS EN LOS MÁRGENES: papelitos al costado de la página, a la altura de su línea.
+     layoutMarginPostIts() escribe su posición directo en el DOM (cambia con cada scroll o giro);
+     se arrastran desde aquí (handleMarginPointerDown) y al tocarlos se abre su nota. -->
+<div class="postit-margin-layer" #layer>
+  @for (p of chapterPostIts; track p) {
+    <button type="button" class="margin-postit" [attr.data-postit]="postItKey(p)"
+            [attr.data-enter]="p.id ? null : ''" [class.is-open]="activePostIt === p"
+            [attr.aria-expanded]="activePostIt === p"
+            [attr.aria-label]="p.text ? 'Post-it: ' + p.text : 'Post-it nuevo'"
+            [title]="p.text ? p.text + ' · Arrastra para moverlo' : ''"
+            (click)="onMarginPostItClick(p)">
+      <span class="margin-postit-paper">{{ p.text }}</span>
+    </button>
+  }
+</div>
+
+<!-- NOTA DEL POST-IT: se abre al lado de su papelito, hacia dentro de la página -->
+<div class="postit-card" *ngIf="activePostIt" role="dialog" aria-label="Post-it"
+     [class.from-left]="postItCardSide === 'left'" [class.from-right]="postItCardSide === 'right'"
+     [style.left.px]="postItCardX" [style.top.px]="postItCardY">
+  <div class="post-it">
+    <ng-container *ngIf="isEditingPostIt; else postItView">
+      <textarea [(ngModel)]="postItDraft" maxlength="500" rows="4"
+                placeholder="Escribe tu nota…" aria-label="Texto del post-it"></textarea>
+      <div class="post-it-actions">
+        <span class="post-it-count">{{ postItDraft.length }}/500</span>
+        <button type="button" class="post-it-btn" (click)="cancelPostItEdit()">Cancelar</button>
+        <button type="button" class="post-it-btn primary" (click)="savePostIt()"
+                [disabled]="isPostItBusy || !postItDraft.trim()">Pegar</button>
+      </div>
+    </ng-container>
+    <ng-template #postItView>
+      <p class="post-it-text">{{ activePostIt.text }}</p>
+      <p class="post-it-hint">Arrastra el papelito por el margen para cambiarlo de lugar.</p>
+      <div class="post-it-actions">
+        <span class="post-it-count">{{ annotations.postItCount }}/{{ annotations.maxPostIts }}</span>
+        <button type="button" class="post-it-btn" (click)="editPostIt()">Editar</button>
+        <button type="button" class="post-it-btn" (click)="deletePostIt()" [disabled]="isPostItBusy">Despegar</button>
+        <button type="button" class="post-it-btn" (click)="closePostIt()" aria-label="Cerrar">✕</button>
+      </div>
+    </ng-template>
+  </div>
+</div>

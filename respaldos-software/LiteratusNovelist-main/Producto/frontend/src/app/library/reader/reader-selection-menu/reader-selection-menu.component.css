@@ -1,0 +1,345 @@
+/* Menú de la selección, tarjeta del subrayado y diccionario (antes en reader.component.css).
+   .loader-spin y .close-btn son copias: el lector usa las suyas. El tema llega con :host-context(). */
+.close-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.loader-spin {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+.word-action-menu {
+  position: fixed;
+  z-index: 1500;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5), 0 0 20px rgba(168, 85, 247, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  /* Animación de entrada Pop */
+  animation: wordMenuPopIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center bottom;
+}
+
+.word-action-menu.menu-above {
+  transform: translate(-50%, -100%);
+  transform-origin: center bottom;
+}
+
+.word-action-menu.menu-below {
+  transform: translate(-50%, 0);
+  transform-origin: center top;
+  animation: popInBelow 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+:host-context(.theme-light) .word-action-menu {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1), 0 0 15px rgba(168, 85, 247, 0.15);
+}
+
+.word-action-menu::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-style: solid;
+}
+
+.word-action-menu.menu-above::after {
+  bottom: -7px;
+  border-width: 7px 7px 0;
+  border-color: rgba(168, 85, 247, 0.5) transparent transparent transparent;
+}
+
+.word-action-menu.menu-below::after {
+  top: -7px;
+  border-width: 0 7px 7px;
+  border-color: transparent transparent rgba(168, 85, 247, 0.5);
+}
+
+:host-context(.theme-light) .word-action-menu.menu-above::after {
+  border-color: rgba(168, 85, 247, 0.3) transparent transparent transparent;
+}
+
+:host-context(.theme-light) .word-action-menu.menu-below::after {
+  border-color: transparent transparent rgba(168, 85, 247, 0.3);
+}
+
+.menu-action-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  padding: 0 20px;
+  height: 44px; /* Touch target móvil */
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+    width: auto; /* overriding .glass-btn 100% width */
+    justify-content: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menu-action-btn:hover:not(:disabled) {
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--glow-accent, #a855f7);
+    transform: translateX(4px);
+  }
+}
+
+.menu-action-btn:active:not(:disabled) {
+  background: rgba(168, 85, 247, 0.25);
+  transform: scale(0.98);
+}
+
+.menu-action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.dictionary-modal {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  z-index: 1600;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+:host-context(.theme-light) .dictionary-modal {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 0 15px rgba(59, 130, 246, 0.15);
+}
+
+.dict-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 20px 20px 0 0;
+}
+
+.dict-header h4 {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  color: #60a5fa;
+}
+
+.dict-body {
+  padding: 20px;
+  max-height: 40vh;
+  max-height: 40dvh;
+  overflow-y: auto;
+}
+
+.dict-loading, .dict-error {
+  text-align: center;
+  opacity: 0.8;
+  padding: 20px 0;
+}
+
+.dict-word {
+  font-size: 1.5rem;
+  margin: 0 0 4px 0;
+  font-family: 'Outfit', sans-serif;
+  color: var(--glow-accent);
+  text-transform: capitalize;
+}
+
+.dict-phonetic {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  margin: 0 0 16px 0;
+}
+
+.dict-meaning {
+  margin-bottom: 16px;
+}
+
+.dict-pos {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+:host-context(.theme-light) .dict-pos {
+  background: rgba(0,0,0,0.05);
+}
+
+.dict-meaning ul {
+  padding-left: 20px;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.dict-meaning li {
+  margin-bottom: 8px;
+}
+
+.dict-example {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 4px;
+  color: #a78bfa;
+}
+
+:host-context(.theme-light) .dict-example {
+  color: #7c3aed;
+}
+
+@media (max-width: 768px) {
+  .word-action-menu {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 32px);
+    max-width: 340px;
+  }
+}
+
+.menu-highlight-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.menu-highlight-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-right: auto;
+}
+
+.hl-swatch {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hl-swatch:hover:not(:disabled) { transform: scale(1.12); }
+}
+
+.hl-swatch:focus-visible { outline: 2px solid var(--glow-accent, #a855f7); outline-offset: 2px; }
+
+.hl-swatch.on { box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.9), 0 0 0 5px var(--glow-accent, #a855f7); }
+
+.hl-swatch:disabled { opacity: 0.5; cursor: progress; }
+
+:host-context(.theme-light) .hl-swatch { border-color: rgba(15, 23, 42, 0.25); }
+
+:host-context(.theme-light) .hl-swatch.on { box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--glow-accent, #a855f7); }
+
+.highlight-popover {
+  position: fixed;
+  z-index: 1500;
+  width: min(300px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 10px;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: 'Outfit', sans-serif;
+}
+
+.highlight-popover.menu-above { transform: translate(-50%, -100%); }
+
+.highlight-popover.menu-below { transform: translate(-50%, 0); }
+
+:host-context(.theme-light) .highlight-popover {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.hl-popover-bar { display: flex; align-items: center; gap: 8px; }
+
+.hl-popover-spacer { flex: 1; }
+
+.hl-icon-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hl-icon-btn:hover:not(:disabled) { background: rgba(168, 85, 247, 0.15); }
+}
+
+.hl-icon-btn:disabled { opacity: 0.5; cursor: progress; }
+
+.dictionary-modal {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes wordMenuPopIn { /* nombre propio: el visor de imágenes define otro popIn */
+  0% { transform: translate(-50%, -100%) scale(0.8); opacity: 0; }
+  100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+}
+
+@keyframes popInBelow {
+  0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
+  100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+}
+
+@keyframes slideUpFade {
+  0% { transform: translate(-50%, 20px); opacity: 0; }
+  100% { transform: translate(-50%, 0); opacity: 1; }
+}

@@ -454,12 +454,25 @@ export class AudioService {
   }
 
   // ── MODO WASM (Local Avanzado) ──────────────────────────────────
-  playWasm(text: string) {
+  /** Narra con el modelo local desde `startWordIndex` (palabras separadas por espacios, como las cuenta el lector). */
+  playWasm(text: string, startWordIndex: number = 0) {
     this.cancelAll();
     this.currentMode = 'wasm';
     this.currentText = text;
     this.isPlayingSubject.next(true);
-    this.wasmTts.play(text);
+    this.wasmTts.play(this.textFromWord(text, startWordIndex), Math.max(0, startWordIndex));
+  }
+
+  /** El texto desde su palabra número `wordIndex` (0 = todo). */
+  private textFromWord(text: string, wordIndex: number): string {
+    if (wordIndex <= 0) return text;
+    const word = /\S+/g;
+    let match: RegExpExecArray | null;
+    let count = 0;
+    while ((match = word.exec(text))) {
+      if (count++ === wordIndex) return text.slice(match.index);
+    }
+    return text;
   }
 
   // ── Controles ────────────────────────────────────────────────────

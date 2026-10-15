@@ -24,7 +24,7 @@ import { CharacterChatComponent } from '../character-chat/character-chat.compone
         <span>{{ message || 'Buscando a los personajes…' }}</span>
         <button *ngIf="message" type="button" class="cs-close" (click)="close()">Cerrar</button>
       </div>
-      <app-character-chat *ngIf="avatarId" [avatarId]="avatarId"
+      <app-character-chat *ngIf="avatarId" [initialDraft]="draft" [avatarId]="avatarId"
                           (closed)="close()" (expand)="expand($event)" (pick)="chat.open($event)"></app-character-chat>
     </section>
   `,
@@ -37,6 +37,8 @@ export class ChatSheetComponent implements OnInit, OnDestroy {
 
   isOpen = false;
   avatarId: string | null = null;
+  /** Texto que el chat deja escrito en su campo al abrir (una cita del lector). */
+  draft = '';
   message = '';
   /** Se agregó una entrada al historial: el botón Atrás del celular cierra la ventana. */
   private pushedHistory = false;
@@ -50,6 +52,7 @@ export class ChatSheetComponent implements OnInit, OnDestroy {
       }
       this.show();
       this.message = '';
+      this.draft = request.draft || '';
       if (request.avatarId) {
         this.avatarId = request.avatarId;
       } else if (request.inventoryId) {

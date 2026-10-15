@@ -1,0 +1,161 @@
+<div class="audio-controls-panel glass-panel">
+  <div class="toc-header">
+    <span class="section-label">Narración</span>
+    <button class="close-btn" (click)="reader.toggleAudioPanel()">✕</button>
+  </div>
+
+  <!-- Selector de modo -->
+  <div class="voice-selector">
+    <!-- VOZ ESTÁNDAR -->
+    <div class="voice-option" [class.active]="n.mode === 'native'" (click)="n.setMode('native')">
+      <div class="voice-info">
+        <span>Voz Estándar</span>
+        <small>Nativa del navegador</small>
+      </div>
+      <span class="ink-cost">Gratis</span>
+    </div>
+
+    <!-- VOZ NEURAL (AZURE): cada capítulo se narra una vez en el servidor y queda guardado -->
+    <div class="voice-option" [class.active]="n.mode === 'pro'" (click)="n.setMode('pro')">
+      <div class="voice-info">
+        <span>Voz Neural</span>
+        <small>Narración natural con resaltado exacto</small>
+      </div>
+      <span class="ink-cost unlocked-badge" style="background: #7c3aed;">HD</span>
+    </div>
+
+    <!-- VOZ WASM (modelo local en el navegador) -->
+    <div class="voice-option" [class.active]="n.mode === 'wasm'" (click)="n.setMode('wasm')">
+      <div class="voice-info">
+        <span>Voz Web</span>
+        <small>Modelo Local</small>
+      </div>
+      <span class="ink-cost unlocked-badge" style="background: #2563eb;">WASM</span>
+    </div>
+
+    <!-- VOZ DEL TELÉFONO: solo dentro de la app (Capacitor) -->
+    <div class="voice-option" *ngIf="n.isNativeApp" [class.active]="n.mode === 'native-android'" (click)="n.setMode('native-android')">
+      <div class="voice-info">
+        <span>Voz Nativa (App)</span>
+        <small>Kokoro / Piper HD sin internet</small>
+        <small style="color: #4ade80; font-size: 0.7rem; display: block; margin-top: 2px;">⚡ Rendimiento Móvil Máximo</small>
+      </div>
+      <span class="ink-cost unlocked-badge" style="background: #e11d48;">Nativo</span>
+    </div>
+  </div>
+
+  <!-- Selector de voz del navegador (solo voz estándar) -->
+  <div class="audio-config" *ngIf="n.mode === 'native'">
+    <label class="config-label">
+      <span class="material-symbols-rounded" style="font-size:1rem;vertical-align:middle;">piano</span>
+      Voz
+    </label>
+    <select class="voice-dropdown"
+            [value]="n.audio.selectedVoiceIndex"
+            (change)="n.audio.setVoiceByIndex(+$any($event.target).value)">
+      <option *ngFor="let v of n.audio.voices; let i = index" [value]="i">
+        {{ v.name }} ({{ v.lang }})
+      </option>
+    </select>
+  </div>
+
+  <!-- Selector de voz neural (Azure): cada voz se narra y se guarda aparte por capítulo -->
+  <div class="audio-config" *ngIf="n.mode === 'pro' && n.voices.length">
+    <label class="config-label" for="narrator-voice">
+      <span class="material-symbols-rounded" style="font-size:1rem;vertical-align:middle;">record_voice_over</span>
+      Voz del narrador
+    </label>
+    <select id="narrator-voice" class="voice-dropdown"
+            [value]="n.voice"
+            (change)="changeVoice($any($event.target).value)">
+      <option *ngFor="let v of n.voices" [value]="v.id" [selected]="v.id === n.voice">
+        {{ v.name }}{{ v.detail ? ' · ' + v.detail : '' }}
+      </option>
+    </select>
+    <small class="voice-hint">La primera vez que alguien escucha un capítulo con una voz, tarda un poco en prepararse.</small>
+  </div>
+
+  <!-- Selector de voz local (WASM) -->
+  <div class="audio-config" *ngIf="n.mode === 'wasm'">
+    <label class="config-label">
+      <span class="material-symbols-rounded" style="font-size:1rem;vertical-align:middle;">piano</span>
+      Voz Web
+    </label>
+
+    <select class="voice-select"
+            [disabled]="(n.wasm.isDownloading$ | async)"
+            [value]="n.wasm.selectedVoiceModel"
+            (change)="changeWasmVoice($any($event.target).value)">
+      <option *ngFor="let v of n.wasmVoices" [value]="v.id">
+        {{ v.name }}
+      </option>
+    </select>
+
+    <div class="wasm-progress-container" *ngIf="n.wasm.isDownloading$ | async" style="margin-top: 10px;">
+       <div class="warning-box" style="background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.3); border-radius: 8px; padding: 8px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
+          <span class="material-symbols-rounded" style="color: #fbbf24; font-size: 1.2rem;">warning</span>
+          <p style="font-size: 0.75rem; color: #fbbf24; margin: 0; line-height: 1.2;">
+             <strong>Aviso de Recursos:</strong> Este motor descarga y ejecuta un modelo de IA directamente en tu dispositivo. Puede consumir más batería y rendimiento.
+          </p>
+       </div>
+       <span class="status-label" style="font-size: 0.85rem; color: #a1a1aa; display: flex; align-items: center; gap: 6px;">
+          <span class="loader-spin material-symbols-rounded" style="font-size: 1rem;">sync</span>
+          Descargando modelo seguro... {{ n.wasm.progress$ | async }}%
+       </span>
+       <div class="kokoro-progress-bar" style="margin-top: 5px;">
+          <div class="kokoro-progress-fill" [style.width.%]="n.wasm.progress$ | async"></div>
+       </div>
+    </div>
+    <div class="wasm-ready-container" *ngIf="!(n.wasm.isDownloading$ | async) && n.wasm.isInitialized" style="margin-top: 10px;">
+       <span class="status-label" style="font-size: 0.85rem; color: #4ade80; display: flex; align-items: center; gap: 4px;">
+         <span class="material-symbols-rounded" style="font-size: 1rem;">check_circle</span> Motor inferencial activado
+       </span>
+    </div>
+  </div>
+
+  <!-- Control de velocidad (voz estándar y voz neural) -->
+  <div class="audio-config" *ngIf="n.mode === 'native' || n.mode === 'pro'">
+    <label class="config-label">Velocidad: {{ n.audio.playbackRate | number:'1.1-1' }}x</label>
+    <input
+      type="range"
+      class="speed-slider"
+      min="0.5" max="2.0" step="0.1"
+      aria-label="Velocidad de la narración"
+      [value]="n.audio.playbackRate"
+      (input)="n.setSpeed(+$any($event.target).value)">
+    <div class="speed-labels">
+      <span>0.5x</span><span>1.0x</span><span>2.0x</span>
+    </div>
+  </div>
+
+  <!-- Controles de reproducción -->
+  <div class="audio-main-controls">
+    <button class="audio-btn reset" (click)="reader.confirmRestartAudio()" title="Reiniciar audio del capítulo">↺</button>
+
+    <!-- Pausado → REANUDAR (la voz del teléfono no pausa: se detiene y vuelve a "Reproducir") -->
+    <button class="audio-btn resume"
+            *ngIf="n.mode !== 'native-android' && !(n.audio.isPlaying$ | async) && (n.audio.isPaused$ | async)"
+            (click)="reader.resumeAudio()"
+            title="Reanudar donde lo dejaste">
+      ▶
+    </button>
+
+    <!-- Detenido o sin iniciar → REPRODUCIR -->
+    <button class="audio-btn play"
+            *ngIf="n.mode === 'native-android' ? !(n.nativeTts.isSpeaking$ | async) : !(n.audio.isPlaying$ | async) && !(n.audio.isPaused$ | async)"
+            (click)="reader.playAudio()"
+            [disabled]="n.isLoading">
+      <span *ngIf="!n.isLoading">▶</span>
+      <span *ngIf="n.isLoading" class="loader-spin">◷</span>
+    </button>
+
+    <!-- Sonando → PAUSAR -->
+    <button class="audio-btn pause"
+            *ngIf="n.playing$ | async"
+            (click)="reader.pauseNarration()"
+            title="Pausar"
+            style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+      <span class="material-symbols-rounded">pause</span>
+    </button>
+  </div>
+</div>

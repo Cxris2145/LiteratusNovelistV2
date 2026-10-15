@@ -1,0 +1,74 @@
+<aside class="toc-sidebar glass-panel" [class.toc-closed]="!r.isTocOpen"
+       [attr.aria-hidden]="!r.isTocOpen" [attr.inert]="r.isTocOpen ? null : ''"
+       [@slideFromRight]="r.isTocOpen ? 'in' : 'out'" aria-label="Índice del libro">
+  <div class="toc-header">
+    <h3>Índice</h3>
+    <button class="close-btn" (click)="r.toggleToc()" aria-label="Cerrar índice">✕</button>
+  </div>
+
+  <div class="toc-tabs" role="tablist" aria-label="Contenido del índice">
+    <button type="button" role="tab" [class.on]="tocTab === 'chapters'" [attr.aria-selected]="tocTab === 'chapters'"
+            (click)="tocTab = 'chapters'">Contenido</button>
+    <button type="button" role="tab" [class.on]="tocTab === 'bookmarks'" [attr.aria-selected]="tocTab === 'bookmarks'"
+            (click)="tocTab = 'bookmarks'">
+      Marcadores <span class="toc-count" *ngIf="a.bookmarks.length">{{ a.bookmarks.length }}</span>
+    </button>
+  </div>
+
+  <!-- Banner de Resumen hasta donde voy (sin spoilers) -->
+  <div class="toc-summary-banner" *ngIf="tocTab === 'chapters'" (click)="r.openProgressSummary()"
+       [title]="'Resumen acumulativo de los capítulos 1 al ' + r.currentPage + ' sin spoilers'">
+    <div class="toc-summary-icon">
+      <span class="material-symbols-rounded">history_edu</span>
+    </div>
+    <div class="toc-summary-info">
+      <span class="toc-summary-title">Resumen hasta donde voy</span>
+      <span class="toc-summary-sub">Capítulos 1 al {{ r.currentPage }} · Sin spoilers</span>
+    </div>
+    <span class="material-symbols-rounded toc-summary-arrow">chevron_right</span>
+  </div>
+
+  <ul class="toc-list" *ngIf="tocTab === 'chapters'">
+    <li *ngFor="let entry of r.tocEntries; let i = index"
+        [class.active]="i === (r.currentPage - 1)"
+        (click)="r.goToChapter(i)">
+      <span class="chapter-number" *ngIf="entry.number">{{ entry.number }}</span>
+      <span class="chapter-name">{{ entry.title }}</span>
+    </li>
+  </ul>
+
+  <div class="toc-bookmarks" *ngIf="tocTab === 'bookmarks'">
+    <button type="button" class="toc-add-bm" (click)="r.toggleBookmarkHere()" [disabled]="r.isBookmarkBusy">
+      <span class="material-symbols-rounded icon-fillable" [class.filled]="!!r.currentSpreadBookmark" aria-hidden="true">bookmark_add</span>
+      {{ r.currentSpreadBookmark ? 'Quitar el marcador de esta página' : 'Marcar la página actual' }}
+    </button>
+    <p class="toc-empty" *ngIf="a.bookmarks.length === 0">
+      Para marcar una página toca el marcador
+      <span class="material-symbols-rounded" aria-hidden="true">bookmark</span>
+      en la parte de arriba del libro abierto.
+    </p>
+    <ul class="toc-list" *ngIf="a.bookmarks.length > 0">
+      <li *ngFor="let bookmark of a.bookmarks; trackBy: trackBookmark" class="bm-item" (click)="r.goToBookmark(bookmark)">
+        <span class="material-symbols-rounded bm-icon icon-fillable filled" aria-hidden="true">bookmark</span>
+        <span class="bm-body">
+          <span class="bm-meta">{{ bookmark.pageLabel }} · {{ r.chapterLabel(bookmark.chapterIndex) }}</span>
+          <span class="bm-snippet">{{ bookmark.snippet }}</span>
+        </span>
+        <button type="button" class="bm-remove" (click)="r.removeBookmark(bookmark, $event)"
+                aria-label="Quitar este marcador" title="Quitar marcador">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <button type="button" class="toc-vocab-btn" (click)="r.openSearch()">
+    <span class="material-symbols-rounded" aria-hidden="true">search</span>
+    Buscar en el libro
+  </button>
+  <button type="button" class="toc-vocab-btn" (click)="r.openVocabulary()">
+    <span class="material-symbols-rounded" aria-hidden="true">dictionary</span>
+    Vocabulario del libro
+  </button>
+
+</aside>

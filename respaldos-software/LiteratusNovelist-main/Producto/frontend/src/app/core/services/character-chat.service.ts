@@ -5,6 +5,8 @@ import { BehaviorSubject } from 'rxjs';
 export interface CharacterChatRequest {
   avatarId?: string;
   inventoryId?: string;
+  /** Mensaje que queda escrito en el campo (p. ej., una cita del lector), sin enviarse. */
+  draft?: string;
 }
 
 /**
@@ -26,9 +28,9 @@ export class CharacterChatService {
   }
 
   /** Personajes de un libro de la biblioteca: abre al principal y deja elegir a los demás. */
-  openForBook(inventoryId: string | number | null | undefined): void {
+  openForBook(inventoryId: string | number | null | undefined, draft?: string): void {
     if (!inventoryId) return;
-    this.request$.next({ inventoryId: String(inventoryId) });
+    this.request$.next({ inventoryId: String(inventoryId), draft });
   }
 
   close(): void {

@@ -67,6 +67,32 @@ const SKIPPED_TAGS = new Set(['script', 'style', 'template', 'head', 'title', 'n
  */
 const hasMeaningfulContent = (tokens: ReaderToken[]) => tokens.some(t => t.isWord || t.isImg || t.isBr);
 
+/** Letra, número o carácter acentuado (cualquier código ≥ 128 cuenta como letra). */
+const isWordChar = (c: string): boolean => {
+  const code = c.charCodeAt(0);
+  return (code >= 48 && code <= 57) || (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code >= 128;
+};
+
+/**
+ * Lectura biónica: la primera parte de la palabra va en negrita (1 letra en palabras de 1–2,
+ * 2 en las de 3, y el 45 % en las demás). La puntuación de los bordes no cuenta.
+ */
+export function splitBionic(word: string): { bold: string; normal: string } {
+  if (!word) return { bold: '', normal: '' };
+  let start = 0;
+  while (start < word.length && !isWordChar(word[start])) start++;
+  let end = word.length - 1;
+  while (end >= start && !isWordChar(word[end])) end--;
+  if (start > end) return { bold: word, normal: '' };
+
+  const clean = word.substring(start, end + 1);
+  const boldLength = clean.length <= 2 ? 1 : clean.length === 3 ? 2 : Math.ceil(clean.length * 0.45);
+  return {
+    bold: word.substring(0, start) + clean.substring(0, boldLength),
+    normal: clean.substring(boldLength) + word.substring(end + 1),
+  };
+}
+
 export function parseChapterBlocks(html: string, bionicSplit?: BionicSplit): { blocks: ReaderBlock[]; wordCount: number } {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const blocks: ReaderBlock[] = [];

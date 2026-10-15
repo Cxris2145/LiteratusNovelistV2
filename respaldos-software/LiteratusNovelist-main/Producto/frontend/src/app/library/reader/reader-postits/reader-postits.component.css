@@ -1,0 +1,172 @@
+/* Post-its en los márgenes y su nota (antes en reader.component.css). Su posición la escribe
+   ReaderPostItsComponent.layoutMarginPostIts() en cada papelito (transform). */
+.postit-margin-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 940; /* sobre las páginas; bajo las notas, menús y paneles */
+  pointer-events: none;
+}
+
+.margin-postit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 38px;  /* = POSTIT_TAB_SIZE en el componente */
+  height: 38px;
+  padding: 0;
+  border: none;
+  background: none;
+  visibility: hidden; /* hasta que se coloca, y mientras su línea no está a la vista */
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none; /* en pantallas táctiles, arrastrarlo no hace scroll */
+}
+
+.margin-postit[data-placed] { visibility: visible; }
+
+.margin-postit:focus-visible { outline: 2px solid #eab308; outline-offset: 3px; border-radius: 4px; }
+
+.margin-postit-paper {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 5px 4px 0;
+  overflow: hidden;
+  color: #3f3a1d;
+  background: #fde047;
+  border-radius: 2px 2px 2px 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.28);
+  font: 600 7px/1.25 'Outfit', sans-serif;
+  text-align: left;
+  overflow-wrap: anywhere;
+  rotate: 3deg;
+  transition:
+    translate 150ms ease,
+    scale 150ms var(--reader-ease),
+    box-shadow 150ms var(--reader-ease);
+}
+
+.margin-postit[data-side="left"] .margin-postit-paper { rotate: -3deg; }
+
+.margin-postit.is-open .margin-postit-paper {
+  box-shadow: 0 0 0 2px #3f3a1d, 0 2px 5px rgba(0, 0, 0, 0.28);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .margin-postit:hover .margin-postit-paper { translate: 3px 0; }
+  .margin-postit[data-side="left"]:hover .margin-postit-paper { translate: -3px 0; }
+}
+
+.margin-postit.is-lifted { z-index: 1; cursor: grabbing; }
+
+.margin-postit.is-lifted .margin-postit-paper {
+  translate: none;
+  scale: 1.08;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .margin-postit-paper { transition: box-shadow 150ms ease; }
+  .margin-postit:hover .margin-postit-paper, .margin-postit.is-lifted .margin-postit-paper { translate: none; scale: none; }
+}
+
+.postit-card {
+  position: fixed;
+  z-index: 1500;
+  width: 260px; /* = POSTIT_CARD_WIDTH en el componente */
+  font-family: 'Outfit', sans-serif;
+  transform-origin: right top;
+  transition:
+    opacity 180ms var(--reader-ease),
+    transform 180ms var(--reader-ease);
+}
+
+.postit-card.from-left { transform-origin: left top; }
+
+@media (prefers-reduced-motion: reduce) {
+  .postit-card { transition: opacity 180ms ease; }
+}
+
+.post-it {
+  padding: 12px;
+  color: #3f3a1d;
+  background: #fef08a;
+  border-radius: 4px 4px 4px 18px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  transform: rotate(-0.6deg);
+}
+
+.post-it textarea {
+  display: block;
+  width: 100%;
+  min-height: 84px;
+  box-sizing: border-box;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+
+.post-it textarea::placeholder { color: rgba(63, 58, 29, 0.55); }
+
+.post-it textarea:focus-visible { box-shadow: 0 0 0 2px rgba(63, 58, 29, 0.3); border-radius: 4px; }
+
+.post-it-text {
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.98rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.post-it-hint { margin: 6px 0 0; font-size: 0.75rem; opacity: 0.65; }
+
+.post-it-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 8px; }
+
+.post-it-actions .post-it-count { margin-right: auto; }
+
+.post-it-count { font-size: 0.78rem; opacity: 0.7; }
+
+.post-it-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(63, 58, 29, 0.1);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .post-it-btn:hover:not(:disabled) { background: rgba(63, 58, 29, 0.18); }
+}
+
+.post-it-btn.primary { background: #3f3a1d; color: #fef08a; }
+
+.post-it-btn:disabled { opacity: 0.5; cursor: progress; }
+/* En el celular la nota se reconoce por una banderita en el borde, sin tapar la línea. */
+@media (max-width: 640px) {
+  .margin-postit { width: 14px; height: 28px; cursor: pointer; }
+  .margin-postit-paper {
+    display: block;
+    padding: 0;
+    color: transparent;
+    font-size: 0;
+    border-radius: 1px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+    rotate: none;
+  }
+  .margin-postit[data-side="left"] .margin-postit-paper { rotate: none; }
+  .margin-postit.is-open .margin-postit-paper { background: #eab308; }
+}

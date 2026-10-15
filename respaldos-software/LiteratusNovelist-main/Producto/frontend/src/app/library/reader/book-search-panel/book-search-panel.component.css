@@ -1,8 +1,8 @@
-/* Buscar en el libro. Toma el papel y la tinta del libro (tokens --lb-* del lector), como el vocabulario. */
+/* Buscar en el libro. Toma el papel y la tinta del libro (tokens --rd-* del lector), como el vocabulario. */
 :host {
-  --bs-line: color-mix(in srgb, var(--lb-ink, #1c1917) 12%, transparent);
-  --bs-muted: color-mix(in srgb, var(--lb-ink, #1c1917) 58%, transparent);
-  --bs-accent: var(--lb-accent, #0e7490);
+  --bs-line: color-mix(in srgb, var(--rd-ink, #1c1917) 12%, transparent);
+  --bs-muted: color-mix(in srgb, var(--rd-ink, #1c1917) 58%, transparent);
+  --bs-accent: var(--rd-accent, #0e7490);
 }
 
 .bs-overlay {
@@ -22,8 +22,8 @@
   height: min(780px, calc(100dvh - 32px));
   display: flex;
   flex-direction: column;
-  background: var(--lb-paper, #fbfaf6);
-  color: var(--lb-ink, #1c1917);
+  background: var(--rd-paper, #fbfaf6);
+  color: var(--rd-ink, #1c1917);
   border-radius: 14px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
   font-family: var(--font-ui, system-ui, -apple-system, 'Segoe UI', sans-serif);
@@ -85,9 +85,9 @@
   gap: 8px;
   height: 44px;
   padding: 0 6px 0 14px;
-  border: 1px solid color-mix(in srgb, var(--lb-ink, #1c1917) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rd-ink, #1c1917) 22%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--lb-ink, #1c1917) 3%, transparent);
+  background: color-mix(in srgb, var(--rd-ink, #1c1917) 3%, transparent);
 }
 .bs-search:focus-within {
   border-color: var(--bs-accent);
@@ -176,7 +176,7 @@
   font-size: 0.92rem;
   text-wrap: balance;
 }
-.bs-state strong { color: var(--lb-ink, #1c1917); font-size: 1rem; }
+.bs-state strong { color: var(--rd-ink, #1c1917); font-size: 1rem; }
 .bs-state .material-symbols-rounded { font-size: 2rem; }
 .bs-spin { animation: bs-spin 1s linear infinite; }
 
@@ -189,7 +189,7 @@
   gap: 10px;
   margin: 0;
   padding: 14px 0 6px;
-  background: var(--lb-paper, #fbfaf6);
+  background: var(--rd-paper, #fbfaf6);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -218,7 +218,7 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
-  font: 0.95rem/1.45 var(--lb-font, Georgia, 'Times New Roman', serif);
+  font: 0.95rem/1.45 var(--rd-font, Georgia, 'Times New Roman', serif);
 }
 @media (hover: hover) and (pointer: fine) {
   .bs-hit:hover { background: color-mix(in srgb, var(--bs-accent) 9%, transparent); }
