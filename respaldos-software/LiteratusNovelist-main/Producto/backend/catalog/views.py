@@ -15,6 +15,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from library.models import UserInventory
 from . import summary as book_summary
 from .age import age_block_message, allowed_age, ensure_book_access, visible_books
+from .search_suggest import suggest
 from .models import Book, Author, Genre, Tag, Review
 from .serializers import (
     BookListSerializer, BookDetailSerializer, BookDetailFullSerializer, 
@@ -883,70 +884,19 @@ class AuthorSubmissionRequirementsView(APIView):
         })
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.db.models import Q
-
 class AutocompleteView(APIView):
     """
     GET /api/v1/catalog/autocomplete/?search=...
-    Devuelve hasta 3 coincidencias para libros, autores, géneros y sagas.
+    Sugerencias del buscador del header mientras se escribe, desde la primera letra:
+    hasta 5 obras, 3 autores y 3 géneros, sin distinguir tildes y respetando la edad
+    del lector (ver search_suggest.py).
     """
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
-        query = request.query_params.get('search', '').strip()
-        if not query:
-            return Response({'books': [], 'authors': [], 'genres': [], 'sagas': []})
-
-        # Libros
-        books = Book.objects.filter(status='published').filter(
-            Q(title__icontains=query) | Q(synopsis__icontains=query)
-        ).prefetch_related('genres', 'book_authors__author')[:3]
-        
-        books_data = []
-        for b in books:
-            author_names = ", ".join([ba.author.full_name for ba in b.book_authors.all()])
-            books_data.append({
-                'id': str(b.id),
-                'slug': b.slug,
-                'title': b.title,
-                'author_name': author_names,
-                'cover': b.get_cover_url() if hasattr(b, 'get_cover_url') else None,
-                'type': 'book'
-            })
-
-        # Autores
-        authors = Author.objects.filter(
-            Q(full_name__icontains=query)
-        )[:3]
-        
-        authors_data = []
-        for a in authors:
-            authors_data.append({
-                'id': str(a.id),
-                'slug': a.slug,
-                'title': a.full_name,
-                'type': 'author'
-            })
-
-        # Géneros
-        genres = Genre.objects.filter(
-            Q(name__icontains=query)
-        )[:3]
-        
-        genres_data = []
-        for g in genres:
-            genres_data.append({
-                'id': str(g.id),
-                'slug': g.slug,
-                'title': g.name,
-                'type': 'genre'
-            })
-
-        return Response({
-            'books': books_data,
-            'authors': authors_data,
-            'genres': genres_data,
-            'sagas': []
-        })
+        data = suggest(
+            request.query_params.get('search', ''),
+            allowed_age(request.user),
+            absolute_url=request.build_absolute_uri,
+        )
+        return age_catalog_response(data)

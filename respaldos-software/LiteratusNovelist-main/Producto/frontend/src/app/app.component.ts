@@ -3,8 +3,7 @@ import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { ApiService } from './core/services/api.service';
 import { AuthService, userStorageKey } from './core/services/auth.service';
 import { ChatService } from './core/services/chat.service';
-import { filter, takeUntil, debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
-import { Subject, Observable, of } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { routeTransitionAnimations, shakeAnimation } from './core/animations';
 import { App as CapacitorApp } from '@capacitor/app';
 import { Location } from '@angular/common';
@@ -18,7 +17,6 @@ import { AchievementsService } from './core/services/achievements.service';
 import { NotificationService, AppNotification } from './core/services/notification.service';
 import { MatDialog } from '@angular/material/dialog';
 import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
-import { SpeechRecognitionService } from './core/services/speech-recognition.service';
 import { QUICK_GENRES } from './core/components/main-nav/nav-genres';
 import { firstTimeThisSession } from './core/components/main-nav/main-nav.component';
 import { watchKeyboard } from './core/utils/keyboard-inset.util';
@@ -43,10 +41,7 @@ export class AppComponent implements OnInit {
   achievementsService = inject(AchievementsService);
   notificationService = inject(NotificationService);
   dialog = inject(MatDialog);
-  speechService = inject(SpeechRecognitionService);
   router = inject(Router);
-
-  isListeningSearch = false;
 
   isDashboard = false;
   isEnigma = false;
@@ -100,11 +95,6 @@ export class AppComponent implements OnInit {
   // Deprecated backwards-compatibility alias
   gamificationToasts: (GamificationNotification & { id: number })[] = [];
 
-  // Buscador global del navbar
-  globalSearchTerm = '';
-  searchPredictions: any[] = [];
-  showPredictions = false;
-  private searchSubject = new Subject<string>();
   readonly quickGenres = QUICK_GENRES;
 
   /** Maguito saluda la primera vez por sesión; después solo parpadea y mira. */
@@ -196,7 +186,7 @@ export class AppComponent implements OnInit {
       return;
     }
     if (Math.abs(delta) < 6) return;
-    const busy = this.headerEl.contains(document.activeElement) || this.profileMenuOpen || this.showPredictions;
+    const busy = this.headerEl.contains(document.activeElement) || this.profileMenuOpen;
     this.setHeaderHidden(delta > 0 && !busy);
   };
 
@@ -243,22 +233,6 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-
-    this.searchSubject.pipe(
-      distinctUntilChanged(),
-      switchMap(query => {
-        if (!query.trim()) {
-          this.searchPredictions = [];
-          return of({ results: [] });
-        }
-        return this.apiService.get<any>(`catalog/autocomplete/?search=${query.trim()}`).pipe(
-          catchError(() => of({ results: [] }))
-        );
-      })
-    ).subscribe(res => {
-      this.searchPredictions = [...(res.books||[]), ...(res.authors||[]), ...(res.genres||[]), ...(res.sagas||[])];
-      this.showPredictions = this.searchPredictions.length > 0;
-    });
 
     this.isEnigma = this.router.url.includes('enigma');
     // Cargar la configuración global (Tema) apenas inicie
@@ -459,107 +433,6 @@ export class AppComponent implements OnInit {
       this.shakeState = 'default';
     }, 400); // Duración de la animación
   }
-
-    onSearchType(): void {
-    if (this.globalSearchTerm.trim()) {
-      if (this.searchPredictions.length > 0) {
-        this.showPredictions = true;
-      }
-    } else {
-      this.showPredictions = false;
-    }
-    this.searchSubject.next(this.globalSearchTerm);
-  }
-
-  hasPredictionsType(type: string): boolean {
-    return this.searchPredictions.some(p => p.type === type);
-  }
-
-  getPredictionsType(type: string): any[] {
-    return this.searchPredictions.filter(p => p.type === type);
-  }
-
-  selectPrediction(prediction: any): void {
-    this.globalSearchTerm = prediction.title;
-    this.showPredictions = false;
-    if (prediction.type === 'book') {
-      this.router.navigate(['/book', prediction.slug || prediction.id]);
-    } else if (prediction.type === 'author') {
-      this.router.navigate(['/author', prediction.slug || prediction.id]);
-    } else if (prediction.type === 'genre') {
-      this.router.navigate(['/catalog'], { queryParams: { search: prediction.title } });
-    }
-  }
-  
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.nav-search-form')) {
-      this.showPredictions = false;
-    }
-  }
-
-  onGlobalSearch(): void {
-    const query = this.globalSearchTerm.trim();
-    if (query) {
-      this.router.navigate(['/catalog'], { queryParams: { search: query } });
-    } else {
-      this.router.navigate(['/catalog']);
-    }
-  }
-
-  toggleVoiceSearch(): void {
-    if (this.isListeningSearch) {
-      this.speechService.stopListening();
-      this.isListeningSearch = false;
-      return;
-    }
-
-    this.isListeningSearch = true;
-    this.speechService.startListening();
-
-    // Suscribirse a la transcripción parcial/final
-    const sub = this.speechService.partialTranscript$.subscribe(text => {
-      if (text && this.isListeningSearch) {
-        this.globalSearchTerm = text;
-      }
-    });
-
-    const finalSub = this.speechService.transcript$.subscribe(finalText => {
-      if (finalText && this.isListeningSearch) {
-        this.globalSearchTerm = finalText;
-        this.isListeningSearch = false;
-        this.speechService.stopListening();
-        sub.unsubscribe();
-        finalSub.unsubscribe();
-        this.onGlobalSearch();
-      }
-    });
-
-    // Auto-timeout tras 8 segundos de silencio
-    setTimeout(() => {
-      if (this.isListeningSearch) {
-        this.isListeningSearch = false;
-        this.speechService.stopListening();
-        sub.unsubscribe();
-        finalSub.unsubscribe();
-        if (this.globalSearchTerm.trim()) {
-          this.onGlobalSearch();
-        }
-      }
-    }, 8000);
-  }
-
-  clearGlobalSearch(): void {
-    this.globalSearchTerm = '';
-    this.showPredictions = false;
-    this.searchPredictions = [];
-    if (this.isListeningSearch) {
-      this.speechService.stopListening();
-      this.isListeningSearch = false;
-    }
-  }
-
 
   goToFavorites(): void {
     this.router.navigate(['/favorites']);

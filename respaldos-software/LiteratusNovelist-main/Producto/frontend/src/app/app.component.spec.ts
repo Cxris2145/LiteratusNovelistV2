@@ -52,25 +52,6 @@ describe('AppComponent navigation', () => {
     expect(component.title).toBe('frontend');
   });
 
-  it('navega al catálogo con query param al realizar búsqueda global', () => {
-    const router = TestBed.inject(Router);
-    spyOn(router, 'navigate');
-
-    component.globalSearchTerm = 'Misterio';
-    component.onGlobalSearch();
-    expect(router.navigate).toHaveBeenCalledWith(['/catalog'], { queryParams: { search: 'Misterio' } });
-
-    component.globalSearchTerm = '';
-    component.onGlobalSearch();
-    expect(router.navigate).toHaveBeenCalledWith(['/catalog']);
-  });
-
-  it('limpia el término de búsqueda global', () => {
-    component.globalSearchTerm = 'Fantasía';
-    component.clearGlobalSearch();
-    expect(component.globalSearchTerm).toBe('');
-  });
-
   it('el contador de Tinta abre la recarga de Tinta en los planes', () => {
     const router = TestBed.inject(Router);
     spyOn(router, 'navigate');

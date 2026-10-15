@@ -138,88 +138,6 @@
   gap: 8px;
 }
 
-.nav-search-form {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 17px;
-  font-size: 22px;
-  color: var(--color-text-secondary);
-  pointer-events: none;
-  transition: color 150ms ease;
-}
-
-.nav-search-form:focus-within .search-icon {
-  color: var(--color-accent-text);
-}
-
-.nav-search-input {
-  width: 100%;
-  height: 48px;
-  padding: 0 168px 0 50px;
-  box-sizing: border-box;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
-  background: var(--color-surface-elevated);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
-  color: var(--color-text-primary);
-  font: 400 14px var(--font-ui);
-  outline: none;
-  transition:
-    border-color 200ms ease,
-    box-shadow 200ms ease;
-}
-
-.nav-search-input::placeholder {
-  color: var(--color-text-disabled);
-  opacity: 0.85;
-}
-
-.nav-search-input:focus {
-  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
-  box-shadow:
-    inset 0 1px 3px rgba(0, 0, 0, 0.25),
-    0 0 0 4px color-mix(in srgb, var(--color-accent) 16%, transparent);
-}
-
-.search-tools {
-  position: absolute;
-  right: 54px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding-right: 8px;
-  border-right: 1px solid color-mix(in srgb, var(--color-text-primary) 16%, transparent);
-}
-
-.search-tool-btn {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    color 150ms ease,
-    background-color 150ms ease;
-}
-
-.search-tool-btn .material-symbols-rounded {
-  font-size: 20px;
-}
-
-.search-tool-btn:focus-visible,
-.search-submit-btn:focus-visible,
 .quick-filter:focus-visible,
 .quick-action-btn:focus-visible,
 .profile-trigger:focus-visible,
@@ -227,55 +145,6 @@
 .nav-toggle-btn:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
-}
-
-.search-mic-btn.listening {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.16);
-  animation: pulse-mic 1.2s infinite ease-in-out;
-}
-
-@keyframes pulse-mic {
-  0% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-    transform: scale(1.08);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-    transform: scale(1);
-  }
-}
-
-.search-submit-btn {
-  position: absolute;
-  right: 5px;
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: linear-gradient(180deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 76%, #c2410c));
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-accent) 35%, transparent);
-  color: var(--color-on-accent);
-  cursor: pointer;
-  transition:
-    transform 160ms var(--ease-out),
-    filter 150ms ease;
-}
-
-.search-submit-btn .material-symbols-rounded {
-  font-size: 21px;
-  font-variation-settings: 'wght' 600;
-}
-
-.search-submit-btn:active {
-  transform: scale(0.97);
 }
 
 /* Filtros rápidos bajo el buscador */
@@ -410,15 +279,6 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .search-tool-btn:hover {
-    color: var(--color-text-strong);
-    background: var(--color-hover);
-  }
-
-  .search-submit-btn:hover {
-    filter: brightness(1.06);
-  }
-
   .quick-filter:hover {
     border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
     background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface-elevated));
@@ -1346,13 +1206,6 @@
     width: 100%;
     min-width: 100%;
   }
-  .nav-search-input {
-    height: 44px;
-  }
-  .search-submit-btn {
-    width: 36px;
-    height: 36px;
-  }
   .brand-sparkle {
     display: none;
   }
@@ -1833,116 +1686,6 @@
     border-color: var(--color-primary);
     color: var(--color-text-strong);
   }
-}
-
-/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
-@media (pointer: coarse) {
-  .nav-search-input {
-    font-size: 16px;
-  }
-}
-
-
-/* Predicciones de Búsqueda */
-.nav-search-form {
-  position: relative;
-}
-
-.search-predictions-dropdown {
-  position: absolute;
-  top: 110%;
-  left: 0;
-  right: 0;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px var(--color-shadow);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 1000;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.prediction-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.prediction-item:last-child {
-  border-bottom: none;
-}
-
-.prediction-item:hover {
-  background: var(--color-hover);
-}
-
-.prediction-cover {
-  width: 32px;
-  height: 48px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.prediction-cover-placeholder {
-  width: 32px;
-  height: 48px;
-  border-radius: 4px;
-  background: var(--color-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-}
-
-.prediction-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  overflow: hidden;
-}
-
-.prediction-title {
-  font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--text-main);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.prediction-author {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.prediction-item.all-results {
-  justify-content: center;
-  padding: 12px;
-  font-weight: 500;
-  color: var(--color-primary-text);
-  font-size: 13px;
-}
-
-
-.prediction-group-title {
-  display: block;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary, #C9BEB0);
-  padding: 8px 16px;
-  background: var(--glass-border, rgba(255,255,255,0.05));
-  border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.1));
-  text-align: center;
 }
 
 .menu-equipped-title { display: block; margin-top: 5px; color: var(--color-accent-text); font: 500 1rem var(--font-display); }

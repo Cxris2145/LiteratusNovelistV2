@@ -1,0 +1,107 @@
+<form class="nav-search-form" role="search" (ngSubmit)="submit()">
+  <span class="search-icon material-symbols-rounded" aria-hidden="true">search</span>
+  <input
+    #searchInput
+    type="text"
+    class="nav-search-input"
+    name="globalSearch"
+    placeholder="Buscar libros, autores, géneros, sagas..."
+    [(ngModel)]="term"
+    (ngModelChange)="onTermChange()"
+    (focus)="onFocus()"
+    (keydown)="onKeydown($event)"
+    autocomplete="off"
+    spellcheck="false"
+    enterkeyhint="search"
+    role="combobox"
+    aria-autocomplete="list"
+    [attr.aria-expanded]="expanded"
+    [attr.aria-controls]="listboxId"
+    [attr.aria-activedescendant]="expanded && activeIndex >= 0 ? optionId(activeIndex) : null"
+    aria-label="Buscar en Literatus Novelist">
+  <span class="search-tools">
+    <button
+      *ngIf="term"
+      type="button"
+      class="search-tool-btn search-clear-btn"
+      (click)="clear()"
+      aria-label="Borrar búsqueda">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+    <button
+      type="button"
+      class="search-tool-btn search-mic-btn"
+      [class.listening]="isListening"
+      (click)="toggleVoiceSearch()"
+      [attr.aria-label]="isListening ? 'Detener búsqueda por voz' : 'Buscar por voz'"
+      [title]="isListening ? 'Escuchando... Haz clic para detener' : 'Buscar por voz'">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ isListening ? 'mic' : 'mic_none' }}</span>
+    </button>
+    <a routerLink="/catalog" class="search-tool-btn" title="Filtros del catálogo" aria-label="Abrir el catálogo con filtros"
+       [queryParams]="term.trim() ? { search: term.trim() } : null">
+      <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+    </a>
+  </span>
+  <button type="submit" class="search-submit-btn" aria-label="Buscar">
+    <span class="material-symbols-rounded" aria-hidden="true">search</span>
+  </button>
+
+  <!-- Sugerencias: siempre en el DOM para que también se vayan con transición (ver CSS). -->
+  <div class="search-suggest" [class.is-open]="expanded" (mousedown)="$event.preventDefault()">
+    <p class="suggest-status" *ngIf="!groups.length">
+      <ng-container *ngIf="failed">No pudimos cargar sugerencias. Presiona Enter para buscar en el catálogo.</ng-container>
+      <ng-container *ngIf="!failed && settled">Sin coincidencias para «{{ term.trim() }}».</ng-container>
+      <ng-container *ngIf="!failed && !settled">Buscando sugerencias…</ng-container>
+    </p>
+
+    <div class="suggest-list" role="listbox" [id]="listboxId" aria-label="Sugerencias de búsqueda">
+      <!-- Obras a la izquierda; autores y géneros a la derecha (una sola columna en el celular). -->
+      <div class="suggest-columns" role="presentation" *ngIf="groups.length">
+        <div class="suggest-col" role="presentation" *ngIf="bookGroups.length">
+          <ng-container *ngTemplateOutlet="groupList; context: { $implicit: bookGroups }"></ng-container>
+        </div>
+        <div class="suggest-col suggest-col--side" role="presentation" *ngIf="sideGroups.length">
+          <ng-container *ngTemplateOutlet="groupList; context: { $implicit: sideGroups }"></ng-container>
+        </div>
+      </div>
+
+      <div class="suggest-option suggest-all"
+           role="option"
+           [id]="optionId(allResultsIndex)"
+           [attr.aria-selected]="allResultsIndex === activeIndex"
+           [class.is-active]="allResultsIndex === activeIndex"
+           (mousemove)="pointAt(allResultsIndex)"
+           (click)="chooseIndex(allResultsIndex)">
+        <span class="material-symbols-rounded" aria-hidden="true">manage_search</span>
+        <span class="suggest-all-label">Ver todos los resultados de «{{ term.trim() }}»</span>
+        <kbd class="suggest-kbd" aria-hidden="true" *ngIf="activeIndex < 0 || activeIndex === allResultsIndex">Enter</kbd>
+      </div>
+    </div>
+  </div>
+
+  <span class="sr-only" aria-live="polite">{{ liveMessage }}</span>
+</form>
+
+<ng-template #groupList let-list>
+  <div *ngFor="let group of list; trackBy: trackGroup" class="suggest-group" role="group"
+       [attr.aria-labelledby]="listboxId + '-' + group.type">
+    <div class="suggest-group-title" [id]="listboxId + '-' + group.type" role="presentation">{{ group.label }}</div>
+    <div *ngFor="let option of group.options; trackBy: trackOption"
+         class="suggest-option"
+         role="option"
+         [id]="optionId(option.index)"
+         [attr.aria-selected]="option.index === activeIndex"
+         [class.is-active]="option.index === activeIndex"
+         (mousemove)="pointAt(option.index)"
+         (click)="chooseIndex(option.index)">
+      <span class="suggest-thumb" [ngClass]="'suggest-thumb--' + group.type">
+        <img *ngIf="option.image" [src]="option.image" alt="" decoding="async" (error)="option.image = null">
+        <span *ngIf="!option.image" class="material-symbols-rounded" aria-hidden="true">{{ group.icon }}</span>
+      </span>
+      <span class="suggest-text">
+        <span class="suggest-title"><ng-container *ngFor="let part of option.title"><mark *ngIf="part.hit">{{ part.text }}</mark><ng-container *ngIf="!part.hit">{{ part.text }}</ng-container></ng-container></span>
+        <span class="suggest-detail" *ngIf="option.detail.length"><ng-container *ngFor="let part of option.detail"><mark *ngIf="part.hit">{{ part.text }}</mark><ng-container *ngIf="!part.hit">{{ part.text }}</ng-container></ng-container></span>
+      </span>
+    </div>
+  </div>
+</ng-template>

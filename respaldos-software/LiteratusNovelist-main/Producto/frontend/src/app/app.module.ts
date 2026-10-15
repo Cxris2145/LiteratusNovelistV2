@@ -12,6 +12,7 @@ import { OnboardingComponent } from './auth/onboarding/onboarding.component';
 import { BookListComponent } from './catalog/book-list/book-list.component';
 import { BottomNavComponent } from './core/components/bottom-nav/bottom-nav.component';
 import { MainNavComponent } from './core/components/main-nav/main-nav.component';
+import { HeaderSearchComponent } from './core/components/header-search/header-search.component';
 
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
@@ -45,6 +46,7 @@ import { BookSummaryComponent } from './core/components/book-summary/book-summar
     BookListComponent,
     BottomNavComponent,
     MainNavComponent,
+    HeaderSearchComponent,
     HomeComponent,
     BookDetailPageComponent,
     AuthorDetailPageComponent,
