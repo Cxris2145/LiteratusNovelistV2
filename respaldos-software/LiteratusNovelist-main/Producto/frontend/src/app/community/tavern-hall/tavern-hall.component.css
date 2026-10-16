@@ -40,13 +40,29 @@
   /* El fondo cubre también el espacio de la navegación recogida; el contenido conserva su sitio. */
   margin: calc(-1 * var(--th-top-pad)) calc(-1 * var(--th-pad)) calc(var(--th-top-pad) - var(--th-backdrop-h));
   pointer-events: none;
+  overflow: hidden;
+  /* La pintura y su gente se miden contra este recuadro (unidades cqw / cqh). */
+  container-type: size;
+}
+/* El salón: misma proporción que la pintura (1376 × 768), recortado como "cover" y apoyado abajo.
+   La gente del fondo (app-tavern-crowd) vive dentro, así pisa siempre el piso pintado. */
+.th-room {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: max(100cqw, calc(100cqh * 1376 / 768));
+  aspect-ratio: 1376 / 768;
+  transform: translateX(-50%);
+  background: url('/assets/images/tavern-room.jpg') center / 100% 100% no-repeat;
+}
+/* Penumbra a los lados y abajo, por encima de la pintura y de la gente. */
+.th-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background-image:
     linear-gradient(90deg, rgba(12, 10, 20, .48), rgba(12, 10, 20, .08) 35%, rgba(12, 10, 20, .08) 65%, rgba(12, 10, 20, .48)),
-    linear-gradient(0deg, rgba(12, 10, 20, .5), transparent 45%),
-    url('/assets/images/tavern-backdrop.jpg');
-  background-size: cover;
-  background-position: center bottom;
-  background-repeat: no-repeat;
+    linear-gradient(0deg, rgba(12, 10, 20, .5), transparent 45%);
 }
 
 /* Sin relleno lateral: el título queda alineado con el borde de las columnas. */

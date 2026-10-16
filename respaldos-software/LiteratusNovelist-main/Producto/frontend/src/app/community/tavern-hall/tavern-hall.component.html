@@ -1,6 +1,9 @@
 <main class="th-hall" [class.is-cinema]="cinemaMode">
   <!-- El salón ilustrado: una capa pegajosa que no obliga a repintar la página al desplazarse. -->
-  <div class="th-backdrop" aria-hidden="true"></div>
+  <div class="th-backdrop" aria-hidden="true">
+    <!-- El salón con su gente: magos que pasan, la mesera, un duelo, amigos que brindan. -->
+    <div class="th-room"><app-tavern-crowd></app-tavern-crowd></div>
+  </div>
   <!-- Cabecera compacta para dejar el protagonismo al salón. -->
   <header class="th-hero">
     <div class="th-hero-copy">
