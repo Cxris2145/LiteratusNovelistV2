@@ -9,7 +9,7 @@ import { MaguitoOutfit } from '../components/maguito/maguito-outfit';
 export type Relation = 'self' | 'friend' | 'outgoing' | 'incoming' | 'none';
 export type RankingScope = 'week' | 'month' | 'all';
 
-/** Lo que ve alguien que todavía no es tu amigo. */
+/** Lo que ve alguien que no es tu amigo cuando el perfil es privado (y en búsquedas y sugerencias). */
 export interface TavernCard {
   full: false;
   friend_code: string;
@@ -17,11 +17,20 @@ export interface TavernCard {
   outfit: MaguitoOutfit;
   equipped_frame: string;
   equipped_title: string;
+  is_public: boolean;
   relation: Relation;
   request_id: string | null;
 }
 
+/** Sugerencia de "Agregar amigo": un lector con perfil público y por qué aparece. */
+export interface FriendSuggestion extends TavernCard {
+  reason: string;
+  mutual_friends: number;
+}
+
 export interface ProfileStats {
+  /** Libros distintos en Mi Biblioteca. */
+  books: number;
   books_read: number;
   reviews: number;
   friends: number;
@@ -43,8 +52,9 @@ export interface CommunityProfile {
   favorite_genres: { name: string; slug: string }[];
   stats: ProfileStats;
   member_since: string;
+  is_public: boolean;
   relation: Relation;
-  request_id: null;
+  request_id: string | null;
   brindis_given?: boolean;
 }
 
@@ -114,23 +124,44 @@ export interface TavernChatMessage {
   username: string;
   friend_code: string | null;
   outfit: MaguitoOutfit;
-  reactions: Record<string, number>;
+  equipped_frame?: string | null;
 }
 
+/** Reacción efímera: no se guarda, flota unos segundos en la mesa de tus amigos. */
 export interface TavernReactionItem {
   id: string;
   reaction: string;
   emoji: string;
   username: string;
   is_me: boolean;
-  message_id: string | null;
   created_at: string;
+}
+
+/** Mensajes sin leer de las charlas privadas, por código de amigo. */
+export interface ChatUnread {
+  total: number;
+  by_friend: Record<string, number>;
 }
 
 export interface TavernActivity {
   messages: TavernChatMessage[];
   reactions: TavernReactionItem[];
   invitations?: { incoming: TavernInvitation[]; outgoing: TavernInvitation[] };
+  chat_unread?: ChatUnread;
+}
+
+/** Mensaje de una charla privada con un amigo. */
+export interface FriendChatMessage {
+  id: string;
+  content: string;
+  created_at: string;
+  is_me: boolean;
+  read: boolean;
+}
+
+export interface ChatThread extends FriendCard {
+  last_message: { content: string; created_at: string; is_me: boolean } | null;
+  unread: number;
 }
 
 export interface TavernInvitation {
@@ -156,8 +187,17 @@ export class CommunityService {
     return this.api.get<CommunityMe>(`${this.base}me/`);
   }
 
+  /** Perfil público (cualquiera ve tu tarjeta y apareces en sugerencias) o privado (solo tus amigos). */
+  setProfileVisibility(isPublic: boolean): Observable<{ is_public: boolean }> {
+    return this.api.patch('users/profile/', { is_public: isPublic });
+  }
+
   search(query: string): Observable<{ results: TavernCard[] }> {
     return this.api.get(`${this.base}search/`, new HttpParams().set('q', query));
+  }
+
+  suggestions(): Observable<{ results: FriendSuggestion[] }> {
+    return this.api.get(`${this.base}suggestions/`);
   }
 
   friends(): Observable<{ results: FriendCard[] }> {
@@ -208,8 +248,9 @@ export class CommunityService {
     return this.api.post(`${this.base}presence/`, {});
   }
 
-  getMessages(): Observable<{ results: TavernChatMessage[] }> {
-    return this.api.get<{ results: TavernChatMessage[] }>(`${this.base}tavern/messages/`);
+  /** Mensajes de la mesa, del más nuevo al más viejo (hasta 50). */
+  getMessages(limit = 30): Observable<{ results: TavernChatMessage[] }> {
+    return this.api.get<{ results: TavernChatMessage[] }>(`${this.base}tavern/messages/`, new HttpParams().set('limit', limit));
   }
 
   sendMessage(content: string): Observable<CommunityResult & { message: TavernChatMessage }> {
@@ -220,8 +261,8 @@ export class CommunityService {
     return this.api.delete(`${this.base}tavern/messages/${messageId}/`);
   }
 
-  sendReaction(reaction: string, messageId?: string): Observable<CommunityResult & { reaction: TavernReactionItem }> {
-    return this.api.post(`${this.base}tavern/reactions/`, { reaction, message_id: messageId });
+  sendReaction(reaction: string): Observable<CommunityResult & { reaction: TavernReactionItem }> {
+    return this.api.post(`${this.base}tavern/reactions/`, { reaction });
   }
 
   getActivity(): Observable<TavernActivity> {
@@ -234,5 +275,21 @@ export class CommunityService {
 
   respondToInvitation(id: string, action: 'accept' | 'decline'): Observable<CommunityResult> {
     return this.api.post(`${this.base}tavern/invitations/${id}/respond/`, { action });
+  }
+
+  // ── Charlas privadas ──
+
+  chatThreads(): Observable<{ threads: ChatThread[]; unread_total: number }> {
+    return this.api.get(`${this.base}chats/`);
+  }
+
+  /** Con `after` (id de un mensaje) trae solo los posteriores. Marca como leídos los recibidos. */
+  chatMessages(code: string, after?: string): Observable<{ messages: FriendChatMessage[]; incremental: boolean }> {
+    const params = after ? new HttpParams().set('after', after) : undefined;
+    return this.api.get(`${this.base}chats/${encodeURIComponent(code)}/`, params);
+  }
+
+  sendChatMessage(code: string, content: string): Observable<CommunityResult & { item: FriendChatMessage }> {
+    return this.api.post(`${this.base}chats/${encodeURIComponent(code)}/`, { content });
   }
 }

@@ -66,6 +66,12 @@
         </div>
       </ng-container>
       <ng-template #menuTpl>
+        <button type="button" class="th-icon-btn fl-chat" (click)="chat.emit(friend)"
+                [attr.aria-label]="'Conversar con ' + friend.username + (unread[friend.friend_code] ? ', ' + unread[friend.friend_code] + ' mensajes sin leer' : '')"
+                [title]="'Conversar con ' + friend.username">
+          <span class="material-symbols-rounded" aria-hidden="true">chat</span>
+          <span class="fl-unread" *ngIf="unread[friend.friend_code]" aria-hidden="true">{{ unread[friend.friend_code] > 9 ? '9+' : unread[friend.friend_code] }}</span>
+        </button>
         <button type="button" class="th-icon-btn" [matMenuTriggerFor]="friendMenu"
                 [attr.aria-label]="'Opciones para ' + friend.username">
           <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
@@ -74,6 +80,9 @@
           <a mat-menu-item [routerLink]="['/tavern/amigo', friend.friend_code]">
             <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">badge</span>Ver perfil
           </a>
+          <button mat-menu-item type="button" (click)="chat.emit(friend)">
+            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">chat</span>Conversar
+          </button>
           <button mat-menu-item type="button" (click)="toggleBrindis.emit(friend)" [disabled]="busy === friend.friend_code">
             <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">sports_bar</span>{{ friend.brindis_given ? 'Quitar brindis' : 'Brindar' }}
           </button>

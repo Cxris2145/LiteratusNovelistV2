@@ -11,7 +11,7 @@
     <a class="th-btn" routerLink="/tavern">Volver a la Taberna</a>
   </section>
 
-  <!-- Amigo: perfil completo -->
+  <!-- Amigo, o perfil público: tarjeta completa -->
   <div class="fp-grid" *ngIf="full as friend">
     <div class="fp-stage" aria-hidden="true">
       <div class="fp-spot"></div>
@@ -23,7 +23,21 @@
     </div>
 
     <app-profile-card [card]="friend">
-      <div class="fp-actions">
+      <div class="fp-actions" *ngIf="!isFriend">
+        <p class="th-empty fp-public-note">
+          <span class="material-symbols-rounded" aria-hidden="true">public</span>
+          {{ friend.relation === 'incoming' ? friend.username + ' quiere sentarse a tu mesa.' :
+             friend.relation === 'outgoing' ? 'Le enviaste una solicitud de amistad.' :
+             'Perfil público. Cuando sean amigos podrán conversar y brindar.' }}
+        </p>
+        <button type="button" class="th-btn" [class.secondary]="friend.relation === 'outgoing'" (click)="requestAction()" [disabled]="busy">
+          {{ requestLabel(friend) }}
+        </button>
+      </div>
+      <div class="fp-actions" *ngIf="isFriend">
+        <button type="button" class="th-btn" (click)="openChat()">
+          <span class="material-symbols-rounded" aria-hidden="true">chat</span>Enviar mensaje
+        </button>
         <button type="button" class="th-btn" [class.secondary]="friend.brindis_given" (click)="toggleBrindis()" [disabled]="busy"
                 [attr.aria-pressed]="!!friend.brindis_given">
           <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>
@@ -55,10 +69,13 @@
     <h1>{{ card.username }}</h1>
     <p class="fp-equipped-title" *ngIf="card.equipped_title">{{ card.equipped_title }}</p>
     <p class="th-code fp-code">#{{ card.friend_code }}</p>
+    <p class="fp-private" *ngIf="card.is_public === false">
+      <span class="material-symbols-rounded" aria-hidden="true">lock</span>Este perfil es privado
+    </p>
     <p class="th-empty">
       {{ card.relation === 'incoming' ? card.username + ' quiere sentarse a tu mesa.' :
          card.relation === 'outgoing' ? 'Le enviaste una solicitud. Cuando la acepte verás su perfil completo.' :
-         'Cuando sean amigos verás sus libros, sus brindis y su "Sobre mí".' }}
+         'Cuando sean amigos verás sus libros, sus reseñas y su "Sobre mí".' }}
     </p>
     <button type="button" class="th-btn" [class.secondary]="card.relation === 'outgoing'" (click)="requestAction()" [disabled]="busy">
       {{ requestLabel(card) }}

@@ -214,8 +214,45 @@
   <!-- BARRA DE CHAT Y REACCIONES RÁPIDAS DE LA TABERNA             -->
   <!-- ============================================================ -->
   <footer class="ts-chat-dock">
+    <!-- Historial de la mesa: lo que se dijo, del más viejo al más nuevo. -->
+    <section class="ts-history" id="ts-history" *ngIf="historyOpenState" aria-labelledby="ts-history-title">
+      <header class="ts-history-head">
+        <h3 id="ts-history-title">Conversación de la mesa</h3>
+        <button type="button" class="ts-chat-icon-btn" (click)="closeHistory()" aria-label="Cerrar el historial">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+      <ol class="ts-history-list" aria-live="polite">
+        <li *ngIf="!historyGroups.length" class="ts-history-empty">
+          Todavía nadie ha dicho nada. Escribe algo para tu mesa: lo verán tus amigos.
+        </li>
+        <li *ngFor="let group of historyGroups; trackBy: trackGroup" class="ts-history-group" [class.is-me]="group.isMe">
+          <app-maguito class="ts-history-avatar" crop="bust" [outfit]="group.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false" aria-hidden="true"></app-maguito>
+          <div class="ts-history-body">
+            <p class="ts-history-author">{{ group.isMe ? 'Tú' : group.username }}</p>
+            <div *ngFor="let message of group.messages; trackBy: trackMessage" class="ts-history-message">
+              <p class="ts-history-text">{{ message.content }}</p>
+              <time class="ts-history-time" [attr.datetime]="message.created_at">{{ timeAgo(message.created_at) }}</time>
+              <button *ngIf="message.is_me" type="button" class="ts-history-delete" (click)="removeMessage(message)"
+                      aria-label="Borrar este mensaje">
+                <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+              </button>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </section>
+
     <div class="ts-chat-bar">
-      <span class="material-symbols-rounded ts-chat-lead-icon" aria-hidden="true">chat</span>
+      <button *ngIf="!demo; else leadIcon" type="button" class="ts-chat-icon-btn ts-history-toggle" (click)="toggleHistory()"
+              [attr.aria-expanded]="historyOpenState" aria-controls="ts-history"
+              [attr.aria-label]="unseenCount ? 'Ver la conversación de la mesa, ' + unseenCount + ' mensajes nuevos' : 'Ver la conversación de la mesa'"
+              title="Conversación de la mesa">
+        <span class="material-symbols-rounded" aria-hidden="true">forum</span>
+        <span class="ts-history-badge" *ngIf="unseenCount" aria-hidden="true">{{ unseenCount > 9 ? '9+' : unseenCount }}</span>
+      </button>
+      <ng-template #leadIcon><span class="material-symbols-rounded ts-chat-lead-icon" aria-hidden="true">chat</span></ng-template>
 
       <input
         type="text"

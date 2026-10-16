@@ -61,6 +61,15 @@
 
 .fp-actions { display: grid; gap: 8px; margin-top: 6px; }
 .fp-actions > .th-btn { width: 100%; }
+.fp-public-note, .fp-private {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: .84rem;
+}
+.fp-public-note .material-symbols-rounded, .fp-private .material-symbols-rounded { font-size: 18px; color: var(--th-gold); }
+.fp-private { color: var(--th-ink); font-weight: 600; }
 .fp-confirm {
   display: flex;
   flex-wrap: wrap;

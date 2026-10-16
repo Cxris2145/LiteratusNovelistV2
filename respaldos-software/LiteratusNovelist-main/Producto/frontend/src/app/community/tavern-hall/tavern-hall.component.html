@@ -13,11 +13,7 @@
     <div class="th-actions" *ngIf="loggedIn; else visitorActions">
       <!-- Utilidades del salón: discretas, para no competir con las acciones. -->
       <div class="th-utilities" role="group" aria-label="Ambiente de la taberna">
-        <button type="button" class="th-icon-toggle" (click)="toggleAudio()" [attr.aria-pressed]="audioPlaying"
-                [attr.aria-label]="audioPlaying ? 'Silenciar la chimenea' : 'Activar el sonido de la chimenea'">
-          <span class="material-symbols-rounded" aria-hidden="true">{{ audioPlaying ? 'volume_up' : 'volume_off' }}</span>
-          <span class="th-tip" aria-hidden="true">{{ audioPlaying ? 'Silenciar chimenea' : 'Chimenea' }}</span>
-        </button>
+        <app-tavern-music></app-tavern-music>
         <button type="button" class="th-icon-toggle" (click)="toggleCinema()" [attr.aria-pressed]="cinemaMode"
                 [attr.aria-label]="cinemaMode ? 'Salir del modo cine' : 'Modo cine: solo la mesa'">
           <span class="material-symbols-rounded" aria-hidden="true">{{ cinemaMode ? 'fullscreen_exit' : 'fullscreen' }}</span>
@@ -25,6 +21,12 @@
         </button>
       </div>
       <span class="th-actions-divider" aria-hidden="true"></span>
+      <button type="button" class="th-btn secondary th-chats-btn" (click)="chatOpen ? closeChat() : openChat()"
+              [attr.aria-expanded]="chatOpen" aria-controls="friend-chat"
+              [attr.aria-label]="chatUnread.total ? 'Charlas, ' + chatUnread.total + ' mensajes sin leer' : 'Charlas'">
+        <span class="material-symbols-rounded" aria-hidden="true">forum</span>Charlas
+        <span class="th-count-badge" *ngIf="chatUnread.total" aria-hidden="true">{{ chatUnread.total > 99 ? '99+' : chatUnread.total }}</span>
+      </button>
       <button type="button" class="th-btn secondary" (click)="openBazar()" [attr.aria-expanded]="bazarOpen" aria-controls="tavern-bazar">
         <span class="material-symbols-rounded" aria-hidden="true">storefront</span>El Bazar
       </button>
@@ -34,6 +36,9 @@
     </div>
     <ng-template #visitorActions>
       <div class="th-actions">
+        <div class="th-utilities" role="group" aria-label="Ambiente de la taberna">
+          <app-tavern-music></app-tavern-music>
+        </div>
         <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
           <span class="material-symbols-rounded" aria-hidden="true">login</span>Entra con tu Maguito
         </a>
@@ -59,7 +64,8 @@
     <!-- Columna izquierda: Tu perfil -->
     <app-profile-card #profileCard class="area-profile" [class.is-spotlight]="profileSpotlight"
                       [compact]="true" [card]="me" [mine]="true" [crowned]="weeklyLeader"
-                      [dressing]="bazarOpen" (dress)="openBazar('ropero')"></app-profile-card>
+                      [dressing]="bazarOpen" (dress)="openBazar('ropero')"
+                      [savingPrivacy]="savingPrivacy" (privacyChange)="setPrivacy($event)"></app-profile-card>
 
     <!-- Columna central: mesa interactiva y chat sobre el fondo compartido. -->
     <div class="area-scene-wrap">
@@ -83,6 +89,8 @@
         [fittingGesture]="fittingGesture"
         (sendMessage)="onSendMessage($event)"
         (sendReaction)="onSendReaction($event)"
+        (historyOpen)="onHistoryOpen()"
+        (deleteMessage)="onDeleteMessage($event)"
         (tableAction)="openTableAction($event)"
         (bazar)="bazarOpen ? closeBazar() : openBazar()"
         (guestSelect)="openGuest($event)">
@@ -91,13 +99,14 @@
 
     <!-- Columna derecha: Amigos y Ranking -->
     <div class="area-side">
-      <app-tavern-music [suspended]="cinemaMode || bazarOpen"></app-tavern-music>
       <app-friend-list
         [friends]="friends"
         [incoming]="incoming"
         [outgoing]="outgoing"
         [loading]="loading"
         [busy]="busy"
+        [unread]="chatUnread.by_friend"
+        (chat)="openChat($event.friend_code)"
         (accept)="accept($event)"
         (decline)="decline($event)"
         (cancel)="cancel($event)"
@@ -127,6 +136,17 @@
     (outfitChange)="onOutfitChange($event)">
   </app-tavern-bazar>
 
+  <!-- Charlas privadas: el mismo cajón lateral que El Bazar. -->
+  <app-friend-chat
+    *ngIf="loggedIn"
+    [open]="chatOpen"
+    [code]="chatCode"
+    [friends]="friends"
+    [unread]="chatUnread"
+    (closed)="closeChat()"
+    (threadChange)="openChat($event)">
+  </app-friend-chat>
+
   <ng-template #visitor>
     <div class="th-visitor">
       <div class="area-scene-wrap">
@@ -143,7 +163,6 @@
         </app-tavern-scene>
       </div>
       <div class="th-visitor-side">
-        <app-tavern-music></app-tavern-music>
         <section class="th-panel th-visitor-copy">
         <h2>Tu mesa te espera</h2>
         <ul>

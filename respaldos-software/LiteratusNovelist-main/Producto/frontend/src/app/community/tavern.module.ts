@@ -11,6 +11,7 @@ import { ProfileCardComponent } from './profile-card/profile-card.component';
 import { FriendListComponent } from './friend-list/friend-list.component';
 import { AddFriendDialogComponent } from './add-friend-dialog/add-friend-dialog.component';
 import { FriendProfileComponent } from './friend-profile/friend-profile.component';
+import { FriendChatComponent } from './friend-chat/friend-chat.component';
 import { TavernMusicComponent } from './tavern-music/tavern-music.component';
 import { TavernTableComponent } from './tavern-table/tavern-table.component';
 
@@ -19,6 +20,7 @@ import { TavernTableComponent } from './tavern-table/tavern-table.component';
   declarations: [
     TavernHallComponent, TavernSceneComponent, TavernBazarComponent, TavernRankingComponent,
     ProfileCardComponent, FriendListComponent, AddFriendDialogComponent, FriendProfileComponent,
+    FriendChatComponent,
   ],
   imports: [
     SharedModule, TavernMusicComponent, TavernTableComponent,

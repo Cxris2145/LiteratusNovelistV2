@@ -179,6 +179,12 @@ class Profile(TimeStampedModel):
         null=True, blank=True,
         help_text="Último latido de presencia en La Taberna."
     )
+    # db_default: un servidor con el código anterior (sin este campo) igual puede crear perfiles.
+    is_public = models.BooleanField(
+        default=True, db_default=True,
+        help_text="Perfil público: cualquiera ve la tarjeta completa y aparece en las sugerencias de amigos. "
+                  "Privado: solo sus amigos la ven y solo se le encuentra por su código."
+    )
 
     class Meta:
         verbose_name = 'Profile'

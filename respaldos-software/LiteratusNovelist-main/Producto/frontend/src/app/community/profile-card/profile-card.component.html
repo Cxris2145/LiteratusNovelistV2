@@ -28,7 +28,7 @@
   <dl class="pc-stats">
     <div>
       <dt><span class="material-symbols-rounded">menu_book</span>Libros</dt>
-      <dd>{{ card.stats.books_read }}</dd>
+      <dd>{{ card.stats.books }}</dd>
     </div>
     <div>
       <dt><span class="material-symbols-rounded">chat_bubble</span>Reseñas</dt>
@@ -46,6 +46,21 @@
       <span class="material-symbols-rounded pc-quill-watermark" aria-hidden="true">history_edu</span>
     </div>
     <p [class.is-placeholder]="!card.bio">{{ card.bio || (mine ? 'Creo en los finales que empiezan de nuevo. Siempre hay tiempo para otra historia.' : 'Aún no escribe nada sobre sí.') }}</p>
+  </div>
+
+  <div class="pc-privacy" *ngIf="mine">
+    <span class="material-symbols-rounded pc-privacy-icon" aria-hidden="true">{{ card.is_public ? 'public' : 'lock' }}</span>
+    <span class="pc-privacy-copy">
+      <strong aria-hidden="true">Perfil público</strong>
+      <span id="pc-privacy-hint">{{ card.is_public
+        ? 'Cualquiera ve tu tarjeta y puedes salir en las sugerencias de amigos.'
+        : 'Privado: solo tus amigos ven tu tarjeta y te encuentran por tu código.' }}</span>
+    </span>
+    <button type="button" role="switch" class="pc-switch" [attr.aria-checked]="card.is_public"
+            aria-label="Perfil público" aria-describedby="pc-privacy-hint"
+            [disabled]="savingPrivacy" (click)="privacyChange.emit(!card.is_public)">
+      <span class="pc-switch-thumb" aria-hidden="true"></span>
+    </button>
   </div>
 
   <div class="pc-code" *ngIf="mine">

@@ -58,7 +58,8 @@ export class ProfileComponent implements OnInit {
       tagline: ['', Validators.maxLength(TAGLINE_MAX)],
       bio: ['', Validators.maxLength(BIO_MAX)],
       country: [''],
-      birth_date: ['']
+      birth_date: [''],
+      is_public: [true]
     });
     // La paleta muestra el tema activo, también si se cambia desde el menú del avatar
     // (así "Guardar Cambios" no reenvía un tema viejo).
@@ -88,7 +89,8 @@ export class ProfileComponent implements OnInit {
             tagline: profile.tagline || '',
             bio: profile.bio,
             country: profile.country,
-            birth_date: profile.birth_date || ''
+            birth_date: profile.birth_date || '',
+            is_public: profile.is_public !== false
           });
           const current = this.authService.currentUser();
           if (current && profile.username && current.username !== profile.username) {
@@ -203,7 +205,8 @@ export class ProfileComponent implements OnInit {
       country: this.profileForm.get('country')?.value || '',
       avatar: this.avatarUrl || '',
       avatar_color: this.avatarColor,
-      theme: this.selectedTheme
+      theme: this.selectedTheme,
+      is_public: this.profileForm.get('is_public')?.value !== false
     };
     const birthDate = this.profileForm.get('birth_date')?.value;
     if (!this.birthDateLocked && birthDate) payload['birth_date'] = birthDate;

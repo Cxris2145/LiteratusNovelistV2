@@ -106,6 +106,21 @@
   background: rgba(255, 228, 180, .22);
 }
 .th-actions .th-btn { min-height: 42px; padding-block: 8px; }
+.th-chats-btn { position: relative; }
+.th-count-badge {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #e0533d;
+  color: #fff;
+  font: 700 .68rem/20px var(--font-ui);
+  text-align: center;
+  box-shadow: 0 0 0 2px #1c1320;
+}
 .th-actions .th-btn.secondary {
   background: rgba(22, 15, 12, .78);
   color: #ffcf87;
@@ -302,7 +317,7 @@
   :host { --th-stage-height: 520px; }
   .th-layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: 'music music' 'scene scene' 'profile friends' 'profile ranking';
+    grid-template-areas: 'scene scene' 'profile friends' 'profile ranking';
   }
   .area-profile,
   .area-side {
@@ -311,15 +326,13 @@
     overflow: visible;
   }
   .area-side { display: contents; }
-  .area-side > app-tavern-music { grid-area: music; width: min(100%, 480px); justify-self: center; }
   .area-side > app-friend-list { grid-area: friends; }
   .area-side > app-tavern-ranking { grid-area: ranking; }
   .area-side > app-friend-list,
   .area-side > app-tavern-ranking { max-height: none; overflow: visible; }
   .th-hero { flex-wrap: wrap; }
-  .th-visitor { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'music' 'scene' 'welcome'; }
+  .th-visitor { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'scene' 'welcome'; }
   .th-visitor-side { display: contents; }
-  .th-visitor-side > app-tavern-music { grid-area: music; width: min(100%, 480px); justify-self: center; }
   .th-visitor-copy { grid-area: welcome; }
 }
 
@@ -334,10 +347,13 @@
   .th-actions { width: 100%; gap: 8px; flex-wrap: nowrap; }
   .th-actions-divider { display: none; }
   .th-actions .th-btn { flex: 1 1 0; min-width: 0; gap: 6px; padding-inline: 8px; font-size: .78rem; white-space: nowrap; }
+  /* Sonido, cine, Charlas y El Bazar en una fila; "Agregar amigo" (la acción principal) debajo. */
+  .th-actions { flex-wrap: wrap; }
+  .th-actions > .th-btn:last-child { flex-basis: 100%; }
   .th-actions .th-btn .material-symbols-rounded { font-size: 18px; }
   .th-layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'music' 'scene' 'profile' 'friends' 'ranking';
+    grid-template-areas: 'scene' 'profile' 'friends' 'ranking';
     gap: 16px;
   }
 }

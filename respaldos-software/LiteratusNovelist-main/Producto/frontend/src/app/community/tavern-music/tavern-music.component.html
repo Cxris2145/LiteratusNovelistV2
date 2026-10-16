@@ -1,25 +1,42 @@
-<section class="tm-panel" aria-label="Música de la taberna">
-  <header class="tm-heading">
-    <span class="material-symbols-rounded" aria-hidden="true">music_note</span>
-    <h2>Música de la taberna</h2>
-    <a [href]="songUrl" target="_blank" rel="noopener noreferrer" aria-label="Abrir la canción en YouTube">
-      <span class="material-symbols-rounded" aria-hidden="true">open_in_new</span>
-    </a>
-  </header>
-  <iframe #frame class="tm-player" [src]="embedUrl" title="Canción de la Taberna de Tinta en YouTube"
-          width="320" height="200" allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-          referrerpolicy="strict-origin-when-cross-origin" credentialless allowfullscreen></iframe>
-  <p class="tm-status" role="status" aria-live="polite">{{ status }}</p>
-  <div class="tm-controls">
-    <button type="button" class="tm-play" (click)="togglePlayback()" [disabled]="!ready || !!error"
-            [attr.aria-label]="playing ? 'Pausar la música' : 'Reproducir la música'">
-      <span class="material-symbols-rounded" aria-hidden="true">{{ playing ? 'pause' : 'play_arrow' }}</span>
-      {{ playing ? 'Pausar' : 'Reproducir' }}
+<div class="tm" [class.is-hover]="canHover" [class.is-blocked]="state === 'blocked' && !muted"
+     role="group" aria-label="Música de la taberna">
+  <button type="button" class="th-icon-toggle tm-toggle" (click)="onIconClick()"
+          [attr.aria-pressed]="canHover ? !muted : null"
+          [attr.aria-expanded]="canHover ? null : popoverOpen"
+          [attr.aria-controls]="canHover ? null : 'tm-popover'"
+          [attr.aria-label]="canHover ? 'Música de la taberna' : 'Música de la taberna: volumen'"
+          [attr.aria-describedby]="'tm-status'">
+    <span class="material-symbols-rounded" aria-hidden="true">{{ icon }}</span>
+    <span class="th-tip" aria-hidden="true">{{ actionLabel }}</span>
+  </button>
+
+  <!-- Escritorio: el volumen se despliega junto al ícono al pasar el mouse o con el foco. -->
+  <label class="tm-slide" *ngIf="canHover">
+    <span class="sr-only">Volumen de la música</span>
+    <input type="range" min="0" max="100" step="5" [value]="volume" (input)="onVolumeInput($event)"
+           [attr.aria-valuetext]="(muted ? 'Silenciada, ' : '') + volume + ' por ciento'">
+  </label>
+
+  <!-- Pantallas táctiles: una ventanita con el botón y el volumen. -->
+  <div class="tm-popover" id="tm-popover" *ngIf="!canHover && popoverOpen"
+       [style.top.px]="popoverPos?.top" [style.left.px]="popoverPos?.left">
+    <button type="button" class="tm-mute" (click)="toggleMute()" [attr.aria-pressed]="!muted">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ muted ? 'volume_off' : 'volume_up' }}</span>
+      {{ actionLabel }}
     </button>
-    <label class="tm-volume">
-      <span class="material-symbols-rounded" aria-hidden="true">{{ volume ? 'volume_up' : 'volume_off' }}</span>
-      <input type="range" min="0" max="100" step="1" [value]="volume" (input)="setVolume($event)"
-             aria-label="Volumen de la música" [attr.aria-valuetext]="volume + ' por ciento'">
+    <label class="tm-pop-volume">
+      <span class="material-symbols-rounded" aria-hidden="true">volume_down</span>
+      <span class="sr-only">Volumen de la música</span>
+      <input type="range" min="0" max="100" step="5" [value]="volume" (input)="onVolumeInput($event)"
+             [attr.aria-valuetext]="volume + ' por ciento'">
+      <span class="material-symbols-rounded" aria-hidden="true">volume_up</span>
     </label>
   </div>
-</section>
+
+  <span class="sr-only" id="tm-status" role="status" aria-live="polite">{{ status }}</span>
+
+  <!-- Reproductor invisible: YouTube pide al menos 200 × 200 px para reproducir. -->
+  <iframe #frame *ngIf="frameRequested" class="tm-player" [src]="embedUrl" tabindex="-1" aria-hidden="true"
+          title="Canción de la Taberna de Tinta en YouTube" width="200" height="200"
+          allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin" credentialless></iframe>
+</div>

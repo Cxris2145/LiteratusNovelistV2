@@ -65,6 +65,24 @@
 .af-who .th-code { font-size: .74rem; color: var(--th-muted); }
 .af-results .th-btn { min-height: 38px; padding: 6px 12px; font-size: .8rem; flex: none; }
 
+.af-suggestions { margin-bottom: 4px; }
+.af-suggestions h3 { margin: 0 0 8px; font-size: 1.1rem; font-weight: 600; }
+.af-reason { font-size: .74rem; color: var(--th-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.af-who-link { color: inherit; text-decoration: none; border-radius: 6px; }
+@media (hover: hover) and (pointer: fine) {
+  .af-who-link:hover strong { color: var(--th-gold); }
+}
+.af-skeleton .af-avatar { border: 0; }
+.af-sk-line {
+  flex: 1;
+  height: 14px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--th-ink) 8%, transparent);
+  animation: af-pulse 1.4s ease-in-out infinite;
+}
+@keyframes af-pulse { 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .af-sk-line { animation: none; } }
+
 .af-mine {
   display: flex;
   align-items: center;

@@ -4,7 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable, Subject, of } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { CommunityResult, CommunityService, TavernCard } from '../../core/services/community.service';
+import { CommunityResult, CommunityService, FriendSuggestion, TavernCard } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { copyText } from '../clipboard.util';
 
@@ -14,7 +14,10 @@ export interface AddFriendDialogData {
 
 const MIN_QUERY = 3;
 
-/** Buscar lectores por nombre de usuario o por código (#K7Q2XM) e invitarlos a la mesa. */
+/**
+ * Buscar lectores por nombre de usuario o por código (#K7Q2XM) e invitarlos a la mesa.
+ * Con la búsqueda vacía sugiere lectores que ya están en Literatus (perfiles públicos).
+ */
 @Component({
   selector: 'app-add-friend-dialog',
   templateUrl: './add-friend-dialog.component.html',
@@ -34,6 +37,14 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   failed = false;
   /** Código del lector con una acción en curso. */
   busy: string | null = null;
+  suggestions: FriendSuggestion[] = [];
+  suggestionsLoading = true;
+  suggestionsFailed = false;
+
+  /** Mientras no se busca nada, se ven las sugerencias. */
+  get showSuggestions(): boolean {
+    return this.query.value.trim().replace(/^#/, '').length < MIN_QUERY;
+  }
 
   get liveMessage(): string {
     if (this.searching) return 'Buscando…';
@@ -45,6 +56,7 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.loadSuggestions();
     this.query.valueChanges.pipe(
       map(value => value.trim()),
       debounceTime(300),
@@ -74,6 +86,21 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   }
 
   trackCard = (_: number, card: TavernCard) => card.friend_code;
+
+  loadSuggestions(): void {
+    this.suggestionsLoading = true;
+    this.suggestionsFailed = false;
+    this.community.suggestions().pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ results }) => { this.suggestions = results; this.suggestionsLoading = false; },
+      error: () => { this.suggestionsLoading = false; this.suggestionsFailed = true; },
+    });
+  }
+
+  suggestionLabel(card: TavernCard): string {
+    if (card.relation === 'outgoing') return 'Enviada · Cancelar';
+    if (card.relation === 'friend') return 'Ya son amigos';
+    return 'Agregar';
+  }
 
   actionLabel(card: TavernCard): string {
     switch (card.relation) {

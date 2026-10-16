@@ -1,0 +1,102 @@
+<!-- En el celular las charlas son una hoja sobre la mesa: el fondo la cierra. -->
+<div class="fc-backdrop" [class.is-open]="open" (click)="close()" aria-hidden="true"></div>
+
+<aside id="friend-chat" class="fc-drawer" [class.is-open]="open" [attr.inert]="open ? null : ''"
+       aria-labelledby="fc-title" (keydown.escape)="close()">
+  <span class="fc-grip" aria-hidden="true"></span>
+
+  <!-- Lista de charlas -->
+  <ng-container *ngIf="!code; else thread">
+    <header class="fc-head">
+      <span class="fc-emblem" aria-hidden="true"><span class="material-symbols-rounded">forum</span></span>
+      <div class="fc-head-copy">
+        <h2 id="fc-title" #heading tabindex="-1">Charlas</h2>
+        <p>Conversaciones privadas con tus amigos.</p>
+      </div>
+      <button type="button" class="th-icon-btn fc-close" (click)="close()" aria-label="Cerrar las charlas">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <p class="th-empty fc-pad" *ngIf="threadsLoading && !threads.length" role="status">Buscando tus charlas…</p>
+    <p class="fc-error" role="alert" *ngIf="error">{{ error }}</p>
+    <p class="th-empty fc-pad" *ngIf="!threadsLoading && !threads.length && !error">
+      Cuando tengas amigos en tu mesa, aquí podrás conversar con cada uno en privado.
+    </p>
+
+    <ul class="fc-threads" *ngIf="threads.length">
+      <li *ngFor="let thread of threads; trackBy: trackThread">
+        <button type="button" class="fc-thread" [class.has-unread]="thread.unread" (click)="openFriend(thread.friend_code)"
+                [attr.aria-label]="'Conversar con ' + thread.username + (thread.unread ? ', ' + thread.unread + ' mensajes sin leer' : '')">
+          <span class="fc-avatar-wrap">
+            <app-avatar-frame [frame]="thread.equipped_frame" size="sm"><app-maguito class="fc-avatar" crop="bust" [outfit]="thread.outfit" [paused]="true"
+                         [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
+            <span class="th-dot fc-dot" [ngClass]="thread.status.kind" aria-hidden="true"></span>
+          </span>
+          <span class="fc-thread-copy">
+            <span class="fc-thread-top">
+              <strong>{{ thread.username }}</strong>
+              <time *ngIf="thread.last_message" [attr.datetime]="thread.last_message.created_at">{{ timeAgo(thread.last_message.created_at) }}</time>
+            </span>
+            <span class="fc-preview" *ngIf="thread.last_message; else noMessages">
+              <span *ngIf="thread.last_message.is_me">Tú: </span>{{ thread.last_message.content }}
+            </span>
+            <ng-template #noMessages><span class="fc-preview is-empty">{{ thread.status.label }} · Saluda</span></ng-template>
+          </span>
+          <span class="fc-unread" *ngIf="thread.unread" aria-hidden="true">{{ thread.unread > 9 ? '9+' : thread.unread }}</span>
+        </button>
+      </li>
+    </ul>
+  </ng-container>
+
+  <!-- Conversación con un amigo -->
+  <ng-template #thread>
+    <header class="fc-head is-thread">
+      <button type="button" class="th-icon-btn fc-back" (click)="back()" aria-label="Volver a las charlas">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </button>
+      <span class="fc-avatar-wrap" *ngIf="friend">
+        <app-avatar-frame [frame]="friend.equipped_frame" size="sm"><app-maguito class="fc-avatar" crop="bust" [outfit]="friend.outfit" [paused]="true"
+                     [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
+        <span class="th-dot fc-dot" [ngClass]="friend.status.kind" aria-hidden="true"></span>
+      </span>
+      <div class="fc-head-copy">
+        <h2 id="fc-title" #heading tabindex="-1">{{ friend?.username || 'Charla' }}</h2>
+        <p *ngIf="friend">{{ friend.status.label }}</p>
+      </div>
+      <button type="button" class="th-icon-btn fc-close" (click)="close()" aria-label="Cerrar las charlas">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="fc-messages" #scroller role="log" aria-live="polite" [attr.aria-busy]="loading" aria-labelledby="fc-title">
+      <p class="th-empty fc-center" *ngIf="loading" role="status">Abriendo la charla…</p>
+      <p class="th-empty fc-center" *ngIf="!loading && !messages.length && !error">
+        Todavía no han hablado. Escríbele algo a {{ friend?.username || 'tu amigo' }}: solo lo verán ustedes dos.
+      </p>
+      <ng-container *ngFor="let row of rows; trackBy: trackRow">
+        <p class="fc-day" *ngIf="row.kind === 'day'"><span>{{ row.label }}</span></p>
+        <div class="fc-bubble" *ngIf="row.kind === 'message'" [class.is-me]="row.message.is_me">
+          <p>{{ row.message.content }}</p>
+          <span class="fc-meta">
+            <time [attr.datetime]="row.message.created_at">{{ clockTime(row.message.created_at) }}</time>
+            <span *ngIf="row.message.is_me" class="material-symbols-rounded fc-read" role="img" [class.is-read]="row.message.read"
+                  [attr.aria-label]="row.message.read ? 'Leído' : 'Enviado'">{{ row.message.read ? 'done_all' : 'done' }}</span>
+          </span>
+        </div>
+      </ng-container>
+    </div>
+
+    <p class="fc-error" role="alert" *ngIf="error">{{ error }}</p>
+
+    <form class="fc-composer" (ngSubmit)="send()" *ngIf="!error || messages.length">
+      <label class="sr-only" for="fc-draft">Mensaje para {{ friend?.username || 'tu amigo' }}</label>
+      <textarea id="fc-draft" #composer name="draft" rows="1" [(ngModel)]="draft" [maxlength]="maxLength"
+                (keydown)="onComposerKey($event)" placeholder="Escribe un mensaje…" [disabled]="loading"></textarea>
+      <button type="submit" class="fc-send" [disabled]="!draft.trim() || sending || loading" aria-label="Enviar mensaje">
+        <span class="material-symbols-rounded" aria-hidden="true">send</span>
+      </button>
+    </form>
+    <p class="fc-count" *ngIf="draft.length > maxLength - 60" aria-live="polite">{{ draft.length }}/{{ maxLength }}</p>
+  </ng-template>
+</aside>

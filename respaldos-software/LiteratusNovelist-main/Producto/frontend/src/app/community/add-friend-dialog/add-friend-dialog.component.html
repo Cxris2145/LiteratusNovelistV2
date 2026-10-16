@@ -17,6 +17,38 @@
   <p class="sr-only" id="af-live" aria-live="polite">{{ liveMessage }}</p>
   <p class="th-empty af-status" *ngIf="liveMessage && !results.length" aria-hidden="true">{{ liveMessage }}</p>
 
+  <!-- Con la búsqueda vacía: lectores que quizá conozcas -->
+  <section class="af-suggestions" *ngIf="showSuggestions" aria-labelledby="af-suggest-title">
+    <h3 id="af-suggest-title">Sugerencias para ti</h3>
+    <ul class="af-results" *ngIf="suggestionsLoading" aria-busy="true" aria-label="Cargando sugerencias">
+      <li *ngFor="let _ of [1, 2, 3]" class="af-skeleton" aria-hidden="true">
+        <span class="af-avatar"></span><span class="af-sk-line"></span>
+      </li>
+    </ul>
+    <p class="th-empty af-status" *ngIf="!suggestionsLoading && suggestionsFailed">
+      No pudimos traer sugerencias.
+      <button type="button" class="th-btn ghost" (click)="loadSuggestions()">Reintentar</button>
+    </p>
+    <p class="th-empty af-status" *ngIf="!suggestionsLoading && !suggestionsFailed && !suggestions.length">
+      Por ahora no hay lectores para sugerirte. Comparte tu código para que te encuentren.
+    </p>
+    <ul class="af-results" *ngIf="!suggestionsLoading && suggestions.length">
+      <li *ngFor="let card of suggestions; trackBy: trackCard">
+        <app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
+                     [interactive]="false" [followPointer]="false"></app-maguito>
+        <a class="af-who af-who-link" [routerLink]="['/tavern/amigo', card.friend_code]" (click)="close()">
+          <strong>{{ card.username }}</strong>
+          <span class="af-reason">{{ card.reason }}</span>
+        </a>
+        <button type="button" class="th-btn" [class.secondary]="card.relation !== 'none'"
+                [disabled]="busy === card.friend_code || card.relation === 'friend'" (click)="act(card)"
+                [attr.aria-label]="suggestionLabel(card) + ': ' + card.username">
+          {{ busy === card.friend_code ? 'Un momento…' : suggestionLabel(card) }}
+        </button>
+      </li>
+    </ul>
+  </section>
+
   <ul class="af-results" *ngIf="results.length">
     <li *ngFor="let card of results; trackBy: trackCard">
       <app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"

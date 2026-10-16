@@ -1,0 +1,289 @@
+/* Charlas: el mismo cajón de madera oscura que El Bazar. Entra por la derecha (en el celular,
+   una hoja que sube); cerrado queda `inert` y oculto, así no se alcanza con el teclado. */
+:host {
+  display: block;
+  --fc-width: clamp(340px, 27vw, 420px);
+  --fc-bg: color-mix(in srgb, var(--home-bg-surface) 88%, #1b100b);
+  --fc-raised: color-mix(in srgb, var(--home-ink) 6%, transparent);
+  --fc-line: color-mix(in srgb, var(--th-gold) 20%, var(--home-glass-border));
+  --fc-in: 420ms;
+  --fc-out: 260ms;
+}
+
+.fc-backdrop { display: none; }
+
+.fc-drawer {
+  position: fixed;
+  z-index: 90;
+  top: var(--header-offset, var(--navbar-h, 182px));
+  right: 0;
+  bottom: var(--bottom-nav-h, 0px);
+  width: var(--fc-width);
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(120% 50% at 100% 0%, color-mix(in srgb, var(--th-gold) 10%, transparent), transparent 62%),
+    var(--fc-bg);
+  border-left: 1px solid var(--fc-line);
+  box-shadow: -18px 0 40px rgba(6, 4, 10, .42);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform var(--fc-out) var(--th-ease-out), visibility 0s linear var(--fc-out);
+}
+.fc-drawer.is-open {
+  transform: none;
+  visibility: visible;
+  transition: transform var(--fc-in) var(--th-ease-drawer), visibility 0s;
+}
+.fc-grip { display: none; }
+
+/* ── Encabezado ──────────────────────────────────────────────── */
+.fc-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px 14px 20px;
+  border-bottom: 1px solid var(--fc-line);
+}
+.fc-head.is-thread { padding-left: 10px; }
+.fc-head-copy { flex: 1; min-width: 0; }
+.fc-emblem {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--th-gold) 55%, transparent);
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--th-gold) 34%, transparent), color-mix(in srgb, var(--th-gold) 8%, transparent));
+  color: var(--th-gold);
+}
+.fc-emblem .material-symbols-rounded { font-size: 22px; font-variation-settings: 'FILL' 1; }
+.fc-head h2 {
+  overflow: hidden;
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fc-head h2:focus, .fc-head h2:focus-visible { outline: none; }
+.fc-head p { margin: 2px 0 0; color: var(--th-muted); font-size: .8rem; }
+.fc-close, .fc-back { flex: none; width: 44px; height: 44px; }
+
+.fc-pad { padding: 18px 20px; }
+.fc-center { padding: 24px 8px; text-align: center; }
+.fc-error {
+  margin: 10px 16px 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #e0533d 16%, transparent);
+  color: color-mix(in srgb, #ffb4a6 80%, var(--th-ink));
+  font-size: .82rem;
+}
+
+/* ── Lista de charlas ────────────────────────────────────────── */
+.fc-threads {
+  flex: 1;
+  margin: 0;
+  padding: 8px 10px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+.fc-thread {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--th-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .18s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .fc-thread:hover { background: var(--fc-raised); }
+}
+.fc-thread:active { background: var(--fc-raised); }
+.fc-avatar-wrap { position: relative; flex: none; }
+.fc-avatar {
+  display: block;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--th-gold) 10%, var(--home-bg));
+}
+.fc-dot { position: absolute; right: 0; bottom: 2px; box-shadow: 0 0 0 2px var(--fc-bg); }
+.fc-thread-copy { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.fc-thread-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.fc-thread-top strong { overflow: hidden; font-size: .95rem; text-overflow: ellipsis; white-space: nowrap; }
+.fc-thread-top time { flex: none; color: var(--th-muted); font-size: .72rem; }
+.fc-preview {
+  overflow: hidden;
+  color: var(--th-muted);
+  font-size: .82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fc-preview.is-empty { font-style: italic; }
+.fc-thread.has-unread .fc-preview { color: var(--th-ink); font-weight: 600; }
+.fc-unread {
+  flex: none;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--th-gold);
+  color: #1a1005;
+  font: 700 .72rem/22px var(--font-ui);
+  text-align: center;
+}
+
+/* ── Conversación ────────────────────────────────────────────── */
+.fc-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.fc-day {
+  align-self: center;
+  margin: 8px 0 4px;
+  color: var(--th-muted);
+  font-size: .72rem;
+  font-weight: 600;
+}
+.fc-day span { padding: 3px 10px; border-radius: 99px; background: var(--fc-raised); }
+.fc-bubble {
+  align-self: flex-start;
+  max-width: 82%;
+  padding: 8px 12px 6px;
+  border-radius: 16px 16px 16px 6px;
+  background: color-mix(in srgb, var(--home-ink) 9%, var(--fc-bg));
+  color: var(--th-ink);
+}
+.fc-bubble.is-me {
+  align-self: flex-end;
+  border-radius: 16px 16px 6px 16px;
+  background: color-mix(in srgb, var(--th-gold) 26%, var(--fc-bg));
+}
+.fc-bubble p {
+  margin: 0;
+  font-size: .9rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.fc-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  margin-top: 2px;
+  color: var(--th-muted);
+  font-size: .66rem;
+}
+.fc-read { font-size: 14px; }
+.fc-read.is-read { color: var(--th-gold); }
+
+/* El margen derecho deja libre la esquina de los botones flotantes (asistente y cuaderno),
+   que van por encima de todo: si no, tapan el botón de enviar. */
+.fc-composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 10px 104px 14px 14px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--fc-line);
+  border-radius: 18px;
+  background: var(--fc-raised);
+}
+.fc-composer:focus-within { border-color: color-mix(in srgb, var(--th-gold) 60%, transparent); }
+.fc-composer textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 120px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--th-ink);
+  font: 500 .9rem/1.4 var(--font-ui);
+  resize: none;
+  field-sizing: content;
+}
+.fc-composer textarea:focus { outline: none; }
+.fc-composer textarea::placeholder { color: var(--th-muted); }
+.fc-send {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--th-gold);
+  color: #1a1005;
+  cursor: pointer;
+  transition: transform .16s var(--th-ease-out), opacity .2s;
+}
+.fc-send:active:not(:disabled) { transform: scale(.94); }
+.fc-send:disabled { opacity: .45; cursor: default; }
+.fc-send .material-symbols-rounded { font-size: 19px; margin-left: 2px; }
+.fc-count { margin: -8px 20px 10px; color: var(--th-muted); font-size: .7rem; text-align: right; }
+
+/* ── Celular: hoja que sube desde abajo ──────────────────────── */
+@media (max-width: 700px) {
+  .fc-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(8, 6, 12, .55);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--fc-out) ease, visibility 0s linear var(--fc-out);
+  }
+  .fc-backdrop.is-open { opacity: 1; visibility: visible; transition: opacity var(--fc-in) ease, visibility 0s; }
+  /* La sala entera queda bajo el encabezado del sitio (que es pegajoso): la hoja empieza
+     debajo de él para que no tape el nombre, volver y cerrar. */
+  .fc-drawer {
+    z-index: 1050;
+    top: calc(var(--navbar-h, 112px) + 10px);
+    left: 0;
+    width: auto;
+    height: auto;
+    border-left: 0;
+    border-top: 1px solid var(--fc-line);
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -16px 40px rgba(6, 4, 10, .45);
+    transform: translateY(100%);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .fc-grip {
+    display: block;
+    width: 44px;
+    height: 5px;
+    margin: 10px auto 0;
+    border-radius: 99px;
+    background: color-mix(in srgb, var(--th-ink) 28%, transparent);
+  }
+  .fc-head { padding: 10px 12px 10px 16px; }
+  .fc-head.is-thread { padding-left: 6px; }
+}
+
+/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (pointer: coarse) {
+  .fc-composer textarea { font-size: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-drawer, .fc-drawer.is-open, .fc-backdrop, .fc-backdrop.is-open { transition: none; }
+}

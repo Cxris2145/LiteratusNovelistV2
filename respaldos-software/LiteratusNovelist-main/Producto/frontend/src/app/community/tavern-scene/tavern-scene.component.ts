@@ -5,9 +5,11 @@ import {
 
 import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
+import { userStorageKey } from '../../core/services/auth.service';
 import { FriendStatus, TavernChatMessage, TavernReactionItem } from '../../core/services/community.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
 import { TavernTableAction } from '../tavern-table/tavern-table.types';
+import { timeAgo } from '../time-ago.util';
 
 /** Alguien sentado a la mesa. */
 export interface SceneGuest {
@@ -54,6 +56,18 @@ const PHRASES = [
 ];
 const ROTATE_MS = 12000;
 const FITTING_BUBBLE: BubbleData = { text: '¿Cómo me queda? ✨', isChat: false };
+/** Un mensaje de la mesa se ve como globo sobre su Maguito solo un rato; después queda en el historial. */
+const BUBBLE_MS = 10 * 60_000;
+const HISTORY_SEEN_KEY = 'literatus_tavern_history_seen';
+
+/** Mensajes seguidos de una misma persona en el historial de la mesa. */
+export interface HistoryGroup {
+  key: string;
+  username: string;
+  isMe: boolean;
+  outfit: MaguitoOutfit;
+  messages: TavernChatMessage[];
+}
 
 /**
  * La mesa de La Taberna de Tinta:
@@ -87,6 +101,9 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
 
   @Output() sendMessage = new EventEmitter<string>();
   @Output() sendReaction = new EventEmitter<string>();
+  /** Se abrió el historial: la sala trae los últimos 50 mensajes. */
+  @Output() historyOpen = new EventEmitter<void>();
+  @Output() deleteMessage = new EventEmitter<string>();
   @Output() tableAction = new EventEmitter<TavernTableAction>();
   @Output() guestSelect = new EventEmitter<SceneGuest>();
   /** Botón "El Bazar" de la mesa. */
@@ -112,6 +129,12 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   fitBursts: number[] = [];
 
   readonly quickEmojis = ['😊', '📚', '🍺', '✨', '🧙‍♂️', '📜', '🕯️', '🔥'];
+
+  historyOpenState = false;
+  historyGroups: HistoryGroup[] = [];
+  unseenCount = 0;
+  private historySeenAt = 0;
+  readonly timeAgo = timeAgo;
 
   private tick = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -144,6 +167,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['messages']) this.buildHistory();
     this.build();
     if (changes['reactions'] && this.reactions) {
       // La lista vacía inicial y la primera carga son de antes de llegar: solo se marcan como vistas.
@@ -176,6 +200,8 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   /** Un bocadillo nuevo por cada frase: así entra con su animación al cambiar el texto. */
   trackBubble = (_: number, bubble: BubbleData) => bubble.text;
   trackBurst = (_: number, burst: number) => burst;
+  trackGroup = (_: number, group: HistoryGroup) => group.key;
+  trackMessage = (_: number, message: TavernChatMessage) => message.id;
 
   sendChat(): void {
     const text = this.chatText.trim();
@@ -193,6 +219,26 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  toggleHistory(): void {
+    this.historyOpenState = !this.historyOpenState;
+    this.showEmojiList = false;
+    if (this.historyOpenState) {
+      this.historyOpen.emit();
+      this.markHistorySeen();
+      this.scrollHistoryToEnd();
+    }
+  }
+
+  closeHistory(): void {
+    if (!this.historyOpenState) return;
+    this.historyOpenState = false;
+    this.cdr.markForCheck();
+  }
+
+  removeMessage(message: TavernChatMessage): void {
+    if (message.is_me) this.deleteMessage.emit(message.id);
+  }
+
   insertEmoji(emoji: string): void {
     this.chatText += emoji;
     this.showEmojiList = false;
@@ -205,8 +251,10 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   /** El selector de emojis se cierra al pulsar fuera o con Escape. */
   @HostListener('document:pointerdown', ['$event'])
   onDocumentPointer(event: PointerEvent): void {
-    if (!this.showEmojiList) return;
     const target = event.target as Element | null;
+    // Escribir o reaccionar no cierra el historial: así se ve llegar lo que uno manda.
+    if (this.historyOpenState && !target?.closest('.ts-chat-dock')) this.closeHistory();
+    if (!this.showEmojiList) return;
     if (target?.closest('.ts-emoji-picker-wrap, .ts-emoji-toggle')) return;
     this.showEmojiList = false;
     this.cdr.markForCheck();
@@ -217,7 +265,9 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     if (this.showEmojiList) {
       this.showEmojiList = false;
       this.cdr.markForCheck();
+      return;
     }
+    this.closeHistory();
   }
 
   catMessage: string | null = null;
@@ -402,9 +452,15 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  /** Los mensajes de la mesa que todavía se ven como globo. */
+  private get bubbleMessages(): TavernChatMessage[] {
+    const since = Date.now() - BUBBLE_MS;
+    return this.messages.filter(m => Date.parse(m.created_at) >= since);
+  }
+
   private hostBubble(): BubbleData | null {
     if (this.me) {
-      const myMsg = this.messages.find(m => m.is_me || m.username === this.me!.username);
+      const myMsg = this.bubbleMessages.find(m => m.is_me || m.username === this.me!.username);
       if (myMsg && myMsg.content) {
         return { text: this.shorten(myMsg.content, 48), fullText: myMsg.content, isChat: true };
       }
@@ -416,7 +472,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
 
   private bubbleFor(guest: SceneGuest, seatIndex: number): BubbleData | null {
     // 1. ¿Hay un mensaje reciente de chat para este usuario?
-    const userMsg = this.messages.find(
+    const userMsg = this.bubbleMessages.find(
       m => m.username.toLowerCase() === guest.username.toLowerCase() || (m.friend_code && m.friend_code === guest.code)
     );
     if (userMsg && userMsg.content) {
@@ -434,6 +490,49 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     // 3. Frases temáticas con emojis
     const index = (hash(guest.code) + Math.floor((this.tick + seatIndex) / 2)) % PHRASES.length;
     return { text: PHRASES[index].replace('{n}', String(guest.level ?? 1)), isChat: false };
+  }
+
+  /** Agrupa los mensajes (del más viejo al más nuevo) por autor seguido, como en un chat. */
+  private buildHistory(): void {
+    const ordered = [...(this.messages ?? [])].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+    const groups: HistoryGroup[] = [];
+    for (const message of ordered) {
+      const last = groups[groups.length - 1];
+      if (last && last.username === message.username) last.messages.push(message);
+      else groups.push({ key: message.id, username: message.username, isMe: message.is_me, outfit: message.outfit, messages: [message] });
+    }
+    this.historyGroups = groups;
+    if (!this.historySeenAt) this.historySeenAt = this.readHistorySeen();
+    if (this.historyOpenState) {
+      this.markHistorySeen();
+      this.scrollHistoryToEnd();
+    } else {
+      this.unseenCount = ordered.filter(m => !m.is_me && Date.parse(m.created_at) > this.historySeenAt).length;
+    }
+  }
+
+  private markHistorySeen(): void {
+    const newest = this.messages.reduce((max, m) => Math.max(max, Date.parse(m.created_at) || 0), 0);
+    this.historySeenAt = Math.max(this.historySeenAt, newest, Date.now());
+    this.unseenCount = 0;
+    try { localStorage.setItem(userStorageKey(HISTORY_SEEN_KEY), String(this.historySeenAt)); } catch { /* sin almacenamiento */ }
+  }
+
+  private readHistorySeen(): number {
+    try {
+      const saved = Number(localStorage.getItem(userStorageKey(HISTORY_SEEN_KEY)));
+      // La primera vez, lo anterior a hoy no cuenta como nuevo.
+      return Number.isFinite(saved) && saved > 0 ? saved : Date.now() - 24 * 60 * 60_000;
+    } catch {
+      return Date.now();
+    }
+  }
+
+  private scrollHistoryToEnd(): void {
+    setTimeout(() => {
+      const list = this.host.querySelector<HTMLElement>('.ts-history-list');
+      if (list) list.scrollTop = list.scrollHeight;
+    });
   }
 
   private describe(seated: SceneGuest[]): string {

@@ -8,8 +8,9 @@ import { NotificationService } from '../../core/services/notification.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
 
 /**
- * Perfil de otro lector en /tavern/amigo/:code. Si es tu amigo ves todo y puedes brindar;
- * si no, solo su Maguito, su nombre y el botón para invitarlo.
+ * Perfil de otro lector en /tavern/amigo/:code. Si es tu amigo ves todo, puedes brindar y
+ * conversar; si no lo es y su perfil es público, ves su tarjeta completa y el botón para
+ * invitarlo; si es privado, solo su Maguito, su nombre y ese botón.
  */
 @Component({
   selector: 'app-friend-profile',
@@ -38,6 +39,15 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
 
   get minimal(): TavernCard | null {
     return this.profile && !this.profile.full ? this.profile : null;
+  }
+
+  get isFriend(): boolean {
+    return this.profile?.relation === 'friend';
+  }
+
+  openChat(): void {
+    const friend = this.full;
+    if (friend) this.router.navigate(['/tavern'], { queryParams: { charla: friend.friend_code } });
   }
 
   ngOnInit(): void {
@@ -88,8 +98,8 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
   }
 
   requestAction(): void {
-    const card = this.minimal;
-    if (!card || this.busy) return;
+    const card = this.profile;
+    if (!card || card.relation === 'friend' || card.relation === 'self' || this.busy) return;
     if (card.relation === 'incoming' && card.request_id) {
       this.run(this.community.accept(card.request_id), () => this.load());
     } else if (card.relation === 'outgoing' && card.request_id) {
@@ -102,7 +112,7 @@ export class FriendProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  requestLabel(card: TavernCard): string {
+  requestLabel(card: Pick<TavernCard, 'relation'>): string {
     if (card.relation === 'incoming') return 'Aceptar solicitud';
     if (card.relation === 'outgoing') return 'Cancelar solicitud';
     return 'Enviar solicitud';

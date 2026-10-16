@@ -43,6 +43,15 @@ class CommunitySearchView(CommunityView):
         return Response({'results': services.search(request.user, request.query_params.get('q', ''))})
 
 
+class SuggestionsView(CommunityView):
+    """GET suggestions/ — Lectores que quizá conozcas (perfiles públicos), para "Agregar amigo"."""
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'community_search'
+
+    def get(self, request):
+        return Response({'results': services.suggestions(request.user)})
+
+
 class FriendListView(CommunityView):
     """GET friends/ — Mis amigos con su estado (en la taberna, leyendo, de paseo)."""
 
@@ -153,11 +162,15 @@ class PresenceView(CommunityView):
 
 class TavernMessagesView(CommunityView):
     """
-    GET  tavern/messages/ — Mensajes de la mesa.
+    GET  tavern/messages/?limit=30 — Mensajes de la mesa (hasta 50), del más nuevo al más viejo.
     POST tavern/messages/ — Enviar mensaje a la mesa. Body: {content}
     """
     def get(self, request):
-        return Response({'results': services.list_tavern_messages(request.user)})
+        try:
+            limit = int(request.query_params.get('limit', 30))
+        except ValueError:
+            limit = 30
+        return Response({'results': services.list_tavern_messages(request.user, limit)})
 
     def post(self, request):
         content = request.data.get('content')
@@ -171,15 +184,13 @@ class TavernMessageDetailView(CommunityView):
 
 
 class TavernReactionsView(CommunityView):
-    """POST tavern/reactions/ — Reaccionar (🍺, ❤️, 👏, 📖, ✨). Body: {reaction, message_id?}"""
+    """POST tavern/reactions/ — Reaccionar (🍺, ❤️, 👏, 📖, ✨). No se guarda. Body: {reaction}"""
     def post(self, request):
-        reaction = request.data.get('reaction')
-        message_id = request.data.get('message_id')
-        return _result(services.send_tavern_reaction(request.user, reaction, message_id))
+        return _result(services.send_tavern_reaction(request.user, request.data.get('reaction')))
 
 
 class TavernActivityView(CommunityView):
-    """GET tavern/activity/ — Mensajes y reacciones recientes para animación y burbujas."""
+    """GET tavern/activity/ — Mensajes, reacciones, invitaciones y charlas sin leer (sondeo de la mesa)."""
     def get(self, request):
         return Response(services.recent_tavern_activity(request.user))
 
@@ -199,3 +210,33 @@ class TavernInvitationResponseView(CommunityView):
         if action not in ('accept', 'decline'):
             return Response({'success': False, 'message': 'Elige aceptar o descartar la invitación.'}, status=400)
         return _result(services.respond_to_tavern_invitation(request.user, pk, action == 'accept'))
+
+
+class ChatThreadsView(CommunityView):
+    """GET chats/ — Tus amigos con su último mensaje y los no leídos."""
+
+    def get(self, request):
+        return Response(services.chat_threads(request.user))
+
+
+class ChatMessagesView(CommunityView):
+    """
+    GET  chats/<code>/?after=<id> — Mensajes de la charla con un amigo (marca leídos los recibidos).
+    POST chats/<code>/ — Enviar un mensaje. Body: {content}
+    """
+
+    def _friend(self, code):
+        profile = services.profile_by_code(code)
+        return profile.user if profile else None
+
+    def get(self, request, code):
+        friend = self._friend(code)
+        if friend is None:
+            return _not_found()
+        return _result(services.chat_messages(request.user, friend, request.query_params.get('after')))
+
+    def post(self, request, code):
+        friend = self._friend(code)
+        if friend is None:
+            return _not_found()
+        return _result(services.send_chat_message(request.user, friend, request.data.get('content')))

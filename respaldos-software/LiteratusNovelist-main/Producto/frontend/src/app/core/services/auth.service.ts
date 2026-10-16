@@ -38,7 +38,10 @@ export function userStorageKey(base: string): string {
 }
 
 /** Claves que antes se guardaban sin dueño y cualquier cuenta del navegador podía leer. */
-const LEGACY_SHARED_KEYS = ['literatus_cart', 'discover_saved', 'book_editor_draft', 'user_avatar_color'];
+const LEGACY_SHARED_KEYS = [
+  'literatus_cart', 'discover_saved', 'book_editor_draft', 'user_avatar_color',
+  'literatus_tavern_music', 'literatus_tavern_ambient_audio',
+];
 const LEGACY_SHARED_PREFIXES = ['literatus_daily_enigma_'];
 
 @Injectable({

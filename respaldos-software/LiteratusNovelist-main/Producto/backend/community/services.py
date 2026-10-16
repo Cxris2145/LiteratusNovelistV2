@@ -7,16 +7,19 @@ resto de servicios del proyecto; `status` es el código HTTP que debe responder 
 Hacer amigos o brindar no da XP ni Tinta: así nadie infla el ranking con cuentas falsas.
 """
 import re
+import uuid
+from collections import Counter
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Sum
+from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.utils import timezone
 
 from users.models import Profile
 from users.serializers import level_name_for
-from .models import Brindis, Friendship, TavernInvitation, TavernMessage, TavernReaction, pair_key_for
+from . import live
+from .models import Brindis, FriendMessage, Friendship, TavernInvitation, TavernMessage, pair_key_for
 
 User = get_user_model()
 
@@ -28,6 +31,9 @@ READING_WINDOW = timedelta(minutes=10)
 OPEN_SESSION_WINDOW = timedelta(minutes=45)
 PRESENCE_WRITE_EVERY = timedelta(seconds=30)
 SEARCH_LIMIT = 8
+SUGGESTION_LIMIT = 8
+SUGGESTION_RECENT_TAVERN = timedelta(days=7)
+NEW_READER_WINDOW = timedelta(days=30)
 
 # Mismo alfabeto que users.models.FRIEND_CODE_ALPHABET (sin I, L, O, 0 ni 1).
 FRIEND_CODE_RE = re.compile(r'^[2-9A-HJKMNP-Z]{6}$')
@@ -104,26 +110,33 @@ def minimal_card(profile, relation='none', request_id=None) -> dict:
         'outfit': profile.outfit or {},
         'equipped_frame': profile.equipped_frame,
         'equipped_title': profile.equipped_title,
+        'is_public': profile.is_public,
         'relation': relation,
         'request_id': request_id,
     }
 
 
 def profile_stats(user) -> dict:
+    from catalog.age import visible_books
     from catalog.models import Review
-    from library.models import ReadingProgress
+    from library.models import ReadingProgress, UserInventory
 
+    friends = friend_ids(user)
+    # Lo mismo que lista Mi Biblioteca; dos ediciones del mismo libro cuentan una vez.
+    library = visible_books(UserInventory.objects.filter(user=user), user, 'edition__book__')
     return {
+        'books': library.values('edition__book_id').distinct().count(),
         'books_read': ReadingProgress.objects.filter(
             inventory__user=user, completion_percentage__gte=100, is_active=True).count(),
         'reviews': Review.objects.filter(user=user).count(),
-        'friends': len(friend_ids(user)),
+        # Igual que la lista de amigos: las cuentas desactivadas no cuentan.
+        'friends': User.objects.filter(pk__in=friends, is_active=True).count() if friends else 0,
         'brindis': Brindis.objects.filter(receiver=user).count(),
     }
 
 
-def full_card(profile, relation) -> dict:
-    """Perfil completo: para uno mismo y para los amigos."""
+def full_card(profile, relation, request_id=None) -> dict:
+    """Perfil completo: para uno mismo, para los amigos y para cualquiera si el perfil es público."""
     user = profile.user
     return {
         'full': True,
@@ -140,8 +153,9 @@ def full_card(profile, relation) -> dict:
         'favorite_genres': [{'name': g.name, 'slug': g.slug} for g in profile.favorite_genres.all()[:6]],
         'stats': profile_stats(user),
         'member_since': user.date_joined,
+        'is_public': profile.is_public,
         'relation': relation,
-        'request_id': None,
+        'request_id': request_id,
     }
 
 
@@ -151,7 +165,10 @@ def my_card(user) -> dict:
 
 
 def profile_for_viewer(me, raw_code):
-    """Perfil por código: completo si eres tú o un amigo; mínimo en otro caso. None si no existe."""
+    """
+    Perfil por código: completo si eres tú, un amigo o el perfil es público; mínimo si es
+    privado. None si no existe.
+    """
     profile = profile_by_code(raw_code)
     if profile is None:
         return None
@@ -159,6 +176,8 @@ def profile_for_viewer(me, raw_code):
         return full_card(profile, 'self')
     relation, request_id = relations_for(me, [profile.user_id])[profile.user_id]
     if relation != 'friend':
+        if profile.is_public:
+            return full_card(profile, relation, request_id)
         return minimal_card(profile, relation, request_id)
     card = full_card(profile, 'friend')
     card['brindis_given'] = Brindis.objects.filter(giver=me, receiver=profile.user).exists()
@@ -166,7 +185,10 @@ def profile_for_viewer(me, raw_code):
 
 
 def search(me, raw_query) -> list:
-    """Busca por código exacto y por nombre de usuario que empiece con el texto."""
+    """
+    Busca por código exacto y por nombre de usuario que empiece con el texto. Los perfiles
+    privados solo aparecen con su código.
+    """
     query = str(raw_query or '').strip().lstrip('#').strip()
     if len(query) < 3:
         return []
@@ -176,12 +198,74 @@ def search(me, raw_query) -> list:
     if code:
         found.extend(base.filter(friend_code=code))
     found.extend(
-        base.filter(user__username__istartswith=query)
+        base.filter(user__username__istartswith=query, is_public=True)
         .exclude(pk__in=[p.pk for p in found])
         .order_by('user__username')[:SEARCH_LIMIT - len(found)]
     )
     relations = relations_for(me, [p.user_id for p in found])
     return [minimal_card(p, *relations[p.user_id]) for p in found]
+
+
+def suggestions(me, limit=SUGGESTION_LIMIT) -> list:
+    """
+    Lectores que quizá conozcas, para "Agregar amigo": amigos de tus amigos, gustos en común
+    y quienes pasaron hace poco por la taberna; si faltan, los que acaban de llegar.
+    Solo perfiles públicos, sin cuentas del equipo ni nadie con quien ya tengas una solicitud.
+    """
+    related = {b if a == me.pk else a for a, b in
+               Friendship.objects.filter(Q(requester=me) | Q(addressee=me)).values_list('requester_id', 'addressee_id')}
+    base = (_profiles().filter(is_public=True, user__is_staff=False, user__is_superuser=False)
+            .exclude(user=me).exclude(user_id__in=related))
+
+    mine = friend_ids(me)
+    mutual = Counter()
+    if mine:
+        rows = (Friendship.objects.filter(status=Friendship.Status.ACCEPTED)
+                .filter(Q(requester_id__in=mine) | Q(addressee_id__in=mine))
+                .values_list('requester_id', 'addressee_id'))
+        for a, b in rows:
+            if a in mine:
+                mutual[b] += 1
+            if b in mine:
+                mutual[a] += 1
+
+    shared = {}
+    my_genres = list(Profile.favorite_genres.through.objects
+                     .filter(profile__user=me).values_list('genre_id', flat=True))
+    if my_genres:
+        rows = (Profile.favorite_genres.through.objects
+                .filter(genre_id__in=my_genres, profile__in=base)
+                .values_list('profile__user_id', 'genre__name')[:400])
+        for uid, name in rows:
+            shared.setdefault(uid, []).append(name)
+
+    now = timezone.now()
+    recent = set(base.filter(last_seen_in_tavern__gte=now - SUGGESTION_RECENT_TAVERN)
+                 .values_list('user_id', flat=True)[:50])
+    newest = list(base.order_by('-user__date_joined').values_list('user_id', flat=True)[:limit * 2])
+
+    candidates = (set(mutual) | set(shared) | recent | set(newest)) - related - {me.pk}
+    profiles = list(base.filter(user_id__in=candidates))
+
+    def score(profile):
+        uid = profile.user_id
+        return (mutual[uid] * 3 + len(shared.get(uid, ())) * 2 + (1 if uid in recent else 0),
+                profile.user.date_joined)
+
+    def reason(profile):
+        uid = profile.user_id
+        if mutual[uid]:
+            return f'{mutual[uid]} amigo en común' if mutual[uid] == 1 else f'{mutual[uid]} amigos en común'
+        if shared.get(uid):
+            return f'También le gusta {shared[uid][0]}'
+        if uid in recent:
+            return 'Estuvo en la taberna esta semana'
+        if now - profile.user.date_joined <= NEW_READER_WINDOW:
+            return 'Nuevo en Literatus'
+        return 'Lector de Literatus'
+
+    ranked = sorted(profiles, key=score, reverse=True)[:limit]
+    return [{**minimal_card(p), 'reason': reason(p), 'mutual_friends': mutual[p.user_id]} for p in ranked]
 
 
 # ── Estado de los amigos ──────────────────────────────────────────────
@@ -470,50 +554,52 @@ def ranking(me, scope='week', limit=5):
     }
 
 
-# ── Chat y Reacciones de La Taberna ───────────────────────────────────
+# ── Chat de la mesa y reacciones ──────────────────────────────────────
 
-REACTION_MAP = {
+REACTION_EMOJI = {
     'beer': '🍺',
     'heart': '❤️',
     'clap': '👏',
     'book': '📖',
     'sparkle': '✨',
-    '🍺': 'beer',
-    '❤️': 'heart',
-    '👏': 'clap',
-    '📖': 'book',
-    '✨': 'sparkle',
 }
+# El corazón llega con o sin el selector de variación (U+FE0F) según el teclado.
+_REACTION_BY_EMOJI = {emoji.replace('️', ''): key for key, emoji in REACTION_EMOJI.items()}
+
+TAVERN_MESSAGES_MAX = 50
+
+
+def _reaction_key(raw):
+    """'beer' o '🍺' → 'beer'. None si no es una de las cinco reacciones."""
+    raw = str(raw or '').strip()
+    if raw in REACTION_EMOJI:
+        return raw
+    return _REACTION_BY_EMOJI.get(raw.replace('️', ''))
+
+
+def _tavern_message_item(msg, me, profile) -> dict:
+    return {
+        'id': str(msg.id),
+        'content': msg.content,
+        'created_at': msg.created_at,
+        'is_me': msg.user_id == me.pk,
+        'username': msg.user.username,
+        'friend_code': profile.friend_code if profile else None,
+        'outfit': (profile.outfit or {}) if profile else {},
+        'equipped_frame': profile.equipped_frame if profile else None,
+    }
 
 
 def list_tavern_messages(me, limit=30) -> list:
-    """Mensajes de tu mesa (tú y tus amigos)."""
+    """Mensajes de tu mesa (tú y tus amigos), del más nuevo al más viejo."""
     ids = friend_ids(me) | {me.pk}
+    limit = max(1, min(int(limit), TAVERN_MESSAGES_MAX))
     messages = list(TavernMessage.objects
                     .filter(user_id__in=ids)
                     .select_related('user')
-                    .prefetch_related('reactions')
                     .order_by('-created_at')[:limit])
-
-    profiles = {p.user_id: p for p in _profiles().filter(user_id__in=ids)}
-    result = []
-    for msg in messages:
-        profile = profiles.get(msg.user_id)
-        reaction_counts = {}
-        for r in msg.reactions.all():
-            reaction_counts[r.reaction] = reaction_counts.get(r.reaction, 0) + 1
-
-        result.append({
-            'id': str(msg.id),
-            'content': msg.content,
-            'created_at': msg.created_at,
-            'is_me': msg.user_id == me.pk,
-            'username': msg.user.username,
-            'friend_code': profile.friend_code if profile else None,
-            'outfit': profile.outfit if profile else {},
-            'reactions': reaction_counts,
-        })
-    return result
+    profiles = {p.user_id: p for p in _profiles().filter(user_id__in={m.user_id for m in messages})}
+    return [_tavern_message_item(msg, me, profiles.get(msg.user_id)) for msg in messages]
 
 
 def send_tavern_message(me, raw_content) -> dict:
@@ -535,16 +621,7 @@ def send_tavern_message(me, raw_content) -> dict:
 
     msg = TavernMessage.objects.create(user=me, content=content)
     profile = _profiles().filter(user=me).first()
-    return _ok('Mensaje compartido.', status=201, message={
-        'id': str(msg.id),
-        'content': msg.content,
-        'created_at': msg.created_at,
-        'is_me': True,
-        'username': me.username,
-        'friend_code': profile.friend_code if profile else None,
-        'outfit': profile.outfit if profile else {},
-        'reactions': {},
-    })
+    return _ok('Mensaje compartido.', status=201, message=_tavern_message_item(msg, me, profile))
 
 
 def delete_tavern_message(me, message_id) -> dict:
@@ -557,60 +634,167 @@ def delete_tavern_message(me, message_id) -> dict:
     return _ok('Mensaje eliminado.')
 
 
-def send_tavern_reaction(me, raw_reaction, message_id=None) -> dict:
-    """Reacciona a la mesa o a un mensaje."""
-    canonical = REACTION_MAP.get(raw_reaction)
-    if not canonical:
+def send_tavern_reaction(me, raw_reaction) -> dict:
+    """Reacciona a la mesa. No se guarda: tus amigos la ven flotar unos segundos y desaparece."""
+    key = _reaction_key(raw_reaction)
+    if key is None:
         return _fail('INVALID_REACTION', 'Reacción no válida.')
-    # Normalizar a clave en texto inglés si vino como emoji
-    if canonical not in ('beer', 'heart', 'clap', 'book', 'sparkle'):
-        canonical = raw_reaction
-
-    now = timezone.now()
-    last = TavernReaction.objects.filter(user=me).order_by('-created_at').first()
-    if last and now - last.created_at < timedelta(seconds=1):
+    if not live.take_reaction_slot(me):
         return _fail('REACTION_COOLDOWN', 'Un segundo entre reacciones.', status=429)
 
-    target_msg = None
-    if message_id:
-        target_msg = TavernMessage.objects.filter(pk=message_id).first()
-
-    rec = TavernReaction.objects.create(user=me, message=target_msg, reaction=canonical)
-    emoji = REACTION_MAP.get(canonical, canonical)
+    item = live.push_reaction(me, key, REACTION_EMOJI[key])
     return _ok('Reacción enviada.', status=201, reaction={
-        'id': str(rec.id),
-        'reaction': canonical,
-        'emoji': emoji,
-        'symbol': emoji,
+        'id': item['id'],
+        'reaction': key,
+        'emoji': item['emoji'],
+        'symbol': item['emoji'],
         'username': me.username,
-        'message_id': str(target_msg.id) if target_msg else None,
-        'created_at': rec.created_at,
+        'created_at': item['created_at'],
     })
 
 
 def recent_tavern_activity(me) -> dict:
-    """Últimos mensajes y reacciones recientes (para actualizar burbujas y animaciones en vivo)."""
+    """Lo que la mesa sondea cada pocos segundos: mensajes, reacciones, invitaciones y charlas sin leer."""
     ids = friend_ids(me) | {me.pk}
-    messages = list_tavern_messages(me, limit=15)
-    now = timezone.now()
-    recent_reactions = (TavernReaction.objects
-                        .filter(user_id__in=ids, created_at__gte=now - timedelta(seconds=20))
-                        .select_related('user')
-                        .order_by('-created_at')[:10])
-
     return {
-        'messages': messages,
+        'messages': list_tavern_messages(me, limit=15),
         'invitations': tavern_invitations(me),
         'reactions': [{
-            'id': str(r.id),
-            'reaction': r.reaction,
-            'emoji': REACTION_MAP.get(r.reaction, '✨'),
-            'username': r.user.username,
-            'is_me': r.user_id == me.pk,
-            'message_id': str(r.message_id) if r.message_id else None,
-            'created_at': r.created_at,
-        } for r in recent_reactions],
+            'id': item['id'],
+            'reaction': item['reaction'],
+            'emoji': item['emoji'],
+            'username': item['username'],
+            'is_me': item['user_id'] == str(me.pk),
+            'created_at': item['created_at'],
+        } for item in live.recent_reactions(ids)],
+        'chat_unread': chat_unread(me),
     }
+
+
+# ── Charlas privadas entre amigos ─────────────────────────────────────
+
+CHAT_MAX_LENGTH = 500
+CHAT_PAGE = 50
+CHAT_COOLDOWN = timedelta(seconds=1)
+CHAT_BURST_WINDOW = timedelta(minutes=5)
+CHAT_BURST_MAX = 40
+
+
+def _chat_item(msg, me) -> dict:
+    return {
+        'id': str(msg.id),
+        'content': msg.content,
+        'created_at': msg.created_at,
+        'is_me': msg.sender_id == me.pk,
+        'read': msg.read_at is not None,
+    }
+
+
+def _chat_partner_error(me, other):
+    if other.pk == me.pk:
+        return _fail('SELF_CHAT', 'No puedes conversar contigo mismo.')
+    if other.pk not in friend_ids(me):
+        return _fail('NOT_FRIENDS', 'Solo puedes conversar con tus amigos.', status=403)
+    return None
+
+
+def chat_unread(me) -> dict:
+    """{'total': n, 'by_friend': {código: n}} con los mensajes sin leer de tus amigos actuales."""
+    friends = friend_ids(me)
+    if not friends:
+        return {'total': 0, 'by_friend': {}}
+    rows = (FriendMessage.objects.filter(recipient=me, read_at__isnull=True, sender_id__in=friends)
+            .order_by().values('sender_id').annotate(n=Count('id')))
+    counts = {row['sender_id']: row['n'] for row in rows}
+    if not counts:
+        return {'total': 0, 'by_friend': {}}
+    codes = dict(_profiles().filter(user_id__in=counts).values_list('user_id', 'friend_code'))
+    by_friend = {codes[uid]: n for uid, n in counts.items() if codes.get(uid)}
+    return {'total': sum(by_friend.values()), 'by_friend': by_friend}
+
+
+def chat_threads(me) -> dict:
+    """Tus amigos con su último mensaje y los no leídos; primero las charlas más recientes."""
+    friends = friends_list(me)
+    if not friends:
+        return {'threads': [], 'unread_total': 0}
+    user_ids = dict(_profiles().filter(friend_code__in=[f['friend_code'] for f in friends])
+                    .values_list('friend_code', 'user_id'))
+    keys = {pair_key_for(me.pk, uid): code for code, uid in user_ids.items()}
+    latest = FriendMessage.objects.filter(pair_key=OuterRef('pair_key')).order_by('-created_at')
+    last_ids = (Friendship.objects.filter(pair_key__in=keys, status=Friendship.Status.ACCEPTED)
+                .annotate(last_id=Subquery(latest.values('id')[:1]))
+                .values_list('pair_key', 'last_id'))
+    last_by_code = {}
+    wanted = {last_id: keys[pair] for pair, last_id in last_ids if last_id}
+    for msg in FriendMessage.objects.filter(pk__in=wanted):
+        last_by_code[wanted[msg.pk]] = {
+            'content': msg.content[:120],
+            'created_at': msg.created_at,
+            'is_me': msg.sender_id == me.pk,
+        }
+    unread = chat_unread(me)['by_friend']
+    threads = [{
+        **friend,
+        'last_message': last_by_code.get(friend['friend_code']),
+        'unread': unread.get(friend['friend_code'], 0),
+    } for friend in friends]
+    talked = sorted((t for t in threads if t['last_message']),
+                    key=lambda t: t['last_message']['created_at'], reverse=True)
+    silent = [t for t in threads if not t['last_message']]  # friends_list ya viene por nombre
+    return {'threads': talked + silent, 'unread_total': sum(unread.values())}
+
+
+def chat_messages(me, other, after=None) -> dict:
+    """
+    Los últimos mensajes de la charla con un amigo, del más viejo al más nuevo. Con `after`
+    (id de un mensaje) entrega solo los posteriores. Marca como leídos los que te mandó.
+    """
+    error = _chat_partner_error(me, other)
+    if error:
+        return error
+    key = pair_key_for(me.pk, other.pk)
+    conversation = FriendMessage.objects.filter(pair_key=key)
+    anchor = None
+    if after:
+        try:
+            anchor = conversation.filter(pk=uuid.UUID(str(after))).values_list('created_at', flat=True).first()
+        except ValueError:
+            anchor = None
+    if anchor is not None:
+        messages = list(conversation.filter(created_at__gt=anchor).order_by('created_at')[:CHAT_PAGE])
+    else:
+        messages = list(conversation.order_by('-created_at')[:CHAT_PAGE])[::-1]
+
+    now = timezone.now()
+    marked = conversation.filter(recipient=me, read_at__isnull=True).update(read_at=now)
+    if marked:
+        for msg in messages:
+            if msg.recipient_id == me.pk and msg.read_at is None:
+                msg.read_at = now
+    return _ok(messages=[_chat_item(msg, me) for msg in messages], incremental=anchor is not None)
+
+
+def send_chat_message(me, other, raw_content) -> dict:
+    error = _chat_partner_error(me, other)
+    if error:
+        return error
+    content = str(raw_content or '').strip()
+    if not content:
+        return _fail('EMPTY_MESSAGE', 'El mensaje no puede estar vacío.')
+    if len(content) > CHAT_MAX_LENGTH:
+        return _fail('MESSAGE_TOO_LONG', f'El mensaje no puede superar los {CHAT_MAX_LENGTH} caracteres.')
+
+    now = timezone.now()
+    last = (FriendMessage.objects.filter(sender=me).order_by('-created_at')
+            .values_list('created_at', flat=True).first())
+    if last and now - last < CHAT_COOLDOWN:
+        return _fail('SPAM_COOLDOWN', 'Espera un segundo antes de enviar otro mensaje.', status=429)
+    if FriendMessage.objects.filter(sender=me, created_at__gte=now - CHAT_BURST_WINDOW).count() >= CHAT_BURST_MAX:
+        return _fail('RATE_LIMIT', 'Has enviado muchos mensajes seguidos. Tómate un respiro.', status=429)
+
+    msg = FriendMessage.objects.create(sender=me, recipient=other, content=content)
+    return _ok('Mensaje enviado.', status=201, item=_chat_item(msg, me))
 
 
 def tavern_invitations(me):

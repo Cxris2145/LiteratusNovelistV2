@@ -88,6 +88,20 @@
   border-radius: 12px;
 }
 .fl-confirm { display: flex; gap: 4px; padding-right: 6px; }
+.fl-chat { position: relative; }
+.fl-unread {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--th-gold);
+  color: #1a1005;
+  font: 700 .62rem/17px var(--font-ui);
+  text-align: center;
+}
 .fl-menu-icon { margin-right: 10px; font-size: 20px; vertical-align: middle; }
 
 .fl-empty { display: grid; gap: 12px; justify-items: start; }

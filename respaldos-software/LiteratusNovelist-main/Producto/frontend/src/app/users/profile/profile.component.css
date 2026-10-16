@@ -619,3 +619,21 @@ label {
   color: var(--color-on-primary);
   box-shadow: 0 4px 12px var(--color-primary-shadow, rgba(0,0,0,0.3));
 }
+
+/* Perfil público / privado en La Taberna */
+.visibility-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.visibility-toggle input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--color-warning, #d4af37);
+  cursor: pointer;
+}
+.visibility-toggle .material-symbols-rounded { color: var(--color-warning, #d4af37); font-size: 20px; }
+.visibility-group .field-hint { margin-top: 2px; }

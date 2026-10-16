@@ -19,6 +19,8 @@ export class FriendListComponent {
   @Input() loading = false;
   /** Código o id de solicitud con una acción en curso: sus botones se bloquean. */
   @Input() busy: string | null = null;
+  /** Mensajes sin leer de las charlas privadas, por código de amigo. */
+  @Input() unread: Record<string, number> = {};
 
   @Output() accept = new EventEmitter<FriendRequestItem>();
   @Output() decline = new EventEmitter<FriendRequestItem>();
@@ -26,6 +28,8 @@ export class FriendListComponent {
   @Output() toggleBrindis = new EventEmitter<FriendCard>();
   @Output() remove = new EventEmitter<FriendCard>();
   @Output() addFriend = new EventEmitter<void>();
+  /** Abrir la charla privada con un amigo. */
+  @Output() chat = new EventEmitter<FriendCard>();
 
   /** Amigo cuyo botón "Eliminar" pide confirmación. */
   confirming: string | null = null;

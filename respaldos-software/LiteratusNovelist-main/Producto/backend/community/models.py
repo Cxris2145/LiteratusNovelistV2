@@ -102,28 +102,40 @@ class TavernMessage(TimeStampedModel):
         return f'{self.user.username}: {self.content[:30]}'
 
 
-class TavernReaction(TimeStampedModel):
-    """Reacción rápida en La Taberna (🍺, ❤️, 👏, 📖, ✨)."""
-    ALLOWED_REACTIONS = ('beer', 'heart', 'clap', 'book', 'sparkle')
+# Las reacciones (🍺, ❤️, 👏, 📖, ✨) no tienen modelo: son efímeras y viven unos segundos en la
+# caché (community/live.py). Antes se guardaban en TavernReaction; la migración 0005 la borró.
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tavern_reactions'
+
+class FriendMessage(TimeStampedModel):
+    """Mensaje de una charla privada entre dos amigos. Solo lo ven ellos dos mientras sean amigos."""
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='friend_messages_sent'
     )
-    message = models.ForeignKey(
-        TavernMessage, on_delete=models.CASCADE, null=True, blank=True, related_name='reactions'
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='friend_messages_received'
     )
-    reaction = models.CharField(max_length=20)
+    pair_key = models.CharField(max_length=80, editable=False)
+    content = models.CharField(max_length=500)
+    read_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Tavern Reaction'
-        verbose_name_plural = 'Tavern Reactions'
-        ordering = ['-created_at']
+        verbose_name = 'Friend Message'
+        verbose_name_plural = 'Friend Messages'
+        ordering = ['created_at']
+        constraints = [
+            models.CheckConstraint(condition=~Q(sender=F('recipient')), name='friend_message_not_self'),
+        ]
         indexes = [
-            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['pair_key', 'created_at']),
+            models.Index(fields=['recipient', 'read_at']),
         ]
 
+    def save(self, *args, **kwargs):
+        self.pair_key = pair_key_for(self.sender_id, self.recipient_id)
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f'{self.user.username} {self.reaction}'
+        return f'{self.sender} → {self.recipient}: {self.content[:30]}'
 
 
 class TavernInvitation(TimeStampedModel):

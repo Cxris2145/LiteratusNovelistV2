@@ -1,5 +1,6 @@
 import importlib
 from datetime import timedelta
+from unittest import mock
 
 from django.apps import apps as django_apps
 from django.contrib.auth import get_user_model
@@ -8,13 +9,13 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from catalog.models import Book, Edition
+from catalog.models import Book, Edition, Genre, Review
 from learning.models import DailyActivityLog
 from library.achievement_engine import reward_activity
 from library.models import ReadingProgress, UserInventory
 from users.models import FRIEND_CODE_ALPHABET, Profile
 
-from .models import Brindis, Friendship, TavernInvitation
+from .models import Brindis, FriendMessage, Friendship, TavernInvitation, TavernMessage
 
 User = get_user_model()
 API = '/api/v1/community/'
@@ -239,14 +240,38 @@ class FriendRequestTests(CommunityAPITestCase):
 
 
 class PrivacyTests(CommunityAPITestCase):
-    def test_strangers_only_see_the_minimal_card(self):
-        Profile.objects.filter(user=self.bruno).update(bio='Secreto', tagline='Hola')
+    def test_strangers_only_see_the_minimal_card_of_a_private_profile(self):
+        Profile.objects.filter(user=self.bruno).update(bio='Secreto', tagline='Hola', is_public=False)
 
         data = self.as_user(self.ana).get(f'{API}profiles/{code_of(self.bruno)}/').data
 
         self.assertEqual(set(data), {'full', 'friend_code', 'username', 'outfit', 'equipped_frame', 'equipped_title',
-                                     'relation', 'request_id'})
+                                     'is_public', 'relation', 'request_id'})
         self.assertFalse(data['full'])
+        self.assertFalse(data['is_public'])
+
+    def test_profiles_are_public_by_default_and_strangers_see_the_full_card(self):
+        Profile.objects.filter(user=self.bruno).update(bio='Leo de noche')
+        pk = self.as_user(self.ana).post(f'{API}requests/', {'username': 'bruno'}).data['id']
+
+        data = self.client.get(f'{API}profiles/{code_of(self.bruno)}/').data
+
+        self.assertTrue(Profile.objects.get(user=self.carla).is_public)
+        self.assertTrue(data['full'])
+        self.assertEqual(data['bio'], 'Leo de noche')
+        self.assertEqual((data['relation'], data['request_id']), ('outgoing', pk))
+        self.assertIn('stats', data)
+        self.assertNotIn('brindis_given', data)
+        self.assertNotIn('avatar', data)
+
+    def test_friends_see_the_full_card_even_if_private(self):
+        self.befriend(self.ana, self.bruno)
+        Profile.objects.filter(user=self.bruno).update(is_public=False)
+
+        data = self.as_user(self.ana).get(f'{API}profiles/{code_of(self.bruno)}/').data
+
+        self.assertTrue(data['full'])
+        self.assertEqual(data['relation'], 'friend')
 
     def test_friends_see_the_full_profile_with_stats(self):
         self.befriend(self.ana, self.bruno)
@@ -276,6 +301,16 @@ class PrivacyTests(CommunityAPITestCase):
         self.assertEqual([r['username'] for r in by_code], ['bruno'])
         self.assertEqual(by_code[0]['relation'], 'none')
 
+    def test_private_profiles_are_found_only_by_code(self):
+        Profile.objects.filter(user=self.bruno).update(is_public=False)
+        client = self.as_user(self.ana)
+
+        by_name = client.get(f'{API}search/', {'q': 'bru'}).data['results']
+        by_code = client.get(f'{API}search/', {'q': code_of(self.bruno)}).data['results']
+
+        self.assertEqual(by_name, [])
+        self.assertEqual([r['username'] for r in by_code], ['bruno'])
+
     def test_me_includes_code_stats_and_pending(self):
         self.as_user(self.bruno).post(f'{API}requests/', {'username': 'ana'})
 
@@ -283,7 +318,44 @@ class PrivacyTests(CommunityAPITestCase):
 
         self.assertEqual(data['friend_code'], code_of(self.ana))
         self.assertEqual(data['pending_incoming'], 1)
-        self.assertEqual(set(data['stats']), {'books_read', 'reviews', 'friends', 'brindis'})
+        self.assertEqual(set(data['stats']), {'books', 'books_read', 'reviews', 'friends', 'brindis'})
+        self.assertTrue(data['is_public'])
+
+
+class ProfileStatsTests(CommunityAPITestCase):
+    def stats(self):
+        return self.as_user(self.ana).get(f'{API}me/').data['stats']
+
+    def test_books_counts_every_book_in_the_library_once(self):
+        rayuela = Book.objects.create(title='Rayuela', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        ficciones = Book.objects.create(title='Ficciones', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        for edition in (Edition.objects.create(book=rayuela, price=0), Edition.objects.create(book=rayuela, price=1),
+                        Edition.objects.create(book=ficciones, price=0)):
+            UserInventory.objects.create(user=self.ana, edition=edition)
+        UserInventory.objects.create(user=self.bruno, edition=Edition.objects.create(book=ficciones, price=2))
+
+        stats = self.stats()
+
+        self.assertEqual(stats['books'], 2)
+        self.assertEqual(stats['books_read'], 0)
+
+    def test_reviews_and_friends_ignore_inactive_accounts(self):
+        book = Book.objects.create(title='Rayuela', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        Review.objects.create(user=self.ana, book=book, rating=5, comment='Genial')
+        self.befriend(self.ana, self.bruno)
+        self.befriend(self.carla, self.ana)
+        User.objects.filter(pk=self.carla.pk).update(is_active=False)
+
+        stats = self.stats()
+
+        self.assertEqual((stats['reviews'], stats['friends']), (1, 1))
+
+    def test_is_public_can_be_changed_from_the_profile(self):
+        response = self.as_user(self.ana).patch('/api/v1/users/profile/', {'is_public': False}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['is_public'])
+        self.assertFalse(Profile.objects.get(user=self.ana).is_public)
 
 
 class BrindisTests(CommunityAPITestCase):
@@ -426,6 +498,19 @@ class TavernChatTests(CommunityAPITestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0]['username'], 'ana')
         self.assertFalse(messages[0]['is_me'])
+        self.assertNotIn('reactions', messages[0])
+
+    def test_history_limit_is_capped(self):
+        start = timezone.now() - timedelta(hours=1)
+        for i in range(55):
+            msg = TavernMessage.objects.create(user=self.bruno, content=f'Mensaje {i}')
+            TavernMessage.objects.filter(pk=msg.pk).update(created_at=start + timedelta(seconds=i))
+        client = self.as_user(self.ana)
+
+        self.assertEqual(len(client.get(f'{API}tavern/messages/').data['results']), 30)
+        latest = client.get(f'{API}tavern/messages/', {'limit': 500}).data['results']
+        self.assertEqual(len(latest), 50)
+        self.assertEqual(latest[0]['content'], 'Mensaje 54')
 
     def test_delete_own_message_and_forbidden_for_others(self):
         resp = self.as_user(self.ana).post(f'{API}tavern/messages/', {'content': 'Mensaje efímero'})
@@ -463,7 +548,149 @@ class TavernReactionTests(CommunityAPITestCase):
         self.assertTrue(len(act.data['reactions']) >= 1)
         self.assertEqual(act.data['reactions'][0]['reaction'], 'beer')
 
+    def test_reactions_reach_friends_only_and_are_not_stored(self):
+        self.befriend(self.ana, self.bruno)
+        self.as_user(self.ana).post(f'{API}tavern/reactions/', {'reaction': '❤'})  # corazón sin U+FE0F
+
+        seen_by_bruno = self.as_user(self.bruno).get(f'{API}tavern/activity/').data['reactions']
+        seen_by_carla = self.as_user(self.carla).get(f'{API}tavern/activity/').data['reactions']
+
+        self.assertEqual([(r['username'], r['reaction'], r['is_me']) for r in seen_by_bruno], [('ana', 'heart', False)])
+        self.assertEqual(seen_by_carla, [])
+        self.assertNotIn('tavernreaction', {m._meta.model_name for m in django_apps.get_models()})
+
+    def test_reactions_fade_after_a_few_seconds(self):
+        self.as_user(self.ana).post(f'{API}tavern/reactions/', {'reaction': 'clap'})
+        later = timezone.now() + timedelta(seconds=25)
+
+        with mock.patch('community.live.timezone.now', return_value=later):
+            reactions = self.client.get(f'{API}tavern/activity/').data['reactions']
+
+        self.assertEqual(reactions, [])
+
+    def test_one_reaction_per_second(self):
+        client = self.as_user(self.ana)
+
+        first = client.post(f'{API}tavern/reactions/', {'reaction': 'beer'})
+        second = client.post(f'{API}tavern/reactions/', {'reaction': 'book'})
+
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
     def test_send_invalid_reaction(self):
         resp = self.as_user(self.ana).post(f'{API}tavern/reactions/', {'reaction': 'rocket_ship'})
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(resp.data['error'], 'INVALID_REACTION')
+
+
+class FriendChatTests(CommunityAPITestCase):
+    def setUp(self):
+        super().setUp()
+        self.befriend(self.ana, self.bruno)
+
+    def chat_url(self, user):
+        return f'{API}chats/{code_of(user)}/'
+
+    def send(self, sender, recipient, content):
+        # Corre los mensajes anteriores para no chocar con la pausa de un segundo.
+        FriendMessage.objects.filter(sender=sender).update(created_at=timezone.now() - timedelta(seconds=5))
+        return self.as_user(sender).post(self.chat_url(recipient), {'content': content})
+
+    def test_friends_can_talk_and_reading_marks_as_read(self):
+        sent = self.send(self.ana, self.bruno, 'Hola, que lees?')
+        self.send(self.ana, self.bruno, 'Yo voy por Rayuela.')
+
+        self.assertEqual(sent.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(sent.data['item']['is_me'])
+        unread = self.as_user(self.bruno).get(f'{API}tavern/activity/').data['chat_unread']
+        self.assertEqual(unread, {'total': 2, 'by_friend': {code_of(self.ana): 2}})
+
+        data = self.client.get(self.chat_url(self.ana)).data
+        self.assertEqual([m['content'] for m in data['messages']], ['Hola, que lees?', 'Yo voy por Rayuela.'])
+        self.assertFalse(data['messages'][0]['is_me'])
+        self.assertEqual(self.client.get(f'{API}tavern/activity/').data['chat_unread']['total'], 0)
+        self.assertTrue(all(m['read'] for m in self.as_user(self.ana).get(self.chat_url(self.bruno)).data['messages']))
+
+    def test_after_returns_only_newer_messages(self):
+        first = self.send(self.ana, self.bruno, 'Uno').data['item']['id']
+        self.send(self.bruno, self.ana, 'Dos')
+
+        data = self.as_user(self.ana).get(self.chat_url(self.bruno), {'after': first}).data
+
+        self.assertTrue(data['incremental'])
+        self.assertEqual([m['content'] for m in data['messages']], ['Dos'])
+        self.assertFalse(self.client.get(self.chat_url(self.bruno), {'after': 'basura'}).data['incremental'])
+
+    def test_only_friends_can_talk(self):
+        client = self.as_user(self.ana)
+
+        to_stranger = client.post(self.chat_url(self.carla), {'content': 'Hola'})
+        read_stranger = client.get(self.chat_url(self.carla))
+        to_self = client.post(self.chat_url(self.ana), {'content': 'Hola'})
+
+        self.assertEqual((to_stranger.status_code, read_stranger.status_code), (403, 403))
+        self.assertEqual(to_self.data['error'], 'SELF_CHAT')
+        self.assertEqual(client.get(f'{API}chats/ZZZZZZ/').status_code, 404)
+
+    def test_unfriending_hides_the_conversation(self):
+        self.send(self.ana, self.bruno, 'Hola')
+        Friendship.objects.all().delete()
+
+        self.assertEqual(self.as_user(self.bruno).get(self.chat_url(self.ana)).status_code, 403)
+        self.assertEqual(self.client.get(f'{API}tavern/activity/').data['chat_unread']['total'], 0)
+
+    def test_validation_and_cooldown(self):
+        client = self.as_user(self.ana)
+
+        empty = client.post(self.chat_url(self.bruno), {'content': '   '})
+        too_long = client.post(self.chat_url(self.bruno), {'content': 'a' * 501})
+        first = client.post(self.chat_url(self.bruno), {'content': 'Hola'})
+        too_fast = client.post(self.chat_url(self.bruno), {'content': 'Hola otra vez'})
+
+        self.assertEqual((empty.data['error'], too_long.data['error']), ('EMPTY_MESSAGE', 'MESSAGE_TOO_LONG'))
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(too_fast.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+    def test_threads_list_friends_with_last_message_first(self):
+        self.befriend(self.ana, self.carla)
+        self.send(self.bruno, self.ana, 'Te guarde un libro')
+
+        data = self.as_user(self.ana).get(f'{API}chats/').data
+
+        self.assertEqual([t['username'] for t in data['threads']], ['bruno', 'carla'])
+        self.assertEqual(data['threads'][0]['last_message']['content'], 'Te guarde un libro')
+        self.assertEqual((data['threads'][0]['unread'], data['unread_total']), (1, 1))
+        self.assertIsNone(data['threads'][1]['last_message'])
+
+
+class SuggestionTests(CommunityAPITestCase):
+    def suggestions(self, user=None):
+        return self.as_user(user or self.ana).get(f'{API}suggestions/').data['results']
+
+    def test_excludes_me_friends_pending_private_inactive_and_staff(self):
+        self.befriend(self.ana, self.bruno)
+        Friendship.objects.create(requester=self.carla, addressee=self.ana)
+        make_user('dormida', is_active=False)
+        make_user('equipo', is_staff=True)
+        Profile.objects.filter(user=make_user('reservada')).update(is_public=False)
+        make_user('nueva')
+
+        names = [s['username'] for s in self.suggestions()]
+
+        self.assertEqual(names, ['nueva'])
+
+    def test_friends_of_friends_and_shared_genres_come_first(self):
+        fantasia = Genre.objects.create(name='Fantasia', slug='fantasia')
+        self.befriend(self.ana, self.bruno)
+        dario = make_user('dario')
+        self.befriend(self.bruno, dario)
+        Profile.objects.get(user=self.ana).favorite_genres.add(fantasia)
+        Profile.objects.get(user=self.carla).favorite_genres.add(fantasia)
+        make_user('zoe')
+
+        results = self.suggestions()
+
+        self.assertEqual([s['username'] for s in results][:2], ['dario', 'carla'])
+        self.assertEqual(results[0]['reason'], '1 amigo en común')
+        self.assertEqual(results[1]['reason'], 'También le gusta Fantasia')
+        self.assertEqual(results[0]['relation'], 'none')

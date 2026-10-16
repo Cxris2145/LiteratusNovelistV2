@@ -157,6 +157,53 @@
 .pc-code > button { grid-column: 2; grid-row: 1 / span 2; }
 .pc-dress { width: 100%; }
 
+/* Perfil público / privado */
+.pc-privacy {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--home-bg) 55%, transparent);
+  border: 1px solid var(--th-border);
+}
+.pc-privacy-icon { color: var(--th-gold); font-size: 20px; }
+.pc-privacy-copy { display: grid; gap: 1px; min-width: 0; }
+.pc-privacy-copy strong { font-size: .82rem; }
+.pc-privacy-copy span { color: var(--th-muted); font-size: .7rem; line-height: 1.35; }
+.pc-switch {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--th-ink) 30%, transparent);
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--th-ink) 14%, transparent);
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+/* Área táctil de 44 px sin agrandar el interruptor. */
+.pc-switch::before { content: ''; position: absolute; inset: -9px -2px; }
+.pc-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+  transition: transform .2s var(--th-ease-out);
+}
+.pc-switch[aria-checked='true'] { background: var(--th-gold); border-color: var(--th-gold); }
+.pc-switch[aria-checked='true'] .pc-switch-thumb { transform: translateX(18px); }
+.pc-switch:disabled { opacity: .6; cursor: progress; }
+@media (prefers-reduced-motion: reduce) {
+  .pc-switch, .pc-switch-thumb { transition: none; }
+}
+
 /* La tarjeta lateral deja más espacio visible para el salón y el chat. */
 .pc.is-compact { gap: 8px; padding: 16px; }
 .pc.is-compact .th-panel-title { align-items: center; gap: 8px; }

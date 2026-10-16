@@ -5,6 +5,8 @@ from django.urls import path
 
 from .views import (
     BrindisView,
+    ChatMessagesView,
+    ChatThreadsView,
     CommunityMeView,
     CommunityProfileView,
     CommunitySearchView,
@@ -15,6 +17,7 @@ from .views import (
     FriendRequestsView,
     PresenceView,
     RankingView,
+    SuggestionsView,
     TavernActivityView,
     TavernMessageDetailView,
     TavernMessagesView,
@@ -27,6 +30,7 @@ from .views import (
 urlpatterns = [
     path('me/', CommunityMeView.as_view(), name='community-me'),
     path('search/', CommunitySearchView.as_view(), name='community-search'),
+    path('suggestions/', SuggestionsView.as_view(), name='community-suggestions'),
     path('friends/', FriendListView.as_view(), name='community-friends'),
     path('friends/<str:code>/', UnfriendView.as_view(), name='community-unfriend'),
     path('requests/', FriendRequestsView.as_view(), name='community-requests'),
@@ -43,4 +47,6 @@ urlpatterns = [
     path('tavern/activity/', TavernActivityView.as_view(), name='tavern-activity'),
     path('tavern/invitations/', TavernInvitationsView.as_view(), name='tavern-invitations'),
     path('tavern/invitations/<uuid:pk>/respond/', TavernInvitationResponseView.as_view(), name='tavern-invitation-response'),
+    path('chats/', ChatThreadsView.as_view(), name='community-chats'),
+    path('chats/<str:code>/', ChatMessagesView.as_view(), name='community-chat'),
 ]

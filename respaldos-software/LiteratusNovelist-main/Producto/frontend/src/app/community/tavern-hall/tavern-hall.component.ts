@@ -7,7 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { AuthService } from '../../core/services/auth.service';
 import {
-  CommunityMe, CommunityResult, CommunityService, FriendCard, FriendRequestItem, Ranking, RankingScope,
+  ChatUnread, CommunityMe, CommunityResult, CommunityService, FriendCard, FriendRequestItem, Ranking, RankingScope,
   TavernChatMessage, TavernReactionItem, TavernInvitation,
 } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -15,10 +15,12 @@ import { AddFriendDialogComponent, AddFriendDialogData } from '../add-friend-dia
 import { BazarGesture, BazarTab, isBazarTab } from '../tavern-bazar/tavern-bazar.component';
 import { SceneGuest } from '../tavern-scene/tavern-scene.component';
 import { TavernTableAction } from '../tavern-table/tavern-table.types';
-import { TavernAudioService } from '../../core/services/tavern-audio.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
 
 const POLL_MS = 8000;
+/** Cuántos mensajes trae el sondeo de actividad y cuántos guarda el historial de la mesa. */
+const ACTIVITY_MESSAGES = 15;
+const HISTORY_MESSAGES = 50;
 
 /** Mesa de ejemplo para quien visita sin sesión, idéntica a la maqueta. */
 const DEMO_ME: SceneGuest = {
@@ -53,8 +55,9 @@ const DEMO_GUESTS: SceneGuest[] = [
 
 /**
  * La Taberna de Tinta (/tavern): tu Maguito a la mesa con tus amigos, tu perfil,
- * la lista de amigos con sus solicitudes, el chat social en tiempo real, el ranking
- * y El Bazar (?bazar=ropero|racha|perfil), donde tu Maguito se prueba la ropa en la mesa.
+ * la lista de amigos con sus solicitudes, el chat de la mesa, el ranking,
+ * El Bazar (?bazar=ropero|racha|perfil), donde tu Maguito se prueba la ropa en la mesa,
+ * y las charlas privadas con cada amigo (?charla= para la lista, ?charla=CODIGO para una).
  */
 @Component({
   selector: 'app-tavern-hall',
@@ -68,7 +71,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
   private notification = inject(NotificationService);
-  private audio = inject(TavernAudioService);
   private zone = inject(NgZone);
   private destroy$ = new Subject<void>();
   private poll: ReturnType<typeof setInterval> | null = null;
@@ -78,15 +80,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   readonly demoGuests = DEMO_GUESTS;
 
   cinemaMode = false;
-
-  get audioPlaying(): boolean {
-    return this.audio.playing;
-  }
-
-  /** El ícono y su aria-pressed ya muestran el estado: no hace falta un aviso. */
-  toggleAudio(): void {
-    this.audio.toggle();
-  }
 
   toggleCinema(): void {
     this.cinemaMode = !this.cinemaMode;
@@ -111,6 +104,9 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   bazarOpen = false;
   bazarTab: BazarTab = 'ropero';
+  chatOpen = false;
+  chatCode = '';
+  chatUnread: ChatUnread = { total: 0, by_friend: {} };
   /** Lo que se prueba en el Bazar; null = la ropa que lleva puesta. */
   private fittingOutfit: MaguitoOutfit | null = null;
   fittingTick = 0;
@@ -127,6 +123,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   loading = true;
   rankingLoading = false;
+  savingPrivacy = false;
   error = '';
   busy: string | null = null;
 
@@ -140,7 +137,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.loading = false;
       return;
     }
-    // ?bazar=ropero abre el Bazar (también si llega estando ya en la taberna).
+    // ?bazar=ropero abre el Bazar y ?charla=CODIGO una charla (también si llegan estando ya en la taberna).
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const bazar = params.get('bazar');
       if (bazar) {
@@ -150,6 +147,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.bazarOpen = false;
         this.onBazarPreview(null);
       }
+      this.chatOpen = params.has('charla') && !bazar;
+      this.chatCode = this.chatOpen ? (params.get('charla') || '').trim().toUpperCase() : '';
     });
     // #mi-perfil: tu tarjeta es tu perfil público; se centra y brilla un momento.
     this.route.fragment.pipe(takeUntil(this.destroy$)).subscribe(fragment => {
@@ -168,7 +167,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.audio.stop();
     if (this.poll) clearInterval(this.poll);
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
     if (this.spotlightTimer) clearTimeout(this.spotlightTimer);
@@ -193,9 +191,10 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.incoming = data.requests.incoming;
         this.outgoing = data.requests.outgoing;
         this.setRanking(data.ranking);
-        this.messages = data.activity.messages;
+        this.mergeMessages(data.activity.messages, ACTIVITY_MESSAGES);
         this.recentReactions = data.activity.reactions;
         this.setInvitations(data.activity.invitations);
+        this.chatUnread = data.activity.chat_unread ?? this.chatUnread;
         this.loading = false;
         this.spotlightProfile();
       },
@@ -225,6 +224,27 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.profileSpotlight = false;
         this.spotlightTimer = null;
       }, 1700);
+    });
+  }
+
+  /** Interruptor de la tarjeta: cambia al instante y vuelve atrás si no se pudo guardar. */
+  setPrivacy(isPublic: boolean): void {
+    if (!this.me || this.savingPrivacy) return;
+    const previous = this.me.is_public;
+    this.me = { ...this.me, is_public: isPublic };
+    this.savingPrivacy = true;
+    this.community.setProfileVisibility(isPublic).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => {
+        this.savingPrivacy = false;
+        this.notification.success(isPublic
+          ? 'Tu perfil ahora es público: otros lectores pueden verlo y encontrarte.'
+          : 'Tu perfil ahora es privado: solo tus amigos ven tu tarjeta.', 'Taberna');
+      },
+      error: () => {
+        this.savingPrivacy = false;
+        if (this.me) this.me = { ...this.me, is_public: previous };
+        this.notification.error('No pudimos guardar la privacidad de tu perfil.', 'Taberna');
+      },
     });
   }
 
@@ -280,6 +300,25 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     }
   }
 
+  // ── Charlas privadas ──────────────────────────────────────
+
+  /** Abre la lista de charlas o, con código, la conversación con ese amigo. Cierra El Bazar. */
+  openChat(code = ''): void {
+    if (!this.loggedIn) return;
+    if (this.bazarOpen) { this.bazarOpen = false; this.onBazarPreview(null); }
+    this.chatOpen = true;
+    this.chatCode = code;
+    this.syncPanelsUrl();
+  }
+
+  closeChat(): void {
+    if (!this.chatOpen) return;
+    this.chatOpen = false;
+    this.chatCode = '';
+    this.syncPanelsUrl();
+    this.refreshLive(); // los no leídos cambian al leer
+  }
+
   // ── El Bazar ──────────────────────────────────────────────
 
   openBazar(tab: BazarTab = this.bazarTab): void {
@@ -287,9 +326,11 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern?bazar=' + tab } });
       return;
     }
+    this.chatOpen = false;
+    this.chatCode = '';
     this.bazarTab = tab;
     this.bazarOpen = true;
-    this.syncBazarUrl();
+    this.syncPanelsUrl();
     // En escritorio la mesa es el espejo: si quedó fuera de vista, vuelve a ella.
     const scene = document.querySelector('app-tavern-scene');
     if (scene && matchMedia('(min-width: 1001px)').matches && scene.getBoundingClientRect().top < 0) {
@@ -301,7 +342,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     if (!this.bazarOpen) return;
     this.bazarOpen = false;
     this.onBazarPreview(null);
-    this.syncBazarUrl();
+    this.syncPanelsUrl();
   }
 
   onBazarPreview(outfit: MaguitoOutfit | null): void {
@@ -326,13 +367,19 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.cinemaMode = false;
       return;
     }
-    if (this.bazarOpen && !this.dialog.openDialogs.length) this.closeBazar();
+    if (this.dialog.openDialogs.length) return;
+    if (this.chatOpen) this.closeChat();
+    else if (this.bazarOpen) this.closeBazar();
   }
 
-  private syncBazarUrl(): void {
+  /** El Bazar y las charlas viven en la URL (?bazar= / ?charla=); nunca los dos a la vez. */
+  private syncPanelsUrl(): void {
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { bazar: this.bazarOpen ? this.bazarTab : null },
+      queryParams: {
+        bazar: this.bazarOpen ? this.bazarTab : null,
+        charla: this.chatOpen ? this.chatCode : null,
+      },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
@@ -415,6 +462,37 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Se abrió la conversación de la mesa: trae los últimos 50 mensajes. */
+  onHistoryOpen(): void {
+    if (!this.loggedIn) return;
+    this.community.getMessages(HISTORY_MESSAGES).pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => this.mergeMessages(res.results, HISTORY_MESSAGES),
+      error: () => this.notification.error('No pudimos traer la conversación de la mesa.', 'Taberna'),
+    });
+  }
+
+  onDeleteMessage(id: string): void {
+    this.community.deleteMessage(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: () => this.messages = this.messages.filter(message => message.id !== id),
+      error: err => this.notification.error(err.error?.message || 'No se pudo borrar el mensaje.', 'Taberna'),
+    });
+  }
+
+  /**
+   * Junta lo recién llegado (los `requested` más nuevos) con lo que ya había. Lo que el
+   * servidor ya no devuelve dentro de ese tramo se borró; lo más antiguo se conserva.
+   */
+  private mergeMessages(fresh: TavernChatMessage[], requested: number): void {
+    if (fresh.length < requested) {
+      this.messages = fresh;
+      return;
+    }
+    const oldest = Math.min(...fresh.map(message => Date.parse(message.created_at)));
+    const ids = new Set(fresh.map(message => message.id));
+    const older = this.messages.filter(message => !ids.has(message.id) && Date.parse(message.created_at) < oldest);
+    this.messages = [...fresh, ...older].slice(0, HISTORY_MESSAGES);
+  }
+
   onSendReaction(reaction: string): void {
     if (!this.loggedIn) return;
     this.community.sendReaction(reaction).subscribe({
@@ -455,17 +533,26 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.setFriends(data.friends.results);
         this.incoming = data.requests.incoming;
         this.outgoing = data.requests.outgoing;
-        this.messages = data.activity.messages;
+        this.mergeMessages(data.activity.messages, ACTIVITY_MESSAGES);
         this.recentReactions = data.activity.reactions;
         this.setInvitations(data.activity.invitations);
+        this.chatUnread = data.activity.chat_unread ?? this.chatUnread;
         if (this.me) this.me = { ...this.me, pending_incoming: data.presence.pending_incoming };
       },
       error: () => {},
     });
   }
 
+  /** Al volver a la pestaña: lo de la mesa y tu tarjeta (libros o reseñas nuevas de otra página). */
   private onVisibility = () => {
-    if (!document.hidden) this.zone.run(() => this.refreshLive());
+    if (document.hidden) return;
+    this.zone.run(() => {
+      this.refreshLive();
+      this.community.me().pipe(takeUntil(this.destroy$)).subscribe({
+        next: me => { this.me = me; this.updateSceneMe(); },
+        error: () => {},
+      });
+    });
   };
 
   private setFriends(friends: FriendCard[]): void {

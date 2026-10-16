@@ -24,7 +24,11 @@ describe('TavernHallComponent', () => {
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { queryParamMap: convertToParamMap(query) }, queryParamMap: new BehaviorSubject(convertToParamMap(query)) },
+          useValue: {
+            snapshot: { queryParamMap: convertToParamMap(query) },
+            queryParamMap: new BehaviorSubject(convertToParamMap(query)),
+            fragment: new BehaviorSubject<string | null>(null),
+          },
         },
         { provide: MatDialog, useValue: { open: jasmine.createSpy('open'), openDialogs: [] } },
         { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'error']) },
