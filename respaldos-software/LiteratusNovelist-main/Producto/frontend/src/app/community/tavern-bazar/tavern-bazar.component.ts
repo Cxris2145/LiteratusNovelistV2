@@ -64,7 +64,7 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   readonly tabLabels: Record<BazarTab, string> = { ropero: 'Ropero', racha: 'Racha y vidas', perfil: 'Perfil' };
   readonly tabIcons: Record<BazarTab, string> = { ropero: 'checkroom', racha: 'local_fire_department', perfil: 'badge' };
   private readonly wearFilterLabels: Record<WearFilter, string> = {
-    all: 'Todo', head: 'Sombreros', eyes: 'Lentes', face: 'Barbas', neck: 'Cuello', cape: 'Capas',
+    all: 'Todo', head: 'Sombreros', eyes: 'Lentes', face: 'Rostro', neck: 'Accesorios', cape: 'Capas',
   };
 
   balance = 0;

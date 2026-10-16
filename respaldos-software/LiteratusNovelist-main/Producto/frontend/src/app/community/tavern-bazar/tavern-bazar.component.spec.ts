@@ -4,18 +4,21 @@ import { BehaviorSubject, of } from 'rxjs';
 
 import { TavernBazarComponent } from './tavern-bazar.component';
 import { ChatService } from '../../core/services/chat.service';
+import { AuthService } from '../../core/services/auth.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { LearningService, ShopItem } from '../../core/services/learning.service';
 import { NotificationService } from '../../core/services/notification.service';
 
 function piece(value: string, name = value, owned = false, equipped = false): ShopItem {
   return { id: value, code: value, name, description: '', item_type: 'maguito_wear', cost_ink: 100,
-    icon: '', asset_url: '', value, sort_order: 0, is_owned: owned, is_equipped: equipped, quantity: owned ? 1 : 0 };
+    icon: '', asset_url: '', value, sort_order: 0, is_purchasable: true, earned_by: null,
+    is_owned: owned, is_equipped: equipped, quantity: owned ? 1 : 0 };
 }
 
 function object(code: string, item_type: ShopItem['item_type'], owned = false): ShopItem {
   return { id: code, code, name: code, description: '', item_type, cost_ink: 50,
-    icon: 'shield', asset_url: '', value: '', sort_order: 0, is_owned: owned, is_equipped: false, quantity: owned ? 2 : 0 };
+    icon: 'shield', asset_url: '', value: '', sort_order: 0, is_purchasable: true, earned_by: null,
+    is_owned: owned, is_equipped: false, quantity: owned ? 2 : 0 };
 }
 
 describe('TavernBazarComponent', () => {
@@ -34,7 +37,8 @@ describe('TavernBazarComponent', () => {
       declarations: [TavernBazarComponent],
       providers: [
         { provide: LearningService, useValue: learning },
-        { provide: ChatService, useValue: { inkBalance$: balance, loadInitialInk: () => {}, updateInkBalance: (v: number) => balance.next(v), notifyProfileUpdate: () => {} } },
+        { provide: ChatService, useValue: { inkBalance$: balance, loadInitialInk: () => {}, getUserProfile: () => of({ username: 'Lector QA' }), updateInkBalance: (v: number) => balance.next(v), notifyProfileUpdate: () => {} } },
+        { provide: AuthService, useValue: { currentUser: () => ({ username: 'Lector QA' }) } },
         { provide: GamificationService, useValue: { getDailyRewardStatus: () => of({ can_claim: false, ink_reward: 10 }), claimDailyReward: () => of({}) } },
         { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'error', 'gamify']) },
       ],

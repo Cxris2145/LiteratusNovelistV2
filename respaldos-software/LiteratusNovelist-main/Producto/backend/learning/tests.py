@@ -317,8 +317,79 @@ class ShopWearableTests(APITestCase):
         from learning.models import ShopItem
         wearables = ShopItem.objects.filter(item_type='maguito_wear')
 
-        self.assertEqual(wearables.count(), 25)  # 14 (0003) + 3 de la Taberna (0004) + 8 de Logros 2.0 (0005)
+        self.assertEqual(wearables.count(), 35)  # 25 originales + 10 del ropero (0006)
         self.assertTrue(wearables.filter(code='wear_head_crown', value='head:crown').exists())
+
+    def test_new_collection_has_unique_valid_values_and_is_seeded_for_sale(self):
+        from learning.models import ShopItem
+        from learning.wardrobe_catalog import WARDROBE_ADDITIONS
+        from learning.wearables import parse_wear_value
+
+        self.assertEqual(len({row[0] for row in WARDROBE_ADDITIONS}), 10)
+        self.assertEqual(len({row[1] for row in WARDROBE_ADDITIONS}), 10)
+        for code, value, name, description, cost, icon in WARDROBE_ADDITIONS:
+            with self.subTest(code=code):
+                self.assertIsNotNone(parse_wear_value(value))
+                item = ShopItem.objects.get(code=code)
+                self.assertEqual((item.value, item.name, item.cost_ink), (value, name, cost))
+                self.assertTrue(item.is_active)
+                self.assertTrue(item.is_purchasable)
+
+    def test_reseeding_preserves_adjusted_prices_owned_pieces_and_exclusives(self):
+        from importlib import import_module
+        from types import SimpleNamespace
+        from django.apps import apps
+        from learning.models import ShopItem, UserInventoryItem
+        from learning.wardrobe_catalog import sync_wardrobe
+
+        self.buy('wear_head_hood')
+        item = ShopItem.objects.get(code='wear_head_hood')
+        inventory = UserInventoryItem.objects.get(user=self.user, item=item)
+        original_inventory = (inventory.pk, inventory.item_id, inventory.quantity)
+        original_count = ShopItem.objects.count()
+        ShopItem.objects.filter(pk=item.pk).update(cost_ink=175, name='Capucha personalizada')
+        # Un artículo faltante se repone; los existentes nunca se recrean.
+        ShopItem.objects.filter(code='wear_cape_ivory').delete()
+        migration = import_module('learning.migrations.0006_seed_wardrobe_collection')
+        schema_editor = SimpleNamespace(connection=SimpleNamespace(alias='default'))
+
+        for _ in range(2):
+            sync_wardrobe(ShopItem)
+            migration.seed_wardrobe(apps, schema_editor)
+
+        item.refresh_from_db()
+        inventory.refresh_from_db()
+        self.assertEqual(ShopItem.objects.count(), original_count)
+        self.assertEqual((item.cost_ink, item.name), (175, 'Capucha personalizada'))
+        self.assertEqual((inventory.pk, inventory.item_id, inventory.quantity), original_inventory)
+        self.assertEqual(self.profile().outfit, {'head': 'hood'})
+        self.assertFalse(ShopItem.objects.get(code='wear_head_laurel').is_purchasable)
+        self.assertFalse(ShopItem.objects.get(code='wear_cape_midnight').is_purchasable)
+
+    def test_new_face_and_neck_pieces_buy_equip_and_preserve_other_slots(self):
+        from learning.models import ShopItem
+
+        response = self.buy('wear_head_hood')
+        self.assertEqual(response.status_code, 200)
+        response = self.buy('wear_face_freckles')
+        self.assertEqual(response.status_code, 200)
+        response = self.buy('wear_neck_satchel')
+        self.assertEqual(response.status_code, 200)
+        response = self.buy('wear_neck_moon_pendant')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['outfit'], {'head': 'hood', 'face': 'freckles', 'neck': 'moon-pendant'})
+        self.assertEqual(self.profile().ink_balance, 450)
+
+        equipped = self.client.post('/api/v1/learning/shop/equip/',
+                                   {'item_code': 'wear_neck_satchel'}, format='json')
+        self.assertEqual(equipped.status_code, 200)
+        self.assertEqual(equipped.data['outfit'], {'head': 'hood', 'face': 'freckles', 'neck': 'satchel'})
+        removed = self.client.post('/api/v1/learning/shop/unequip/', {'slot': 'face'}, format='json')
+        self.assertEqual(removed.status_code, 200)
+        self.assertEqual(removed.data['outfit'], {'head': 'hood', 'neck': 'satchel'})
+        # Cambiar de prenda y quitarla no vuelve a cobrar Tinta.
+        self.assertEqual(self.profile().ink_balance, 450)
+        self.assertTrue(ShopItem.objects.filter(code='wear_face_freckles', purchases__user=self.user).exists())
 
     def test_buying_charges_ink_and_puts_it_on(self):
         response = self.buy('wear_head_crown')

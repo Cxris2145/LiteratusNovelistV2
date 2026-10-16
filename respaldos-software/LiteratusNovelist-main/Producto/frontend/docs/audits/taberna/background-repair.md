@@ -1,0 +1,10 @@
+# Reparación del fondo de la taberna
+
+Herramienta: ImageGen integrada. Imagen original conservada en `src/assets/images/tavern-room.jpg`.
+Resultado aplicado: `src/assets/images/tavern-room-repaired.jpg` (JPEG calidad 92, 324 KB).
+
+Se reparó la unión del piso con las mesas laterales, especialmente la mesa derecha, que tenía las patas, las sillas y parte de los personajes tapados por el piso. La composición conserva los puntos de referencia de la capa 3D.
+
+## Prompt utilizado
+
+Use case: precise-object-edit. Asset type: existing illustrated background of a fantasy tavern in a web application. This image is the EDIT TARGET, not a loose style reference. Repair the bad compositing seam in the lower right side: the foreground wooden floor currently forms a dark cutout/overlay with an unnatural nearly vertical edge that covers part of the right-hand table, the seated blue patrons, and the chair. Redraw this local region so the RIGHT SIDE TABLE WITH THE THREE BLUE PATRONS is complete, beautifully integrated and grounded: readable tabletop, table support/legs where appropriate, seated patron silhouettes, complete chair legs, plausible perspective, continuous floorboards and soft candle-lit contact shadows. Remove the smeared/painted-over floor edges along the right seating group and any abrupt rectangular or diagonal cutoff where the floor meets it. Make the central empty wooden dance floor transition naturally into the seating areas. Keep the ORIGINAL composition, camera, aspect ratio approximately 1376x768, architecture, large arched windows, beams, chandelier, shelves, blue twilight, warm amber candlelight, exact number/location of the existing blue patrons, left-hand furniture, and painterly cozy storybook style. Keep all large landmarks at the same coordinates, since animated 3D characters are overlaid by the application. This is a precise retouch, not a redesign. Preserve the open empty center floor. Do not add text, logos, new characters or a large central foreground table. Deliver only the repaired illustration, edge-to-edge, without UI.

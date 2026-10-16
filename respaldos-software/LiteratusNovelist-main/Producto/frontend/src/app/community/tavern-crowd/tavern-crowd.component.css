@@ -1,11 +1,40 @@
 /* La vida del fondo de La Taberna. Todo se mide en % de la pintura del salón (la caja .th-room
    de la sala), así cada personaje pisa el piso de la pintura en cualquier ventana. Solo se anima
    transform y opacity; los carriles miden el alto de un personaje, no el de la pintura. */
+@property --mg-walk-amount {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
 :host {
   --cr-ease-out: var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+/* Los muebles pertenecen a la misma pintura y conservan sus bordes al tapar a los sentados. */
+.cr-seating, .cr-furniture, .cr-activity { position: absolute; inset: 0; }
+.cr-seating { z-index: auto; }
+.cr-seated.cr-far { z-index: 0; }
+.cr-seated:not(.cr-far) { z-index: 2; }
+.cr-seated::after { display: none; }
+.cr-furniture {
+  z-index: 1;
+  background: url('/assets/images/tavern-room-empty.jpg') center / 100% 100% no-repeat;
+}
+.cr-left-table, .cr-right-table { z-index: 3; }
+.cr-activity { z-index: 4; }
+.cr-counter {
+  clip-path: polygon(0 50.5%, 8% 50.5%, 8% 50.1%, 14.8% 50.1%, 14.8% 50.7%, 19.2% 50.6%, 19.2% 50.2%, 29.6% 50.2%, 30.5% 50.7%, 30.5% 64%, 0 64%);
+}
+.cr-back-tables {
+  clip-path: polygon(32.9% 49.7%, 35% 49.7%, 35% 50.4%, 39.2% 50.4%, 39.2% 49.7%, 42% 49.7%, 42% 50.4%, 45.3% 50.4%, 45.3% 49.7%, 47.1% 49.7%, 47.1% 50.4%, 50.6% 50.4%, 50.6% 49.7%, 52.4% 49.7%, 52.4% 50.4%, 59% 50.4%, 59% 49.7%, 61.8% 49.7%, 61.8% 56.6%, 32.9% 56.6%);
+}
+.cr-left-table {
+  clip-path: polygon(3.8% 56.6%, 5.6% 56.1%, 5.6% 54.9%, 6.3% 55%, 6.6% 55.7%, 8.7% 56%, 8.8% 55.3%, 9.6% 55.4%, 10.2% 57.7%, 14.4% 58%, 14.4% 55.2%, 14.9% 54.8%, 16% 54.8%, 16.2% 58%, 17.4% 57.8%, 17.4% 55%, 17.8% 54.4%, 17.8% 52.7%, 18.4% 52.2%, 19% 52.7%, 19% 54.3%, 19.5% 55.1%, 19.5% 58%, 20.9% 58.3%, 21.1% 60.2%, 21.1% 74%, 3.8% 74%);
+}
+.cr-right-table {
+  clip-path: polygon(75.8% 53.1%, 76.4% 52.5%, 77% 52.6%, 77.3% 53.2%, 79.2% 53.2%, 79.2% 52.5%, 79.8% 52.5%, 80.1% 53.4%, 82.1% 53.3%, 82.1% 52.6%, 82.9% 52.7%, 83.3% 53.5%, 83.3% 56.1%, 83.5% 53.9%, 83.8% 53.2%, 85% 53.2%, 85.2% 56.2%, 85.4% 55.7%, 85.4% 53.7%, 85.8% 52.8%, 85.8% 51.7%, 86.2% 51.1%, 86.6% 51.7%, 86.6% 52.7%, 87% 53.7%, 87% 56.2%, 88% 56.3%, 88.2% 53.9%, 89.5% 53.8%, 89.8% 56.5%, 91.7% 56.9%, 91.7% 53.4%, 92.2% 52.9%, 92.8% 53.1%, 92.8% 55.7%, 94.7% 56%, 94.7% 55.5%, 95.3% 55.3%, 95.6% 56%, 97.5% 55.9%, 97.5% 55.3%, 98.3% 55.4%, 98.3% 74%, 75.8% 74%);
 }
 /* Pestaña oculta: todo queda donde está. */
 :host(.is-paused) *,
@@ -20,6 +49,8 @@
   width: var(--w, 6%);
 }
 .cr-lane .cr-actor { left: 0; bottom: 0; }
+.cr-lane .cr-actor::after { display: none; }
+.cr-walk { position: relative; }
 .cr-actor app-maguito { display: block; width: 100%; }
 /* Sombra de contacto: los apoya en el piso de la pintura. */
 .cr-actor::after {
@@ -65,38 +96,80 @@
   width: 100%;
   height: 0;
 }
-.cr-lane-a { animation: cr-cross-ltr 30s linear infinite; }
-.cr-lane-b { animation: cr-cross-rtl 36s linear -14s infinite; }
-@keyframes cr-cross-ltr {
-  0% { transform: translateX(10%); opacity: 0; }
-  4%, 96% { opacity: 1; }
-  100% { transform: translateX(86%); opacity: 0; }
+.cr-lane-a {
+  --cr-route-duration: 64s;
+  --cr-route-phase: -8s;
+  --mg-walk-cycle: 1000ms;
+  --mg-walk-phase: -240ms;
+  animation: cr-patrol-a var(--cr-route-duration) linear var(--cr-route-phase) infinite;
 }
-@keyframes cr-cross-rtl {
-  0% { transform: translateX(88%); opacity: 0; }
-  4%, 96% { opacity: 1; }
-  100% { transform: translateX(8%); opacity: 0; }
+.cr-lane-b {
+  --cr-route-duration: 76s;
+  --cr-route-phase: -34s;
+  --mg-walk-cycle: 1180ms;
+  --mg-walk-phase: -740ms;
+  animation: cr-patrol-b var(--cr-route-duration) linear var(--cr-route-phase) infinite;
+}
+/* El viaje y los pasos comparten sus pausas. Cada recorrido vuelve a su punto inicial. */
+@keyframes cr-patrol-a {
+  0%, 3% { transform: translateX(23%); --mg-walk-amount: 0; }
+  4%, 46% { --mg-walk-amount: 1; }
+  47%, 51% { transform: translateX(71%); --mg-walk-amount: 0; }
+  52%, 95% { --mg-walk-amount: 1; }
+  96%, 100% { transform: translateX(23%); --mg-walk-amount: 0; }
+}
+@keyframes cr-patrol-b {
+  0%, 3% { transform: translateX(71%); --mg-walk-amount: 0; }
+  4%, 46% { --mg-walk-amount: 1; }
+  47%, 51% { transform: translateX(23%); --mg-walk-amount: 0; }
+  52%, 95% { --mg-walk-amount: 1; }
+  96%, 100% { transform: translateX(71%); --mg-walk-amount: 0; }
+}
+.cr-face-walker-a { animation: cr-turn-a var(--cr-route-duration) linear var(--cr-route-phase) infinite; }
+.cr-face-walker-b { animation: cr-turn-b var(--cr-route-duration) linear var(--cr-route-phase) infinite; }
+@keyframes cr-turn-a {
+  0%, 48%, 99%, 100% { transform: scaleX(1); }
+  49%, 97% { transform: scaleX(-1); }
+}
+@keyframes cr-turn-b {
+  0%, 48%, 99%, 100% { transform: scaleX(-1); }
+  49%, 97% { transform: scaleX(1); }
 }
 
 /* La mesera: va a una mesa, sirve, va a otra, sirve y vuelve a la barra. */
-.cr-lane-waitress { animation: cr-serve 28s linear -6s infinite; }
-.cr-face-waitress { animation: cr-serve-face 28s linear -6s infinite; }
+.cr-lane-waitress {
+  --mg-walk-cycle: 900ms;
+  --mg-walk-phase: -300ms;
+  animation: cr-serve 36s linear -6s infinite;
+}
+.cr-face-waitress { animation: cr-serve-face 36s linear -6s infinite; }
 @keyframes cr-serve {
-  0% { transform: translateX(24%); }
-  26%, 36% { transform: translateX(45%); }
-  58%, 70% { transform: translateX(63%); }
-  100% { transform: translateX(24%); }
+  0%, 1% { transform: translateX(24%); --mg-walk-amount: 0; }
+  2%, 23% { --mg-walk-amount: 1; }
+  24%, 30% { transform: translateX(45%); --mg-walk-amount: 0; }
+  31%, 49.5% { --mg-walk-amount: 1; }
+  50.5%, 56.5% { transform: translateX(63%); --mg-walk-amount: 0; }
+  57.5%, 96% { --mg-walk-amount: 1; }
+  97%, 100% { transform: translateX(24%); --mg-walk-amount: 0; }
 }
 @keyframes cr-serve-face {
-  0%, 69.9% { transform: scaleX(1); }
-  70%, 100% { transform: scaleX(-1); }
+  0%, 54.5%, 100% { transform: scaleX(1); }
+  55.5%, 98% { transform: scaleX(-1); }
+  99% { transform: scaleX(1); }
 }
 .cr-tray {
   position: absolute;
-  top: 6%;
-  right: -26%;
-  width: 58%;
+  top: 62%;
+  right: -7%;
+  width: 55%;
   overflow: visible;
+  transform-origin: 50% 80%;
+  animation: cr-tray-carry var(--mg-walk-cycle) ease-in-out var(--mg-walk-phase) infinite;
+}
+@keyframes cr-tray-carry {
+  0%, 50%, 100% { transform: none; }
+  25% { transform: translateY(calc(-1px * var(--mg-walk-amount, 1))) rotate(calc(-.7deg * var(--mg-walk-amount, 1))); }
+  75% { transform: translateY(calc(-1px * var(--mg-walk-amount, 1))) rotate(calc(.7deg * var(--mg-walk-amount, 1))); }
 }
 .cr-mug { fill: #8a5a2b; stroke: #4a2c14; stroke-width: 1.2; }
 .cr-foam { fill: #fff3d6; }
@@ -220,10 +293,12 @@
 
 /* Reducir movimiento: cada uno queda quieto en un buen lugar, sin chispas ni globitos. */
 @media (prefers-reduced-motion: reduce) {
-  .cr-lane, .cr-face-waitress, .cr-bob, .cr-spark-run, .cr-burst, .cr-say { animation: none !important; }
-  .cr-lane-a { transform: translateX(20%); }
-  .cr-lane-b { transform: translateX(78%); }
+  .cr-lane, .cr-face-waitress, .cr-face-walker-a, .cr-face-walker-b,
+  .cr-bob, .cr-tray, .cr-spark-run, .cr-burst, .cr-say { animation: none !important; }
+  .cr-lane-a { transform: translateX(31%); }
+  .cr-lane-b { transform: translateX(63%); }
   .cr-lane-waitress { transform: translateX(45%); }
+  .cr-face-walker-b { transform: scaleX(-1); }
   .cr-spark-run, .cr-burst, .cr-say { display: none; }
   .cr-cheers { transition: opacity 150ms ease; transform: translate(-50%, 0); }
 }

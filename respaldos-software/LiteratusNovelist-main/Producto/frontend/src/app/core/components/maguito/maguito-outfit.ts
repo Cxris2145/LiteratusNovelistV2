@@ -16,11 +16,11 @@ export const OUTFIT_DEFAULTS: MaguitoLook = {
 };
 
 export const KNOWN_VARIANTS: Record<WearSlot, readonly string[]> = {
-  head: ['wizard', 'crown', 'tophat', 'pirate', 'beret', 'witch-flower', 'aviator', 'graduate', 'feather', 'laurel', 'deerstalker'],
-  eyes: ['round', 'none', 'halfmoon', 'monocle', 'star', 'reading'],
-  face: ['none', 'beard', 'mustache'],
-  neck: ['none', 'scarf-red', 'bowtie', 'quill', 'medal'],
-  cape: ['gold', 'royal', 'emerald', 'red', 'midnight'],
+  head: ['wizard', 'crown', 'tophat', 'pirate', 'beret', 'witch-flower', 'aviator', 'graduate', 'feather', 'laurel', 'deerstalker', 'hood', 'newsboy', 'nightcap'],
+  eyes: ['round', 'none', 'halfmoon', 'monocle', 'star', 'reading', 'rectangular'],
+  face: ['none', 'beard', 'mustache', 'freckles'],
+  neck: ['none', 'scarf-red', 'bowtie', 'quill', 'medal', 'satchel', 'moon-pendant'],
+  cape: ['gold', 'royal', 'emerald', 'red', 'midnight', 'teal', 'ivory', 'starry'],
 };
 
 export const WEAR_SLOTS = Object.keys(KNOWN_VARIANTS) as WearSlot[];
@@ -28,8 +28,8 @@ export const WEAR_SLOTS = Object.keys(KNOWN_VARIANTS) as WearSlot[];
 export const SLOT_LABELS: Record<WearSlot, string> = {
   head: 'Cabeza',
   eyes: 'Ojos',
-  face: 'Cara',
-  neck: 'Cuello',
+  face: 'Rostro',
+  neck: 'Accesorios',
   cape: 'Capa',
 };
 

@@ -39,11 +39,6 @@ elif (BASE_DIR / 'env').exists():
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=False)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
-    'http://localhost:4200',
-    'http://127.0.0.1:4200',
-])
-CORS_ALLOW_CREDENTIALS = True
 
 # ---------------------------------------------------------------------------
 # Aplicaciones instaladas
@@ -183,6 +178,15 @@ CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
     'capacitor://localhost',
     'http://localhost',
 ])
+# Angular puede abrirse con cualquiera de los dos nombres de loopback. En
+# desarrollo se permiten ambos aunque la lista del .env incluya solo uno.
+# Producción conserva exclusivamente la lista de orígenes configurada.
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = list(dict.fromkeys([
+        *CORS_ALLOWED_ORIGINS,
+        'http://localhost:4200',
+        'http://127.0.0.1:4200',
+    ]))
 # Desactivado para producción (Seguridad)
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True

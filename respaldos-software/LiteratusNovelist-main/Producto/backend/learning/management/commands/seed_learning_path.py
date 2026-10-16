@@ -17,6 +17,7 @@ from learning.content.builder import build_exercise
 from learning.content.units import UNITS
 from learning.models import LearningUnit, LearningLevel, LearningExercise, ShopItem
 from learning.cosmetics_catalog import COSMETICS, sync_cosmetics
+from learning.wardrobe_catalog import sync_wardrobe
 
 
 SHOP_ITEMS = [
@@ -152,5 +153,6 @@ class Command(BaseCommand):
             say(self.style.SUCCESS(f"  [OK] Artículo de Bazar: {item.name} ({item.cost_ink} Tinta)"))
 
         sync_cosmetics(ShopItem)
+        sync_wardrobe(ShopItem)
 
         say(self.style.SUCCESS("\n¡Sembrado de La Senda del Lector y El Bazar completado con éxito!"))

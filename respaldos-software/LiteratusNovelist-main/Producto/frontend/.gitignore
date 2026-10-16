@@ -41,3 +41,7 @@ testem.log
 .DS_Store
 Thumbs.db
 .vercel
+
+# Fondo de la taberna usado por la interfaz.
+!/src/assets/images/tavern-room-repaired.jpg
+!/src/assets/images/tavern-room-empty.jpg

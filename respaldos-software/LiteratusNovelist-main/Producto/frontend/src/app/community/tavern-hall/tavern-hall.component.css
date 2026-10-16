@@ -53,7 +53,7 @@
   width: max(100cqw, calc(100cqh * 1376 / 768));
   aspect-ratio: 1376 / 768;
   transform: translateX(-50%);
-  background: url('/assets/images/tavern-room.jpg') center / 100% 100% no-repeat;
+  background: url('/assets/images/tavern-room-empty.jpg') center / 100% 100% no-repeat;
 }
 /* Penumbra a los lados y abajo, por encima de la pintura y de la gente. */
 .th-backdrop::after {

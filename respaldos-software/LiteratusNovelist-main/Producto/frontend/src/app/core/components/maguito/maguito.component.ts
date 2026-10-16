@@ -34,17 +34,28 @@ const GAZE: Partial<Record<ShownState, { x: number; y: number }>> = {
 };
 
 const DEF_NAMES = ['aura', 'aviator-cap', 'band', 'beard', 'body', 'body-shade', 'brim', 'brim-under', 'cape', 'crown', 'eye-l', 'eye-r',
-  'feather', 'glow', 'goggle-glass', 'hat', 'hat-glow', 'iris', 'lens', 'lid', 'limb', 'metal', 'mustache', 'nib', 'scarf', 'sclera', 'spark', 'star', 'tophat', 'velvet', 'witch-brim', 'witch-hat'];
+  'feather', 'glow', 'goggle-glass', 'hat', 'hat-glow', 'iris', 'lens', 'lid', 'limb', 'metal', 'mustache', 'nib', 'scarf', 'sclera', 'spark', 'star', 'tophat', 'velvet', 'witch-brim', 'witch-hat',
+  'walk-body', 'walk-torso', 'walk-foot-l', 'walk-foot-r'];
 
 const DETAIL_FRAMES: Record<WearSlot, string> = {
-  head: '92 0 284 190', eyes: '138 178 170 78', face: '157 236 117 117',
+  head: '90 0 288 224', eyes: '138 178 170 78', face: '157 236 117 117',
   neck: '143 259 164 97', cape: '117 238 240 126',
 };
 const HEAD_FRAMES: Record<string, string> = {
-  crown: '147 96 148 90', tophat: '139 70 171 118', pirate: '126 84 198 102',
+  wizard: '90 0 288 224', 'witch-flower': '132 14 216 184',
+  crown: '147 96 148 90', tophat: '139 70 171 130', pirate: '126 84 198 102',
   beret: '149 102 157 80', aviator: '143 78 164 155',
   graduate: '129 94 188 98', feather: '126 48 200 141',
   laurel: '144 108 165 85', deerstalker: '131 93 190 98',
+  hood: '126 86 196 185', newsboy: '135 100 179 94', nightcap: '150 71 196 124',
+};
+const EYE_FRAMES: Record<string, string> = {
+  monocle: '138 178 170 132', rectangular: '142 187 165 60',
+};
+const NECK_FRAMES: Record<string, string> = {
+  'scarf-red': '140 254 170 103', bowtie: '187 252 77 51',
+  quill: '256 257 45 53', medal: '258 262 43 72',
+  satchel: '140 253 151 104', 'moon-pendant': '170 256 126 79',
 };
 
 /**
@@ -69,6 +80,7 @@ const HEAD_FRAMES: Record<string, string> = {
     '[class.mg-crop-bust]': "crop === 'bust'",
     '[class.mg-crop-detail]': "crop === 'detail'",
     '[class.mg-calm]': 'calm',
+    '[class.mg-walking]': "walking && crop === 'full'",
     '[class.mg-has-mug]': 'mug',
     '[class.mg-toasting]': 'toasting',
     '[attr.data-cape]': 'look.cape',
@@ -105,6 +117,8 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
    * que están siempre a la vista (la burbuja del asistente en todas las páginas).
    */
   @Input() calm = false;
+  /** Camina con los pies originales; solo en cuerpo completo y estado idle. */
+  @Input() walking = false;
   /** Sostiene una jarra de madera con espuma de la Taberna. */
   @Input() mug = false;
   /** Brinda chocando la jarra con sus compañeros. */
@@ -118,9 +132,10 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   get viewBox(): string {
     if (this.crop === 'detail') {
       if (this.detailSlot === 'head') return HEAD_FRAMES[this.look.head] || DETAIL_FRAMES.head;
-      if (this.detailSlot === 'eyes' && this.look.eyes === 'monocle') return '138 178 170 132';
+      if (this.detailSlot === 'eyes') return EYE_FRAMES[this.look.eyes] || DETAIL_FRAMES.eyes;
       if (this.detailSlot === 'face' && this.look.face === 'mustache') return '171 230 91 41';
-      if (this.detailSlot === 'neck' && this.look.neck === 'bowtie') return '187 262 77 43';
+      if (this.detailSlot === 'face' && this.look.face === 'freckles') return '154 234 140 32';
+      if (this.detailSlot === 'neck') return NECK_FRAMES[this.look.neck] || DETAIL_FRAMES.neck;
       return DETAIL_FRAMES[this.detailSlot];
     }
     return this.crop === 'bust' ? '98 70 250 250' : '0 0 400 380';

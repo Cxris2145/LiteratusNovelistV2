@@ -21,6 +21,8 @@
   --mg-cape-b: #303b78;
   --mg-cape-c: #182045;
   --mg-cape-seam: #c5b778;
+  --mg-sleeve: #303b78;
+  --mg-sleeve-hi: #6f79bf;
 }
 :host([data-cape="royal"]) {
   --mg-cape-a: #c39bff;
@@ -45,6 +47,30 @@
   --mg-cape-seam: #5f0909;
   --mg-sleeve: #b71c1c;
   --mg-sleeve-hi: #e63946;
+}
+:host([data-cape="teal"]) {
+  --mg-cape-a: #8bd5c6;
+  --mg-cape-b: #337f79;
+  --mg-cape-c: #1d4e53;
+  --mg-cape-seam: #214d4e;
+  --mg-sleeve: #337f79;
+  --mg-sleeve-hi: #8bd5c6;
+}
+:host([data-cape="ivory"]) {
+  --mg-cape-a: #fff4d4;
+  --mg-cape-b: #dbc49f;
+  --mg-cape-c: #a68763;
+  --mg-cape-seam: #886b4c;
+  --mg-sleeve: #dbc49f;
+  --mg-sleeve-hi: #fff4d4;
+}
+:host([data-cape="starry"]) {
+  --mg-cape-a: #7b83c4;
+  --mg-cape-b: #394780;
+  --mg-cape-c: #1d2850;
+  --mg-cape-seam: #b2b8e7;
+  --mg-sleeve: #394780;
+  --mg-sleeve-hi: #7b83c4;
 }
 :host(.mg-interactive) { cursor: pointer; }
 .mg-svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -181,9 +207,104 @@
 :host(.mg-calm.mg--idle) .mg-tip-spark,
 :host(.mg-calm.mg--idle) .mg-aura { animation: none; }
 
+/* Caminata 2D: apoyo que retrocede a velocidad constante y recuperación del pie
+   en el aire. La traslación de la escena la decide quien utiliza el componente.
+   Las variables se heredan para sincronizar paso, recorrido y pausas sin JS. */
+.mg-walk-feet, .mg-walk-torso { display: none; }
+.mg-walk-foot-l { transform-origin: 185px 318px; }
+.mg-walk-foot-r { transform-origin: 266px 318px; }
+:host(.mg-walking.mg--idle) .mg-body-standing { display: none; }
+:host(.mg-walking.mg--idle) .mg-walk-feet,
+:host(.mg-walking.mg--idle) .mg-walk-torso { display: inline; }
+:host(.mg-walking.mg--idle) .mg-rig,
+:host(.mg-walking.mg--idle) .mg-breathe { animation: none; }
+:host(.mg-walking.mg--idle) .mg-hop,
+:host(.mg-walking.mg--idle) .mg-walk-feet,
+:host(.mg-walking.mg--idle) .mg-walk-foot,
+:host(.mg-walking.mg--idle) .mg-cape,
+:host(.mg-walking.mg--idle) .mg-hat,
+:host(.mg-walking.mg--idle) .mg-arm-l,
+:host(.mg-walking.mg--idle) .mg-arm-r,
+:host(.mg-walking.mg--idle) .mg-shadow,
+:host(.mg-walking.mg--idle:not(.mg-toasting)) .mg-mug-hand {
+  animation-duration: var(--mg-walk-cycle, 1060ms);
+  animation-delay: var(--mg-walk-phase, 0s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+:host(.mg-walking.mg--idle) .mg-hop { animation-name: mg-walk-rise; }
+:host(.mg-walking.mg--idle) .mg-walk-feet { animation-name: mg-walk-ground; }
+:host(.mg-walking.mg--idle) .mg-hop,
+:host(.mg-walking.mg--idle) .mg-walk-feet {
+  animation-timing-function: cubic-bezier(.37, 0, .63, 1);
+}
+:host(.mg-walking.mg--idle) .mg-walk-foot { animation-name: mg-walk-step; }
+:host(.mg-walking.mg--idle) .mg-walk-foot-r {
+  animation-delay: calc(var(--mg-walk-phase, 0s) - var(--mg-walk-cycle, 1060ms) / 2);
+}
+:host(.mg-walking.mg--idle) .mg-cape {
+  transform-origin: 225px 254px;
+  animation-name: mg-walk-cape;
+  animation-timing-function: ease-in-out;
+}
+:host(.mg-walking.mg--idle) .mg-hat { animation-name: mg-walk-hat; animation-timing-function: ease-in-out; }
+:host(.mg-walking.mg--idle) .mg-arm-l { animation-name: mg-walk-arm-l; animation-timing-function: ease-in-out; }
+:host(.mg-walking.mg--idle) .mg-arm-r,
+:host(.mg-walking.mg--idle:not(.mg-toasting)) .mg-mug-hand {
+  animation-name: mg-walk-arm-r;
+  animation-timing-function: ease-in-out;
+}
+:host(.mg-walking.mg--idle:not(.mg-toasting)) .mg-mug-hand { transform-origin: 294px 262px; }
+:host(.mg-walking.mg--idle) .mg-shadow { animation-name: mg-walk-shadow; animation-timing-function: ease-in-out; }
+
 /* Fuera de pantalla o pestaña oculta: todo en pausa */
 :host(.mg-paused) *,
 :host(.mg-paused) { animation-play-state: paused !important; }
+
+@keyframes mg-walk-rise {
+  0%, 50%, 100% { transform: translateY(0); }
+  12.5%, 62.5% { transform: translateY(calc(var(--mg-walk-amount, 1) * 1px)); }
+  25%, 75% { transform: translateY(calc(var(--mg-walk-amount, 1) * -4px)); }
+  37.5%, 87.5% { transform: translateY(calc(var(--mg-walk-amount, 1) * -1.4px)); }
+}
+/* Compensa la subida del torso: el pie que está apoyado permanece en el suelo. */
+@keyframes mg-walk-ground {
+  0%, 50%, 100% { transform: translateY(0); }
+  12.5%, 62.5% { transform: translateY(calc(var(--mg-walk-amount, 1) * -1px)); }
+  25%, 75% { transform: translateY(calc(var(--mg-walk-amount, 1) * 4px)); }
+  37.5%, 87.5% { transform: translateY(calc(var(--mg-walk-amount, 1) * 1.4px)); }
+}
+@keyframes mg-walk-step {
+  0%, 100% { transform: translate(calc(var(--mg-walk-amount, 1) * 25px), 0) rotate(calc(var(--mg-walk-amount, 1) * -4deg)); }
+  25% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(calc(var(--mg-walk-amount, 1) * -25px), 0) rotate(calc(var(--mg-walk-amount, 1) * 4deg)); animation-timing-function: ease-out; }
+  63% { transform: translate(calc(var(--mg-walk-amount, 1) * -10px), calc(var(--mg-walk-amount, 1) * -7px)) rotate(calc(var(--mg-walk-amount, 1) * -3deg)); }
+  75% { transform: translate(calc(var(--mg-walk-amount, 1) * 8px), calc(var(--mg-walk-amount, 1) * -9px)) rotate(calc(var(--mg-walk-amount, 1) * -7deg)); animation-timing-function: ease-in; }
+  87.5% { transform: translate(calc(var(--mg-walk-amount, 1) * 21px), calc(var(--mg-walk-amount, 1) * -4px)) rotate(calc(var(--mg-walk-amount, 1) * -6deg)); }
+}
+@keyframes mg-walk-arm-l {
+  0%, 100% { transform: rotate(calc(var(--mg-walk-amount, 1) * -5deg)); }
+  50% { transform: rotate(calc(var(--mg-walk-amount, 1) * 5deg)); }
+}
+@keyframes mg-walk-arm-r {
+  0%, 100% { transform: rotate(calc(var(--mg-walk-amount, 1) * 4deg)); }
+  50% { transform: rotate(calc(var(--mg-walk-amount, 1) * -4deg)); }
+}
+@keyframes mg-walk-cape {
+  0%, 100% { transform: rotate(calc(var(--mg-walk-amount, 1) * 1.1deg)); }
+  18% { transform: rotate(calc(var(--mg-walk-amount, 1) * -1.6deg)); }
+  50% { transform: rotate(calc(var(--mg-walk-amount, 1) * -1.1deg)); }
+  68% { transform: rotate(calc(var(--mg-walk-amount, 1) * 1.6deg)); }
+}
+@keyframes mg-walk-hat {
+  0%, 50%, 100% { transform: rotate(calc(var(--mg-walk-amount, 1) * .4deg)); }
+  19%, 69% { transform: translateY(calc(var(--mg-walk-amount, 1) * .8px)) rotate(calc(var(--mg-walk-amount, 1) * -1.4deg)); }
+  34%, 84% { transform: translateY(calc(var(--mg-walk-amount, 1) * -.5px)) rotate(calc(var(--mg-walk-amount, 1) * .9deg)); }
+}
+@keyframes mg-walk-shadow {
+  0%, 50%, 100% { transform: scaleX(1); }
+  25%, 75% { transform: scaleX(calc(1 - var(--mg-walk-amount, 1) * .035)); }
+}
 
 @keyframes mg-breathe {
   0%, 100% { transform: scale(1, 1); }
@@ -281,6 +402,9 @@
   .mg-arm-l, .mg-arm-r-wave, .mg-orbit, .mg-orbit-star, .mg-p, .mg-b,
   :host .mg-rig, :host .mg-hop, :host .mg-arm-l, :host .mg-arm-r-wave,
   :host .mg-hat, :host .mg-orbit, :host .mg-p, :host .mg-b { animation: none !important; }
+  :host(.mg-walking) .mg-walk-feet, :host(.mg-walking) .mg-walk-foot,
+  :host(.mg-walking) .mg-cape, :host(.mg-walking) .mg-arm-r,
+  :host(.mg-walking) .mg-mug-hand { animation: none !important; }
   .mg-arm-r, .mg-arm-l, .mg-face, .mg-pupil, .mg-lid-low { transition-duration: 0.01ms !important; }
   .mg-lens-shine { transition: none; }
   .mg-tip-spark { animation: mg-fade 2.8s ease-in-out infinite !important; transform: none; }
