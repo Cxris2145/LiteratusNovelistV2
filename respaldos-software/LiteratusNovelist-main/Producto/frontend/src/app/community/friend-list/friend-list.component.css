@@ -1,10 +1,7 @@
 :host { display: block; }
 
-.fl .th-panel-title { align-items: center; gap: 8px; }
-.fl .th-panel-title h2 { font-size: 1.3rem; }
+.fl .th-panel-title { gap: 8px; }
 .fl-count { color: var(--th-muted); font-size: .85rem; white-space: nowrap; }
-.fl-header-actions { display: flex; align-items: center; gap: 4px; }
-.fl-header-actions .th-icon-btn { width: 32px; }
 .fl-requests {
   display: grid;
   gap: 8px;
@@ -107,3 +104,32 @@
 .fl-empty { display: grid; gap: 12px; justify-items: start; }
 
 .fl-who .fl-title { color: var(--th-gold); font-size: .7rem; }
+
+/* Contador de no leídos: salta (con un leve rebote) solo cuando sube. */
+.fl-unread.is-up { animation: fl-badge-up 220ms cubic-bezier(.34, 1.56, .64, 1) backwards; }
+@keyframes fl-badge-up { from { opacity: .4; transform: scale(.8); } }
+
+/* Amistad recién aceptada (momento raro): un destello dorado recorre la fila del amigo nuevo. */
+.fl-friend { position: relative; }
+.fl-friend.is-celebrating::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  pointer-events: none;
+  background: radial-gradient(circle at 34px 50%, color-mix(in srgb, var(--th-gold) 40%, transparent), transparent 72%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--th-gold) 65%, transparent);
+  animation: fl-glow 600ms var(--th-ease-out) both;
+}
+@keyframes fl-glow {
+  0% { opacity: 0; transform: scale(.97); }
+  35% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-unread.is-up { animation: fl-fade 150ms ease backwards; }
+  .fl-friend.is-celebrating::after { animation: fl-glow-soft 600ms ease both; }
+}
+@keyframes fl-fade { from { opacity: 0; } }
+@keyframes fl-glow-soft { 0%, 100% { opacity: 0; } 35% { opacity: 1; } }

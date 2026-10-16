@@ -1,16 +1,11 @@
 <section class="th-panel fl" aria-labelledby="fl-title">
   <div class="th-panel-title">
     <h2 id="fl-title">Mis amigos <span class="fl-count">({{ friends.length }})</span></h2>
-    <div class="fl-header-actions">
-      <button type="button" class="th-icon-btn" (click)="addFriend.emit()" aria-label="Agregar amigo" title="Agregar amigo">
-        <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
-      </button>
-    </div>
   </div>
 
   <!-- Solicitudes -->
-  <div class="fl-requests" *ngIf="incoming.length || outgoing.length">
-    <article class="fl-request is-incoming" *ngFor="let request of incoming; trackBy: trackRequest">
+  <div class="fl-requests" *ngIf="incoming.length || outgoing.length" @listContainer>
+    <article class="fl-request is-incoming" *ngFor="let request of incoming; trackBy: trackRequest" [@listItem]="itemMotion">
       <app-avatar-frame [frame]="request.user.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
                    [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
       <div class="fl-who">
@@ -22,7 +17,7 @@
         <button type="button" class="th-btn ghost" (click)="decline.emit(request)" [disabled]="busy === request.id">Rechazar</button>
       </div>
     </article>
-    <article class="fl-request" *ngFor="let request of outgoing; trackBy: trackRequest">
+    <article class="fl-request" *ngFor="let request of outgoing; trackBy: trackRequest" [@listItem]="itemMotion">
       <app-avatar-frame [frame]="request.user.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
                    [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
       <div class="fl-who">
@@ -45,10 +40,12 @@
   </div>
 
   <ul class="fl-list" *ngIf="friends.length">
-    <li class="fl-friend" *ngFor="let friend of friends; trackBy: trackFriend">
+    <li class="fl-friend" *ngFor="let friend of friends; trackBy: trackFriend"
+        [class.is-celebrating]="celebrating === friend.friend_code" (pointerenter)="poke(friend)">
       <a class="fl-friend-link" [routerLink]="['/tavern/amigo', friend.friend_code]">
         <span class="fl-avatar-wrap">
-          <app-avatar-frame [frame]="friend.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="friend.outfit" [paused]="true" [calm]="true"
+          <app-avatar-frame [frame]="friend.equipped_frame" size="sm"><app-maguito #rowMaguito class="fl-avatar" crop="bust" [outfit]="friend.outfit"
+                       [paused]="awake !== friend.friend_code" [calm]="true"
                        [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
           <span class="th-dot fl-status-dot" [ngClass]="friend.status.kind" aria-hidden="true"></span>
         </span>
@@ -70,7 +67,10 @@
                 [attr.aria-label]="'Conversar con ' + friend.username + (unread[friend.friend_code] ? ', ' + unread[friend.friend_code] + ' mensajes sin leer' : '')"
                 [title]="'Conversar con ' + friend.username">
           <span class="material-symbols-rounded" aria-hidden="true">chat</span>
-          <span class="fl-unread" *ngIf="unread[friend.friend_code]" aria-hidden="true">{{ unread[friend.friend_code] > 9 ? '9+' : unread[friend.friend_code] }}</span>
+          <ng-container *ngIf="unread[friend.friend_code] as count">
+            <span class="fl-unread" *ngFor="let n of [count]" [class.is-up]="bumped.has(friend.friend_code)"
+                  aria-hidden="true">{{ n > 9 ? '9+' : n }}</span>
+          </ng-container>
         </button>
         <button type="button" class="th-icon-btn" [matMenuTriggerFor]="friendMenu"
                 [attr.aria-label]="'Opciones para ' + friend.username">

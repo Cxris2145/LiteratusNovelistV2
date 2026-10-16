@@ -1,12 +1,17 @@
 <section class="th-panel rk" aria-labelledby="rk-title">
   <div class="th-panel-title">
     <h2 id="rk-title">Ranking de la Taberna</h2>
-    <span class="material-symbols-rounded rk-info" tabindex="0" role="img"
-          aria-label="Puntos de experiencia ganados leyendo, en La Senda y en los juegos. La semana se reinicia el lunes."
-          title="Puntos de experiencia ganados leyendo, en La Senda y en los juegos. La semana se reinicia el lunes.">info</span>
+    <button type="button" class="th-icon-btn rk-info" aria-label="Cómo se cuentan los puntos" aria-describedby="rk-info-tip">
+      <span class="material-symbols-rounded" aria-hidden="true">info</span>
+      <span class="rk-tip" id="rk-info-tip" role="tooltip">
+        Puntos de experiencia ganados leyendo, en La Senda y en los juegos. La semana se reinicia el lunes.
+      </span>
+    </button>
   </div>
 
   <div class="rk-tabs" role="tablist" aria-label="Periodo del ranking">
+    <!-- La píldora se desliza bajo la pestaña activa: el cambio se ve como un movimiento, no como un salto. -->
+    <span class="rk-tab-pill" aria-hidden="true" [style.--tab-index]="scopeIndex"></span>
     <button #tab *ngFor="let option of scopes; let i = index" type="button" role="tab"
             [attr.aria-selected]="option.id === scope" [attr.tabindex]="option.id === scope ? 0 : -1"
             [class.is-active]="option.id === scope" (click)="select(option.id)" (keydown)="onTabKey($event, i)">
@@ -18,7 +23,8 @@
     <p class="th-empty" *ngIf="!ranking" role="status">Contando puntos…</p>
 
     <ng-container *ngIf="ranking">
-      <ol class="rk-list" [class.is-loading]="loading">
+      <!-- Una lista por periodo: al cambiar de pestaña, la nueva entra con un fundido corto. -->
+      <ol class="rk-list" *ngFor="let shown of [ranking]; trackBy: trackScope" [class.is-loading]="loading">
         <li *ngFor="let entry of ranking.entries; trackBy: trackEntry" class="rk-row" [class.is-me]="entry.is_me">
           <span class="rk-rank" [ngClass]="medal(entry.rank) || ''">
             <span *ngIf="entry.rank === 1" class="material-symbols-rounded" aria-hidden="true">crown</span>

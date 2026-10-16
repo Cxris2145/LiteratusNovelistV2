@@ -7,6 +7,7 @@
 
   <!-- Lista de charlas -->
   <ng-container *ngIf="!code; else thread">
+   <div class="fc-view" [attr.data-enter]="enter">
     <header class="fc-head">
       <span class="fc-emblem" aria-hidden="true"><span class="material-symbols-rounded">forum</span></span>
       <div class="fc-head-copy">
@@ -47,10 +48,12 @@
         </button>
       </li>
     </ul>
+   </div>
   </ng-container>
 
   <!-- Conversación con un amigo -->
   <ng-template #thread>
+   <div class="fc-view" [attr.data-enter]="enter">
     <header class="fc-head is-thread">
       <button type="button" class="th-icon-btn fc-back" (click)="back()" aria-label="Volver a las charlas">
         <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
@@ -76,7 +79,8 @@
       </p>
       <ng-container *ngFor="let row of rows; trackBy: trackRow">
         <p class="fc-day" *ngIf="row.kind === 'day'"><span>{{ row.label }}</span></p>
-        <div class="fc-bubble" *ngIf="row.kind === 'message'" [class.is-me]="row.message.is_me">
+        <div class="fc-bubble" *ngIf="row.kind === 'message'" [class.is-me]="row.message.is_me"
+             [class.is-new]="arrived.has(row.message.id)">
           <p>{{ row.message.content }}</p>
           <span class="fc-meta">
             <time [attr.datetime]="row.message.created_at">{{ clockTime(row.message.created_at) }}</time>
@@ -98,5 +102,6 @@
       </button>
     </form>
     <p class="fc-count" *ngIf="draft.length > maxLength - 60" aria-live="polite">{{ draft.length }}/{{ maxLength }}</p>
+   </div>
   </ng-template>
 </aside>

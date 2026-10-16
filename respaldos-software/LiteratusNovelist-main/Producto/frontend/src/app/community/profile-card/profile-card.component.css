@@ -157,6 +157,42 @@
 .pc-code > button { grid-column: 2; grid-row: 1 / span 2; }
 .pc-dress { width: 100%; }
 
+/* "Más sobre mí": el alto se abre con grid-template-rows (0fr → 1fr), el único caso en que la
+   Taberna anima un alto; cerrado queda inert, así su contenido no se alcanza con el teclado. */
+.pc-more-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: var(--th-control-h-sm);
+  padding: 4px 10px;
+  border: 0;
+  border-radius: var(--th-radius-control);
+  background: transparent;
+  color: var(--th-muted);
+  font: 600 .8rem var(--font-ui);
+  cursor: pointer;
+  transition: color .2s ease, background-color .2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pc-more-toggle:hover { color: var(--th-ink); background: color-mix(in srgb, var(--th-ink) 6%, transparent); }
+}
+.pc-more-chevron { font-size: 20px; transition: transform 200ms var(--th-ease-out); }
+.pc-more-toggle[aria-expanded='true'] .pc-more-chevron { transform: rotate(180deg); }
+.pc-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 200ms var(--th-ease-out), opacity 200ms var(--th-ease-out);
+}
+.pc-more.is-open { grid-template-rows: 1fr; opacity: 1; }
+/* El relleno con margen negativo deja lugar al anillo de foco sin correr el contenido. */
+.pc-more-inner { display: grid; gap: 8px; min-height: 0; overflow: hidden; padding: 6px; margin: -6px; }
+@media (prefers-reduced-motion: reduce) {
+  .pc-more { transition: opacity 150ms ease; }
+  .pc-more-chevron { transition: none; }
+}
+
 /* Perfil público / privado */
 .pc-privacy {
   display: grid;
@@ -205,9 +241,8 @@
 }
 
 /* La tarjeta lateral deja más espacio visible para el salón y el chat. */
-.pc.is-compact { gap: 8px; padding: 16px; }
-.pc.is-compact .th-panel-title { align-items: center; gap: 8px; }
-.pc.is-compact .th-panel-title h2 { font-size: 1.3rem; }
+.pc.is-compact { gap: 8px; }
+.pc.is-compact .th-panel-title { gap: 8px; }
 .pc.is-compact .th-panel-title .th-btn { padding-inline: 8px; font-size: .75rem; }
 .pc.is-compact .pc-avatar-wrap,
 .pc.is-compact .pc-avatar { width: 104px; }

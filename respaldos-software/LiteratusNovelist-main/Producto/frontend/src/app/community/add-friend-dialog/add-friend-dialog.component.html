@@ -32,7 +32,7 @@
     <p class="th-empty af-status" *ngIf="!suggestionsLoading && !suggestionsFailed && !suggestions.length">
       Por ahora no hay lectores para sugerirte. Comparte tu código para que te encuentren.
     </p>
-    <ul class="af-results" *ngIf="!suggestionsLoading && suggestions.length">
+    <ul class="af-results af-suggest-list" *ngIf="!suggestionsLoading && suggestions.length">
       <li *ngFor="let card of suggestions; trackBy: trackCard">
         <app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
                      [interactive]="false" [followPointer]="false"></app-maguito>
@@ -40,10 +40,11 @@
           <strong>{{ card.username }}</strong>
           <span class="af-reason">{{ card.reason }}</span>
         </a>
-        <button type="button" class="th-btn" [class.secondary]="card.relation !== 'none'"
+        <button type="button" class="th-btn af-suggest-btn" [class.secondary]="card.relation !== 'none'"
                 [disabled]="busy === card.friend_code || card.relation === 'friend'" (click)="act(card)"
                 [attr.aria-label]="suggestionLabel(card) + ': ' + card.username">
-          {{ busy === card.friend_code ? 'Un momento…' : suggestionLabel(card) }}
+          <!-- Una etiqueta por estado: al cambiar entra la nueva con un fundido corto. -->
+          <span class="af-btn-label" *ngFor="let label of [busy === card.friend_code ? 'Un momento…' : suggestionLabel(card)]">{{ label }}</span>
         </button>
       </li>
     </ul>

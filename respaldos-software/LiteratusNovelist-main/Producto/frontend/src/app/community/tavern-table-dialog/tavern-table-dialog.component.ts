@@ -39,10 +39,11 @@ export class TavernTableDialogComponent implements OnInit, OnDestroy {
   private community = inject(CommunityService);
   private gamification = inject(GamificationService);
   private destroy$ = new Subject<void>();
+  /** Mismos nombres que la franja de la mesa y los objetos 3D. */
   readonly title: Record<TavernTableAction, string> = {
-    book: 'Una lectura para compartir',
-    invite: 'Una ronda entre amigos',
-    rewards: 'Tu cofre de la semana',
+    book: 'Compartir lectura',
+    invite: 'Invitar y brindar',
+    rewards: 'Mi cofre',
     cat: 'El gato de la taberna',
     potions: 'Pociones mágicas',
     hourglass: 'Tiempo de lectura',

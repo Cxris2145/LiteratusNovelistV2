@@ -13,6 +13,17 @@
   --th-ease-out: var(--ease-out, cubic-bezier(.23, 1, .32, 1));
   --th-ease-in-out: var(--ease-in-out, cubic-bezier(.77, 0, .175, 1));
   --th-ease-drawer: var(--ease-drawer, cubic-bezier(.32, .72, 0, 1));
+  /* Escala única de la Taberna: un tamaño de título, un relleno de panel, tres radios y dos
+     alturas de control. Los colores de fondo que cambian según la página (paneles, botón
+     secundario) NO van aquí: cada componente vuelve a declarar este :host y taparía lo que
+     la sala hereda; se leen con var(--th-…, respaldo). */
+  --th-title: 1.3rem;
+  --th-panel-pad: 18px;
+  --th-stack-gap: 16px;
+  --th-radius-panel: 18px;
+  --th-radius-control: 12px;
+  --th-control-h: 40px;
+  --th-control-h-sm: 36px;
   color: var(--th-ink);
   font-family: var(--font-ui);
 }
@@ -31,22 +42,23 @@ h1, h2, h3 {
 .th-panel {
   background: var(--th-panel-background, var(--th-surface));
   border: 1px solid var(--th-panel-border, var(--th-border));
-  border-radius: 18px;
-  padding: 20px;
+  border-radius: var(--th-radius-panel);
+  padding: var(--th-panel-pad);
   backdrop-filter: var(--th-panel-filter, none);
   -webkit-backdrop-filter: var(--th-panel-filter, none);
   box-shadow: var(--th-panel-shadow, none);
 }
 .th-panel-title {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
 }
 .th-panel-title h2 {
-  font-size: 1.45rem;
+  font-size: var(--th-title);
   font-weight: 600;
+  line-height: 1.2;
 }
 
 /* Botones: dorado (principal), contorno (secundario) y fantasma (acciones pequeñas) */
@@ -58,7 +70,7 @@ h1, h2, h3 {
   min-height: 44px;
   padding: 10px 18px;
   border: 1px solid var(--th-gold);
-  border-radius: 12px;
+  border-radius: var(--th-radius-control);
   background: var(--th-gold);
   color: var(--home-bg);
   font: 600 .9rem var(--font-ui);
@@ -70,17 +82,21 @@ h1, h2, h3 {
   .th-btn:hover:not(:disabled) { box-shadow: 0 6px 22px var(--th-glow); }
 }
 .th-btn:active:not(:disabled) { transform: scale(.97); }
+/* Un solo secundario en toda la Taberna: relleno oscuro translúcido y borde dorado, para que se
+   lea igual sobre la ilustración que dentro de un panel. La sala fija --th-secondary-bg. */
 .th-btn.secondary {
-  background: transparent;
+  background: var(--th-secondary-bg, color-mix(in srgb, var(--home-bg) 72%, transparent));
+  border-color: color-mix(in srgb, var(--th-gold) 55%, transparent);
   color: var(--th-gold);
 }
 @media (hover: hover) and (pointer: fine) {
   .th-btn.secondary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--th-gold) 14%, transparent);
+    background: color-mix(in srgb, var(--th-gold) 16%, var(--th-secondary-bg, var(--home-bg)));
+    border-color: var(--th-gold);
   }
 }
 .th-btn.ghost {
-  min-height: 36px;
+  min-height: var(--th-control-h-sm);
   padding: 6px 12px;
   border-color: var(--th-border);
   background: transparent;
@@ -100,8 +116,8 @@ h1, h2, h3 {
 .th-icon-btn {
   display: inline-grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: var(--th-control-h-sm);
+  height: var(--th-control-h-sm);
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -119,8 +135,9 @@ h1, h2, h3 {
   position: relative;
   display: inline-grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  /* La píldora del encabezado los achica (con mouse) para medir lo mismo que los botones. */
+  width: var(--th-toggle-size, 40px);
+  height: var(--th-toggle-size, 40px);
   padding: 0;
   border: 1px solid transparent;
   border-radius: 50%;

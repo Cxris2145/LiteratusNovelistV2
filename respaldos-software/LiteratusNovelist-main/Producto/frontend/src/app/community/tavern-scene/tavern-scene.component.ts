@@ -106,15 +106,11 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   @Output() deleteMessage = new EventEmitter<string>();
   @Output() tableAction = new EventEmitter<TavernTableAction>();
   @Output() guestSelect = new EventEmitter<SceneGuest>();
-  /** Botón "El Bazar" de la mesa. */
-  @Output() bazar = new EventEmitter<void>();
 
   @ViewChildren('seatMaguito') private seatMaguitos?: QueryList<MaguitoComponent>;
 
   seats: Seat[] = [];
   emptySlots: Slot[] = [];
-  extraWide = 0;
-  extraNarrow = 0;
   summary = '';
 
   chatText = '';
@@ -134,6 +130,9 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   historyGroups: HistoryGroup[] = [];
   unseenCount = 0;
   private historySeenAt = 0;
+  /** Mensajes que llegaron con el historial abierto: entran con su animación (no los de antes). */
+  historyFresh = new Set<string>();
+  private historyBaseline = 0;
   readonly timeAgo = timeAgo;
 
   private tick = 0;
@@ -187,6 +186,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void {
     if (this.timer) clearInterval(this.timer);
     if (this.toastTimer) clearTimeout(this.toastTimer);
+    if (this.catTimer) clearTimeout(this.catTimer);
     this.observer?.disconnect();
     document.removeEventListener('visibilitychange', this.syncAmbient);
   }
@@ -219,10 +219,31 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  /** Menú "+" de la barra: Compartir lectura, Invitar y brindar, Mi cofre. */
+  actionsOpen = false;
+
+  toggleActions(): void {
+    this.actionsOpen = !this.actionsOpen;
+    if (this.actionsOpen) {
+      this.historyOpenState = false;
+      this.showEmojiList = false;
+    }
+  }
+
+  runAction(action: TavernTableAction): void {
+    this.actionsOpen = false;
+    this.tableHover = null;
+    this.activateTable(action);
+  }
+
   toggleHistory(): void {
     this.historyOpenState = !this.historyOpenState;
     this.showEmojiList = false;
+    this.actionsOpen = false;
     if (this.historyOpenState) {
+      // Lo que ya estaba (y lo más viejo que traiga la sala) no anima; solo lo posterior.
+      this.historyBaseline = this.newestMessageAt();
+      this.historyFresh.clear();
       this.historyOpen.emit();
       this.markHistorySeen();
       this.scrollHistoryToEnd();
@@ -246,6 +267,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
 
   toggleEmojiList(): void {
     this.showEmojiList = !this.showEmojiList;
+    this.actionsOpen = false;
   }
 
   /** El selector de emojis se cierra al pulsar fuera o con Escape. */
@@ -254,6 +276,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     const target = event.target as Element | null;
     // Escribir o reaccionar no cierra el historial: así se ve llegar lo que uno manda.
     if (this.historyOpenState && !target?.closest('.ts-chat-dock')) this.closeHistory();
+    if (this.actionsOpen && !target?.closest('.ts-actions')) { this.actionsOpen = false; this.cdr.markForCheck(); }
     if (!this.showEmojiList) return;
     if (target?.closest('.ts-emoji-picker-wrap, .ts-emoji-toggle')) return;
     this.showEmojiList = false;
@@ -262,6 +285,12 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
 
   @HostListener('keydown.escape')
   onEscape(): void {
+    if (this.actionsOpen) {
+      this.actionsOpen = false;
+      this.cdr.markForCheck();
+      (this.host.querySelector('.ts-actions-toggle') as HTMLElement | null)?.focus();
+      return;
+    }
     if (this.showEmojiList) {
       this.showEmojiList = false;
       this.cdr.markForCheck();
@@ -271,6 +300,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   catMessage: string | null = null;
+  catLeaving = false;
   private catTimer: ReturnType<typeof setTimeout> | null = null;
 
   activateTable(action: TavernTableAction): void {
@@ -301,44 +331,45 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private triggerCatPurr(): void {
-    const purrs = [
+    this.showObjectMessage(pick([
       '¡Miau! 🐾 El gato negro de la taberna ronronea alegremente a tu lado.',
       '🐾 El gato de la taberna te guiña un ojo dorado con complicidad.',
       '¡Ronroneo de la suerte! 🐾 Tus próximas lecturas tendrán magia extra.',
       '🐾 El gato negro amasa suavemente la madera de la mesa.',
-    ];
-    this.catMessage = purrs[Math.floor(Math.random() * purrs.length)];
-    if (this.catTimer) clearTimeout(this.catTimer);
-    this.catTimer = setTimeout(() => {
-      this.catMessage = null;
-      this.cdr.markForCheck();
-    }, 4500);
-    this.cdr.markForCheck();
+    ]));
   }
 
   private triggerPotionMagic(): void {
-    const effects = [
+    this.showObjectMessage(pick([
       '✨ Has probado la Poción de Concentración: mente lúcida y atenta.',
       '🧪 La pócima violeta burbujea: un aura mágica envuelve tu mesa.',
       '🌟 Destellos aromáticos de lavanda y tinta fresca despiertan tu inspiración.',
-    ];
-    this.catMessage = effects[Math.floor(Math.random() * effects.length)];
-    if (this.catTimer) clearTimeout(this.catTimer);
-    this.catTimer = setTimeout(() => {
-      this.catMessage = null;
-      this.cdr.markForCheck();
-    }, 4500);
-    this.cdr.markForCheck();
+    ]));
   }
 
   private triggerHourglassFlip(): void {
-    this.catMessage = '⏳ El tiempo de lectura fluye como arena dorada. ¡Cada página suma!';
+    this.showObjectMessage('⏳ El tiempo de lectura fluye como arena dorada. ¡Cada página suma!');
+  }
+
+  /** El globo de los objetos entra con ts-pop-in y se va fundiéndose (150 ms) a los 4,5 s. */
+  private showObjectMessage(text: string): void {
+    this.catMessage = text;
+    this.catLeaving = false;
+    if (this.catTimer) clearTimeout(this.catTimer);
+    this.catTimer = setTimeout(() => this.hideObjectBubble(), 4500);
+    this.cdr.markForCheck();
+  }
+
+  hideObjectBubble(): void {
+    if (!this.catMessage || this.catLeaving) return;
+    this.catLeaving = true;
+    this.cdr.markForCheck();
     if (this.catTimer) clearTimeout(this.catTimer);
     this.catTimer = setTimeout(() => {
       this.catMessage = null;
+      this.catLeaving = false;
       this.cdr.markForCheck();
-    }, 4500);
-    this.cdr.markForCheck();
+    }, 150);
   }
 
   private triggerToastEffect(): void {
@@ -446,8 +477,6 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
       bubble: this.fitting ? FITTING_BUBBLE : this.hostBubble(), mug: !this.fitting,
     });
     this.emptySlots = slots.slice(seatedGuests.length, Math.max(2, Math.min(4, seatedGuests.length + 1)));
-    this.extraWide = Math.max(0, seatedGuests.length - 4);
-    this.extraNarrow = Math.max(0, seatedGuests.length - 2);
     this.summary = this.describe(seatedGuests);
     this.cdr.markForCheck();
   }
@@ -504,6 +533,9 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     this.historyGroups = groups;
     if (!this.historySeenAt) this.historySeenAt = this.readHistorySeen();
     if (this.historyOpenState) {
+      for (const message of ordered) {
+        if (Date.parse(message.created_at) > this.historyBaseline) this.historyFresh.add(message.id);
+      }
       this.markHistorySeen();
       this.scrollHistoryToEnd();
     } else {
@@ -511,8 +543,12 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  private newestMessageAt(): number {
+    return this.messages.reduce((max, m) => Math.max(max, Date.parse(m.created_at) || 0), 0);
+  }
+
   private markHistorySeen(): void {
-    const newest = this.messages.reduce((max, m) => Math.max(max, Date.parse(m.created_at) || 0), 0);
+    const newest = this.newestMessageAt();
     this.historySeenAt = Math.max(this.historySeenAt, newest, Date.now());
     this.unseenCount = 0;
     try { localStorage.setItem(userStorageKey(HISTORY_SEEN_KEY), String(this.historySeenAt)); } catch { /* sin almacenamiento */ }
@@ -551,4 +587,8 @@ function hash(text: string): number {
   let value = 0;
   for (const char of text) value = (value * 31 + char.charCodeAt(0)) >>> 0;
   return value;
+}
+
+function pick<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
 }

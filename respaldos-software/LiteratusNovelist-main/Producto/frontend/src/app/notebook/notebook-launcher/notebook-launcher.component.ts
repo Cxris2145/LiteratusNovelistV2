@@ -48,6 +48,11 @@ import { NotebookService } from '../notebook.service';
     @media (hover: hover) and (pointer: fine) {
       .nb-launcher:hover { transform: translateY(-2px); border-color: var(--color-500, #5e80b3); }
     }
+    /* En La Taberna (escritorio) va junto al asistente y a su altura: los dos caben en el espacio
+       que la columna de amigos y ranking deja libre abajo, y no tapan las pestañas del ranking. */
+    @media (min-width: 701px) {
+      :host-context(body:has(app-tavern-hall)) .nb-launcher { right: 84px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+    }
     @media (max-width: 640px) {
       /* Sobre la burbuja del asistente, que a su vez va sobre la barra inferior. */
       :host-context(body.has-bottom-nav) .nb-launcher { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }

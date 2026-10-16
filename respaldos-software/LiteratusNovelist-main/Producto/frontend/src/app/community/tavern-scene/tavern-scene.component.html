@@ -1,23 +1,9 @@
 <section class="ts-stage" [class.is-fitting]="fitting" [attr.aria-label]="summary">
-  <nav class="ts-table-tools" aria-label="Objetos de tu mesa">
-    <button type="button" aria-label="Mi lectura" data-tip="Mi lectura" (click)="activateTable('book')" (pointerenter)="tableHover = 'book'" (pointerleave)="tableHover = null" (focus)="tableHover = 'book'" (blur)="tableHover = null">
-      <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
-      <span class="ts-tool-long">Mi lectura</span><span class="ts-tool-short">Lectura</span>
-    </button>
-    <button type="button" aria-label="Invitar y brindar" data-tip="Invitar y brindar" (click)="activateTable('invite')" (pointerenter)="tableHover = 'invite'" (pointerleave)="tableHover = null" (focus)="tableHover = 'invite'" (blur)="tableHover = null">
-      <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>
-      <span class="ts-tool-long">Invitar y brindar</span><span class="ts-tool-short">Brindar</span>
-    </button>
-    <button type="button" aria-label="Mi cofre" data-tip="Mi cofre" (click)="activateTable('rewards')" (pointerenter)="tableHover = 'rewards'" (pointerleave)="tableHover = null" (focus)="tableHover = 'rewards'" (blur)="tableHover = null">
-      <span class="material-symbols-rounded" aria-hidden="true">redeem</span>
-      <span class="ts-tool-long">Mi cofre</span><span class="ts-tool-short">Cofre</span>
-    </button>
-  </nav>
 
   <!-- Mensaje de interacción con objetos de la mesa (gato, poción, reloj) -->
-  <div *ngIf="catMessage" class="ts-object-bubble" role="status" aria-live="polite">
+  <div *ngIf="catMessage" class="ts-object-bubble" [class.is-leaving]="catLeaving" role="status" aria-live="polite">
     <span class="ts-object-bubble-text">{{ catMessage }}</span>
-    <button type="button" class="ts-object-bubble-close" (click)="catMessage = null" aria-label="Cerrar aviso"><span class="material-symbols-rounded" aria-hidden="true">close</span></button>
+    <button type="button" class="ts-object-bubble-close" (click)="hideObjectBubble()" aria-label="Cerrar aviso"><span class="material-symbols-rounded" aria-hidden="true">close</span></button>
   </div>
 
   <!-- Capa de ambiente: resplandor cálido de velas y faroles -->
@@ -74,7 +60,7 @@
 
   <app-tavern-table class="ts-table-overlay" [toasting]="toasting" [hoverAction]="tableHover"
     [reaction]="tableReaction" [reactionTick]="tableReactionTick"
-    (readyChange)="table3dReady = $event" (action)="tableAction.emit($event)"></app-tavern-table>
+    (readyChange)="table3dReady = $event" (action)="activateTable($event)"></app-tavern-table>
 
   <!-- Respaldo ilustrado mientras carga WebGL o si el dispositivo no lo admite. -->
   <svg class="ts-table-overlay ts-table-fallback" [class.is-replaced]="table3dReady" viewBox="0 0 1000 320" focusable="false" aria-hidden="true">
@@ -207,8 +193,6 @@
     <span *ngIf="seat.isFirst" class="ts-name-crown" title="Primer lugar del ranking">👑</span>
   </button>
 
-  <button type="button" class="ts-more wide" *ngIf="extraWide" (click)="tableAction.emit('invite')">+{{ extraWide }} amigos</button>
-  <button type="button" class="ts-more narrow" *ngIf="extraNarrow" (click)="tableAction.emit('invite')">+{{ extraNarrow }} amigos</button>
 
   <!-- ============================================================ -->
   <!-- BARRA DE CHAT Y REACCIONES RÁPIDAS DE LA TABERNA             -->
@@ -231,7 +215,8 @@
                        [interactive]="false" [followPointer]="false" aria-hidden="true"></app-maguito>
           <div class="ts-history-body">
             <p class="ts-history-author">{{ group.isMe ? 'Tú' : group.username }}</p>
-            <div *ngFor="let message of group.messages; trackBy: trackMessage" class="ts-history-message">
+            <div *ngFor="let message of group.messages; trackBy: trackMessage" class="ts-history-message"
+                 [class.is-new]="historyFresh.has(message.id)">
               <p class="ts-history-text">{{ message.content }}</p>
               <time class="ts-history-time" [attr.datetime]="message.created_at">{{ timeAgo(message.created_at) }}</time>
               <button *ngIf="message.is_me" type="button" class="ts-history-delete" (click)="removeMessage(message)"
@@ -249,10 +234,31 @@
               [attr.aria-expanded]="historyOpenState" aria-controls="ts-history"
               [attr.aria-label]="unseenCount ? 'Ver la conversación de la mesa, ' + unseenCount + ' mensajes nuevos' : 'Ver la conversación de la mesa'"
               title="Conversación de la mesa">
-        <span class="material-symbols-rounded" aria-hidden="true">forum</span>
+        <span class="material-symbols-rounded" aria-hidden="true">history</span>
         <span class="ts-history-badge" *ngIf="unseenCount" aria-hidden="true">{{ unseenCount > 9 ? '9+' : unseenCount }}</span>
       </button>
       <ng-template #leadIcon><span class="material-symbols-rounded ts-chat-lead-icon" aria-hidden="true">chat</span></ng-template>
+
+      <!-- Acciones de la mesa: un "+" junto al chat (como adjuntar en una app de mensajes). Los objetos
+           de la mesa 3D (libro, jarras, cofre) hacen lo mismo. -->
+      <div class="ts-actions">
+        <button type="button" class="ts-chat-icon-btn ts-actions-toggle" (click)="toggleActions()"
+                [attr.aria-expanded]="actionsOpen" aria-controls="ts-actions-menu"
+                aria-label="Acciones de la mesa" title="Acciones de la mesa">
+          <span class="material-symbols-rounded" aria-hidden="true">add</span>
+        </button>
+        <div class="ts-actions-menu" id="ts-actions-menu" *ngIf="actionsOpen">
+          <button type="button" (click)="runAction('book')" (pointerenter)="tableHover = 'book'" (pointerleave)="tableHover = null">
+            <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>Compartir lectura
+          </button>
+          <button type="button" (click)="runAction('invite')" (pointerenter)="tableHover = 'invite'" (pointerleave)="tableHover = null">
+            <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>Invitar y brindar
+          </button>
+          <button type="button" (click)="runAction('rewards')" (pointerenter)="tableHover = 'rewards'" (pointerleave)="tableHover = null">
+            <span class="material-symbols-rounded" aria-hidden="true">redeem</span>Mi cofre
+          </button>
+        </div>
+      </div>
 
       <input
         type="text"
@@ -297,21 +303,20 @@
 
       <!-- Reacciones rápidas: 🍺 ❤️ 👏 📖 ✨ -->
       <div class="ts-dock-reactions">
-        <span class="ts-dock-reactions-label">Reacciones</span>
         <div class="ts-dock-reactions-list">
-          <button type="button" class="ts-react-pill" (click)="react('🍺')" title="Brindar por las lecturas" aria-label="Brindar con cerveza">
+          <button type="button" class="ts-react-pill" (click)="react('🍺')" title="¡Salud!" aria-label="Reaccionar: ¡Salud!">
             🍺
           </button>
-          <button type="button" class="ts-react-pill" (click)="react('❤️')" title="Me encanta" aria-label="Corazón">
+          <button type="button" class="ts-react-pill" (click)="react('❤️')" title="Me encanta" aria-label="Reaccionar: me encanta">
             ❤️
           </button>
-          <button type="button" class="ts-react-pill" (click)="react('👏')" title="¡Gran logro!" aria-label="Aplausos">
+          <button type="button" class="ts-react-pill" (click)="react('👏')" title="¡Gran logro!" aria-label="Reaccionar: ¡gran logro!">
             👏
           </button>
-          <button type="button" class="ts-react-pill" (click)="react('📖')" title="Buena lectura" aria-label="Libro">
+          <button type="button" class="ts-react-pill" (click)="react('📖')" title="Buena lectura" aria-label="Reaccionar: buena lectura">
             📖
           </button>
-          <button type="button" class="ts-react-pill" (click)="react('✨')" title="Magia literaria" aria-label="Destellos">
+          <button type="button" class="ts-react-pill" (click)="react('✨')" title="Magia literaria" aria-label="Reaccionar: magia literaria">
             ✨
           </button>
         </div>

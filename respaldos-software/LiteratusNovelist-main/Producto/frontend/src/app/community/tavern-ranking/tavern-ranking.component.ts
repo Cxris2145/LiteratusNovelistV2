@@ -24,6 +24,11 @@ export class TavernRankingComponent {
   ];
 
   trackEntry = (_: number, entry: RankingEntry) => entry.friend_code;
+  trackScope = (_: number, ranking: Ranking) => ranking.scope;
+
+  get scopeIndex(): number {
+    return Math.max(0, this.scopes.findIndex(option => option.id === this.scope));
+  }
 
   /** Mi fila cuando quedo fuera del top. */
   get myRowOutside(): RankingEntry | null {

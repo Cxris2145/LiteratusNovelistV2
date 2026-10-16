@@ -67,10 +67,11 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   @Output() readyChange = new EventEmitter<boolean>();
   @Output() action = new EventEmitter<TavernTableAction>();
   anchors: TavernTableAnchor[] = [];
+  /** Mismos nombres que la franja de la mesa y los diálogos. */
   readonly labels: Record<TavernTableAction, string> = {
-    book: 'Compartir una lectura',
+    book: 'Compartir lectura',
     invite: 'Invitar y brindar',
-    rewards: 'Mis recompensas semanales',
+    rewards: 'Mi cofre',
     cat: 'Acariciar al gato',
     potions: 'Poción de lectura',
     hourglass: 'Tiempo de lectura',

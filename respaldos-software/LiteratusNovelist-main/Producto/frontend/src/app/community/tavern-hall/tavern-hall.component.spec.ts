@@ -2,6 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { BehaviorSubject, NEVER, Subject } from 'rxjs';
 
 import { TavernHallComponent } from './tavern-hall.component';
@@ -18,6 +19,7 @@ describe('TavernHallComponent', () => {
   function create(): ComponentFixture<TavernHallComponent> {
     TestBed.configureTestingModule({
       declarations: [TavernHallComponent],
+      imports: [NoopAnimationsModule],
       providers: [
         { provide: AuthService, useValue: { isLoggedIn: () => loggedIn } },
         { provide: CommunityService, useValue: community },

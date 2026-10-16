@@ -287,3 +287,23 @@
 @media (prefers-reduced-motion: reduce) {
   .fc-drawer, .fc-drawer.is-open, .fc-backdrop, .fc-backdrop.is-open { transition: none; }
 }
+
+/* ── Movimiento ──────────────────────────────────────────────── */
+/* Lista ↔ charla: la vista nueva entra desde el lado hacia el que se va (adelante = derecha). */
+.fc-drawer { overflow: hidden; }
+.fc-view { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.fc-view[data-enter='forward'] { animation: fc-from-right 220ms var(--th-ease-out) backwards; }
+.fc-view[data-enter='back'] { animation: fc-from-left 220ms var(--th-ease-out) backwards; }
+@keyframes fc-from-right { from { opacity: 0; transform: translateX(16px); } }
+@keyframes fc-from-left { from { opacity: 0; transform: translateX(-16px); } }
+
+/* Mensaje que llega con la charla abierta: sube un poco desde la esquina de quien lo manda. */
+.fc-bubble.is-new { animation: fc-msg-in 180ms var(--th-ease-out) backwards; transform-origin: bottom left; }
+.fc-bubble.is-me.is-new { transform-origin: bottom right; }
+@keyframes fc-msg-in { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-view[data-enter] { animation: fc-fade 150ms ease backwards; }
+  .fc-bubble.is-new { animation: fc-fade 120ms ease backwards; }
+}
+@keyframes fc-fade { from { opacity: 0; } }

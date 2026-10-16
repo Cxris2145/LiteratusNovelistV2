@@ -1,6 +1,16 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, Output,
+  QueryList, SimpleChanges, ViewChildren, inject,
+} from '@angular/core';
 
+import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
 import { FriendCard, FriendRequestItem } from '../../core/services/community.service';
+import { prefersReducedMotion } from '../../core/utils/motion.util';
+import { listContainerMotion, listItemMotion, listItemParams } from '../tavern-motion';
+
+/** Tiempo que un busto "despierta" para hacer su gesto (después vuelve a quedar en pausa). */
+const POKE_MS = 650;
+const CELEBRATE_MS = 1100;
 
 /**
  * "Mis amigos": solicitudes pendientes arriba y la lista con su estado. Solo emite;
@@ -11,8 +21,12 @@ import { FriendCard, FriendRequestItem } from '../../core/services/community.ser
   templateUrl: './friend-list.component.html',
   styleUrls: ['../community-shared.css', './friend-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [listItemMotion, listContainerMotion],
 })
-export class FriendListComponent {
+export class FriendListComponent implements OnChanges, OnDestroy {
+  private cdr = inject(ChangeDetectorRef);
+  @ViewChildren('rowMaguito') private rowMaguitos?: QueryList<MaguitoComponent>;
+
   @Input() friends: FriendCard[] = [];
   @Input() incoming: FriendRequestItem[] = [];
   @Input() outgoing: FriendRequestItem[] = [];
@@ -21,6 +35,8 @@ export class FriendListComponent {
   @Input() busy: string | null = null;
   /** Mensajes sin leer de las charlas privadas, por código de amigo. */
   @Input() unread: Record<string, number> = {};
+  /** Amigo recién aceptado: su fila brilla y su Maguito salta. */
+  @Input() celebrate: string | null = null;
 
   @Output() accept = new EventEmitter<FriendRequestItem>();
   @Output() decline = new EventEmitter<FriendRequestItem>();
@@ -33,6 +49,62 @@ export class FriendListComponent {
 
   /** Amigo cuyo botón "Eliminar" pide confirmación. */
   confirming: string | null = null;
+
+  readonly itemMotion = listItemParams();
+  private readonly reduced = prefersReducedMotion();
+  private readonly canHover = typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  /** Amigos cuyo contador de no leídos acaba de subir (salta una vez). */
+  bumped = new Set<string>();
+  /** Busto despierto (sin pausa) mientras hace su gesto. */
+  awake: string | null = null;
+  celebrating: string | null = null;
+  private celebrated: string | null = null;
+  private timers: ReturnType<typeof setTimeout>[] = [];
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['unread']) {
+      const before: Record<string, number> = changes['unread'].previousValue ?? {};
+      this.bumped = new Set(Object.entries(this.unread ?? {})
+        .filter(([code, count]) => count > (before[code] ?? 0))
+        .map(([code]) => code));
+    }
+    // La fila del amigo nuevo llega con la recarga: se celebra apenas aparece, una sola vez.
+    const code = this.celebrate;
+    if (code && code !== this.celebrated && this.friends.some(friend => friend.friend_code === code)) {
+      this.celebrated = code;
+      this.celebrating = code;
+      this.later(() => { this.celebrating = null; this.cdr.markForCheck(); }, CELEBRATE_MS);
+      if (!this.reduced) this.wake(code, 'success', CELEBRATE_MS);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.timers.forEach(clearTimeout);
+  }
+
+  /** Con mouse, el busto del amigo hace un gesto al pasar sobre su fila. */
+  poke(friend: FriendCard): void {
+    if (!this.canHover || this.reduced || this.awake) return;
+    this.wake(friend.friend_code, 'poke', POKE_MS);
+  }
+
+  /** Los bustos están en pausa (son muchos): uno despierta, hace su gesto y vuelve a dormir. */
+  private wake(code: string, gesture: 'poke' | 'success', ms: number): void {
+    this.awake = code;
+    this.cdr.markForCheck();
+    this.later(() => {
+      const index = this.friends.findIndex(friend => friend.friend_code === code);
+      this.rowMaguitos?.get(index)?.play(gesture);
+    }, 0);
+    this.later(() => {
+      if (this.awake === code) this.awake = null;
+      this.cdr.markForCheck();
+    }, ms);
+  }
+
+  private later(fn: () => void, ms: number): void {
+    this.timers.push(setTimeout(fn, ms));
+  }
 
   trackFriend = (_: number, friend: FriendCard) => friend.friend_code;
   trackRequest = (_: number, request: FriendRequestItem) => request.id;

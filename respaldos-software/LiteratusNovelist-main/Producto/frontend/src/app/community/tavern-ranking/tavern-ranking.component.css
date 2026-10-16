@@ -1,8 +1,37 @@
 :host { display: block; }
 
-.rk-info { color: var(--th-muted); font-size: 20px; cursor: help; border-radius: 50%; }
+.rk-info { position: relative; cursor: help; }
+.rk-info > .material-symbols-rounded { font-size: 20px; }
+/* El globito sale desde el ícono (esquina superior derecha) y queda dentro del panel. */
+.rk-tip {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  width: min(240px, 70vw);
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #1d140f;
+  border: 1px solid color-mix(in srgb, var(--th-gold) 55%, transparent);
+  color: #fff0cd;
+  font: 500 .74rem/1.4 var(--font-ui);
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(.97);
+  transform-origin: top right;
+  transition: opacity 150ms var(--th-ease-out), transform 150ms var(--th-ease-out);
+}
+.rk-info:focus .rk-tip { opacity: 1; transform: none; }
+@media (hover: hover) and (pointer: fine) {
+  .rk-info:hover .rk-tip { opacity: 1; transform: none; transition-delay: 250ms; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rk-tip { transform: none; transition: opacity 150ms ease; }
+}
 
 .rk-tabs {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
@@ -12,8 +41,22 @@
   background: color-mix(in srgb, var(--home-bg) 60%, transparent);
   border: 1px solid var(--th-border);
 }
+/* La píldora mide una columna (descontando el relleno de 4 px y los dos huecos de 4 px). */
+.rk-tab-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 16px) / 3);
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--th-gold) 60%, transparent);
+  background: color-mix(in srgb, var(--th-gold) 10%, transparent);
+  transform: translateX(calc((100% + 4px) * var(--tab-index, 0)));
+  transition: transform 220ms var(--th-ease-in-out);
+}
 .rk-tabs button {
-  min-height: 36px;
+  position: relative;
+  min-height: var(--th-control-h-sm);
   padding-inline: 4px;
   white-space: nowrap;
   border: 1px solid transparent;
@@ -27,11 +70,7 @@
 @media (hover: hover) and (pointer: fine) {
   .rk-tabs button:hover { color: var(--th-ink); }
 }
-.rk-tabs button.is-active {
-  color: var(--th-gold);
-  border-color: color-mix(in srgb, var(--th-gold) 60%, transparent);
-  background: color-mix(in srgb, var(--th-gold) 10%, transparent);
-}
+.rk-tabs button.is-active { color: var(--th-gold); }
 
 .rk-list {
   list-style: none;
@@ -42,6 +81,11 @@
   transition: opacity .2s;
 }
 .rk-list.is-loading { opacity: .55; }
+.rk-list { animation: rk-fade 150ms var(--th-ease-out) backwards; }
+@keyframes rk-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .rk-tab-pill { transition: none; }
+}
 .rk-row {
   display: grid;
   grid-template-columns: 30px 36px 1fr auto;

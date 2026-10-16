@@ -54,6 +54,10 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
   error = '';
   draft = '';
   sending = false;
+  /** Hacia dónde entra la vista al cambiar entre la lista y una charla (null = sin desplazamiento). */
+  enter: 'forward' | 'back' | null = null;
+  /** Mensajes que llegaron (o se mandaron) con la charla abierta: entran con su animación. */
+  arrived = new Set<string>();
 
   private poll: ReturnType<typeof setInterval> | null = null;
   private request?: Subscription;
@@ -64,6 +68,9 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // Abrir el cajón ya es un movimiento; pasar de la lista a una charla (o volver) desliza la vista.
+    if (changes['open']) this.enter = null;
+    else if (changes['code'] && this.open) this.enter = this.code ? 'forward' : 'back';
     if (changes['open']) {
       if (this.open) {
         this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -127,7 +134,7 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
         this.sending = false;
         if (code !== this.code) return;
         this.draft = '';
-        this.append([res.item], true);
+        this.append([res.item], true, true);
         setTimeout(() => this.composer?.nativeElement.focus());
       },
       error: err => {
@@ -151,6 +158,7 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
 
   private openThread(): void {
     this.stopPolling();
+    this.arrived.clear();
     this.messages = [];
     this.rows = [];
     this.loading = true;
@@ -161,7 +169,7 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
         if (code !== this.code) return;
         this.loading = false;
         this.messages = [];
-        this.append(data.messages, true);
+        this.append(data.messages, true, false);
         this.startPolling();
       },
       error: err => {
@@ -180,17 +188,18 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
     this.community.chatMessages(code, last).pipe(takeUntil(this.destroy$)).subscribe({
       next: data => {
         if (code !== this.code || !this.open) return;
-        if (data.incremental) this.append(data.messages, false);
-        else { this.messages = []; this.append(data.messages, false); } // el último ya no existe: se recarga
+        if (data.incremental) this.append(data.messages, false, true);
+        else { this.messages = []; this.append(data.messages, false, false); } // el último ya no existe: se recarga
       },
       error: () => {},
     });
   }
 
-  private append(incoming: FriendChatMessage[], forceScroll: boolean): void {
+  private append(incoming: FriendChatMessage[], forceScroll: boolean, animate: boolean): void {
     const known = new Set(this.messages.map(message => message.id));
     const fresh = incoming.filter(message => !known.has(message.id));
     if (!fresh.length && this.rows.length) return;
+    if (animate) fresh.forEach(message => this.arrived.add(message.id));
     const list = this.scroller?.nativeElement;
     const nearBottom = !list || list.scrollHeight - list.scrollTop - list.clientHeight < 80;
     this.messages = [...this.messages, ...fresh];

@@ -1,8 +1,8 @@
-import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, forkJoin } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { filter, take, takeUntil } from 'rxjs/operators';
 
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,6 +16,7 @@ import { BazarGesture, BazarTab, isBazarTab } from '../tavern-bazar/tavern-bazar
 import { SceneGuest } from '../tavern-scene/tavern-scene.component';
 import { TavernTableAction } from '../tavern-table/tavern-table.types';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
+import { listContainerMotion, listItemMotion, listItemParams, morphLayout } from '../tavern-motion';
 
 const POLL_MS = 8000;
 /** Cuántos mensajes trae el sondeo de actividad y cuántos guarda el historial de la mesa. */
@@ -63,6 +64,7 @@ const DEMO_GUESTS: SceneGuest[] = [
   selector: 'app-tavern-hall',
   templateUrl: './tavern-hall.component.html',
   styleUrls: ['../community-shared.css', './tavern-hall.component.css'],
+  animations: [listItemMotion, listContainerMotion],
 })
 export class TavernHallComponent implements OnInit, OnDestroy {
   private community = inject(CommunityService);
@@ -72,6 +74,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
   private notification = inject(NotificationService);
   private zone = inject(NgZone);
+  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
   private poll: ReturnType<typeof setInterval> | null = null;
 
@@ -80,9 +83,25 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   readonly demoGuests = DEMO_GUESTS;
 
   cinemaMode = false;
+  /** Entrada y salida de filas (invitaciones); con "reducir movimiento", solo opacidad. */
+  readonly itemMotion = listItemParams();
+  /** El contador de Charlas solo salta cuando sube (un mensaje nuevo), no cuando baja. */
+  chatUnreadUp = false;
+  /** Amigo recién aceptado: su fila de "Mis amigos" lo celebra un momento. */
+  celebrateCode: string | null = null;
+  private celebrateTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /** La mesa crece desde su lugar (o vuelve) con una View Transition; sin la API, cambia directo. */
   toggleCinema(): void {
-    this.cinemaMode = !this.cinemaMode;
+    this.setCinema(!this.cinemaMode);
+  }
+
+  private setCinema(on: boolean): void {
+    if (this.cinemaMode === on) return;
+    morphLayout(() => {
+      this.cinemaMode = on;
+      this.cdr.detectChanges(); // la View Transition captura el DOM ya cambiado
+    });
   }
 
   // ── /tavern#mi-perfil ("Ver mi perfil público" del menú del avatar) ──
@@ -170,6 +189,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     if (this.poll) clearInterval(this.poll);
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
     if (this.spotlightTimer) clearTimeout(this.spotlightTimer);
+    if (this.celebrateTimer) clearTimeout(this.celebrateTimer);
     document.removeEventListener('visibilitychange', this.onVisibility);
     this.destroy$.next();
     this.destroy$.complete();
@@ -194,7 +214,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.mergeMessages(data.activity.messages, ACTIVITY_MESSAGES);
         this.recentReactions = data.activity.reactions;
         this.setInvitations(data.activity.invitations);
-        this.chatUnread = data.activity.chat_unread ?? this.chatUnread;
+        this.setChatUnread(data.activity.chat_unread);
         this.loading = false;
         this.spotlightProfile();
       },
@@ -271,13 +291,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern' } });
       return;
     }
-    if (action === 'cat' || action === 'potions') {
-      return;
-    }
-    if (action === 'hourglass') {
-      this.notification.info('El reloj de arena mide el flujo de tus momentos dedicados a la lectura.', 'Tiempo en la Taberna');
-      return;
-    }
+    // El gato, las pociones y el reloj de arena los resuelve la escena (globo y partículas).
     if (this.tableOpening || this.dialog.openDialogs.length) return;
     this.tableOpening = true;
     try {
@@ -364,7 +378,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.cinemaMode) {
-      this.cinemaMode = false;
+      this.setCinema(false);
       return;
     }
     if (this.dialog.openDialogs.length) return;
@@ -423,7 +437,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   accept(request: FriendRequestItem): void {
-    this.run(request.id, this.community.accept(request.id));
+    this.run(request.id, this.community.accept(request.id), noticeId => this.celebrateAfter(noticeId, request.user.friend_code));
   }
 
   decline(request: FriendRequestItem): void {
@@ -505,13 +519,14 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     });
   }
 
-  private run(key: string, request: Observable<CommunityResult>): void {
+  private run(key: string, request: Observable<CommunityResult>, done?: (noticeId?: string) => void): void {
     if (this.busy) return;
     this.busy = key;
     request.subscribe({
       next: result => {
         this.busy = null;
-        if (result.message) this.notification.success(result.message, 'Taberna');
+        const noticeId = result.message ? this.notification.success(result.message, 'Taberna') : undefined;
+        done?.(noticeId);
         this.loadAll();
       },
       error: err => {
@@ -521,6 +536,37 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+  private setChatUnread(next: ChatUnread | undefined): void {
+    if (!next) return;
+    this.chatUnreadUp = next.total > this.chatUnread.total;
+    this.chatUnread = next;
+  }
+
+  /**
+   * El aviso de éxito tapa la pantalla: la celebración espera a que se cierre, así se ve
+   * la fila del amigo nuevo brillar en vez de ocurrir detrás del aviso.
+   */
+  private celebrateAfter(noticeId: string | undefined, code: string): void {
+    if (!noticeId) {
+      this.celebrate(code);
+      return;
+    }
+    this.notification.notifications$.pipe(
+      filter(list => !list.some(notice => notice.id === noticeId)),
+      take(1),
+      takeUntil(this.destroy$),
+    ).subscribe(() => this.celebrate(code));
+  }
+
+  /** Momento raro: la fila del amigo nuevo brilla y su Maguito salta (ver friend-list). */
+  private celebrate(code: string): void {
+    this.celebrateCode = code;
+    if (this.celebrateTimer) clearTimeout(this.celebrateTimer);
+    this.celebrateTimer = setTimeout(() => this.celebrateCode = null, 2500);
+  }
+
+  trackInvitation = (_: number, invitation: TavernInvitation) => invitation.id;
 
   private refreshLive(): void {
     forkJoin({
@@ -536,7 +582,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.mergeMessages(data.activity.messages, ACTIVITY_MESSAGES);
         this.recentReactions = data.activity.reactions;
         this.setInvitations(data.activity.invitations);
-        this.chatUnread = data.activity.chat_unread ?? this.chatUnread;
+        this.setChatUnread(data.activity.chat_unread);
         if (this.me) this.me = { ...this.me, pending_incoming: data.presence.pending_incoming };
       },
       error: () => {},

@@ -1204,6 +1204,18 @@ html.theme-switching *::after { transition: none !important; }
 html.theme-fade::view-transition-old(root),
 html.theme-fade::view-transition-new(root) { animation-duration: .2s; animation-timing-function: ease-out; }
 
+/* Taberna, modo cine (community/tavern-motion.ts → morphLayout): la mesa crece desde su lugar
+   como grupo propio y las columnas laterales se funden con el resto de la página. */
+html.tavern-morph .area-scene-wrap { view-transition-name: tavern-stage; }
+html.tavern-morph header.main-header { view-transition-name: tavern-header; }
+html.tavern-morph::view-transition-group(tavern-stage) { animation-duration: 320ms; animation-timing-function: var(--ease-out); }
+html.tavern-morph::view-transition-old(root),
+html.tavern-morph::view-transition-new(root) { animation-duration: 200ms; animation-timing-function: var(--ease-out); }
+/* Reducir movimiento: sin crecer ni moverse, solo un fundido corto de toda la página. */
+html.tavern-morph-reduced .area-scene-wrap { view-transition-name: none; }
+html.tavern-morph-reduced::view-transition-old(root),
+html.tavern-morph-reduced::view-transition-new(root) { animation-duration: 150ms; animation-timing-function: ease; }
+
 /* ═════════════════════════════════════════════════════════════════════
    NORMALIZED MAT-SNACKBAR THEME (LITERATUS BOUTIQUE)
    ═════════════════════════════════════════════════════════════════════ */

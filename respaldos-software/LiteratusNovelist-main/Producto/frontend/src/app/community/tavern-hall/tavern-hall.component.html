@@ -25,7 +25,11 @@
               [attr.aria-expanded]="chatOpen" aria-controls="friend-chat"
               [attr.aria-label]="chatUnread.total ? 'Charlas, ' + chatUnread.total + ' mensajes sin leer' : 'Charlas'">
         <span class="material-symbols-rounded" aria-hidden="true">forum</span>Charlas
-        <span class="th-count-badge" *ngIf="chatUnread.total" aria-hidden="true">{{ chatUnread.total > 99 ? '99+' : chatUnread.total }}</span>
+        <ng-container *ngIf="chatUnread.total">
+          <!-- Un elemento por número: así el salto se repite cada vez que sube. -->
+          <span class="th-count-badge" *ngFor="let count of [chatUnread.total]" [class.is-up]="chatUnreadUp"
+                aria-hidden="true">{{ count > 99 ? '99+' : count }}</span>
+        </ng-container>
       </button>
       <button type="button" class="th-btn secondary" (click)="openBazar()" [attr.aria-expanded]="bazarOpen" aria-controls="tavern-bazar">
         <span class="material-symbols-rounded" aria-hidden="true">storefront</span>El Bazar
@@ -69,8 +73,8 @@
 
     <!-- Columna central: mesa interactiva y chat sobre el fondo compartido. -->
     <div class="area-scene-wrap">
-      <aside class="th-invitations" *ngIf="invitations.length" aria-label="Invitaciones a la mesa">
-        <div *ngFor="let invitation of invitations" class="th-invitation">
+      <aside class="th-invitations" *ngIf="invitations.length" @listContainer aria-label="Invitaciones a la mesa">
+        <div *ngFor="let invitation of invitations; trackBy: trackInvitation" class="th-invitation" [@listItem]="itemMotion">
           <p><strong>{{ invitation.user.username }}</strong> te invita a compartir un brindis.</p>
           <button type="button" class="th-btn" [disabled]="!!invitationBusy" (click)="respondToInvitation(invitation, 'accept')">Unirme</button>
           <button type="button" class="th-btn ghost" [disabled]="!!invitationBusy" (click)="respondToInvitation(invitation, 'decline')">Ahora no</button>
@@ -92,7 +96,6 @@
         (historyOpen)="onHistoryOpen()"
         (deleteMessage)="onDeleteMessage($event)"
         (tableAction)="openTableAction($event)"
-        (bazar)="bazarOpen ? closeBazar() : openBazar()"
         (guestSelect)="openGuest($event)">
       </app-tavern-scene>
     </div>
@@ -106,6 +109,7 @@
         [loading]="loading"
         [busy]="busy"
         [unread]="chatUnread.by_friend"
+        [celebrate]="celebrateCode"
         (chat)="openChat($event.friend_code)"
         (accept)="accept($event)"
         (decline)="decline($event)"
@@ -158,8 +162,7 @@
           [toasting]="toasting"
           (sendMessage)="onSendMessage($event)"
           (sendReaction)="onSendReaction($event)"
-          (tableAction)="openTableAction($event)"
-          (bazar)="openBazar()">
+          (tableAction)="openTableAction($event)">
         </app-tavern-scene>
       </div>
       <div class="th-visitor-side">

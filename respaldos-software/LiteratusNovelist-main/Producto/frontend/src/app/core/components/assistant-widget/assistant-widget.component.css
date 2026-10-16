@@ -2,7 +2,18 @@
    ASISTENTE GLOBAL — burbuja flotante + panel de conversación
    ========================================================================== */
 
-/* En la taberna (mesa, chat y Bazar), deja libres los controles cercanos. */
+/* En la taberna (mesa, chat y Bazar), deja libres los controles cercanos. En escritorio la
+   burbuja se achica para tapar menos la columna de amigos y ranking. */
+@media (min-width: 701px) {
+  :host-context(body:has(app-tavern-hall)) .lit-bubble {
+    width: 48px;
+    height: 48px;
+  }
+  :host-context(body:has(app-tavern-hall)) .lit-bubble-avatar {
+    width: 40px;
+    height: 40px;
+  }
+}
 @media (max-width: 700px) {
   :host-context(body:has(app-tavern-hall)) .lit-bubble {
     width: 40px;

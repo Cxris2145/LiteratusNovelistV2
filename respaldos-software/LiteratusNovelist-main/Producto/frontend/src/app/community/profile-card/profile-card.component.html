@@ -40,6 +40,25 @@
     </div>
   </dl>
 
+  <button *ngIf="mine" type="button" class="th-btn secondary pc-dress" (click)="dress.emit()" [attr.aria-expanded]="dressing">
+    <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir a Maguito
+  </button>
+
+  <!-- En la sala la tarjeta debe caber en pantalla: lo secundario se despliega con "Más sobre mí". -->
+  <ng-container *ngIf="compact; else extrasOpen">
+    <button type="button" class="pc-more-toggle" (click)="toggleMore()" [attr.aria-expanded]="moreOpen" aria-controls="pc-more">
+      Más sobre mí
+      <span class="material-symbols-rounded pc-more-chevron" aria-hidden="true">expand_more</span>
+    </button>
+    <div class="pc-more" id="pc-more" [class.is-open]="moreOpen" [attr.inert]="moreOpen ? null : ''">
+      <div class="pc-more-inner"><ng-container *ngTemplateOutlet="extras"></ng-container></div>
+    </div>
+  </ng-container>
+  <ng-template #extrasOpen><ng-container *ngTemplateOutlet="extras"></ng-container></ng-template>
+
+  <ng-content></ng-content>
+
+  <ng-template #extras>
   <div class="pc-about">
     <div class="pc-about-title-row">
       <h3>Sobre mí</h3>
@@ -70,12 +89,7 @@
       <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
     </button>
   </div>
-
-  <button *ngIf="mine" type="button" class="th-btn secondary pc-dress" (click)="dress.emit()" [attr.aria-expanded]="dressing">
-    <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir a Maguito
-  </button>
-
-  <ng-content></ng-content>
+  </ng-template>
 </section>
 
 <ng-template #skeleton>

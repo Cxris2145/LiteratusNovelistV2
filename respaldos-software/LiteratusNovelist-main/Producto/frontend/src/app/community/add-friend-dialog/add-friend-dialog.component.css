@@ -83,6 +83,24 @@
 @keyframes af-pulse { 50% { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .af-sk-line { animation: none; } }
 
+/* Sugerencias: llegan escalonadas (50 ms) una sola vez, al cargarse; no bloquean los clics. */
+.af-suggest-list li { animation: af-rise 300ms var(--th-ease-out) backwards; }
+.af-suggest-list li:nth-child(2) { animation-delay: 50ms; }
+.af-suggest-list li:nth-child(3) { animation-delay: 100ms; }
+.af-suggest-list li:nth-child(4) { animation-delay: 150ms; }
+.af-suggest-list li:nth-child(5) { animation-delay: 200ms; }
+.af-suggest-list li:nth-child(6) { animation-delay: 250ms; }
+.af-suggest-list li:nth-child(7) { animation-delay: 300ms; }
+.af-suggest-list li:nth-child(8) { animation-delay: 350ms; }
+@keyframes af-rise { from { opacity: 0; transform: translateY(8px); } }
+/* "Agregar" → "Enviada · Cancelar": ancho fijo para que el botón no salte y la etiqueta se funde. */
+.af-results .af-suggest-btn { min-width: 9.75rem; }
+.af-btn-label { animation: af-fade 150ms var(--th-ease-out) backwards; }
+@keyframes af-fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .af-suggest-list li { animation-name: af-fade; }
+}
+
 .af-mine {
   display: flex;
   align-items: center;
