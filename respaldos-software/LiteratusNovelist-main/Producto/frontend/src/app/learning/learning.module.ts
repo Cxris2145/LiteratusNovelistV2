@@ -12,6 +12,10 @@ import { GameTilesComponent } from './games/game-tiles.component';
 import { GameHuntComponent } from './games/game-hunt.component';
 import { GameClassifyComponent } from './games/game-classify.component';
 import { GameRapidComponent } from './games/game-rapid.component';
+import { SharedModule } from '../shared/shared.module';
+import { PathLandmarkComponent } from './learning-path/path-landmark.component';
+import { PathSceneDirective } from './learning-path/path-scene.directive';
+import { PathEnchantmentComponent } from './learning-path/path-enchantment.component';
 
 @NgModule({
   declarations: [
@@ -24,10 +28,14 @@ import { GameRapidComponent } from './games/game-rapid.component';
     GameHuntComponent,
     GameClassifyComponent,
     GameRapidComponent,
+    PathLandmarkComponent,
+    PathSceneDirective,
+    PathEnchantmentComponent,
   ],
   imports: [
     CommonModule,
     FormsModule,
+    SharedModule,
     LearningRoutingModule
   ]
 })

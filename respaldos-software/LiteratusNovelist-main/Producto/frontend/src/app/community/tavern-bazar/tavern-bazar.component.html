@@ -118,6 +118,10 @@
           <span class="bz-slot" *ngIf="isWear(item)">{{ slotLabel(item) }}</span>
           <h3>{{ item.name }}</h3>
           <p [attr.title]="item.description">{{ item.description }}</p>
+          <a *ngIf="item.earned_from as source" class="bz-path-origin" routerLink="/learn" [queryParams]="{ chest: source.code }">
+            <span class="material-symbols-rounded" aria-hidden="true">map</span>
+            Cofre de {{ source.title }}
+          </a>
         </div>
 
         <div class="bz-need" *ngIf="canBuy(item) && missingInk(item) > 0">
@@ -127,7 +131,7 @@
 
         <footer class="bz-foot">
           <span class="bz-price" *ngIf="item.is_purchasable"><span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>{{ format(item.cost_ink) }}<span class="sr-only"> Tinta</span></span>
-          <span class="bz-exclusive" *ngIf="!item.is_purchasable">Premio de logro</span>
+          <span class="bz-exclusive" *ngIf="!item.is_purchasable">{{ item.earned_from ? 'Premio de La Senda' : 'Premio de logro' }}</span>
           <span class="bz-actions">
             <button *ngIf="isWear(item) && !item.is_equipped" type="button" class="bz-btn ghost" (click)="tryOn(item)" [attr.aria-pressed]="isTrying(item)">
               {{ isTrying(item) ? 'Probando' : 'Probar' }}

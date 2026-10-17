@@ -2,6 +2,8 @@
 learning/models.py — Modelos de Senda de Aprendizaje, Comprensión Lectora y Gamificación.
 """
 
+import uuid
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -288,3 +290,18 @@ class UserInventoryItem(TimeStampedModel):
 
     def __str__(self):
         return f"{self.user.username} — {self.item.name} (x{self.quantity})"
+
+
+class PathChestClaim(models.Model):
+    """Ledger de cofres: no admite borrado lógico que permita cobrarlos de nuevo."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='path_chest_claims')
+    code = models.CharField(max_length=32)
+    ink_earned = models.PositiveIntegerField()
+    item = models.ForeignKey(ShopItem, on_delete=models.SET_NULL, null=True, blank=True)
+    claimed_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'code'], name='unique_user_path_chest')]
+        ordering = ['claimed_at']

@@ -24,6 +24,7 @@ from .models import (
 from . import games
 from .content.builder import build_skip_test
 from .wearables import WEAR_SLOTS, parse_wear_value
+from .path_rewards import level_reward_preview
 
 # Cosméticos: se compran una sola vez (los consumibles se pueden recomprar).
 ONE_TIME_ITEM_TYPES = {
@@ -385,21 +386,19 @@ def evaluate_and_record_attempt(user, level_id: str, answers_payload: dict, dura
             user=user, level=level, is_completed=True
         ).exists()
 
+        preview = level_reward_preview(level, already_completed)
+        xp_earned = preview['xp']
+        ink_earned = preview['ink']
         if not already_completed:
             # Recompensas completas SOLO en la primera superación
-            xp_earned = level.xp_reward
-            ink_earned = min(level.ink_reward, 10)
-
             # Bonus por 3 estrellas
             if stars == 3:
-                xp_earned += 10
-                ink_earned += 3
+                xp_earned += preview['perfect_bonus_xp']
+                ink_earned += preview['perfect_bonus_ink']
 
             reward_activity(user, 'quiz_passed', reference_id=str(level.id), custom_ink=ink_earned, custom_xp=xp_earned)
         else:
             # Práctica de un nivel ya completado: no genera tinta adicional (previene abuso y exploits)
-            xp_earned = 5
-            ink_earned = 0
             reward_activity(user, 'quiz_practice', reference_id=str(level.id), custom_ink=0, custom_xp=xp_earned)
 
         # Actualizar racha diaria
@@ -670,7 +669,7 @@ def purchase_shop_item(user, item_code: str) -> dict:
 
     if not item.is_purchasable:
         return {'success': False, 'error': 'NOT_FOR_SALE',
-                'message': 'Este artículo no se vende: se gana desbloqueando un logro.'}
+                'message': 'Este artículo no se vende: se gana como recompensa en Literatus.'}
 
     if profile.ink_balance < item.cost_ink:
         return {

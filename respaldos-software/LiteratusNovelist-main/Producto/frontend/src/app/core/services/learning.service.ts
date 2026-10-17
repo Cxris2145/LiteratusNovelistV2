@@ -38,6 +38,34 @@ export interface LearningLevel {
   is_unlocked: boolean;
   /** Qué trae el nivel: Lectura, Une las parejas, Anagrama... */
   activities?: { kind: string; label: string }[];
+  reward_preview?: { xp: number; ink: number; perfect_bonus_xp: number; perfect_bonus_ink: number; is_practice: boolean };
+}
+
+export interface PathChest {
+  code: string;
+  kind: 'unit' | 'realm';
+  unit_number: number;
+  realm_number: number;
+  title: string;
+  state: 'locked' | 'available' | 'claimed';
+  ink_reward: number;
+  item: { code: string; name: string; value: string } | null;
+  requirement: string;
+}
+
+export interface LearningPath {
+  user_status: UserStatus;
+  units: LearningUnit[];
+  chests: PathChest[];
+}
+
+export interface ChestClaimResult {
+  success: boolean;
+  already_claimed: boolean;
+  ink_earned: number;
+  ink_balance: number;
+  item_granted: { code: string; name: string; value: string } | null;
+  chest: PathChest;
 }
 
 export interface LearningUnit {
@@ -116,6 +144,7 @@ export interface ShopItem {
   is_owned: boolean;
   is_purchasable: boolean;
   earned_by: { code: string; title: string } | null;
+  earned_from?: { kind: 'path_chest'; code: string; title: string; unit_number: number } | null;
   is_equipped: boolean;
   quantity: number;
 }
@@ -131,12 +160,21 @@ export class LearningService {
 
   constructor(private http: HttpClient) {}
 
-  getPath(): Observable<{ user_status: UserStatus; units: LearningUnit[] }> {
-    return this.http.get<{ user_status: UserStatus; units: LearningUnit[] }>(`${this.baseUrl}path/`).pipe(
+  getPath(): Observable<LearningPath> {
+    return this.http.get<LearningPath>(`${this.baseUrl}path/`).pipe(
       tap(res => {
         if (res.user_status) {
           this.userStatusSubject.next(res.user_status);
         }
+      })
+    );
+  }
+
+  claimChest(code: string): Observable<ChestClaimResult> {
+    return this.http.post<ChestClaimResult>(`${this.baseUrl}chests/${encodeURIComponent(code)}/claim/`, {}).pipe(
+      tap(result => {
+        const current = this.userStatusSubject.value;
+        if (current && result.success) this.userStatusSubject.next({ ...current, ink_balance: result.ink_balance });
       })
     );
   }

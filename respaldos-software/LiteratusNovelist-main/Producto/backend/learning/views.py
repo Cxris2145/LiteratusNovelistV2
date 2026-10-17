@@ -45,6 +45,7 @@ from .services import (
 from .ai_generator import ReadingComprehensionAIGenerator
 from catalog.age import ensure_book_access
 from .content.builder import build_fallback_exercise
+from .chests import path_chests, claim_path_chest
 
 
 class LearningPathView(APIView):
@@ -85,8 +86,24 @@ class LearningPathView(APIView):
                 'equipped_frame': profile.equipped_frame,
                 'equipped_title': profile.equipped_title,
             },
-            'units': serializer.data
+            'units': serializer.data,
+            'chests': path_chests(request.user, units=units, progress_map=progress_map),
         })
+
+
+class PathChestClaimView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, code):
+        result = claim_path_chest(request.user, code)
+        response_status = status.HTTP_200_OK
+        if not result['success']:
+            response_status = {
+                'CHEST_NOT_FOUND': status.HTTP_404_NOT_FOUND,
+                'CHEST_LOCKED': status.HTTP_403_FORBIDDEN,
+                'CHEST_REWARD_UNAVAILABLE': status.HTTP_503_SERVICE_UNAVAILABLE,
+            }[result['error']]
+        return Response(result, status=response_status)
 
 
 class LevelSessionView(APIView):

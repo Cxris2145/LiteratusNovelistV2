@@ -48,6 +48,7 @@ const HEAD_FRAMES: Record<string, string> = {
   graduate: '129 94 188 98', feather: '126 48 200 141',
   laurel: '144 108 165 85', deerstalker: '131 93 190 98',
   hood: '126 86 196 185', newsboy: '135 100 179 94', nightcap: '150 71 196 124',
+  archivist: '131 81 188 114', 'ink-crown': '142 79 166 113',
 };
 const EYE_FRAMES: Record<string, string> = {
   monocle: '138 178 170 132', rectangular: '142 187 165 60',
@@ -56,6 +57,7 @@ const NECK_FRAMES: Record<string, string> = {
   'scarf-red': '140 254 170 103', bowtie: '187 252 77 51',
   quill: '256 257 45 53', medal: '258 262 43 72',
   satchel: '140 253 151 104', 'moon-pendant': '170 256 126 79',
+  'firefly-brooch': '250 261 55 61', 'story-key': '258 259 44 79',
 };
 
 /**

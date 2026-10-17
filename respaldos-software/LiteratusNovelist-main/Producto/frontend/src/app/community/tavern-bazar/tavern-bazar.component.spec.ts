@@ -128,4 +128,40 @@ describe('TavernBazarComponent', () => {
     expect(gestures).toEqual(['buy']);
     expect(component.balance).toBe(400);
   });
+
+  it('las prendas de La Senda se prueban sin comprarse ni equiparse automáticamente', () => {
+    const reward: ShopItem = {
+      ...piece('neck:firefly-brooch', 'Broche de luciérnaga'),
+      is_purchasable: false, cost_ink: 0,
+      earned_from: { kind: 'path_chest', code: 'realm-1', title: 'Bosque de las Primeras Páginas', unit_number: 5 },
+    };
+    items = [reward];
+    open();
+    component.tryOn(reward);
+    component.buy(reward);
+    component.equip(reward);
+    expect(component.previewOutfit).toEqual({ neck: 'firefly-brooch' });
+    expect(component.currentOutfit).toEqual({});
+    expect(learning.buyShopItem).not.toHaveBeenCalled();
+    expect(learning.equipShopItem).not.toHaveBeenCalled();
+  });
+
+  it('una prenda obtenida de La Senda se equipa solo con una acción explícita', () => {
+    const reward: ShopItem = {
+      ...piece('cape:moonlit', 'Capa lunar', true), is_purchasable: false, cost_ink: 0,
+      earned_from: { kind: 'path_chest', code: 'realm-2', title: 'Lago de la Luna', unit_number: 10 },
+    };
+    items = [reward];
+    learning.equipShopItem.and.callFake(() => {
+      reward.is_equipped = true;
+      return of({ outfit: { cape: 'moonlit' }, message: 'Capa equipada' });
+    });
+    open();
+    expect(component.canBuy(reward)).toBeFalse();
+    expect(component.canEquip(reward)).toBeTrue();
+    expect(learning.equipShopItem).not.toHaveBeenCalled();
+    component.equip(reward);
+    expect(learning.equipShopItem).toHaveBeenCalledOnceWith('cape:moonlit');
+    expect(component.currentOutfit).toEqual({ cape: 'moonlit' });
+  });
 });

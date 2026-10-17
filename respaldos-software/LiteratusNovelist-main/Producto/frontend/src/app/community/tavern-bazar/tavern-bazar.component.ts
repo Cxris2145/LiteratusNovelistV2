@@ -237,7 +237,7 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   // ── Canjes ────────────────────────────────────────────────
 
   buy(item: ShopItem): void {
-    if (this.busy || this.missingInk(item) > 0) return;
+    if (this.busy || !this.canBuy(item) || this.missingInk(item) > 0) return;
     this.busy = item.code;
     this.learning.buyShopItem(item.code).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {
@@ -258,7 +258,7 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   equip(item: ShopItem): void {
-    if (this.busy || item.is_equipped) return;
+    if (this.busy || !this.canEquip(item) || item.is_equipped) return;
     this.busy = item.code;
     this.learning.equipShopItem(item.code).pipe(takeUntil(this.destroy$)).subscribe({
       next: result => {

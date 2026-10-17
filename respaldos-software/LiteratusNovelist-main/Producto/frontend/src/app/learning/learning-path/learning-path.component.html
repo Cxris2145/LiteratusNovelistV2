@@ -1,331 +1,562 @@
-<!-- src/app/learning/learning-path/learning-path.component.html -->
-<div class="learning-path-wrapper fade-in">
-
-  <!-- ── BARRA SUPERIOR DE ESTADO (GAMIFICACIÓN) ── -->
-  <header class="learning-top-bar glass-panel" *ngIf="userStatus">
+<div class="learning-path-wrapper" [class.motion-reduced]="reducedMotion">
+  <header class="learning-top-bar" *ngIf="userStatus" aria-label="Tu progreso de lectura">
     <div class="top-bar-inner">
-
-      <!-- 1. CORAZONES / VIDAS -->
-      <button type="button" class="stat-pill hearts-pill" (click)="openHeartsModal()" aria-label="Ver estado de corazones">
-        <span class="material-symbols-rounded pill-icon heart-icon">favorite</span>
-        <span class="pill-value">{{ userStatus.hearts }}</span>
+      <button
+        type="button"
+        class="stat-pill hearts-pill"
+        (click)="openHeartsModal()"
+        aria-label="Ver estado de corazones"
+      >
+        <span class="material-symbols-rounded heart-icon" aria-hidden="true">favorite</span>
+        {{ userStatus.hearts }}
         <span class="pill-plus-btn" *ngIf="userStatus.hearts < 5">+</span>
       </button>
-
-      <!-- 2. RACHA DIARIA -->
-      <button 
-        type="button" 
-        class="stat-pill streak-pill" 
+      <button
+        type="button"
+        class="stat-pill streak-pill"
         [class.streak-danger]="userStatus.is_in_danger"
-        [class.streak-secured]="userStatus.is_secured_today"
         (click)="openStreakModal()"
         aria-label="Ver racha y calendario"
       >
-        <span class="material-symbols-rounded pill-icon flame-icon">local_fire_department</span>
-        <span class="pill-value">{{ userStatus.streak_current }}</span>
-        <span class="streak-danger-tag" *ngIf="userStatus.is_in_danger">¡En peligro!</span>
+        <span class="material-symbols-rounded flame-icon" aria-hidden="true">local_fire_department</span>
+        {{ userStatus.streak_current }}
       </button>
-
-      <!-- 3. TINTA DISPONIBLE -->
-      <button type="button" class="stat-pill ink-pill" (click)="goToTavern()" aria-label="Ir a El Bazar y recarga de Tinta">
-        <span class="material-symbols-rounded pill-icon ink-icon">ink_pen</span>
-        <span class="pill-value">{{ userStatus.ink_balance }}</span>
+      <button
+        type="button"
+        class="stat-pill ink-pill"
+        (click)="goToTavern()"
+        aria-label="Tinta disponible. Ir al Bazar"
+      >
+        <span class="material-symbols-rounded ink-icon" aria-hidden="true">ink_pen</span>
+        {{ userStatus.ink_balance }}
       </button>
-
-      <!-- 4. RANGO Y NIVEL -->
-      <div class="stat-pill level-pill">
-        <span class="material-symbols-rounded pill-icon crown-icon">military_tech</span>
-        <span class="pill-value">Nivel {{ userStatus.level }}</span>
-      </div>
-
+      <span class="stat-pill level-pill">
+        <span class="material-symbols-rounded crown-icon" aria-hidden="true">military_tech</span>
+        Nivel {{ userStatus.level }}
+      </span>
     </div>
+    <button type="button" class="return-current" (click)="returnToCurrent()" [disabled]="!currentLevelId">
+      <span class="material-symbols-rounded" aria-hidden="true">near_me</span>
+      <span>Mi siguiente etapa</span>
+    </button>
   </header>
-
-  <!-- ── SKELETON LOADER ── -->
-  <div class="path-skeleton" *ngIf="isLoading">
-    <div class="skeleton-unit-card"></div>
-    <div class="skeleton-nodes">
-      <div class="skeleton-node" *ngFor="let n of [1,2,3,4,5]"></div>
-    </div>
+  <div class="path-loading" *ngIf="isLoading" role="status">
+    <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+    <p>Abriendo el mapa de tus historias…</p>
   </div>
-
-  <!-- ── CONTENEDOR PRINCIPAL DEL SENDERO ── -->
-  <main class="path-container" *ngIf="!isLoading">
-    
-    <div class="unit-section" *ngFor="let unit of units; let uIdx = index; trackBy: trackByUnit" [class.unit-locked]="unit.is_locked">
-      
-      <!-- ENCABEZADO DE UNIDAD (BANNER EDITORIAL) -->
-      <section class="unit-banner glass-panel" [style.border-top-color]="unit.banner_color">
-        <div class="unit-banner-content">
-          <div class="unit-tag">
-            <span class="material-symbols-rounded unit-icon">{{ unit.icon }}</span>
-            <span>UNIDAD {{ unit.unit_number }}</span>
-          </div>
-          <h2 class="unit-title">{{ unit.title }}</h2>
-          <p class="unit-desc">{{ unit.description }}</p>
-          <div class="unit-lock-row" *ngIf="unit.is_locked">
-            <p class="unit-lock-note">
-              <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-              Aprueba la prueba de la unidad {{ unit.unit_number - 1 }} para abrir esta unidad.
-            </p>
-            <button type="button" class="skip-unit-btn" (click)="openSkipModal(unit)"
-                    [attr.aria-label]="'Saltar a la unidad ' + unit.unit_number + ' con una prueba difícil'">
-              <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
-              Saltar aquí
-            </button>
-          </div>
-          
-          <!-- BARRA DE PROGRESO DE LA UNIDAD -->
-          <div class="unit-progress-wrap">
-            <div class="unit-progress-bar">
-              <div 
-                class="unit-progress-fill" 
-                [style.width.%]="unit.progress_percentage"
-                [style.background-color]="unit.banner_color"
-              ></div>
-            </div>
-            <span class="unit-progress-text">{{ unit.progress_percentage }}%</span>
-          </div>
+  <div class="path-error" *ngIf="!isLoading && loadError" role="alert">
+    <span class="material-symbols-rounded" aria-hidden="true">explore_off</span>
+    <h1>La Senda te espera</h1>
+    <p>{{ loadError }}</p>
+    <button type="button" class="action-btn" (click)="loadPath()">Volver a cargar</button>
+  </div>
+  <main class="path-container" *ngIf="!isLoading && !loadError">
+    <header class="path-intro">
+      <span class="intro-compass material-symbols-rounded" aria-hidden="true">explore</span>
+      <div>
+        <h1>La Senda</h1>
+        <p>Seis reinos. Ciento cincuenta historias por descubrir.</p>
+      </div>
+      <span class="intro-note">
+        <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+        Lee, explora y encuentra tesoros
+      </span>
+    </header>
+    <nav class="realm-navigation" aria-label="Explorar los seis reinos">
+      <button type="button" *ngFor="let realm of realms" (click)="goToRealm(realm)" [attr.aria-label]="realm.title">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ realm.icon }}</span>
+        <span>{{ ['Bosque', 'Lago', 'Biblioteca', 'Ruinas', 'Aurora', 'Ciudadela'][realm.number - 1] }}</span>
+      </button>
+    </nav>
+    <section
+      *ngFor="let realm of realms"
+      [class]="'realm-section realm-' + realm.key"
+      [attr.aria-labelledby]="'realm-title-' + realm.number"
+    >
+      <header class="realm-heading" [id]="'realm-' + realm.number" tabindex="-1" [attr.aria-labelledby]="'realm-title-' + realm.number">
+        <div class="realm-seal" aria-hidden="true">
+          <span class="material-symbols-rounded">{{ realm.icon }}</span>
+          <span>{{ realm.number }}</span>
         </div>
-      </section>
-
-      <!-- SENDERO DE NODOS (ZIGZAG VERTICAL ESTILO DUOLINGO / PERGAMINO) -->
-      <div class="unit-path-track">
-        
-        <div 
-          class="node-row" 
-          *ngFor="let level of unit.levels; let lIdx = index; trackBy: trackByLevel"
-          [style.transform]="'translateX(' + getNodeOffset(lIdx) + ')'"
+        <div class="realm-heading-copy">
+          <p class="realm-index">
+            Reino {{ realm.number }} de 6 · Unidades {{ (realm.number - 1) * 5 + 1 }}–{{ realm.number * 5 }}
+          </p>
+          <h2 [id]="'realm-title-' + realm.number">{{ realm.title }}</h2>
+          <p>{{ realm.description }}</p>
+        </div>
+        <div class="realm-progress" [attr.aria-label]="realmProgress(realm) + '% del reino completado'">
+          <span>{{ realmProgress(realm) }}%</span>
+          <span>explorado</span>
+        </div>
+      </header>
+      <div class="realm-map">
+        <div
+          class="realm-scene"
+          appPathScene
+          sceneAtCenter
+          #realmScene="pathScene"
+          [class.scene-paused]="realmScene.paused || pageHidden || reducedMotion"
+          aria-hidden="true"
         >
-          <!-- BOTÓN NODO -->
-          <div class="node-wrapper">
-            
-            <!-- CARTEL FLOTANTE DE "EMPEZAR" PARA EL NIVEL ACTIVO -->
-            <div 
-              class="active-prompt-bubble" 
-              *ngIf="level.id === currentLevelId"
+          <picture class="realm-picture">
+            <source
+              media="(max-width: 600px)"
+              [srcset]="'/assets/images/senda/realm-' + realm.key + '-mobile.webp'"
+              type="image/webp"
+              width="1024"
+              height="1536"
             >
-              <span>¡EMPEZAR!</span>
-              <div class="bubble-arrow"></div>
-            </div>
-
-            <button 
-              type="button" 
-              [attr.data-level-id]="level.id"
-              class="path-node-btn"
-              [class.node-completed]="level.is_completed"
-              [class.node-current]="level.is_unlocked && !level.is_completed"
-              [class.node-locked]="!level.is_unlocked"
-              [class.node-chest]="level.is_chest"
-              [class.node-exam]="level.is_exam"
-              (click)="onNodeClick(unit, level)"
-              [disabled]="!level.is_unlocked"
-              [attr.aria-label]="level.title + (level.is_completed ? ' (Completado)' : (level.is_unlocked ? ' (Disponible)' : ' (Bloqueado)'))"
+            <img
+              [src]="'/assets/images/senda/realm-' + realm.key + '.webp'"
+              alt=""
+              [attr.loading]="realm.number === 1 ? 'eager' : 'lazy'"
+              decoding="async"
+              width="1536"
+              height="1024"
             >
-              <!-- ÍCONO PRINCIPAL DEL NODO -->
-              <span class="material-symbols-rounded node-glyph" *ngIf="level.is_unlocked && !level.is_chest && !level.is_exam">
-                {{ level.icon || 'star' }}
-              </span>
-              <span class="material-symbols-rounded node-glyph chest-glyph" *ngIf="level.is_unlocked && level.is_chest">
-                redeem
-              </span>
-              <span class="material-symbols-rounded node-glyph exam-glyph" *ngIf="level.is_unlocked && level.is_exam">
-                workspace_premium
-              </span>
-              <span class="material-symbols-rounded node-glyph lock-glyph" *ngIf="!level.is_unlocked">
-                lock
-              </span>
-
-              <!-- ANILLO DE REBOTE 3D -->
-              <div class="node-3d-ring"></div>
-            </button>
-
-            <!-- ESTRELLAS DE COMPLETADO -->
-            <div class="node-stars" *ngIf="level.is_completed">
-              <span class="star-icon" [class.star-earned]="level.stars >= 1">★</span>
-              <span class="star-icon" [class.star-earned]="level.stars >= 2">★</span>
-              <span class="star-icon" [class.star-earned]="level.stars >= 3">★</span>
-            </div>
-
-          </div>
-
+          </picture>
+          <div class="realm-scene-shade"></div>
+          <app-path-enchantment
+            [realm]="realm.key"
+            [paused]="realmScene.paused || pageHidden || reducedMotion"
+          ></app-path-enchantment>
         </div>
-
+        <div class="realm-units">
+          <section
+            class="unit-section"
+            appPathScene
+            #scene="pathScene"
+            *ngFor="let unit of realm.units; let uIdx = index; trackBy: trackByUnit"
+            [id]="'unit-' + unit.unit_number"
+            [class.unit-locked]="unit.is_locked"
+            [class.scene-paused]="scene.paused || pageHidden || reducedMotion"
+            [attr.data-unit]="unit.unit_number"
+            [attr.data-variant]="uIdx % 3"
+            [attr.aria-labelledby]="'unit-title-' + unit.unit_number"
+          >
+            <header class="unit-banner">
+              <div class="unit-tag">
+                <span class="material-symbols-rounded" aria-hidden="true">{{ unit.icon || 'menu_book' }}</span>
+                Unidad {{ unit.unit_number }}
+              </div>
+              <h3 [id]="'unit-title-' + unit.unit_number">{{ unit.title }}</h3>
+              <p class="unit-desc">{{ unit.description }}</p>
+              <div class="unit-progress-wrap">
+                <div
+                  class="unit-progress-bar"
+                  role="progressbar"
+                  [attr.aria-valuenow]="unit.progress_percentage"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  [attr.aria-label]="'Progreso de la unidad ' + unit.unit_number"
+                >
+                  <div class="unit-progress-fill" [style.width.%]="unit.progress_percentage">
+                  </div>
+                </div>
+                <span>{{ unit.progress_percentage }}%</span>
+              </div>
+              <div class="unit-lock-row" *ngIf="unit.is_locked">
+                <p>
+                  <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+                  Supera el castillo de la unidad {{ unit.unit_number - 1 }}.
+                </p>
+                <button type="button" class="skip-unit-btn" (click)="openSkipModal(unit)">
+                  Prueba de salto
+                  <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
+                </button>
+              </div>
+            </header>
+            <div class="unit-path-track">
+              <svg class="path-ribbon" viewBox="0 0 720 760" preserveAspectRatio="none" aria-hidden="true">
+                <path
+                  class="ribbon-shadow"
+                  d="M360 -14C360 24 360 45 360 76C360 145 470 147 470 213S370 282 370 350S245 420 245 486S360 565 360 638V774"
+                />
+                <path
+                  class="ribbon-base"
+                  d="M360 -14C360 24 360 45 360 76C360 145 470 147 470 213S370 282 370 350S245 420 245 486S360 565 360 638V774"
+                />
+                <path
+                  class="ribbon-stitches"
+                  d="M360 -14C360 24 360 45 360 76C360 145 470 147 470 213S370 282 370 350S245 420 245 486S360 565 360 638V774"
+                />
+                <path class="ribbon-branch" d="M370 350Q485 343 554 410"/>
+              </svg>
+              <div class="map-foreground foreground-left" aria-hidden="true">
+                <svg viewBox="0 0 120 140">
+                  <path d="M15 132L31 96L23 75L41 54L41 31L61 8L77 31L73 53L96 72L88 99L111 130Z" fill="currentColor"/>
+                  <path d="M61 46V138M61 92L38 74M61 111L87 88" stroke="#54837a" stroke-width="3"/>
+                  <circle cx="39" cy="106" r="4" fill="#e7b965"/>
+                  <circle cx="82" cy="69" r="3" fill="#d6eced"/>
+                </svg>
+              </div>
+              <div class="map-foreground foreground-right" aria-hidden="true">
+                <svg viewBox="0 0 100 100">
+                  <path d="M9 81L18 35L34 13L48 39L52 81L33 92Z" fill="#688d9a"/>
+                  <path d="M34 14L33 92L17 36Z" fill="#a2ccd0"/>
+                  <path d="M44 83L57 51L73 26L85 53L92 86L70 94Z" fill="#5d6d99"/>
+                  <path d="M73 26L70 94L57 52Z" fill="#b4b8e1"/>
+                  <path d="M11 85L33 92L71 95L94 87" fill="none" stroke="#365c56" stroke-width="7"/>
+                </svg>
+              </div>
+              <div
+                class="node-row"
+                *ngFor="let level of unit.levels; let lIdx = index; trackBy: trackByLevel"
+                [style.left.%]="nodeX(lIdx)"
+                [style.top.%]="nodeY(lIdx)"
+                [class.current-row]="level.id === currentLevelId"
+              >
+                <div class="current-companion" *ngIf="level.id === currentLevelId" aria-hidden="true">
+                  <app-maguito
+                    [interactive]="false"
+                    [followPointer]="false"
+                    [calm]="true"
+                    [paused]="scene.paused || pageHidden || reducedMotion"
+                  >
+                  </app-maguito>
+                </div>
+                <span class="active-prompt-bubble" *ngIf="level.id === currentLevelId">Tu aventura sigue aquí</span>
+                <button
+                  type="button"
+                  class="path-node-btn"
+                  [attr.data-level-id]="level.id"
+                  [class.node-completed]="level.is_completed && level.stars > 0"
+                  [class.node-current]="level.id === currentLevelId"
+                  [class.node-locked]="!level.is_unlocked"
+                  [class.node-games]="level.is_chest"
+                  [class.node-exam]="level.is_exam"
+                  (click)="onNodeClick(unit, level)"
+                  [disabled]="!level.is_unlocked"
+                  [attr.aria-label]="levelLabel(level) + ': ' + level.title + (level.is_completed && level.stars > 0 ? ', completado' : level.is_unlocked ? ', disponible' : ', bloqueado')"
+                >
+                  <app-path-landmark *ngIf="level.is_exam" kind="castle">
+                  </app-path-landmark>
+                  <app-path-landmark *ngIf="level.is_chest && !level.is_exam" kind="games">
+                  </app-path-landmark>
+                  <span
+                    *ngIf="!level.is_exam && !level.is_chest"
+                    class="material-symbols-rounded node-glyph"
+                    aria-hidden="true"
+                  >
+                    {{ level.icon || 'menu_book' }}
+                  </span>
+                  <span class="node-lock material-symbols-rounded" *ngIf="!level.is_unlocked" aria-hidden="true">lock</span>
+                  <span
+                    class="node-check material-symbols-rounded"
+                    *ngIf="level.is_completed && level.stars > 0"
+                    aria-hidden="true"
+                  >
+                    check
+                  </span>
+                </button>
+                <span class="node-label">{{ levelLabel(level) }}</span>
+                <span
+                  class="node-stars"
+                  *ngIf="level.is_completed && level.stars > 0"
+                  [attr.aria-label]="level.stars + ' de 3 estrellas'"
+                >
+                  <span *ngFor="let star of [1,2,3]" [class.star-earned]="level.stars >= star" aria-hidden="true">★</span>
+                </span>
+                <span class="skipped-note" *ngIf="level.is_completed && !level.stars">Sin estrellas todavía</span>
+              </div>
+              <ng-container *ngIf="unitChest(unit) as chest">
+                <div
+                  class="bonus-stop"
+                  [class.bonus-available]="chest.state === 'available'"
+                  [class.bonus-locked]="chest.state === 'locked'"
+                  [class.bonus-claimed]="chest.state === 'claimed'"
+                >
+                  <button
+                    type="button"
+                    class="chest-map-btn"
+                    [id]="'chest-' + chest.code"
+                    (click)="openChest(chest)"
+                    [attr.aria-label]="chest.title + ', ' + chestState(chest) + ', ' + chest.ink_reward + ' de Tinta'"
+                  >
+                    <app-path-landmark kind="chest" [opened]="chest.state === 'claimed'">
+                    </app-path-landmark>
+                    <span class="node-lock material-symbols-rounded" *ngIf="chest.state === 'locked'" aria-hidden="true">
+                      lock
+                    </span>
+                    <span class="node-check material-symbols-rounded" *ngIf="chest.state === 'claimed'" aria-hidden="true">
+                      check
+                    </span>
+                  </button>
+                  <span class="bonus-label">{{ chestState(chest) }}</span>
+                  <span class="bonus-value">
+                    {{ chest.state === 'claimed' ? 'Tesoro encontrado' : '+' + chest.ink_reward + ' de Tinta' }}
+                  </span>
+                </div>
+              </ng-container>
+            </div>
+            <div
+              class="realm-treasury"
+              *ngIf="uIdx === realm.units.length - 1 && realm.chest as chest"
+              [class.treasury-available]="chest.state === 'available'"
+              [class.treasury-locked]="chest.state === 'locked'"
+            >
+              <div class="treasury-line" aria-hidden="true">
+              </div>
+              <span class="treasury-caption">El tesoro de este reino</span>
+              <button
+                type="button"
+                class="realm-chest-btn"
+                [id]="'chest-' + chest.code"
+                (click)="openChest(chest)"
+                [attr.aria-label]="chest.title + ', ' + chestState(chest)"
+              >
+                <app-path-landmark kind="chest" [opened]="chest.state === 'claimed'">
+                </app-path-landmark>
+                <span class="node-lock material-symbols-rounded" *ngIf="chest.state === 'locked'" aria-hidden="true">lock</span>
+              </button>
+              <h3>{{ chest.item?.name || realm.reward }}</h3>
+              <p>{{ chest.state === 'claimed' ? 'Ya forma parte de tu colección' : '30 de Tinta y una prenda exclusiva' }}</p>
+              <button type="button" class="treasury-detail" (click)="openChest(chest)">
+                {{ chest.state === 'available' ? 'Descubrir mi premio' : chest.state === 'claimed' ? 'Ver premio' : 'Cómo conseguirlo' }}
+                <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+              </button>
+            </div>
+          </section>
+        </div>
       </div>
-
-    </div>
-
+    </section>
+    <footer class="path-ending">
+      <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+      <p>Una historia a la vez, cada vez más lejos.</p>
+    </footer>
   </main>
-
-  <!-- ── MODAL: DETALLES DE NIVEL ── -->
   <div class="modal-backdrop" *ngIf="showLevelModal" (click)="closeLevelModal()">
-    <div class="modal-panel level-modal-panel glass-panel zoom-in" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <span class="difficulty-badge" [class]="selectedLevel?.difficulty">
-          {{ selectedLevel?.difficulty | uppercase }}
+    <section
+      class="modal-panel level-modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="level-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <span class="difficulty-badge" [ngClass]="selectedLevel?.difficulty || ''">
+          {{ selectedLevel?.difficulty === 'facil' ? 'Fácil' : selectedLevel?.difficulty === 'intermedio' ? 'Intermedio' : 'Difícil' }}
         </span>
-        <button type="button" class="close-btn" (click)="closeLevelModal()">✕</button>
-      </div>
-
+        <button type="button" class="close-btn" (click)="closeLevelModal()" aria-label="Cerrar detalles del nivel">
+          ✕
+        </button>
+      </header>
       <div class="modal-body">
-        <h3 class="modal-level-title">{{ selectedLevel?.title }}</h3>
+        <h2 id="level-modal-title">{{ selectedLevel?.title }}</h2>
         <p class="modal-level-desc">{{ selectedLevel?.description }}</p>
-
         <ul class="modal-activities" *ngIf="selectedLevel?.activities?.length">
-          <li *ngFor="let activity of selectedLevel?.activities" class="modal-activity">{{ activity.label }}</li>
+          <li *ngFor="let activity of selectedLevel?.activities">{{ activity.label }}</li>
         </ul>
-
-        <div class="modal-rewards-box">
-          <div class="reward-item">
-            <span class="reward-icon">⚡</span>
-            <span class="reward-val">+{{ selectedLevel?.xp_reward }} XP</span>
-          </div>
-          <div class="reward-item">
-            <span class="reward-icon">🖋️</span>
-            <span class="reward-val">+{{ selectedLevel?.ink_reward }} Tinta</span>
-          </div>
-          <div class="reward-item">
-            <span class="reward-icon">🎯</span>
-            <span class="reward-val">Mín. {{ selectedLevel?.required_score }}% acierto</span>
-          </div>
+        <div class="modal-rewards-box" *ngIf="rewardPreview as preview">
+          <span>
+            <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
+            +{{ preview.xp }} XP
+          </span>
+          <span>
+            <span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>
+            {{ preview.ink > 0 ? '+' : '' }}{{ preview.ink }} de Tinta
+          </span>
+        </div>
+        <p class="reward-explanation" *ngIf="rewardPreview?.is_practice">
+          Práctica: al aprobar recibes 5 XP. Repetir un nivel completado no entrega Tinta ni bonificación por estrellas.
+        </p>
+        <p class="reward-explanation" *ngIf="rewardPreview && !rewardPreview.is_practice">
+          Al aprobar por primera vez. Con un resultado perfecto, sumas {{ rewardPreview.perfect_bonus_xp }} XP y {{ rewardPreview.perfect_bonus_ink }} de Tinta adicionales.
+        </p>
+        <p class="required-score">Necesitas {{ selectedLevel?.required_score }}% de acierto para superar esta etapa.</p>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="action-btn start-btn" (click)="startLevel()">
+          <span class="material-symbols-rounded" aria-hidden="true">play_arrow</span>
+          {{ selectedLevel?.is_completed ? 'Practicar de nuevo' : 'Empezar esta etapa' }}
+        </button>
+      </footer>
+    </section>
+  </div>
+  <div class="modal-backdrop" *ngIf="selectedChest as chest" (click)="closeChest()">
+    <section
+      class="modal-panel chest-modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="chest-modal-title"
+      [attr.aria-busy]="claimingCodes.has(chest.code)"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <span class="chest-modal-tag">
+          {{ chest.kind === 'realm' ? 'Tesoro del reino ' + chest.realm_number : 'Tesoro de la unidad ' + chest.unit_number }}
+        </span>
+        <button type="button" class="close-btn" (click)="closeChest()" aria-label="Cerrar cofre">✕</button>
+      </header>
+      <div
+        class="chest-reveal"
+        [class.reward-confirmed]="chest.state === 'claimed'"
+        [class.scene-paused]="pageHidden || reducedMotion"
+      >
+        <app-path-landmark kind="chest" [opened]="chest.state === 'claimed'">
+        </app-path-landmark>
+        <span class="chest-spark spark-one" aria-hidden="true">✦</span>
+        <span class="chest-spark spark-two" aria-hidden="true">✧</span>
+      </div>
+      <h2 id="chest-modal-title">
+        {{ chestResult ? (chestResult.already_claimed ? 'Este tesoro ya es tuyo' : '¡Un nuevo tesoro para ti!') : chest.title }}
+      </h2>
+      <p class="chest-requirement" *ngIf="chest.state === 'locked'">{{ chest.requirement }}</p>
+      <p class="chest-requirement" *ngIf="chest.state === 'available'">
+        Lo has conseguido. Abre el cofre para recoger tu recompensa.
+      </p>
+      <p class="claim-notice" *ngIf="chest.state === 'claimed'" role="status">
+        {{ chestResult && !chestResult.already_claimed ? 'Recompensa guardada en tu cuenta.' : 'Recompensa recogida. Puedes seguir tu aventura.' }}
+      </p>
+      <div class="chest-prizes" [class.prizes-received]="chestResult && !chestResult.already_claimed">
+        <span class="ink-prize">
+          <span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>
+          {{ chest.ink_reward }} de Tinta
+        </span>
+        <div class="wardrobe-prize" *ngIf="chest.item">
+          <app-maguito [outfit]="chestOutfit" [interactive]="false" [followPointer]="false" [paused]="true">
+          </app-maguito>
+          <span>
+            {{ chest.item.name }}
+            <small>Prenda exclusiva de La Senda</small>
+          </span>
         </div>
       </div>
-
-      <div class="modal-footer">
-        <button type="button" class="action-btn start-btn" (click)="startLevel()">
-          <span class="material-symbols-rounded">play_arrow</span>
-          <span>{{ selectedLevel?.is_completed ? 'Practicar de nuevo' : 'Comenzar Nivel' }}</span>
-        </button>
-      </div>
-    </div>
+      <p class="chest-error" role="alert" *ngIf="chestError">{{ chestError }}</p>
+      <button
+        type="button"
+        class="action-btn claim-btn"
+        *ngIf="chest.state === 'available'"
+        (click)="claimChest()"
+        [disabled]="claimingCodes.has(chest.code)"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          {{ claimingCodes.has(chest.code) ? 'hourglass_top' : 'redeem' }}
+        </span>
+        {{ claimingCodes.has(chest.code) ? 'Confirmando tu premio…' : chestError ? 'Reintentar apertura' : 'Abrir mi cofre' }}
+      </button>
+      <button
+        type="button"
+        class="action-btn"
+        *ngIf="chest.state === 'claimed' && chest.item"
+        (click)="seeChestWardrobe()"
+      >
+        Ver mi prenda en el Bazar
+        <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>
+      </button>
+      <p class="chest-footnote">Cada tesoro se recoge una sola vez. No cuesta Tinta ni consume corazones.</p>
+    </section>
   </div>
-
-  <!-- ── MODAL: PRUEBA DE SALTO ── -->
   <div class="modal-backdrop" *ngIf="showSkipModal && skipUnit" (click)="closeSkipModal()">
-    <div class="modal-panel skip-modal-panel glass-panel zoom-in" (click)="$event.stopPropagation()"
-         role="dialog" aria-modal="true" aria-labelledby="skip-modal-title">
-      <div class="modal-header">
-        <div class="modal-header-icon">⚡</div>
-        <h3 class="modal-title" id="skip-modal-title">¿Saltar a la Unidad {{ skipUnit.unit_number }}?</h3>
-        <button type="button" class="close-btn" (click)="closeSkipModal()" aria-label="Cerrar">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <p class="modal-level-desc">
-          Demuestra que dominas {{ skippedLabel(skipUnit) }} con una prueba muy difícil.
-          Si la apruebas, todo lo saltado queda completado y se abre «{{ skipUnit.title }}».
-        </p>
-        <ul class="skip-modal-rules">
-          <li><span class="material-symbols-rounded" aria-hidden="true">quiz</span>14 desafíos mezclados de todo lo que te saltas</li>
-          <li><span class="material-symbols-rounded" aria-hidden="true">target</span>Necesitas 90 % de acierto</li>
-          <li><span class="material-symbols-rounded" aria-hidden="true">bolt</span>Relámpago con solo 4 segundos por afirmación</li>
-          <li><span class="material-symbols-rounded" aria-hidden="true">heart_broken</span>Si fallas, pierdes 1 corazón</li>
-        </ul>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="action-btn start-btn skip-start-btn" (click)="startSkip()">
-          <span class="material-symbols-rounded">bolt</span>
-          <span>Empezar la prueba</span>
-        </button>
-      </div>
-    </div>
+    <section
+      class="modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="skip-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <span class="material-symbols-rounded crown-icon" aria-hidden="true">bolt</span>
+        <button type="button" class="close-btn" (click)="closeSkipModal()" aria-label="Cerrar prueba de salto">✕</button>
+      </header>
+      <h2 id="skip-modal-title">Saltar a la unidad {{ skipUnit.unit_number }}</h2>
+      <p class="modal-level-desc">
+        Demuestra que dominas {{ skippedLabel(skipUnit) }}. Si apruebas, se abre «{{ skipUnit.title }}».
+      </p>
+      <ul class="skip-modal-rules">
+        <li>14 desafíos mezclados y 90% de acierto para aprobar</li>
+        <li>Relámpago con solo 4 segundos por afirmación</li>
+        <li>Si fallas, pierdes 1 corazón</li>
+        <li>Los niveles saltados no tienen estrellas: juega esas etapas para conseguir sus cofres.</li>
+      </ul>
+      <button type="button" class="action-btn" (click)="startSkip()">
+        Empezar la prueba
+        <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
+      </button>
+    </section>
   </div>
-
-  <!-- ── MODAL: RACHA Y CALENDARIO DE 30 DÍAS ── -->
   <div class="modal-backdrop" *ngIf="showStreakModal" (click)="closeStreakModal()">
-    <div class="modal-panel streak-modal-panel glass-panel zoom-in" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-header-icon flame-header-icon">🔥</div>
-        <h3 class="modal-title">Tu Racha de Lectura</h3>
-        <button type="button" class="close-btn" (click)="closeStreakModal()">✕</button>
-      </div>
-
-      <div class="modal-body" *ngIf="streakDetails">
+    <section
+      class="modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="streak-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <h2 id="streak-modal-title">Tu racha de lectura</h2>
+        <button type="button" class="close-btn" (click)="closeStreakModal()" aria-label="Cerrar racha">✕</button>
+      </header>
+      <div *ngIf="streakDetails">
         <div class="streak-hero-stat">
           <span class="streak-huge-number">{{ streakDetails.streak_current }}</span>
-          <span class="streak-huge-label">Días Consecutivos</span>
+          <span>días consecutivos</span>
         </div>
-
         <div class="streak-stats-row">
-          <div class="sub-stat">
-            <span class="sub-label">Mejor Récord:</span>
-            <span class="sub-val">{{ streakDetails.streak_max }} días</span>
-          </div>
-          <div class="sub-stat">
-            <span class="sub-label">Escudos Activos:</span>
-            <span class="sub-val">🛡️ {{ streakDetails.streak_shields }}/2</span>
-          </div>
+          <span>
+            Mejor racha:
+            <strong>{{ streakDetails.streak_max }} días</strong>
+          </span>
+          <span>
+            Escudos:
+            <strong>{{ streakDetails.streak_shields }}/2</strong>
+          </span>
         </div>
-
-        <!-- CALENDARIO DE 30 DÍAS -->
-        <h4 class="calendar-title">Actividad de los últimos 30 días</h4>
+        <h3 class="calendar-title">Tus últimos 30 días</h3>
         <div class="calendar-grid">
-          <div 
-            class="calendar-day-box" 
+          <div
+            class="calendar-day-box"
             *ngFor="let day of streakDetails.calendar"
             [class.day-active]="day.active"
             [class.day-today]="day.is_today"
-            [title]="day.date + (day.active ? ' (Completado)' : ' (Sin actividad)')"
+            [title]="day.date + (day.active ? ', completado' : ', sin actividad')"
           >
-            <span class="day-number">{{ day.day }}</span>
+            {{ day.day }}
           </div>
         </div>
-
-        <!-- RESTAURAR RACHA SI APLICA -->
-        <div class="streak-repair-box" *ngIf="streakDetails.can_repair">
-          <p class="repair-notice">¿Perdiste tu racha recientemente? Puedes recuperarla ahora:</p>
-          <button type="button" class="action-btn repair-btn" (click)="repairStreak()">
-            <span class="material-symbols-rounded">history</span>
-            <span>Restaurar Racha por 60 🖋️</span>
-          </button>
+        <div *ngIf="streakDetails.can_repair">
+          <p class="modal-level-desc">Puedes recuperar tu racha reciente.</p>
+          <button type="button" class="action-btn" (click)="repairStreak()">Restaurar racha por 60 de Tinta</button>
         </div>
       </div>
-    </div>
+    </section>
   </div>
-
-  <!-- ── MODAL: CORAZONES Y VIDAS ── -->
   <div class="modal-backdrop" *ngIf="showHeartsModal" (click)="closeHeartsModal()">
-    <div class="modal-panel hearts-modal-panel glass-panel zoom-in" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-header-icon heart-header-icon">❤️</div>
-        <h3 class="modal-title">Corazones de Comprensión</h3>
-        <button type="button" class="close-btn" (click)="closeHeartsModal()">✕</button>
-      </div>
-
-      <div class="modal-body" *ngIf="heartsDetails">
-        <div class="hearts-row-visual">
-          <span 
-            class="material-symbols-rounded visual-heart" 
+    <section
+      class="modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="hearts-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <h2 id="hearts-modal-title">Corazones de comprensión</h2>
+        <button type="button" class="close-btn" (click)="closeHeartsModal()" aria-label="Cerrar corazones">✕</button>
+      </header>
+      <div *ngIf="heartsDetails">
+        <div class="hearts-row-visual" [attr.aria-label]="heartsDetails.hearts + ' de 5 corazones'">
+          <span
+            class="material-symbols-rounded visual-heart"
             *ngFor="let h of [1,2,3,4,5]"
             [class.heart-filled]="h <= heartsDetails.hearts"
             [class.heart-empty]="h > heartsDetails.hearts"
+            aria-hidden="true"
           >
             favorite
           </span>
         </div>
-
-        <p class="hearts-expl">
-          Pierdes 1 corazón cuando no alcanzas el porcentaje mínimo en un nivel.
-          Los corazones se recargan gratis: <strong>1 cada 30 minutos</strong> o al leer un capítulo de tu biblioteca.
+        <p class="modal-level-desc">
+          Pierdes un corazón si no alcanzas el acierto mínimo. Recuperas uno gratis cada 30 minutos o al leer un capítulo de tu biblioteca.
         </p>
-
-        <div class="hearts-timer-box" *ngIf="heartsDetails.hearts < 5">
-          <span class="timer-label">Próximo corazón en:</span>
-          <span class="timer-value">{{ heartsDetails.seconds_to_next_heart }} seg</span>
-        </div>
-
-        <button 
-          type="button" 
-          class="action-btn refill-btn" 
-          *ngIf="heartsDetails.can_refill"
-          (click)="refillHearts()"
-        >
-          <span class="material-symbols-rounded">bolt</span>
-          <span>Recargar 5 Corazones por {{ heartsDetails.refill_cost_ink }} 🖋️</span>
+        <p class="hearts-timer-box" *ngIf="heartsDetails.hearts < 5">
+          Próximo corazón en
+          <strong>{{ heartsDetails.seconds_to_next_heart }} segundos</strong>
+        </p>
+        <button type="button" class="action-btn" *ngIf="heartsDetails.can_refill" (click)="refillHearts()">
+          Recargar 5 corazones por {{ heartsDetails.refill_cost_ink }} de Tinta
         </button>
       </div>
-    </div>
+    </section>
   </div>
-
 </div>

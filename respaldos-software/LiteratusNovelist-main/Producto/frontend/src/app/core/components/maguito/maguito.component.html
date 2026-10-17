@@ -200,6 +200,17 @@
             <circle cx="315" cy="278" r="2.1"/><circle cx="326" cy="299" r="2.5"/><circle cx="320" cy="315" r="2"/><circle cx="342" cy="330" r="2.3"/>
             <path d="M331 317V323M328 320H334M141 316V322M138 319H144" fill="none"/>
           </g>
+          <g *ngIf="look.cape === 'moonlit'" class="mg-path-embroidery" fill="#edf6ff" stroke="#edf6ff" stroke-width="1.5">
+            <path d="M144 290C133 289 131 302 140 307C145 310 149 307 152 303C142 307 137 296 144 290ZM321 287C309 288 310 302 320 304C325 305 329 302 330 298C322 304 314 294 321 287Z" stroke="none"/>
+            <path d="M129 331Q138 326 147 331M132 326Q141 321 152 326M321 328Q334 323 345 332M319 323Q330 319 342 326" fill="none" opacity=".8"/>
+            <circle cx="145" cy="278" r="1.8"/><circle cx="326" cy="314" r="2"/><circle cx="337" cy="316" r="1.5"/>
+          </g>
+          <g *ngIf="look.cape === 'aurora'" class="mg-path-embroidery" fill="none" stroke-linecap="round">
+            <path d="M146 278Q130 301 140 329M315 273Q332 292 329 331" stroke="#b8f0d0" stroke-width="3" opacity=".85"/>
+            <path d="M150 284Q138 307 146 325M320 281Q338 307 338 333" stroke="#d3b0ea" stroke-width="2.2" opacity=".9"/>
+            <path d="M142 298L140 307L136 303M327 297L331 307L335 303" stroke="#e7f5cf" stroke-width="1.2"/>
+            <path d="M141 281V287M138 284H144M330 317V324M326.5 320.5H333.5" stroke="#fff3cc" stroke-width="1.8"/>
+          </g>
         </g>
 
         <!-- Cuerpo completo en reposo; durante la caminata queda solo la parte superior. -->
@@ -231,6 +242,14 @@
             <circle cx="166" cy="283" r="1.8"/><circle cx="163" cy="297" r="2"/><circle cx="169" cy="320" r="1.8"/>
             <circle cx="280" cy="282" r="1.8"/><circle cx="285" cy="297" r="2"/><circle cx="281" cy="324" r="1.8"/>
           </g>
+          <g *ngIf="look.cape === 'moonlit'" fill="#edf6ff">
+            <path d="M170 284C160 282 158 294 166 298C171 300 175 297 176 294C168 298 163 289 170 284ZM284 284C274 282 272 294 280 298C285 300 289 297 290 294C282 298 277 289 284 284Z"/>
+            <path d="M158 327Q164 323 172 327M277 327Q285 323 293 327" stroke="#edf6ff" stroke-width="1.5" fill="none"/>
+          </g>
+          <g *ngIf="look.cape === 'aurora'" fill="none" stroke-linecap="round">
+            <path d="M169 283Q160 302 166 324M279 283Q289 302 284 324" stroke="#b8f0d0" stroke-width="2.3"/>
+            <path d="M174 286Q165 305 170 325M274 286Q283 305 280 325" stroke="#d3b0ea" stroke-width="1.5"/>
+          </g>
         </g>
 
         <!-- Cuello (accesorio): va sobre el cuerpo y bajo la cara; los brazos lo tapan en los hombros -->
@@ -256,6 +275,27 @@
           <circle cx="279" cy="314" r="13" [attr.fill]="refs['metal']" stroke="#9c681e" stroke-width="1.7"/>
           <circle cx="279" cy="314" r="9.5" fill="none" stroke="#fff0b8" stroke-width="1.3"/>
           <path d="M273 310L279 312L285 310V319L279 321L273 319ZM279 312V321" fill="none" stroke="#805217" stroke-width="1.5"/>
+        </g>
+        <!-- Premios de La Senda: sujetos a la solapa derecha, fuera del contorno de la barba. -->
+        <g class="mg-neck mg-firefly-brooch" *ngIf="look.neck === 'firefly-brooch'">
+          <circle cx="278" cy="293" r="20" fill="#dcf49a" opacity=".13"/>
+          <path d="M274 285C258 270 259 296 275 299M281 285C296 270 298 296 280 299" fill="#d6e7b8" stroke="#8eaa62" stroke-width="1.5"/>
+          <path d="M274 287L266 283M282 287L289 283" stroke="#fff4b5" stroke-width="1.2" fill="none"/>
+          <path d="M274 286Q278 282 282 286L283 300Q278 309 273 300Z" fill="#e7d77c" stroke="#84763c" stroke-width="1.5"/>
+          <path d="M274 297Q278 300 282 297L282 301Q278 308 274 301Z" fill="#efffae"/>
+          <circle cx="278" cy="282" r="4.8" fill="#577349" stroke="#c8dba5" stroke-width="1"/>
+          <path d="M275 279L272 275M281 279L284 275" stroke="#c8dba5" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M278 288V294" stroke="#967f3a" stroke-width="1.2"/>
+          <circle cx="265" cy="309" r="1.5" fill="#efffae"/><path d="M292 298V304M289 301H295" stroke="#efffae" stroke-width="1.3"/>
+        </g>
+        <g class="mg-neck mg-story-key" *ngIf="look.neck === 'story-key'">
+          <path d="M270 270H288L285 285L278 291L273 284Z" fill="#795c9c" stroke="#bc9fcf" stroke-width="1.4"/>
+          <path d="M275 271L279 283L283 271" fill="none" stroke="#e7c884" stroke-width="1.3"/>
+          <circle cx="279" cy="295" r="8" [attr.fill]="refs['metal']" stroke="#90632f" stroke-width="1.4"/>
+          <path d="M274 292L279 294L284 292V298L279 300L274 298ZM279 294V300" fill="none" stroke="#815b2b" stroke-width="1.1" stroke-linejoin="round"/>
+          <path d="M279 303V327H287V321H282V315H287" fill="none" [attr.stroke]="refs['metal']" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M277.7 305V326" stroke="#fff2bc" stroke-width="1"/>
+          <rect x="269" y="267" width="20" height="5" rx="2.5" [attr.fill]="refs['metal']"/>
         </g>
         <g class="mg-neck" *ngIf="look.neck === 'satchel'">
           <path d="M281 262L166 323" stroke="#513425" stroke-width="10" stroke-linecap="round"/>
@@ -406,6 +446,30 @@
         <!-- Sombrero: el de mago es el de siempre; los demás se compran en El Bazar.
              Todos comparten el pivote y las animaciones de .mg-hat. -->
         <g class="mg-hat" [ngSwitch]="look.head">
+          <g *ngSwitchCase="'archivist'" class="mg-archivist">
+            <path d="M161 160L164 123Q182 99 222 96Q266 92 288 119L294 161Z" fill="#48506e" stroke="#252c48" stroke-width="2"/>
+            <path d="M166 127Q187 112 222 110Q259 107 286 123M223 98V156" fill="none" stroke="#838db0" stroke-width="2"/>
+            <path d="M157 153Q222 166 298 151L297 173Q223 189 154 172Z" fill="#2f3756" stroke="#252c48" stroke-width="2"/>
+            <path d="M162 159Q223 171 292 158M160 169Q222 181 292 167" fill="none" stroke="#d2b878" stroke-width="1.5"/>
+            <path d="M277 123L300 117L304 154L283 160Z" fill="#d5c494" stroke="#a48c5a" stroke-width="1.3"/>
+            <path d="M280 126L299 121L302 150L285 155Z" fill="#f5eac9"/>
+            <path d="M284 130L296 127M285 135L297 132M286 140L298 137M287 145L295 143" stroke="#baaa80" stroke-width="1.1"/>
+            <path d="M287 123L293 121L296 142L292 139L290 143Z" fill="#aa596b"/>
+            <path d="M207 163L220 159L234 163V173L220 169L207 173ZM220 159V169" fill="#e7d395" stroke="#ab8c4f" stroke-width="1.1" stroke-linejoin="round"/>
+            <circle cx="222" cy="96" r="4" fill="#b8a273"/>
+          </g>
+          <g *ngSwitchCase="'ink-crown'" class="mg-ink-crown">
+            <path d="M166 165L158 111L187 134L201 91L225 126L249 91L263 134L292 111L284 165Z" [attr.fill]="refs['metal']" stroke="#976a2d" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M171 157L166 127L189 145L204 109L225 140L246 109L261 145L284 127L279 157Z" fill="#2a335b"/>
+            <path d="M163 159Q225 144 287 159L284 180Q225 167 166 180Z" fill="#293459" stroke="#d9b46a" stroke-width="2.2"/>
+            <path d="M171 164Q225 153 279 164M171 174Q225 163 279 174" stroke="#b99656" stroke-width="1.3" fill="none"/>
+            <path d="M211 160L225 154L239 160V174L225 169L211 174ZM225 154V169" fill="#f7e7b0" stroke="#a17a3c" stroke-width="1.3" stroke-linejoin="round"/>
+            <path d="M215 161L221 159M229 159L235 161M215 165L221 163M229 163L235 165" stroke="#b79a5d" stroke-width="1"/>
+            <path d="M221 139L225 133L229 139L225 145Z" fill="#9edcd8" stroke="#d6f1e4" stroke-width="1"/>
+            <circle cx="158" cy="111" r="4" fill="#fff0ba"/><circle cx="201" cy="91" r="4" fill="#fff0ba"/>
+            <circle cx="249" cy="91" r="4" fill="#fff0ba"/><circle cx="292" cy="111" r="4" fill="#fff0ba"/>
+            <circle cx="183" cy="169" r="2.3" fill="#a1d8d5"/><circle cx="267" cy="169" r="2.3" fill="#a1d8d5"/>
+          </g>
           <g *ngSwitchCase="'hood'">
             <path d="M143 248C132 209 137 158 167 127Q193 101 225 95Q268 107 292 142C310 174 313 215 305 249L289 262L291 213Q287 167 225 151Q163 167 159 213L161 262Z" fill="#42695c" stroke="#263f3a" stroke-width="2" stroke-linejoin="round"/>
             <path d="M151 245C143 206 147 163 176 135Q199 114 225 106" stroke="#82a78b" stroke-width="3" fill="none" opacity=".65" stroke-linecap="round"/>

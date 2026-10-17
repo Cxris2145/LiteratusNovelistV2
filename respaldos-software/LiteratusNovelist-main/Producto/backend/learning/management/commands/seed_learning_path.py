@@ -18,6 +18,7 @@ from learning.content.units import UNITS
 from learning.models import LearningUnit, LearningLevel, LearningExercise, ShopItem
 from learning.cosmetics_catalog import COSMETICS, sync_cosmetics
 from learning.wardrobe_catalog import sync_wardrobe
+from learning.path_catalog import sync_path_rewards
 
 
 SHOP_ITEMS = [
@@ -154,5 +155,6 @@ class Command(BaseCommand):
 
         sync_cosmetics(ShopItem)
         sync_wardrobe(ShopItem)
+        sync_path_rewards(ShopItem)
 
         say(self.style.SUCCESS("\n¡Sembrado de La Senda del Lector y El Bazar completado con éxito!"))

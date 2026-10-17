@@ -44,4 +44,43 @@ describe('MaguitoComponent (vestuario)', () => {
   it('una variante desconocida vuelve al atuendo de siempre', () => {
     expect(resolveOutfit({ head: 'casco-espacial' }).head).toBe('wizard');
   });
+
+  it('los premios de La Senda conservan las capas animadas y el rostro original al combinarse', () => {
+    for (const look of [
+      { head: 'archivist', neck: 'firefly-brooch', cape: 'moonlit', face: 'beard' },
+      { head: 'ink-crown', neck: 'story-key', cape: 'aurora', face: 'beard' },
+    ]) {
+      dress(look);
+      expect(fixture.componentInstance.look).toEqual(jasmine.objectContaining(look));
+      expect(host.querySelectorAll('.mg-face').length).toBe(1);
+      expect(host.querySelectorAll('.mg-pupil').length).toBe(2);
+      expect(host.querySelectorAll('.mg-neck').length).toBe(1);
+      expect(host.querySelectorAll('.mg-hat').length).toBe(1);
+      expect(host.querySelector('.mg-path-embroidery')).not.toBeNull();
+      expect(host.querySelector('.mg-facial')).not.toBeNull();
+    }
+  });
+
+  it('las prendas de La Senda caben completas en sus miniaturas del Bazar', () => {
+    fixture.componentRef.setInput('crop', 'detail');
+    fixture.componentRef.setInput('paused', true);
+    for (const piece of [
+      { slot: 'head', variant: 'archivist', layer: '.mg-hat' },
+      { slot: 'head', variant: 'ink-crown', layer: '.mg-hat' },
+      { slot: 'neck', variant: 'firefly-brooch', layer: '.mg-neck' },
+      { slot: 'neck', variant: 'story-key', layer: '.mg-neck' },
+      { slot: 'cape', variant: 'moonlit', layer: '.mg-cape' },
+      { slot: 'cape', variant: 'aurora', layer: '.mg-cape' },
+    ]) {
+      fixture.componentRef.setInput('detailSlot', piece.slot);
+      dress({ [piece.slot]: piece.variant });
+      const [x, y, width, height] = fixture.componentInstance.viewBox.split(' ').map(Number);
+      const art = host.querySelector<SVGGElement>(piece.layer)!.getBBox();
+      expect(art.width).toBeGreaterThan(0);
+      expect(art.x).toBeGreaterThan(x);
+      expect(art.y).toBeGreaterThan(y);
+      expect(art.x + art.width).toBeLessThan(x + width);
+      expect(art.y + art.height).toBeLessThan(y + height);
+    }
+  });
 });

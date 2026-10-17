@@ -317,7 +317,7 @@ class ShopWearableTests(APITestCase):
         from learning.models import ShopItem
         wearables = ShopItem.objects.filter(item_type='maguito_wear')
 
-        self.assertEqual(wearables.count(), 35)  # 25 originales + 10 del ropero (0006)
+        self.assertEqual(wearables.count(), 41)  # 25 originales + 10 del ropero + 6 premios de La Senda
         self.assertTrue(wearables.filter(code='wear_head_crown', value='head:crown').exists())
 
     def test_new_collection_has_unique_valid_values_and_is_seeded_for_sale(self):

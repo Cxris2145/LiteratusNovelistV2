@@ -72,6 +72,22 @@
   --mg-sleeve: #394780;
   --mg-sleeve-hi: #7b83c4;
 }
+:host([data-cape="moonlit"]) {
+  --mg-cape-a: #e2efff;
+  --mg-cape-b: #91adcf;
+  --mg-cape-c: #526d9f;
+  --mg-cape-seam: #334f7a;
+  --mg-sleeve: #91adcf;
+  --mg-sleeve-hi: #e2efff;
+}
+:host([data-cape="aurora"]) {
+  --mg-cape-a: #9ee6db;
+  --mg-cape-b: #479d9d;
+  --mg-cape-c: #675592;
+  --mg-cape-seam: #d4e4bd;
+  --mg-sleeve: #479d9d;
+  --mg-sleeve-hi: #b4f2e2;
+}
 :host(.mg-interactive) { cursor: pointer; }
 .mg-svg { display: block; width: 100%; height: auto; overflow: visible; }
 /* Busto (avatares): lo que queda fuera del encuadre no se pinta encima de lo que hay abajo */

@@ -5,6 +5,7 @@ learning/urls.py — Enrutador DRF para Senda de Aprendizaje, Comprensión Lecto
 from django.urls import path
 from .views import (
     LearningPathView,
+    PathChestClaimView,
     LevelSessionView,
     LevelSubmitView,
     LevelCheckView,
@@ -25,6 +26,7 @@ from .views import (
 urlpatterns = [
     # Ruta de aprendizaje y niveles
     path('path/', LearningPathView.as_view(), name='learning-path'),
+    path('chests/<slug:code>/claim/', PathChestClaimView.as_view(), name='learning-chest-claim'),
     path('levels/<uuid:pk>/session/', LevelSessionView.as_view(), name='level-session'),
     path('levels/<uuid:pk>/submit/', LevelSubmitView.as_view(), name='level-submit'),
     path('levels/<uuid:pk>/check/', LevelCheckView.as_view(), name='level-check'),

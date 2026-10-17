@@ -1,0 +1,44 @@
+{
+  "generator": "Built-in image_gen.imagegen",
+  "created": "2026-10-16",
+  "use": "Six 2D learning path backgrounds. Original PNGs retained at generator destination; project assets are format-converted WebP, no semantic edits.",
+  "base_prompt": "Create ONE finished 2D hand-painted fantasy storybook game environment background for Literatus Novelist, a magical literary adventure for a cute small blue wizard. Landscape 3:2 format. Rich illustrated game art, confident painterly shapes and soft brush texture, warm luminous details over cool midnight colors, charming and welcoming, NOT photoreal, NOT a 3D render. Composition: elevated three-quarter view across a broad central clearing covering the middle 45% from bottom to top where a separate UI path will be overlaid. Most detailed scenery on both left and right edges, distant skyline toward top. Center must remain calm and open, believable illuminated terrain, not a black empty strip. Fill entire image edge to edge. No text, no typography, no UI, no buttons, no circular game nodes, no visible route drawn on ground, no chests, no characters, no foreground castle, no logos. Important: this is an actual artwork background asset, not a website screenshot or mockup. Realm: ",
+  "realms": [
+    {
+      "name": "forest",
+      "scene_prompt": "Bosque de las Primeras Páginas. Ancient enchanted emerald forest at blue hour with giant twisted trees framing both edges, mossy roots, clusters of delicate luminous mushrooms and small book-like stone ruins at the edges. An open moonlit grassy clearing through center, teal ferns, tiny golden fireflies, rich dark green and blue foliage, distant soft violet sky. Inviting literary fairytale, amber lights.",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-3b828355-0496-4689-a8de-0c823a6441ae.png",
+      "asset": "src/assets/images/senda/realm-forest.webp"
+    },
+    {
+      "name": "lake",
+      "scene_prompt": "Lago de la Luna. A moonlit turquoise lake, silver crescent high in blue sky, tranquil reflections, small lilypad clusters and pale reeds near shore edges, weathered stone terraces and willow trees framing sides. A broad shallow sandy moonlit central shore/terrace area uninterrupted for the vertical game route, mist on far water. Deep sapphire, turquoise and silver with restrained warm lanterns.",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-15bdedfd-4cb0-4cee-a2eb-2be367a62702.png",
+      "asset": "src/assets/images/senda/realm-lake.webp"
+    },
+    {
+      "name": "library",
+      "scene_prompt": "Biblioteca Flotante. A fantastical open-air ancient library among floating rock islands and soft twilight clouds. Tall carved bookshelves and archways on both outer edges, hanging lanterns, a few floating open books near the edges, stone platforms and tiny distant bridges. Broad calm pale indigo stone terrace through middle as UI route space. Indigo and lavender atmosphere, amber bookshop warmth, wonder and depth.",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-40a29be2-dc68-4361-b3b8-4decf9b08851.png",
+      "asset": "src/assets/images/senda/realm-library.webp"
+    },
+    {
+      "name": "ruins",
+      "scene_prompt": "Ruinas de los Relatos. Ancient literary ruins reclaimed by moss, broad open sandstone plaza in the middle, broken engraved arches and ivy-covered columns on both outer edges, ornamental scroll stone reliefs WITHOUT readable letters, turquoise magical crystals in side alcoves, warm golden dusk shafts crossing dark teal foliage. Amber sandstone and deep jade, a quietly mysterious welcoming fairytale archaeological site.",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-eb1635a2-9224-4e82-b84c-35814e468f70.png",
+      "asset": "src/assets/images/senda/realm-ruins.webp"
+    },
+    {
+      "name": "aurora",
+      "scene_prompt": "Cumbres de Aurora. A high mountain sanctuary under ribbons of mint and violet aurora, distant snowy peaks at top, icy blue crystal formations and wind-sculpted rocks at both sides, small warm lamps half-buried in snow, an open gently sloping moonlit snowy terrace through center for a UI route. Deep blue night, silver snow with turquoise reflections and a few gold lights. Cozy enchanting painterly mountain adventure.",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-8b985a7b-a779-48cf-a8bc-e35731cc5895.png",
+      "asset": "src/assets/images/senda/realm-aurora.webp"
+    },
+    {
+      "name": "citadel",
+      "scene_prompt": "Ciudadela de Tinta. A magnificent magical literary city at night, distant elegant castle towers on the skyline only, spires with golden windows, open night-blue stone ceremonial plaza through the center, carved book-shaped monuments and flowering indigo trees along the outer left and right edges, ink-blue canals visible at edges, floating golden motes and distant banners. Deep royal blue, purple stone and warm gold. A triumphant welcoming final kingdom, refined storybook painting.",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-b2e50a83-233d-476a-887e-c6a509889130.png",
+      "asset": "src/assets/images/senda/realm-citadel.webp"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "generator": "Built-in image_gen.imagegen, reference-based portrait recomposition",
+  "date": "2026-10-17",
+  "assets": [
+    {
+      "name": "forest",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-054918e2-a02b-440d-961c-2a27dd16c5ea.png",
+      "asset": "src/assets/images/senda/realm-forest-mobile.webp",
+      "prompt": "Edit this background artwork into a NEW portrait 2:3 mobile-game environment painting for the same realm. Recompose the environment to use the tall portrait canvas naturally, not a cropped strip of the horizontal image and not letterboxed. Preserve the same recognizable setting, palette, hand-painted 2D storybook style, lighting, architectural motifs and distinctive magical details. Show the important sky feature in the upper 20 percent and retain detailed foreground framing on both sides. Keep a broad open gently lit central passage covering 40 percent of the width down the picture so an interactive game path can be overlaid. Redistribute side landmarks vertically so they are visible on a narrow phone. Charming literary fantasy, NOT photography, NOT a 3D render. No text, no UI, no characters, no chests, no circular level buttons. Keep the artwork crisp and beautifully detailed. Realm: forest."
+    },
+    {
+      "name": "lake",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-cb7925bd-471c-4b0a-bab5-57dd2d86d86b.png",
+      "asset": "src/assets/images/senda/realm-lake-mobile.webp",
+      "prompt": "Edit this background artwork into a NEW portrait 2:3 mobile-game environment painting for the same realm. Recompose the environment to use the tall portrait canvas naturally, not a cropped strip of the horizontal image and not letterboxed. Preserve the same recognizable setting, palette, hand-painted 2D storybook style, lighting, architectural motifs and distinctive magical details. Show the important sky feature in the upper 20 percent and retain detailed foreground framing on both sides. Keep a broad open gently lit central passage covering 40 percent of the width down the picture so an interactive game path can be overlaid. Redistribute side landmarks vertically so they are visible on a narrow phone. Charming literary fantasy, NOT photography, NOT a 3D render. No text, no UI, no characters, no chests, no circular level buttons. Keep the artwork crisp and beautifully detailed. Realm: lake."
+    },
+    {
+      "name": "library",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-bb746982-ac6a-429e-98f4-efa4215effbf.png",
+      "asset": "src/assets/images/senda/realm-library-mobile.webp",
+      "prompt": "Edit this background artwork into a NEW portrait 2:3 mobile-game environment painting for the same realm. Recompose the environment to use the tall portrait canvas naturally, not a cropped strip of the horizontal image and not letterboxed. Preserve the same recognizable setting, palette, hand-painted 2D storybook style, lighting, architectural motifs and distinctive magical details. Show the important sky feature in the upper 20 percent and retain detailed foreground framing on both sides. Keep a broad open gently lit central passage covering 40 percent of the width down the picture so an interactive game path can be overlaid. Redistribute side landmarks vertically so they are visible on a narrow phone. Charming literary fantasy, NOT photography, NOT a 3D render. No text, no UI, no characters, no chests, no circular level buttons. Keep the artwork crisp and beautifully detailed. Realm: library."
+    },
+    {
+      "name": "ruins",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-4e464409-ac9e-49ae-9584-d75f528e71af.png",
+      "asset": "src/assets/images/senda/realm-ruins-mobile.webp",
+      "prompt": "Edit this background artwork into a NEW portrait 2:3 mobile-game environment painting for the same realm. Recompose the environment to use the tall portrait canvas naturally, not a cropped strip of the horizontal image and not letterboxed. Preserve the same recognizable setting, palette, hand-painted 2D storybook style, lighting, architectural motifs and distinctive magical details. Show the important sky feature in the upper 20 percent and retain detailed foreground framing on both sides. Keep a broad open gently lit central passage covering 40 percent of the width down the picture so an interactive game path can be overlaid. Redistribute side landmarks vertically so they are visible on a narrow phone. Charming literary fantasy, NOT photography, NOT a 3D render. No text, no UI, no characters, no chests, no circular level buttons. Keep the artwork crisp and beautifully detailed. Realm: ruins."
+    },
+    {
+      "name": "aurora",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-0697ee58-6f60-4dd9-8987-bc28c0603c55.png",
+      "asset": "src/assets/images/senda/realm-aurora-mobile.webp",
+      "prompt": "Edit this background artwork into a NEW portrait 2:3 mobile-game environment painting for the same realm. Recompose the environment to use the tall portrait canvas naturally, not a cropped strip of the horizontal image and not letterboxed. Preserve the same recognizable setting, palette, hand-painted 2D storybook style, lighting, architectural motifs and distinctive magical details. Show the important sky feature in the upper 20 percent and retain detailed foreground framing on both sides. Keep a broad open gently lit central passage covering 40 percent of the width down the picture so an interactive game path can be overlaid. Redistribute side landmarks vertically so they are visible on a narrow phone. Charming literary fantasy, NOT photography, NOT a 3D render. No text, no UI, no characters, no chests, no circular level buttons. Keep the artwork crisp and beautifully detailed. Realm: aurora."
+    },
+    {
+      "name": "citadel",
+      "source_png": "C:\\Users\\Cxris\\.codex\\generated_images\\01a1468e-4ca6-7171-ac7b-528e487f5f9f\\exec-ea778649-d701-46c9-a433-abb3090314ba.png",
+      "asset": "src/assets/images/senda/realm-citadel-mobile.webp",
+      "prompt": "Edit this background artwork into a NEW portrait 2:3 mobile-game environment painting for the same realm. Recompose the environment to use the tall portrait canvas naturally, not a cropped strip of the horizontal image and not letterboxed. Preserve the same recognizable setting, palette, hand-painted 2D storybook style, lighting, architectural motifs and distinctive magical details. Show the important sky feature in the upper 20 percent and retain detailed foreground framing on both sides. Keep a broad open gently lit central passage covering 40 percent of the width down the picture so an interactive game path can be overlaid. Redistribute side landmarks vertically so they are visible on a narrow phone. Charming literary fantasy, NOT photography, NOT a 3D render. No text, no UI, no characters, no chests, no circular level buttons. Keep the artwork crisp and beautifully detailed. Realm: citadel."
+    }
+  ]
+}

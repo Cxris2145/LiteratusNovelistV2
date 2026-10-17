@@ -377,20 +377,25 @@
         <div *ngIf="collectionError" role="alert"><p>{{ collectionError }}</p><button class="collection-action" (click)="loadCollection()">Reintentar</button></div>
         <ul class="collection-grid">
           <li class="collection-item" *ngFor="let item of visibleCollection" [class.is-equipped]="item.is_equipped">
-            <div class="collection-state">{{ item.is_equipped ? 'Equipado' : item.is_owned ? 'En tu baúl' : item.is_purchasable ? 'En El Bazar' : 'Exclusivo de logro' }}</div>
+            <div class="collection-state">{{ item.is_equipped ? 'Equipado' : item.is_owned ? 'En tu baúl' : item.is_purchasable ? 'En El Bazar' : item.earned_from ? 'Premio de La Senda' : 'Exclusivo de logro' }}</div>
             <button type="button" class="preview-button" (click)="previewItem = item" [attr.aria-label]="'Probar ' + item.name"
               [attr.aria-pressed]="previewItem?.code === item.code">
               <app-cosmetic-preview [item]="item" [avatar]="profile?.avatar" [avatarColor]="profile?.avatar_color || '#655099'"
                 [initial]="profile?.username?.charAt(0) || 'L'" [outfit]="profile?.outfit"></app-cosmetic-preview>
             </button>
             <h3>{{ item.name }}</h3><p>{{ item.description }}</p>
+            <div class="collection-origin" *ngIf="item.earned_from as source">
+              <span>Premio de La Senda</span>
+              <p>Se recibe al completar «{{ source.title }}».</p>
+              <a class="earned-link" routerLink="/learn" [queryParams]="{ chest: source.code }">Ver cofre del reino</a>
+            </div>
             <div class="collection-item-actions">
               <button *ngIf="item.is_owned" type="button" class="collection-action" (click)="toggleItem(item)" [disabled]="!!busyItem">
                 {{ busyItem === item.code ? 'Guardando…' : item.is_equipped ? 'Quitar' : 'Equipar' }}
               </button>
               <a *ngIf="!item.is_owned && item.is_purchasable" class="collection-action" routerLink="/tavern"
                 [queryParams]="{ bazar: item.item_type === 'maguito_wear' ? 'ropero' : 'perfil' }">El Bazar · {{ item.cost_ink }} Tinta</a>
-              <button *ngIf="!item.is_owned && !item.is_purchasable" type="button" class="earned-link" (click)="showEarnedBy(item)">
+              <button *ngIf="!item.is_owned && !item.is_purchasable && !item.earned_from" type="button" class="earned-link" (click)="showEarnedBy(item)">
                 Se gana con el logro «{{ item.earned_by?.title || 'Por descubrir' }}»
               </button>
               <button type="button" class="collection-action subtle" (click)="previewItem = item">Probar</button>

@@ -667,4 +667,7 @@
 }
 
 .bz-exclusive { color: var(--th-gold); font-size: .72rem; }
+.bz-path-origin { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; color: var(--th-gold); font-size: .73rem; line-height: 1.45; text-underline-offset: 3px; }
+.bz-path-origin .material-symbols-rounded { font-size: 17px; flex-shrink: 0; }
+.bz-path-origin:focus-visible { outline: 2px solid var(--th-gold); outline-offset: 3px; border-radius: 3px; }
 .bz-thumb app-cosmetic-preview { width: 100%; }

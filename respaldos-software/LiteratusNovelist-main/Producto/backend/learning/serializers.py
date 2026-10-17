@@ -14,6 +14,8 @@ from .models import (
 )
 from . import games
 from .wearables import parse_wear_value
+from .path_rewards import level_reward_preview
+from .path_catalog import item_source
 
 
 class LearningLevelListSerializer(serializers.ModelSerializer):
@@ -22,6 +24,7 @@ class LearningLevelListSerializer(serializers.ModelSerializer):
     is_completed = serializers.BooleanField(default=False)
     is_unlocked = serializers.BooleanField(default=False)
     activities = serializers.SerializerMethodField()
+    reward_preview = serializers.SerializerMethodField()
 
     class Meta:
         model = LearningLevel
@@ -29,7 +32,7 @@ class LearningLevelListSerializer(serializers.ModelSerializer):
             'id', 'level_number', 'order', 'title', 'description',
             'difficulty', 'required_score', 'xp_reward', 'ink_reward',
             'is_exam', 'is_chest', 'icon', 'stars', 'best_score',
-            'is_completed', 'is_unlocked', 'activities'
+            'is_completed', 'is_unlocked', 'activities', 'reward_preview'
         ]
 
     def get_activities(self, obj):
@@ -42,6 +45,9 @@ class LearningLevelListSerializer(serializers.ModelSerializer):
         if exercise.content_pages:
             kinds.insert(0, 'reading')
         return [{'kind': kind, 'label': games.ACTIVITY_LABELS.get(kind, kind)} for kind in kinds]
+
+    def get_reward_preview(self, obj):
+        return level_reward_preview(obj, getattr(obj, 'is_completed', False))
 
 
 class LearningUnitListSerializer(serializers.ModelSerializer):
@@ -109,6 +115,7 @@ class LearningUnitListSerializer(serializers.ModelSerializer):
                 'required_score': lvl.required_score,
                 'xp_reward': lvl.xp_reward,
                 'ink_reward': lvl.ink_reward,
+                'reward_preview': level_reward_preview(lvl, is_comp),
                 'is_exam': lvl.is_exam,
                 'is_chest': lvl.is_chest,
                 'icon': lvl.icon,
@@ -181,13 +188,14 @@ class ShopItemSerializer(serializers.ModelSerializer):
     is_equipped = serializers.SerializerMethodField()
     quantity = serializers.SerializerMethodField()
     earned_by = serializers.SerializerMethodField()
+    earned_from = serializers.SerializerMethodField()
 
     class Meta:
         model = ShopItem
         fields = [
             'id', 'code', 'name', 'description', 'item_type',
             'cost_ink', 'icon', 'asset_url', 'value', 'sort_order', 'is_purchasable',
-            'is_owned', 'is_equipped', 'quantity', 'earned_by'
+            'is_owned', 'is_equipped', 'quantity', 'earned_by', 'earned_from'
         ]
 
     """
@@ -244,3 +252,6 @@ class ShopItemSerializer(serializers.ModelSerializer):
             return self.context['earned_by'].get(obj.id)
         achievement = obj.reward_for.only('code', 'title').first()
         return {'code': achievement.code, 'title': achievement.title} if achievement else None
+
+    def get_earned_from(self, obj):
+        return item_source(obj.code)
