@@ -30,6 +30,10 @@
         <span class="material-symbols-rounded" [class.rd-filled]="r.isFavoriteBook" aria-hidden="true">star</span>
         <span>{{ r.isFavoriteBook ? 'Quitar de favoritos' : 'Agregar a favoritos' }}</span>
       </button>
+      <button type="button" class="rd-more-action" (click)="act('report')">
+        <span class="material-symbols-rounded" aria-hidden="true">report_problem</span>
+        <span>Reportar error</span>
+      </button>
     </div>
 
     <section class="rd-open-books" aria-labelledby="reader-open-books-title">

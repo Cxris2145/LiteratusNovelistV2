@@ -13,6 +13,7 @@ import { ReaderNarrationSheetComponent } from './reader-narration-sheet/reader-n
 import { ReaderTocComponent } from './reader-toc/reader-toc.component';
 import { ReaderSelectionMenuComponent } from './reader-selection-menu/reader-selection-menu.component';
 import { ReaderPostItsComponent } from './reader-postits/reader-postits.component';
+import { ReaderReportModalComponent } from './reader-report-modal/reader-report-modal.component';
 import { ReaderFrozenDirective } from './reader-frozen.directive';
 import { ReaderSheetDirective } from './reader-sheet.directive';
 import { ReaderFocusTrapDirective } from './reader-focus-trap.directive';
@@ -22,7 +23,7 @@ import { ReaderFocusTrapDirective } from './reader-focus-trap.directive';
   declarations: [
     ReaderComponent, ReaderTabsComponent, ReaderChromeComponent, ReaderMoreSheetComponent, VocabularyPanelComponent, BookSearchPanelComponent,
     ReaderSettingsSheetComponent, ReaderNarrationSheetComponent, ReaderTocComponent, ReaderSelectionMenuComponent,
-    ReaderPostItsComponent, ReaderFrozenDirective, ReaderSheetDirective, ReaderFocusTrapDirective,
+    ReaderPostItsComponent, ReaderReportModalComponent, ReaderFrozenDirective, ReaderSheetDirective, ReaderFocusTrapDirective,
   ],
   imports: [SharedModule, RouterModule.forChild([{ path: '', component: ReaderComponent }])],
 })

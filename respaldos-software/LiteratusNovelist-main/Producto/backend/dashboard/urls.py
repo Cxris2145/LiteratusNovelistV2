@@ -32,6 +32,12 @@ from .views_admin_extended import (
     AdminGenreView,
     AdminGenreDetailView,
 )
+from .views_book_reports import (
+    AdminBookReportListView,
+    AdminBookReportStatsView,
+    AdminBookReportDetailView,
+    AdminBookReportBatchStatusView,
+)
 
 urlpatterns = [
     # ─── Analíticas y Estadísticas Principales ───
@@ -87,4 +93,11 @@ urlpatterns = [
 
     # ─── Configuración General de la Plataforma ───
     path('settings/', AdminSettingsView.as_view(), name='dashboard-settings'),
+
+    # ─── Reportes de Errores de Libros ───
+    path('book-reports/', AdminBookReportListView.as_view(), name='dashboard-book-reports'),
+    path('book-reports/stats/', AdminBookReportStatsView.as_view(), name='dashboard-book-reports-stats'),
+    path('book-reports/batch-status/', AdminBookReportBatchStatusView.as_view(), name='dashboard-book-reports-batch'),
+    path('book-reports/<uuid:pk>/', AdminBookReportDetailView.as_view(), name='dashboard-book-reports-detail'),
 ]
+

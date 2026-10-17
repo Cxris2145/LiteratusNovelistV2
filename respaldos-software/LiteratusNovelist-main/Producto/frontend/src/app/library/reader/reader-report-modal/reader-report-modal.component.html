@@ -1,0 +1,88 @@
+<div class="report-backdrop" (click)="close.emit()" aria-hidden="true"></div>
+
+<section class="report-dialog glass-panel" role="dialog" aria-modal="true" aria-labelledby="report-title" rdFocusTrap>
+  <header class="report-header">
+    <div class="title-wrap">
+      <span class="material-symbols-rounded report-icon" aria-hidden="true">report_problem</span>
+      <div>
+        <h3 id="report-title" class="report-heading">Reportar error</h3>
+        <p class="report-subheading">{{ context.bookTitle || 'Lectura' }} · {{ context.chapterTitle || ('Capítulo ' + (context.chapterOrder || 1)) }}</p>
+      </div>
+    </div>
+    <button type="button" class="btn-close" (click)="close.emit()" aria-label="Cerrar ventana de reporte">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <div class="report-body">
+    <!-- Resumen de Ubicación y Contexto Capturado -->
+    <div class="context-card" *ngIf="context.selectedText || context.audioTimestamp != null">
+      <div class="context-header">
+        <span class="material-symbols-rounded context-pin" aria-hidden="true">my_location</span>
+        <span class="context-label">Ubicación exacta capturada</span>
+      </div>
+
+      <blockquote *ngIf="context.selectedText" class="snippet-quote">
+        «{{ context.selectedText }}»
+      </blockquote>
+
+      <div *ngIf="context.audioTimestamp != null && context.audioTimestamp > 0" class="audio-context-badge">
+        <span class="material-symbols-rounded" aria-hidden="true">volume_up</span>
+        <span>Segundo de narración: <strong>{{ formatTimestamp(context.audioTimestamp) }}</strong> ({{ context.audioTimestamp | number:'1.1-1' }}s)</span>
+        <span *ngIf="context.voiceName" class="voice-pill">Voz: {{ context.voiceName }}</span>
+      </div>
+    </div>
+
+    <form [formGroup]="reportForm" (ngSubmit)="submitReport()">
+      <!-- Tipo de Falla -->
+      <div class="form-section">
+        <label class="section-title">¿Qué tipo de problema encontraste?</label>
+        <div class="category-grid" role="radiogroup" aria-label="Tipo de problema">
+          <label *ngFor="let cat of errorCategories"
+                 class="cat-chip"
+                 [class.is-selected]="reportForm.value.error_type === cat.id"
+                 [class.is-audio]="cat.isAudio">
+            <input type="radio" formControlName="error_type" [value]="cat.id" class="sr-only">
+            <span class="material-symbols-rounded chip-icon" aria-hidden="true">{{ cat.icon }}</span>
+            <span class="chip-text">{{ cat.label }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Severidad / Gravedad -->
+      <div class="form-section">
+        <label class="section-title">Gravedad del problema</label>
+        <div class="severity-grid" role="radiogroup" aria-label="Gravedad">
+          <label *ngFor="let sev of severityOptions"
+                 class="sev-chip"
+                 [class.is-selected]="reportForm.value.severity === sev.id">
+            <input type="radio" formControlName="severity" [value]="sev.id" class="sr-only">
+            <span class="sev-name">{{ sev.label }}</span>
+            <span class="sev-desc">{{ sev.desc }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Comentario Opcional -->
+      <div class="form-section">
+        <label for="user_comment" class="section-title">Detalles adicionales (opcional)</label>
+        <textarea id="user_comment"
+                  formControlName="user_comment"
+                  rows="3"
+                  class="report-textarea"
+                  placeholder="Explica qué debería decir o qué ocurrió para ayudarnos a corregirlo rápido..."></textarea>
+      </div>
+
+      <footer class="report-footer">
+        <button type="button" class="btn-cancel" (click)="close.emit()" [disabled]="isSubmitting">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="reportForm.invalid || isSubmitting">
+          <span class="material-symbols-rounded btn-icon" *ngIf="!isSubmitting" aria-hidden="true">send</span>
+          <span *ngIf="!isSubmitting">Enviar reporte</span>
+          <span *ngIf="isSubmitting">Enviando...</span>
+        </button>
+      </footer>
+    </form>
+  </div>
+</section>

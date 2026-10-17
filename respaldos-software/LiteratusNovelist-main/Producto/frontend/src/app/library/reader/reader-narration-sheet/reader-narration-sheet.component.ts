@@ -27,4 +27,14 @@ export class ReaderNarrationSheetComponent {
     this.reader.stopAudio(true);
     this.reader.playAudio();
   }
+
+  reportAudioIssue(): void {
+    const timestamp = this.n.audio.currentTime || 0;
+    this.reader.isAudioPanelOpen = false;
+    this.reader.openReportModal({
+      audioTimestamp: timestamp,
+      voiceName: this.n.voice,
+    });
+  }
 }
+

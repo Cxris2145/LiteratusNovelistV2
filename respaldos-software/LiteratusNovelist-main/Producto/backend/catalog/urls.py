@@ -5,7 +5,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     BookViewSet, AuthorViewSet, GenreViewSet, CatalogStatsView,
-    AuthorSubmitBookView, AuthorMySubmissionsView, AuthorSubmissionRequirementsView, AutocompleteView
+    AuthorSubmitBookView, AuthorMySubmissionsView, AuthorSubmissionRequirementsView, AutocompleteView,
+    BookErrorReportViewSet
 )
 
 router = DefaultRouter()
@@ -15,6 +16,8 @@ router.register(r'authors', AuthorViewSet, basename='author')
 router.register(r'books', BookViewSet, basename='book')
 # /api/v1/catalog/genres/
 router.register(r'genres', GenreViewSet, basename='genre')
+# /api/v1/catalog/reports/
+router.register(r'reports', BookErrorReportViewSet, basename='book-error-report')
 
 urlpatterns = [
     # ─── Portal de Autores / Envío de Obras ───

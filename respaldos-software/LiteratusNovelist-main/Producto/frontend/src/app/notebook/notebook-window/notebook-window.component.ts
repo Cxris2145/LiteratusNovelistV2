@@ -269,7 +269,7 @@ export class NotebookWindowComponent implements AfterViewInit, OnDestroy {
     if (!editor) return;
     const { $head } = editor.state.selection;
     let line = 0;
-    editor.state.doc.nodesBetween(0, $head.pos, node => {
+    editor.state.doc.nodesBetween(0, $head.pos, (node: any) => {
       if (node.isTextblock) line++;
       return true;
     });

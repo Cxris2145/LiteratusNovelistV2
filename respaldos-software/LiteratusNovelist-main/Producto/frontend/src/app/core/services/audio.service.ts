@@ -51,6 +51,8 @@ export class AudioService {
 
   private wordIndexSubject   = new BehaviorSubject<number>(-1);
   currentWordIndex$ = this.wordIndexSubject.asObservable();
+  get currentWordIndex(): number { return this.wordIndexSubject.getValue(); }
+  get currentTime(): number { return this.proAudio ? this.proAudio.currentTime : 0; }
 
   /** La palabra que va sonando. Llega fuera de la zona de Angular (ver playCurrentChunk y playRecorded):
    *  quien la muestre la marca en el DOM o vuelve a la zona si cambia algo de la página. */

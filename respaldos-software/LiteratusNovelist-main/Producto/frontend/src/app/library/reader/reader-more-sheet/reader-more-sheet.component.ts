@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { ReaderTab, ReaderTabsService } from '../../../core/services/reader-tabs.service';
 import { ReaderComponent } from '../reader.component';
 
-type MoreAction = 'characters' | 'notebook' | 'vocabulary' | 'summary' | 'postit' | 'favorite';
+type MoreAction = 'characters' | 'notebook' | 'vocabulary' | 'summary' | 'postit' | 'favorite' | 'report';
 
 /** Opciones del libro y libros abiertos, fuera de la superficie de lectura. */
 @Component({
@@ -31,6 +31,7 @@ export class ReaderMoreSheetComponent {
     if (action === 'summary') this.r.openProgressSummary();
     if (action === 'postit') this.r.createPostIt();
     if (action === 'favorite') this.r.toggleFavorite();
+    if (action === 'report') this.r.openReportModal();
   }
 
   selectTab(tab: ReaderTab): void {

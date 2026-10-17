@@ -26,6 +26,7 @@ import { AIChatsComponent } from './ai-chats/ai-chats.component';
 import { AuditLogsComponent } from './audit/audit.component';
 import { StoreSettingsComponent } from './settings/settings.component';
 import { ReportsComponent } from './reports/reports.component';
+import { BookReportsComponent } from './book-reports/book-reports.component';
 
 @NgModule({
   declarations: [
@@ -47,6 +48,7 @@ import { ReportsComponent } from './reports/reports.component';
     AuditLogsComponent,
     StoreSettingsComponent,
     ReportsComponent,
+    BookReportsComponent,
   ],
   imports: [
     CommonModule,

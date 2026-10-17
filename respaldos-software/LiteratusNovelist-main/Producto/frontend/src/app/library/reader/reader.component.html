@@ -413,4 +413,12 @@
     </div>
   </div>
 
+  <!-- MODAL DE REPORTE DE ERRORES DEL LIBRO -->
+  <app-reader-report-modal
+    *ngIf="showReportModal && reportContext"
+    [context]="reportContext"
+    (close)="closeReportModal()">
+  </app-reader-report-modal>
+
 </div>
+

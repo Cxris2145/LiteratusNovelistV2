@@ -1,0 +1,303 @@
+<div class="reports-admin-container">
+  <!-- CABECERA PRINCIPAL -->
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">
+        <span class="material-symbols-outlined header-icon">bug_report</span>
+        Reportes de Errores en Libros
+      </h1>
+      <p class="page-subtitle">Gestiona las fallas ortográficas, palabras cortadas, párrafos repetidos y desajustes de audio reportados por los lectores.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh glass-btn" (click)="loadReports(); loadStats()" title="Actualizar datos">
+        <span class="material-symbols-outlined">refresh</span>
+        <span>Actualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TARJETAS DE KPIS Y MÉTRICAS -->
+  <section class="kpi-grid" *ngIf="stats">
+    <div class="kpi-card" [class.alert]="stats.pending > 0">
+      <div class="kpi-icon-wrap pending">
+        <span class="material-symbols-outlined">pending_actions</span>
+      </div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ stats.pending }}</span>
+        <span class="kpi-label">Pendientes</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap in-review">
+        <span class="material-symbols-outlined">rate_review</span>
+      </div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ stats.in_review }}</span>
+        <span class="kpi-label">En Revisión</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap resolved">
+        <span class="material-symbols-outlined">check_circle</span>
+      </div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ stats.resolved }}</span>
+        <span class="kpi-label">Resueltos</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap total">
+        <span class="material-symbols-outlined">auto_stories</span>
+      </div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ stats.total }}</span>
+        <span class="kpi-label">Total histórico</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- BARRA DE FILTROS Y ACCIONES -->
+  <section class="toolbar-panel glass-panel">
+    <!-- Pestañas de Medio (Todos / Texto / Audio) -->
+    <div class="media-tabs">
+      <button type="button" class="media-tab" [class.active]="mediaFilter === 'all'" (click)="setMediaFilter('all')">
+        Todos ({{ stats?.total || 0 }})
+      </button>
+      <button type="button" class="media-tab" [class.active]="mediaFilter === 'text'" (click)="setMediaFilter('text')">
+        <span class="material-symbols-outlined">description</span>
+        Texto ({{ stats?.text_count || 0 }})
+      </button>
+      <button type="button" class="media-tab" [class.active]="mediaFilter === 'audio'" (click)="setMediaFilter('audio')">
+        <span class="material-symbols-outlined">volume_up</span>
+        Audio ({{ stats?.audio_count || 0 }})
+      </button>
+    </div>
+
+    <div class="filter-controls">
+      <!-- Buscador -->
+      <div class="search-input-wrap">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text"
+               class="search-input"
+               placeholder="Buscar por texto, libro, comentario o usuario..."
+               [value]="searchTerm"
+               (input)="onSearchInput($event)">
+      </div>
+
+      <!-- Filtro Estado -->
+      <select class="filter-select" [value]="statusFilter" (change)="setStatusFilter($any($event.target).value)">
+        <option *ngFor="let opt of statusOptions" [value]="opt.id">{{ opt.label }}</option>
+      </select>
+
+      <!-- Filtro Tipo de Error -->
+      <select class="filter-select" [value]="typeFilter" (change)="typeFilter = $any($event.target).value; loadReports()">
+        <option *ngFor="let opt of typeOptions" [value]="opt.id">{{ opt.label }}</option>
+      </select>
+    </div>
+
+    <!-- Barra de Acciones Masivas (cuando hay seleccionados) -->
+    <div class="batch-bar" *ngIf="selectedIds.size > 0">
+      <span class="batch-count">{{ selectedIds.size }} seleccionados</span>
+      <div class="batch-actions">
+        <button class="batch-btn success" (click)="batchUpdateStatus('resolved')">
+          <span class="material-symbols-outlined">check</span>
+          Marcar como Resueltos
+        </button>
+        <button class="batch-btn warning" (click)="batchUpdateStatus('in_review')">
+          <span class="material-symbols-outlined">visibility</span>
+          Marcar En Revisión
+        </button>
+        <button class="batch-btn danger" (click)="batchUpdateStatus('dismissed')">
+          <span class="material-symbols-outlined">close</span>
+          Descartar
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLA DE REPORTES -->
+  <section class="table-container glass-panel">
+    <div *ngIf="loading" class="loading-state">
+      <span class="loader-spin material-symbols-outlined">sync</span>
+      <p>Cargando reportes...</p>
+    </div>
+
+    <table *ngIf="!loading && reports.length > 0" class="reports-table">
+      <thead>
+        <tr>
+          <th class="th-checkbox">
+            <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()" aria-label="Seleccionar todos">
+          </th>
+          <th>Libro / Capítulo</th>
+          <th>Tipo de Error</th>
+          <th>Contexto / Ubicación</th>
+          <th>Severidad</th>
+          <th>Estado</th>
+          <th>Reportado Por</th>
+          <th>Fecha</th>
+          <th class="th-actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of reports" [class.is-selected]="selectedIds.has(item.id)">
+          <td class="td-checkbox">
+            <input type="checkbox" [checked]="selectedIds.has(item.id)" (change)="toggleSelectOne(item.id)" [attr.aria-label]="'Seleccionar reporte ' + item.id">
+          </td>
+          <td class="td-book">
+            <div class="book-title-cell" [title]="item.book_title">
+              <strong>{{ item.book_title }}</strong>
+            </div>
+            <div class="chapter-sub-cell">
+              Cap. {{ item.chapter_order }}: {{ item.chapter_title }}
+            </div>
+          </td>
+          <td>
+            <span class="error-badge" [attr.data-type]="item.error_type">
+              {{ item.error_type_display }}
+            </span>
+          </td>
+          <td class="td-snippet">
+            <div *ngIf="item.selected_text" class="snippet-text" [title]="item.selected_text">
+              «{{ item.selected_text }}»
+            </div>
+            <div *ngIf="item.audio_timestamp_seconds != null && item.audio_timestamp_seconds > 0" class="audio-pill">
+              <span class="material-symbols-outlined">volume_up</span>
+              <span>{{ formatTimestamp(item.audio_timestamp_seconds) }}</span>
+            </div>
+            <div *ngIf="item.user_comment" class="comment-preview" [title]="item.user_comment">
+              💬 {{ item.user_comment }}
+            </div>
+          </td>
+          <td>
+            <span class="severity-pill" [attr.data-sev]="item.severity">
+              {{ item.severity_display }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [attr.data-status]="item.status">
+              {{ item.status_display }}
+            </span>
+          </td>
+          <td class="td-user">
+            <span class="username">{{ item.reporter_username }}</span>
+          </td>
+          <td class="td-date">
+            {{ item.created_at | date:'dd/MM/yyyy HH:mm' }}
+          </td>
+          <td class="td-actions">
+            <button class="btn-inspect" (click)="openInspectDrawer(item)" title="Ver detalle y resolver">
+              <span class="material-symbols-outlined">visibility</span>
+            </button>
+            <button class="btn-reader" (click)="openInReader(item)" title="Abrir en el lector exactamente aquí">
+              <span class="material-symbols-outlined">open_in_new</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && reports.length === 0" class="empty-state">
+      <span class="material-symbols-outlined empty-icon">sentiment_satisfied</span>
+      <h3>No se encontraron reportes</h3>
+      <p>No hay fallas reportadas con los filtros seleccionados.</p>
+    </div>
+  </section>
+
+  <!-- DRAWER LATERAL DE INSPECCIÓN Y RESOLUCIÓN -->
+  <div class="drawer-backdrop" *ngIf="selectedReport" (click)="closeInspectDrawer()"></div>
+
+  <aside class="inspect-drawer glass-panel" *ngIf="selectedReport">
+    <header class="drawer-header">
+      <div>
+        <span class="drawer-badge" [attr.data-status]="selectedReport.status">{{ selectedReport.status_display }}</span>
+        <h3 class="drawer-title">Detalle del Reporte</h3>
+      </div>
+      <button class="btn-close-drawer" (click)="closeInspectDrawer()" aria-label="Cerrar panel lateral">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <div class="drawer-body">
+      <!-- Obra y Capítulo -->
+      <div class="drawer-section">
+        <label class="drawer-label">Obra & Capítulo</label>
+        <p class="drawer-value book-highlight">{{ selectedReport.book_title }}</p>
+        <p class="drawer-subvalue">Capítulo {{ selectedReport.chapter_order }}: {{ selectedReport.chapter_title }}</p>
+      </div>
+
+      <!-- Botón de Deep Link al Lector -->
+      <button type="button" class="btn-jump-reader" (click)="openInReader(selectedReport)">
+        <span class="material-symbols-outlined">auto_stories</span>
+        <span>Abrir en el Lector en esta ubicación</span>
+        <span class="material-symbols-outlined jump-arrow">arrow_forward</span>
+      </button>
+
+      <!-- Contexto Textual -->
+      <div class="drawer-section" *ngIf="selectedReport.selected_text">
+        <label class="drawer-label">Texto seleccionado por el usuario</label>
+        <blockquote class="drawer-quote">
+          «{{ selectedReport.selected_text }}»
+        </blockquote>
+        <div class="word-indices" *ngIf="selectedReport.start_word_index != null">
+          <span>Identificador de palabra: <strong>word-{{ selectedReport.start_word_index }}</strong></span>
+          <span *ngIf="selectedReport.end_word_index != null"> hasta <strong>word-{{ selectedReport.end_word_index }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Contexto de Audio -->
+      <div class="drawer-section" *ngIf="selectedReport.audio_timestamp_seconds != null">
+        <label class="drawer-label">Detalles de Audio</label>
+        <div class="audio-detail-box">
+          <span class="material-symbols-outlined">volume_up</span>
+          <div>
+            <div>Tiempo: <strong>{{ formatTimestamp(selectedReport.audio_timestamp_seconds) }}</strong> ({{ selectedReport.audio_timestamp_seconds }} segundos)</div>
+            <div *ngIf="selectedReport.voice_name">Voz activa: {{ selectedReport.voice_name }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comentario del Usuario -->
+      <div class="drawer-section" *ngIf="selectedReport.user_comment">
+        <label class="drawer-label">Comentario del Lector</label>
+        <p class="drawer-comment">{{ selectedReport.user_comment }}</p>
+      </div>
+
+      <hr class="drawer-divider">
+
+      <!-- Formulario de Resolución Editorial -->
+      <div class="drawer-section">
+        <label for="edit_status" class="drawer-label">Cambiar Estado</label>
+        <select id="edit_status" class="form-control" [(ngModel)]="editingStatus">
+          <option value="pending">Pendiente</option>
+          <option value="in_review">En Revisión</option>
+          <option value="resolved">Resuelto</option>
+          <option value="dismissed">Descartado</option>
+          <option value="duplicate">Duplicado</option>
+        </select>
+      </div>
+
+      <div class="drawer-section">
+        <label for="edit_notes" class="drawer-label">Notas Internas del Editor / Solución aplicada</label>
+        <textarea id="edit_notes"
+                  class="form-control"
+                  rows="4"
+                  [(ngModel)]="editingNotes"
+                  placeholder="Ej: Corregido en el capítulo 4 reemplazando 'comió' por 'corrió'."></textarea>
+      </div>
+    </div>
+
+    <footer class="drawer-footer">
+      <button type="button" class="btn-drawer-delete" (click)="deleteReport(selectedReport)">
+        <span class="material-symbols-outlined">delete</span>
+        Eliminar
+      </button>
+      <button type="button" class="btn-drawer-save" (click)="saveReportChanges()" [disabled]="isSavingReport">
+        <span class="material-symbols-outlined" *ngIf="!isSavingReport">save</span>
+        <span>{{ isSavingReport ? 'Guardando...' : 'Guardar Cambios' }}</span>
+      </button>
+    </footer>
+  </aside>
+</div>

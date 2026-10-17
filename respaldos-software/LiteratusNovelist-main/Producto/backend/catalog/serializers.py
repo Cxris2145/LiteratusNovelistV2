@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Author, Genre, Book, Edition, BookAuthor, Review
+from .models import Author, Genre, Book, Edition, BookAuthor, Review, BookErrorReport, Chapter, ChapterAudio
 from ai_engine.models import AIAvatar
 from .age import age_block_message, visible_books
 
@@ -287,4 +287,157 @@ class BookDetailFullSerializer(BookDetailSerializer):
         if request and request.user.is_authenticated and hasattr(request.user, 'profile'):
             return request.user.profile.ink_balance
         return 0
+
+
+class BookErrorReportCreateSerializer(serializers.ModelSerializer):
+    """Serializer para envío de reportes de error desde el e-reader."""
+    book = serializers.PrimaryKeyRelatedField(queryset=Book.objects.all(), required=False)
+    chapter = serializers.PrimaryKeyRelatedField(queryset=Chapter.objects.all(), required=True)
+
+    class Meta:
+        model = BookErrorReport
+        fields = [
+            'id',
+            'book',
+            'chapter',
+            'audio',
+            'error_type',
+            'severity',
+            'user_comment',
+            'selected_text',
+            'context_snippet',
+            'start_word_index',
+            'end_word_index',
+            'paragraph_index',
+            'audio_timestamp_seconds',
+            'voice_name',
+            'client_metadata',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'created_at']
+
+    def validate(self, attrs):
+        chapter = attrs.get('chapter')
+        book = attrs.get('book')
+
+        if chapter and not book:
+            attrs['book'] = chapter.book
+        elif chapter and book and chapter.book_id != book.id:
+            raise serializers.ValidationError({
+                "chapter": "El capítulo especificado no corresponde al libro indicado."
+            })
+
+        return attrs
+
+
+class BookErrorReportListAdminSerializer(serializers.ModelSerializer):
+    """Serializer para listados y filtros en el panel de administración."""
+    book_id = serializers.UUIDField(source='book.id', read_only=True)
+    book_title = serializers.CharField(source='book.title', read_only=True)
+    book_slug = serializers.CharField(source='book.slug', read_only=True)
+    chapter_id = serializers.UUIDField(source='chapter.id', read_only=True)
+    chapter_title = serializers.CharField(source='chapter.title', read_only=True)
+    chapter_order = serializers.IntegerField(source='chapter.order', read_only=True)
+    reporter_username = serializers.SerializerMethodField()
+    assigned_username = serializers.SerializerMethodField()
+    error_type_display = serializers.CharField(source='get_error_type_display', read_only=True)
+    severity_display = serializers.CharField(source='get_severity_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = BookErrorReport
+        fields = [
+            'id',
+            'book_id',
+            'book_title',
+            'book_slug',
+            'chapter_id',
+            'chapter_title',
+            'chapter_order',
+            'error_type',
+            'error_type_display',
+            'severity',
+            'severity_display',
+            'status',
+            'status_display',
+            'selected_text',
+            'context_snippet',
+            'start_word_index',
+            'end_word_index',
+            'paragraph_index',
+            'audio_timestamp_seconds',
+            'voice_name',
+            'user_comment',
+            'reporter_username',
+            'assigned_username',
+            'admin_notes',
+            'created_at',
+            'resolved_at',
+        ]
+
+    def get_reporter_username(self, obj):
+        return obj.reporter.username if obj.reporter else "Lector Anónimo"
+
+    def get_assigned_username(self, obj):
+        return obj.assigned_to.username if obj.assigned_to else None
+
+
+class BookErrorReportDetailSerializer(serializers.ModelSerializer):
+    """Serializer detallado para inspección y edición de reportes en el panel."""
+    book_title = serializers.CharField(source='book.title', read_only=True)
+    book_slug = serializers.CharField(source='book.slug', read_only=True)
+    chapter_title = serializers.CharField(source='chapter.title', read_only=True)
+    chapter_order = serializers.IntegerField(source='chapter.order', read_only=True)
+    reporter_username = serializers.SerializerMethodField()
+    assigned_username = serializers.SerializerMethodField()
+    error_type_display = serializers.CharField(source='get_error_type_display', read_only=True)
+    severity_display = serializers.CharField(source='get_severity_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = BookErrorReport
+        fields = [
+            'id',
+            'book',
+            'book_title',
+            'book_slug',
+            'chapter',
+            'chapter_title',
+            'chapter_order',
+            'audio',
+            'reporter',
+            'reporter_username',
+            'assigned_to',
+            'assigned_username',
+            'error_type',
+            'error_type_display',
+            'severity',
+            'severity_display',
+            'status',
+            'status_display',
+            'user_comment',
+            'selected_text',
+            'context_snippet',
+            'start_word_index',
+            'end_word_index',
+            'paragraph_index',
+            'audio_timestamp_seconds',
+            'voice_name',
+            'client_metadata',
+            'admin_notes',
+            'resolved_at',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id', 'book', 'chapter', 'audio', 'reporter', 'client_metadata',
+            'created_at', 'updated_at'
+        ]
+
+    def get_reporter_username(self, obj):
+        return obj.reporter.username if obj.reporter else "Lector Anónimo"
+
+    def get_assigned_username(self, obj):
+        return obj.assigned_to.username if obj.assigned_to else None
+
         

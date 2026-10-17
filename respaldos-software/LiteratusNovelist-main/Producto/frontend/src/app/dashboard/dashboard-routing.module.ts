@@ -18,6 +18,7 @@ import { GamificationAdminComponent } from './gamification/gamification.componen
 import { AIChatsComponent } from './ai-chats/ai-chats.component';
 import { AuditLogsComponent } from './audit/audit.component';
 import { StoreSettingsComponent } from './settings/settings.component';
+import { BookReportsComponent } from './book-reports/book-reports.component';
 
 const routes: Routes = [
   {
@@ -27,6 +28,7 @@ const routes: Routes = [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: OverviewComponent },
       { path: 'reports', component: ReportsComponent },
+      { path: 'book-reports', component: BookReportsComponent },
       { path: 'books', component: BooksComponent },
       { path: 'books/new', component: BookEditorComponent },
       { path: 'books/:id/edit', component: BookEditorComponent },

@@ -31,6 +31,7 @@ import { ReaderNarrationService } from './reader-narration.service';
 import { PageBookmark, ReaderAnnotationsService, ReaderHighlight } from './reader-annotations.service';
 import type { ReaderSelectionMenuComponent } from './reader-selection-menu/reader-selection-menu.component';
 import type { ReaderPostItsComponent } from './reader-postits/reader-postits.component';
+import type { ReportContextData } from './reader-report-modal/reader-report-modal.component';
 
 export interface ProgressData {
   percentage: number;
@@ -146,6 +147,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   isVocabularyOpen: boolean = false;
   isSearchOpen: boolean = false;
   bookCover: string | null = null;
+  showReportModal: boolean = false;
+  reportContext: ReportContextData | null = null;
 
   /** Pestaña que baja línea a línea por el margen mientras habla la narración. */
   @ViewChild('narrationMarker') narrationMarkerRef?: ElementRef<HTMLElement>;
@@ -1100,6 +1103,19 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
             this.savedProgressData = { percentage: 0, wordId: `word-${passage.word}`, timestamp: Date.now() };
             this.nextJumpLabel = 'Pasaje en';
             this.nextJumpLastWord = passage.lastWord;
+          } else {
+            // Deep link desde el panel de reportes de error (?chapter=...&word=...)
+            const qp = this.route.snapshot.queryParams;
+            if (qp['chapter']) {
+              const targetChapIndex = this.chapters.findIndex(c => String(c.id) === String(qp['chapter']));
+              if (targetChapIndex >= 0) {
+                this.currentPage = targetChapIndex + 1;
+                const targetWord = qp['word'] ? parseInt(qp['word'], 10) : 0;
+                this.savedProgressData = { percentage: 0, wordId: `word-${targetWord}`, timestamp: Date.now() };
+                this.nextJumpLabel = 'Error reportado en';
+                this.nextJumpLastWord = targetWord;
+              }
+            }
           }
           if (this.currentPage > this.totalPages) { this.currentPage = this.totalPages; } else if (this.currentPage < 1) { this.currentPage = 1; }
           this.renderCurrentChapter();
@@ -2481,6 +2497,33 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   onVocabularyJump(target: VocabularyJump) {
     this.isVocabularyOpen = false;
     this.jumpToWord(target.chapterIndex, target.wordIdx, 'Palabra en');
+  }
+
+  // ── REPORTE DE ERRORES DEL LIBRO ──────────────────────────────────
+
+  openReportModal(contextOverride?: Partial<ReportContextData>): void {
+    const currentChapter = this.chapters[this.currentPage - 1];
+    const isAudioActive = this.narration.isPlaying || this.narration.isPaused;
+    const audioTimestamp = isAudioActive ? this.narration.audio.currentTime : null;
+
+    this.reportContext = {
+      bookId: this.bookId || '',
+      bookTitle: this.bookTitle,
+      chapterId: currentChapter?.id || '',
+      chapterTitle: this.chapterTitle,
+      chapterOrder: this.currentPage,
+      audioTimestamp: audioTimestamp,
+      voiceName: this.narration.voice,
+      ...contextOverride,
+    };
+    this.showReportModal = true;
+    this.cdr.markForCheck();
+  }
+
+  closeReportModal(): void {
+    this.showReportModal = false;
+    this.reportContext = null;
+    this.cdr.markForCheck();
   }
 
   // ── BUSCAR EN EL LIBRO ────────────────────────────────────────────

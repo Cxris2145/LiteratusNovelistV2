@@ -16,10 +16,11 @@ from library.models import UserInventory
 from . import summary as book_summary
 from .age import age_block_message, allowed_age, ensure_book_access, visible_books
 from .search_suggest import suggest
-from .models import Book, Author, Genre, Tag, Review
+from .models import Book, Author, Genre, Tag, Review, BookErrorReport
 from .serializers import (
     BookListSerializer, BookDetailSerializer, BookDetailFullSerializer, 
-    AuthorDetailSerializer, AuthorReadSerializer, GenreSerializer
+    AuthorDetailSerializer, AuthorReadSerializer, GenreSerializer,
+    BookErrorReportCreateSerializer, BookErrorReportListAdminSerializer, BookErrorReportDetailSerializer
 )
 from core.pagination import StandardResultsSetPagination
 
@@ -900,3 +901,44 @@ class AutocompleteView(APIView):
             absolute_url=request.build_absolute_uri,
         )
         return age_catalog_response(data)
+
+
+class BookErrorReportViewSet(viewsets.ModelViewSet):
+    """
+    Endpoints para la creación y consulta de reportes de error de libros desde el e-reader.
+    POST /api/v1/catalog/reports/ - Enviar un nuevo reporte de error.
+    GET /api/v1/catalog/reports/my-reports/ - Listar reportes del usuario actual.
+    """
+    queryset = BookErrorReport.objects.select_related('book', 'chapter', 'reporter').all()
+    pagination_class = StandardResultsSetPagination
+
+    def get_permissions(self):
+        if self.action == 'create':
+            # Permite a usuarios autenticados (y opcionalmente anónimos con fallback)
+            return [permissions.AllowAny()]
+        elif self.action == 'my_reports':
+            return [permissions.IsAuthenticated()]
+        return [permissions.IsAdminUser()]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return BookErrorReportCreateSerializer
+        elif self.action in ['retrieve', 'update', 'partial_update']:
+            return BookErrorReportDetailSerializer
+        return BookErrorReportListAdminSerializer
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(reporter=user)
+
+    @action(detail=False, methods=['get'], url_path='my-reports')
+    def my_reports(self, request):
+        """Retorna el historial de reportes enviados por el usuario autenticado."""
+        reports = self.queryset.filter(reporter=request.user).order_by('-created_at')
+        page = self.paginate_queryset(reports)
+        if page is not None:
+            serializer = BookErrorReportListAdminSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = BookErrorReportListAdminSerializer(reports, many=True)
+        return Response(serializer.data)
+

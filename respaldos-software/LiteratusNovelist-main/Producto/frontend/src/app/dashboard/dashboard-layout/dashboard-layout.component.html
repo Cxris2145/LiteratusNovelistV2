@@ -58,6 +58,13 @@
         </span>
       </a>
 
+      <a routerLink="book-reports" routerLinkActive="active" class="nav-item" title="Reportes de Errores en Libros">
+        <span class="nav-icon-wrap">
+          <span class="material-symbols-outlined">bug_report</span>
+        </span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">Errores de Libros</span>
+      </a>
+
       <a routerLink="authors" routerLinkActive="active" class="nav-item" title="Gestión de Autores">
         <span class="nav-icon-wrap">
           <span class="material-symbols-outlined">history_edu</span>

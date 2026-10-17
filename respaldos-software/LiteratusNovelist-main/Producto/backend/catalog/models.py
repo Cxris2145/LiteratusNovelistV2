@@ -721,3 +721,175 @@ class ChapterProgressSummary(TimeStampedModel):
 
     def __str__(self):
         return f"{self.book.title} - Caps 1 al {self.up_to_chapter} ({self.get_status_display()})"
+
+
+class BookErrorReport(TimeStampedModel):
+    """
+    Almacena incidentes reportados por usuarios sobre errores en el texto
+    o en el audio de un libro, con trazabilidad exacta de su ubicación.
+    """
+
+    class ErrorType(models.TextChoices):
+        # Errores de Texto
+        TYPO = 'typo', 'Falta de ortografía o tipeo'
+        CUT_WORD = 'cut_word', 'Palabra cortada / guión erróneo'
+        REPEATED_TEXT = 'repeated_text', 'Párrafo o frase duplicada'
+        MISSING_CONTENT = 'missing_content', 'Texto incompleto / salto abrupto'
+        FORMAT_GLITCH = 'format_glitch', 'Problema visual / HTML roto'
+
+        # Errores de Audio
+        AUDIO_DESYNC = 'audio_desync', 'Audio desfasado respecto al texto'
+        AUDIO_GLITCH = 'audio_glitch', 'Audio con ruido, corte o distorsión'
+        AUDIO_PRONUNCIATION = 'audio_pronunciation', 'Mala pronunciación o palabra incorrecta'
+
+        OTHER = 'other', 'Otro problema'
+
+    class Severity(models.TextChoices):
+        LOW = 'low', 'Baja'
+        MEDIUM = 'medium', 'Media'
+        HIGH = 'high', 'Alta'
+        CRITICAL = 'critical', 'Crítica'
+
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pendiente'
+        IN_REVIEW = 'in_review', 'En Revisión'
+        RESOLVED = 'resolved', 'Resuelto'
+        DISMISSED = 'dismissed', 'Descartado'
+        DUPLICATE = 'duplicate', 'Duplicado'
+
+    # Relaciones
+    book = models.ForeignKey(
+        Book,
+        on_delete=models.CASCADE,
+        related_name='error_reports',
+        help_text="Libro donde ocurrió la falla."
+    )
+    chapter = models.ForeignKey(
+        Chapter,
+        on_delete=models.CASCADE,
+        related_name='error_reports',
+        help_text="Capítulo exacto de la falla."
+    )
+    audio = models.ForeignKey(
+        'ChapterAudio',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='error_reports',
+        help_text="Pista de audio afectada (si aplica)."
+    )
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reported_book_errors',
+        help_text="Usuario que envió el reporte (null si es anónimo/invitado)."
+    )
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_book_errors',
+        help_text="Administrador o editor encargado de la corrección."
+    )
+
+    # Clasificación
+    error_type = models.CharField(
+        max_length=32,
+        choices=ErrorType.choices,
+        default=ErrorType.TYPO,
+        db_index=True
+    )
+    severity = models.CharField(
+        max_length=16,
+        choices=Severity.choices,
+        default=Severity.MEDIUM,
+        db_index=True
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True
+    )
+
+    # Contexto del Lector
+    user_comment = models.TextField(
+        blank=True,
+        default='',
+        help_text="Descripción o aclaración escrita por el usuario."
+    )
+    selected_text = models.CharField(
+        max_length=1000,
+        blank=True,
+        default='',
+        help_text="Fragmento específico de texto seleccionado por el usuario."
+    )
+    context_snippet = models.TextField(
+        blank=True,
+        default='',
+        help_text="Párrafo o frase circundante con el error para rápida localización."
+    )
+    start_word_index = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Índice de la primera palabra seleccionada (word-N)."
+    )
+    end_word_index = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Índice de la última palabra seleccionada (word-N)."
+    )
+    paragraph_index = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Índice secuencial del párrafo/bloque dentro del capítulo."
+    )
+
+    # Datos de Audio
+    audio_timestamp_seconds = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Marca de tiempo en segundos del reproductor de audio al momento del error."
+    )
+    voice_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text="Nombre de la voz activa."
+    )
+
+    # Metadatos Técnicos
+    client_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Información del cliente: viewport, plataforma, tema, etc."
+    )
+
+    # Gestión Editorial
+    admin_notes = models.TextField(
+        blank=True,
+        default='',
+        help_text="Notas internas del equipo editorial durante la revisión."
+    )
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Fecha y hora en que se marcó como resuelto."
+    )
+
+    class Meta:
+        verbose_name = 'Book Error Report'
+        verbose_name_plural = 'Book Error Reports'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['book', 'status']),
+            models.Index(fields=['chapter', 'error_type']),
+        ]
+
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.book.title} - {self.get_error_type_display()}"
+

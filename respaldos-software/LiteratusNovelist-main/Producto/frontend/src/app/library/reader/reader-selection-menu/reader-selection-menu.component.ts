@@ -319,4 +319,21 @@ export class ReaderSelectionMenuComponent implements OnInit, OnDestroy {
     this.dismissSelection();
     this.reader.openCharacters(`¿Qué significa esto en la historia?\n\n"${quote}"`);
   }
+
+  /** Abre el modal para reportar un error en el texto seleccionado. */
+  reportError(): void {
+    const text = this.selectedText || this.pendingSelection?.text || '';
+    const start = this.pendingSelection?.start ?? null;
+    const end = this.pendingSelection?.end ?? null;
+    this.showWordMenu = false;
+    this.dismissSelection();
+
+    this.reader.openReportModal({
+      selectedText: text,
+      contextSnippet: text,
+      startWordIndex: start,
+      endWordIndex: end,
+    });
+  }
 }
+
