@@ -125,6 +125,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   bazarTab: BazarTab = 'ropero';
   chatOpen = false;
   chatCode = '';
+  clubsOpen = false;
+  activeClubId = '';
   chatUnread: ChatUnread = { total: 0, by_friend: {} };
   /** Lo que se prueba en el Bazar; null = la ropa que lleva puesta. */
   private fittingOutfit: MaguitoOutfit | null = null;
@@ -156,7 +158,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.loading = false;
       return;
     }
-    // ?bazar=ropero abre el Bazar y ?charla=CODIGO una charla (también si llegan estando ya en la taberna).
+    // ?bazar=ropero abre el Bazar, ?charla=CODIGO una charla y ?lectura=ID una lectura grupal.
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const bazar = params.get('bazar');
       if (bazar) {
@@ -168,6 +170,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       }
       this.chatOpen = params.has('charla') && !bazar;
       this.chatCode = this.chatOpen ? (params.get('charla') || '').trim().toUpperCase() : '';
+      this.clubsOpen = params.has('lectura') && !bazar && !this.chatOpen;
+      this.activeClubId = this.clubsOpen ? (params.get('lectura') || '').trim() : '';
     });
     // #mi-perfil: tu tarjeta es tu perfil público; se centra y brilla un momento.
     this.route.fragment.pipe(takeUntil(this.destroy$)).subscribe(fragment => {
@@ -304,6 +308,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       }).afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result?.message) this.messages = [result.message, ...this.messages];
         if (result?.addFriend) this.openAddFriend();
+        if (result?.openClubs) this.openClubs();
         if (result?.toast) { this.animateToast(); this.onSendReaction('🍺'); this.loadAll(); }
         else this.refreshLive();
       });
@@ -316,10 +321,12 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   // ── Charlas privadas ──────────────────────────────────────
 
-  /** Abre la lista de charlas o, con código, la conversación con ese amigo. Cierra El Bazar. */
+  /** Abre la lista de charlas o, con código, la conversación con ese amigo. Cierra El Bazar y Lecturas. */
   openChat(code = ''): void {
     if (!this.loggedIn) return;
     if (this.bazarOpen) { this.bazarOpen = false; this.onBazarPreview(null); }
+    this.clubsOpen = false;
+    this.activeClubId = '';
     this.chatOpen = true;
     this.chatCode = code;
     this.syncPanelsUrl();
@@ -333,6 +340,25 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     this.refreshLive(); // los no leídos cambian al leer
   }
 
+  // ── Lecturas conjuntas ────────────────────────────────────
+
+  openClubs(clubId = ''): void {
+    if (!this.loggedIn) return;
+    if (this.bazarOpen) { this.bazarOpen = false; this.onBazarPreview(null); }
+    this.chatOpen = false;
+    this.chatCode = '';
+    this.clubsOpen = true;
+    this.activeClubId = clubId;
+    this.syncPanelsUrl();
+  }
+
+  closeClubs(): void {
+    if (!this.clubsOpen) return;
+    this.clubsOpen = false;
+    this.activeClubId = '';
+    this.syncPanelsUrl();
+  }
+
   // ── El Bazar ──────────────────────────────────────────────
 
   openBazar(tab: BazarTab = this.bazarTab): void {
@@ -342,6 +368,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     }
     this.chatOpen = false;
     this.chatCode = '';
+    this.clubsOpen = false;
+    this.activeClubId = '';
     this.bazarTab = tab;
     this.bazarOpen = true;
     this.syncPanelsUrl();
@@ -383,16 +411,18 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     }
     if (this.dialog.openDialogs.length) return;
     if (this.chatOpen) this.closeChat();
+    else if (this.clubsOpen) this.closeClubs();
     else if (this.bazarOpen) this.closeBazar();
   }
 
-  /** El Bazar y las charlas viven en la URL (?bazar= / ?charla=); nunca los dos a la vez. */
+  /** El Bazar, las charlas y las lecturas viven en la URL (?bazar= / ?charla= / ?lectura=); nunca dos a la vez. */
   private syncPanelsUrl(): void {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {
         bazar: this.bazarOpen ? this.bazarTab : null,
         charla: this.chatOpen ? this.chatCode : null,
+        lectura: this.clubsOpen ? this.activeClubId : null,
       },
       queryParamsHandling: 'merge',
       replaceUrl: true,

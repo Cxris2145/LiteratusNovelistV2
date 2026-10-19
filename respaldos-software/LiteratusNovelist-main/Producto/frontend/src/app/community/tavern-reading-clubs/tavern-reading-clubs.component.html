@@ -1,0 +1,441 @@
+<!-- Fondo oscuro para móvil -->
+<div class="rc-backdrop" [class.is-open]="open" (click)="close()" aria-hidden="true"></div>
+
+<aside id="tavern-reading-clubs" class="rc-drawer" [class.is-open]="open" [attr.inert]="open ? null : ''"
+       aria-labelledby="rc-title" (keydown.escape)="close()">
+  <span class="rc-grip" aria-hidden="true"></span>
+
+  <!-- 1. LISTA DE LECTURAS GRUPALES -->
+  <div class="rc-view" *ngIf="view === 'list'" [attr.data-enter]="enter">
+    <header class="rc-head">
+      <span class="rc-emblem" aria-hidden="true"><span class="material-symbols-rounded">menu_book</span></span>
+      <div class="rc-head-copy">
+        <h2 id="rc-title" tabindex="-1">Lecturas conjuntas</h2>
+        <p>Lee al mismo tiempo con tus amigos y conversa por capítulos.</p>
+      </div>
+      <button type="button" class="th-icon-btn rc-close" (click)="close()" aria-label="Cerrar lecturas conjuntas">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="rc-toolbar">
+      <button type="button" class="th-btn rc-full-btn" (click)="startCreate()">
+        <span class="material-symbols-rounded" aria-hidden="true">add_circle</span>
+        Crear lectura grupal
+      </button>
+    </div>
+
+    <p class="rc-error" role="alert" *ngIf="error">{{ error }}</p>
+    <p class="th-empty rc-pad" *ngIf="clubsLoading && !clubs.length" role="status">Buscando tus círculos de lectura…</p>
+
+    <div class="th-empty rc-pad" *ngIf="!clubsLoading && !clubs.length && !error">
+      <p>Aún no participas en ninguna lectura conjunta.</p>
+      <p class="rc-sub">Elige un libro, invita a tus amigos de la mesa y conversen en canales separados por capítulo.</p>
+    </div>
+
+    <ul class="rc-clubs" *ngIf="clubs.length">
+      <li *ngFor="let club of clubs; trackBy: trackClub">
+        <button type="button" class="rc-club-card" (click)="selectClub(club)">
+          <div class="rc-club-top">
+            <span class="rc-mode-badge" [attr.data-mode]="club.mode">
+              <span class="material-symbols-rounded" aria-hidden="true">{{ modeLabels[club.mode].icon }}</span>
+              {{ modeLabels[club.mode].title }}
+            </span>
+            <span class="rc-host-pill" *ngIf="club.is_host">Anfitrión</span>
+          </div>
+          <strong class="rc-club-name">{{ club.name }}</strong>
+          <span class="rc-book-title">
+            <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+            {{ club.book.title }} · {{ club.book.chapters_count }} cap.
+          </span>
+
+          <div class="rc-members-row">
+            <div class="rc-avatars">
+              <span class="rc-mini-avatar" *ngFor="let m of club.members.slice(0, 5)" [title]="m.username + ' · Cap. ' + m.current_chapter">
+                <app-maguito crop="bust" [outfit]="m.outfit" [paused]="true" [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito>
+              </span>
+            </div>
+            <span class="rc-my-progress">Vas en el Cap. {{ club.my_chapter }}</span>
+          </div>
+
+          <p class="rc-last-msg" *ngIf="club.last_message as last">
+            <span class="rc-last-chap">Cap. {{ last.chapter_order }}</span>
+            <strong>{{ last.username }}:</strong> {{ last.content }}
+          </p>
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 2. CREAR NUEVA LECTURA GRUPAL -->
+  <div class="rc-view" *ngIf="view === 'create'" [attr.data-enter]="enter">
+    <header class="rc-head is-sub">
+      <button type="button" class="th-icon-btn rc-back" (click)="backToList()" aria-label="Volver a la lista">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </button>
+      <div class="rc-head-copy">
+        <h2 id="rc-title" tabindex="-1">Nueva lectura grupal</h2>
+        <p>Configura el libro, las reglas y suma a tus amigos.</p>
+      </div>
+      <button type="button" class="th-icon-btn rc-close" (click)="close()" aria-label="Cerrar">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <form class="rc-form" (ngSubmit)="submitCreate()">
+      <p class="rc-error" role="alert" *ngIf="error">{{ error }}</p>
+
+      <label class="rc-field">
+        <span class="rc-label">Libro para leer juntos</span>
+        <select name="bookId" [(ngModel)]="createBookId" [disabled]="booksLoading || creating" required>
+          <option *ngFor="let b of books" [value]="b.id">
+            {{ b.in_library ? '★ ' : '' }}{{ b.title }} ({{ b.chapters_count }} cap.)
+          </option>
+        </select>
+      </label>
+
+      <label class="rc-field">
+        <span class="rc-label">Nombre del grupo <small>(opcional)</small></span>
+        <input type="text" name="clubName" [(ngModel)]="createName" maxlength="120"
+               [placeholder]="selectedCreateBook ? 'Club: ' + selectedCreateBook.title : 'Ej. Club de medianoche'" />
+      </label>
+
+      <fieldset class="rc-fieldset">
+        <legend class="rc-label">Regla de avance y capítulos (líder de grupo)</legend>
+        <label class="rc-radio-card" *ngFor="let m of modes"
+               [class.is-active]="createMode === m">
+          <input type="radio" name="createMode" [value]="m" [(ngModel)]="createMode" />
+          <span class="material-symbols-rounded rc-radio-icon" aria-hidden="true">{{ modeLabels[m].icon }}</span>
+          <span class="rc-radio-copy">
+            <strong>{{ modeLabels[m].title }}</strong>
+            <small>{{ modeLabels[m].desc }}</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <label class="rc-field" *ngIf="createMode === 'host_paced'">
+        <span class="rc-label">Habilitar conversación inicialmente hasta el capítulo:</span>
+        <select name="unlockedUntil" [(ngModel)]="createUnlockedUntil">
+          <option *ngFor="let c of chapterRange(selectedCreateBook?.chapters_count)" [ngValue]="c">
+            Capítulo {{ c }}
+          </option>
+        </select>
+      </label>
+
+      <label class="rc-check">
+        <input type="checkbox" name="allowInvites" [(ngModel)]="createAllowInvites" />
+        <span>Permitir que los miembros también inviten a sus amigos</span>
+      </label>
+
+      <div class="rc-field">
+        <span class="rc-label">Invitar amigos de tu mesa ({{ selectedFriends.size }} seleccionados)</span>
+        <p class="th-empty" *ngIf="!friends.length">Aún no tienes amigos agregados en la taberna. Puedes crear el grupo e invitarlos después.</p>
+        <div class="rc-friend-Chips" *ngIf="friends.length">
+          <button type="button" *ngFor="let f of friends" class="rc-friend-chip"
+                  [class.is-selected]="selectedFriends.has(f.friend_code)"
+                  (click)="toggleFriendSelection(f.friend_code, selectedFriends)">
+            <span class="material-symbols-rounded" aria-hidden="true">
+              {{ selectedFriends.has(f.friend_code) ? 'check_circle' : 'person_add' }}
+            </span>
+            {{ f.username }}
+          </button>
+        </div>
+      </div>
+
+      <div class="rc-form-actions">
+        <button type="button" class="th-btn ghost" (click)="backToList()">Cancelar</button>
+        <button type="submit" class="th-btn" [disabled]="!createBookId || creating">
+          {{ creating ? 'Creando…' : 'Comenzar lectura' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 3. DETALLE DEL CÍRCULO Y ESPACIOS POR CAPÍTULO -->
+  <div class="rc-view" *ngIf="view === 'club'" [attr.data-enter]="enter">
+    <header class="rc-head is-sub">
+      <button type="button" class="th-icon-btn rc-back" (click)="backToList()" aria-label="Volver a lecturas conjuntas">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </button>
+      <div class="rc-head-copy" *ngIf="activeClub as club">
+        <h2 id="rc-title" tabindex="-1">{{ club.name }}</h2>
+        <p>{{ club.book.title }}</p>
+      </div>
+      <button type="button" class="th-icon-btn" *ngIf="activeClub?.is_host" (click)="openSettings()"
+              title="Ajustes del anfitrión" aria-label="Ajustes del anfitrión">
+        <span class="material-symbols-rounded" aria-hidden="true">tune</span>
+      </button>
+      <button type="button" class="th-icon-btn rc-close" (click)="close()" aria-label="Cerrar">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <p class="rc-error" role="alert" *ngIf="error">{{ error }}</p>
+    <p class="th-empty rc-pad" *ngIf="detailLoading && !activeClub" role="status">Cargando espacios del libro…</p>
+
+    <div class="rc-club-body" *ngIf="activeClub as club">
+      <!-- Resumen de estado y botón de lectura -->
+      <section class="rc-status-box">
+        <div class="rc-status-row">
+          <span class="rc-mode-badge" [attr.data-mode]="club.mode">
+            <span class="material-symbols-rounded" aria-hidden="true">{{ modeLabels[club.mode].icon }}</span>
+            {{ modeLabels[club.mode].title }}
+          </span>
+          <button type="button" class="th-btn secondary rc-sm-btn" (click)="openReader(club)">
+            <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>
+            {{ club.inventory_id ? 'Ir al lector' : 'Ver obra' }}
+          </button>
+        </div>
+
+        <p class="rc-mode-hint" *ngIf="club.mode === 'host_paced'">
+          El anfitrión ha habilitado los debates hasta el <strong>Capítulo {{ club.unlocked_until_chapter }}</strong>.
+        </p>
+        <p class="rc-mode-hint" *ngIf="club.mode === 'spoiler_safe'">
+          Los capítulos posteriores a tu avance están protegidos contra spoilers.
+        </p>
+
+        <div class="rc-progress-ctrl">
+          <label for="rc-my-chap">Mi capítulo actual:</label>
+          <select id="rc-my-chap" [ngModel]="club.my_chapter" (ngModelChange)="onMyChapterChange($event)" [disabled]="updatingProgress">
+            <option *ngFor="let c of chapterRange(club.book.chapters_count)" [ngValue]="c">
+              Capítulo {{ c }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Progreso de los amigos en el grupo -->
+        <div class="rc-members-progress">
+          <div class="rc-members-head">
+            <span>Compañeros de lectura ({{ club.members.length }})</span>
+            <button type="button" class="rc-link-btn" *ngIf="club.is_host || club.allow_member_invites" (click)="openInviteView()">
+              <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Sumar amigo
+            </button>
+          </div>
+          <div class="rc-member-pills">
+            <div class="rc-member-pill" *ngFor="let m of club.members" [class.is-me]="m.is_me">
+              <span class="rc-pill-avatar">
+                <app-maguito crop="bust" [outfit]="m.outfit" [paused]="true" [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito>
+              </span>
+              <span class="rc-pill-info">
+                <strong>{{ m.username }} <span *ngIf="m.is_host" title="Anfitrión">👑</span></strong>
+                <small>Cap. {{ m.current_chapter }} / {{ club.book.chapters_count }}</small>
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lista de canales separados por capítulo -->
+      <div class="rc-chapters-head">
+        <h3>Salas de conversación por capítulo</h3>
+      </div>
+
+      <ul class="rc-chapters-list">
+        <li *ngFor="let ch of club.chapters; trackBy: trackChapter">
+          <button type="button" class="rc-chapter-item" [class.is-locked]="ch.locked"
+                  [class.is-current]="ch.order === club.my_chapter"
+                  (click)="openChapter(ch)">
+            <span class="rc-chap-num">{{ ch.order }}</span>
+            <div class="rc-chap-main">
+              <div class="rc-chap-title-row">
+                <strong>{{ ch.title }}</strong>
+                <span class="rc-chap-here" *ngIf="ch.readers_here.length"
+                      [title]="ch.readers_here.length + ' lector(es) en este capítulo'">
+                  <span class="material-symbols-rounded" aria-hidden="true">group</span>
+                  {{ ch.readers_here.length }}
+                </span>
+              </div>
+              <small *ngIf="!ch.locked">
+                {{ ch.message_count ? ch.message_count + ' comentario(s) en este capítulo' : 'Sin comentarios aún · Abre el debate' }}
+              </small>
+              <small class="rc-lock-note" *ngIf="ch.locked">{{ ch.lock_reason }}</small>
+            </div>
+            <span class="material-symbols-rounded rc-chap-icon" aria-hidden="true">
+              {{ ch.locked ? 'lock' : 'forum' }}
+            </span>
+          </button>
+        </li>
+      </ul>
+
+      <div class="rc-footer-actions">
+        <button type="button" class="rc-danger-link" (click)="leaveOrCloseClub()">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ club.is_host ? 'delete' : 'logout' }}</span>
+          {{ club.is_host ? 'Cerrar círculo de lectura' : 'Salir de la lectura grupal' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. CONFIGURACIÓN DEL ANFITRIÓN -->
+  <div class="rc-view" *ngIf="view === 'settings' && activeClub as club" [attr.data-enter]="enter">
+    <header class="rc-head is-sub">
+      <button type="button" class="th-icon-btn rc-back" (click)="backToClub()" aria-label="Volver al grupo">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </button>
+      <div class="rc-head-copy">
+        <h2 id="rc-title" tabindex="-1">Ajustes del líder</h2>
+        <p>{{ club.book.title }}</p>
+      </div>
+    </header>
+
+    <form class="rc-form" (ngSubmit)="saveSettings()">
+      <p class="rc-error" role="alert" *ngIf="error">{{ error }}</p>
+
+      <label class="rc-field">
+        <span class="rc-label">Nombre del círculo</span>
+        <input type="text" name="editName" [(ngModel)]="editName" maxlength="120" required />
+      </label>
+
+      <fieldset class="rc-fieldset">
+        <legend class="rc-label">Modo de conversación y bloqueo de capítulos</legend>
+        <label class="rc-radio-card" *ngFor="let m of modes"
+               [class.is-active]="editMode === m">
+          <input type="radio" name="editMode" [value]="m" [(ngModel)]="editMode" />
+          <span class="material-symbols-rounded rc-radio-icon" aria-hidden="true">{{ modeLabels[m].icon }}</span>
+          <span class="rc-radio-copy">
+            <strong>{{ modeLabels[m].title }}</strong>
+            <small>{{ modeLabels[m].desc }}</small>
+          </span>
+        </label>
+      </fieldset>
+
+      <label class="rc-field" *ngIf="editMode === 'host_paced'">
+        <span class="rc-label">Habilitar capítulos hasta:</span>
+        <select name="editUnlockedUntil" [(ngModel)]="editUnlockedUntil">
+          <option *ngFor="let c of chapterRange(club.book.chapters_count)" [ngValue]="c">
+            Capítulo {{ c }}
+          </option>
+        </select>
+      </label>
+
+      <label class="rc-check">
+        <input type="checkbox" name="editAllowInvites" [(ngModel)]="editAllowInvites" />
+        <span>Permitir que cualquier miembro sume amigos al grupo</span>
+      </label>
+
+      <div class="rc-form-actions">
+        <button type="button" class="th-btn ghost" (click)="backToClub()">Cancelar</button>
+        <button type="submit" class="th-btn" [disabled]="savingSettings">
+          {{ savingSettings ? 'Guardando…' : 'Guardar reglas' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 5. INVITAR MÁS AMIGOS AL GRUPO -->
+  <div class="rc-view" *ngIf="view === 'invite' && activeClub as club" [attr.data-enter]="enter">
+    <header class="rc-head is-sub">
+      <button type="button" class="th-icon-btn rc-back" (click)="backToClub()" aria-label="Volver al grupo">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </button>
+      <div class="rc-head-copy">
+        <h2 id="rc-title" tabindex="-1">Sumar amigos</h2>
+        <p>{{ club.name }}</p>
+      </div>
+    </header>
+
+    <div class="rc-form">
+      <p class="rc-error" role="alert" *ngIf="error">{{ error }}</p>
+      <p class="th-empty" *ngIf="!availableFriendsToInvite.length">
+        Todos tus amigos de la taberna ya forman parte de este círculo de lectura.
+      </p>
+      <div class="rc-friend-Chips" *ngIf="availableFriendsToInvite.length">
+        <button type="button" *ngFor="let f of availableFriendsToInvite" class="rc-friend-chip"
+                [class.is-selected]="inviteSelected.has(f.friend_code)"
+                (click)="toggleFriendSelection(f.friend_code, inviteSelected)">
+          <span class="material-symbols-rounded" aria-hidden="true">
+            {{ inviteSelected.has(f.friend_code) ? 'check_circle' : 'person_add' }}
+          </span>
+          {{ f.username }}
+        </button>
+      </div>
+      <div class="rc-form-actions">
+        <button type="button" class="th-btn ghost" (click)="backToClub()">Volver</button>
+        <button type="button" class="th-btn" [disabled]="!inviteSelected.size || inviting" (click)="submitInvites()">
+          {{ inviting ? 'Sumando…' : 'Añadir al círculo' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. SALA DE CONVERSACIÓN DEL CAPÍTULO -->
+  <div class="rc-view" *ngIf="view === 'chapter' && activeClub as club" [attr.data-enter]="enter">
+    <header class="rc-head is-sub">
+      <button type="button" class="th-icon-btn rc-back" (click)="backToClub()" aria-label="Volver a los capítulos">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </button>
+      <div class="rc-head-copy" *ngIf="activeChapter as ch">
+        <h2 id="rc-title" tabindex="-1">Cap. {{ ch.order }} · {{ ch.title }}</h2>
+        <p>{{ club.name }} · {{ club.book.title }}</p>
+      </div>
+      <button type="button" class="th-icon-btn" (click)="openReader(club)" title="Abrir libro en el lector" aria-label="Abrir libro en el lector">
+        <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>
+      </button>
+      <button type="button" class="th-icon-btn rc-close" (click)="close()" aria-label="Cerrar">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="rc-chap-readers-bar" *ngIf="activeChapter?.readers_here?.length">
+      <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+      <span>Leyendo este capítulo ahora:</span>
+      <strong *ngFor="let r of activeChapter?.readers_here; let last = last">
+        {{ r.username }}{{ !last ? ', ' : '' }}
+      </strong>
+    </div>
+
+    <div class="rc-messages" #scroller role="log" aria-live="polite" [attr.aria-busy]="messagesLoading">
+      <p class="th-empty rc-center" *ngIf="messagesLoading" role="status">Abriendo sala del capítulo…</p>
+      <p class="th-empty rc-center" *ngIf="!messagesLoading && !messages.length && !error">
+        Nadie ha comentado el Capítulo {{ activeChapter?.order }} todavía. ¡Comparte tus impresiones o teorías con el grupo!
+      </p>
+
+      <ng-container *ngFor="let row of rows; trackBy: trackRow">
+        <p class="rc-day" *ngIf="row.kind === 'day'"><span>{{ row.label }}</span></p>
+        <div class="rc-bubble" *ngIf="row.kind === 'message'" [class.is-me]="row.message.is_me"
+             [class.is-new]="arrived.has(row.message.id)">
+          <div class="rc-bubble-author" *ngIf="!row.message.is_me">
+            <strong>{{ row.message.username }}</strong>
+          </div>
+
+          <ng-container *ngIf="row.message.is_spoiler && !revealedSpoilers.has(row.message.id); else normalContent">
+            <button type="button" class="rc-spoiler-shield" (click)="toggleRevealSpoiler(row.message.id)">
+              <span class="material-symbols-rounded" aria-hidden="true">visibility_off</span>
+              <span>Comentario marcado con alerta de spoiler · Toca para revelar</span>
+            </button>
+          </ng-container>
+          <ng-template #normalContent>
+            <p>{{ row.message.content }}</p>
+            <span class="rc-spoiler-tag" *ngIf="row.message.is_spoiler" (click)="toggleRevealSpoiler(row.message.id)">
+              Ocultar spoiler
+            </span>
+          </ng-template>
+
+          <span class="rc-meta">
+            <time [attr.datetime]="row.message.created_at">{{ clockTime(row.message.created_at) }}</time>
+          </span>
+        </div>
+      </ng-container>
+    </div>
+
+    <p class="rc-error" role="alert" *ngIf="error">{{ error }}</p>
+
+    <div class="rc-composer-wrap">
+      <label class="rc-spoiler-toggle">
+        <input type="checkbox" [(ngModel)]="draftSpoiler" />
+        <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+        <span>Ocultar mi comentario bajo aviso de spoiler</span>
+      </label>
+      <form class="rc-composer" (ngSubmit)="sendMessage()">
+        <label class="sr-only" for="rc-draft">Comentario en el capítulo</label>
+        <textarea id="rc-draft" #composer name="draft" rows="1" [(ngModel)]="draft" [maxlength]="maxLength"
+                  (keydown)="onComposerKey($event)"
+                  [placeholder]="'Comentar sobre el Capítulo ' + (activeChapter?.order || '') + '…'"
+                  [disabled]="messagesLoading"></textarea>
+        <button type="submit" class="rc-send" [disabled]="!draft.trim() || sending || messagesLoading" aria-label="Enviar comentario">
+          <span class="material-symbols-rounded" aria-hidden="true">send</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</aside>

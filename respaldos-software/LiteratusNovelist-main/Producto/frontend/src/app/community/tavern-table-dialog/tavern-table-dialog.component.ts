@@ -24,7 +24,7 @@ export interface TavernTableDialogData {
   friends: FriendCard[];
   outgoing: TavernInvitation[];
 }
-export interface TavernTableDialogResult { message?: TavernChatMessage; toast?: boolean; addFriend?: boolean; }
+export interface TavernTableDialogResult { message?: TavernChatMessage; toast?: boolean; addFriend?: boolean; openClubs?: boolean; }
 
 @Component({
   selector: 'app-tavern-table-dialog', standalone: true,

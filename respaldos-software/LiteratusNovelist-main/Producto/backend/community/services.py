@@ -19,7 +19,10 @@ from django.utils import timezone
 from users.models import Profile
 from users.serializers import level_name_for
 from . import live
-from .models import Brindis, FriendMessage, Friendship, TavernInvitation, TavernMessage, pair_key_for
+from .models import (
+    Brindis, FriendMessage, Friendship, ReadingClub, ReadingClubMember, ReadingClubMessage,
+    TavernInvitation, TavernMessage, pair_key_for,
+)
 
 User = get_user_model()
 
@@ -838,3 +841,381 @@ def respond_to_tavern_invitation(me, pk, accept):
         if accept:
             touch_presence(me)
         return _ok('Ya estás en la mesa. ¡Salud!' if accept else 'Invitación descartada.')
+
+
+# ── Círculos de lectura grupal por capítulos ──────────────────────────
+
+CLUB_MODES = {choice[0] for choice in ReadingClub.Mode.choices}
+
+
+def _sync_member_reading_progress(member: ReadingClubMember, book_chapters_count: int) -> int:
+    """
+    Sincroniza automáticamente el capítulo del miembro si en el lector individual ha avanzado más
+    allá de su marca actual en el club.
+    """
+    from library.models import ReadingProgress
+    prog = (ReadingProgress.objects
+            .filter(inventory__user_id=member.user_id, inventory__edition__book_id=member.club.book_id)
+            .order_by('-updated_at').first())
+    best = member.current_chapter or 1
+    if prog:
+        if prog.current_page and prog.current_page > best:
+            best = min(int(prog.current_page), max(1, book_chapters_count))
+        elif prog.completion_percentage and float(prog.completion_percentage) >= 100 and book_chapters_count > 0:
+            best = max(best, book_chapters_count)
+    if best != member.current_chapter:
+        member.current_chapter = best
+        member.save(update_fields=['current_chapter', 'updated_at'])
+    return best
+
+
+def _club_summary(club: ReadingClub, me) -> dict:
+    from library.models import UserInventory
+    chapters_count = club.book.chapters.count() or 1
+    memberships = list(club.memberships.select_related('user').all())
+    user_ids = [m.user_id for m in memberships]
+    profiles = {p.user_id: p for p in _profiles().filter(user_id__in=user_ids)}
+
+    my_membership = next((m for m in memberships if m.user_id == me.pk), None)
+    my_chapter = _sync_member_reading_progress(my_membership, chapters_count) if my_membership else 1
+
+    inv = (UserInventory.objects
+           .filter(user=me, edition__book_id=club.book_id)
+           .values_list('id', flat=True).first())
+
+    members_data = []
+    for m in memberships:
+        prof = profiles.get(m.user_id)
+        chap = _sync_member_reading_progress(m, chapters_count) if m.user_id != me.pk else my_chapter
+        members_data.append({
+            'friend_code': prof.friend_code if prof else '',
+            'username': m.user.username,
+            'outfit': (prof.outfit or {}) if prof else {},
+            'equipped_frame': prof.equipped_frame if prof else '',
+            'current_chapter': chap,
+            'is_host': m.user_id == club.host_id,
+            'is_me': m.user_id == me.pk,
+        })
+
+    last_msg = club.messages.select_related('user').order_by('-created_at').first()
+    return {
+        'id': str(club.id),
+        'name': club.name,
+        'mode': club.mode,
+        'unlocked_until_chapter': club.unlocked_until_chapter,
+        'allow_member_invites': club.allow_member_invites,
+        'is_host': club.host_id == me.pk,
+        'my_chapter': my_chapter,
+        'inventory_id': str(inv) if inv else None,
+        'book': {
+            'id': str(club.book_id),
+            'title': club.book.title,
+            'slug': club.book.slug,
+            'cover_image': club.book.cover_image.url if club.book.cover_image else None,
+            'chapters_count': chapters_count,
+        },
+        'members': members_data,
+        'last_message': {
+            'username': last_msg.user.username,
+            'chapter_order': last_msg.chapter_order,
+            'content': last_msg.content[:100],
+            'created_at': last_msg.created_at,
+        } if last_msg else None,
+        'updated_at': club.updated_at,
+    }
+
+
+def list_reading_clubs(me) -> dict:
+    club_ids = ReadingClubMember.objects.filter(user=me).values_list('club_id', flat=True)
+    clubs = list(ReadingClub.objects.filter(id__in=club_ids).select_related('book', 'host').order_by('-updated_at'))
+    return {'results': [_club_summary(c, me) for c in clubs]}
+
+
+def available_books_for_club(me) -> dict:
+    """Libros publicados que tienen capítulos (priorizando los de Mi Biblioteca)."""
+    from catalog.models import Book
+    from catalog.age import visible_books
+    from library.models import UserInventory
+
+    my_book_ids = set(UserInventory.objects.filter(user=me).values_list('edition__book_id', flat=True))
+    qs = visible_books(Book.objects.filter(is_published=True), me).annotate(
+        chapters_count=Count('chapters')
+    ).filter(chapters_count__gt=0).order_by('-is_featured', 'title')[:40]
+
+    books = []
+    for b in qs:
+        books.append({
+            'id': str(b.id),
+            'title': b.title,
+            'slug': b.slug,
+            'chapters_count': b.chapters_count,
+            'in_library': b.id in my_book_ids,
+        })
+    books.sort(key=lambda x: (0 if x['in_library'] else 1, x['title']))
+    return {'results': books}
+
+
+@transaction.atomic
+def create_reading_club(me, data: dict) -> dict:
+    from catalog.models import Book
+    from catalog.age import visible_books
+
+    book_id = data.get('book_id')
+    book = visible_books(Book.objects.filter(is_published=True), me).filter(pk=book_id).first() if book_id else None
+    if not book:
+        return _fail('BOOK_NOT_FOUND', 'Selecciona un libro válido para la lectura grupal.', 404)
+
+    name = str(data.get('name') or '').strip()
+    if not name:
+        name = f'Lectura de {book.title}'[:120]
+    else:
+        name = name[:120]
+
+    mode = str(data.get('mode') or ReadingClub.Mode.SPOILER_SAFE)
+    if mode not in CLUB_MODES:
+        mode = ReadingClub.Mode.SPOILER_SAFE
+
+    chapters_count = max(1, book.chapters.count())
+    try:
+        unlocked = max(1, min(int(data.get('unlocked_until_chapter') or 1), chapters_count))
+    except (TypeError, ValueError):
+        unlocked = 1
+
+    allow_invites = bool(data.get('allow_member_invites', True))
+
+    club = ReadingClub.objects.create(
+        name=name,
+        book=book,
+        host=me,
+        mode=mode,
+        unlocked_until_chapter=unlocked,
+        allow_member_invites=allow_invites,
+    )
+    ReadingClubMember.objects.create(club=club, user=me, current_chapter=1)
+
+    raw_codes = data.get('friend_codes') or []
+    if isinstance(raw_codes, list) and raw_codes:
+        friends = friend_ids(me)
+        clean_codes = [normalize_code(c) for c in raw_codes if normalize_code(c)]
+        for prof in _profiles().filter(friend_code__in=clean_codes, user_id__in=friends):
+            ReadingClubMember.objects.get_or_create(club=club, user=prof.user, defaults={'current_chapter': 1})
+
+    return _ok('¡Círculo de lectura creado!', status=201, club=_club_summary(club, me))
+
+
+def _get_club_and_member(me, club_id):
+    club = ReadingClub.objects.select_related('book', 'host').filter(pk=club_id).first()
+    if not club:
+        return None, None
+    member = ReadingClubMember.objects.filter(club=club, user=me).first()
+    return club, member
+
+
+def _is_chapter_locked_for(club: ReadingClub, member: ReadingClubMember, chapter_order: int) -> tuple[bool, str | None]:
+    if club.mode == ReadingClub.Mode.FREE:
+        return False, None
+    if club.mode == ReadingClub.Mode.HOST_PACED:
+        if chapter_order > club.unlocked_until_chapter:
+            return True, f'El anfitrión ha habilitado la conversación hasta el Capítulo {club.unlocked_until_chapter}.'
+        return False, None
+    # SPOILER_SAFE
+    if chapter_order > member.current_chapter:
+        return True, f'Protección anti-spoilers activa: marca tu avance al Capítulo {chapter_order} para ver y participar aquí.'
+    return False, None
+
+
+def reading_club_detail(me, club_id) -> dict:
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No formas parte de este círculo de lectura.', 404)
+
+    summary = _club_summary(club, me)
+    member.refresh_from_db()
+
+    chapters_qs = list(club.book.chapters.order_by('order').values('id', 'order', 'title'))
+    if not chapters_qs:
+        chapters_qs = [{'id': None, 'order': 1, 'title': 'Capítulo 1'}]
+
+    msg_counts = dict(
+        ReadingClubMessage.objects.filter(club=club)
+        .values('chapter_order').annotate(n=Count('id')).values_list('chapter_order', 'n')
+    )
+
+    chapters_data = []
+    for ch in chapters_qs:
+        order = ch['order']
+        locked, reason = _is_chapter_locked_for(club, member, order)
+        readers_here = [
+            m for m in summary['members']
+            if m['current_chapter'] == order
+        ]
+        chapters_data.append({
+            'order': order,
+            'title': ch['title'] or f'Capítulo {order}',
+            'locked': locked,
+            'lock_reason': reason,
+            'message_count': msg_counts.get(order, 0),
+            'readers_here': readers_here,
+        })
+
+    summary['chapters'] = chapters_data
+    return _ok(club=summary)
+
+
+@transaction.atomic
+def update_reading_club_settings(me, club_id, data: dict) -> dict:
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No encontramos este círculo de lectura.', 404)
+    if club.host_id != me.pk:
+        return _fail('FORBIDDEN', 'Solo el anfitrión del grupo puede cambiar las reglas.', 403)
+
+    chapters_count = max(1, club.book.chapters.count())
+    if 'name' in data and str(data['name']).strip():
+        club.name = str(data['name']).strip()[:120]
+    if 'mode' in data and data['mode'] in CLUB_MODES:
+        club.mode = data['mode']
+    if 'unlocked_until_chapter' in data:
+        try:
+            club.unlocked_until_chapter = max(1, min(int(data['unlocked_until_chapter']), chapters_count))
+        except (TypeError, ValueError):
+            pass
+    if 'allow_member_invites' in data:
+        club.allow_member_invites = bool(data['allow_member_invites'])
+
+    club.save()
+    return reading_club_detail(me, club.id)
+
+
+@transaction.atomic
+def update_my_club_progress(me, club_id, chapter_order: int) -> dict:
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No formas parte de este círculo de lectura.', 404)
+    chapters_count = max(1, club.book.chapters.count())
+    try:
+        target = max(1, min(int(chapter_order), chapters_count))
+    except (TypeError, ValueError):
+        return _fail('INVALID_CHAPTER', 'Indica un número de capítulo válido.')
+
+    member.current_chapter = target
+    member.save(update_fields=['current_chapter', 'updated_at'])
+    club.save(update_fields=['updated_at'])
+    return reading_club_detail(me, club.id)
+
+
+@transaction.atomic
+def invite_friends_to_club(me, club_id, friend_codes: list) -> dict:
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No encontramos este círculo de lectura.', 404)
+    if club.host_id != me.pk and not club.allow_member_invites:
+        return _fail('FORBIDDEN', 'Solo el anfitrión puede sumar integrantes en este grupo.', 403)
+
+    friends = friend_ids(me)
+    clean_codes = [normalize_code(c) for c in (friend_codes or []) if normalize_code(c)]
+    added = 0
+    for prof in _profiles().filter(friend_code__in=clean_codes, user_id__in=friends):
+        _, created = ReadingClubMember.objects.get_or_create(
+            club=club, user=prof.user, defaults={'current_chapter': 1}
+        )
+        if created:
+            added += 1
+    club.save(update_fields=['updated_at'])
+    res = reading_club_detail(me, club.id)
+    res['message'] = f'Se sumaron {added} amigo(s) al círculo.' if added else 'Tus amigos seleccionados ya estaban en el círculo.'
+    return res
+
+
+@transaction.atomic
+def leave_or_delete_club(me, club_id) -> dict:
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No encontramos este círculo de lectura.', 404)
+    if club.host_id == me.pk:
+        club.delete()
+        return _ok('El círculo de lectura fue cerrado.')
+    member.delete()
+    return _ok('Saliste del círculo de lectura.')
+
+
+def _club_msg_item(msg: ReadingClubMessage, me, profiles_map: dict) -> dict:
+    prof = profiles_map.get(msg.user_id)
+    return {
+        'id': str(msg.id),
+        'chapter_order': msg.chapter_order,
+        'content': msg.content,
+        'is_spoiler': msg.is_spoiler,
+        'created_at': msg.created_at,
+        'is_me': msg.user_id == me.pk,
+        'username': msg.user.username,
+        'friend_code': prof.friend_code if prof else '',
+        'outfit': (prof.outfit or {}) if prof else {},
+        'equipped_frame': prof.equipped_frame if prof else '',
+    }
+
+
+def list_chapter_messages(me, club_id, chapter_order: int, after=None) -> dict:
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No formas parte de este círculo de lectura.', 404)
+
+    chapters_count = max(1, club.book.chapters.count())
+    _sync_member_reading_progress(member, chapters_count)
+    locked, reason = _is_chapter_locked_for(club, member, chapter_order)
+    if locked:
+        return _fail('CHAPTER_LOCKED', reason or 'Este capítulo está bloqueado.', 403)
+
+    qs = ReadingClubMessage.objects.filter(club=club, chapter_order=chapter_order).select_related('user')
+    anchor = None
+    if after:
+        try:
+            anchor = qs.filter(pk=uuid.UUID(str(after))).values_list('created_at', flat=True).first()
+        except ValueError:
+            anchor = None
+    if anchor is not None:
+        msgs = list(qs.filter(created_at__gt=anchor).order_by('created_at')[:CHAT_PAGE])
+    else:
+        msgs = list(qs.order_by('-created_at')[:CHAT_PAGE])[::-1]
+
+    uids = {m.user_id for m in msgs}
+    profiles_map = {p.user_id: p for p in _profiles().filter(user_id__in=uids)} if uids else {}
+    return _ok(
+        messages=[_club_msg_item(m, me, profiles_map) for m in msgs],
+        incremental=anchor is not None,
+    )
+
+
+@transaction.atomic
+def send_chapter_message(me, club_id, chapter_order: int, raw_content: str, is_spoiler: bool = False) -> dict:
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No formas parte de este círculo de lectura.', 404)
+
+    chapters_count = max(1, club.book.chapters.count())
+    if chapter_order < 1 or chapter_order > chapters_count:
+        return _fail('INVALID_CHAPTER', 'Este capítulo no existe en el libro.')
+
+    _sync_member_reading_progress(member, chapters_count)
+    locked, reason = _is_chapter_locked_for(club, member, chapter_order)
+    if locked:
+        return _fail('CHAPTER_LOCKED', reason or 'Este capítulo está bloqueado.', 403)
+
+    content = str(raw_content or '').strip()
+    if not content:
+        return _fail('EMPTY_MESSAGE', 'El mensaje no puede estar vacío.')
+    if len(content) > CHAT_MAX_LENGTH:
+        return _fail('MESSAGE_TOO_LONG', f'El mensaje no puede superar los {CHAT_MAX_LENGTH} caracteres.')
+
+    msg = ReadingClubMessage.objects.create(
+        club=club,
+        user=me,
+        chapter_order=chapter_order,
+        content=content,
+        is_spoiler=bool(is_spoiler),
+    )
+    club.save(update_fields=['updated_at'])
+    prof = _profiles().filter(user=me).first()
+    profiles_map = {me.pk: prof} if prof else {}
+    return _ok('Comentario publicado en el capítulo.', status=201, item=_club_msg_item(msg, me, profiles_map))
+

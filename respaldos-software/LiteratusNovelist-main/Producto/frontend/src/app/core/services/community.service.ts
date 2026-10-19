@@ -171,6 +171,75 @@ export interface TavernInvitation {
   user: { friend_code: string; username: string; outfit: MaguitoOutfit };
 }
 
+export type ReadingClubMode = 'spoiler_safe' | 'host_paced' | 'free';
+
+export interface ReadingClubMemberInfo {
+  friend_code: string;
+  username: string;
+  outfit: MaguitoOutfit;
+  equipped_frame: string;
+  current_chapter: number;
+  is_host: boolean;
+  is_me: boolean;
+}
+
+export interface ReadingClubChapterInfo {
+  order: number;
+  title: string;
+  locked: boolean;
+  lock_reason: string | null;
+  message_count: number;
+  readers_here: ReadingClubMemberInfo[];
+}
+
+export interface ReadingClubSummary {
+  id: string;
+  name: string;
+  mode: ReadingClubMode;
+  unlocked_until_chapter: number;
+  allow_member_invites: boolean;
+  is_host: boolean;
+  my_chapter: number;
+  inventory_id: string | null;
+  book: {
+    id: string;
+    title: string;
+    slug: string;
+    cover_image: string | null;
+    chapters_count: number;
+  };
+  members: ReadingClubMemberInfo[];
+  chapters?: ReadingClubChapterInfo[];
+  last_message: {
+    username: string;
+    chapter_order: number;
+    content: string;
+    created_at: string;
+  } | null;
+  updated_at: string;
+}
+
+export interface ClubBookOption {
+  id: string;
+  title: string;
+  slug: string;
+  chapters_count: number;
+  in_library: boolean;
+}
+
+export interface ReadingClubMessageItem {
+  id: string;
+  chapter_order: number;
+  content: string;
+  is_spoiler: boolean;
+  created_at: string;
+  is_me: boolean;
+  username: string;
+  friend_code: string;
+  outfit: MaguitoOutfit;
+  equipped_frame: string;
+}
+
 /**
  * La Taberna de Tinta: amigos, solicitudes, brindis, perfiles, ranking y chat social.
  * Son datos de la cuenta: nada pasa por la caché en memoria de ApiService.
@@ -292,4 +361,67 @@ export class CommunityService {
   sendChatMessage(code: string, content: string): Observable<CommunityResult & { item: FriendChatMessage }> {
     return this.api.post(`${this.base}chats/${encodeURIComponent(code)}/`, { content });
   }
+
+  // ── Círculos de lectura grupal por capítulos ──
+
+  readingClubs(): Observable<{ results: ReadingClubSummary[] }> {
+    return this.api.get(`${this.base}clubs/`);
+  }
+
+  clubBooks(): Observable<{ results: ClubBookOption[] }> {
+    return this.api.get(`${this.base}clubs/books/`);
+  }
+
+  createReadingClub(payload: {
+    name?: string;
+    book_id: string;
+    mode: ReadingClubMode;
+    unlocked_until_chapter?: number;
+    allow_member_invites?: boolean;
+    friend_codes?: string[];
+  }): Observable<CommunityResult & { club: ReadingClubSummary }> {
+    return this.api.post(`${this.base}clubs/`, payload);
+  }
+
+  readingClubDetail(clubId: string): Observable<{ success: boolean; club: ReadingClubSummary }> {
+    return this.api.get(`${this.base}clubs/${clubId}/`);
+  }
+
+  updateReadingClubSettings(clubId: string, payload: {
+    name?: string;
+    mode?: ReadingClubMode;
+    unlocked_until_chapter?: number;
+    allow_member_invites?: boolean;
+  }): Observable<CommunityResult & { club: ReadingClubSummary }> {
+    return this.api.patch(`${this.base}clubs/${clubId}/`, payload);
+  }
+
+  updateReadingClubProgress(clubId: string, chapterOrder: number): Observable<CommunityResult & { club: ReadingClubSummary }> {
+    return this.api.post(`${this.base}clubs/${clubId}/progress/`, { chapter_order: chapterOrder });
+  }
+
+  inviteToReadingClub(clubId: string, friendCodes: string[]): Observable<CommunityResult & { club: ReadingClubSummary }> {
+    return this.api.post(`${this.base}clubs/${clubId}/invite/`, { friend_codes: friendCodes });
+  }
+
+  leaveReadingClub(clubId: string): Observable<CommunityResult> {
+    return this.api.delete(`${this.base}clubs/${clubId}/`);
+  }
+
+  chapterMessages(clubId: string, chapterOrder: number, after?: string): Observable<{
+    success: boolean;
+    messages: ReadingClubMessageItem[];
+    incremental: boolean;
+  }> {
+    const params = after ? new HttpParams().set('after', after) : undefined;
+    return this.api.get(`${this.base}clubs/${clubId}/chapters/${chapterOrder}/messages/`, params);
+  }
+
+  sendChapterMessage(clubId: string, chapterOrder: number, content: string, isSpoiler = false): Observable<CommunityResult & { item: ReadingClubMessageItem }> {
+    return this.api.post(`${this.base}clubs/${clubId}/chapters/${chapterOrder}/messages/`, {
+      content,
+      is_spoiler: isSpoiler,
+    });
+  }
 }
+

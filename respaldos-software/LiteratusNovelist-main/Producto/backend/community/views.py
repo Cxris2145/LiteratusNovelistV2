@@ -240,3 +240,70 @@ class ChatMessagesView(CommunityView):
         if friend is None:
             return _not_found()
         return _result(services.send_chat_message(request.user, friend, request.data.get('content')))
+
+
+class ReadingClubsView(CommunityView):
+    """
+    GET  clubs/ — Mis círculos de lectura activos.
+    POST clubs/ — Crear un nuevo círculo de lectura grupal.
+    """
+    def get(self, request):
+        return Response(services.list_reading_clubs(request.user))
+
+    def post(self, request):
+        return _result(services.create_reading_club(request.user, request.data))
+
+
+class ReadingClubBooksView(CommunityView):
+    """GET clubs/books/ — Libros disponibles con capítulos para elegir al crear un círculo."""
+    def get(self, request):
+        return Response(services.available_books_for_club(request.user))
+
+
+class ReadingClubDetailView(CommunityView):
+    """
+    GET    clubs/<uuid:pk>/ — Detalle del círculo con sus capítulos, bloqueos y miembros.
+    PATCH  clubs/<uuid:pk>/ — Actualizar configuración del círculo (solo anfitrión).
+    DELETE clubs/<uuid:pk>/ — Salir del círculo (o cerrarlo si eres el anfitrión).
+    """
+    def get(self, request, pk):
+        return _result(services.reading_club_detail(request.user, pk))
+
+    def patch(self, request, pk):
+        return _result(services.update_reading_club_settings(request.user, pk, request.data))
+
+    def delete(self, request, pk):
+        return _result(services.leave_or_delete_club(request.user, pk))
+
+
+class ReadingClubProgressView(CommunityView):
+    """POST clubs/<uuid:pk>/progress/ — Actualizar el capítulo actual del usuario en el círculo."""
+    def post(self, request, pk):
+        return _result(services.update_my_club_progress(request.user, pk, request.data.get('chapter_order')))
+
+
+class ReadingClubInviteView(CommunityView):
+    """POST clubs/<uuid:pk>/invite/ — Sumar amigos al círculo de lectura."""
+    def post(self, request, pk):
+        return _result(services.invite_friends_to_club(request.user, pk, request.data.get('friend_codes') or []))
+
+
+class ReadingClubChapterMessagesView(CommunityView):
+    """
+    GET  clubs/<uuid:pk>/chapters/<int:chapter_order>/messages/ — Mensajes del capítulo.
+    POST clubs/<uuid:pk>/chapters/<int:chapter_order>/messages/ — Publicar en el capítulo.
+    """
+    def get(self, request, pk, chapter_order):
+        return _result(services.list_chapter_messages(
+            request.user, pk, int(chapter_order), request.query_params.get('after')
+        ))
+
+    def post(self, request, pk, chapter_order):
+        return _result(services.send_chapter_message(
+            request.user,
+            pk,
+            int(chapter_order),
+            request.data.get('content'),
+            bool(request.data.get('is_spoiler', False)),
+        ))
+

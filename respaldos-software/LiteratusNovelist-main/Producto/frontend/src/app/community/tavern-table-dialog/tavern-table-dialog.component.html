@@ -58,6 +58,7 @@
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <ng-container *ngIf="data.action === 'book'">
+    <button type="button" class="th-btn ghost" (click)="dialog.close({ openClubs: true })">Lectura grupal por capítulos</button>
     <a class="th-btn ghost" routerLink="/library" (click)="dialog.close()">Mi biblioteca</a>
     <a *ngIf="selected" class="th-btn secondary" [routerLink]="['/reader', selected.id]" (click)="dialog.close()">Continuar lectura</a>
     <button *ngIf="readings.length" type="button" class="th-btn" [disabled]="!selected || !!busy" (click)="share()">{{ busy ? 'Compartiendo…' : 'Compartir en la mesa' }}</button>
@@ -66,3 +67,4 @@
   <button *ngIf="data.action === 'invite'" type="button" class="th-btn" (click)="dialog.close({ addFriend: true })">Agregar amigo</button>
   <a *ngIf="data.action === 'rewards'" class="th-btn" routerLink="/achievements" (click)="dialog.close()">Ver todos mis logros</a>
 </mat-dialog-actions>
+

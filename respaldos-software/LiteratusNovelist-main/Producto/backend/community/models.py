@@ -149,3 +149,84 @@ class TavernInvitation(TimeStampedModel):
             models.UniqueConstraint(fields=['sender', 'recipient'], condition=Q(deleted_at__isnull=True), name='unique_active_tavern_invite'),
             models.CheckConstraint(condition=~Q(sender=F('recipient')), name='tavern_invite_not_self'),
         ]
+
+
+class ReadingClub(TimeStampedModel):
+    """
+    Círculo de lectura grupal en La Taberna: un libro compartido entre amigos con espacios de
+    conversación separados por capítulo y reglas configurables por el anfitrión.
+    """
+    class Mode(models.TextChoices):
+        SPOILER_SAFE = 'spoiler_safe', 'Protección anti-spoilers (según tu avance)'
+        HOST_PACED = 'host_paced', 'Avance guiado por el anfitrión'
+        FREE = 'free', 'Acceso libre a todos los capítulos'
+
+    name = models.CharField(max_length=120)
+    book = models.ForeignKey('catalog.Book', on_delete=models.CASCADE, related_name='reading_clubs')
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_reading_clubs')
+    mode = models.CharField(max_length=20, choices=Mode.choices, default=Mode.SPOILER_SAFE)
+    unlocked_until_chapter = models.PositiveIntegerField(
+        default=1,
+        help_text='En modo guiado por el anfitrión, hasta qué número de capítulo está habilitado para conversar.'
+    )
+    allow_member_invites = models.BooleanField(
+        default=True,
+        help_text='Si está activo, cualquier miembro puede invitar a sus amigos al círculo.'
+    )
+
+    class Meta:
+        verbose_name = 'Reading Club'
+        verbose_name_plural = 'Reading Clubs'
+        ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['host', '-created_at']),
+            models.Index(fields=['book', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f'{self.name} ({self.book.title})'
+
+
+class ReadingClubMember(TimeStampedModel):
+    """Miembro de un círculo de lectura y su capítulo actual en la lectura compartida."""
+    club = models.ForeignKey(ReadingClub, on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reading_club_memberships')
+    current_chapter = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        verbose_name = 'Reading Club Member'
+        verbose_name_plural = 'Reading Club Members'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['club', 'user'],
+                condition=Q(deleted_at__isnull=True),
+                name='unique_active_reading_club_member',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['user', 'club']),
+        ]
+
+    def __str__(self):
+        return f'{self.user.username} en {self.club.name} (Cap. {self.current_chapter})'
+
+
+class ReadingClubMessage(TimeStampedModel):
+    """Mensaje dentro del espacio de conversación de un capítulo específico en un círculo de lectura."""
+    club = models.ForeignKey(ReadingClub, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reading_club_messages')
+    chapter_order = models.PositiveIntegerField(default=1, db_index=True)
+    content = models.CharField(max_length=500)
+    is_spoiler = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Reading Club Message'
+        verbose_name_plural = 'Reading Club Messages'
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['club', 'chapter_order', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f'[{self.club.name} · Cap. {self.chapter_order}] {self.user.username}: {self.content[:30]}'
+

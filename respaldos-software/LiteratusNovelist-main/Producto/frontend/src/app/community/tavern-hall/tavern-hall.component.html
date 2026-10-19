@@ -24,6 +24,10 @@
         </button>
       </div>
       <span class="th-actions-divider" aria-hidden="true"></span>
+      <button type="button" class="th-btn secondary" (click)="clubsOpen ? closeClubs() : openClubs()"
+              [attr.aria-expanded]="clubsOpen" aria-controls="tavern-reading-clubs">
+        <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>Lecturas conjuntas
+      </button>
       <button type="button" class="th-btn secondary th-chats-btn" (click)="chatOpen ? closeChat() : openChat()"
               [attr.aria-expanded]="chatOpen" aria-controls="friend-chat"
               [attr.aria-label]="chatUnread.total ? 'Charlas, ' + chatUnread.total + ' mensajes sin leer' : 'Charlas'">
@@ -153,6 +157,16 @@
     (closed)="closeChat()"
     (threadChange)="openChat($event)">
   </app-friend-chat>
+
+  <!-- Lecturas conjuntas: leer libros a la vez con amigos y conversar por capítulos. -->
+  <app-tavern-reading-clubs
+    *ngIf="loggedIn"
+    [open]="clubsOpen"
+    [clubId]="activeClubId"
+    [friends]="friends"
+    (closed)="closeClubs()"
+    (clubChange)="openClubs($event)">
+  </app-tavern-reading-clubs>
 
   <ng-template #visitor>
     <div class="th-visitor">
