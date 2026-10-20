@@ -113,18 +113,18 @@ def build_home_payload(base_url):
     ), anonymous, 'edition__book__')
     cast_filter = Q(pk__in=[])
     for name, slug, _ in CAST:
-        cast_filter |= Q(name__iexact=name, edition__book__slug=slug)
+        cast_filter |= Q(name__icontains=name, edition__book__slug=slug)
     # values() never reads prompts, dialogues, chapter text or user data.
-    avatars = public_avatars.filter(cast_filter).order_by('id').values(
+    avatars = list(public_avatars.filter(cast_filter).order_by('id').values(
         'id', 'name', 'avatar_image', 'edition__book__slug'
-    )
-    cast_by_key = {}
-    for avatar in avatars:
-        key = (avatar['name'].casefold(), avatar['edition__book__slug'])
-        cast_by_key.setdefault(key, avatar)
+    ))
     cast = []
     for name, slug, role in CAST:
-        avatar = cast_by_key.get((name.casefold(), slug))
+        folded_name = name.casefold()
+        matches = [avatar for avatar in avatars if avatar['edition__book__slug'] == slug
+                   and folded_name in avatar['name'].casefold()]
+        avatar = next((avatar for avatar in matches if avatar['name'].casefold() == folded_name),
+                      matches[0] if matches else None)
         book = by_slug.get(slug)
         if avatar is None or book is None:
             continue

@@ -1,5 +1,6 @@
 """Public home metadata: bounded queries, no authentication or protected payloads."""
 from datetime import date
+from uuid import UUID
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -107,6 +108,32 @@ class CatalogHomeTests(APITestCase):
         self.assertNotIn(self.general.slug, {book['slug'] for book in payload['books']})
         self.assertEqual(payload['starter_books'][0]['slug'], self.general.slug)
         self.assertEqual(payload['cast'][0]['bookSlug'], self.general.slug)
+
+    def test_cast_matches_extended_character_name_and_prefers_exact_name(self):
+        book = Book.objects.create(title='Romeo y Julieta', slug=STARTER_SLUGS[2])
+        edition = Edition.objects.create(book=book, price=0)
+        friar = AIAvatar.objects.create(
+            id=UUID(int=1), edition=edition, name='Fray Lorenzo', system_prompt='Prueba',
+        )
+        juliet = AIAvatar.objects.create(
+            id=UUID(int=2), edition=edition, name='Julieta Capuleto', system_prompt='Prueba',
+        )
+        with CaptureQueriesContext(connection) as queries:
+            payload = build_home_payload('https://api.example.test/')
+        self.assertLessEqual(len(queries), 9)
+        card = next(member for member in payload['cast'] if member['bookSlug'] == book.slug)
+        self.assertEqual(card['name'], 'Julieta')
+        self.assertEqual(card['id'], str(juliet.pk))
+        self.assertNotEqual(card['id'], str(friar.pk))
+
+        exact = AIAvatar.objects.create(
+            id=UUID(int=3), edition=edition, name='Julieta', system_prompt='Prueba',
+        )
+        with CaptureQueriesContext(connection) as queries:
+            payload = build_home_payload('https://api.example.test/')
+        self.assertLessEqual(len(queries), 9)
+        card = next(member for member in payload['cast'] if member['bookSlug'] == book.slug)
+        self.assertEqual(card['id'], str(exact.pk))
 
     def test_genre_tiles_are_limited_to_thirteen_public_genres(self):
         for i in range(14):
