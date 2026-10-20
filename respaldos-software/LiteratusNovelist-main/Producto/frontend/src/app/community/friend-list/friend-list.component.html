@@ -72,22 +72,28 @@
                   aria-hidden="true">{{ n > 9 ? '9+' : n }}</span>
           </ng-container>
         </button>
-        <button type="button" class="th-icon-btn" [matMenuTriggerFor]="friendMenu"
+        <button type="button" class="th-icon-btn fl-more" [matMenuTriggerFor]="friendMenu"
                 [attr.aria-label]="'Opciones para ' + friend.username">
           <span class="material-symbols-rounded" aria-hidden="true">more_vert</span>
         </button>
-        <mat-menu #friendMenu="matMenu" xPosition="before">
+        <!-- Estilos y animación del panel: .th-menu en styles.css (vive en el overlay). -->
+        <mat-menu #friendMenu="matMenu" xPosition="before" class="th-menu">
+          <div class="th-menu-head" aria-hidden="true">
+            <span class="th-menu-kicker">Opciones</span>
+            <strong>{{ friend.username }}</strong>
+          </div>
           <a mat-menu-item [routerLink]="['/tavern/amigo', friend.friend_code]">
-            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">badge</span>Ver perfil
+            <span class="material-symbols-rounded th-menu-icon" aria-hidden="true">badge</span>Ver perfil
           </a>
           <button mat-menu-item type="button" (click)="chat.emit(friend)">
-            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">chat</span>Conversar
+            <span class="material-symbols-rounded th-menu-icon" aria-hidden="true">chat</span>Conversar
           </button>
           <button mat-menu-item type="button" (click)="toggleBrindis.emit(friend)" [disabled]="busy === friend.friend_code">
-            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">sports_bar</span>{{ friend.brindis_given ? 'Quitar brindis' : 'Brindar' }}
+            <span class="material-symbols-rounded th-menu-icon" aria-hidden="true">sports_bar</span>{{ friend.brindis_given ? 'Quitar brindis' : 'Brindar' }}
           </button>
-          <button mat-menu-item type="button" (click)="askRemove(friend)">
-            <span class="material-symbols-rounded fl-menu-icon" aria-hidden="true">person_remove</span>Eliminar amigo
+          <mat-divider></mat-divider>
+          <button mat-menu-item type="button" class="th-menu-danger" (click)="askRemove(friend)">
+            <span class="material-symbols-rounded th-menu-icon" aria-hidden="true">person_remove</span>Eliminar amigo
           </button>
         </mat-menu>
       </ng-template>

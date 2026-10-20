@@ -895,6 +895,178 @@ body:has(.container.dashboard-mode) {
   border-radius: 20px !important;
 }
 
+/* ── La Taberna: menú de opciones (los 3 puntos de "Mis amigos") ─────────────
+   El panel vive en el overlay, fuera de los :host de la Taberna, así que usa tokens
+   globales que todos los temas definen. Entrada: Material 17 escala desde 0.8 con
+   `transform`; eso se anula y el panel entra con la propiedad `scale` (que Material no
+   toca) desde el origen que el CDK fija en el botón que lo abrió. La opacidad y la
+   salida (un fundido corto) siguen siendo las de Material. */
+.mat-mdc-menu-panel.th-menu {
+  --th-menu-gold: var(--color-warning);
+  --th-menu-accent: var(--th-menu-gold);
+  --th-menu-line: color-mix(in srgb, var(--th-menu-gold) 16%, var(--home-glass-border));
+  --mat-menu-container-shape: 14px;
+  --mat-menu-item-label-text-color: var(--home-ink);
+  --mat-menu-item-label-text-font: var(--font-ui);
+  --mat-menu-item-label-text-size: 0.9rem;
+  --mat-menu-item-label-text-weight: 500;
+  --mat-menu-item-hover-state-layer-color: transparent;
+  --mat-menu-item-focus-state-layer-color: transparent;
+  --mat-menu-divider-color: var(--th-menu-line);
+  --mat-menu-divider-top-spacing: 6px;
+  --mat-menu-divider-bottom-spacing: 6px;
+  min-width: 216px;
+  border: 1px solid color-mix(in srgb, var(--th-menu-gold) 24%, var(--home-glass-border));
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--th-menu-gold) 12%, transparent), transparent 62%),
+    linear-gradient(180deg, color-mix(in srgb, var(--home-bg-surface) 94%, var(--th-menu-gold)), var(--home-bg-surface));
+  box-shadow: 0 18px 44px var(--color-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  transform: none !important;
+  animation: th-menu-in 200ms var(--ease-out) both;
+}
+
+.th-menu .mat-mdc-menu-content {
+  padding: 6px 0 !important;
+}
+
+.th-menu .th-menu-head {
+  display: grid;
+  gap: 1px;
+  margin: 0 6px 4px;
+  padding: 6px 12px 10px 14px;
+  border-bottom: 1px solid var(--th-menu-line);
+}
+
+.th-menu .th-menu-kicker {
+  color: var(--th-menu-gold);
+  font: 700 0.66rem/1.3 var(--font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.th-menu .th-menu-head strong {
+  overflow: hidden;
+  color: var(--home-ink);
+  font: 600 1.05rem/1.2 var(--font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.th-menu .mat-mdc-menu-item {
+  width: calc(100% - 12px);
+  min-height: 42px;
+  margin: 0 6px;
+  padding: 0 12px 0 14px;
+  border-radius: 10px;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 160ms var(--ease-out);
+}
+
+@media (pointer: coarse) {
+  .th-menu .mat-mdc-menu-item { min-height: 46px; }
+}
+
+.th-menu .mat-mdc-menu-item .mat-mdc-menu-item-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.th-menu .th-menu-icon {
+  color: var(--home-ink-muted);
+  font-size: 20px;
+  transition:
+    color 150ms ease,
+    transform 160ms var(--ease-out),
+    font-variation-settings 150ms ease;
+}
+
+/* Barra a la izquierda: entra al pasar el mouse o con el foco del teclado. */
+.th-menu .mat-mdc-menu-item::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--th-menu-accent);
+  transform: scaleY(0);
+  transition: transform 160ms var(--ease-out);
+}
+
+.th-menu .th-menu-danger {
+  --th-menu-accent: var(--color-error);
+  color: var(--color-error);
+}
+
+.th-menu .th-menu-danger .th-menu-icon {
+  color: var(--color-error);
+}
+
+.th-menu .mat-mdc-menu-item.cdk-keyboard-focused:not([disabled]) {
+  background: color-mix(in srgb, var(--th-menu-accent) 12%, transparent);
+}
+
+.th-menu .mat-mdc-menu-item.cdk-keyboard-focused:not([disabled])::before {
+  transform: scaleY(1);
+}
+
+.th-menu .mat-mdc-menu-item.cdk-keyboard-focused:not([disabled]) .th-menu-icon {
+  color: var(--th-menu-accent);
+  font-variation-settings: 'FILL' 1;
+  transform: translateX(2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .th-menu .mat-mdc-menu-item:hover:not([disabled]) {
+    background: color-mix(in srgb, var(--th-menu-accent) 12%, transparent);
+  }
+  .th-menu .mat-mdc-menu-item:hover:not([disabled])::before {
+    transform: scaleY(1);
+  }
+  .th-menu .mat-mdc-menu-item:hover:not([disabled]) .th-menu-icon {
+    color: var(--th-menu-accent);
+    font-variation-settings: 'FILL' 1;
+    transform: translateX(2px);
+  }
+}
+
+.th-menu .mat-mdc-menu-item:active:not([disabled]) {
+  transform: scale(0.98);
+}
+
+/* Las opciones aparecen en cascada desde arriba, sin bloquear el clic mientras entran. */
+.th-menu .mat-mdc-menu-content > * {
+  animation: th-menu-item-in 170ms var(--ease-out) backwards;
+}
+.th-menu .mat-mdc-menu-content > :nth-child(2) { animation-delay: 30ms; }
+.th-menu .mat-mdc-menu-content > :nth-child(3) { animation-delay: 60ms; }
+.th-menu .mat-mdc-menu-content > :nth-child(4) { animation-delay: 90ms; }
+.th-menu .mat-mdc-menu-content > :nth-child(5) { animation-delay: 105ms; }
+.th-menu .mat-mdc-menu-content > :nth-child(n + 6) { animation-delay: 120ms; }
+
+@keyframes th-menu-in {
+  from { scale: 0.95; }
+}
+
+@keyframes th-menu-item-in {
+  from { opacity: 0; translate: 0 4px; }
+}
+
+@keyframes th-menu-fade {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mat-mdc-menu-panel.th-menu { animation: none; }
+  .th-menu .mat-mdc-menu-content > * { animation-name: th-menu-fade; }
+  .th-menu .mat-mdc-menu-item:active:not([disabled]),
+  .th-menu .th-menu-icon { transform: none !important; }
+}
+
 /* ═════════════════════════════════════════════════════════════════════════
    SISTEMA DE ANIMACIONES AL HACER SCROLL — Literatus Editorial Motion
    Diseñado según las directrices de frontend-design y vercel-react-best-practices:

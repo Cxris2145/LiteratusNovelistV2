@@ -99,7 +99,13 @@
   font: 700 .62rem/17px var(--font-ui);
   text-align: center;
 }
-.fl-menu-icon { margin-right: 10px; font-size: 20px; vertical-align: middle; }
+/* Los 3 puntos: mientras el menú está abierto quedan en dorado y giran a horizontal. */
+.fl-more .material-symbols-rounded { transition: transform 200ms var(--th-ease-out); }
+.fl-more[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--th-gold) 16%, transparent);
+  color: var(--th-gold);
+}
+.fl-more[aria-expanded='true'] .material-symbols-rounded { transform: rotate(90deg); }
 
 .fl-empty { display: grid; gap: 12px; justify-items: start; }
 
@@ -130,6 +136,8 @@
 @media (prefers-reduced-motion: reduce) {
   .fl-unread.is-up { animation: fl-fade 150ms ease backwards; }
   .fl-friend.is-celebrating::after { animation: fl-glow-soft 600ms ease both; }
+  .fl-more .material-symbols-rounded,
+  .fl-more[aria-expanded='true'] .material-symbols-rounded { transition: none; transform: none; }
 }
 @keyframes fl-fade { from { opacity: 0; } }
 @keyframes fl-glow-soft { 0%, 100% { opacity: 0; } 35% { opacity: 1; } }
