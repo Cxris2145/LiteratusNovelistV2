@@ -4,7 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "node scripts/build-home-snapshot.mjs && ng build",
+    "snapshot:home": "node scripts/build-home-snapshot.mjs",
+    "test:home-snapshot": "node --test scripts/public-home.test.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "audit:contrast": "node scripts/contrast-audit.mjs --write",

@@ -1,5 +1,26 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/frontend/browser",
+  "headers": [
+    {
+      "source": "/api/public-home",
+      "headers": [
+        { "key": "x-vercel-enable-rewrite-caching", "value": "1" }
+      ]
+    },
+    {
+      "source": "/assets/data/home-public.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=60, must-revalidate" },
+        { "key": "CDN-Cache-Control", "value": "public, s-maxage=300" }
+      ]
+    }
+  ],
   "rewrites": [
+    {
+      "source": "/api/public-home",
+      "destination": "https://literatusnovelistv2.onrender.com/api/v1/catalog/home/"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

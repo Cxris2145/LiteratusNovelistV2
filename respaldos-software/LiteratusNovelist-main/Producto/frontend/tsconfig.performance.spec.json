@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.spec.json",
+  "include": [
+    "src/app/home/home.component.spec.ts",
+    "src/app/core/services/api.service.spec.ts",
+    "src/app/core/services/home-data.service.spec.ts",
+    "src/app/core/interceptors/auth.interceptor.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

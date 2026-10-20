@@ -16,6 +16,7 @@ from library.models import UserInventory
 from . import summary as book_summary
 from .age import age_block_message, allowed_age, ensure_book_access, visible_books
 from .search_suggest import suggest
+from .home import cached_home_payload
 from .models import Book, Author, Genre, Tag, Review, BookErrorReport
 from .serializers import (
     BookListSerializer, BookDetailSerializer, BookDetailFullSerializer, 
@@ -127,7 +128,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action in ('list', 'recommendations'):
             qs = visible_books(qs, self.request.user)
         if self.action == 'details':
-            qs = qs.prefetch_related('editions__avatars', 'reviews__user__profile', 'chapters')
+            qs = qs.prefetch_related('editions__avatars', 'reviews__user__profile')
 
         has_ai = self.request.query_params.get('has_ai_avatars', None)
         if has_ai and has_ai.lower() == 'true':
@@ -269,7 +270,8 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         # Incrementar contador de visitas de forma atómica
         from django.db.models import F
         Book.objects.filter(pk=book.pk).update(view_count=F('view_count') + 1)
-        book.refresh_from_db()
+        # Keep the prefetched relations; refresh_from_db() discards all of them.
+        book.view_count += 1
 
         serializer = BookDetailFullSerializer(book, context={'request': request})
         return Response(serializer.data)
@@ -483,6 +485,18 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
                 'created_at': review.created_at
             }
         }, status=status.HTTP_201_CREATED)
+
+
+class CatalogHomeView(APIView):
+    """Identical, bounded visitor metadata for the static home and live fallback."""
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def get(self, request):
+        response = Response(cached_home_payload(request.build_absolute_uri('/')))
+        response['Cache-Control'] = 'public, max-age=60, s-maxage=300, stale-while-revalidate=300'
+        response['Vercel-Cache-Tag'] = 'public-home'
+        return response
 
 
 class CatalogStatsView(APIView):

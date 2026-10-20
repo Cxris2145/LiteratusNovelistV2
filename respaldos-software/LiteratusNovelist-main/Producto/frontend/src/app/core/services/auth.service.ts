@@ -1,6 +1,9 @@
 import { Injectable, signal, inject } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { HttpBackend, HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, Subject, catchError, finalize, map, of, shareReplay, takeUntil, tap, throwError } from 'rxjs';
 import { ApiService } from './api.service';
+import { ProfileRequestService } from './profile-request.service';
+import { environment } from '../../../environments/environment';
 
 export interface UserProfile {
   id: string;
@@ -63,6 +66,10 @@ export class AuthService {
   public readonly currentUser = this._currentUser.asReadonly();
 
   private api = inject(ApiService);
+  private httpBackend = inject(HttpBackend);
+  private profileRequests = inject(ProfileRequestService);
+  private sessionChanged$ = new Subject<void>();
+  private refreshRequest$: Observable<string> | null = null;
   // El permiso de recuperación queda solo en memoria, fuera de URLs y localStorage.
   private passwordRecovery: PasswordRecoverySession | null = null;
 
@@ -139,7 +146,46 @@ export class AuthService {
   setTokens(access: string, refresh: string): void {
     localStorage.setItem(this.TOKEN_KEY, access);
     localStorage.setItem(this.REFRESH_KEY, refresh);
-    this.loggedInSubject.next(true);
+    // Renovar el token conserva la sesión: no vuelve a disparar todas las
+    // consultas de arranque del encabezado, favoritos y gamificación.
+    if (!this.loggedInSubject.value) this.loggedInSubject.next(true);
+  }
+
+  /** Un único refresh para todos los 401 de la misma sesión. */
+  refreshAccessToken(failedAccessToken: string | null): Observable<string> {
+    const currentAccess = this.getAccessToken();
+    // Un 401 tardío puede llegar cuando otra petición ya renovó el token.
+    if (currentAccess && currentAccess !== failedAccessToken) return of(currentAccess);
+    if (this.refreshRequest$) return this.refreshRequest$;
+
+    const refresh = localStorage.getItem(this.REFRESH_KEY);
+    if (!refresh) return throwError(() => new Error('No hay una sesión para renovar.'));
+    const revision = this.profileRequests.sessionRevision;
+    const request$ = new HttpClient(this.httpBackend)
+      .post<{ access: string; refresh?: string }>(`${environment.apiUrl}users/login/refresh/`, { refresh })
+      .pipe(
+        takeUntil(this.sessionChanged$),
+        tap(result => this.setTokens(result.access, result.refresh || refresh)),
+        map(result => result.access),
+        catchError(error => {
+          // Este catch se ejecuta una vez antes de compartir el error. Una
+          // respuesta de la sesión anterior nunca debe cerrar la nueva.
+          if (revision === this.profileRequests.sessionRevision) this.logout();
+          return throwError(() => error);
+        }),
+        finalize(() => {
+          if (this.refreshRequest$ === request$) this.refreshRequest$ = null;
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+    this.refreshRequest$ = request$;
+    return request$;
+  }
+
+  private resetSessionRequests(): void {
+    this.profileRequests.resetSession();
+    this.refreshRequest$ = null;
+    this.sessionChanged$.next();
   }
 
   setUser(user: UserProfile): void {
@@ -166,6 +212,7 @@ export class AuthService {
   }
 
   clearTokens(): void {
+    this.resetSessionRequests();
     this.api.invalidate();
     sessionStorage.removeItem('literatus_static_catalog_p1');
     localStorage.removeItem(this.TOKEN_KEY);
@@ -181,14 +228,19 @@ export class AuthService {
    * cuenta cargada: en ese caso hay que recargar la app (ver `logout`).
    */
   startSession(access: string, refresh: string, user: UserProfile | null | undefined): boolean {
+    const wasLoggedIn = this.loggedInSubject.value;
+    this.resetSessionRequests();
     this.api.invalidate();
     sessionStorage.removeItem('literatus_static_catalog_p1');
     const previous = this._currentUser();
     const switchedAccount = !!previous && previous.id !== user?.id;
     void this.clearOfflineApiCache();
-    this.setTokens(access, refresh);
-    this.markFreshLogin();
     if (user) this.setUser(user);
+    this.setTokens(access, refresh);
+    // Un ingreso explícito sí debe sincronizar los servicios, incluso si había
+    // una sesión guardada. Esto no se ejecuta al renovar silenciosamente el JWT.
+    if (wasLoggedIn) this.loggedInSubject.next(true);
+    this.markFreshLogin();
     return switchedAccount;
   }
 

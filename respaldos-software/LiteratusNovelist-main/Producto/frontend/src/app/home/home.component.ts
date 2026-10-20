@@ -1,14 +1,15 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, inject, ChangeDetectorRef, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, map, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 import { ApiService } from '../core/services/api.service';
 import { CharacterChatService } from '../core/services/character-chat.service';
 import { AuthService } from '../core/services/auth.service';
 import { ScrollRevealService } from '../core/services/scroll-reveal.service';
 import { coverThumb } from '../core/utils/cover-thumb.util';
+import { HomeDataService } from '../core/services/home-data.service';
 
 export interface Book {
   id: string;
@@ -57,42 +58,6 @@ interface PassageWord {
 }
 
 /**
- * Reparto elegido a mano: personajes conocidos por estudiantes y que existen en
- * el catálogo. La API solo aporta el id del avatar (para abrir el chat) y la
- * portada del libro; si alguno deja de existir, simplemente no se muestra.
- */
-const CAST: { name: string; bookSlug: string; role: string }[] = [
-  { name: 'Odiseo', bookSlug: 'la-odisea-homero', role: 'Rey de Ítaca. Tarda veinte años en volver a casa.' },
-  { name: 'Aquiles', bookSlug: 'la-iliada-homero', role: 'El mejor guerrero griego, y el más orgulloso.' },
-  { name: 'Virgilio', bookSlug: 'la-divina-comedia-dante-alighieri', role: 'Guía a Dante por el Infierno y el Purgatorio.' },
-  { name: 'Capitán Nemo', bookSlug: 'veinte-mil-leguas-de-viaje-submarino-verne-julio', role: 'Comandante del Nautilus, en guerra con la superficie.' },
-  { name: 'Gregorio Samsa', bookSlug: 'la-metamorfosis-kafka-franz', role: 'Despierta convertido en insecto y aún piensa en su trabajo.' },
-  { name: 'Alicia', bookSlug: 'las-aventuras-de-alicia-en-el-pais-de-las-maravillas-carroll-lewis', role: 'Cae por la madriguera y discute con todo el que encuentra.' },
-  { name: 'El Monstruo', bookSlug: 'frankenstein-mary-shelley', role: 'Busca respuestas de quien le dio la vida.' },
-  { name: 'Julieta', bookSlug: 'romeo-y-julieta-shakespeare-william', role: 'Desafía a su familia por amor a un Montesco.' }
-];
-
-/**
- * Estantería "Clásicos para empezar": obras conocidas, íntegras y con personajes.
- * Se elige a mano porque ordenar por cantidad de personajes trae títulos al azar
- * (algunos poco adecuados para una portada pensada en estudiantes).
- */
-const STARTER_SLUGS = [
-  'la-odisea-homero',
-  'la-metamorfosis-kafka-franz',
-  'romeo-y-julieta-shakespeare-william',
-  'la-casa-de-bernarda-alba-garcia-lorca-federico',
-  'las-aventuras-de-alicia-en-el-pais-de-las-maravillas-carroll-lewis',
-  'frankenstein-mary-shelley',
-  'la-vida-de-lazarillo-de-tormes-anonimo',
-  'rimas-gustavo-adolfo-becquer',
-  'veinte-mil-leguas-de-viaje-submarino-verne-julio',
-  'hamlet-shakespeare-william',
-  'la-divina-comedia-dante-alighieri',
-  'la-celestina-fernando-de-rojas'
-];
-
-/**
  * Comienzo real de La Odisea en el catálogo (trad. Luis Segalá y Estalella, 1910),
  * con la ortografía actualizada ("vio", "a").
  */
@@ -112,6 +77,7 @@ const ODYSSEY_OPENING = [
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
+  private homeData = inject(HomeDataService);
   public auth = inject(AuthService);
   private router = inject(Router);
   private characterChat = inject(CharacterChatService);
@@ -131,10 +97,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── Hero ────────────────────────────────────────────────────────────────
   /** Columnas del muro de portadas; cada una se repite en la plantilla para el bucle. */
   wallColumns: string[][] = [];
-  totalBooks = 1046;
-  totalCharacters = 4477;
-  totalAuthors = 313;
-  totalGenres = 33;
+  totalBooks = 0;
+  totalCharacters = 0;
+  totalAuthors = 0;
+  totalGenres = 0;
   private statsCounted = false;
 
   greeting = 'Hola';
@@ -224,9 +190,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.initAt = performance.now();
     this.cardsMode = this.isLoggedIn ? 'pending' : 'visitor';
 
-    this.loadStats();
-    this.loadBooks();
-    this.loadGenres();
+    this.loadPublicHome();
     if (this.isLoggedIn) {
       this.loadProfile();
       this.loadContinueReading();
@@ -242,9 +206,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     this.trackHeaderHeight();
     this.scrollReveal.scan(this.host.nativeElement);
     this.observeHowSteps();
-    // El reparto se pide con margen antes del paso "Conversa", que enlaza a Odiseo.
-    this.whenNear('[data-how-step="listen"]', () => this.loadCast());
-    this.whenNear('.shelf-section', () => this.loadStarterBooks());
+    // La respuesta pública ya contiene reparto y estantería; las imágenes
+    // inferiores conservan su carga diferida en la plantilla.
     this.runStatsCounter();
 
     if (this.shelfTrack?.nativeElement && 'ResizeObserver' in window) {
@@ -266,120 +229,42 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ─── Datos ───────────────────────────────────────────────────────────────
-  private loadStats(): void {
-    this.api.getCached<any>('catalog/stats/', undefined, 5 * 60 * 1000)
+  private loadPublicHome(): void {
+    this.homeData.getHome()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: res => {
-          if (!res) return;
-          if (typeof res.total_books === 'number') this.totalBooks = res.total_books;
-          if (typeof res.total_characters === 'number') this.totalCharacters = res.total_characters;
-          if (typeof res.total_authors === 'number') this.totalAuthors = res.total_authors;
-          if (typeof res.total_genres === 'number') this.totalGenres = res.total_genres;
-          this.cdr.detectChanges();
-          // Si el contador ya corrió con los valores de respaldo, fija los reales.
-          if (this.statsCounted) this.paintStats();
-        },
-        error: () => { /* conserva los valores de respaldo */ }
-      });
-  }
-
-  private loadBooks(): void {
-    this.api.getCached<any>('catalog/books/?ordering=-is_featured,-created_at&page_size=50', undefined, 5 * 60 * 1000)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: res => {
-          this.allBooks = res?.results ?? res ?? [];
+        next: home => {
+          this.totalBooks = home.stats.total_books;
+          this.totalCharacters = home.stats.total_characters;
+          this.totalAuthors = home.stats.total_authors;
+          this.totalGenres = home.stats.total_genres;
+          this.allBooks = home.books;
           this.wallColumns = this.buildWall(this.allBooks);
+          this.genreTiles = home.genres;
+          this.starterBooks = home.starter_books;
+          this.cast = home.cast;
+          this.odysseus = this.cast.find(card => card.bookSlug === 'la-odisea-homero') ?? null;
+          this.castLoaded = true;
+          this.cdr.detectChanges();
+          if (this.statsCounted) this.paintStats();
+          this.rescan();
+          this.updateShelfPagination();
         },
-        error: () => { this.wallColumns = []; }
+        error: () => {
+          this.castLoaded = true;
+          this.cdr.markForCheck();
+        }
       });
-  }
-
-  /** Detalle de cada libro de la estantería (cacheado; lo comparte el reparto). */
-  private loadStarterBooks(): void {
-    const requests = STARTER_SLUGS.map(slug =>
-      this.api.getCached<any>(`catalog/books/${slug}/`, undefined, 15 * 60 * 1000).pipe(catchError(() => of(null)))
-    );
-    forkJoin(requests).pipe(takeUntil(this.destroy$)).subscribe(books => {
-      this.starterBooks = books
-        .filter(b => b?.cover_image)
-        .map(b => ({
-          slug: b.slug,
-          title: b.title,
-          author: b.book_authors?.[0]?.author?.full_name || '',
-          genre: b.genres?.[0]?.name || '',
-          cover: this.thumb(b.cover_image)
-        }));
-      this.rescan();
-      setTimeout(() => this.updateShelfPagination(), 100);
-    });
   }
 
   private buildWall(books: Book[]): string[][] {
-    const covers = Array.from(new Set(books.map(b => b.cover_image).filter((c): c is string => !!c)))
-      .map(c => coverThumb(c, 320, 320, 58));
+    const covers = Array.from(new Set(books.map(b => b.cover_image).filter((c): c is string => !!c)));
     if (covers.length < 10) return [];
     const columns = 6;
     const perColumn = Math.min(6, Math.floor(covers.length / columns));
     return Array.from({ length: columns }, (_, col) =>
       Array.from({ length: perColumn }, (_, row) => covers[(col * perColumn + row) % covers.length])
     );
-  }
-
-  private loadGenres(): void {
-    this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: res => {
-          const list: any[] = res?.results ?? res ?? [];
-          this.genreTiles = list
-            .filter(g => (g.book_count ?? 0) > 0)
-            .sort((a, b) => b.book_count - a.book_count)
-            .slice(0, 13)
-            .map((g, i) => ({
-              name: g.name,
-              slug: g.slug,
-              bookCount: g.book_count,
-              image: g.cover_image ? coverThumb(g.cover_image, i === 0 ? 900 : 560, i === 0 ? 900 : 560, 62) : ''
-            }));
-          this.rescan();
-        },
-        error: () => { this.genreTiles = []; }
-      });
-  }
-
-  /** Resuelve el reparto: id del avatar (para el chat) y portada del libro. */
-  private loadCast(): void {
-    const requests = CAST.map(member => {
-      const avatar$ = this.api.getCached<any>(`ai/hub/avatars/?q=${encodeURIComponent(member.name)}&page_size=10`, undefined, 15 * 60 * 1000).pipe(
-        map(res => (res?.results ?? res ?? []).find((a: any) => a.book_slug === member.bookSlug) ?? null),
-        catchError(() => of(null))
-      );
-      const book$ = this.api.getCached<any>(`catalog/books/${member.bookSlug}/`, undefined, 15 * 60 * 1000).pipe(catchError(() => of(null)));
-      return forkJoin([avatar$, book$]).pipe(
-        map(([avatar, book]): CastCard | null => {
-          if (!avatar) return null;
-          const portrait = avatar.avatar_image_url as string | null;
-          return {
-            id: String(avatar.id),
-            name: member.name,
-            role: member.role,
-            bookTitle: avatar.book_title || book?.title || '',
-            bookSlug: member.bookSlug,
-            image: portrait || coverThumb(book?.cover_image, 480, 640, 62),
-            isPortrait: !!portrait
-          };
-        })
-      );
-    });
-
-    forkJoin(requests).pipe(takeUntil(this.destroy$)).subscribe(cards => {
-      this.cast = cards.filter((c): c is CastCard => !!c);
-      this.odysseus = this.cast.find(c => c.bookSlug === 'la-odisea-homero') ?? null;
-      this.castLoaded = true;
-      this.rescan();
-    });
   }
 
   private loadProfile(): void {
@@ -618,22 +503,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /** Ejecuta `cb` una sola vez cuando el elemento se acerca al viewport. */
-  private whenNear(selector: string, cb: () => void): void {
-    const el = (this.host.nativeElement as HTMLElement).querySelector(selector);
-    if (!el || !('IntersectionObserver' in window)) {
-      cb();
-      return;
-    }
-    const io = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      io.disconnect();
-      this.zone.run(cb);
-    }, { rootMargin: '600px 0px' });
-    io.observe(el);
-    this.observers.push(io);
-  }
-
   /** Vuelve a registrar los elementos recién pintados en el observador de scroll. */
   private rescan(): void {
     this.cdr.detectChanges();
@@ -684,10 +553,6 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private paintStats(): void {
     this.statEls().forEach(el => el.textContent = this.statTarget(el).toLocaleString('es-CL'));
-  }
-
-  thumb(url: string | null): string {
-    return coverThumb(url, 360, 480, 62);
   }
 
   trackBySlug(_: number, item: { slug: string }): string {

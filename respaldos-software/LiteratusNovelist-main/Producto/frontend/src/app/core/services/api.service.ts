@@ -43,6 +43,9 @@ export class ApiService {
    * `Explorar → Biblioteca → Explorar` deja de re-descargar lo mismo.
    */
   getCached<T>(endpoint: string, params?: HttpParams, ttlMs = 5 * 60 * 1000): Observable<T> {
+    // El perfil contiene tinta y progreso mutables. El interceptor comparte las
+    // lecturas simultáneas, pero una lectura posterior siempre va al servidor.
+    if (endpoint.split('?')[0] === 'users/profile/') return this.get<T>(endpoint, params);
     const key = this.cacheKey(endpoint, params);
     const now = Date.now();
     const hit = this.cache.get(key);
@@ -68,6 +71,7 @@ export class ApiService {
   /** Lectura síncrona del último valor cacheado (o null). Útil para pintar al
    *  instante y refrescar en segundo plano. */
   peekCached<T>(endpoint: string, params?: HttpParams): T | null {
+    if (endpoint.split('?')[0] === 'users/profile/') return null;
     const key = this.cacheKey(endpoint, params);
     const hit = this.cache.get(key);
     return (hit && hit.expires > Date.now() && hit.value !== undefined ? hit.value : null) as T | null;

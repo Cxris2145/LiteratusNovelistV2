@@ -42,6 +42,9 @@ testem.log
 Thumbs.db
 .vercel
 
+# Public home data is generated from the API for each production build.
+/src/assets/data/home-public.json
+
 # Fondo de la taberna usado por la interfaz.
 !/src/assets/images/tavern-room-repaired.jpg
 !/src/assets/images/tavern-room-empty.jpg

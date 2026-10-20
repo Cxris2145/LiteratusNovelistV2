@@ -215,7 +215,12 @@ class BookDetailFullSerializer(BookDetailSerializer):
     def get_avatars(self, obj):
         # Recolectar todos los avatares de todas las ediciones del libro pero filtrar duplicados por nombre
         # Esto evita que el mismo personaje/autor aparezca N veces si el libro tiene N ediciones
-        avatars_qs = AIAvatar.objects.filter(edition__book=obj)
+        if 'editions' in getattr(obj, '_prefetched_objects_cache', {}) and all(
+            'avatars' in getattr(edition, '_prefetched_objects_cache', {}) for edition in obj.editions.all()
+        ):
+            avatars_qs = [avatar for edition in obj.editions.all() for avatar in edition.avatars.all()]
+        else:
+            avatars_qs = AIAvatar.objects.filter(edition__book=obj)
         
         unique_avatars = []
         seen_names = set()

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, Subject } from 'rxjs';
-import { catchError, shareReplay, tap } from 'rxjs/operators';
+import { catchError, finalize, shareReplay, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { SubscriptionService } from './subscription.service';
 import { todayIsoDate } from '../utils/birth-date.util';
@@ -78,16 +78,16 @@ export class ChatService {
     if (this.isFetchingInk) return;
     
     this.isFetchingInk = true;
-    this.http.get<any>(`${environment.apiUrl}users/profile/`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}users/profile/`).pipe(
+      finalize(() => this.isFetchingInk = false),
+    ).subscribe({
       next: (profile) => {
         if (profile && profile.ink_balance !== undefined) {
           this.inkBalanceSubject.next(profile.ink_balance);
         }
-        this.isFetchingInk = false;
       },
       error: (err) => {
         console.error("Error cargando balance inicial", err);
-        this.isFetchingInk = false;
       }
     });
   }
