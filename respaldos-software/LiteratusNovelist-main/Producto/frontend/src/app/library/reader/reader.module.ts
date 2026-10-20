@@ -17,6 +17,7 @@ import { ReaderReportModalComponent } from './reader-report-modal/reader-report-
 import { ReaderFrozenDirective } from './reader-frozen.directive';
 import { ReaderSheetDirective } from './reader-sheet.directive';
 import { ReaderFocusTrapDirective } from './reader-focus-trap.directive';
+import { ReaderBookClosedComponent } from './reader-book/reader-book-closed.component';
 
 /** El lector se descarga al abrir un libro (es la página más pesada de la app). */
 @NgModule({
@@ -24,6 +25,7 @@ import { ReaderFocusTrapDirective } from './reader-focus-trap.directive';
     ReaderComponent, ReaderTabsComponent, ReaderChromeComponent, ReaderMoreSheetComponent, VocabularyPanelComponent, BookSearchPanelComponent,
     ReaderSettingsSheetComponent, ReaderNarrationSheetComponent, ReaderTocComponent, ReaderSelectionMenuComponent,
     ReaderPostItsComponent, ReaderReportModalComponent, ReaderFrozenDirective, ReaderSheetDirective, ReaderFocusTrapDirective,
+    ReaderBookClosedComponent,
   ],
   imports: [SharedModule, RouterModule.forChild([{ path: '', component: ReaderComponent }])],
 })

@@ -1,0 +1,33 @@
+<div class="rbc-stage" (click)="onStageClick($event)">
+  @if (side === 'front') {
+    <button type="button" class="rbc-book rbc-front" (click)="open.emit()"
+            [attr.aria-label]="'Abrir ' + (title || 'el libro')">
+      @if (cover && !coverFailed) {
+        <img class="rbc-cover-img" [src]="cover" [alt]="'Tapa de ' + title + (author ? ', de ' + author : '')"
+             (error)="coverFailed = true" draggable="false">
+      } @else {
+        <span class="rbc-cover-plain">
+          <span class="rbc-plain-author">{{ author }}</span>
+          <span class="rbc-plain-title">{{ title }}</span>
+          <span class="rbc-plain-brand">Literatus Novelist</span>
+        </span>
+      }
+      <span class="rbc-hinge" aria-hidden="true"></span>
+      <span class="rbc-sheen" aria-hidden="true"></span>
+    </button>
+    <p class="rbc-hint" aria-hidden="true">Toca la tapa para abrir el libro</p>
+  } @else {
+    <button type="button" class="rbc-book rbc-back" (click)="open.emit()"
+            [attr.aria-label]="'Contratapa de ' + title + '. Volver a la última página'">
+      <span class="rbc-back-inner">
+        <span class="rbc-back-title">{{ title }}</span>
+        <span class="rbc-back-author" *ngIf="author">{{ author }}</span>
+        <span class="rbc-back-synopsis" *ngIf="synopsis">{{ synopsis }}</span>
+        <span class="rbc-back-brand">Literatus Novelist</span>
+      </span>
+      <span class="rbc-hinge rbc-hinge-right" aria-hidden="true"></span>
+      <span class="rbc-sheen" aria-hidden="true"></span>
+    </button>
+    <p class="rbc-hint" aria-hidden="true">Fin del libro · toca la contratapa para volver a la última página</p>
+  }
+</div>

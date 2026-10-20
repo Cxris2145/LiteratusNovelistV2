@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 
 import { ReaderSettingsService } from './reader-settings.service';
 import {
-  DEFAULT_READER_SETTINGS, READER_SETTINGS_KEY, differsFromDefaults, isPresetActive, presetPatch,
-  readLegacyReaderSettings, sanitizeReaderSettings,
+  BOOK_VIEW_MIGRATION_KEY, DEFAULT_READER_SETTINGS, READER_SETTINGS_KEY, differsFromDefaults, isPresetActive, migrateToBookView,
+  presetPatch, readLegacyReaderSettings, sanitizeReaderSettings,
 } from './reader-settings';
 
 describe('ajustes del lector', () => {
@@ -14,7 +14,8 @@ describe('ajustes del lector', () => {
 
     it('migra la vista y el ancho anteriores sin invertir la medida de lectura', () => {
       expect(sanitizeReaderSettings({ doublePage: false, readingWidth: 'narrow' })).toEqual(
-        jasmine.objectContaining({ layoutMode: 'scroll', margins: 'wide', pageTurn: 'slide' }));
+        jasmine.objectContaining({ layoutMode: 'scroll', margins: 'wide', pageTurn: 'flip' }));
+      expect(sanitizeReaderSettings({ doublePage: true }).layoutMode).toBe('book');
       expect(sanitizeReaderSettings({ doublePage: true, readingWidth: 'wide' }).margins).toBe('narrow');
       expect(sanitizeReaderSettings({ readingWidth: 'medium' }).margins).toBe('normal');
     });
@@ -43,6 +44,29 @@ describe('ajustes del lector', () => {
     });
   });
 
+  describe('migrateToBookView', () => {
+    it('lleva lo de fábrica de antes (Páginas, Deslizar) a la vista Libro con la hoja', () => {
+      const s = migrateToBookView({ ...DEFAULT_READER_SETTINGS, layoutMode: 'paged', pageTurn: 'slide' });
+      expect(s.layoutMode).toBe('book');
+      expect(s.pageTurn).toBe('flip');
+    });
+
+    it('respeta Desplazamiento y "Sin animación"', () => {
+      const s = migrateToBookView({ ...DEFAULT_READER_SETTINGS, layoutMode: 'scroll', pageTurn: 'none' });
+      expect(s.layoutMode).toBe('scroll');
+      expect(s.pageTurn).toBe('none');
+    });
+
+    it('acepta las tres vistas y los tres pasos de página', () => {
+      for (const layoutMode of ['book', 'paged', 'scroll'] as const) {
+        expect(sanitizeReaderSettings({ layoutMode }).layoutMode).toBe(layoutMode);
+      }
+      for (const pageTurn of ['flip', 'slide', 'none'] as const) {
+        expect(sanitizeReaderSettings({ pageTurn }).pageTurn).toBe(pageTurn);
+      }
+    });
+  });
+
   describe('readLegacyReaderSettings', () => {
     it('devuelve null si no hay claves antiguas', () => {
       expect(readLegacyReaderSettings(() => null)).toBeNull();
@@ -61,7 +85,7 @@ describe('ajustes del lector', () => {
       };
       const s = readLegacyReaderSettings(key => old[key] ?? null)!;
       expect(s).toEqual(jasmine.objectContaining({
-        fontSize: 22, fontFamily: 'merriweather', theme: 'sepia', layoutMode: 'scroll', pageTurn: 'slide', lineHeight: 1.75,
+        fontSize: 22, fontFamily: 'merriweather', theme: 'sepia', layoutMode: 'scroll', pageTurn: 'flip', lineHeight: 1.75,
         margins: 'wide', textAlign: 'left', paraSpacing: 'normal', letterSpacing: 0.02, wordSpacing: 0.1,
         brightness: 0.9, highContrast: true, focusMode: 'sentence', highlightColor: 'blue', longParaSplit: true,
         tapToScroll: true, autoScrollSpeed: 55, wpm: 230, wpmAuto: false, showReadingTime: false,
@@ -72,7 +96,7 @@ describe('ajustes del lector', () => {
     it('sin la clave de una opción conserva el valor de fábrica', () => {
       const s = readLegacyReaderSettings(key => key === 'reader-theme' ? 'dark' : null)!;
       expect(s.theme).toBe('dark');
-      expect(s.layoutMode).toBe('paged');
+      expect(s.layoutMode).toBe('book');
       expect(s.wpmAuto).toBeTrue();
       expect(s.sceneImages).toBeTrue();
     });
@@ -98,7 +122,7 @@ describe('ajustes del lector', () => {
 
   describe('ReaderSettingsService', () => {
     const legacyKeys = ['reader-theme', 'reader-font-size', 'reader-double-page'];
-    const clean = () => [READER_SETTINGS_KEY, ...legacyKeys].forEach(key => localStorage.removeItem(key));
+    const clean = () => [READER_SETTINGS_KEY, BOOK_VIEW_MIGRATION_KEY, ...legacyKeys].forEach(key => localStorage.removeItem(key));
     const create = () => {
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({ providers: [ReaderSettingsService] });
@@ -121,6 +145,18 @@ describe('ajustes del lector', () => {
       // Desde ahora manda la clave nueva aunque las antiguas sigan ahí.
       localStorage.setItem('reader-font-size', '30');
       expect(create().value.fontSize).toBe(24);
+    });
+
+    it('pasa una sola vez de Páginas a la vista Libro', () => {
+      localStorage.setItem(READER_SETTINGS_KEY, JSON.stringify({ ...DEFAULT_READER_SETTINGS, layoutMode: 'paged', pageTurn: 'slide' }));
+      const service = create();
+      expect(service.value.layoutMode).toBe('book');
+      expect(service.value.pageTurn).toBe('flip');
+      expect(localStorage.getItem(BOOK_VIEW_MIGRATION_KEY)).toBe('1');
+
+      // Quien después elige Páginas a propósito, la conserva.
+      service.update({ layoutMode: 'paged' });
+      expect(create().value.layoutMode).toBe('paged');
     });
 
     it('reescribe el v2 anterior con vista y márgenes nuevos', () => {

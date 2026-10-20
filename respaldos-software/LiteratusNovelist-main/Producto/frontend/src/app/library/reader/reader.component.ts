@@ -32,6 +32,10 @@ import { PageBookmark, ReaderAnnotationsService, ReaderHighlight } from './reade
 import type { ReaderSelectionMenuComponent } from './reader-selection-menu/reader-selection-menu.component';
 import type { ReaderPostItsComponent } from './reader-postits/reader-postits.component';
 import type { ReportContextData } from './reader-report-modal/reader-report-modal.component';
+import { BOOK_CSS_VAR_NAMES, BookFrame, bookCssVars, bookEdges, bookFrame } from './reader-book/reader-book-geometry';
+import { loadCoverBoardColor } from './reader-book/reader-book-cover-color';
+import { ReaderBookFlip } from './reader-book/reader-book-flip';
+import { AuthService } from '../../core/services/auth.service';
 
 export interface ProgressData {
   percentage: number;
@@ -43,7 +47,7 @@ export interface ProgressData {
 @Component({
   selector: 'app-reader',
   templateUrl: './reader.component.html',
-  styleUrls: ['./reader.component.css', './reader-paged.css'],
+  styleUrls: ['./reader.component.css', './reader-paged.css', './reader-book/reader-book.css'],
   // Búsqueda, ajustes, narración y anotaciones viven con cada lector abierto (los comparten sus hojas y paneles).
   providers: [BookSearchService, ReaderSettingsService, ReaderNarrationService, ReaderAnnotationsService],
 })
@@ -98,6 +102,32 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private pendingSpreadIndex: number | null = null;
   /** Igual, pero como fracción del capítulo (al reanudar el progreso guardado). */
   private pendingSpreadFraction: number | null = null;
+
+  // ── VISTA LIBRO (tapa, lomo, cantos y la hoja que se dobla) ──────
+  /** Libro cerrado: la tapa antes de la primera página y la contratapa después de la última. */
+  bookClosed: 'front' | 'back' | null = null;
+  bookSynopsis = '';
+  bookPublisher = '';
+  bookYear = '';
+  /** Nombre del lector para el ex libris de la portadilla. */
+  exLibrisName = '';
+  private readonly auth = inject(AuthService);
+  private bookFrameState: BookFrame | null = null;
+  @ViewChild('flipLayer') private flipLayerRef?: ElementRef<HTMLElement>;
+  /** La hoja que se dobla: copias de páginas solo mientras dura el giro (ver reader-book-flip.ts). */
+  private readonly bookFlip = new ReaderBookFlip({
+    shell: () => this.shellEl(),
+    layer: () => this.flipLayerRef?.nativeElement ?? null,
+    canvas: () => this.canvasEl(),
+    viewport: () => this.viewportEl(),
+    container: () => this.containerEl(),
+    gap: () => {
+      const canvas = this.canvasEl();
+      return canvas ? this.columnGap(canvas) : 0;
+    },
+  }, this.ngZone);
+  /** Arrastre de la hoja (mouse por los márgenes o cantos; dedo en cualquier parte). */
+  private flipDrag: { id: number; x: number; y: number; direction: 1 | -1; started: boolean; width: number } | null = null;
 
   // ── LÍNEA DEL LIBRO (deslizador de páginas de todo el libro) ─────
   // Solo el capítulo abierto está maquetado: sus páginas son exactas y las del resto se
@@ -168,7 +198,23 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private settingsReturnFocus: HTMLElement | null = null;
   // Atajos a los ajustes, con los nombres que usan el resto del lector y su template.
   get layoutMode(): ReaderSettings['layoutMode'] { return this.settings.value.layoutMode; }
-  get isPagedView(): boolean { return this.layoutMode === 'paged'; }
+  /** Libro y Páginas paginan igual (columnas CSS); Libro además dibuja el libro abierto alrededor. */
+  get isPagedView(): boolean { return this.layoutMode !== 'scroll'; }
+  get isBookView(): boolean { return this.layoutMode === 'book'; }
+  /** Libro delgado del celular: sin flechas fuera del libro (se pasa tocando los costados). */
+  get bookCompact(): boolean {
+    return this.bookFrameState?.compact ?? (window.innerWidth <= 640 || window.innerHeight <= 500);
+  }
+  /** La portadilla va en la primera página del capítulo 1, solo en la vista Libro. */
+  get isTitlePageInCanvas(): boolean { return this.isBookView && this.currentPage === 1 && this.chapters.length > 0; }
+  get isTitlePageVisible(): boolean { return this.isTitlePageInCanvas && this.currentSpreadIndex === 0; }
+  /** Lo que muestra la portadilla: si cambia, el texto congelado se vuelve a pintar. */
+  get titlePageKey(): string {
+    return this.isTitlePageInCanvas
+      ? [this.bookTitle, this.authorName, this.bookPublisher, this.bookYear, this.exLibrisName].join('|') : '';
+  }
+  get isAtBookStart(): boolean { return this.bookClosed === 'front' || (!this.isBookView && this.currentPage <= 1 && this.isFirstSpread); }
+  get isAtBookEnd(): boolean { return this.bookClosed === 'back' || (!this.isBookView && this.currentPage >= this.totalPages && this.isLastSpread); }
   get fontSize(): number { return this.settings.value.fontSize; }
   get lineHeight(): number { return this.settings.value.lineHeight; }
   get currentFontFamily(): ReaderSettings['fontFamily'] { return this.settings.value.fontFamily; }
@@ -456,6 +502,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       viewport?.addEventListener('pointermove', this.handleCanvasPointerMove, { passive: false });
       viewport?.addEventListener('pointerup', this.handleCanvasPointerUp);
       viewport?.addEventListener('pointercancel', this.handleCanvasPointerCancel);
+      // Vista Libro: arrastrar la hoja y levantar la esquina al acercar el mouse (todo el papel y los cantos).
+      const shell = this.shellEl();
+      shell?.addEventListener('pointerdown', this.handleShellPointerDown);
+      shell?.addEventListener('pointermove', this.handleShellPointerMove, { passive: false });
+      shell?.addEventListener('pointerup', this.handleShellPointerUp);
+      shell?.addEventListener('pointercancel', this.handleShellPointerUp);
+      shell?.addEventListener('pointerleave', this.handleShellPointerLeave);
       // Post-its en los márgenes: se arrastran desde su capa y se recolocan si el lienzo cambia de
       // tamaño (letra, ancho, barra que se oculta); el scroll y los giros de página van por onCanvasScroll.
       this.canvasResizeObserver = new ResizeObserver(() => this.scheduleMarginLayout());
@@ -483,6 +536,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private handleCanvasPointerMove = (event: PointerEvent) => {
     const down = this.canvasPointerDown;
     if (!down?.touch || !this.isPagedView || down.hadSelection || down.hadPopover) return;
+    if (this.canFlip()) return; // en la vista Libro con la hoja, el dedo arrastra la hoja (handleShellPointerMove)
     const dx = event.clientX - down.x;
     const dy = event.clientY - down.y;
     if (!this.isDraggingPage && (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.5)) return;
@@ -520,6 +574,92 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.applyPageTransform(true);
   };
 
+  // ── VISTA LIBRO: ARRASTRAR LA HOJA Y LEVANTAR LA ESQUINA (fuera de la zona de Angular) ──
+
+  private handleShellPointerDown = (event: PointerEvent) => {
+    if (!this.canFlip() || event.button !== 0) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, input, img, .margin-postit')) return;
+    // Con el mouse, arrastrar sobre el texto lo selecciona: la hoja se agarra por los márgenes o los cantos.
+    if (event.pointerType === 'mouse' && target.closest('.reader-viewport')) return;
+    if (this.menu?.showWordMenu || window.getSelection()?.toString().trim() || this.activeHighlight || this.activePostIt) return;
+    const rect = this.shellEl()?.getBoundingClientRect();
+    if (!rect) return;
+    this.flipDrag = {
+      id: event.pointerId, x: event.clientX, y: event.clientY, started: false, width: rect.width,
+      direction: event.clientX >= rect.left + rect.width / 2 ? 1 : -1,
+    };
+  };
+
+  private handleShellPointerMove = (event: PointerEvent) => {
+    const drag = this.flipDrag;
+    if (!drag) {
+      this.updatePeel(event);
+      return;
+    }
+    if (event.pointerId !== drag.id) return;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    if (!drag.started) {
+      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      const from = this.currentSpreadIndex;
+      const to = from + drag.direction;
+      // Hacia afuera no se dobla; entre capítulos se pasa tocando (el capítulo vecino aún no está pintado).
+      if ((drag.direction === 1 ? dx > 0 : dx < 0) || to < 0 || to >= this.totalSpreads) {
+        this.flipDrag = null;
+        return;
+      }
+      const started = this.ngZone.run(() => this.bookFlip.beginDrag(drag.direction, from,
+        () => { this.moveToSpread(to, false); this.cdr.detectChanges(); },
+        () => { this.moveToSpread(from, false); this.cdr.detectChanges(); }));
+      if (!started) {
+        this.flipDrag = null;
+        return;
+      }
+      drag.started = true;
+      this.suppressCanvasClick = true;
+      try { this.shellEl()?.setPointerCapture(event.pointerId); } catch { /* el puntero ya se soltó */ }
+    }
+    event.preventDefault();
+    this.bookFlip.dragTo(dx, drag.width, event.timeStamp);
+  };
+
+  private handleShellPointerUp = () => {
+    const drag = this.flipDrag;
+    this.flipDrag = null;
+    if (!drag?.started) return;
+    this.bookFlip.endDrag();
+    setTimeout(() => this.suppressCanvasClick = false, 0);
+  };
+
+  private handleShellPointerLeave = () => {
+    if (!this.flipDrag) this.bookFlip.unpeel();
+  };
+
+  /** Mouse cerca de la esquina de abajo de una página: la esquina se levanta, como invitando a tirar. */
+  private updatePeel(event: PointerEvent) {
+    if (event.pointerType !== 'mouse' || event.buttons !== 0) return;
+    if (!this.canFlip()) {
+      this.bookFlip.unpeel();
+      return;
+    }
+    const rect = this.shellEl()?.getBoundingClientRect();
+    if (!rect) return;
+    const zone = Math.min(72, rect.width * 0.08);
+    const low = event.clientY > rect.bottom - rect.height * 0.3;
+    const want = low && event.clientX > rect.right - zone && this.currentSpreadIndex < this.totalSpreads - 1 ? 1
+      : low && event.clientX < rect.left + zone && this.currentSpreadIndex > 0 ? -1 : 0;
+    if (want === 0) this.bookFlip.unpeel();
+    else if (!this.bookFlip.busy) this.bookFlip.peel(want, this.currentSpreadIndex);
+  }
+
+  /** La hoja se dobla con dos páginas a la vista, en la vista Libro y si no se pidió menos movimiento. */
+  private canFlip(): boolean {
+    return this.isBookView && this.columnsPerSpread === 2 && this.settings.value.pageTurn === 'flip'
+      && !this.bookClosed && this.isFullyRendered
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
   loadInitialData() {
     if (this.isInitialDataLoaded || this.isLoadingInitialData) return;
     this.isLoadingInitialData = true;
@@ -536,6 +676,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           this.bookSlug = inventory.book_slug;
           this.bookCover = inventory.book_cover || null;
           this.readerTabs.open({ id: this.inventoryId, title: this.bookTitle, author: this.authorName, cover: this.bookCover });
+          this.loadBookFrontMatter(inventory);
 
           if (inventory.progress.current_cfi) {
             try {
@@ -570,6 +711,35 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Book UUID para el tracking de sesión de logros */
   private _bookIdForSession: string | null = null;
+
+  /**
+   * Vista Libro: datos de la portadilla y la contratapa, el color de la tapa (sale de la portada) y,
+   * si el libro todavía no se abre nunca, se parte con el libro cerrado en la tapa.
+   */
+  private loadBookFrontMatter(inventory: any) {
+    const edition = inventory.edition || {};
+    this.bookSynopsis = edition.book?.synopsis || '';
+    this.bookPublisher = edition.publisher || '';
+    this.bookYear = String(edition.published_date || '').slice(0, 4);
+    const user: any = this.auth.currentUser();
+    this.exLibrisName = user?.profile?.display_name || user?.profile?.full_name || user?.username || '';
+
+    loadCoverBoardColor(this.bookCover).then(color => {
+      if (this.destroyed) return;
+      const style = this.containerEl()?.style;
+      if (color) style?.setProperty('--book-cover-src', color);
+      else style?.removeProperty('--book-cover-src');
+    });
+
+    const progress = inventory.progress || {};
+    const neverOpened = !progress.current_cfi && (Number(progress.current_page) || 1) <= 1
+      && !(Number(progress.completion_percentage) > 0);
+    const deepLink = !!this.pendingPassage || !!this.route.snapshot.queryParams['chapter'];
+    if (this.isBookView && neverOpened && !deepLink) {
+      this.bookClosed = 'front';
+      this.chromeVisible.set(true); // con el libro cerrado se ve cómo volver a la biblioteca
+    }
+  }
 
   // ── Barra del sistema (celular): toma el color del papel mientras el lector está abierto ──
   private themeColorMeta: HTMLMetaElement | null = null;
@@ -612,6 +782,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.viewportEl()?.removeEventListener('pointercancel', this.handleCanvasPointerCancel);
       this.rulerCanvasEl = null;
     }
+    const shell = this.shellEl();
+    shell?.removeEventListener('pointerdown', this.handleShellPointerDown);
+    shell?.removeEventListener('pointermove', this.handleShellPointerMove);
+    shell?.removeEventListener('pointerup', this.handleShellPointerUp);
+    shell?.removeEventListener('pointercancel', this.handleShellPointerUp);
+    shell?.removeEventListener('pointerleave', this.handleShellPointerLeave);
+    this.bookFlip.destroy();
     this.canvasResizeObserver?.disconnect();
     this.ruler.destroy();
     this.clearBookmarkHighlight();
@@ -857,6 +1034,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   private onSettingsChanged(keys: (keyof ReaderSettings)[]) {
     const changed = (...names: (keyof ReaderSettings)[]) => names.some(name => keys.includes(name));
+    this.bookFlip.finishNow(); // una hoja a medio girar tiene copias con la letra o el tema de antes
     const viewAnchor = changed('layoutMode') ? this.spreadAnchorWord : -1;
     if (changed('theme')) {
       this.cdr.detectChanges(); // la clase del contenedor cambia dentro del fundido
@@ -1260,6 +1438,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const nextIndex = startIndex + chunkSize;
         const reachedTarget = needsFullRender ? (nextIndex >= this.parsedBlocks.length) : (nextIndex > targetBlockIndex);
+        // Giro hacia el capítulo siguiente: la hoja da vuelta apenas su primera página está pintada.
+        if (this.bookFlip.frozenDirection === 1 && (nextIndex >= 30 || nextIndex >= this.parsedBlocks.length)) {
+          this.resumeChapterFlip();
+        }
 
         // Una vez alcanzado el bloque del progreso, restaurar scroll y ocultar Lottie
         if (reachedTarget && !lottieDismissed) {
@@ -1314,6 +1496,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.isFullyRendered = false; // Bloquear guardado de scroll
     renderChunks(0);
+  }
+
+  /** La hoja congelada al final (o al comienzo) del capítulo anterior da vuelta sobre el capítulo nuevo. */
+  private resumeChapterFlip() {
+    // Un setTimeout y no requestAnimationFrame: este último no corre si la pestaña no se ve, y el
+    // libro quedaría congelado hasta el seguro (la hoja misma ya se completa sola en ese caso).
+    setTimeout(() => {
+      if (this.destroyed || !this.bookFlip.frozenDirection) return;
+      this.updateSpreadPages(); // folios del pliego nuevo antes de copiar su página
+      this.cdr.detectChanges();
+      this.bookFlip.resumeFrozen(this.currentSpreadIndex);
+    }, 0);
   }
 
   /** El capítulo terminó de renderizarse: medir pliegos (y otra vez cuando carguen las fuentes). */
@@ -1372,7 +1566,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     const atStart = this.currentPage <= 1 && (this.isPagedView ? this.currentSpreadIndex === 0 : percent < 1);
     if (atStart) return;
     this.flashToast('📖', this.isPagedView
-      ? `Sigues en la pág. ${this.currentLeftPageNum} · cap. ${this.currentPage}`
+      ? `Sigues en la pág. ${this.isBookView ? this.bookPageCurrent : this.currentLeftPageNum} · cap. ${this.currentPage}`
       : `Sigues en el cap. ${this.currentPage} · ${percent} %`, 2000);
   }
 
@@ -1663,8 +1857,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    * Abre otro capítulo y, cuando termina de maquetarse, muestra el pliego pedido (por
    * número o como fracción del capítulo) o la palabra pedida, resaltada unos segundos.
    */
-  private openChapter(index: number, target: { spread?: number; fraction?: number; wordIdx?: number } = {}) {
+  private openChapter(index: number, target: { spread?: number; fraction?: number; wordIdx?: number } = {}, fromFlip = false) {
     if (index < 0 || index >= this.chapters.length) return;
+    // Cualquier salto abre el libro; solo el giro de hoja entre capítulos conserva su página congelada.
+    if (!fromFlip) this.bookFlip.cancelFrozen();
+    this.bookClosed = null;
     this.chromeVisible.set(false);
     this.stopNarrationForChapterChange();
     if (target.wordIdx !== undefined) {
@@ -1704,6 +1901,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    * palabra que se veía, sigue a la vista en el otro modo.
    */
   private relayoutForView(anchor: number) {
+    this.bookFlip.finishNow();
+    if (!this.isBookView) this.bookClosed = null;
+    this.applyBookGeometry(); // quita o pone las medidas del libro (Desplazamiento no re-maqueta pliegos)
     if (this.activeHighlight) this.closeHighlightPopover();
     if (this.activePostIt && !this.isEditingPostIt) this.closePostIt();
     this.invalidateRulerLines(); // cambia por completo el layout (columnas vs. continuo)
@@ -1781,6 +1981,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // girar el teléfono y volver retrocedía hasta el comienzo de la página apaisada.
     if (keptAnchor >= 0 && this.isWordVisible(keptAnchor)) this.spreadAnchorWord = keptAnchor;
     this.cdr.detectChanges();
+    // Giro hacia el capítulo anterior: su última página ya está maquetada, la hoja puede dar vuelta.
+    if (this.bookFlip.frozenDirection === -1 && this.isFullyRendered) this.bookFlip.resumeFrozen(this.currentSpreadIndex);
   }
 
   updateSpreadProgress() {
@@ -1805,6 +2007,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   turnSpreadNext() {
+    if (this.isBookView && this.bookClosed) {
+      if (this.bookClosed === 'front') this.openClosedBook();
+      return;
+    }
     if (!this.isPagedView) {
       const canvas = this.canvasEl();
       if (canvas && canvas.scrollTop < canvas.scrollHeight - canvas.clientHeight - 2) canvas.scrollBy({ top: canvas.clientHeight * 0.9, behavior: 'smooth' });
@@ -1815,11 +2021,19 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.currentSpreadIndex < this.totalSpreads - 1) {
       this.goToSpread(this.currentSpreadIndex + 1, { animate: true });
     } else if (this.currentPage < this.totalPages) {
-      this.nextPage();
+      // La hoja da vuelta sobre el capítulo siguiente apenas se pinta su primera página.
+      const flipping = this.canFlip() && this.bookFlip.freeze(1, this.currentSpreadIndex);
+      this.openChapter(this.currentPage, {}, flipping);
+    } else if (this.isBookView) {
+      this.closeBook('back');
     }
   }
 
   turnSpreadPrev() {
+    if (this.isBookView && this.bookClosed) {
+      if (this.bookClosed === 'back') this.openClosedBook();
+      return;
+    }
     if (!this.isPagedView) {
       const canvas = this.canvasEl();
       if (canvas && canvas.scrollTop > 2) canvas.scrollBy({ top: -canvas.clientHeight * 0.9, behavior: 'smooth' });
@@ -1831,17 +2045,70 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       this.goToSpread(this.currentSpreadIndex - 1, { animate: true });
     } else if (this.currentPage > 1) {
       // Como en un libro de papel: al retroceder se llega a la ÚLTIMA página del capítulo anterior.
-      this.openChapter(this.currentPage - 2, { spread: Infinity });
+      const flipping = this.canFlip() && this.bookFlip.freeze(-1, this.currentSpreadIndex);
+      this.openChapter(this.currentPage - 2, { spread: Infinity }, flipping);
+    } else if (this.isBookView) {
+      this.closeBook('front');
     }
   }
 
-  /** Muestra un pliego, con deslizamiento opcional y controles ocultos. */
+  /** Vista Libro: cierra el libro en la tapa (antes de la primera página) o en la contratapa. */
+  private closeBook(side: 'front' | 'back') {
+    this.bookFlip.finishNow();
+    if (side === 'back' && this.autoScrollActive) this.toggleAutoScroll(false);
+    this.bookClosed = side;
+    this.chromeVisible.set(true); // con el libro cerrado se ve cómo volver a la biblioteca
+    this.pageAnnouncement = side === 'front' ? `Tapa de ${this.bookTitle}` : `Contratapa de ${this.bookTitle}`;
+  }
+
+  /** Abre el libro cerrado: desde la tapa en la primera página, desde la contratapa en la última. */
+  openClosedBook() {
+    const side = this.bookClosed;
+    if (!side) return;
+    this.bookClosed = null;
+    this.chromeVisible.set(false);
+    if (side === 'front' && (this.currentPage !== 1 || this.currentSpreadIndex !== 0)) {
+      this.openChapter(0);
+      return;
+    }
+    this.cdr.detectChanges();
+    this.scheduleMarginLayout();
+    this.announcePage();
+  }
+
+  /** Flechas |‹ ›| de la vista Libro: al comienzo o al final del capítulo. */
+  goToChapterEdge(edge: 'start' | 'end') {
+    this.goToSpread(edge === 'start' ? 0 : this.totalSpreads - 1, { animate: true });
+  }
+
+  /**
+   * Muestra un pliego con controles ocultos. Con la hoja (vista Libro, dos páginas) el pliego vecino
+   * llega dando vuelta una hoja; los saltos más largos y las demás vistas deslizan o cambian directo.
+   */
   private goToSpread(index: number, opts: { animate?: boolean } = {}) {
+    const canvas = this.canvasEl();
+    if (!canvas || !this.isPagedView) return;
+    const target = Math.max(0, Math.min(index, this.totalSpreads - 1));
+    this.bookClosed = null;
+    if (opts.animate && Math.abs(target - this.currentSpreadIndex) === 1 && this.canFlip()) {
+      const from = this.currentSpreadIndex;
+      const flipped = this.bookFlip.turn(target > from ? 1 : -1, from, () => {
+        this.moveToSpread(target, false);
+        this.cdr.detectChanges(); // folios y cabecera del pliego nuevo, antes de copiar su página
+      });
+      if (flipped) return;
+    }
+    this.bookFlip.finishNow();
+    this.moveToSpread(target, !!opts.animate);
+  }
+
+  private moveToSpread(target: number, animate: boolean) {
     const canvas = this.canvasEl();
     if (!canvas || !this.isPagedView) return;
     if (this.activeHighlight) this.closeHighlightPopover();
     if (this.activePostIt && !this.isEditingPostIt) this.closePostIt();
-    const target = Math.max(0, Math.min(index, this.totalSpreads - 1));
+    // En la vista Libro un salto de varias páginas no desliza el texto por dentro del papel: funde.
+    const jump = this.isBookView && Math.abs(target - this.currentSpreadIndex) > 1;
     this.invalidateRulerLines(); // el pliego cambia: las líneas visibles ya no son las mismas
     this.currentSpreadIndex = target;
     this.updateSpreadPages();
@@ -1849,24 +2116,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.chromeVisible.set(false);
     this.pageOffsetX = this.currentSpreadIndex * this.spreadStride(canvas);
-    this.applyPageTransform(!!opts.animate);
+    this.applyPageTransform(animate ? (jump ? 'fade' : true) : false);
     this.afterSpreadChange();
     clearTimeout(this.flipTimer);
     this.flipTimer = setTimeout(() => {
       this.afterSpreadChange();
       this.cdr.markForCheck();
-    }, opts.animate && this.settings.value.pageTurn === 'slide' ? 220 : 0);
+    }, animate && !jump && this.settings.value.pageTurn !== 'none' ? 220 : 0);
   }
 
-  private applyPageTransform(animate: boolean): void {
+  /** Mueve el lienzo al pliego actual: deslizando, con un fundido (`'fade'`) o directo. */
+  private applyPageTransform(animate: boolean | 'fade'): void {
     const canvas = this.canvasEl();
     if (!canvas) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const slide = animate && this.settings.value.pageTurn === 'slide' && !reduced;
+    const turn = this.settings.value.pageTurn;
+    // "Hoja" desliza cuando no puede doblar (una sola página, o mientras el capítulo se pinta).
+    const slide = animate === true && turn !== 'none' && !reduced;
     canvas.style.transition = slide ? 'transform 220ms ease-out' : 'none';
     canvas.style.transform = this.isPagedView ? `translateX(${-this.pageOffsetX + this.dragOffsetX}px)` : '';
-    if (animate && reduced && this.settings.value.pageTurn !== 'none') {
-      canvas.animate([{ opacity: 0.55 }, { opacity: 1 }], { duration: 120 });
+    if ((animate === 'fade' || (animate && reduced)) && turn !== 'none') {
+      canvas.animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: reduced ? 120 : 180, easing: 'ease-out' });
     }
   }
 
@@ -1907,16 +2177,66 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private announcePage() {
     if (!this.isPagedView) return;
-    const left = this.currentLeftPageNum;
-    const pages = this.columnsPerSpread === 2 && left < this.chapterPageCount
-      ? `Páginas ${left} y ${left + 1}`
-      : `Página ${left}`;
-    this.pageAnnouncement = `${pages} de ${this.chapterPageCount}`;
+    this.pageAnnouncement = this.pagePositionLabel
+      .replace('Págs.', 'Páginas').replace('Pág.', 'Página').replace('–', ' y ');
   }
 
   /** Ventana inmóvil: recorta el texto y sirve de origen a regla, post-its y narración. */
   viewportEl(): HTMLElement | null {
     return document.querySelector('.reader-viewport');
+  }
+
+  /** El papel (en la vista Libro, las páginas del libro abierto). */
+  private shellEl(): HTMLElement | null {
+    return document.querySelector('.rd-shell');
+  }
+
+  /** Contenedor del lector: lleva las medidas del libro (--book-*) y el color de la tapa. */
+  private containerEl(): HTMLElement | null {
+    return document.querySelector('.workbench-container');
+  }
+
+  /** Vista Libro: tamaño del libro, márgenes del papel y cantos, como variables CSS del contenedor. */
+  private applyBookGeometry() {
+    const container = this.containerEl();
+    if (!container) return;
+    if (!this.isBookView) {
+      if (this.bookFrameState) {
+        BOOK_CSS_VAR_NAMES.forEach(name => container.style.removeProperty(name));
+        this.bookFrameState = null;
+      }
+      return;
+    }
+    const frame = bookFrame({
+      width: container.clientWidth || window.innerWidth,
+      height: container.clientHeight || window.innerHeight,
+      columns: columnsForViewport(window.innerWidth, window.innerHeight),
+    });
+    const vars = bookCssVars(frame, this.settings.value.margins, this.bookReadFraction());
+    for (const [name, value] of Object.entries(vars)) container.style.setProperty(name, value);
+    this.bookFrameState = frame;
+  }
+
+  private bookReadFraction(): number {
+    return this.bookPageTotal > 1 ? (this.bookPageCurrent - 1) / (this.bookPageTotal - 1) : 0;
+  }
+
+  /** Los cantos acompañan la lectura: crecen a la izquierda y se adelgazan a la derecha. */
+  private updateBookEdges() {
+    if (!this.isBookView || !this.bookFrameState) return;
+    const edges = bookEdges(this.bookReadFraction(), this.bookFrameState);
+    const style = this.containerEl()?.style;
+    style?.setProperty('--book-edge-left', `${edges.left}px`);
+    style?.setProperty('--book-edge-right', `${edges.right}px`);
+  }
+
+  /** "Págs. 34–35 de 612" (en la vista Libro, páginas de todo el libro; en Páginas, del capítulo). */
+  get pagePositionLabel(): string {
+    if (this.isBookView && this.bookClosed) return this.bookClosed === 'front' ? 'Tapa' : 'Contratapa';
+    const two = this.columnsPerSpread === 2 && this.currentLeftPageNum < this.chapterPageCount;
+    const left = this.isBookView ? this.bookPageCurrent : this.currentLeftPageNum;
+    const total = this.isBookView ? this.bookPageTotal : this.chapterPageCount;
+    return `${two ? `Págs. ${left}–${left + 1}` : `Pág. ${left}`} de ${total}`;
   }
 
   private spreadStride(canvas: HTMLElement): number {
@@ -1950,6 +2270,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private fitLinesToPage(canvas: HTMLElement) {
+    this.applyBookGeometry(); // en la vista Libro el papel tiene el tamaño del libro, no de la pantalla
     const viewport = this.viewportEl();
     if (!viewport) return;
     this.linesPerPage = fitLinesToPage(viewport.clientHeight, this.fontSize, this.lineHeight);
@@ -1986,6 +2307,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private relayoutAfterResize() {
+    this.bookFlip.finishNow(); // las copias de la hoja tienen el tamaño de antes
     this.invalidateRulerLines(); // el reflow puede desplazar todas las líneas
     this.scheduleMarginLayout();
     if (this.isPagedView) {
@@ -2197,6 +2519,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     this.chapterStartPages = starts;
     this.bookPageTotal = Math.max(1, start - 1);
     this.bookPageCurrent = Math.min(this.bookPageTotal, starts[cur] + this.currentSpreadIndex * perSpread);
+    this.updateBookEdges();
   }
 
   private bookLayoutKey(): string {
@@ -2261,8 +2584,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly vocabularyPageLabel = (chapterIndex: number, wordIdx: number, wordCount: number): string => {
     const word = chapterIndex === this.currentPage - 1 ? document.getElementById(`word-${wordIdx}`) : null;
     const canvas = this.canvasEl();
-    return this.isPagedView && word && canvas
-      ? `pág. ${this.pageOfElement(word, canvas) + 1}` : `cap. ${chapterIndex + 1}`;
+    if (!this.isPagedView || !word || !canvas) return `cap. ${chapterIndex + 1}`;
+    const page = this.pageOfElement(word, canvas);
+    // En la vista Libro, la página de todo el libro (la misma del folio).
+    return `pág. ${this.isBookView ? (this.chapterStartPages[chapterIndex] || 1) + page : page + 1}`;
   };
 
   /** Cuaderno → lector: abre el capítulo del pasaje y lo resalta (espera a los capítulos si aún no llegan). */
@@ -2300,7 +2625,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const range = this.visibleWordRange();
     if (!range || !this.currentChapterId) return;
-    const page = this.currentLeftPageNum;
+    const page = this.isBookView ? this.bookPageCurrent : this.currentLeftPageNum;
     this.isBookmarkBusy = true;
     this.annotations.addBookmark(this.currentPage - 1, range[0], this.snippetFrom(range[0])).subscribe({
       next: () => {
@@ -2740,6 +3065,8 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private queueProgress(exactPage: number, wordId = '', immediate = false) {
+    // Mirar la tapa no es empezar a leer: hasta abrirlo, el libro vuelve a aparecer cerrado.
+    if (this.bookClosed === 'front') return;
     const firstWord = !wordId && this.isFullyRendered ? this.visibleWordRange()?.[0] : undefined;
     this.saveProgressSubject.next({
       chapter: this.currentPage,

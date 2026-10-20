@@ -13,6 +13,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { VocabularyService } from '../../core/services/vocabulary.service';
 import { ReadingSummaryService } from '../../core/services/reading-summary.service';
 import { NotebookService } from '../../notebook/notebook.service';
+import { AuthService } from '../../core/services/auth.service';
 import { BookSearchService } from './book-search.service';
 import { ReaderComponent } from './reader.component';
 import { ReaderAnnotationsService } from './reader-annotations.service';
@@ -34,7 +35,7 @@ describe('interacciones del e-reader', () => {
   let originalWindowWidth: PropertyDescriptor | undefined;
 
   const applyLayout = () => {
-    const paged = settings.value.layoutMode === 'paged';
+    const paged = settings.value.layoutMode !== 'scroll';
     if (flowLayout) {
       canvas.style.width = `${flowWidth}px`;
       viewport.style.width = `${flowWidth}px`;
@@ -97,7 +98,8 @@ describe('interacciones del e-reader', () => {
     flowStyle = null;
     originalWindowWidth = Object.getOwnPropertyDescriptor(window, 'innerWidth');
     settings = {
-      value: { ...DEFAULT_READER_SETTINGS, pageTurn: 'none', wpm: 120, wpmAuto: false },
+      // Estas pruebas cubren la vista Páginas (papel a pantalla completa); la vista Libro tiene las suyas.
+      value: { ...DEFAULT_READER_SETTINGS, layoutMode: 'paged', pageTurn: 'none', wpm: 120, wpmAuto: false },
       changes$: new Subject(),
       update: patch => {
         const keys = (Object.keys(patch) as (keyof ReaderSettings)[]).filter(key => settings.value[key] !== patch[key]);
@@ -114,6 +116,7 @@ describe('interacciones del e-reader', () => {
       { provide: ReaderNarrationService, useValue: { stop: () => undefined } },
       { provide: ReaderAnnotationsService, useValue: { bookmarks: [], bookmarkIn: () => null } },
       { provide: ReadingSessionService, useValue: { endSession: () => undefined } },
+      { provide: AuthService, useValue: { currentUser: () => null } },
       { provide: ChangeDetectorRef, useValue: { detectChanges: applyLayout, markForCheck: () => undefined } },
     ] });
     reader = TestBed.runInInjectionContext(() => new ReaderComponent());

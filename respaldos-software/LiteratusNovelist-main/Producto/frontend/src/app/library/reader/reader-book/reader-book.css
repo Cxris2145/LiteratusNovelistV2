@@ -1,0 +1,396 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   VISTA LIBRO: el mismo paginador de la vista Páginas, dentro de un libro abierto.
+   Las medidas (--book-*) las calcula reader-book-geometry.ts y las pone el lector en el
+   contenedor. Orden de pintado: escenario → tapa, lomo y cantos (z-index -1, detrás del
+   papel) → papel (.rd-shell) → sombra del lomo → texto → hoja que gira.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.workbench-container.rd-book-mode {
+  --book-stage: #ebe7de;
+  --book-stage-edge: #d8d2c4;
+  --book-board-fallback: #4f5d4b;
+  --book-board: var(--book-cover-src, var(--book-board-fallback));
+  --book-fold: rgba(40, 28, 16, .2);
+  --book-fold-deep: rgba(40, 28, 16, .34);
+  --book-edge-line: color-mix(in srgb, var(--rd-ink) 20%, var(--rd-paper));
+  --book-cast: rgba(36, 26, 14, .42);
+  --book-arrow: color-mix(in srgb, var(--rd-ink) 48%, transparent);
+  background:
+    radial-gradient(120% 85% at 50% 40%, var(--book-stage) 0%, var(--book-stage-edge) 100%);
+}
+.workbench-container.rd-book-mode.theme-sepia {
+  --book-stage: #e9dfc9;
+  --book-stage-edge: #d4c4a2;
+  --book-board-fallback: #6b4a2c;
+}
+.workbench-container.rd-book-mode.theme-gris {
+  --book-stage: #d6d9dd;
+  --book-stage-edge: #c2c6cc;
+  --book-board-fallback: #46505e;
+}
+.workbench-container.rd-book-mode.theme-dark {
+  --book-stage: #121a29;
+  --book-stage-edge: #0a0f19;
+  --book-board-fallback: #26324a;
+  --book-board: color-mix(in srgb, var(--book-cover-src, var(--book-board-fallback)) 70%, #05070c);
+  --book-fold: rgba(0, 0, 0, .32);
+  --book-fold-deep: rgba(0, 0, 0, .5);
+  --book-cast: rgba(0, 0, 0, .6);
+}
+.workbench-container.rd-book-mode.theme-nocturno {
+  /* OLED: casi sin tapa, para no encender píxeles. */
+  --book-stage: #000;
+  --book-stage-edge: #000;
+  --book-board-fallback: #0d0d0d;
+  --book-board: #0d0d0d;
+  --book-fold: rgba(255, 255, 255, .03);
+  --book-fold-deep: rgba(255, 255, 255, .05);
+  --book-edge-line: #2a2a2a;
+  --book-cast: transparent;
+  background: #000;
+}
+.workbench-container.rd-book-mode.rc-high-contrast {
+  --book-fold: transparent;
+  --book-fold-deep: transparent;
+  --book-edge-line: var(--rd-ink);
+}
+
+/* ── El papel: rd-shell deja de ocupar la pantalla y toma el tamaño del libro ── */
+.rd-book-mode .rd-shell {
+  position: absolute;
+  left: var(--book-x, 0px);
+  top: var(--book-y, 0px);
+  flex: none;
+  width: var(--book-w, 100%);
+  height: var(--book-h, 100%);
+  padding:
+    calc(var(--book-pad-top, 52px) + env(safe-area-inset-top, 0px))
+    var(--reader-page-margin, 40px)
+    calc(var(--book-pad-bottom, 42px) + env(safe-area-inset-bottom, 0px));
+  background: var(--rd-paper);
+  border-radius: 1px;
+}
+.rd-book-mode.rd-book-closed .rd-shell { visibility: hidden; }
+
+/* ── Tapa dura: asoma alrededor del papel; a los lados deja lugar para los cantos ── */
+.rd-book-board {
+  position: absolute;
+  z-index: -1;
+  top: calc(-1 * var(--book-board-w));
+  bottom: calc(-1 * var(--book-board-w));
+  left: calc(-1 * (var(--book-board-w) + var(--book-edge-max)));
+  right: calc(-1 * (var(--book-board-w) + var(--book-edge-max)));
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(0, 0, 0, .1)),
+    var(--book-board);
+  box-shadow:
+    0 26px 50px -22px var(--book-cast),
+    0 3px 9px rgba(0, 0, 0, .16);
+  pointer-events: none;
+}
+/* Una sola página: el lomo queda a la izquierda (más oscuro) y el canto a la derecha. */
+.rd-book-mode .rd-shell:not(.rd-two-pages) .rd-book-board {
+  left: calc(-1 * (var(--book-board-w) + var(--book-spine)));
+  border-radius: 2px 5px 5px 2px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .34) 0, rgba(0, 0, 0, .12) calc(var(--book-spine) + 2px), transparent calc(var(--book-spine) + 10px)),
+    linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(0, 0, 0, .1)),
+    var(--book-board);
+}
+
+/* Lomo: con dos páginas se ve arriba y abajo, entre las dos tapas. */
+.rd-book-spine {
+  position: absolute;
+  z-index: -1;
+  top: calc(-1 * var(--book-board-w) - 1px);
+  bottom: calc(-1 * var(--book-board-w) - 1px);
+  left: 50%;
+  width: calc(var(--book-board-w) * 2.8);
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .34), rgba(0, 0, 0, .08) 32%, rgba(255, 255, 255, .1) 50%, rgba(0, 0, 0, .08) 68%, rgba(0, 0, 0, .34)),
+    var(--book-board);
+  pointer-events: none;
+}
+
+/* Cantos: muchas hojas vistas de lado. Tocarlos pasa la página (el clic sube a rd-shell). */
+.rd-book-edge {
+  position: absolute;
+  z-index: -1;
+  top: 2px;
+  bottom: 2px;
+  cursor: pointer;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .14), transparent 70%),
+    repeating-linear-gradient(90deg, var(--rd-paper) 0 1px, var(--book-edge-line) 1px 2px);
+  transition: width 260ms ease, left 260ms ease, right 260ms ease;
+}
+.rd-book-edge-left {
+  left: calc(-1 * var(--book-edge-left));
+  width: var(--book-edge-left);
+  border-radius: 3px 0 0 3px;
+}
+.rd-book-edge-right {
+  right: calc(-1 * var(--book-edge-right));
+  width: var(--book-edge-right);
+  border-radius: 0 3px 3px 0;
+  background:
+    linear-gradient(270deg, rgba(0, 0, 0, .14), transparent 70%),
+    repeating-linear-gradient(90deg, var(--rd-paper) 0 1px, var(--book-edge-line) 1px 2px);
+}
+
+/* Sombra del lomo sobre el papel (y un leve oscurecido hacia los bordes exteriores). */
+.rd-book-gutter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(0, 0, 0, .05) 0, transparent 3%,
+    transparent 41%, var(--book-fold) 47.4%, var(--book-fold-deep) 49.6%, rgba(0, 0, 0, .42) 50%,
+    var(--book-fold-deep) 50.4%, var(--book-fold) 52.6%, transparent 59%,
+    transparent 97%, rgba(0, 0, 0, .05) 100%);
+}
+.rd-book-mode .rd-shell:not(.rd-two-pages) .rd-book-gutter {
+  background: linear-gradient(90deg,
+    var(--book-fold-deep) 0, var(--book-fold) 2.4%, transparent 9%,
+    transparent 96%, rgba(0, 0, 0, .05) 100%);
+}
+.rd-book-mode.theme-nocturno .rd-book-gutter,
+.rd-book-mode.rc-high-contrast .rd-book-gutter { background: none; }
+.rd-book-mode.rc-high-contrast .rd-two-pages .rd-book-gutter {
+  background: linear-gradient(90deg, transparent calc(50% - 1px), var(--rd-ink) calc(50% - 1px), var(--rd-ink) calc(50% + 1px), transparent calc(50% + 1px));
+}
+
+/* Cabecera y folios dentro de los márgenes del papel, como en un libro impreso. */
+.rd-book-mode .rd-running-head {
+  top: calc(var(--book-pad-top, 52px) * .38 + env(safe-area-inset-top, 0px));
+  left: var(--reader-page-margin, 40px);
+  right: var(--reader-page-margin, 40px);
+  font-size: 11.5px;
+  letter-spacing: .09em;
+}
+.rd-book-mode .rd-two-pages .rd-running-head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: calc(2 * var(--reader-page-margin, 40px));
+}
+.rd-book-mode .rd-two-pages .rd-running-book,
+.rd-book-mode .rd-two-pages .rd-running-chapter { max-width: none; }
+.rd-book-mode .rd-two-pages .rd-running-book { text-align: left; }
+.rd-book-mode .rd-two-pages .rd-running-chapter { text-align: right; }
+.rd-book-mode .rd-page-footer {
+  bottom: calc(var(--book-pad-bottom, 42px) * .3 + env(safe-area-inset-bottom, 0px));
+  left: var(--reader-page-margin, 40px);
+  right: var(--reader-page-margin, 40px);
+  font-size: 12.5px;
+  font-variant-numeric: oldstyle-nums;
+  letter-spacing: .04em;
+}
+
+/* Cinta del marcador: cuelga desde el borde de arriba de la página derecha. */
+.rd-book-mode .rd-bookmark-corner {
+  top: calc(-1 * var(--book-board-w, 10px) - 4px);
+  right: calc(var(--reader-page-margin, 40px) * .55);
+  width: 44px;
+  height: 62px;
+}
+.rd-book-mode .rd-bookmark-corner::before {
+  top: 0;
+  right: 14px;
+  width: 15px;
+  height: 30px;
+  border: 0;
+  background: color-mix(in srgb, var(--rd-ink) 24%, var(--rd-paper));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  box-shadow: none;
+  transition: height 200ms cubic-bezier(.22, 1, .36, 1), background-color 160ms ease;
+}
+.rd-book-mode .rd-bookmark-corner.marked::before,
+.rd-book-mode .rd-bookmark-corner[aria-pressed='true']::before {
+  height: 52px;
+  background: var(--rd-title);
+}
+@media (hover: hover) and (pointer: fine) {
+  .rd-book-mode .rd-bookmark-corner:not(.marked):hover::before { height: 38px; }
+}
+
+/* ── Flechas fuera del libro (escritorio): no tapan el texto, por eso se ven siempre ── */
+.rd-book-arrow,
+.rd-book-jump {
+  position: absolute;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--book-arrow);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: color 140ms ease, background-color 140ms ease, opacity 140ms ease, transform 100ms ease-out;
+}
+.rd-book-arrow {
+  top: calc(var(--book-y, 50%) + var(--book-h, 0px) / 2);
+  width: 52px;
+  height: 84px;
+  margin-top: -42px;
+  border-radius: 12px;
+}
+.rd-book-arrow .material-symbols-rounded { font-size: 44px; font-variation-settings: 'wght' 250; }
+.rd-book-jump {
+  top: calc(var(--book-y, 50%) + var(--book-h, 0px) - 40px);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+.rd-book-jump .material-symbols-rounded { font-size: 24px; }
+.rd-book-prev,
+.rd-book-first {
+  left: max(6px, calc((var(--book-x, 0px) - var(--book-board-w, 10px) - var(--book-edge-max, 14px)) / 2 - 26px));
+}
+.rd-book-next,
+.rd-book-last {
+  right: max(6px, calc((100% - var(--book-x, 0px) - var(--book-w, 0px) - var(--book-board-w, 10px) - var(--book-edge-max, 14px)) / 2 - 26px));
+}
+.rd-book-jump.rd-book-first { margin-left: 4px; }
+.rd-book-jump.rd-book-last { margin-right: 4px; }
+.rd-book-arrow:active:not(:disabled),
+.rd-book-jump:active:not(:disabled) { transform: scale(.94); }
+.rd-book-arrow:disabled,
+.rd-book-jump:disabled { opacity: .22; cursor: default; }
+.rd-book-arrow:focus-visible,
+.rd-book-jump:focus-visible { outline: 2px solid var(--rd-accent); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .rd-book-arrow:hover:not(:disabled),
+  .rd-book-jump:hover:not(:disabled) {
+    color: var(--rd-ink);
+    background: color-mix(in srgb, var(--rd-ink) 7%, transparent);
+  }
+}
+
+/* ── Portadilla: primera página del capítulo 1 en la vista Libro ── */
+.reader-viewport .reading-canvas .rd-title-page {
+  display: none;
+}
+.rd-book-mode .reader-viewport.rd-paged .reading-canvas .rd-title-page {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--reader-renglon-height, 32px) * .5);
+  height: calc(var(--reader-lines-per-page, 17) * var(--reader-renglon-height, 32px));
+  margin: 0;
+  padding: 0 4%;
+  text-align: center;
+  break-inside: avoid;
+  break-after: column;
+  color: var(--rd-ink);
+  font-family: inherit;
+  user-select: none;
+}
+.rd-tp-author {
+  font-size: .82em;
+  font-variant: small-caps;
+  letter-spacing: .14em;
+  color: var(--rd-muted);
+}
+.rd-tp-title {
+  font-family: 'Cinzel', var(--rd-font);
+  font-size: 1.55em;
+  line-height: 1.25;
+  color: var(--rd-title);
+  text-wrap: balance;
+}
+.rd-tp-rule {
+  display: block;
+  width: 3.2em;
+  height: 1px;
+  background: currentColor;
+  opacity: .35;
+}
+.rd-tp-publisher { font-size: .78em; letter-spacing: .06em; color: var(--rd-muted); }
+.rd-tp-exlibris {
+  display: grid;
+  gap: 2px;
+  margin-top: calc(var(--reader-renglon-height, 32px) * 1.2);
+  padding: .55em 1.2em;
+  border: 1px solid color-mix(in srgb, var(--rd-ink) 22%, transparent);
+  border-radius: 2px;
+  font-size: .78em;
+  color: var(--rd-muted);
+}
+.rd-tp-exlibris em { font-family: 'Cinzel', var(--rd-font); font-style: normal; letter-spacing: .12em; color: var(--rd-title); }
+.rd-tp-exlibris span { font-style: italic; color: var(--rd-ink); }
+.rd-tp-brand {
+  margin-top: auto;
+  font-family: 'Cinzel', serif;
+  font-size: .66em;
+  letter-spacing: .2em;
+  color: color-mix(in srgb, var(--rd-muted) 80%, transparent);
+}
+
+/* ── Libro delgado del celular ── */
+.rd-book-compact .rd-book-board { border-radius: 2px 4px 4px 2px; box-shadow: none; }
+.rd-book-compact .rd-bookmark-corner { top: calc(-1 * var(--book-board-w, 3px)); right: 10px; }
+.rd-book-compact .rd-running-head { font-size: 10.5px; }
+
+/* ── La hoja que se dobla ──
+   Estos elementos los crea reader-book-flip.ts: lleva el atributo de estilos del lector
+   (lo copia de .rd-flip-layer), así que estas reglas y las del lienzo también les aplican. */
+.rd-flip-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+}
+.rd-flip-layer:empty { display: none; }
+.rd-flip-page {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: var(--rd-paper);
+}
+.rd-flip-page > .rd-snap {
+  position: absolute;
+  inset: 0;
+}
+.rd-flip-leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  will-change: transform;
+}
+.rd-flip-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--rd-paper);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.rd-flip-face.is-back { transform: rotateY(180deg); }
+.rd-flip-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.rd-flip-cast {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+/* Mientras gira, lo que se ancla a la página nueva espera a que la hoja asiente
+   (los post-its viven en su propio componente: ::ng-deep). */
+.rd-book-mode.is-flipping .narration-marker,
+.rd-book-mode.is-flipping ::ng-deep .margin-postit { opacity: 0 !important; transition: none !important; }

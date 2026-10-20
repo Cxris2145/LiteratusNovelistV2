@@ -6,9 +6,11 @@
 export type ReaderTheme = 'dark' | 'light' | 'sepia' | 'nocturno' | 'gris';
 export type ReaderFontId = 'times' | 'literata' | 'merriweather' | 'garamond' | 'georgia' | 'palatino'
   | 'outfit' | 'opensans' | 'atkinson' | 'lexend' | 'opendyslexic' | 'cinzel';
-export type ReaderLayoutMode = 'paged' | 'scroll';
+/** Libro: páginas dentro de un libro abierto (tapa, lomo, cantos) · Páginas: papel a pantalla completa · Desplazamiento. */
+export type ReaderLayoutMode = 'book' | 'paged' | 'scroll';
 export type ReaderMargins = 'narrow' | 'normal' | 'wide';
-export type ReaderPageTurn = 'slide' | 'none';
+/** Hoja: la página se dobla sobre el lomo (vista Libro con dos páginas); en los demás casos desliza. */
+export type ReaderPageTurn = 'flip' | 'slide' | 'none';
 export type TextAlign = 'left' | 'justify';
 /** Sin espacio entre párrafos (con sangría) | un renglón | dos renglones. */
 export type ParaSpacing = 'tight' | 'normal' | 'relaxed';
@@ -57,13 +59,27 @@ export const DEFAULT_FONT_SIZE = 20;
 export const DEFAULT_READER_SETTINGS: Readonly<ReaderSettings> = {
   fontSize: DEFAULT_FONT_SIZE, fontFamily: 'times', theme: 'light', lineHeight: 1.4,
   margins: 'normal', textAlign: 'justify', paraSpacing: 'tight', letterSpacing: 0, wordSpacing: 0,
-  brightness: 1, highContrast: false, highlightColor: 'gold', layoutMode: 'paged', pageTurn: 'slide', sceneImages: true,
+  brightness: 1, highContrast: false, highlightColor: 'gold', layoutMode: 'book', pageTurn: 'flip', sceneImages: true,
   hideProgress: false, bionic: false, focusMode: 'off', ruler: false, concentration: false,
   longParaSplit: false, tapToScroll: false, autoScrollSpeed: 35, wpm: 200, wpmAuto: true,
   showReadingTime: true,
 };
 
 export const READER_SETTINGS_KEY = 'reader-settings-v2';
+/** Marca que ya se pasó una vez a la vista Libro (antes "Páginas" era lo de fábrica para todos). */
+export const BOOK_VIEW_MIGRATION_KEY = 'reader-book-view-v1';
+
+/**
+ * Hasta octubre de 2026 "Páginas" y "Deslizar" venían de fábrica, así que no se sabe quién los eligió:
+ * una sola vez pasan a la vista Libro con la hoja que se dobla. Desplazamiento y "Sin animación" se respetan.
+ */
+export function migrateToBookView(s: ReaderSettings): ReaderSettings {
+  return {
+    ...s,
+    layoutMode: s.layoutMode === 'paged' ? 'book' : s.layoutMode,
+    pageTurn: s.pageTurn === 'slide' ? 'flip' : s.pageTurn,
+  };
+}
 
 export interface FontOption { id: ReaderFontId; label: string; group: string; note?: string }
 
@@ -146,7 +162,8 @@ export function sanitizeReaderSettings(raw: ReaderSettingsInput): ReaderSettings
   const wpm = num(raw.wpm);
   const oldMargins = { narrow: 'wide', medium: 'normal', wide: 'narrow' } as const;
   const margins = raw.margins ?? oldMargins[raw.readingWidth as keyof typeof oldMargins];
-  const layoutMode = raw.layoutMode ?? (typeof raw.doublePage === 'boolean' ? raw.doublePage ? 'paged' : 'scroll' : undefined);
+  // La "doble página" de antes era el libro abierto.
+  const layoutMode = raw.layoutMode ?? (typeof raw.doublePage === 'boolean' ? raw.doublePage ? 'book' : 'scroll' : undefined);
   return {
     // La letra se reencuadra al rango (una guardada en 12 px pasa a 14), como hacía el lector.
     fontSize: Number.isFinite(fontSize) ? clamp(Math.round(fontSize), FONT_MIN, FONT_MAX) : d.fontSize,
@@ -161,8 +178,8 @@ export function sanitizeReaderSettings(raw: ReaderSettingsInput): ReaderSettings
     brightness: Math.min(1, inRange(raw.brightness, 0.6, 1.1, d.brightness)),
     highContrast: bool(raw.highContrast, d.highContrast),
     highlightColor: pick(raw.highlightColor, HIGHLIGHT_COLOR_OPTIONS.map(h => h.id), d.highlightColor),
-    layoutMode: pick(layoutMode, ['paged', 'scroll'] as const, d.layoutMode),
-    pageTurn: pick(raw.pageTurn, ['slide', 'none'] as const, d.pageTurn),
+    layoutMode: pick(layoutMode, ['book', 'paged', 'scroll'] as const, d.layoutMode),
+    pageTurn: pick(raw.pageTurn, ['flip', 'slide', 'none'] as const, d.pageTurn),
     sceneImages: bool(raw.sceneImages, d.sceneImages),
     hideProgress: bool(raw.hideProgress, d.hideProgress),
     bionic: bool(raw.bionic, d.bionic),

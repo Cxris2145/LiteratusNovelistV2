@@ -4,8 +4,8 @@ import { Subject } from 'rxjs';
 
 import { swapTheme } from '../../core/utils/theme-swap.util';
 import {
-  DEFAULT_READER_SETTINGS, HIGHLIGHT_COLOR_OPTIONS, READER_PRESETS, READER_SETTINGS_KEY, ReaderPresetId, ReaderSettings,
-  differsFromDefaults, isPresetActive, presetPatch, readLegacyReaderSettings, sanitizeReaderSettings,
+  BOOK_VIEW_MIGRATION_KEY, DEFAULT_READER_SETTINGS, HIGHLIGHT_COLOR_OPTIONS, READER_PRESETS, READER_SETTINGS_KEY, ReaderPresetId,
+  ReaderSettings, differsFromDefaults, isPresetActive, migrateToBookView, presetPatch, readLegacyReaderSettings, sanitizeReaderSettings,
 } from './reader-settings';
 
 /**
@@ -115,16 +115,21 @@ export class ReaderSettingsService {
 
   private load(): ReaderSettings {
     const storage = this.storage();
+    const migrated = this.readFlag(storage, BOOK_VIEW_MIGRATION_KEY);
     try {
       const saved = storage?.getItem(READER_SETTINGS_KEY);
       if (saved) {
-        const settings = sanitizeReaderSettings(JSON.parse(saved));
+        let settings = sanitizeReaderSettings(JSON.parse(saved));
+        // Una sola vez: "Páginas" y "Deslizar" (lo de fábrica de antes) pasan a la vista Libro.
+        if (!migrated) settings = migrateToBookView(settings);
         this.state = settings;
         // También normaliza la versión v2 anterior: doublePage/readingWidth dejan de mandar.
         if (JSON.stringify(settings) !== saved) this.save();
+        this.writeFlag(storage, BOOK_VIEW_MIGRATION_KEY);
         return settings;
       }
     } catch { /* guardado dañado: se parte de nuevo */ }
+    this.writeFlag(storage, BOOK_VIEW_MIGRATION_KEY);
     // Primera vez con esta versión: se toman las claves sueltas de antes. Quedan donde están, por
     // si se vuelve a una versión anterior del lector; desde ahora manda la clave nueva.
     const legacy = storage ? readLegacyReaderSettings(key => storage.getItem(key)) : null;
@@ -138,6 +143,20 @@ export class ReaderSettingsService {
     try {
       this.storage()?.setItem(READER_SETTINGS_KEY, JSON.stringify(this.state));
     } catch { /* sin almacenamiento (modo privado): los ajustes duran esta visita */ }
+  }
+
+  private readFlag(storage: Storage | null, key: string): boolean {
+    try {
+      return storage?.getItem(key) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  private writeFlag(storage: Storage | null, key: string): void {
+    try {
+      storage?.setItem(key, '1');
+    } catch { /* sin almacenamiento: la migración se repite en la próxima visita, sin daño */ }
   }
 
   private storage(): Storage | null {

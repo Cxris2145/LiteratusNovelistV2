@@ -173,15 +173,19 @@
       <section class="sheet-group" aria-labelledby="grp-vista">
         <h3 class="sheet-group-title" id="grp-vista">Vista</h3>
         <div class="segmented" role="group" aria-labelledby="grp-vista">
+          <button type="button" [class.on]="s.layoutMode === 'book'" [attr.aria-pressed]="s.layoutMode === 'book'" (click)="set({ layoutMode: 'book' })">Libro</button>
           <button type="button" [class.on]="s.layoutMode === 'paged'" [attr.aria-pressed]="s.layoutMode === 'paged'" (click)="set({ layoutMode: 'paged' })">Páginas</button>
           <button type="button" [class.on]="s.layoutMode === 'scroll'" [attr.aria-pressed]="s.layoutMode === 'scroll'" (click)="set({ layoutMode: 'scroll' })">Desplazamiento</button>
         </div>
-        <div class="sheet-field" *ngIf="s.layoutMode === 'paged'">
+        <div class="sheet-field" *ngIf="s.layoutMode !== 'scroll'">
           <span class="sheet-row-label" id="lbl-page-turn">Paso de página</span>
           <div class="segmented" role="group" aria-labelledby="lbl-page-turn">
-            <button type="button" [class.on]="s.pageTurn === 'slide'" [attr.aria-pressed]="s.pageTurn === 'slide'" (click)="set({ pageTurn: 'slide' })">Deslizar</button>
+            <button type="button" *ngIf="s.layoutMode === 'book'" [class.on]="s.pageTurn === 'flip'" [attr.aria-pressed]="s.pageTurn === 'flip'" (click)="set({ pageTurn: 'flip' })">Hoja</button>
+            <button type="button" [class.on]="s.pageTurn === 'slide' || (s.pageTurn === 'flip' && s.layoutMode !== 'book')"
+                    [attr.aria-pressed]="s.pageTurn === 'slide' || (s.pageTurn === 'flip' && s.layoutMode !== 'book')" (click)="set({ pageTurn: 'slide' })">Deslizar</button>
             <button type="button" [class.on]="s.pageTurn === 'none'" [attr.aria-pressed]="s.pageTurn === 'none'" (click)="set({ pageTurn: 'none' })">Sin animación</button>
           </div>
+          <p class="sheet-hint" *ngIf="s.layoutMode === 'book' && s.pageTurn === 'flip'">La hoja se dobla con dos páginas a la vista; se puede arrastrar desde el borde. En el celular, la página desliza.</p>
         </div>
       </section>
 
@@ -305,7 +309,7 @@
           <span class="switch" aria-hidden="true"></span>
         </button>
         <button type="button" class="switch-row" role="switch" [attr.aria-checked]="reader.autoScrollActive" (click)="reader.toggleAutoScroll(!reader.autoScrollActive)">
-          <span class="switch-text">Avance automático<small>{{ s.layoutMode === 'paged' ? 'Pasa la página según tu ritmo de lectura' : 'El texto sube solo, a velocidad constante' }}</small></span>
+          <span class="switch-text">Avance automático<small>{{ s.layoutMode !== 'scroll' ? 'Pasa la página según tu ritmo de lectura' : 'El texto sube solo, a velocidad constante' }}</small></span>
           <span class="switch" aria-hidden="true"></span>
         </button>
         <div class="sheet-field sheet-subfield" *ngIf="s.layoutMode === 'scroll'" [class.is-off]="!reader.autoScrollActive">
@@ -322,7 +326,7 @@
             <span class="material-symbols-rounded" aria-hidden="true">speed</span>
           </div>
         </div>
-        <p class="sheet-hint" *ngIf="s.layoutMode === 'paged'">Cada página permanece el tiempo necesario para leer sus palabras a {{ s.wpm }} ppm. Ajusta el ritmo más abajo.</p>
+        <p class="sheet-hint" *ngIf="s.layoutMode !== 'scroll'">Cada página permanece el tiempo necesario para leer sus palabras a {{ s.wpm }} ppm. Ajusta el ritmo más abajo.</p>
       </section>
 
       <section class="sheet-group" aria-labelledby="grp-ritmo">

@@ -1,0 +1,157 @@
+/* Libro cerrado de la vista Libro: usa las medidas de una página (--book-page-w, --book-h) que el
+   lector pone en el contenedor, y el color de tapa (--book-board) del tema o de la portada. */
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: block;
+}
+
+.rbc-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+.rbc-book {
+  position: relative;
+  display: block;
+  flex: none;
+  /* El libro cerrado deja ver las barras (se muestran al cerrarlo) y el aviso de abajo. */
+  height: min(var(--book-h, 620px), calc(100dvh - 230px));
+  width: auto;
+  max-width: calc(100vw - 32px);
+  aspect-ratio: var(--book-ratio, 0.72);
+  padding: 0;
+  border: 0;
+  border-radius: 3px 8px 8px 3px;
+  overflow: hidden;
+  background: var(--book-board);
+  color: #f6f1e7;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow:
+    0 30px 60px -24px rgba(0, 0, 0, .55),
+    0 4px 12px rgba(0, 0, 0, .22),
+    inset 0 0 0 1px rgba(255, 255, 255, .06);
+  transition: transform 220ms cubic-bezier(.22, 1, .36, 1), box-shadow 220ms ease;
+  /* backwards y no both: al terminar, la animación no debe pisar el giro del hover. */
+  animation: rbc-arrive 420ms cubic-bezier(.22, 1, .36, 1) backwards;
+}
+.rbc-back { border-radius: 8px 3px 3px 8px; }
+.rbc-book:focus-visible { outline: 3px solid var(--rd-accent); outline-offset: 4px; }
+.rbc-book:active { transform: scale(.985); }
+@media (hover: hover) and (pointer: fine) {
+  .rbc-front:hover { transform: perspective(1400px) rotateY(-6deg); }
+  .rbc-back:hover { transform: perspective(1400px) rotateY(6deg); }
+}
+
+.rbc-cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Sin portada: tapa de tela con el título en Cinzel. */
+.rbc-cover-plain {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 12% 10%;
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(0, 0, 0, .12)),
+    var(--book-board);
+}
+.rbc-plain-author { font-family: var(--rd-font); font-size: 1rem; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.rbc-plain-title { font-family: 'Cinzel', var(--rd-font); font-size: clamp(1.4rem, 4vw, 2.2rem); line-height: 1.2; text-wrap: balance; }
+.rbc-plain-brand,
+.rbc-back-brand { font-family: 'Cinzel', serif; font-size: .78rem; letter-spacing: .18em; color: #d9b85c; }
+.rbc-plain-brand { position: absolute; bottom: 7%; }
+
+/* Bisagra de la tapa dura (cerca del lomo) y un brillo leve, como de tela plastificada. */
+.rbc-hinge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 7%;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .38), rgba(0, 0, 0, .12) 38%, rgba(255, 255, 255, .14) 52%, rgba(0, 0, 0, .1) 64%, transparent);
+  pointer-events: none;
+}
+.rbc-hinge-right { left: auto; right: 0; transform: scaleX(-1); }
+.rbc-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, .12) 0%, transparent 28%, transparent 70%, rgba(0, 0, 0, .12) 100%);
+  pointer-events: none;
+}
+
+/* Contratapa: sinopsis en la tapa de tela. */
+.rbc-back-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 11% 11% 9% 12%;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(0, 0, 0, .14)),
+    var(--book-board);
+}
+.rbc-back-title { font-family: 'Cinzel', var(--rd-font); font-size: clamp(1.05rem, 2.4vw, 1.45rem); line-height: 1.25; text-wrap: balance; }
+.rbc-back-author { font-family: var(--rd-font); font-style: italic; font-size: 1rem; opacity: .9; }
+.rbc-back-synopsis {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  font-family: var(--rd-font);
+  font-size: clamp(.92rem, 1.6vw, 1.05rem);
+  line-height: 1.55;
+  text-align: justify;
+  hyphens: auto;
+  -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent);
+  mask-image: linear-gradient(180deg, #000 82%, transparent);
+}
+.rbc-back-brand { align-self: flex-start; }
+
+.rbc-hint {
+  margin: 0;
+  color: color-mix(in srgb, var(--rd-ink) 62%, transparent);
+  font-family: 'Outfit', system-ui, sans-serif;
+  font-size: .85rem;
+  text-align: center;
+}
+
+@keyframes rbc-arrive {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 640px), (max-height: 500px) {
+  .rbc-stage { padding: 12px; gap: 10px; }
+  /* La página del libro delgado es muy alta y angosta: la tapa cerrada usa la proporción de una portada. */
+  .rbc-book { height: min(calc(100dvh - 190px), calc((100vw - 48px) / 0.66)); max-width: calc(100vw - 48px); aspect-ratio: 0.66; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rbc-book { animation: none; transition: none; }
+  .rbc-front:hover, .rbc-back:hover { transform: none; }
+}

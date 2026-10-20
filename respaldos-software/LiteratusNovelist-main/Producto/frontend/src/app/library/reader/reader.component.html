@@ -1,5 +1,7 @@
 <div class="workbench-container" [ngClass]="'theme-' + currentTheme"
      [class.paged-view]="isPagedView" [class.book-view]="isPagedView"
+     [class.rd-book-mode]="isBookView" [class.rd-book-compact]="isBookView && bookCompact"
+     [class.rd-book-closed]="isBookView && !!bookClosed"
      [class.rc-high-contrast]="highContrast" [class.rc-concentration]="concentrationMode">
   <app-reader-chrome></app-reader-chrome>
   <app-reader-more-sheet *ngIf="isMoreOpen"></app-reader-more-sheet>
@@ -30,6 +32,15 @@
 
 
   <section class="rd-shell" [class.rd-two-pages]="isPagedView && columnsPerSpread === 2" aria-label="Lectura" (click)="onCanvasClick($event)">
+    <!-- Vista Libro: tapa dura, lomo y cantos de hojas quedan detrás del papel; la sombra del lomo,
+         encima del papel y debajo del texto. Tocar un canto pasa la página (el clic llega a rd-shell). -->
+    <ng-container *ngIf="isBookView">
+      <div class="rd-book-board" aria-hidden="true"></div>
+      <div class="rd-book-spine" *ngIf="columnsPerSpread === 2" aria-hidden="true"></div>
+      <div class="rd-book-edge rd-book-edge-left" *ngIf="columnsPerSpread === 2" aria-hidden="true"></div>
+      <div class="rd-book-edge rd-book-edge-right" aria-hidden="true"></div>
+      <div class="rd-book-gutter" aria-hidden="true"></div>
+    </ng-container>
     <div class="rd-running-head" aria-hidden="true">
       <span class="rd-running-book">{{ bookTitle }}</span>
       <span class="rd-running-chapter">{{ chapterTitle }}</span>
@@ -46,8 +57,20 @@
          subrayados, biónica, imágenes), no en cada pasada del lector. La palabra activa, su frase y su
          párrafo los marca ReaderHighlighter directo en el DOM; los clics en palabras los atiende un solo
          listener en el lienzo (onCanvasClick). -->
-    <ng-template [rdFrozen]="[titleTokens, renderedBlocks, chapterTitle, bionicReadingActive, showSceneImages, textVersion]"
+    <ng-template [rdFrozen]="[titleTokens, renderedBlocks, chapterTitle, bionicReadingActive, showSceneImages, textVersion, titlePageKey]"
                  (rdFrozenRefreshed)="onTextRefreshed()">
+    <!-- Vista Libro: la portadilla ocupa la primera página del capítulo 1 (sin palabras narrables:
+         la voz, los subrayados y el progreso no la ven). Divs y no <p>: no lleva capitular ni sangría. -->
+    @if (isTitlePageInCanvas) {
+      <section class="rd-title-page" aria-label="Portadilla">
+        <div class="rd-tp-author" *ngIf="authorName">{{ authorName }}</div>
+        <div class="rd-tp-title">{{ bookTitle }}</div>
+        <span class="rd-tp-rule" aria-hidden="true"></span>
+        <div class="rd-tp-publisher" *ngIf="bookPublisher || bookYear">{{ bookPublisher }}{{ bookPublisher && bookYear ? ' · ' : '' }}{{ bookYear }}</div>
+        <div class="rd-tp-exlibris" *ngIf="exLibrisName"><em>Ex libris</em><span>{{ exLibrisName }}</span></div>
+        <div class="rd-tp-brand">Literatus Novelist</div>
+      </section>
+    }
     <h1 class="chapter-title-main">
       @for (tok of titleTokens; track trackByToken($index, tok)) {
         @if (tok.isWord) {
@@ -112,14 +135,42 @@
             [disabled]="isBookmarkBusy" (click)="toggleBookmarkHere()"
             [attr.aria-label]="currentSpreadBookmark ? 'Quitar el marcador de esta página' : 'Marcar esta página'"
             [attr.aria-pressed]="!!currentSpreadBookmark" title="Marcar esta página"></button>
+    <!-- Folios: en la vista Libro, numeración de todo el libro (la portadilla no lleva número). -->
     <div class="rd-page-footer" *ngIf="isPagedView" aria-hidden="true">
-      <span>{{ currentLeftPageNum }}</span>
-      <span *ngIf="columnsPerSpread === 2 && currentLeftPageNum < chapterPageCount">{{ currentRightPageNum }}</span>
+      <span>{{ isBookView ? (isTitlePageVisible ? '' : bookPageCurrent) : currentLeftPageNum }}</span>
+      <span *ngIf="columnsPerSpread === 2 && currentLeftPageNum < chapterPageCount">{{ isBookView ? bookPageCurrent + 1 : currentRightPageNum }}</span>
     </div>
     <div class="narration-marker" #narrationMarker aria-hidden="true">
       <span class="material-symbols-rounded">graphic_eq</span>
     </div>
+    <!-- La hoja que se dobla: aquí se arman las copias de las páginas mientras dura el giro. -->
+    <div class="rd-flip-layer" #flipLayer aria-hidden="true"></div>
   </section>
+
+  <!-- Vista Libro en pantallas grandes: flechas fuera del libro (no tapan el texto) -->
+  <ng-container *ngIf="isBookView && !bookCompact && !bookClosed">
+    <button type="button" class="rd-book-arrow rd-book-prev" (click)="turnSpreadPrev()" [disabled]="isAtBookStart"
+            aria-label="Página anterior" title="Página anterior (←)">
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+    </button>
+    <button type="button" class="rd-book-arrow rd-book-next" (click)="turnSpreadNext()" [disabled]="isAtBookEnd"
+            aria-label="Página siguiente" title="Página siguiente (→)">
+      <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+    </button>
+    <button type="button" class="rd-book-jump rd-book-first" (click)="goToChapterEdge('start')" [disabled]="isFirstSpread"
+            aria-label="Inicio del capítulo" title="Inicio del capítulo">
+      <span class="material-symbols-rounded" aria-hidden="true">first_page</span>
+    </button>
+    <button type="button" class="rd-book-jump rd-book-last" (click)="goToChapterEdge('end')" [disabled]="isLastSpread"
+            aria-label="Fin del capítulo" title="Fin del capítulo">
+      <span class="material-symbols-rounded" aria-hidden="true">last_page</span>
+    </button>
+  </ng-container>
+
+  <!-- Libro cerrado: la tapa al empezar y la contratapa al terminar -->
+  <app-reader-book-closed *ngIf="isBookView && bookClosed" [side]="bookClosed" [cover]="bookCover"
+                          [title]="bookTitle" [author]="authorName" [synopsis]="bookSynopsis"
+                          (open)="openClosedBook()" (toggleChrome)="toggleChrome()"></app-reader-book-closed>
   <div class="rd-dimmer" aria-hidden="true"></div>
   <!-- Lectores de pantalla: "Página 5 de 20" (o "Páginas 5 y 6 de 20") al pasar de página -->
   <div class="rd-sr-only" aria-live="polite" aria-atomic="true">{{ pageAnnouncement }}</div>

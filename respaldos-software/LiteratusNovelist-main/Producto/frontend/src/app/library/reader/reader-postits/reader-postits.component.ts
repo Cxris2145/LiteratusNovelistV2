@@ -87,7 +87,7 @@ export class ReaderPostItsComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const area = (this.reader.viewportEl() ?? canvas).getBoundingClientRect();
-    const doublePage = this.reader.layoutMode === 'paged' && this.reader.columnsPerSpread > 1;
+    const doublePage = this.reader.isPagedView && this.reader.columnsPerSpread > 1;
     const probeX = area.left + area.width * (doublePage ? 0.75 : 0.5);
     const word = this.nearestWord(probeX, area.top + area.height / 2);
     if (!word) return;
@@ -249,7 +249,7 @@ export class ReaderPostItsComponent implements AfterViewInit, OnDestroy {
     const compact = window.innerWidth <= 640;
     const tabWidth = compact ? POSTIT_FLAG_WIDTH : POSTIT_TAB_SIZE;
     const tabHeight = compact ? POSTIT_FLAG_HEIGHT : POSTIT_TAB_SIZE;
-    const doublePage = this.reader.layoutMode === 'paged' && this.reader.columnsPerSpread > 1;
+    const doublePage = this.reader.isPagedView && this.reader.columnsPerSpread > 1;
     const placed: { el: HTMLElement; side: 'left' | 'right'; y: number; x: number }[] = [];
     const postIts = this.chapterPostIts;
 
@@ -265,7 +265,7 @@ export class ReaderPostItsComponent implements AfterViewInit, OnDestroy {
       }
       let side: 'left' | 'right' = 'right';
       let x: number;
-      if (this.reader.layoutMode === 'paged') {
+      if (this.reader.isPagedView) {
         side = doublePage && (r.left + r.right) / 2 < middle ? 'left' : 'right';
         // El viewport ya excluye los márgenes de rd-shell: el papel se pega por fuera del texto.
         x = side === 'left' ? area.left - tabWidth - 6 : area.right + 6;
@@ -396,7 +396,7 @@ export class ReaderPostItsComponent implements AfterViewInit, OnDestroy {
     if (canvas && event.type === 'pointerup') {
       const area = (this.reader.viewportEl() ?? canvas).getBoundingClientRect();
       // Página donde se soltó y línea a esa altura, usando el viewport inmóvil del paginador.
-      const doublePage = this.reader.layoutMode === 'paged' && this.reader.columnsPerSpread > 1;
+      const doublePage = this.reader.isPagedView && this.reader.columnsPerSpread > 1;
       const left = doublePage && event.clientX < area.left + area.width / 2;
       const probeX = area.left + area.width * (!doublePage ? 0.5 : left ? 0.25 : 0.75);
       const probeY = Math.min(Math.max(from.top + from.height / 2, area.top + 4), area.bottom - 4);

@@ -54,7 +54,7 @@
     </div>
 
     <div class="rd-position">
-      <span class="rd-page-position" *ngIf="r.layoutMode === 'paged'">Pág. {{ r.currentLeftPageNum }} de {{ r.chapterPageCount }}</span>
+      <span class="rd-page-position" *ngIf="r.isPagedView">{{ r.pagePositionLabel }}</span>
       <span class="rd-chapter-position">Cap. {{ r.currentPage }}<span *ngIf="r.showReadingTime && r.remainingReadingTimeShort"> · {{ r.remainingReadingTimeShort }}</span></span>
       <span class="rd-book-percent">{{ r.bookProgressPercent }} % del libro</span>
     </div>
