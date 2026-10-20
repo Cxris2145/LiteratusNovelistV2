@@ -51,13 +51,14 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     :host { display:block; width:100%; height:100%; }
     svg { display:block; width:100%; height:100%; overflow:visible; }
     .landmark-flag { transform-box:fill-box; transform-origin:left center; animation:flag-wave 4s ease-in-out infinite; }
-    .landmark-light { filter:drop-shadow(0 0 5px #ffcc73); }
+    .landmark-light { filter:drop-shadow(0 0 5px #ffcc73); animation:window-glow 4.5s ease-in-out infinite; }
     .chest-rays { opacity:0; transform-origin:75px 90px; transform:scaleY(.1); transition:opacity .8s ease-out,transform .8s ease-out; }
     .chest-lid { transform-origin:75px 67px; transition:transform .7s ease-out; }
     .chest-open .chest-lid { transform:translateY(-22px) rotate(-17deg); }
     .chest-open .chest-rays { opacity:.7; transform:scaleY(1); }
     :host-context(.scene-paused) * { animation-play-state:paused!important; }
     @keyframes flag-wave { 50% { transform:skewY(-8deg) scaleX(.88); } }
+    @keyframes window-glow { 0%, 100% { opacity:1; } 40% { opacity:.72; } 55% { opacity:.95; } 70% { opacity:.8; } }
     @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,

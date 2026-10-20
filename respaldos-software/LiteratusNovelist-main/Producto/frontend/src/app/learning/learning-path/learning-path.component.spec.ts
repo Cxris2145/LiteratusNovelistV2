@@ -3,7 +3,7 @@ import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BehaviorSubject, of, Subject } from 'rxjs';
 import { LearningModule } from '../learning.module';
-import { LearningPathComponent } from './learning-path.component';
+import { LearningPathComponent, scalePath } from './learning-path.component';
 import { ChestClaimResult, LearningPath, LearningService, LearningUnit, PathChest, UserStatus } from '../../core/services/learning.service';
 import { ChatService } from '../../core/services/chat.service';
 
@@ -183,6 +183,48 @@ describe('LearningPathComponent: mapa y tesoros', () => {
     expect(scroll.calls.mostRecent().object).toBe(fixture.nativeElement.querySelector('#unit-1'));
     expect(scroll.calls.mostRecent().args[0]).toEqual({ block: 'start', behavior: 'auto' });
   }));
+
+  it('ilumina el camino hasta la etapa abierta y no más allá', () => {
+    path.units[0].levels[0].is_completed = true;
+    path.units[0].levels[1].is_unlocked = true;
+    render();
+    const trail = component.trail(path.units[0]);
+    expect(trail.furthest).toBe(1);
+    expect(trail.complete).toBeFalse();
+    // El tramo dorado es el comienzo del camino y termina en la segunda parada: M + dos tramos.
+    const lit = component.litPath(path.units[0]) as string;
+    expect(component.ribbon.trail.startsWith(lit)).toBeTrue();
+    expect(lit.match(/[MLCSQHV]/g)?.length).toBe(3);
+    path.units[0].levels.forEach(level => { level.is_unlocked = false; });
+    component.loadPath();
+    expect(component.litPath(path.units[0])).toBeNull();
+    expect(component.completedLevels).toBe(1);
+    expect(component.totalLevels).toBe(5);
+  });
+
+  it('escala el camino sin deformar sus comandos', () => {
+    expect(scalePath('M-14 456C150 456 250 372 363 372V774', 2, 0.5)).toBe('M-28 228C300 228 500 186 726 186V387');
+  });
+
+  it('en escritorio arma el mapa de lado y la rueda lo mueve hacia los lados', () => {
+    path.units = Array.from({ length: 10 }, (_, index) => unit(index + 1));
+    spyOn(window, 'matchMedia').and.callFake((query: string) => ({ matches: true, media: query, addEventListener: () => {}, removeEventListener: () => {} }) as unknown as MediaQueryList);
+    render(); render();
+    expect(component.horizontal).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.learning-path-wrapper').classList).toContain('layout-h');
+    expect(fixture.nativeElement.querySelectorAll('.world-arrow').length).toBe(2);
+    const scroller = fixture.nativeElement.querySelector('.world-scroller') as HTMLElement;
+    expect(scroller.scrollWidth).toBeGreaterThan(scroller.clientWidth);
+    scroller.scrollLeft = 0;
+    const wheel = new WheelEvent('wheel', { deltaY: 240, bubbles: true, cancelable: true });
+    scroller.dispatchEvent(wheel);
+    expect(wheel.defaultPrevented).toBeTrue();
+    expect(scroller.scrollLeft).toBeGreaterThan(200);
+    // Ctrl + rueda queda para el zoom del navegador.
+    const zoom = new WheelEvent('wheel', { deltaY: 240, ctrlKey: true, bubbles: true, cancelable: true });
+    scroller.dispatchEvent(zoom);
+    expect(zoom.defaultPrevented).toBeFalse();
+  });
 
   it('presenta un error recuperable en lugar de un mapa vacío', () => {
     const request$ = new Subject<LearningPath>();

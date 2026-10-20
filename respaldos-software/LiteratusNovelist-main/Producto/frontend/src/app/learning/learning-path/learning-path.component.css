@@ -1,14 +1,25 @@
+/* ═══════════════════════════════════════════════════════════════════
+   La Senda — mapa del mundo.
+   .layout-h: escritorio, los reinos van de lado y el mapa ocupa la pantalla.
+   .layout-v: celular y pantallas bajas, el recorrido baja por la página.
+   ═══════════════════════════════════════════════════════════════════ */
+
 :host {
   display: block;
-  min-height: 100svh;
   background: #101d32;
   color: #eaf1ef;
   font-family: var(--font-ui,'Plus Jakarta Sans',sans-serif);
   --path-gold: #e7b965;
-  --path-moon: #d6eced;
-  --path-green: #245450;
-  --path-violet: #7656a5;
-  padding: 18px 0 0;
+  --path-gold-lit: #f2c96f;
+  --path-gold-soft: #f3d495;
+  --path-ink: #101d32;
+  --path-glass: #0d1c2cf0;
+  --stage-h: calc(100svh - var(--header-offset, var(--navbar-h, 182px)));
+}
+
+.learning-path-wrapper ::selection {
+  background: #e7b96559;
+  color: #fff8e6;
 }
 
 button {
@@ -21,9 +32,11 @@ button:disabled {
   cursor: default;
 }
 
-button:focus-visible {
-  outline: 3px solid #f8dc99;
-  outline-offset: 5px;
+button:focus-visible,
+.world-scroller:focus-visible,
+.realm-title:focus-visible {
+  outline: 2px solid #f8dc99;
+  outline-offset: 4px;
 }
 
 h1,h2,h3,p {
@@ -32,42 +45,184 @@ h1,h2,h3,p {
 
 h1,h2,h3 {
   font-family: var(--font-display,'Cormorant Garamond',Georgia,serif);
+  text-wrap: balance;
 }
 
 .material-symbols-rounded {
   font-variation-settings: 'FILL' 0,'wght' 450,'GRAD' 0,'opsz' 24;
 }
 
-.learning-top-bar {
-  position: sticky;
-  top: calc(var(--header-offset, var(--navbar-h, 0px)) + 8px);
-  z-index: 35;
-  max-width: 790px;
-  margin: 0 auto 20px;
-  padding: 7px 9px 7px 16px;
-  background: rgba(13,28,44,.94);
-  border: 1px solid #496068;
-  border-radius: 50px;
-  backdrop-filter: blur(18px);
+/* ── HUD: título, mini-mapa del mundo, estadísticas y siguiente etapa ── */
+
+.senda-hud {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  box-shadow: 0 8px 30px #06121e55;
+  gap: 22px;
 }
 
-.top-bar-inner {
+.hud-title h1 {
+  font-size: 27px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -.5px;
+  color: #f2e9d2;
+}
+
+.hud-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #acbdc4;
+  white-space: nowrap;
+}
+
+.hud-realm {
+  color: #e6d3a6;
+}
+
+.hud-realm::after {
+  content: '·';
+  margin-left: 8px;
+  color: #6f8590;
+}
+
+.hud-count strong {
+  color: var(--path-gold-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.world-minimap {
+  flex: 1;
+  min-width: 0;
+}
+
+.minimap-rail {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
+}
+
+/* La barra queda siempre a 8px del borde inferior: la lente y el punto de Maguito se alinean con ella. */
+.minimap-segment {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 0 8px;
+  border: 0;
+  background: none;
+  color: #9fb3ba;
+  text-align: left;
+}
+
+.segment-bar {
+  position: relative;
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--seg, #a4ceaf) 42%, #0b1626);
+  overflow: hidden;
+}
+
+.minimap-segment[data-realm='forest'] { --seg: #a4ceaf; }
+.minimap-segment[data-realm='lake'] { --seg: #b5d9e8; }
+.minimap-segment[data-realm='library'] { --seg: #d0b9ec; }
+.minimap-segment[data-realm='ruins'] { --seg: #b7d2b5; }
+.minimap-segment[data-realm='aurora'] { --seg: #9be1d3; }
+.minimap-segment[data-realm='citadel'] { --seg: #e7c78f; }
+
+.segment-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #b8934f, var(--path-gold-soft));
+}
+
+.segment-name {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.segment-name .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--seg, #c9ad74);
+}
+
+.minimap-segment.is-visible {
+  color: #f6e6bd;
+}
+
+.minimap-segment[data-state='done'] .segment-name .material-symbols-rounded {
+  color: #a7d6ba;
+}
+
+.minimap-segment[data-state='locked'] {
+  color: #7f949b;
+}
+
+.minimap-segment[data-state='locked'] .segment-name .material-symbols-rounded {
+  color: #7c705a;
+}
+
+/* La lente enmarca lo que estás viendo; la mueve el scroll del mapa (sin transición: va 1:1). */
+.minimap-lens {
+  position: absolute;
+  left: 0;
+  top: -3px;
+  bottom: 1px;
+  width: 40px;
+  border: 1.5px solid #f3d495d9;
+  border-radius: 8px;
+  background: #f3d4950f;
+  box-shadow: 0 0 0 1px #050d1866, 0 4px 14px #050d1866;
+  pointer-events: none;
+}
+
+/* La porción del mundo que cabe en pantalla, marcada sobre la barra del reino. */
+.minimap-view {
+  position: absolute;
+  left: 0;
+  bottom: 8px;
+  width: 6px;
+  height: 8px;
+  border-radius: 4px;
+  background: #fff4d6b3;
+  box-shadow: 0 0 6px #fff1c880;
+  pointer-events: none;
+}
+
+.minimap-marker {
+  position: absolute;
+  left: -5px;
+  bottom: 7px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffe7a6;
+  box-shadow: 0 1px 4px #050d18, 0 0 0 2px #101d32;
+  pointer-events: none;
+}
+
+.hud-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .stat-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   min-height: 44px;
   border: 0;
   background: none;
@@ -75,34 +230,21 @@ h1,h2,h3 {
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-pill .material-symbols-rounded {
-  font-size: 23px;
+  font-size: 22px;
 }
 
-.heart-icon {
-  color: #ff8c9a;
-}
-
-.flame-icon {
-  color: #ffc073;
-}
-
-.ink-icon {
-  color: #e7b965;
-}
-
-.crown-icon {
-  color: #cab1ed;
-}
-
-.pill-plus-btn {
-  color: #ff8c9a;
-}
+.heart-icon { color: #ff8c9a; }
+.flame-icon { color: #ffc073; }
+.ink-icon { color: #e7b965; }
+.crown-icon { color: #cab1ed; }
+.pill-plus-btn { color: #ff8c9a; }
 
 .streak-danger .flame-icon {
-  filter: drop-shadow(0 0 4px #e7b965);
+  filter: drop-shadow(0 1px 3px #e7b965);
 }
 
 .return-current {
@@ -111,180 +253,148 @@ h1,h2,h3 {
   gap: 7px;
   min-height: 44px;
   padding: 8px 17px;
-  border: 1px solid #8d7955;
+  border: 1px solid #c9a964;
   border-radius: 40px;
-  background: #e7b96518;
-  color: #f3d495;
+  background: #e7b9651f;
+  color: #f6dca4;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
+  transition: background .2s ease, transform .16s var(--ease-out, cubic-bezier(.23,1,.32,1));
 }
 
 .return-current .material-symbols-rounded {
   font-size: 19px;
 }
 
-.path-container {
-  max-width: 1600px;
-  margin: auto;
+.return-current:active:not(:disabled) {
+  transform: scale(.97);
 }
 
-.path-intro {
-  max-width: 1190px;
-  margin: 30px auto 21px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 0 38px;
+.return-current:disabled {
+  opacity: .5;
 }
 
-.intro-compass {
-  font-size: 52px;
-  color: #e7b965;
-  font-variation-settings: 'wght' 200;
+@media (hover: hover) and (pointer: fine) {
+  .return-current:hover:not(:disabled) { background: #e7b96533; }
+  .minimap-segment:hover { color: #f6e6bd; }
 }
 
-.path-intro h1 {
-  font-size: 48px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -1px;
-}
+/* ── Reino: paisaje pegado y su flujo de unidades ─────────────────── */
 
-.path-intro p {
-  color: #acbdc4;
-  font-size: 13px;
-  margin-top: 8px;
-  line-height: 1.6;
-}
-
-.intro-note {
-  margin-left: auto;
-  max-width: 210px;
-  display: flex;
-  gap: 9px;
-  font-size: 12px;
-  line-height: 1.7;
-  color: #d4c3a2;
-}
-
-.intro-note .material-symbols-rounded {
-  font-size: 20px;
-}
-
-.realm-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  max-width: 1000px;
-  gap: 7px;
-  flex-wrap: wrap;
-  margin: 0 auto 26px;
-  padding: 0 18px;
-}
-
-.realm-navigation button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  background: transparent;
-  border: 1px solid #3a4e5e;
-  border-radius: 30px;
-  padding: 7px 17px;
-  color: #b4c7cc;
-  font-size: 12px;
-}
-
-.realm-navigation .material-symbols-rounded {
-  font-size: 18px;
-  color: #d8bb7d;
-}
-
-.realm-navigation button:hover {
-  background: #e7b96510;
-  border-color: #a58f64;
-}
-
-.realm-section {
+.realm {
   --realm-accent: #a4ceaf;
   position: relative;
+  display: grid;
+  grid-template-areas: "map";
 }
 
-.realm-lake {
-  --realm-accent: #b5d9e8;
-}
+.realm-lake { --realm-accent: #b5d9e8; }
+.realm-library { --realm-accent: #d0b9ec; }
+.realm-ruins { --realm-accent: #b7d2b5; }
+.realm-aurora { --realm-accent: #9be1d3; }
+.realm-citadel { --realm-accent: #e7c78f; }
 
-.realm-library {
-  --realm-accent: #d0b9ec;
-}
-
-.realm-ruins {
-  --realm-accent: #b7d2b5;
-}
-
-.realm-aurora {
-  --realm-accent: #9be1d3;
-}
-
-.realm-citadel {
-  --realm-accent: #e7c78f;
-}
-
-.realm-heading {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  max-width: 1130px;
-  margin: 0 auto;
-  padding: 24px 38px 28px;
-  scroll-margin-top: calc(var(--header-offset, var(--navbar-h, 0px)) + 88px);
+.realm-scene {
+  grid-area: map;
+  position: sticky;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
   background: #101d32;
 }
 
-.realm-heading-copy {
-  flex: 1;
+.realm-picture {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.realm-picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.realm-scene-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.realm-scene app-path-enchantment {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.realm-flow {
+  --trail-base: #d8c79a5c;
+  --trail-stitch: #f3e2b2a8;
+  --trail-lit: #f2c96f;
+  grid-area: map;
+  position: relative;
+  z-index: 1;
   min-width: 0;
 }
 
-.realm-index {
-  font-size: 11px;
-  color: #b7b4a3;
-  margin-bottom: 7px;
+/* Tarjeta de título del reino: va sobre la pintura, al inicio del reino. */
+.realm-title {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  scroll-margin-top: calc(var(--header-offset, var(--navbar-h, 0px)) + 110px);
 }
 
-.realm-heading h2 {
-  font-size: 35px;
-  line-height: 1.08;
-  letter-spacing: -.4px;
-  color: #f2e9d2;
+.realm-title-copy {
+  position: relative;
+  min-width: 0;
+}
+
+.realm-title h2 {
+  font-size: 40px;
+  line-height: 1.04;
+  letter-spacing: -.6px;
+  color: #f6edd6;
   font-weight: 650;
+  text-shadow: 0 2px 14px #050d18cc;
 }
 
-.realm-heading-copy>p:last-child {
+.realm-title-copy>p:not(.realm-meta) {
+  font-size: 13px;
+  line-height: 1.65;
+  color: #d5e0de;
+  margin-top: 10px;
+  text-shadow: 0 1px 8px #050d18;
+}
+
+.realm-meta {
+  display: flex;
+  gap: 7px;
+  margin-top: 12px;
   font-size: 12px;
-  line-height: 1.7;
-  color: #a9c0c6;
-  margin-top: 8px;
+  color: #e3cf9f;
+  font-variant-numeric: tabular-nums;
 }
 
 .realm-seal {
   position: relative;
   display: grid;
   place-items: center;
-  border: 1px solid #a89162;
-  width: 64px;
-  height: 72px;
-  border-radius: 35px 35px 26px 26px;
+  border: 1px solid #c9ad74;
+  width: 60px;
+  height: 68px;
+  border-radius: 33px 33px 24px 24px;
   flex: none;
-  color: #e7b965;
-  box-shadow: inset 0 0 0 5px #e7b9650b;
+  color: var(--path-gold);
+  background: #0d1c2cb8;
+  box-shadow: inset 0 0 0 5px #e7b9650d, 0 6px 18px #050d1866;
 }
 
 .realm-seal .material-symbols-rounded {
-  font-size: 30px;
+  font-size: 28px;
   margin-top: -9px;
   font-variation-settings: 'wght' 300;
 }
@@ -295,196 +405,78 @@ h1,h2,h3 {
   font: 600 13px var(--font-display,Georgia,serif);
 }
 
-.realm-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-align: right;
-}
-
-.realm-progress>span:first-child {
-  font: 500 32px var(--font-display,Georgia,serif);
-  color: #d9cfae;
-}
-
-.realm-progress>span:last-child {
-  font-size: 10px;
-  color: #93aab0;
-}
-
-/* Un solo paisaje permanece detrás de las cinco unidades del reino. */
-
-.realm-map {
-  display: grid;
-  grid-template-areas: "map";
-  position: relative;
-  isolation: isolate;
-}
-
-.realm-scene {
-  grid-area: map;
-  align-self: start;
-  position: sticky;
-  top: calc(var(--header-offset, var(--navbar-h, 0px)) + 68px);
-  height: calc(100svh - var(--header-offset, var(--navbar-h, 0px)) - 76px);
-  width: 100%;
-  z-index: 0;
-  overflow: hidden;
-  isolation: isolate;
+/* El tramo de camino que cruza las zonas sin SVG (título del reino y tesoro). */
+.zone-trail {
+  position: absolute;
   pointer-events: none;
-  background: #142a36;
+  --trail-base: #d8c79a5c;
+  --trail-stitch: #f3e2b2a8;
 }
 
-
-.realm-picture {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.realm-reached .realm-title .zone-trail,
+.realm-treasury:not(.treasury-locked) .zone-trail {
+  --trail-core: #f2c96feb;
+  --trail-stitch: #fff1c8;
+  --trail-glow: #f2c96f40;
 }
 
-.realm-picture img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: cover;
-  object-position: 50% 8%;
-}
-
-.realm-scene-shade {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: linear-gradient(180deg, #101d321f, transparent 15%, transparent 85%, #101d324f), radial-gradient(ellipse at center, transparent 50%, #0717293b);
-}
-
-.realm-scene app-path-enchantment {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-}
-
-.realm-units {
-  grid-area: map;
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-}
-
-.realm-heading:focus-visible {
-  outline: 2px solid #e7b965;
-  outline-offset: -6px;
-}
-
-@media (max-width: 600px) {
-  .realm-picture img {
-    width: 100%;
-    height: 100%;
-    max-height: none;
-    object-fit: cover;
-    object-position: center;
-    mask-image: linear-gradient(180deg, transparent, #000 2%, #000 98%, transparent);
-  }
-}
+/* ── Unidad ───────────────────────────────────────────────────────── */
 
 .unit-section {
+  --trail-base: #d8c79a5c;
+  --trail-stitch: #f3e2b2a8;
+  --trail-lit: #f2c96f;
   position: relative;
-  margin: 0 auto;
-  max-width: 1440px;
-  padding: 30px 0 0;
   isolation: isolate;
   content-visibility: auto;
-  contain-intrinsic-size: auto 1010px;
-  scroll-margin-top: calc(var(--header-offset, var(--navbar-h, 0px)) + 88px);
-}
-
-.unit-section:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  bottom: -30px;
-  height: 62px;
-  width: 10px;
-  left: calc(50% - 5px);
-  background: linear-gradient(180deg,#b5b58b55,#e7c17890,#b5b58b55);
-  z-index: 0;
-}
-
-.unit-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: calc(50% - 8px);
-  width: 16px;
-  height: 230px;
-  z-index: -1;
-  background: #b8baa06b;
-  box-shadow: 0 0 0 6px #0a192a55;
 }
 
 .unit-banner {
-  width: calc(100% - 48px);
-  max-width: 550px;
-  margin: 0 auto;
   position: relative;
   z-index: 2;
-  background: linear-gradient(90deg,#10232bf2,#162c34e6);
-  padding: 23px 28px 20px;
+  background: linear-gradient(160deg,#122735f2,#10232be8 60%,#132a31e8);
   border: 1px solid #a1baad43;
-  border-radius: 4px 25px 4px 25px;
-  box-shadow: 0 8px 28px #08141b30;
-  backdrop-filter: blur(10px);
+  border-radius: 4px 22px 4px 22px;
+  box-shadow: 0 14px 34px #050d1866, inset 0 1px 0 #ffffff0d;
+  backdrop-filter: blur(12px);
 }
 
-.unit-banner::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 24px;
-  bottom: 25px;
-  width: 3px;
-  background: var(--realm-accent);
-  border-radius: 0 3px 3px 0;
+.unit-locked .unit-banner {
+  background: linear-gradient(160deg,#101f2bf2,#0f1d27eb);
+  border-color: #8aa0a030;
 }
 
-.unit-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--realm-accent);
-  font-size: 11px;
-  font-weight: 600;
-  margin-bottom: 9px;
+.unit-complete .unit-banner {
+  border-color: color-mix(in srgb, var(--realm-accent) 42%, transparent);
 }
 
-.unit-tag .material-symbols-rounded {
-  font-size: 16px;
+.unit-current .unit-banner {
+  border-color: #e7c27aa8;
+  box-shadow: 0 14px 34px #050d1866, 0 4px 26px #e7b96524, inset 0 1px 0 #ffffff12;
 }
 
 .unit-banner h3 {
-  font-size: 26px;
-  line-height: 1.15;
+  font-size: 24px;
+  line-height: 1.12;
   font-weight: 650;
   color: #f2e9d2;
 }
 
 .unit-desc {
   font-size: 12px;
-  line-height: 1.7;
-  color: #becfd1;
-  margin-top: 9px;
+  line-height: 1.65;
+  color: #c3d3d4;
+  margin-top: 8px;
 }
 
 .unit-progress-wrap {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 17px;
+  margin-top: 14px;
   font-size: 10px;
   color: #b8ccca;
+  font-variant-numeric: tabular-nums;
 }
 
 .unit-progress-bar {
@@ -498,8 +490,8 @@ h1,h2,h3 {
 .unit-progress-fill {
   height: 100%;
   background: var(--realm-accent);
-  border-radius: 3px;
-  transition: width .6s ease;
+  transform-origin: left center;
+  transition: transform .6s var(--ease-out, ease);
 }
 
 .unit-lock-row {
@@ -507,7 +499,7 @@ h1,h2,h3 {
   align-items: center;
   justify-content: space-between;
   gap: 9px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .unit-lock-row p {
@@ -528,12 +520,12 @@ h1,h2,h3 {
   align-items: center;
   gap: 3px;
   min-height: 44px;
-  padding: 5px 9px;
-  border: 1px solid #aa966045;
-  border-radius: 7px;
-  background: #e7b9650a;
-  color: #d7c08f;
-  font-size: 10px;
+  padding: 5px 10px;
+  border: 1px solid #aa966055;
+  border-radius: 8px;
+  background: #e7b9650d;
+  color: #e2cb98;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -544,9 +536,6 @@ h1,h2,h3 {
 .unit-path-track {
   position: relative;
   z-index: 1;
-  width: min(720px,100%);
-  height: 760px;
-  margin: auto;
 }
 
 .path-ribbon {
@@ -560,22 +549,22 @@ h1,h2,h3 {
 
 .path-ribbon path {
   fill: none;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   vector-effect: non-scaling-stroke;
 }
 
 .ribbon-shadow {
-  stroke: #0a192a88;
+  stroke: #07131f80;
   stroke-width: 30;
 }
 
 .ribbon-base {
-  stroke: #b8baa06b;
+  stroke: var(--trail-base);
   stroke-width: 18;
 }
 
 .ribbon-stitches {
-  stroke: #e9d6a588;
+  stroke: var(--trail-stitch);
   stroke-width: 2;
   stroke-dasharray: 1 13;
 }
@@ -584,9 +573,44 @@ h1,h2,h3 {
   stroke: #d0b47b6b;
   stroke-width: 5;
   stroke-dasharray: 2 9;
+  stroke-linecap: round !important;
 }
 
+.ribbon-branch.branch-lit {
+  stroke: #f2c96fd0;
+  animation: branch-march 1.6s linear infinite;
+}
+
+/* El tramo que ya recorriste: su propio camino, que termina en tu etapa actual. */
+.ribbon-lit-glow {
+  stroke: #f2c96f40;
+  stroke-width: 30;
+}
+
+.ribbon-lit {
+  stroke: var(--trail-lit);
+  stroke-width: 12;
+  opacity: .92;
+}
+
+/* Dos chispas viajan por el tramo dorado hasta donde vas. */
+.trail-spark {
+  pointer-events: none;
+}
+
+.spark-glow {
+  fill: #ffe7a3;
+  opacity: .32;
+}
+
+.spark-core {
+  fill: #fff7dc;
+}
+
+/* ── Etapas ───────────────────────────────────────────────────────── */
+
 .node-row {
+  --node: 76px;
   position: absolute;
   transform: translate(-50%,-50%);
   display: flex;
@@ -595,23 +619,27 @@ h1,h2,h3 {
   z-index: 3;
 }
 
+.node-row.current-row {
+  z-index: 5;
+}
+
 .path-node-btn {
   position: relative;
   display: grid;
   place-items: center;
-  width: 76px;
-  height: 76px;
+  width: var(--node);
+  height: var(--node);
   border-radius: 50%;
   background: radial-gradient(circle at 38% 24%,#345d65,#173b46 80%);
   border: 2px solid #9bbbb7;
   box-shadow: 0 5px 0 #112d39,0 8px 20px #07162277,inset 0 0 0 5px #b2e2d011;
   padding: 0;
-  transition: filter .18s,transform .18s;
+  transition: filter .18s ease, transform .18s var(--ease-out, ease-out);
   flex: none;
 }
 
 .node-glyph {
-  font-size: 31px;
+  font-size: calc(var(--node) * .41);
   color: #e5efda;
   font-variation-settings: 'FILL' 1,'wght' 350;
 }
@@ -619,7 +647,7 @@ h1,h2,h3 {
 .path-node-btn.node-current {
   border-color: #f4d390;
   background: radial-gradient(circle at 38% 24%,#8b7550,#4c5141 85%);
-  box-shadow: 0 5px 0 #54472d,0 0 34px #e7b9656b,inset 0 0 0 5px #ffe4ab15;
+  box-shadow: 0 5px 0 #54472d,0 6px 28px #e7b9656b,inset 0 0 0 5px #ffe4ab15;
 }
 
 .node-current .node-glyph {
@@ -637,7 +665,8 @@ h1,h2,h3 {
   border-color: #8caca9b0;
 }
 
-.path-node-btn.node-games,.path-node-btn.node-exam {
+.path-node-btn.node-games,
+.path-node-btn.node-exam {
   border: 0;
   background: none;
   box-shadow: none;
@@ -645,35 +674,90 @@ h1,h2,h3 {
 }
 
 .path-node-btn.node-games {
-  width: 126px;
-  height: 110px;
+  width: calc(var(--node) * 1.62);
+  height: calc(var(--node) * 1.42);
 }
 
 .path-node-btn.node-exam {
-  width: 166px;
-  height: 144px;
+  width: calc(var(--node) * 2.15);
+  height: calc(var(--node) * 1.86);
 }
 
-.node-games.node-current,.node-exam.node-current {
-  filter: drop-shadow(0 0 14px #e7b965b0);
+.node-games.node-current,
+.node-exam.node-current {
+  filter: drop-shadow(0 4px 14px #e7b965b0);
 }
 
 .node-exam.node-completed {
-  filter: drop-shadow(0 0 12px #e7b96565);
+  filter: drop-shadow(0 4px 12px #e7b96565);
 }
 
-.node-exam.node-locked,.node-games.node-locked {
+.node-exam.node-locked,
+.node-games.node-locked {
   filter: saturate(.5) brightness(.62);
+}
+
+.path-node-btn:not(:disabled):active {
+  transform: translateY(0) scale(.95);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .path-node-btn:not(:disabled):hover {
+    transform: translateY(-4px);
+    filter: brightness(1.16);
+  }
+}
+
+/* Tu etapa actual respira: un anillo dorado que se expande y se apaga. */
+.path-node-btn.node-current:not(.node-games):not(.node-exam)::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid #f4d390;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: node-halo 2.6s var(--ease-out, ease-out) infinite;
+}
+
+.node-games.node-current::after,
+.node-exam.node-current::after {
+  content: '';
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: -6%;
+  height: 40%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #f6d58f99, transparent);
+  pointer-events: none;
+  animation: landmark-glow 2.6s ease-in-out infinite;
+}
+
+/* Al llegar con «Mi siguiente etapa»: un aro que se abre una vez y Maguito da un saltito. */
+.node-row.is-pinged::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border: 3px solid #ffe7a6;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: node-ping .9s var(--ease-out, ease-out) both;
+}
+
+.node-row.is-pinged .current-companion {
+  animation: companion-hop .52s var(--ease-in-out, ease-in-out);
 }
 
 .node-label {
   position: absolute;
-  top: calc(100% + 11px);
+  top: calc(100% + 10px);
   font-size: 11px;
   font-weight: 600;
   line-height: 1.4;
   color: #e3e9d7;
-  background: #11262bd9;
+  background: #11262be6;
   border: 1px solid #9ac1b82b;
   padding: 5px 11px;
   border-radius: 20px;
@@ -683,7 +767,8 @@ h1,h2,h3 {
   box-shadow: 0 2px 6px #0b192333;
 }
 
-.node-lock,.node-check {
+.node-lock,
+.node-check {
   position: absolute;
   right: -3px;
   bottom: 0;
@@ -698,7 +783,8 @@ h1,h2,h3 {
   border-radius: 50%;
 }
 
-.node-games .node-lock,.node-exam .node-lock {
+.node-games .node-lock,
+.node-exam .node-lock {
   right: 17px;
   bottom: 5px;
 }
@@ -719,19 +805,24 @@ h1,h2,h3 {
   bottom: 0;
 }
 
-.node-stars,.skipped-note {
+.node-stars,
+.skipped-note {
   position: absolute;
-  top: calc(100% + 42px);
+  top: calc(100% + 40px);
   display: flex;
-  gap: 3px;
+  gap: 1px;
   white-space: nowrap;
-  font-size: 13px;
   color: #5c7778;
+}
+
+.node-stars .material-symbols-rounded {
+  font-size: 15px;
+  font-variation-settings: 'FILL' 1,'wght' 500;
 }
 
 .star-earned {
   color: #f1cf7b;
-  text-shadow: 0 0 8px #e7b96570;
+  filter: drop-shadow(0 1px 4px #e7b96570);
 }
 
 .skipped-note {
@@ -751,6 +842,7 @@ h1,h2,h3 {
   padding: 7px 12px;
   white-space: nowrap;
   box-shadow: 0 3px 10px #0a1d2755;
+  animation: bubble-bob 3.2s ease-in-out infinite;
 }
 
 .active-prompt-bubble::after {
@@ -778,88 +870,20 @@ h1,h2,h3 {
   display: block;
 }
 
-.node-row.current-row {
-  z-index: 5;
-}
-
-.path-node-btn:not(:disabled):hover {
-  transform: translateY(-3px);
-  filter: brightness(1.16);
-}
-
-.map-foreground {
-  position: absolute;
-  pointer-events: none;
-  filter: drop-shadow(0 7px 5px #07162255);
-  opacity: .85;
-}
-
-.map-foreground svg {
-  width: 100%;
-  height: 100%;
-}
-
-.foreground-left {
-  left: 0;
-  top: 27%;
-  width: 115px;
-  height: 135px;
-  color: #264f49;
-}
-
-.foreground-right {
-  right: 20px;
-  top: 75%;
-  width: 88px;
-  height: 88px;
-}
-
-.unit-section[data-variant='1'] .foreground-left {
-  top: 55%;
-  left: 3%;
-  transform: scale(.8);
-}
-
-.unit-section[data-variant='1'] .foreground-right {
-  top: 14%;
-  right: 2%;
-  transform: rotate(7deg);
-}
-
-.unit-section[data-variant='2'] .foreground-left {
-  top: 12%;
-  left: 7%;
-  transform: scale(.7);
-}
-
-.unit-section[data-variant='2'] .foreground-right {
-  top: 51%;
-  right: 0;
-  transform: scale(1.2);
-}
-
-.realm-library .foreground-left {
-  color: #453a68;
-}
-
-.realm-aurora .foreground-left {
-  color: #35515a;
-}
-
-.realm-citadel .foreground-left {
-  color: #394657;
-}
-
+/* Cofre de la unidad, al final de la rama punteada. */
 .bonus-stop {
   position: absolute;
-  left: 77%;
-  top: 54%;
   transform: translate(-50%,-50%);
   display: flex;
   align-items: center;
   flex-direction: column;
   z-index: 4;
-  width: 130px;
+}
+
+.bonus-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .chest-map-btn {
@@ -870,16 +894,18 @@ h1,h2,h3 {
   border: 0;
   background: none;
   padding: 0;
-  transition: filter .2s;
-  scroll-margin-top: calc(var(--header-offset, var(--navbar-h, 0px)) + 88px);
+  transition: filter .2s ease;
 }
 
 .bonus-locked .chest-map-btn {
   filter: saturate(.6) brightness(.72);
 }
 
+/* Un cofre listo para abrir se sacude cada tanto para llamar tu atención. */
 .bonus-available .chest-map-btn {
-  filter: drop-shadow(0 0 14px #f0c96b85);
+  filter: drop-shadow(0 3px 14px #f0c96b85);
+  transform-origin: 50% 88%;
+  animation: chest-wobble 3.4s ease-in-out infinite;
 }
 
 .chest-map-btn .node-lock {
@@ -901,7 +927,7 @@ h1,h2,h3 {
 .bonus-value {
   font-size: 9px;
   color: #d2d2b6;
-  background: #122832c2;
+  background: #122832d9;
   padding: 3px 6px;
   border-radius: 8px;
   margin-top: 2px;
@@ -912,34 +938,44 @@ h1,h2,h3 {
   color: #bde0c7;
 }
 
-.chest-map-btn:hover {
-  filter: brightness(1.2);
+@media (hover: hover) and (pointer: fine) {
+  .chest-map-btn:hover { filter: brightness(1.2); }
 }
+
+/* ── Tesoro del reino ─────────────────────────────────────────────── */
 
 .realm-treasury {
   position: relative;
   z-index: 2;
-  text-align: center;
-  min-height: 335px;
-  margin-top: -8px;
-  padding: 0 20px 35px;
   display: flex;
   align-items: center;
   flex-direction: column;
-  background: radial-gradient(ellipse at 50% 60%,#506c4e30,transparent 55%);
+  text-align: center;
 }
 
-.treasury-line {
-  height: 38px;
-  width: 12px;
-  background: #abb89a66;
-  margin-bottom: 15px;
-  border-radius: 6px;
+/* El cofre se apoya en el camino; su nombre va en una placa liviana que se lee sobre nieve, piedra o agua. */
+.treasury-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: min(340px, 100%);
 }
 
-.treasury-caption {
-  font-size: 11px;
-  color: #dac396;
+.treasury-plaque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 22px 4px;
+  border-radius: 16px;
+  background: #0b1626b8;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px #050d1859;
+}
+
+.treasury-available .treasury-plaque {
+  box-shadow: 0 10px 30px #050d1859, inset 0 0 0 1px #f0c96b66;
 }
 
 .realm-chest-btn {
@@ -950,8 +986,7 @@ h1,h2,h3 {
   border: 0;
   display: block;
   padding: 0;
-  margin: 7px 0 0;
-  scroll-margin-top: calc(var(--header-offset, var(--navbar-h, 0px)) + 88px);
+  margin: 6px 0 0;
 }
 
 .realm-chest-btn .node-lock {
@@ -964,17 +999,18 @@ h1,h2,h3 {
 }
 
 .treasury-available .realm-chest-btn {
-  filter: drop-shadow(0 0 23px #ebc572aa);
+  filter: drop-shadow(0 4px 23px #ebc572aa);
+  animation: chest-float 3.6s ease-in-out infinite;
 }
 
 .realm-treasury h3 {
-  font-size: 28px;
+  font-size: 26px;
   color: #e9d4a7;
   line-height: 1.2;
 }
 
 .realm-treasury p {
-  font-size: 11px;
+  font-size: 12px;
   color: #b6c5c4;
   margin-top: 6px;
 }
@@ -989,8 +1025,8 @@ h1,h2,h3 {
   border-bottom: 1px solid #d6b87a55;
   background: none;
   color: #e6ca95;
-  font-size: 11px;
-  margin-top: 8px;
+  font-size: 12px;
+  margin-top: 2px;
   padding: 5px 8px;
 }
 
@@ -1000,23 +1036,740 @@ h1,h2,h3 {
 
 .path-ending {
   text-align: center;
-  padding: 45px 20px 65px;
-  color: #9db8ba;
+  color: #b3c7c8;
 }
 
-.path-ending>.material-symbols-rounded {
-  font-size: 38px;
-  color: #c4af80;
+.ending-seal {
+  display: inline-grid;
+  place-items: center;
+  width: 70px;
+  height: 70px;
+  margin-top: 16px;
+  border: 2px solid #e7c27a;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 26%, #5d5240, #2a2f33 80%);
+  box-shadow: 0 5px 0 #1d2228, 0 8px 26px #e7b96540, inset 0 0 0 5px #ffe4ab12;
+  color: #f6dca4;
+}
+
+.ending-seal .material-symbols-rounded {
+  font-size: 32px;
+  animation: ending-float 5s ease-in-out infinite;
 }
 
 .path-ending p {
-  font: italic 24px var(--font-display,Georgia,serif);
-  margin-top: 10px;
+  font: italic 26px var(--font-display,Georgia,serif);
+  color: #f0e4c4;
+  text-shadow: 0 2px 12px #050d18;
 }
 
-.scene-paused *, .scene-paused *::before,.scene-paused *::after {
+/* ═══ Mapa de lado (escritorio) ═══════════════════════════════════════ */
+
+.layout-h .path-container {
+  height: var(--stage-h);
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.layout-h .senda-hud {
+  position: relative;
+  z-index: 20;
+  flex: none;
+  height: 66px;
+  padding: 0 24px;
+  background: linear-gradient(180deg,#0c1829,#0f1f33);
+  border-bottom: 1px solid #ffffff14;
+  box-shadow: 0 6px 18px #050d1859;
+}
+
+.layout-h .hud-title {
+  flex: none;
+  width: 196px;
+}
+
+.layout-h .world-minimap {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.layout-h .world-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.layout-h .world-scroller {
+  position: absolute;
+  inset: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  container-type: size;
+  cursor: grab;
+  scrollbar-width: thin;
+  scrollbar-color: #e7b96566 #0b1626;
+}
+
+.layout-h .world-scroller::-webkit-scrollbar { height: 8px; }
+.layout-h .world-scroller::-webkit-scrollbar-track { background: #0b1626; }
+.layout-h .world-scroller::-webkit-scrollbar-thumb { background: #e7b96566; border-radius: 8px; }
+
+.layout-h .world-scroller.is-panning {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.layout-h .world-track {
+  display: flex;
+  width: max-content;
+  height: 100%;
+}
+
+.layout-h .realm {
+  height: 100%;
+  view-timeline: --realm inline;
+}
+
+.layout-h .realm-scene {
+  left: 0;
+  justify-self: start;
+  width: 100cqw;
+  height: 100%;
+}
+
+.layout-h .realm-picture img {
+  object-position: 50% 46%;
+}
+
+.layout-h .realm-scene-shade {
+  background: linear-gradient(180deg,#0b162673,transparent 16%,transparent 74%,#0b1626a6), radial-gradient(ellipse at 50% 55%,transparent 55%,#07172933);
+}
+
+/* Las motas y luciérnagas viven arriba y abajo: la franja central es del camino. */
+.layout-h .realm-scene app-path-enchantment {
+  mask-image: linear-gradient(180deg,#000 20%,transparent 28%,transparent 82%,#000 90%);
+}
+
+.layout-h .realm-flow {
+  display: flex;
+  height: 100%;
+}
+
+.layout-h .realm-title {
+  flex: none;
+  width: clamp(460px, 34cqw, 600px);
+  height: 100%;
+  padding: 7cqh 48px 0 56px;
+}
+
+/* Una sombra suave solo detrás del texto del título: sin bordes que corten el paisaje. */
+.layout-h .realm-title::before,
+.layout-h .path-ending::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 62% 34% at 44% 24%, #0a1525d1, #0a15258c 55%, transparent 100%);
+  pointer-events: none;
+}
+
+.layout-h .realm-seal {
+  position: relative;
+}
+
+/* El camino sigue ondulando por el título del reino, el tesoro y el final; ahí va entero, sin trazo parcial. */
+.layout-h .zone-ribbon {
+  z-index: 0;
+}
+
+.layout-h .realm-title .realm-seal,
+.layout-h .realm-title-copy {
+  z-index: 1;
+}
+
+.layout-h .unit-section {
+  flex: none;
+  width: 1100px;
+  height: 100%;
+  contain-intrinsic-size: 1100px 600px;
+}
+
+.layout-h .unit-banner {
+  position: absolute;
+  left: 22px;
+  top: 6cqh;
+  width: 238px;
+  padding: 16px 18px 14px;
+}
+
+.layout-h .unit-banner h3 {
+  font-size: 20px;
+}
+
+.layout-h .unit-desc {
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.layout-h .unit-lock-row {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.layout-h .skip-unit-btn {
+  justify-content: center;
+}
+
+.layout-h .unit-path-track {
+  position: absolute;
+  inset: 0;
+}
+
+.layout-h .node-row {
+  --node: clamp(56px, 11.5cqh, 76px);
+}
+
+.layout-h .current-companion {
+  width: calc(var(--node) * 1.5);
+  height: calc(var(--node) * 1.42);
+}
+
+.layout-h .bonus-stop {
+  left: 71%;
+  top: 84%;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.layout-h .bonus-copy {
+  align-items: flex-start;
+}
+
+.layout-h .chest-map-btn {
+  width: 80px;
+  height: 69px;
+}
+
+.layout-h .node-label,
+.layout-h .bonus-label,
+.layout-h .bonus-value,
+.layout-h .active-prompt-bubble,
+.layout-h .unit-lock-row p,
+.layout-h .skip-unit-btn,
+.layout-h .unit-progress-wrap {
+  font-size: 12px;
+}
+
+.layout-h .unit-lock-row p .material-symbols-rounded {
+  font-size: 15px;
+}
+
+.layout-h .realm-treasury {
+  flex: none;
+  width: 480px;
+  height: 100%;
+  justify-content: flex-end;
+  padding-bottom: calc(24cqh - 64px);
+}
+
+/* La placa arriba y el cofre abajo, con su centro sobre el camino (76 %). */
+.layout-h .treasury-card {
+  flex-direction: column-reverse;
+}
+
+.layout-h .path-ending {
+  flex: none;
+  position: relative;
+  width: 620px;
+  height: 100%;
+}
+
+.layout-h .path-ending::before {
+  background: radial-gradient(ellipse 60% 26% at 50% 40%, #0a1525cc, #0a152580 55%, transparent 100%);
+}
+
+.layout-h .path-ending p {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  top: calc(55% - 120px);
+  text-align: center;
+}
+
+.layout-h .ending-seal {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  margin: 0;
+  translate: -50% -50%;
+}
+
+/* Paso entre reinos: la pintura nueva entra con un borde suave sobre la anterior.
+   El borde se corre con el scroll; sin animación no hay borde (quedaría fijo a la izquierda). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+  .layout-h:not(.motion-reduced) .realm + .realm .realm-scene {
+    margin-left: -160px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 160px);
+    mask-image: linear-gradient(90deg, transparent, #000 160px);
+    -webkit-mask-size: calc(100% + 160px) 100%;
+    mask-size: calc(100% + 160px) 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: seam-open linear both;
+    animation-timeline: --realm;
+    animation-range: entry calc(100% - 160px) entry 100%;
+    animation-play-state: running !important;
+  }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .layout-h .realm-scene .realm-picture img {
+      animation: realm-drift-x linear both;
+      animation-timeline: --realm;
+      animation-range: cover;
+      animation-play-state: running !important;
+      will-change: transform;
+    }
+  }
+}
+
+.layout-h .world-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  border: 1px solid #e7b96566;
+  border-radius: 50%;
+  background: #0d1c2ce6;
+  color: #f3d495;
+  box-shadow: 0 6px 18px #050d1880;
+  transition: opacity .2s ease, transform .16s var(--ease-out, ease-out);
+}
+
+.layout-h .world-arrow .material-symbols-rounded {
+  font-size: 28px;
+}
+
+.layout-h .arrow-prev { left: 16px; }
+.layout-h .arrow-next { right: 16px; }
+
+.layout-h .world-arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.layout-h .world-arrow:active {
+  transform: scale(.94);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .layout-h .world-arrow:hover { background: #172b3df2; }
+}
+
+/* Escritorios de poca altura: el HUD se comprime y las etiquetas se acercan. */
+@media (max-height: 820px) {
+  .layout-h .senda-hud { height: 58px; }
+  .layout-h .hud-title h1 { font-size: 24px; }
+  .layout-h .unit-banner { top: 4cqh; padding: 13px 16px 12px; }
+  .layout-h .unit-desc { -webkit-line-clamp: 2; }
+  .layout-h .realm-title h2 { font-size: 34px; }
+}
+
+@media (max-width: 1240px) {
+  .layout-h .senda-hud { gap: 14px; padding: 0 16px; }
+  .layout-h .hud-title { width: 150px; }
+  .layout-h .level-pill { display: none; }
+  .layout-h .segment-name { font-size: 11px; }
+}
+
+/* ═══ Recorrido vertical (celular y pantallas bajas) ══════════════════ */
+
+.layout-v .path-container {
+  display: grid;
+  grid-template-areas: "stack";
+}
+
+/* El HUD flota sobre la pintura; el mapa empieza justo bajo el menú. */
+.layout-v .senda-hud {
+  grid-area: stack;
+  align-self: start;
+  position: sticky;
+  top: calc(var(--header-offset, var(--navbar-h, 0px)) + 8px);
+  z-index: 35;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "stats return" "map map";
+  gap: 2px 8px;
+  width: calc(100% - 24px);
+  max-width: 760px;
+  margin: 8px auto 0;
+  padding: 4px 10px 6px 14px;
+  background: #0d1c2cf0;
+  border: 1px solid #496068;
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 26px #06121e66;
+}
+
+.layout-v .hud-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.layout-v .hud-stats {
+  grid-area: stats;
+}
+
+.layout-v .return-current {
+  grid-area: return;
+}
+
+.layout-v .world-minimap {
+  grid-area: map;
+}
+
+.layout-v .minimap-segment {
+  min-height: 36px;
+  gap: 4px;
+  padding-bottom: 6px;
+}
+
+.layout-v .minimap-lens {
+  top: -2px;
+  bottom: 0;
+}
+
+.layout-v .minimap-view {
+  bottom: 6px;
+}
+
+.layout-v .minimap-marker {
+  bottom: 5px;
+}
+
+.layout-v .segment-name {
+  font-size: 10px;
+}
+
+.layout-v .world-viewport {
+  grid-area: stack;
+  min-width: 0;
+}
+
+.layout-v .realm {
+  view-timeline: --realm block;
+}
+
+.layout-v .realm-scene {
+  align-self: start;
+  top: var(--header-offset, var(--navbar-h, 0px));
+  width: 100%;
+  height: var(--stage-h);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 6%, #000 92%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 6%, #000 92%, transparent);
+}
+
+.layout-v .realm-picture img {
+  object-position: 50% 20%;
+}
+
+.layout-v .realm-scene-shade {
+  background: linear-gradient(180deg,#101d321f,transparent 15%,transparent 85%,#101d324f), radial-gradient(ellipse at center,transparent 50%,#0717293b);
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .layout-v .realm-scene .realm-picture img {
+      animation: realm-drift-y linear both;
+      animation-timeline: --realm;
+      animation-range: cover;
+      animation-play-state: running !important;
+      transform-origin: 50% 35%;
+      will-change: transform;
+    }
+  }
+}
+
+.layout-v .realm-title {
+  width: calc(100% - 32px);
+  max-width: 560px;
+  margin: 26px auto 0;
+  padding: 10px 6px;
+}
+
+.layout-v .realm-title::before {
+  content: '';
+  position: absolute;
+  inset: -24px -16px;
+  background: radial-gradient(ellipse 70% 60% at 45% 50%, #0a1525d1, #0a152580 60%, transparent 100%);
+  pointer-events: none;
+}
+
+.layout-v .realm-title .realm-seal,
+.layout-v .realm-title-copy {
+  position: relative;
+}
+
+.layout-v .realm:first-child .realm-title {
+  margin-top: 132px;
+}
+
+.layout-v .realm-title h2 {
+  font-size: 30px;
+}
+
+.layout-v .realm-title .zone-trail {
+  display: none;
+}
+
+.layout-v .unit-section {
+  --lead: 34px;
+  --gap: 38px;
+  margin: 0 auto;
+  max-width: 1440px;
+  padding: var(--lead) 0 0;
+  contain-intrinsic-size: auto 1050px;
+  scroll-margin-top: calc(var(--header-offset, var(--navbar-h, 0px)) + 110px);
+}
+
+/* Tramos rectos que unen el camino con la tarjeta de la unidad, arriba y abajo. */
+.layout-v .unit-section::before,
+.layout-v .unit-banner::after,
+.layout-v .realm-treasury .zone-trail {
+  --core-inset: 3px;
+  background:
+    repeating-linear-gradient(180deg, var(--trail-stitch) 0 1.5px, transparent 1.5px 13px) center / 2px 100% no-repeat,
+    linear-gradient(90deg, transparent var(--core-inset), var(--trail-core, transparent) var(--core-inset) calc(100% - var(--core-inset)), transparent calc(100% - var(--core-inset))),
+    var(--trail-base);
+  box-shadow: 0 0 0 6px #07131f55;
+}
+
+.layout-v .unit-section::before,
+.layout-v .unit-banner::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - 9px);
+  width: 18px;
+  z-index: -1;
+}
+
+.layout-v .unit-section::before {
+  top: 0;
+  height: var(--lead);
+}
+
+/* El camino del SVG empieza 14px por encima de su pista; este tramo termina justo ahí. */
+.layout-v .unit-banner::after {
+  top: 100%;
+  height: calc(var(--gap) - 14px);
+}
+
+.layout-v .unit-section:not(.unit-locked)::before,
+.layout-v .unit-section:not(.unit-locked) .unit-banner::after,
+.layout-v .realm-treasury:not(.treasury-locked) .zone-trail {
+  --trail-core: #f2c96feb;
+  --trail-stitch: #fff1c8;
+  box-shadow: 0 0 0 6px #07131f55, 0 2px 16px #f2c96f4d;
+}
+
+.layout-v .unit-banner {
+  width: calc(100% - 48px);
+  max-width: 520px;
+  margin: 0 auto var(--gap);
+  padding: 16px 20px 14px;
+}
+
+.layout-v .unit-banner h3 {
+  font-size: 21px;
+}
+
+.layout-v .unit-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.layout-v .unit-path-track {
+  width: min(720px,100%);
+  height: 760px;
+  margin: auto;
+}
+
+.layout-v .bonus-stop {
+  left: 77%;
+  top: 54%;
+  width: 130px;
+}
+
+.layout-v .realm-treasury {
+  margin-top: -8px;
+  padding: 44px 20px 56px;
+}
+
+.layout-v .realm-treasury .zone-trail {
+  top: 0;
+  left: calc(50% - 9px);
+  width: 18px;
+  height: 44px;
+}
+
+.layout-v .path-ending {
+  padding: 45px 20px 90px;
+  text-shadow: 0 2px 10px #050d18;
+}
+
+.layout-v .path-ending .zone-trail {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .layout-v .realm-title { gap: 14px; }
+  .layout-v .realm-seal { width: 50px; height: 58px; }
+  .layout-v .realm-seal .material-symbols-rounded { font-size: 24px; }
+  .layout-v .unit-banner { max-width: 520px; }
+  .layout-v .bonus-stop { left: 78%; }
+}
+
+@media (max-width: 520px) {
+  .layout-v .senda-hud {
+    width: calc(100% - 16px);
+    padding: 2px 6px 6px 8px;
+    border-radius: 16px;
+  }
+  .layout-v .hud-stats { gap: 0; justify-content: space-between; }
+  .stat-pill { font-size: 11px; gap: 3px; padding: 4px 5px; }
+  .stat-pill .material-symbols-rounded { font-size: 19px; }
+  .level-pill { font-size: 10px; }
+  .layout-v .return-current {
+    border: 0;
+    border-left: 1px solid #a9976655;
+    border-radius: 0;
+    background: none;
+    padding: 4px 0 4px 9px;
+    min-width: 44px;
+  }
+  .layout-v .return-current>span:last-child { display: none; }
+  .layout-v .return-current .material-symbols-rounded { font-size: 21px; }
+  /* En celular el riel muestra los iconos; el nombre solo del reino que estás viendo. */
+  .layout-v .segment-name { font-size: 10px; gap: 3px; justify-content: center; }
+  .layout-v .segment-name .material-symbols-rounded { font-size: 15px; }
+  .layout-v .minimap-segment:not(.is-visible) .segment-text { display: none; }
+  .layout-v .minimap-rail { display: flex; }
+  .layout-v .minimap-segment { flex: 1 1 0; min-width: 0; }
+  .layout-v .minimap-segment.is-visible { flex-grow: 2.6; }
+  .layout-v .realm:first-child .realm-title { margin-top: 118px; }
+  .layout-v .realm-title { width: calc(100% - 24px); padding: 8px 4px; gap: 12px; }
+  .layout-v .realm-title h2 { font-size: 25px; }
+  .realm-title-copy>p:not(.realm-meta) { font-size: 11px; margin-top: 7px; }
+  .realm-meta { font-size: 10px; margin-top: 9px; }
+  .layout-v .realm-seal { width: 42px; height: 52px; margin-top: 2px; }
+  .layout-v .realm-seal .material-symbols-rounded { font-size: 21px; }
+  .layout-v .realm-seal>span:last-child { font-size: 11px; bottom: 4px; }
+  .layout-v .unit-section { --lead: 26px; --gap: 34px; contain-intrinsic-size: auto 1040px; }
+  .layout-v .unit-banner {
+    width: calc(100% - 32px);
+    padding: 13px 16px 12px;
+    border-radius: 3px 20px 3px 20px;
+    max-width: 370px;
+  }
+  .layout-v .unit-banner h3 { font-size: 19px; }
+  .unit-desc { font-size: 11px; margin-top: 7px; }
+  .unit-progress-wrap { margin-top: 12px; font-size: 9px; }
+  .unit-lock-row { align-items: flex-start; }
+  .unit-lock-row p { font-size: 10px; }
+  .skip-unit-btn { font-size: 10px; padding: 3px 8px; }
+  .layout-v .unit-path-track { width: 100%; }
+  .layout-v .node-row { --node: 65px; }
+  .path-node-btn { box-shadow: 0 4px 0 #112d39,0 7px 18px #07162277,inset 0 0 0 4px #b2e2d011; }
+  .node-label { font-size: 9px; padding: 4px 8px; top: calc(100% + 8px); }
+  .node-stars, .skipped-note { top: calc(100% + 34px); }
+  .node-stars .material-symbols-rounded { font-size: 13px; }
+  .skipped-note { font-size: 8px; }
+  .active-prompt-bubble { font-size: 9px; padding: 6px 9px; bottom: calc(100% + 12px); }
+  .current-companion { width: 82px; height: 78px; right: calc(100% + 7px); bottom: 0; }
+  .node-lock, .node-check { width: 22px; height: 22px; font-size: 12px; right: -3px; }
+  .node-games .node-lock, .node-exam .node-lock { right: 14px; }
+  .ribbon-shadow { stroke-width: 24; }
+  .ribbon-base { stroke-width: 15; }
+  .ribbon-stitches { stroke-width: 1.5; }
+  .ribbon-branch { stroke-width: 4; }
+  .ribbon-lit { stroke-width: 11; }
+  .ribbon-lit-glow { stroke-width: 24; }
+  .spark-glow { r: 7px; }
+  .spark-core { r: 3px; }
+  .layout-v .unit-section::before,
+  .layout-v .unit-banner::after,
+  .layout-v .realm-treasury .zone-trail {
+    --core-inset: 2px;
+    left: calc(50% - 7.5px);
+    width: 15px;
+  }
+  .layout-v .bonus-stop { left: 79%; top: 55%; width: 100px; }
+  .chest-map-btn { width: 79px; height: 70px; }
+  .bonus-label { font-size: 9px; padding: 4px 7px; }
+  .bonus-value { font-size: 8px; padding: 2px 4px; }
+  .layout-v .realm-treasury { padding-inline: 16px; }
+  .treasury-card { padding: 14px 18px 10px; }
+  .realm-treasury h3 { font-size: 25px; }
+  .realm-treasury p { font-size: 10px; }
+  .treasury-detail { font-size: 10px; }
+  .path-ending p { font-size: 22px; }
+}
+
+/* ── Movimiento ───────────────────────────────────────────────────── */
+
+/* Tras el primer gesto, el tramo dorado de una unidad que aparece se enciende con un fundido corto. */
+@media (prefers-reduced-motion: no-preference) {
+  .trail-motion .ribbon-lit,
+  .trail-motion .ribbon-lit-glow {
+    transition: opacity .5s var(--ease-out, ease-out) .1s;
+  }
+
+  .trail-motion .unit-section:not(.is-revealed) .ribbon-lit,
+  .trail-motion .unit-section:not(.is-revealed) .ribbon-lit-glow {
+    opacity: 0;
+  }
+}
+
+@keyframes node-halo { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(1.6); opacity: 0; } }
+@keyframes landmark-glow { 0%, 100% { opacity: .45; transform: scale(.92); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes node-ping { from { transform: scale(.92); opacity: .95; } to { transform: scale(1.9); opacity: 0; } }
+@keyframes node-ping-soft { 0% { opacity: 0; } 30% { opacity: .9; } 100% { opacity: 0; } }
+@keyframes companion-hop { 0%, 100% { transform: translateY(0); } 38% { transform: translateY(-14px); } }
+@keyframes bubble-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes branch-march { to { stroke-dashoffset: -11; } }
+@keyframes chest-wobble {
+  0%, 70%, 100% { transform: rotate(0); }
+  76% { transform: rotate(-7deg) scale(1.04); }
+  82% { transform: rotate(6deg) scale(1.04); }
+  88% { transform: rotate(-3deg); }
+  94% { transform: rotate(1.5deg); }
+}
+@keyframes chest-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes ending-float { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-7px) rotate(3deg); } }
+@keyframes realm-drift-x { from { transform: scale(1.08) translateX(2.5%); } to { transform: scale(1.08) translateX(-2.5%); } }
+@keyframes realm-drift-y { from { transform: scale(1.1) translateY(-3%); } to { transform: scale(1.1) translateY(3%); } }
+@keyframes seam-open { from { -webkit-mask-position: 0 0; mask-position: 0 0; } to { -webkit-mask-position: -160px 0; mask-position: -160px 0; } }
+
+.scene-paused *, .scene-paused *::before, .scene-paused *::after {
   animation-play-state: paused!important;
 }
+
+/* ── Estados de carga y error ─────────────────────────────────────── */
 
 .path-loading,.path-error {
   min-height: 65vh;
@@ -1043,6 +1796,8 @@ h1,h2,h3 {
 .path-error .action-btn {
   max-width: 240px;
 }
+
+/* ── Modales ──────────────────────────────────────────────────────── */
 
 .modal-backdrop {
   position: fixed;
@@ -1088,9 +1843,12 @@ h1,h2,h3 {
   border-radius: 50%;
   background: #102330;
   color: #d9e3dc;
-  font-size: 19px;
   flex: none;
   margin-left: auto;
+}
+
+.close-btn .material-symbols-rounded {
+  font-size: 21px;
 }
 
 .modal-panel h2 {
@@ -1122,13 +1880,8 @@ h1,h2,h3 {
   color: #d6dbbd;
 }
 
-.difficulty-badge.dificil {
-  color: #f2c08e;
-}
-
-.difficulty-badge.intermedio {
-  color: #e5d190;
-}
+.difficulty-badge.dificil { color: #f2c08e; }
+.difficulty-badge.intermedio { color: #e5d190; }
 
 .modal-activities {
   list-style: none;
@@ -1196,11 +1949,7 @@ h1,h2,h3 {
   font-weight: 750;
   padding: 12px 16px;
   box-shadow: 0 3px 0 #8a6f3f;
-  transition: background .2s;
-}
-
-.action-btn:hover {
-  background: #efd39c;
+  transition: background .2s ease;
 }
 
 .action-btn:disabled {
@@ -1210,6 +1959,10 @@ h1,h2,h3 {
 
 .action-btn .material-symbols-rounded {
   font-size: 21px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .action-btn:hover:not(:disabled) { background: #efd39c; }
 }
 
 .modal-footer {
@@ -1307,13 +2060,8 @@ h1,h2,h3 {
   font-variation-settings: 'FILL' 1;
 }
 
-.heart-filled {
-  color: #ec8795;
-}
-
-.heart-empty {
-  color: #4e6a74;
-}
+.heart-filled { color: #ec8795; }
+.heart-empty { color: #4e6a74; }
 
 .hearts-timer-box {
   font-size: 12px;
@@ -1351,21 +2099,15 @@ h1,h2,h3 {
   top: 15px;
 }
 
-.spark-one {
-  left: -12px;
-}
-
-.spark-two {
-  right: -4px;
-  top: 55px;
-}
+.spark-one { left: -12px; }
+.spark-two { right: -4px; top: 55px; }
 
 .reward-confirmed {
-  filter: drop-shadow(0 0 20px #eac57865);
+  filter: drop-shadow(0 4px 20px #eac57865);
 }
 
 .reward-confirmed .chest-spark {
-  animation: prize-spark .9s ease-out both;
+  animation: prize-spark .9s var(--ease-out, ease-out) both;
 }
 
 .reward-confirmed .spark-two {
@@ -1391,12 +2133,7 @@ h1,h2,h3 {
 }
 
 .prizes-received {
-  animation: prize-received .9s ease-out both;
-}
-
-@keyframes prize-received {
-  from { background-color: #e7b9652b; filter: brightness(1.35); }
-  to { background-color: transparent; filter: brightness(1); }
+  animation: prize-received .9s var(--ease-out, ease-out) both;
 }
 
 .ink-prize {
@@ -1461,406 +2198,46 @@ h1,h2,h3 {
   margin: 15px auto 0;
 }
 
+@keyframes prize-received {
+  from { background-color: #e7b9652b; filter: brightness(1.35); }
+  to { background-color: transparent; filter: brightness(1); }
+}
+
 @keyframes prize-spark {
-  from {
-    opacity: 0;
-    transform: scale(.3) translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(-5px);
-  }
+  from { opacity: 0; transform: scale(.6) translateY(15px); }
+  to { opacity: 1; transform: scale(1) translateY(-5px); }
 }
 
-@media(max-width:800px) {
-  :host {
-    padding-top: 10px;
-  }
-  .learning-top-bar {
-    margin-inline: 16px;
-    padding: 5px 8px;
-    gap: 6px;
-    top: calc(var(--header-offset, var(--navbar-h, 0px)) + 8px);
-  }
-  .top-bar-inner {
-    gap: 4px;
-  }
-  .stat-pill {
-    padding: 5px;
-    font-size: 11px;
-    gap: 4px;
-  }
-  .stat-pill .material-symbols-rounded {
-    font-size: 21px;
-  }
-  .return-current {
-    padding: 6px 11px;
-    font-size: 10px;
-    gap: 5px;
-  }
-  .path-intro {
-    padding: 0 25px;
-    margin: 24px auto 18px;
-    gap: 12px;
-  }
-  .path-intro h1 {
-    font-size: 41px;
-  }
-  .intro-compass {
-    font-size: 42px;
-  }
-  .intro-note {
-    display: none;
-  }
-  .realm-heading {
-    gap: 15px;
-    padding: 23px 25px;
-  }
-  .realm-heading h2 {
-    font-size: 29px;
-  }
-  .realm-seal {
-    width: 52px;
-    height: 62px;
-  }
-  .realm-seal .material-symbols-rounded {
-    font-size: 26px;
-  }
-  .realm-heading-copy>p:last-child {
-    font-size: 11px;
-  }
-  .realm-progress>span:first-child {
-    font-size: 26px;
-  }
-  .realm-navigation {
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .realm-navigation button {
-    padding: 6px 12px;
-    font-size: 10px;
-  }
-  .unit-banner {
-    max-width: 520px;
-  }
-  .foreground-left {
-    left: 2%;
-    width: 90px;
-  }
-  .foreground-right {
-    right: 4%;
-    width: 73px;
-  }
-  .bonus-stop {
-    left: 78%;
-  }
+@media (max-width: 520px) {
+  .modal-backdrop { padding: 14px; }
+  .modal-panel { padding: 19px 22px 24px; max-height: calc(100svh - 28px); border-radius: 6px 25px 6px 25px; }
+  .modal-panel h2 { font-size: 29px; }
+  .modal-header h2 { font-size: 25px; }
+  .modal-level-desc { font-size: 12px; }
+  .modal-rewards-box { gap: 17px; }
+  .modal-rewards-box>span { font-size: 12px; }
+  .wardrobe-prize>span { font-size: 22px; }
+  .wardrobe-prize app-maguito { width: 85px; height: 81px; }
+  .chest-reveal { width: 150px; height: 128px; }
 }
 
-@media(max-width:520px) {
-  .learning-top-bar {
-    margin-inline: 10px;
-    border-radius: 18px;
-    flex-wrap: wrap;
-    padding: 4px 8px;
-    gap: 0;
-  }
-  .top-bar-inner {
-    flex: 1;
-    justify-content: space-between;
-  }
-  .stat-pill {
-    font-size: 10px;
-    gap: 3px;
-    padding: 4px;
-    min-height: 44px;
-  }
-  .stat-pill .material-symbols-rounded {
-    font-size: 19px;
-  }
-  .level-pill {
-    font-size: 9px;
-  }
-  .return-current {
-    border: 0;
-    border-left: 1px solid #a9976655;
-    border-radius: 0;
-    background: none;
-    padding: 4px 0 4px 9px;
-    margin-left: 6px;
-    min-height: 44px;
-    min-width: 44px;
-  }
-  .return-current>span:last-child {
-    display: none;
-  }
-  .return-current .material-symbols-rounded {
-    font-size: 21px;
-  }
-  .path-intro {
-    padding: 0 20px;
-    gap: 12px;
-    margin: 23px auto 18px;
-  }
-  .path-intro h1 {
-    font-size: 37px;
-  }
-  .path-intro p {
-    font-size: 10px;
-    max-width: 245px;
-    margin-top: 5px;
-  }
-  .intro-compass {
-    font-size: 38px;
-  }
-  .realm-navigation {
-    padding: 0 13px;
-    gap: 5px;
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
-    max-width: 400px;
-    margin-bottom: 17px;
-  }
-  .realm-navigation button {
-    justify-content: center;
-    gap: 5px;
-    font-size: 10px;
-    padding: 5px 8px;
-    min-height: 44px;
-  }
-  .realm-navigation .material-symbols-rounded {
-    font-size: 17px;
-  }
-  .realm-heading {
-    padding: 20px 17px 23px;
-    gap: 11px;
-    align-items: flex-start;
-  }
-  .realm-heading h2 {
-    font-size: 27px;
-    line-height: 1.05;
-  }
-  .realm-heading-copy>p:last-child {
-    font-size: 10px;
-    line-height: 1.65;
-    margin-top: 7px;
-  }
-  .realm-index {
-    font-size: 9px;
-    margin-bottom: 6px;
-  }
-  .realm-seal {
-    width: 43px;
-    height: 54px;
-    margin-top: 3px;
-  }
-  .realm-seal .material-symbols-rounded {
-    font-size: 23px;
-  }
-  .realm-seal>span:last-child {
-    font-size: 11px;
-    bottom: 4px;
-  }
-  .realm-progress {
-    display: none;
-  }
-  .unit-section {
-    padding-top: 26px;
-    contain-intrinsic-size: auto 1010px;
-  }
-  .unit-banner {
-    width: calc(100% - 32px);
-    padding: 18px 19px 16px;
-    border-radius: 3px 22px 3px 22px;
-    max-width: 370px;
-  }
-  .unit-banner h3 {
-    font-size: 23px;
-  }
-  .unit-desc {
-    font-size: 11px;
-    line-height: 1.7;
-    margin-top: 7px;
-  }
-  .unit-tag {
-    font-size: 10px;
-    margin-bottom: 8px;
-  }
-  .unit-progress-wrap {
-    margin-top: 13px;
-    font-size: 9px;
-  }
-  .unit-lock-row {
-    align-items: flex-start;
-  }
-  .unit-lock-row p {
-    font-size: 9px;
-  }
-  .skip-unit-btn {
-    font-size: 9px;
-    min-height: 44px;
-    padding: 3px 7px;
-  }
-  .unit-path-track {
-    height: 760px;
-    width: 100%;
-  }
-  .path-node-btn {
-    width: 65px;
-    height: 65px;
-    box-shadow: 0 4px 0 #112d39,0 7px 18px #07162277,inset 0 0 0 4px #b2e2d011;
-  }
-  .node-glyph {
-    font-size: 27px;
-  }
-  .path-node-btn.node-games {
-    width: 108px;
-    height: 94px;
-  }
-  .path-node-btn.node-exam {
-    width: 144px;
-    height: 125px;
-  }
-  .node-label {
-    font-size: 9px;
-    padding: 4px 8px;
-    top: calc(100% + 8px);
-  }
-  .node-stars,.skipped-note {
-    top: calc(100% + 35px);
-    font-size: 11px;
-  }
-  .skipped-note {
-    font-size: 8px;
-  }
-  .active-prompt-bubble {
-    font-size: 9px;
-    padding: 6px 9px;
-    bottom: calc(100% + 12px);
-  }
-  .current-companion {
-    width: 82px;
-    height: 78px;
-    right: calc(100% + 7px);
-    bottom: 0;
-  }
-  .node-lock,.node-check {
-    width: 22px;
-    height: 22px;
-    font-size: 12px;
-    right: -3px;
-  }
-  .node-games .node-lock,.node-exam .node-lock {
-    right: 14px;
-  }
-  .ribbon-shadow {
-    stroke-width: 24;
-  }
-  .ribbon-base {
-    stroke-width: 15;
-  }
-  .ribbon-stitches {
-    stroke-width: 1.5;
-  }
-  .ribbon-branch {
-    stroke-width: 4;
-  }
-  .foreground-left {
-    width: 68px;
-    height: 86px;
-    left: 1%;
-    top: 27%;
-    opacity: .65;
-  }
-  .foreground-right {
-    width: 59px;
-    height: 65px;
-    right: 2%;
-    opacity: .7;
-  }
-  .bonus-stop {
-    left: 79%;
-    top: 55%;
-    width: 100px;
-  }
-  .chest-map-btn {
-    width: 79px;
-    height: 70px;
-  }
-  .bonus-label {
-    font-size: 9px;
-    padding: 4px 7px;
-  }
-  .bonus-value {
-    font-size: 8px;
-    padding: 2px 4px;
-  }
-  .realm-treasury {
-    padding-inline: 16px;
-    min-height: 325px;
-  }
-  .realm-treasury h3 {
-    font-size: 26px;
-  }
-  .realm-treasury p {
-    font-size: 10px;
-  }
-  .treasury-detail {
-    font-size: 10px;
-  }
-  .path-ending p {
-    font-size: 22px;
-  }
-  .modal-backdrop {
-    padding: 14px;
-  }
-  .modal-panel {
-    padding: 19px 22px 24px;
-    max-height: calc(100svh - 28px);
-    border-radius: 6px 25px 6px 25px;
-  }
-  .modal-panel h2 {
-    font-size: 29px;
-  }
-  .modal-header h2 {
-    font-size: 25px;
-  }
-  .modal-level-desc {
-    font-size: 12px;
-  }
-  .modal-rewards-box {
-    gap: 17px;
-  }
-  .modal-rewards-box>span {
-    font-size: 12px;
-  }
-  .wardrobe-prize>span {
-    font-size: 22px;
-  }
-  .wardrobe-prize app-maguito {
-    width: 85px;
-    height: 81px;
-  }
-  .chest-reveal {
-    width: 150px;
-    height: 128px;
-  }
-}
+/* ── Movimiento reducido: menos y más suave, nunca roto ────────────── */
 
-@media(prefers-reduced-motion:reduce) {
-  *,*::before,*::after {
-    animation: none!important;
-    transition: none!important;
-    scroll-behavior: auto!important;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .node-row.is-pinged::before {
+    animation: node-ping-soft .6s ease both !important;
   }
   .reward-confirmed .chest-spark {
     opacity: 1;
   }
-  .unit-progress-fill {
-    transition: none;
-  }
 }
 
 .motion-reduced * {
-  animation: none!important;
-  transition: none!important;
+  animation: none !important;
+  transition: none !important;
 }

@@ -42,20 +42,6 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
       </ng-container>
 
       <ng-container *ngSwitchCase="'lake'">
-        <svg *ngFor="let side of waterSides" class="moon-water" viewBox="0 0 300 420"
-          [class.on-right]="side === 'right'" preserveAspectRatio="none">
-          <g class="water-reflection" fill="none" stroke="#d2f5ff" stroke-linecap="round">
-            <path d="M132 55H168M124 69H177M135 85H163" stroke-width="3" opacity=".75"/>
-            <path d="M110 104H188M121 123H174M102 143H199" stroke-width="4" opacity=".5"/>
-            <path d="M117 169H181M93 195H207M108 222H192" stroke-width="4" opacity=".35"/>
-            <path d="M124 255H177M97 286H202M118 319H185" stroke-width="3" opacity=".25"/>
-          </g>
-          <g class="water-rings" fill="none" stroke="#b2e6f6" stroke-width="1.5">
-            <ellipse class="water-ring ring-one" cx="150" cy="170" rx="52" ry="9"/>
-            <ellipse class="water-ring ring-two" cx="150" cy="170" rx="52" ry="9"/>
-            <ellipse class="water-ring ring-three" cx="145" cy="290" rx="43" ry="7"/>
-          </g>
-        </svg>
         <span class="silver-star" *ngFor="let star of stars"
           [style.left.%]="star.x" [style.top.%]="star.y" [style.--delay]="star.delay + 's'"></span>
       </ng-container>
@@ -169,14 +155,6 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     .wing-right { animation-delay: -.1s; }
     .butterfly-trail { animation: glimmer 2s ease-in-out infinite; }
 
-    .moon-water { left: 1%; top: 41%; width: 27%; height: 57%; opacity: .75; }
-    .moon-water.on-right { left: auto; right: 1%; top: 28%; opacity: .55; }
-    .water-reflection { animation: reflection-shimmer 5s ease-in-out infinite; }
-    .on-right .water-reflection { animation-delay: -2s; }
-    .water-ring { transform-box: fill-box; transform-origin: center; animation: ripple 5s ease-out infinite; }
-    .ring-two { animation-delay: -2.5s; }
-    .ring-three { animation-delay: -1.4s; animation-duration: 6s; }
-
     .silver-star {
       position: absolute;
       width: 13px;
@@ -252,8 +230,6 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
     @keyframes wing-flutter { from { transform: scaleX(1); } to { transform: scaleX(.37); } }
     @keyframes glimmer { 0%, 100% { opacity: .24; } 50% { opacity: .85; } }
-    @keyframes reflection-shimmer { 0%, 100% { transform: translateY(0) scaleX(.96); opacity: .45; } 50% { transform: translateY(5px) scaleX(1.04); opacity: .95; } }
-    @keyframes ripple { 0% { transform: scale(.4); opacity: .65; } 80%, 100% { transform: scale(1.9); opacity: 0; } }
     @keyframes star-shimmer { 0%, 100% { transform: scale(.55) rotate(0); opacity: .15; } 50% { transform: scale(1.15) rotate(14deg); opacity: .9; } }
     @keyframes book-hover { 0%, 100% { transform: translateY(0) rotate(var(--tilt)); } 50% { transform: translateY(-23px) rotate(calc(var(--tilt) + 6deg)); } }
     @keyframes page-breathe { 0%, 100% { transform: skewY(0); } 50% { transform: skewY(-5deg); } }
@@ -280,7 +256,6 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     @media (prefers-reduced-motion: reduce) {
       :host * { animation: none !important; }
       .mote { opacity: .45; }
-      .water-ring { opacity: .25; }
     }
   `],
 })
@@ -303,7 +278,6 @@ export class PathEnchantmentComponent {
     { x: 7, y: 27, tilt: -15, delay: -2 },
     { x: 82, y: 65, tilt: 12, delay: -5 },
   ];
-  readonly waterSides = ['left', 'right'];
   readonly stars = [
     { x: 8, y: 17, delay: -.8 }, { x: 23, y: 32, delay: -2.1 },
     { x: 17, y: 74, delay: -3.2 }, { x: 77, y: 20, delay: -1.4 },

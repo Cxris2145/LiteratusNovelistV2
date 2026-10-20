@@ -46,6 +46,8 @@ export class AppComponent implements OnInit {
   isDashboard = false;
   isEnigma = false;
   isTavernHall = /^\/tavern\/?(?:[?#]|$)/.test(this.router.url);
+  /** El mapa de La Senda ocupa toda la pantalla bajo el encabezado: sin pie de página. */
+  isSendaMap = /^\/learn\/?(?:[?#]|$)/.test(this.router.url);
   /** Partida de La Senda en modo concentración: sin header ni asistente (tapaba la bandeja). */
   isPlayingLevel = false;
   isNavBubblesHidden = false;
@@ -153,6 +155,7 @@ export class AppComponent implements OnInit {
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
         this.isEnigma = url.includes('enigma');
         this.isTavernHall = /^\/tavern\/?(?:[?#]|$)/.test(url);
+        this.isSendaMap = /^\/learn\/?(?:[?#]|$)/.test(url);
         this.isPlayingLevel = url.startsWith('/learn/play') || url.startsWith('/learn/skip');
         // La barra inferior (celular) se muestra donde se ve el encabezado de la tienda.
         document.body.classList.toggle('has-bottom-nav', !this.isDashboard && !this.isPlayingLevel);
