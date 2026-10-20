@@ -44,7 +44,7 @@ class CommunitySearchView(CommunityView):
 
 
 class SuggestionsView(CommunityView):
-    """GET suggestions/ — Lectores que quizá conozcas (perfiles públicos), para "Agregar amigo"."""
+    """GET suggestions/ — Todas las cuentas, con su relación contigo, para "Agregar amigo"."""
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'community_search'
 

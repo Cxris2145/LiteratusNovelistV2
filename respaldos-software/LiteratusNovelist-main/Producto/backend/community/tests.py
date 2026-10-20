@@ -667,17 +667,32 @@ class SuggestionTests(CommunityAPITestCase):
     def suggestions(self, user=None):
         return self.as_user(user or self.ana).get(f'{API}suggestions/').data['results']
 
-    def test_excludes_me_friends_pending_private_inactive_and_staff(self):
+    def test_lists_every_account_with_its_relation(self):
         self.befriend(self.ana, self.bruno)
         Friendship.objects.create(requester=self.carla, addressee=self.ana)
+        Friendship.objects.create(requester=self.ana, addressee=make_user('diego'))
         make_user('dormida', is_active=False)
         make_user('equipo', is_staff=True)
         Profile.objects.filter(user=make_user('reservada')).update(is_public=False)
+        rechazo = make_user('rechazo')
+        Profile.objects.filter(user=rechazo).update(is_public=False)
+        Friendship.objects.create(requester=self.ana, addressee=rechazo, status=Friendship.Status.DECLINED)
+        secreta = make_user('secreta')
+        Profile.objects.filter(user=secreta).update(is_public=False)
+        self.befriend(secreta, self.ana)
         make_user('nueva')
 
-        names = [s['username'] for s in self.suggestions()]
+        results = self.suggestions()
 
-        self.assertEqual(names, ['nueva'])
+        # Primero a quien puedes agregar (los más nuevos antes), luego las solicitudes y al final
+        # tus amigos. Fuera: tú, las cuentas inactivas y los privados sin relación contigo.
+        self.assertEqual([(s['username'], s['relation']) for s in results], [
+            ('nueva', 'none'), ('equipo', 'none'), ('carla', 'incoming'), ('diego', 'outgoing'),
+            ('secreta', 'friend'), ('bruno', 'friend'),
+        ])
+        self.assertEqual(results[2]['reason'], 'Te envió una solicitud')
+        self.assertIsNotNone(results[2]['request_id'])
+        self.assertEqual(results[3]['reason'], 'Le enviaste una solicitud')
 
     def test_friends_of_friends_and_shared_genres_come_first(self):
         fantasia = Genre.objects.create(name='Fantasia', slug='fantasia')

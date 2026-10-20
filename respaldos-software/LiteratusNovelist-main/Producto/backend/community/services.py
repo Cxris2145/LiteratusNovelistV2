@@ -34,7 +34,10 @@ READING_WINDOW = timedelta(minutes=10)
 OPEN_SESSION_WINDOW = timedelta(minutes=45)
 PRESENCE_WRITE_EVERY = timedelta(seconds=30)
 SEARCH_LIMIT = 8
-SUGGESTION_LIMIT = 8
+# Sugerencias: todas las cuentas; el tope solo evita una lista enorme si la comunidad crece.
+SUGGESTION_LIMIT = 200
+# Orden de las sugerencias: primero a quien puedes agregar, al final tus amigos.
+RELATION_ORDER = {'none': 0, 'incoming': 1, 'outgoing': 2, 'friend': 3}
 SUGGESTION_RECENT_TAVERN = timedelta(days=7)
 NEW_READER_WINDOW = timedelta(days=30)
 
@@ -211,14 +214,16 @@ def search(me, raw_query) -> list:
 
 def suggestions(me, limit=SUGGESTION_LIMIT) -> list:
     """
-    Lectores que quizá conozcas, para "Agregar amigo": amigos de tus amigos, gustos en común
-    y quienes pasaron hace poco por la taberna; si faltan, los que acaban de llegar.
-    Solo perfiles públicos, sin cuentas del equipo ni nadie con quien ya tengas una solicitud.
+    Todas las cuentas de Literatus, para "Agregar amigo", cada una con su relación contigo
+    para que el botón diga lo que corresponde. Primero las que todavía no son nada tuyo
+    (amigos de tus amigos, gustos en común, quienes pasaron hace poco por la taberna y,
+    después, las más nuevas), luego las solicitudes pendientes y al final tus amigos.
+    Un perfil privado solo aparece si ya tiene una amistad o una solicitud contigo.
     """
-    related = {b if a == me.pk else a for a, b in
-               Friendship.objects.filter(Q(requester=me) | Q(addressee=me)).values_list('requester_id', 'addressee_id')}
-    base = (_profiles().filter(is_public=True, user__is_staff=False, user__is_superuser=False)
-            .exclude(user=me).exclude(user_id__in=related))
+    connected = {b if a == me.pk else a for a, b in
+                 Friendship.objects.filter(Q(requester=me) | Q(addressee=me))
+                 .exclude(status=Friendship.Status.DECLINED).values_list('requester_id', 'addressee_id')}
+    base = _profiles().filter(Q(is_public=True) | Q(user_id__in=connected)).exclude(user=me)
 
     mine = friend_ids(me)
     mutual = Counter()
@@ -244,19 +249,22 @@ def suggestions(me, limit=SUGGESTION_LIMIT) -> list:
 
     now = timezone.now()
     recent = set(base.filter(last_seen_in_tavern__gte=now - SUGGESTION_RECENT_TAVERN)
-                 .values_list('user_id', flat=True)[:50])
-    newest = list(base.order_by('-user__date_joined').values_list('user_id', flat=True)[:limit * 2])
+                 .values_list('user_id', flat=True))
+    profiles = list(base)
+    relations = relations_for(me, [p.user_id for p in profiles])
 
-    candidates = (set(mutual) | set(shared) | recent | set(newest)) - related - {me.pk}
-    profiles = list(base.filter(user_id__in=candidates))
-
-    def score(profile):
+    def rank(profile):
         uid = profile.user_id
-        return (mutual[uid] * 3 + len(shared.get(uid, ())) * 2 + (1 if uid in recent else 0),
-                profile.user.date_joined)
+        points = mutual[uid] * 3 + len(shared.get(uid, ())) * 2 + (1 if uid in recent else 0)
+        return (RELATION_ORDER[relations[uid][0]], -points, -profile.user.date_joined.timestamp())
 
     def reason(profile):
         uid = profile.user_id
+        relation = relations[uid][0]
+        if relation == 'incoming':
+            return 'Te envió una solicitud'
+        if relation == 'outgoing':
+            return 'Le enviaste una solicitud'
         if mutual[uid]:
             return f'{mutual[uid]} amigo en común' if mutual[uid] == 1 else f'{mutual[uid]} amigos en común'
         if shared.get(uid):
@@ -267,8 +275,9 @@ def suggestions(me, limit=SUGGESTION_LIMIT) -> list:
             return 'Nuevo en Literatus'
         return 'Lector de Literatus'
 
-    ranked = sorted(profiles, key=score, reverse=True)[:limit]
-    return [{**minimal_card(p), 'reason': reason(p), 'mutual_friends': mutual[p.user_id]} for p in ranked]
+    ranked = sorted(profiles, key=rank)[:limit]
+    return [{**minimal_card(p, *relations[p.user_id]), 'reason': reason(p), 'mutual_friends': mutual[p.user_id]}
+            for p in ranked]
 
 
 # ── Estado de los amigos ──────────────────────────────────────────────

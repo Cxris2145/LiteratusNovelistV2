@@ -99,6 +99,7 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   suggestionLabel(card: TavernCard): string {
     if (card.relation === 'outgoing') return 'Enviada · Cancelar';
     if (card.relation === 'friend') return 'Ya son amigos';
+    if (card.relation === 'incoming') return 'Aceptar';
     return 'Agregar';
   }
 
