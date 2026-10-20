@@ -490,6 +490,46 @@ label {
   .tavern-identity-actions { justify-content: center; }
 }
 
+/* ═══ TU CUENTA: CERRAR SESIÓN Y ELIMINAR CUENTA ═══ */
+.account-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  width: 100%;
+  max-width: 640px;
+  margin: 36px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+  box-sizing: border-box;
+}
+
+.account-zone-copy h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.account-zone-copy .field-hint {
+  margin: 0;
+}
+
+.account-zone-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.account-zone-actions .avatar-action-btn {
+  min-height: 40px;
+}
+
+@media (max-width: 520px) {
+  .account-zone { flex-direction: column; align-items: stretch; text-align: center; }
+  .account-zone-actions { flex-direction: column; }
+  .account-zone-actions .avatar-action-btn { justify-content: center; min-height: 44px; }
+}
+
 /* ═══ RESPONSIVIDAD PARA CELULAR Y PANTALLAS PEQUEÑAS ═══ */
 @media (max-width: 768px) {
   .profile-container {

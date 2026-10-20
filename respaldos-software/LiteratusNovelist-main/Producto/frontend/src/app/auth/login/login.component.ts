@@ -41,6 +41,10 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     // Get return url from route parameters or default to '/catalog'
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/catalog';
+    // Llega aquí desde "Eliminar cuenta" en el perfil (ver AuthService.deleteAccount).
+    if (this.route.snapshot.queryParams['cuenta'] === 'eliminada') {
+      this.infoMsg = 'Tu cuenta y sus datos se borraron para siempre. Gracias por leer con nosotros.';
+    }
   }
 
   onSubmit() {

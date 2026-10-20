@@ -23,7 +23,12 @@ export class ForgotPasswordComponent implements OnDestroy {
   private countdown?: ReturnType<typeof setInterval>;
   private destroyRef = inject(DestroyRef);
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {
+    // "Eliminar cuenta" del perfil manda aquí con el correo ya puesto (en el estado
+    // de la navegación, no en la URL, para que no quede en el historial).
+    const email = this.router.getCurrentNavigation()?.extras.state?.['email'];
+    if (typeof email === 'string') this.email = email;
+  }
 
   sendCode(): void {
     if (this.isLoading || this.isResending) return;

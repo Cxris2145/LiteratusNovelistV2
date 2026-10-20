@@ -10,6 +10,9 @@ if os.environ.get('LITERATUS_TEST_DATABASE_URL'):
     DATABASES = {'default': env.db_url('LITERATUS_TEST_DATABASE_URL')}
 PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+# Nunca enviar desde el Gmail real con Apps Script, aunque el .env lo tenga configurado.
+APPS_SCRIPT_MAIL_URL = ''
+APPS_SCRIPT_MAIL_SECRET = ''
 if os.environ.get('LITERATUS_PREVIEW_EMAIL_DIR'):
     EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
     EMAIL_FILE_PATH = os.environ['LITERATUS_PREVIEW_EMAIL_DIR']

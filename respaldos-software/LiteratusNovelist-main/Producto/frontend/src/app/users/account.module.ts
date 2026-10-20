@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 
 import { SharedModule } from '../shared/shared.module';
 import { ProfileComponent } from './profile/profile.component';
+import { DeleteAccountDialogComponent } from './profile/delete-account-dialog/delete-account-dialog.component';
 import { AchievementsComponent } from '../library/achievements/achievements.component';
 import { FlashcardsComponent } from '../library/flashcards/flashcards.component';
 import { FavoritesComponent } from '../library/favorites/favorites.component';
@@ -10,7 +11,7 @@ import { AuthorSubmitBookComponent } from '../catalog/author-submit-book/author-
 
 /** Perfil, logros, tarjetas de vocabulario, favoritos y publicar libro (todas piden sesión). */
 @NgModule({
-  declarations: [ProfileComponent, AchievementsComponent, FlashcardsComponent, FavoritesComponent, AuthorSubmitBookComponent],
+  declarations: [ProfileComponent, DeleteAccountDialogComponent, AchievementsComponent, FlashcardsComponent, FavoritesComponent, AuthorSubmitBookComponent],
   imports: [SharedModule],
   exports: [ProfileComponent, AchievementsComponent, FlashcardsComponent, FavoritesComponent, AuthorSubmitBookComponent],
 })

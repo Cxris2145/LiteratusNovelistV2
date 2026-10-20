@@ -20,6 +20,7 @@ from .serializers import (
     PasswordResetRequestSerializer, PasswordResetVerifySerializer, PasswordResetConfirmSerializer,
 )
 from .utils import email_is_configured, send_verification_email
+from .account_deletion import SubscriptionCancelError, delete_account
 
 logger = logging.getLogger(__name__)
 
@@ -149,6 +150,34 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         with transaction.atomic():
             serializer.instance = Profile.objects.select_for_update().get(user=self.request.user)
             serializer.save()
+
+class DeleteAccountView(APIView):
+    """
+    Endpoint POST /api/v1/users/me/delete/
+    Borra para siempre la cuenta del usuario autenticado. Exige su contraseña actual;
+    quien no la recuerde la recupera con el flujo normal de /forgot-password.
+    Si PayPal no confirma la cancelación del plan de pago, no se borra nada (502).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'account_delete'
+
+    def post(self, request, *args, **kwargs):
+        password = request.data.get('password')
+        if not isinstance(password, str) or not password or not request.user.check_password(password):
+            return Response({'error': 'La contraseña no es correcta.', 'code': 'PASSWORD_INVALID'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            delete_account(request.user)
+        except SubscriptionCancelError:
+            logger.exception('No se pudo cancelar el plan PayPal al borrar la cuenta %s', request.user.pk)
+            return Response({
+                'error': 'No pudimos cancelar tu plan de pago en PayPal, así que tu cuenta sigue activa. '
+                         'Inténtalo de nuevo en unos minutos.',
+                'code': 'SUBSCRIPTION_CANCEL_FAILED',
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class AddInkView(APIView):
     """

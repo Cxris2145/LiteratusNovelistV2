@@ -226,6 +226,7 @@ REST_FRAMEWORK = {
         'community_write': '60/hour',
         'password_reset_request': '10/hour',
         'password_reset_verify': '30/min',
+        'account_delete': '10/hour',
     },
 }
 
@@ -331,6 +332,10 @@ EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=False)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='resend')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@novelatus.tech')
+# Envío gratis desde un Gmail con una app web de Google Apps Script (docs/correo-gmail-apps-script).
+# Si las dos están puestas, tiene prioridad sobre Resend.
+APPS_SCRIPT_MAIL_URL = env('APPS_SCRIPT_MAIL_URL', default='')
+APPS_SCRIPT_MAIL_SECRET = env('APPS_SCRIPT_MAIL_SECRET', default='')
 
 # ---------------------------------------------------------------------------
 # Gamificación — Tablas configurables de recompensas y niveles

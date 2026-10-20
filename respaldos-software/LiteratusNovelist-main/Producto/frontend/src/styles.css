@@ -887,8 +887,9 @@ body:has(.container.dashboard-mode) {
   border-radius: 20px !important;
 }
 
-/* La Taberna (comunidad): el diálogo dibuja su propio panel */
-.th-dialog-panel .mat-mdc-dialog-surface {
+/* La Taberna (comunidad) y "Eliminar cuenta" del perfil: el diálogo dibuja su propio panel */
+.th-dialog-panel .mat-mdc-dialog-surface,
+.account-dialog-panel .mat-mdc-dialog-surface {
   background: transparent !important;
   box-shadow: none !important;
   border-radius: 20px !important;

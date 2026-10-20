@@ -110,6 +110,23 @@ export class AuthService {
     return this.api.post(`users/password-reset-confirm/`, { email, reset_token, new_password, confirm_password });
   }
 
+  /**
+   * Borra para siempre la cuenta activa; el backend exige su contraseña. Si sale bien,
+   * también se quita lo que esa cuenta guardó en este navegador. Después hay que
+   * llamar a `logout`.
+   */
+  deleteAccount(password: string): Observable<void> {
+    const ownerId = this._currentUser()?.id;
+    return this.api.post<void>('users/me/delete/', { password }).pipe(
+      tap(() => {
+        if (!ownerId) return;
+        for (const key of Object.keys(localStorage)) {
+          if (key.includes(ownerId)) localStorage.removeItem(key);
+        }
+      })
+    );
+  }
+
   private loadUserFromStorage(): UserProfile | null {
     try {
       const raw = localStorage.getItem(this.USER_KEY);

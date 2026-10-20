@@ -1,0 +1,229 @@
+.da-panel {
+  padding: 28px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid color-mix(in srgb, var(--color-error) 45%, var(--color-border));
+  border-radius: 20px;
+  box-sizing: border-box;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+}
+
+.da-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.da-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 26px;
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+.da-head h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.da-lead {
+  margin: 0 0 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.55;
+}
+
+.da-lead strong {
+  color: var(--color-text-primary);
+}
+
+.da-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 22px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-surface-elevated) 70%, transparent);
+}
+
+.da-note .material-symbols-rounded {
+  font-size: 18px;
+  margin-top: 1px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.da-password {
+  position: relative;
+}
+
+.da-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 48px 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface-elevated) 60%, transparent);
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.da-input:focus-visible {
+  outline: 2px solid var(--color-error);
+  outline-offset: 1px;
+}
+
+.da-input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.da-eye {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.da-eye:focus-visible {
+  outline: 2px solid var(--color-border-strong);
+}
+
+.da-error {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+.da-forgot {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-primary-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.da-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.da-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.18s ease, transform 0.12s ease;
+}
+
+.da-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.da-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.da-cancel {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.da-delete {
+  border: 1px solid var(--color-error);
+  background: var(--color-error);
+  /* Superficie del tema: oscura sobre el rojo claro de los temas oscuros y al revés. */
+  color: var(--color-surface);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .da-cancel:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-surface-elevated) 80%, transparent);
+  }
+
+  .da-delete:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-error) 88%, var(--color-text-primary));
+  }
+}
+
+.da-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: da-spin 0.8s linear infinite;
+}
+
+@keyframes da-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .da-btn { transition: none; }
+  .da-spinner { animation-duration: 2s; }
+}
+
+@media (max-width: 480px) {
+  .da-panel {
+    padding: 22px 18px;
+  }
+
+  .da-actions {
+    flex-direction: column-reverse;
+  }
+
+  .da-btn {
+    width: 100%;
+  }
+}
+
+/* Controles con la letra de interfaz del sitio (va al final para ganarle a `font: inherit`). */
+.da-note,
+label,
+.da-input,
+.da-error,
+.da-forgot,
+.da-btn {
+  font-family: var(--font-ui);
+}

@@ -6,6 +6,8 @@ import { ApiService } from '../../core/services/api.service';
 import { ChatService } from '../../core/services/chat.service';
 import { APP_THEMES, SettingsService } from '../../core/services/settings.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { DeleteAccountDialogComponent, DeleteAccountDialogData } from './delete-account-dialog/delete-account-dialog.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { copyText } from '../../community/clipboard.util';
@@ -27,6 +29,7 @@ export class ProfileComponent implements OnInit {
   fb = inject(FormBuilder);
   snackBar = inject(MatSnackBar);
   notificationService = inject(NotificationService);
+  private dialog = inject(MatDialog);
   loading = false;
   selectedTab: 'datos' | 'paleta' = 'datos';
   userInitials = 'V';
@@ -76,6 +79,22 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     this.loadProfile();
+  }
+
+  logout() {
+    this.authService.logout();
+  }
+
+  openDeleteAccount() {
+    if (this.dialog.openDialogs.length) return;
+    this.dialog.open<DeleteAccountDialogComponent, DeleteAccountDialogData>(DeleteAccountDialogComponent, {
+      data: { email: this.authService.currentUser()?.email || '' },
+      panelClass: 'account-dialog-panel',
+      width: '480px',
+      maxWidth: 'calc(100vw - 24px)',
+      autoFocus: '#da-password',
+      ariaLabelledBy: 'da-title',
+    });
   }
 
   loadProfile() {

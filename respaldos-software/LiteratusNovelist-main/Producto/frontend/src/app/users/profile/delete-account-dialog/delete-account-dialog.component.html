@@ -1,0 +1,45 @@
+<section class="da-panel">
+  <header class="da-head">
+    <span class="material-symbols-rounded da-icon" aria-hidden="true">delete_forever</span>
+    <h2 id="da-title">¿Eliminar tu cuenta?</h2>
+  </header>
+
+  <p class="da-lead" id="da-lead">
+    Se borran para siempre tu perfil, tu biblioteca y tu progreso de lectura, tus notas y subrayados,
+    tu Tinta y tus logros, y tus chats, amigos y mensajes. <strong>No se puede deshacer.</strong>
+  </p>
+  <p class="da-note">
+    <span class="material-symbols-rounded" aria-hidden="true">credit_card_off</span>
+    Si tienes un plan de pago, lo cancelamos en PayPal antes de borrar la cuenta.
+  </p>
+
+  <form (ngSubmit)="confirm()" [attr.aria-busy]="deleting">
+    <label for="da-password">Escribe tu contraseña para confirmar</label>
+    <div class="da-password">
+      <input #passwordInput id="da-password" class="da-input" name="password"
+             [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password"
+             autocomplete="current-password" required [disabled]="deleting"
+             [attr.aria-invalid]="error ? 'true' : null"
+             [attr.aria-describedby]="error ? 'da-lead da-error' : 'da-lead'">
+      <button type="button" class="da-eye" (click)="showPassword = !showPassword" [disabled]="deleting"
+              [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showPassword">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+      </button>
+    </div>
+
+    <p *ngIf="error" id="da-error" class="da-error" role="alert">{{ error }}</p>
+
+    <a class="da-forgot" routerLink="/forgot-password" [state]="{ email: data.email }" (click)="dialogRef.close()">
+      ¿No recuerdas tu contraseña? Recupérala con un código por correo
+    </a>
+
+    <div class="da-actions">
+      <button type="button" class="da-btn da-cancel" (click)="dialogRef.close()" [disabled]="deleting">Cancelar</button>
+      <button type="submit" class="da-btn da-delete" [disabled]="!password || deleting">
+        <span *ngIf="deleting" class="da-spinner" aria-hidden="true"></span>
+        {{ deleting ? 'Eliminando…' : 'Eliminar mi cuenta' }}
+      </button>
+    </div>
+  </form>
+</section>

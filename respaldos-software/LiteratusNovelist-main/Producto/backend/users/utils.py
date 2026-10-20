@@ -1,6 +1,7 @@
 import os
 import json
 import urllib.request
+from email.utils import parseaddr
 from django.core.mail import send_mail as django_send_mail
 from django.conf import settings
 from django.utils.http import urlsafe_base64_encode
@@ -23,17 +24,65 @@ class EmailVerificationTokenGenerator(PasswordResetTokenGenerator):
 # Instancia del generador personalizado para verificación de correo
 email_verification_token = EmailVerificationTokenGenerator()
 
-def email_is_configured():
-    """Hay forma de enviar correos: una clave (Resend o SMTP) o un backend que no sea SMTP (tests, consola)."""
-    return bool(settings.EMAIL_HOST_PASSWORD) or settings.EMAIL_BACKEND != 'django.core.mail.backends.smtp.EmailBackend'
+SMTP_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
-def send_mail_via_resend_api(subject, message, from_email, recipient_list, html_message=None):
+
+def apps_script_is_configured():
+    """Envío desde un Gmail con la app web de Google Apps Script (docs/correo-gmail-apps-script)."""
+    return bool(settings.APPS_SCRIPT_MAIL_URL and settings.APPS_SCRIPT_MAIL_SECRET)
+
+
+def email_is_configured():
+    """Hay forma de enviar correos: Apps Script, una clave (Resend o SMTP) o un backend que no sea SMTP (tests, consola)."""
+    return (apps_script_is_configured() or bool(settings.EMAIL_HOST_PASSWORD)
+            or settings.EMAIL_BACKEND != SMTP_BACKEND)
+
+
+def send_mail_via_apps_script(subject, message, from_email, recipient_list, html_message=None):
     """
-    Envía correo usando la API REST de Resend para evitar bloqueos de puertos SMTP (465/587) en Render.
-    Si no es Resend (o falta la API Key), hace fallback al SMTP estándar de Django.
+    Pide a la app web de Apps Script que envíe el correo desde el Gmail de su dueño.
+    Va por HTTPS, así que funciona en Render gratis (que bloquea SMTP), y no necesita dominio propio.
+    Apps Script siempre responde 200: el resultado real viene en el JSON {ok, error}.
     """
+    sender_name = parseaddr(from_email or '')[0] or 'Literatus Novelist'
+    for recipient in recipient_list:
+        payload = {
+            'secret': settings.APPS_SCRIPT_MAIL_SECRET,
+            'to': recipient,
+            'subject': subject,
+            'text': message,
+            'html': html_message or '',
+            'name': sender_name,
+        }
+        req = urllib.request.Request(
+            settings.APPS_SCRIPT_MAIL_URL, data=json.dumps(payload).encode('utf-8'), method='POST',
+            headers={'Content-Type': 'application/json', 'User-Agent': 'LiteratusNovelist/1.0'})
+        try:
+            # Google contesta el POST con una redirección; urllib la sigue con GET, que es lo esperado.
+            with urllib.request.urlopen(req, timeout=20) as response:
+                body = response.read().decode('utf-8', errors='ignore')
+        except Exception as e:
+            raise Exception(f'Fallo al enviar correo via Apps Script: {e}') from e
+        try:
+            result = json.loads(body)
+        except ValueError:
+            raise Exception('Apps Script no respondió JSON: revisa que la app web esté implementada '
+                            'con acceso "Cualquier usuario" y que la URL termine en /exec.')
+        if not result.get('ok'):
+            raise Exception(f"Apps Script no envió el correo: {result.get('error')} {result.get('detail', '')}".strip())
+
+
+def send_app_email(subject, message, from_email, recipient_list, html_message=None):
+    """
+    Envía los correos de la app por HTTPS, porque Render gratis bloquea los puertos SMTP (465/587):
+    primero con Apps Script si está configurado, si no con la API REST de Resend.
+    Sin ninguno de los dos (o en tests y consola) usa el backend de correo de Django.
+    """
+    if settings.EMAIL_BACKEND == SMTP_BACKEND and apps_script_is_configured():
+        return send_mail_via_apps_script(subject, message, from_email, recipient_list, html_message)
+
     api_key = settings.EMAIL_HOST_PASSWORD
-    if (settings.EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend'
+    if (settings.EMAIL_BACKEND == SMTP_BACKEND
             and api_key and api_key.startswith('re_')):
         url = "https://api.resend.com/emails"
         headers = {
@@ -116,7 +165,7 @@ def send_verification_email(user):
     
     plain_message = f"Bienvenido a Literatus Novelist.\nPara verificar tu cuenta, copia y pega el siguiente enlace en tu navegador:\n{verify_url}"
     
-    send_mail_via_resend_api(
+    send_app_email(
         subject=subject,
         message=plain_message,
         from_email=settings.DEFAULT_FROM_EMAIL,
@@ -143,12 +192,12 @@ def send_password_reset_code_email(user, code, expires_minutes):
         <p style="font-size: 14px; color: #466699;">Si no solicitaste este cambio, ignora este correo. Tu contraseña no se ha cambiado.</p>
       </div>
     </body></html>"""
-    send_mail_via_resend_api('Tu código de recuperación - Literatus Novelist', plain_message,
+    send_app_email('Tu código de recuperación - Literatus Novelist', plain_message,
                            settings.DEFAULT_FROM_EMAIL, [user.email], html_message=html_message)
 
 
 def send_password_changed_email(user):
-    send_mail_via_resend_api(
+    send_app_email(
         'Tu contraseña se ha actualizado - Literatus Novelist',
         f'Hola {user.username},\n\nLa contraseña de tu cuenta en Literatus se ha actualizado. '
         'Ya puedes iniciar sesión con tu contraseña nueva.\n\n'

@@ -77,3 +77,10 @@ services:
         sync: false                       # API key de Resend; guardarla solo en Render
       - key: DEFAULT_FROM_EMAIL
         sync: false                       # Literatus <no-reply@TU-DOMINIO-VERIFICADO>
+
+      # --- Gmail con Google Apps Script (gratis, sin dominio; tiene prioridad sobre Resend) ---
+      # Guía: docs/correo-gmail-apps-script/README.md
+      - key: APPS_SCRIPT_MAIL_URL
+        sync: false                       # https://script.google.com/macros/s/.../exec
+      - key: APPS_SCRIPT_MAIL_SECRET
+        sync: false                       # el mismo valor que MAIL_SECRET en el script
