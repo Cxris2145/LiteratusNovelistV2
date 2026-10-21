@@ -76,8 +76,9 @@ function New-RemoteScript([switch]$HideSecrets) {
     }) -join "`n"
     $envBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($envFile + "`n"))
     if ($HideSecrets) { $envBase64 = "<azure.env sin claves:`n$envFile`n>" }
+    # run-command lo ejecuta con sh (dash), no con bash: nada de pipefail ni otras extensiones de bash.
     @"
-set -euo pipefail
+set -eu
 cloud-init status --wait > /dev/null || true
 mkdir -p /opt/literatus
 cd /opt/literatus
@@ -101,8 +102,14 @@ else
         -v /opt/literatus/Caddyfile:/etc/caddy/Caddyfile:ro -v caddy_data:/data -v caddy_config:/config caddy:2 > /dev/null
 fi
 docker image prune -af > /dev/null
-sleep 5
+intentos=0
+until docker exec backend python -c "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8080/api/health/', headers={'Host': '$Fqdn'}))" > /dev/null 2>&1; do
+    intentos=`$((intentos + 1))
+    if [ `$intentos -ge 45 ]; then docker logs --tail 50 backend; exit 1; fi
+    sleep 2
+done
 docker ps --format '{{.Names}}: {{.Status}}'
+echo PUBLICADO_OK
 "@
 }
 
@@ -154,8 +161,11 @@ Write-Host "Publicando $Image en $Vm..."
 $scriptFile = Join-Path $env:TEMP 'literatus-deploy.sh'
 Write-LinuxFile $scriptFile (New-RemoteScript)
 try {
-    Invoke-Az vm run-command invoke --resource-group $ResourceGroup --name $Vm `
+    # run-command responde "succeeded" aunque el script falle: se revisa la marca del final.
+    $output = Invoke-Az vm run-command invoke --resource-group $ResourceGroup --name $Vm `
         --command-id RunShellScript --scripts "@$scriptFile" --query 'value[0].message' -o tsv
+    $output | Where-Object { $_ -notmatch 'PUBLICADO_OK' } | Write-Host
+    if (-not ($output -match 'PUBLICADO_OK')) { throw 'La publicación falló en la máquina (ver el mensaje de arriba).' }
 } finally {
     Remove-Item $scriptFile -ErrorAction SilentlyContinue
 }
