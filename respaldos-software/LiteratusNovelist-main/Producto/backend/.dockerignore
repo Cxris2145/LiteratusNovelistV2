@@ -1,5 +1,5 @@
 # Lo que NO entra en la imagen del backend (ver Dockerfile).
-# Secretos: van como secretos de Azure (azure.env), nunca dentro de la imagen.
+# Secretos: deploy-azure.ps1 los copia a la máquina desde azure.env, nunca van dentro de la imagen.
 .env
 env
 azure.env

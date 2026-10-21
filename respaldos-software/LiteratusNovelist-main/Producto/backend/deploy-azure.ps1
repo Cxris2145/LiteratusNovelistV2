@@ -1,13 +1,14 @@
-﻿# Publica el backend en Azure Container Apps (guía: ..\DEPLOY-AZURE.md).
+﻿# Publica el backend en una máquina virtual de Azure for Students (guía: ..\DEPLOY-AZURE.md).
 #
 # Uso, desde esta carpeta:
 #   .\deploy-azure.ps1            publica la imagen del último commit que cambió el backend
-#   .\deploy-azure.ps1 -Preview   muestra la configuración (sin claves) y no publica nada
+#   .\deploy-azure.ps1 -Preview   muestra lo que se ejecutará en la máquina (sin claves) y no publica
 #
-# La imagen la construye GitHub (.github/workflows/backend-image.yml) en cada push a main que
-# toca el backend. La primera vez crea el entorno y la aplicación; después solo los actualiza.
-# Tamaño pensado para el crédito de Azure for Students: 0,25 vCPU y 0,5 GiB, una sola réplica
-# siempre encendida (nunca se duerme y nunca hay dos cobrando a la vez).
+# La imagen la construye GitHub (.github/workflows/backend-image.yml) en cada push a main que toca
+# el backend. La primera vez crea la máquina: Standard_B2pts_v2 (Arm64), una de las que Azure for
+# Students regala 750 horas al mes durante 12 meses. En cada publicación le envía las variables de
+# azure.env, descarga la imagen y reinicia el backend. Caddy atiende HTTPS con un certificado de
+# Let's Encrypt que se renueva solo.
 param(
     [string]$Tag,
     [switch]$Preview
@@ -15,8 +16,10 @@ param(
 
 $ResourceGroup = 'Literatus'
 $Location = 'westus'          # Azure for Students solo deja usar algunas regiones; westus es una
-$Environment = 'literatus-env'
-$App = 'literatus-backend'
+$Vm = 'literatus-vm'
+$Size = 'Standard_B2pts_v2'
+$DnsLabel = 'literatus-novelist'
+$Fqdn = "$DnsLabel.$Location.cloudapp.azure.com"
 
 Set-Location $PSScriptRoot
 
@@ -30,12 +33,9 @@ function Test-Az {
     return $LASTEXITCODE -eq 0
 }
 
-function ConvertTo-YamlText([string]$text) {
-    "'" + $text.Replace("'", "''") + "'"
-}
-
-function ConvertTo-SecretName([string]$key) {
-    $key.ToLower().Replace('_', '-')
+# Escribe texto con saltos de línea de Linux y sin BOM (bash y cloud-init no aceptan otra cosa).
+function Write-LinuxFile([string]$path, [string]$text) {
+    [System.IO.File]::WriteAllText($path, $text.Replace("`r`n", "`n"), (New-Object System.Text.UTF8Encoding $false))
 }
 
 # --- Imagen: la del último commit del backend, que GitHub ya debe haber construido ---
@@ -49,7 +49,7 @@ if (-not $Tag) {
 }
 $Image = "ghcr.io/cxris2145/literatus-backend:$Tag"
 
-# --- Variables de azure.env (CLAVE=valor): todas viajan como secretos de la aplicación ---
+# --- Variables de azure.env (CLAVE=valor) ---
 if (-not (Test-Path azure.env)) {
     throw 'Falta azure.env: copia azure.env.example con ese nombre y complétalo.'
 }
@@ -64,77 +64,102 @@ foreach ($line in Get-Content azure.env -Encoding UTF8) {
 foreach ($required in 'SECRET_KEY', 'DATABASE_URL', 'ALLOWED_HOSTS', 'CORS_ALLOWED_ORIGINS') {
     if (-not $variables.Contains($required)) { throw "Falta $required en azure.env." }
 }
+if ($variables['ALLOWED_HOSTS'] -notmatch [regex]::Escape($Fqdn)) {
+    throw "ALLOWED_HOSTS en azure.env debe incluir $Fqdn."
+}
 
-function New-AppYaml([string]$environmentId, [switch]$HideSecrets) {
-    $secrets = foreach ($key in $variables.Keys) {
-        $value = if ($HideSecrets) { '***' } else { $variables[$key] }
-        "      - name: $(ConvertTo-SecretName $key)`n        value: $(ConvertTo-YamlText $value)"
-    }
-    $envLines = foreach ($key in $variables.Keys) {
-        "          - name: $key`n            secretRef: $(ConvertTo-SecretName $key)"
-    }
+# --- Lo que se ejecuta en la máquina en cada publicación ---
+function New-RemoteScript([switch]$HideSecrets) {
+    $envFile = ($variables.Keys | ForEach-Object {
+        $value = if ($HideSecrets) { '***' } else { $variables[$_] }
+        "$_=$value"
+    }) -join "`n"
+    $envBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($envFile + "`n"))
+    if ($HideSecrets) { $envBase64 = "<azure.env sin claves:`n$envFile`n>" }
     @"
-location: $Location
-properties:
-  managedEnvironmentId: $environmentId
-  configuration:
-    activeRevisionsMode: Single
-    ingress:
-      external: true
-      targetPort: 8080
-      transport: auto
-      allowInsecure: false
-    secrets:
-$($secrets -join "`n")
-  template:
-    containers:
-      - name: backend
-        image: $Image
-        resources:
-          cpu: 0.25
-          memory: 0.5Gi
-        env:
-$($envLines -join "`n")
-    scale:
-      minReplicas: 1
-      maxReplicas: 1
+set -euo pipefail
+cloud-init status --wait > /dev/null || true
+mkdir -p /opt/literatus
+cd /opt/literatus
+echo '$envBase64' | base64 -d > backend.env
+chmod 600 backend.env
+cat > Caddyfile <<'CADDY'
+$Fqdn {
+    encode gzip
+    reverse_proxy backend:8080
+}
+CADDY
+docker network inspect literatus > /dev/null 2>&1 || docker network create literatus > /dev/null
+docker pull --quiet $Image
+docker rm -f backend > /dev/null 2>&1 || true
+docker run -d --name backend --restart unless-stopped --network literatus --env-file backend.env $Image > /dev/null
+if docker ps --format '{{.Names}}' | grep -qx caddy; then
+    docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+else
+    docker rm -f caddy > /dev/null 2>&1 || true
+    docker run -d --name caddy --restart unless-stopped --network literatus -p 80:80 -p 443:443 \
+        -v /opt/literatus/Caddyfile:/etc/caddy/Caddyfile:ro -v caddy_data:/data -v caddy_config:/config caddy:2 > /dev/null
+fi
+docker image prune -af > /dev/null
+sleep 5
+docker ps --format '{{.Names}}: {{.Status}}'
 "@
 }
 
 if ($Preview) {
-    New-AppYaml '<id del entorno>' -HideSecrets
+    New-RemoteScript -HideSecrets
     return
 }
 
-# --- Azure: lo que falte se crea una sola vez ---
-Invoke-Az extension add --name containerapp --upgrade --only-show-errors
-Invoke-Az provider register --namespace Microsoft.App --wait
+# --- La máquina: se crea una sola vez ---
+# Docker y 1 GB de swap. Ubuntu instala solo las actualizaciones de seguridad (unattended-upgrades).
+$cloudInit = @'
+#cloud-config
+package_update: true
+packages:
+  - docker.io
+swap:
+  filename: /swapfile
+  size: 1073741824
+runcmd:
+  - systemctl enable --now docker
+'@
+
+Invoke-Az provider register --namespace Microsoft.Compute --wait
+Invoke-Az provider register --namespace Microsoft.Network --wait
 if (-not (Test-Az group show --name $ResourceGroup)) {
     Invoke-Az group create --name $ResourceGroup --location $Location -o none
 }
-if (-not (Test-Az containerapp env show --name $Environment --resource-group $ResourceGroup)) {
-    Write-Host 'Creando el entorno de Container Apps (la primera vez tarda unos minutos)...'
-    Invoke-Az containerapp env create --name $Environment --resource-group $ResourceGroup `
-        --location $Location --logs-destination none -o none
-}
-$environmentId = Invoke-Az containerapp env show --name $Environment --resource-group $ResourceGroup --query id -o tsv
-
-# El YAML lleva las claves: va a un archivo temporal que se borra al terminar.
-$file = Join-Path $env:TEMP 'literatus-backend.yaml'
-[System.IO.File]::WriteAllText($file, (New-AppYaml $environmentId), (New-Object System.Text.UTF8Encoding $false))
-try {
-    if (Test-Az containerapp show --name $App --resource-group $ResourceGroup) {
-        Write-Host "Actualizando $App con $Image..."
-        Invoke-Az containerapp update --name $App --resource-group $ResourceGroup --yaml $file -o none
-    } else {
-        Write-Host "Creando $App con $Image..."
-        Invoke-Az containerapp create --name $App --resource-group $ResourceGroup --yaml $file -o none
+if (-not (Test-Az vm show --resource-group $ResourceGroup --name $Vm)) {
+    Write-Host "Creando la máquina $Vm ($Size, Arm64)..."
+    $cloudInitFile = Join-Path $env:TEMP 'literatus-cloud-init.yaml'
+    Write-LinuxFile $cloudInitFile $cloudInit
+    try {
+        # Disco Premium de 64 GB (P6): es el tamaño que cubre el regalo de Azure for Students.
+        # Sin regla de SSH: la máquina se administra con "az vm run-command".
+        Invoke-Az vm create --resource-group $ResourceGroup --name $Vm --location $Location `
+            --image Canonical:ubuntu-24_04-lts:server-arm64:latest --size $Size `
+            --admin-username literatus --generate-ssh-keys --security-type Standard `
+            --storage-sku Premium_LRS --os-disk-size-gb 64 `
+            --public-ip-sku Standard --public-ip-address-dns-name $DnsLabel `
+            --nsg-rule NONE --custom-data $cloudInitFile -o none
+    } finally {
+        Remove-Item $cloudInitFile -ErrorAction SilentlyContinue
     }
-} finally {
-    Remove-Item $file -ErrorAction SilentlyContinue
+    Invoke-Az vm open-port --resource-group $ResourceGroup --name $Vm --port 80,443 --priority 900 -o none
 }
 
-$fqdn = Invoke-Az containerapp show --name $App --resource-group $ResourceGroup `
-    --query properties.configuration.ingress.fqdn -o tsv
+# --- Publicar: el script lleva las claves, así que va a un archivo temporal que se borra ---
+Write-Host "Publicando $Image en $Vm..."
+$scriptFile = Join-Path $env:TEMP 'literatus-deploy.sh'
+Write-LinuxFile $scriptFile (New-RemoteScript)
+try {
+    Invoke-Az vm run-command invoke --resource-group $ResourceGroup --name $Vm `
+        --command-id RunShellScript --scripts "@$scriptFile" --query 'value[0].message' -o tsv
+} finally {
+    Remove-Item $scriptFile -ErrorAction SilentlyContinue
+}
+
 Write-Host ''
-Write-Host "Listo. Pruébalo en: https://$fqdn/api/health/"
+Write-Host "Listo. Pruébalo en: https://$Fqdn/api/health/"
+Write-Host '(La primera vez Caddy tarda unos segundos en obtener el certificado HTTPS.)'

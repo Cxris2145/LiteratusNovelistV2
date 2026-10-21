@@ -47,7 +47,7 @@
 
 > **Nota:** el plan gratis de Render "duerme" el backend tras 15 min sin uso. La primera visita después de dormir puede tardar de 1 a 3 minutos en despertar. Dos salidas:
 > - **Gratis y sin tarjeta:** una tarea en [cron-job.org](https://cron-job.org) que visite `https://NOMBRE-DE-TU-SERVICIO.onrender.com/api/health/` cada 10 minutos. Render da 750 horas gratis al mes por workspace y este servicio encendido todo el mes usa ~744: si tienes otros servicios gratis en el mismo workspace, limita el ping a las horas de uso.
-> - **Siempre encendido, sin tarjeta:** Azure Container Apps con el crédito de Azure for Students ([DEPLOY-AZURE.md](DEPLOY-AZURE.md)).
+> - **Siempre encendido, sin tarjeta:** una máquina virtual de Azure for Students ([DEPLOY-AZURE.md](DEPLOY-AZURE.md)).
 
 ---
 

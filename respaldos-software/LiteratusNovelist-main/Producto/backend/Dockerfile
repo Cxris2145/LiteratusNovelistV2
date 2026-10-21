@@ -1,4 +1,4 @@
-# Backend de Literatus Novelist para Azure Container Apps.
+# Backend de Literatus Novelist para la máquina virtual de Azure (amd64 y arm64).
 # GitHub construye esta imagen (.github/workflows/backend-image.yml) y .\deploy-azure.ps1 la publica.
 # Guía paso a paso: ../DEPLOY-AZURE.md
 FROM python:3.12-slim
@@ -17,6 +17,6 @@ COPY . .
 RUN python -m compileall -q .
 
 # Un solo proceso con varios hilos: la narración y los resúmenes corren en hilos de fondo de ese
-# proceso. --timeout 0 deja el límite de cada petición en manos de Azure.
+# proceso. --timeout 0: las peticiones largas (la IA) no se cortan.
 EXPOSE 8080
 CMD exec gunicorn config.wsgi:application --bind :${PORT:-8080} --workers 1 --threads 16 --timeout 0
