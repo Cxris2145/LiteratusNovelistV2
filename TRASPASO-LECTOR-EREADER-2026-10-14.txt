@@ -1,0 +1,276 @@
+Traspaso: rediseño del lector de LiteratusNovelist (formato e-reader)
+Resumen para que otra IA continúe el trabajo. Estado al 2026-10-14.
+
+1. Contexto
+Proyecto: LiteratusNovelist, una app de lectura con frontend en Angular 17 (NgModules) y backend en Django.
+Carpeta del lector: respaldos-software/LiteratusNovelist-main/Producto/frontend/src/app/library/reader/.
+Qué pidió el usuario: auditar todos los ajustes del lector, elegir un formato nuevo y un plan de optimización por fases. Dijo que no se implementara nada sin su aprobación, y aprueba fase por fase.
+Plan completo: C:\Users\Cxris\.claude\plans\task-from-the-session-functional-bird.md. Tiene la auditoría con 17 hallazgos y las 7 fases, con archivos y cómo verificar cada una.
+Lo que eligió el usuario
+Formato e-reader limpio, tipo Kindle o Apple Books:
+la página ocupa toda la pantalla, sin tapa, mesa ni cantos;
+una página en el celular y en vertical; dos cuando la pantalla mide ≥ 1000 px de ancho y es apaisada (ancho/alto ≥ 1,25);
+el marcador es una esquina doblada arriba a la derecha.
+Controles ocultos que aparecen al tocar el centro de la página.
+Reemplazar la vista actual "Libro abierto" (doble página con tapa). Quedan dos modos: Páginas y Desplazamiento.
+Reglas de trabajo (obligatorias)
+Rama: feat/lector-ereader, creada desde main en ed2d475. No hacer commits hasta que el usuario lo pida. Nunca hacer stash, reset ni cambiar de rama.
+No tocar los servidores del usuario en los puertos 4200 (frontend) y 8000 (backend).
+No escribir en la Supabase compartida: el .env apunta a la base real.
+Probar solo en la copia aislada:
+frontend en localhost:4310, que sirve una copia del src;
+backend en localhost:8013, con SQLite;
+ambos están en .claude/launch.json como cuaderno-frontend-4310 y cuaderno-backend-8013;
+el navegador ya tiene sesión iniciada en 4310;
+libro de prueba: Don Quijote II, en /reader/c2e04a5d-c7f6-4558-8ce8-494a985467da (74 capítulos; el 32 es el más largo, con 5.170 palabras).
+Fin de línea: el repo usa CRLF (core.autocrlf=true). Los archivos nuevos deben quedar en CRLF.
+CSS de componentes: ::ng-deep :is() no funciona.
+Idioma: el usuario escribe en español. Comentarios y textos de la interfaz, en español.
+2. Estado actual
+Fase	Estado
+0 · Línea base	Hecha
+1 · Arreglos	Hecha
+2 · Separar el componente	Hecha
+3 · Formato e-reader	Aprobada, pero no empezada: solo se leyó reader.component.html, sin editar nada
+4 · Rendimiento	Pendiente
+5 · Celular	Pendiente
+6 · Pulido	Pendiente
+Faltan 4 fases: 3, 4, 5 y 6.
+
+Todo está sin commit en la rama feat/lector-ereader:
+
+10 archivos cambiados (+544 −5.765 líneas);
+22 archivos nuevos (5.015 líneas).
+3. Lo que se hizo
+Fase 0 · Línea base
+Se midió en la copia aislada, en modo desarrollo, a 1366×820:
+
+Medición	Valor
+Capítulo 1 (4.051 palabras): abrir	131 ms
+Capítulo 1: una pasada de detección de cambios	3,2 ms
+Capítulo 32 (5.170 palabras): abrir	169 ms
+Capítulo 32: una pasada	4,3 ms
+Capítulo 32: re-maquetar al cambiar la letra	97 ms
+Pasadas en reposo	10 en 20 s
+Pasadas narrando	39 en 12 s
+Tareas largas al pasar 10 páginas	1, de 83 ms
+Ojo: las cifras absolutas cambian con el estado de la máquina. Para comparar, hay que medir HEAD y la rama en el mismo rato (ver sección 5).
+
+Fase 1 · Arreglos
+Se arreglaron estos bugs de la auditoría:
+
+Bug 5: ya no sale "Reanudando marcador" cada vez que se abre el libro. Si se retoma en otra página, sale 2 s "Sigues en la pág. N · cap. M", sin resaltar palabras. Los saltos desde la búsqueda y el vocabulario siguen resaltando.
+Bug 6: el índice ya no numera "0. Capítulo 1".
+Bug 7: se quitó "Guardar marcador" del menú de selección, porque guardaba algo oculto que no aparecía en Marcadores.
+Bug 8: "Voz nativa (App)" solo aparece con Capacitor.isNativePlatform().
+Bug 9: pausar con la voz de Android ya no vuelve al inicio del capítulo.
+Bug 10: la voz web (WASM) parte desde la página que se ve: playWasm(text, startWordIndex) en core/services/audio.service.ts.
+Bug 11:
+"Toque para avanzar" se guarda;
+el temporizador no se recuerda entre sesiones;
+hay un listener de fullscreenchange.
+Bug 12:
+el botón Personajes abre la ventana rápida (CharacterChatService.openForBook(id, draft?));
+"Preguntar a un personaje" deja la cita como borrador (draft en chat-sheet y initialDraft en character-chat);
+se borró el panel de chat antiguo del lector (~600 líneas).
+Bug 14: alto contraste también en el tema Gris.
+Bug 1, parche provisional: en ≤ 820 px, la barra del libro manda lo secundario al índice (.lb-optional → .toc-more).
+Fase 2 · Separar el componente
+reader.component.ts bajó de 5.431 a 2.934 líneas. La meta del plan era ≤ 2.000; ver "Pendientes conocidos".
+
+Servicios nuevos (en library/reader/, provistos en el componente del lector):
+
+reader-settings.ts: tipos, opciones, valores por defecto y presets.
+Usa una sola clave reader-settings-v2 en localStorage.
+readLegacyReaderSettings migra las ~30 claves reader-* antiguas (las deja puestas). No toca reader-audio-* ni reader-narrator-voice.
+reader-settings.service.ts:
+value, update(patch), reset(), undoReset() y applyPreset();
+applyToDocument() pone las variables --reader-* en <html> y la clase del tema en <body>;
+emite changes$, que el lector escucha en onSettingsChanged.
+reader-settings.spec.ts: 13 tests.
+reading-pace.ts: ritmo de lectura y tiempo restante (clase ReadingPace).
+reader-narration.service.ts:
+modos native, pro (Azure), wasm y native-android;
+play, pause, resume, stop y seekToWord;
+word$ emite la palabra actual;
+si la voz neural falla, pasa a la voz estándar.
+reader-annotations.service.ts:
+marcadores, subrayados y post-its contra la API;
+loaded$;
+chapterPostIts está memoizado;
+máximo 30 post-its.
+reader-dictionary.service.ts (provisto en root): Wiktionary, con Wikipedia de respaldo y caché.
+Componentes nuevos (declarados en reader.module.ts):
+
+reader-settings-sheet/: la hoja "Aa".
+reader-narration-sheet/: el panel de voces.
+reader-toc/: índice, marcadores, resumen, buscar y vocabulario; en el celular, además, "más acciones".
+reader-selection-menu/: menú al seleccionar texto, tarjeta del subrayado y diccionario.
+reader-postits/: papelitos en el margen (se arrastran) y su nota.
+Patrones usados:
+
+Los hijos obtienen el lector con inject(ReaderComponent).
+El lector referencia a los hijos con @ViewChild e import type (así se evita el ciclo de imports en tiempo de ejecución).
+El CSS se movió con cada componente:
+los selectores de tema del ancestro pasaron a :host-context(.theme-x) .clase;
+.book-view .x pasó a :host-context(.book-view) .x.
+Código muerto borrado: Kokoro, lottie, safeChapterHtml, purchaseNarration, processContentForAudio, trackByBlock, stopAudioFromFab y el chat antiguo. splitBionic pasó a core/utils/chapter-parser.util.ts.
+
+Verificación de la Fase 2 (en la copia aislada):
+
+Huella de estilos de 11 paneles: igual a la línea base en 1366×820 y en 375×812. Son las 3 pestañas de Aa, la narración, el índice con capítulos y con marcadores, el menú de selección, la tarjeta del subrayado, el diccionario, la capa de post-its y la nota.
+
+Temas sepia y oscuro: correctos.
+
+Pruebas con clics reales:
+
+marcadores: crear y quitar, e ir a uno de otro capítulo;
+subrayados: crear, cambiar de color y quitar;
+post-its: pegar, editar, arrastrar, recargar (se conservan) y despegar;
+diccionario;
+Flashcards;
+"Preguntar a un personaje", con borrador;
+"Narrar desde aquí";
+al cambiar de capítulo se vuelven a aplicar subrayados y post-its.
+Specs: reader-settings.spec.ts y reader-progress.util.spec.ts pasan, 15/15.
+
+Rendimiento: no empeoró. Medido contra HEAD en el mismo rato:
+
+Medición	HEAD	Fase 2
+Abrir capítulo 1	288 ms	205 ms
+Abrir capítulo 32	369 ms	257 ms
+Re-maquetar	113 ms	74 ms
+Pasada en el cap. 32	16,8 ms	12,7 ms
+4. Fases que faltan
+Fase 3 · Formato e-reader y controles ocultos (la siguiente, ya aprobada)
+Archivos nuevos:
+
+Archivo	Contenido
+reader-pager.ts + reader-pager.spec.ts	Funciones puras de paginación: paso entre páginas, página de un elemento, total de páginas, columnas según el tamaño. Salen de spreadStride, spreadOfElement, pageOfElement, fitLinesToPage y recalculateSpreads.
+reader-chrome/	Barra de arriba (← Biblioteca · título libro/capítulo · Buscar · Índice · Aa · Más) y de abajo (▶ Escuchar con ⌄ para voz y velocidad · línea del libro · "Pág. 5 de 14 · Cap. 3 · 12 min"). Se muestran con una señal chromeVisible y se ocultan al pasar página.
+reader-more-sheet/	La hoja "Más": Personajes (ventana rápida), Cuaderno, Vocabulario, Resumen hasta donde voy, Pegar post-it, Favorito y Libros abiertos (con ReaderTabsService).
+reader-paged.css	Reemplaza a reader-book.component.css.
+Cambios en reader.component.html:
+
+Se van:
+<header class="toolbar"> con app-reader-tabs;
+todo el bloque lb-*: tapa, cantos, papel, barras, cinta, pies, esquinas y barrido;
+chapter-nav;
+la pastilla de tiempo;
+las flechas flotantes (quedan solo con la regla de lectura activa).
+Entran:
+la página con un contenedor interno que se mueve con transform: translateX() (hoy es scrollLeft);
+la cabecera viva en versalitas;
+el número de página al pie;
+la esquina-marcador de 44 px, rellena en rojo si la página tiene marcador.
+Tipografía de imprenta:
+texto justificado con guiones;
+títulos de capítulo en versalitas rojas (--lb-title);
+capitular sencilla.
+Se conserva el motor de columnas CSS: una columna = una página.
+Cambios en reader.component.ts:
+
+Zonas de toque: el 25 % de cada lado pasa página y el 50 % del centro muestra u oculta las barras.
+Deslizar con el dedo: la página sigue al dedo. Al soltar, se completa si se movió más del 30 % del ancho o a más de 0,5 px/ms; si no, vuelve.
+Teclado: ← → y Espacio.
+Modo: isDoublePageView pasa a layoutMode: 'paged' | 'scroll' (migrar el ajuste doublePage).
+Numeración: exacta dentro del capítulo, más el % del libro. Corrige el bug 13 (el total de páginas cambiaba).
+Hoja "Aa":
+
+Vista: "Páginas | Desplazamiento".
+Paso de página: Deslizar (por defecto) o Sin animación; con movimiento reducido, un fundido.
+Márgenes (Estrechos/Normales/Amplios) reemplaza a "Ancho de columna": fija el relleno de la página en Páginas y la medida (54/66/78ch) en Desplazamiento.
+Atenuar (60–100 %) reemplaza a Brillo: es una capa oscura sobre toda la superficie, papel incluido.
+"Toque para avanzar", solo en Desplazamiento.
+El avance automático en Páginas pasa la página sola según el ritmo (palabras de la página ÷ ppm).
+Otros detalles:
+
+app-reader-tabs deja de montarse en el lector.
+La pestaña de la narración se mantiene en el margen exterior.
+Post-its: en el celular, banderita de 14 px en el borde; en escritorio, papelitos de 38 px.
+Los tokens --lb-* pasan a --rd-*. Al final se borra reader-book.component.css.
+Verificación:
+
+1366×820: una página centrada; tocar el centro muestra y oculta las barras; ← → y los costados pasan página; la esquina marca y desmarca (y aparece en Índice → Marcadores).
+1440×900: dos páginas.
+375×812:
+nada encima del texto mientras se lee;
+cada botón abre lo que dice (comprobar con elementFromPoint);
+deslizar con pointerdown/pointermove/pointerup simulados.
+Desplazamiento: el avance automático y el toque para avanzar funcionan.
+Páginas: el avance automático pasa la página.
+Atenuar y Márgenes: Atenuar oscurece el papel; Márgenes cambia el ancho en ambos modos.
+Saltos: búsqueda, vocabulario y cuaderno llegan a la página correcta. La narración pasa la página sola.
+Capturas para el usuario.
+Riesgo: todo cálculo que hoy usa scrollLeft debe pasar al desplazamiento de la página: spreadOfElement, pageOfElement, isWordVisible, la colocación de post-its y la regla.
+
+Fase 4 · Rendimiento
+Resaltado de la narración sin detección de cambios:
+un ReaderHighlighter cambia las clases en el DOM, solo en el elemento anterior y el nuevo;
+se quitan del template [class.active-word], isActiveSentence() e isActiveBlock();
+onNarrationWord corre fuera de la zona de Angular.
+OnPush en un componente nuevo reader-page/ (el texto del capítulo) y en las hojas. Lo que cambia seguido pasa a señales.
+Temporizadores fuera de la zona:
+el de los textos de Maguito se cancela al ocultarse la pantalla de carga;
+el de pausas escribe directo en el DOM;
+se quita el listener de beforeunload.
+Getters a campos: characterAvatars y valores derivados.
+Capítulos:
+caché de los 3 capítulos más recientes;
+preparar el siguiente en requestIdleCallback;
+esperar 150 ms antes de re-maquetar;
+un solo ResizeObserver.
+Modo Desplazamiento: content-visibility: auto en los párrafos.
+Metas:
+
+Medición	Meta
+Pasadas por palabra narrada	0
+Pasada en el capítulo 32	≤ 2 ms
+Capítulo siguiente preparado	≤ 100 ms
+Tareas largas al pasar página	Ninguna de más de 50 ms
+Re-maquetar	≤ 60 ms
+Fase 5 · Celular
+Hojas inferiores de ≤ 640 px (Aa, Índice, Más, Narración) con asa para arrastrar, overscroll-behavior: contain y el borde seguro de abajo.
+Zonas táctiles de 44 px; sin resaltado al tocar ni selección de texto en las barras.
+Al girar el teléfono se mantiene la palabra ancla (spreadAnchorWord).
+meta theme-color con el color del papel mientras el lector está abierto.
+Con el dedo (pointer: coarse), la barra de selección va fija abajo.
+Verificar a 375×812 y 844×390.
+Fase 6 · Pulido y accesibilidad
+Los paneles de narración, resumen, diccionario, subrayado y post-it usan los colores del tema del lector, incluidos Gris y OLED. Hoy son oscuros aunque el papel sea claro (bug 16).
+Foco atrapado en las hojas, y Escape las cierra. Hoy Escape no cierra el diccionario ni el menú.
+aria-live anuncia "Página N de M".
+Atajos: ← → Espacio, Ctrl+F para buscar, B para marcar.
+Borrar el CSS sin uso: el del chat antiguo y el que dejen las fases anteriores. Meta: reader.component.css de 4.543 a ~3.500 líneas.
+Cierre: ng build --configuration production en la copia y capturas de los 5 temas.
+5. Cómo verificar (herramientas que ya existen)
+Estas herramientas están en el scratchpad de la sesión anterior: C:\Users\Cxris\AppData\Local\Temp\claude\C--Users-Cxris-Documents-LiteratusNovelist\fe318317-1112-4421-b9bc-c8bbf41287d7\scratchpad\.
+
+sync.sh: copia el src del frontend a la copia aislada de 4310 (sin environments). Correr con sh sync.sh después de cada cambio; el servidor de 4310 recompila solo.
+sync-head.sh: pone el src de HEAD (ed2d475) en la copia, para medir en igualdad de condiciones. Después hay que volver con sync.sh.
+reader-bench.js: mide abrir capítulo, detección de cambios, re-maquetar, pasadas en reposo y narrando, y tareas largas. Se pega en la consola o en la herramienta de JavaScript del navegador.
+Huella de estilos de los paneles:
+el script está guardado en el localStorage de 4310 como __snapSrc;
+se usa con await (0, eval)(localStorage.getItem('__snapSrc'))('compare');
+las líneas base son phase2-baseline-1366x820 y phase2-baseline-375x812;
+antes de comparar, restablecer los ajustes: cmp.settings.reset(); cmp.settings.forgetReset();
+poner window.__snapHooks para los paneles que viven en componentes hijos.
+En la Fase 3 la apariencia cambia a propósito, así que esta huella ya no aplica a la página: solo sirve para paneles que no cambien.
+crlf.py: deja archivos en CRLF.
+Specs:
+el ng test completo no arranca por tavern-bazar.spec;
+usar el tsconfig temporal tsconfig.reader-spec.json del scratchpad;
+comando, desde la carpeta frontend:
+CHROME_BIN="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" npx ng test --ts-config <tsconfig> --include <spec> --watch=false --browsers=ChromeHeadless
+Estado del lector en el navegador: ng.getComponent(document.querySelector('app-reader')). Los hijos se obtienen igual con app-reader-toc, app-reader-selection-menu y app-reader-postits.
+Trucos del panel del navegador: con el panel oculto, las animaciones y los requestAnimationFrame se congelan. Sacar una captura antes de leer estilos o hacer clic tras abrir un panel animado. El cambio de tema también espera un cuadro (View Transitions).
+6. Pendientes conocidos
+Meta de líneas: reader.component.ts está en 2.934 líneas, no en ≤ 2.000. Lo que falta mover es la regla de lectura (~310 líneas) y la paginación de la vista libro (~460). La Fase 3 las reescribe con reader-pager.ts, así que conviene sacarlas ahí.
+CSS sin uso: queda el del chat antiguo en reader.component.css (Fase 6).
+Sin probar:
+con la voz neural real de Azure (en la copia no está configurada y cae a la voz estándar);
+en un teléfono de verdad;
+en Safari.
+Aviso al ir a un marcador: dice «Capítulo», que es la primera palabra. Ya era así antes.
+Memoria del proyecto: C:\Users\Cxris\.claude\projects\C--Users-Cxris-Documents-LiteratusNovelist\memory\ (lector-ereader-plan.md y otras notas).
+Notas compartidas: lector-plan.md y lector-linea-base.md, en la carpeta de notas de la sesión.

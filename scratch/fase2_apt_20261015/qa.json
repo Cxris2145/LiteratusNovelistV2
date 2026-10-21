@@ -1,0 +1,17 @@
+{
+  "output": "C:\\Users\\Cxris\\Documents\\LiteratusNovelist\\outputs\\fase2_grupo8_20261015\\Guia_Fase_2_Desarrollo_Proyecto_APT_Literatus_Novelist_Grupo_8.docx",
+  "template_sha256": "8b1647ab6c8c4766d0949f6507d79eda92eb9581b3a7e6b6bc4fa566205e1294",
+  "template_unchanged": true,
+  "changed_parts": [
+    "[Content_Types].xml",
+    "word/_rels/document.xml.rels",
+    "word/document.xml"
+  ],
+  "preserved_parts": 24,
+  "added_images": 4,
+  "tables": 8,
+  "plan_rows": 14,
+  "sections": 1,
+  "no_emojis": true,
+  "visual_check": "Blocked: LibreOffice/Word renderer unavailable; no page PNGs generated."
+}

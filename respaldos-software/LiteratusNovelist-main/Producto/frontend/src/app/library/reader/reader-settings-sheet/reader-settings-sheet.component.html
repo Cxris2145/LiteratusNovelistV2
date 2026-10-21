@@ -185,7 +185,7 @@
                     [attr.aria-pressed]="s.pageTurn === 'slide' || (s.pageTurn === 'flip' && s.layoutMode !== 'book')" (click)="set({ pageTurn: 'slide' })">Deslizar</button>
             <button type="button" [class.on]="s.pageTurn === 'none'" [attr.aria-pressed]="s.pageTurn === 'none'" (click)="set({ pageTurn: 'none' })">Sin animación</button>
           </div>
-          <p class="sheet-hint" *ngIf="s.layoutMode === 'book' && s.pageTurn === 'flip'">La hoja se dobla con dos páginas a la vista; se puede arrastrar desde el borde. En el celular, la página desliza.</p>
+          <p class="sheet-hint" *ngIf="s.layoutMode === 'book' && s.pageTurn === 'flip'">La hoja se dobla desde la esquina, también en el celular. Se puede arrastrar con el dedo o, con el mouse, desde el margen.</p>
         </div>
       </section>
 

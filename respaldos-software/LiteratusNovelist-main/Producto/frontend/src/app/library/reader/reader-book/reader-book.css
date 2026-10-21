@@ -127,6 +127,8 @@
     repeating-linear-gradient(90deg, var(--rd-paper) 0 1px, var(--book-edge-line) 1px 2px);
   transition: width 260ms ease, left 260ms ease, right 260ms ease;
 }
+/* El dedo arrastra la hoja de lado; arriba y abajo quedan para el navegador. */
+.rd-book-mode .rd-shell { touch-action: pan-y pinch-zoom; }
 .rd-book-edge-left {
   left: calc(-1 * var(--book-edge-left));
   width: var(--book-edge-left);
@@ -341,7 +343,25 @@
 
 /* ── La hoja que se dobla ──
    Estos elementos los crea reader-book-flip.ts: lleva el atributo de estilos del lector
-   (lo copia de .rd-flip-layer), así que estas reglas y las del lienzo también les aplican. */
+   (lo copia de .rd-flip-layer), así que estas reglas y las del lienzo también les aplican.
+   Cada cuadro solo cambia transform y opacity: el texto de las copias se pinta una vez. */
+.rd-book-mode {
+  /* Sombras y brillo de la hoja (canales RGB, para usarlos con distinta opacidad). */
+  --flip-shadow: 44, 30, 14;
+  --flip-light: 255, 253, 247;
+  --flip-light-a: .34;
+  --flip-edge: transparent;
+}
+.rd-book-mode.theme-sepia { --flip-shadow: 60, 38, 14; --flip-light: 255, 248, 232; }
+.rd-book-mode.theme-gris { --flip-shadow: 24, 30, 40; }
+.rd-book-mode.theme-dark { --flip-shadow: 0, 0, 0; --flip-light: 210, 220, 240; --flip-light-a: .08; }
+.rd-book-mode.theme-nocturno {
+  /* OLED: la sombra no se ve sobre negro; un filo tenue marca el borde de la hoja. */
+  --flip-shadow: 0, 0, 0;
+  --flip-light: 255, 255, 255;
+  --flip-light-a: .05;
+  --flip-edge: rgba(255, 255, 255, .16);
+}
 .rd-flip-layer {
   position: absolute;
   inset: 0;
@@ -349,6 +369,8 @@
   pointer-events: none;
 }
 .rd-flip-layer:empty { display: none; }
+/* Una sola página: a la izquierda del lomo no hay libro (la hoja que se va desaparece ahí). */
+.rd-flip-layer.is-single { clip-path: inset(-80px -80px -80px 0); }
 .rd-flip-page {
   position: absolute;
   top: 0;
@@ -360,36 +382,63 @@
   position: absolute;
   inset: 0;
 }
-.rd-flip-leaf {
+/* La recta del pliegue: sus hijas recortan cada lado (cajas giradas con overflow: hidden). */
+.rd-flip-frame {
   position: absolute;
+  left: 0;
   top: 0;
-  bottom: 0;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
   will-change: transform;
 }
-.rd-flip-face {
+.rd-flip-clip {
   position: absolute;
-  inset: 0;
   overflow: hidden;
-  background: var(--rd-paper);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
-.rd-flip-face.is-back { transform: rotateY(180deg); }
-.rd-flip-shade {
+.rd-flip-box,
+.rd-flip-drop,
+.rd-flip-band {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+.rd-flip-box { overflow: hidden; }
+.rd-flip-flap { box-shadow: inset 0 0 0 1px var(--flip-edge); }
+/* Sombra de la solapa sobre lo que tapa (otra caja igual, debajo, con su opacidad propia). */
+.rd-flip-drop {
+  box-shadow: 0 2px 22px 2px rgba(var(--flip-shadow), .42);
+  opacity: 0;
+}
+.rd-flip-dim {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  background: rgb(var(--flip-shadow));
   opacity: 0;
 }
-.rd-flip-cast {
+/* El reverso de una página sola: el mismo texto, apenas, al trasluz. */
+.rd-flip-ghost {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  pointer-events: none;
-  opacity: 0;
+  inset: 0;
+  background: var(--rd-paper);
+  opacity: .86;
 }
+.rd-flip-band { pointer-events: none; opacity: 0; }
+/* Sobre la página de abajo: la sombra que deja la curva, junto al pliegue. */
+.rd-flip-band.is-cast {
+  background: linear-gradient(to right,
+    rgba(var(--flip-shadow), .46) 0, rgba(var(--flip-shadow), .2) 22%, rgba(var(--flip-shadow), .06) 60%, transparent 100%);
+}
+/* Sobre la solapa: el papel se curva hacia el pliegue (brillo en el lomo de la curva y sombra al borde). */
+.rd-flip-band.is-curl {
+  background: linear-gradient(to right,
+    transparent 0, rgba(var(--flip-light), calc(var(--flip-light-a) * .5)) 40%, rgba(var(--flip-light), var(--flip-light-a)) 62%,
+    rgba(var(--flip-shadow), .1) 84%, rgba(var(--flip-shadow), .32) 100%);
+}
+.rd-book-mode.rc-high-contrast .rd-flip-band,
+.rd-book-mode.rc-high-contrast .rd-flip-drop { display: none; }
 /* Mientras gira, lo que se ancla a la página nueva espera a que la hoja asiente
    (los post-its viven en su propio componente: ::ng-deep). */
 .rd-book-mode.is-flipping .narration-marker,

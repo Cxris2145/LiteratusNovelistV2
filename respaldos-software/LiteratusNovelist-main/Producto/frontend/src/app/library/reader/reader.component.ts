@@ -125,9 +125,13 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       const canvas = this.canvasEl();
       return canvas ? this.columnGap(canvas) : 0;
     },
+    columns: () => (this.columnsPerSpread === 2 ? 2 : 1),
   }, this.ngZone);
-  /** Arrastre de la hoja (mouse por los márgenes o cantos; dedo en cualquier parte). */
-  private flipDrag: { id: number; x: number; y: number; direction: 1 | -1; started: boolean; width: number } | null = null;
+  /**
+   * Arrastre de la hoja (mouse por los márgenes o cantos; dedo en cualquier parte). Con dos páginas
+   * el sentido lo da la mitad donde se agarró; con una sola (0 hasta moverse), hacia dónde va el dedo.
+   */
+  private flipDrag: { id: number; x: number; y: number; direction: 0 | 1 | -1; started: boolean } | null = null;
 
   // ── LÍNEA DEL LIBRO (deslizador de páginas de todo el libro) ─────
   // Solo el capítulo abierto está maquetado: sus páginas son exactas y las del resto se
@@ -582,12 +586,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     if (target.closest('button, a, input, img, .margin-postit')) return;
     // Con el mouse, arrastrar sobre el texto lo selecciona: la hoja se agarra por los márgenes o los cantos.
     if (event.pointerType === 'mouse' && target.closest('.reader-viewport')) return;
+    // Los bordes de la pantalla son del sistema (volver atrás con el dedo).
+    if (event.pointerType !== 'mouse' && (event.clientX < 24 || event.clientX > window.innerWidth - 24)) return;
     if (this.menu?.showWordMenu || window.getSelection()?.toString().trim() || this.activeHighlight || this.activePostIt) return;
     const rect = this.shellEl()?.getBoundingClientRect();
     if (!rect) return;
     this.flipDrag = {
-      id: event.pointerId, x: event.clientX, y: event.clientY, started: false, width: rect.width,
-      direction: event.clientX >= rect.left + rect.width / 2 ? 1 : -1,
+      id: event.pointerId, x: event.clientX, y: event.clientY, started: false,
+      direction: this.columnsPerSpread === 2 ? (event.clientX >= rect.left + rect.width / 2 ? 1 : -1) : 0,
     };
   };
 
@@ -598,21 +604,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     if (event.pointerId !== drag.id) return;
-    const dx = event.clientX - drag.x;
-    const dy = event.clientY - drag.y;
     if (!drag.started) {
+      const dx = event.clientX - drag.x;
+      const dy = event.clientY - drag.y;
       if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
-      const from = this.currentSpreadIndex;
-      const to = from + drag.direction;
-      // Hacia afuera no se dobla; entre capítulos se pasa tocando (el capítulo vecino aún no está pintado).
-      if ((drag.direction === 1 ? dx > 0 : dx < 0) || to < 0 || to >= this.totalSpreads) {
-        this.flipDrag = null;
-        return;
-      }
-      const started = this.ngZone.run(() => this.bookFlip.beginDrag(drag.direction, from,
-        () => { this.moveToSpread(to, false); this.cdr.detectChanges(); },
-        () => { this.moveToSpread(from, false); this.cdr.detectChanges(); }));
-      if (!started) {
+      if (!this.startFlipDrag(drag, dx)) {
         this.flipDrag = null;
         return;
       }
@@ -621,8 +617,27 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       try { this.shellEl()?.setPointerCapture(event.pointerId); } catch { /* el puntero ya se soltó */ }
     }
     event.preventDefault();
-    this.bookFlip.dragTo(dx, drag.width, event.timeStamp);
+    this.bookFlip.dragTo(event.clientX, event.clientY, event.timeStamp);
   };
+
+  /** El dedo (o el mouse) ya se movió de lado: agarra la hoja que va en el aire o empieza a doblar una. */
+  private startFlipDrag(drag: { x: number; y: number; direction: 0 | 1 | -1 }, dx: number): boolean {
+    // Una hoja que todavía gira se puede seguir o devolver, sin esperar a que termine.
+    if (this.bookFlip.canGrab) {
+      const back = this.currentSpreadIndex - this.bookFlip.turnDirection;
+      return this.ngZone.run(() => this.bookFlip.grab(drag.x, drag.y,
+        () => { this.moveToSpread(back, false); this.cdr.detectChanges(); }));
+    }
+    const direction = drag.direction || (dx < 0 ? 1 : -1);
+    const from = this.currentSpreadIndex;
+    const to = from + direction;
+    // Hacia afuera no se dobla; entre capítulos se pasa tocando (el capítulo vecino aún no está pintado).
+    if ((direction === 1 ? dx > 0 : dx < 0) || to < 0 || to >= this.totalSpreads) return false;
+    return this.ngZone.run(() => this.bookFlip.beginDrag(direction, from,
+      () => { this.moveToSpread(to, false); this.cdr.detectChanges(); },
+      () => { this.moveToSpread(from, false); this.cdr.detectChanges(); },
+      drag.x, drag.y));
+  }
 
   private handleShellPointerUp = () => {
     const drag = this.flipDrag;
@@ -645,17 +660,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     const rect = this.shellEl()?.getBoundingClientRect();
     if (!rect) return;
-    const zone = Math.min(72, rect.width * 0.08);
+    const zone = Math.min(72, rect.width * (this.columnsPerSpread === 2 ? 0.08 : 0.14));
     const low = event.clientY > rect.bottom - rect.height * 0.3;
+    // Con una sola página no hay esquina izquierda que levantar: la anterior está del otro lado del lomo.
     const want = low && event.clientX > rect.right - zone && this.currentSpreadIndex < this.totalSpreads - 1 ? 1
-      : low && event.clientX < rect.left + zone && this.currentSpreadIndex > 0 ? -1 : 0;
+      : low && event.clientX < rect.left + zone && this.currentSpreadIndex > 0 && this.columnsPerSpread === 2 ? -1 : 0;
     if (want === 0) this.bookFlip.unpeel();
-    else if (!this.bookFlip.busy) this.bookFlip.peel(want, this.currentSpreadIndex);
+    else if (!this.bookFlip.busy || this.bookFlip.isPeeling) this.bookFlip.peel(want, this.currentSpreadIndex, event.clientX, event.clientY);
   }
 
-  /** La hoja se dobla con dos páginas a la vista, en la vista Libro y si no se pidió menos movimiento. */
+  /** La hoja se dobla en la vista Libro (con una o dos páginas) si no se pidió menos movimiento. */
   private canFlip(): boolean {
-    return this.isBookView && this.columnsPerSpread === 2 && this.settings.value.pageTurn === 'flip'
+    return this.isBookView && this.settings.value.pageTurn === 'flip'
       && !this.bookClosed && this.isFullyRendered
       && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }

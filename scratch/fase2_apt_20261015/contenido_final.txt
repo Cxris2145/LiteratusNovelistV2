@@ -1,0 +1,257 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Anexo de evidencias de avance
+E1 Base inicial y evolución de V2
+La comparación entre la base inicial y la implementación actual permite distinguir los módulos existentes de las mejoras desarrolladas. La base incluye usuarios, catálogo, biblioteca, conversación con personajes, economía y administración. La evolución incorpora mejoras del lector, comunidad, actividades de aprendizaje y ampliación de la gamificación. Esta evidencia responde a la observación de la fase 1 sobre explicar qué se conserva y qué se desarrolla en V2.
+Fuentes de evidencia: historial de desarrollo, inventario de módulos y registros de verificación del proyecto. Demuestra evolución técnica y trazabilidad entre requerimientos, funcionalidades y entregables.
+E2 Verificación del lector
+El registro de verificación del lector informa compilación de Angular y 46/46 pruebas aisladas: ajustes (17), paginador (11), progreso (2) e interacciones (16). Describe comprobaciones de marcadores, navegación, búsqueda, cambio de modo y conservación del pasaje. Se utilizó un entorno aislado con SQLite. Quedan fuera de esa verificación Safari, un teléfono físico y una voz Azure real; la compilación de producción y la comparación final de rendimiento se reservan para trabajo posterior.
+
+Figura 1 Lector de escritorio a 1440 por 900 píxeles. Registro visual del formato de lectura en dos páginas.
+
+Figura 2 Lector móvil a 375 por 812 píxeles. Registro visual de lectura en una página.
+E3 Registros de auditorías específicas
+La auditoría de recuperación de contraseña conserva 10 comprobaciones y 20 capturas. La auditoría de Logros V2 conserva 12 comprobaciones y 10 capturas. Ambos registros informan cero errores de ejecución y desbordamientos para sus recorridos. Estos resultados se citan como evidencia conservada, sin extenderlos a todos los módulos ni considerarlos una nueva ejecución.
+E4 Imágenes de personajes
+La documentación del flujo de retratos describe revisión de identidad, validación de archivos, conversión WebP y publicación por lotes. La implementación del catálogo de personajes utiliza miniaturas y mantiene la asociación con obra y edición; existen pruebas de duplicados, selección y carga de respaldo. La evidencia demuestra cómo se abordaron el peso de carga y la consistencia visual. La revisión completa de los retratos sigue pendiente.
+E5 Reconstrucción de La Taberna
+La nueva organización separa la comunidad y El Bazar de la gestión de planes. La captura adjunta muestra la mesa virtual, personajes, controles de música y espacio de interacción. La implementación incorpora navegación, funciones sociales, permisos, límites de actualización y recuperación gráfica. El historial registra correcciones de integración entre las respuestas del servidor y la interfaz. Esta evidencia respalda el trabajo de reconstrucción y su presentación visual.
+
+Figura 3 La Taberna reconstruida con mesa virtual, personajes y controles de interacción. Captura existente del desarrollo; no acredita por sí sola todos los flujos sociales.
+El registro anterior de la capa económica conserva 70 pruebas de backend y 9 de frontend aprobadas, con dos de PostgreSQL omitidas. La auditoría visual anterior utiliza datos controlados. Son antecedentes de planes y cuotas; la nueva Taberna social requiere su propia validación integral.
+E6 Juegos literarios
+El inventario de actividades incluye siete modalidades: Ordena la historia, Une las parejas, Anagrama, Reconstruye la frase, Caza la palabra, Clasifica y Relámpago. Los componentes permiten seleccionar, ordenar o relacionar elementos y recibir retroalimentación. El motor de evaluación distingue el tipo de respuesta, admite puntuación parcial en actividades con varias piezas y prepara las soluciones después de responder.
+Como evidencia técnica, los casos de prueba existentes comprueban que dos parejas correctas de cuatro obtengan medio puntaje, que un anagrama se compare sin diferencias por tildes o mayúsculas y que la versión de una pregunta enviada al navegador no incluya su respuesta. Estos casos respaldan reglas de evaluación; no se presentan como una nueva ejecución de la suite.
+Relación con los objetivos: implementación de interacciones, integración entre interfaz y evaluación y verificación de reglas de negocio. Pendiente: regresión completa en navegador de cada modalidad, controles táctiles y consistencia de recompensas.
+E7 El Enigma del Tintero
+La pantalla implementada presenta un reto diario con pista, palabra oculta, teclado interactivo y cinco intentos de error. Distingue partida en curso, victoria y derrota, reconoce vocales con acento y conserva el estado por usuario y día. La recompensa se solicita al servidor, que mantiene el vínculo con la actividad y los logros.
+Evidencia técnica disponible: reglas y estados de la interfaz, lógica de selección de letras, guardado y recuperación de la partida y un caso de prueba que relaciona resolver el enigma con su logro. La revisión de fin de partida, abandono, recarga y entrega única de recompensa se incorpora a los criterios de aceptación.
+Justificación: permite evidenciar una funcionalidad completa de juego, persistencia del progreso e integración con Tinta y logros. Su valor educativo se plantea como apoyo al reconocimiento de obras y vocabulario; no se afirma una mejora de aprendizaje ya medida.
+E8 El Interrogatorio a Ciegas
+La implementación crea una sesión con identidad oculta y un conjunto de sospechosos. El usuario formula preguntas limitadas y elige al personaje que considera correcto. Se distinguen reto diario y práctica; también hay acciones de pregunta adicional, pista y descarte de candidatos. El servidor administra la sesión, el consumo y la resolución de la partida.
+Evidencia técnica disponible: interfaz de preguntas y sospechosos, servicios para iniciar, preguntar, obtener ventajas, responder y abandonar, y un caso de prueba asociado al logro del Interrogatorio. La persistencia de sesión permite relacionar interfaz, modelos de datos y lógica del backend.
+Pendiente: comprobar el recorrido completo con el proveedor de IA, la calidad de las respuestas, el manejo de fallos y el cierre de cada modalidad. La existencia de la interfaz no garantiza que la IA nunca revele pistas indebidas; ese comportamiento debe evaluarse expresamente.
+E9 La Senda
+La Senda organiza lecturas y ejercicios en unidades y niveles con un mapa de progreso. Incluye vidas, racha, estrellas y apertura de contenido según los resultados. Las actividades alternan lectura, preguntas, juegos y pruebas de unidad. El reproductor de niveles comparte el motor de evaluación y registra el avance.
+Evidencia técnica disponible: mapa de unidades y niveles, contenido organizado por actividad, controles de acceso y pruebas existentes sobre niveles bloqueados, apertura de unidades, ocultamiento de respuestas, puntuación y prueba de salto. El registro de Logros V2 informa una verificación anterior de 184 pruebas en módulos relacionados, con SQLite; ese total no se atribuye exclusivamente a La Senda ni sustituye su revisión integral.
+
+Figura 4 Panel de logros y accesos a La Senda, El Enigma e Interrogatorio. Captura de auditoría con datos de prueba; sus cifras no representan el avance académico.
+Justificación: demuestra organización de actividades, modelamiento de progreso, integración de reglas de desbloqueo y relación con logros y recompensas. Pendiente: verificar reanudación, navegación móvil, recuperación de vidas y consistencia del avance entre sesiones.
+Fuentes de planificación y seguimiento
+Guía de fase 1 del Grupo 8 y su planilla de evaluación; registro de verificación del lector; auditorías de recuperación de contraseña y Logros V2; documentación de retratos y de la capa económica de La Taberna; inventario de módulos; implementación y casos de prueba de comunidad, juegos, El Enigma, Interrogatorio y La Senda.
+1. Resumen avance Proyecto APT
+A continuación, encontrarás distintos campos que deberás completar con la información solicitada.
+Resumen de avance proyecto APT
+Literatus Novelist Grupo 8
+Cliente: Triskeledu SpA. Equipo: Christopher Guerrero, Matias Morales, Luis Faundes y Eithan Santibáñez. Período informado: desarrollo del proyecto a partir de la semana 6 del plan académico de 18 semanas.
+A partir de la semana 6 hemos trabajado sobre una plataforma de lectura existente para consolidar su evolución a Literatus Novelist V2. La base inicial ya incluía autenticación, catálogo, biblioteca, lectura, conversación con personajes, economía Tinta y administración. El desarrollo de esta etapa se concentra en mejorar la experiencia de uso, ampliar las integraciones y resolver dificultades de presentación e interacción.
+El estado actual incorpora mejoras del lector, navegación por páginas o desplazamiento, conservación del progreso, marcadores, anotaciones y ajustes de lectura. También existen recuperación de contraseña, logros, La Taberna, juegos literarios, El Enigma del Tintero, El Interrogatorio a Ciegas y La Senda. Estos módulos amplían las formas de interacción y aprendizaje; sus avances se respaldan mediante capturas, implementación y pruebas documentadas, según el alcance de cada evidencia.
+Dos dificultades relevantes fueron la preparación de las imágenes de los personajes y la necesidad de reconstruir La Taberna. En los retratos fue necesario cuidar la correspondencia con la obra y edición, mantener el encuadre y reducir el peso de carga. En La Taberna se reorganizaron la navegación y los componentes para integrar comunidad, Bazar e interacción social, manteniendo la gestión de planes en una sección diferenciada. Estos trabajos requirieron revisión visual, coordinación entre frontend y backend y pruebas de integración.
+Los objetivos de análisis, modelamiento e implementación presentan avances respaldados por módulos, modelos de datos y rutas de la API. El objetivo de integración dispone de código para IA, voz y Webpay, aunque la validación con servicios externos sigue pendiente en parte. El objetivo de calidad tiene evidencia específica del lector: el registro del 14 y 15 de octubre informa compilación de Angular y 46 de 46 pruebas aisladas aprobadas. Esto no acredita la validación integral de la plataforma.
+Se conserva el plan de 18 semanas de la fase 1. El monitoreo de este informe se realiza desde la semana 6; las duraciones iniciales de cada actividad se mantienen como referencia. Se desglosan retratos, La Taberna, juegos y La Senda para hacer visibles sus ajustes y pendientes. El avance se describe por actividad y evidencia.
+Objetivos
+Se mantienen los objetivos de la fase 1. No se incorpora un cambio de alcance ni se declara cumplido un objetivo solo por la existencia de código.
+Objetivo general
+Desarrollar e integrar una plataforma web de lectura interactiva que permita gestionar obras, biblioteca personal, lectura y progreso, incorporando inteligencia artificial, narración por voz y herramientas administrativas, con el fin de ofrecer una experiencia digital guiada y escalable.
+Objetivos específicos
+1. Analizar y documentar los requerimientos funcionales y no funcionales del sistema.
+2. Diseñar e implementar un modelo de datos escalable para usuarios, libros, autores, lectura, compras y conversaciones.
+3. Implementar e integrar catálogo, biblioteca, lector, progreso, marcadores y notas.
+4. Integrar personajes conversacionales, narración TTS y la economía Tinta con Webpay.
+5. Validar funcionalidad, integración, seguridad, rendimiento y usabilidad, incorporando mejoras según resultados y retroalimentación del cliente.
+Metodología
+Se mantiene la metodología iterativa e incremental definida en la fase 1. El trabajo se organiza en análisis, diseño, implementación, pruebas y documentación. La distribución de responsabilidades sigue siendo: Eithan en requerimientos y QA; Luis en backend e integraciones; Christopher en frontend y UX; y Matias en producto y documentación.
+Desde la semana 6, el seguimiento incorpora revisión visual de retratos y de La Taberna, además de comprobaciones funcionales de juegos, El Enigma, Interrogatorio y La Senda. Para los próximos incrementos se registrarán criterios de aceptación, ambiente, fecha, resultado y evidencia de cada prueba. Las integraciones externas se comprobarán primero con respuestas controladas y luego en ambientes de prueba de los proveedores. Los cambios locales se mantendrán diferenciados de las versiones desplegadas.
+Evidencias de avance
+E1 Implementación y evolución de V2
+Se presenta un inventario técnico de módulos y su comparación con la base inicial, incluido en el anexo. El historial y los archivos permiten demostrar desarrollo e integración, sin confundir código disponible con aceptación del cliente.
+E2 Lector y pruebas de interacción
+Se adjuntan en el anexo capturas existentes de escritorio y móvil, junto con el alcance y resultado del registro de verificación del lector. Esta evidencia relaciona lectura, progreso y personalización con el objetivo de implementación y con comprobaciones concretas de calidad.
+E3 Auditorías de recuperación de contraseña y logros
+Se identifican los registros conservados de 10 comprobaciones de recuperación y 12 de logros, con capturas y sin errores de ejecución o desbordamientos informados en esos recorridos. Son resultados previos de alcance específico, no una nueva ejecución ni una certificación completa.
+E4 Imágenes de personajes
+Se presenta el flujo de preparación, asociación y publicación de retratos, junto con el tratamiento de miniaturas e imágenes de respaldo. Esta evidencia demuestra el trabajo sobre identidad visual, rendimiento y correspondencia entre personaje, obra y edición.
+E5 Reconstrucción de La Taberna
+Se adjunta una captura de la Taberna social y se describe la reorganización de comunidad, Bazar, amigos, mesa e interacción. La evidencia permite revisar la interfaz reconstruida, la coordinación entre frontend y backend y los controles de compatibilidad. La imagen documenta la presentación; la validación integral de todos sus recorridos sigue pendiente.
+E6 Juegos literarios
+Se documentan las modalidades Ordena la historia, Une las parejas, Anagrama, Reconstruye la frase, Caza la palabra, Clasifica y Relámpago. La implementación incluye captura de respuestas, evaluación y retroalimentación. Las pruebas existentes contemplan respuestas parciales, normalización de tildes y ocultamiento de soluciones. Esta evidencia relaciona desarrollo de software con actividades de comprensión y vocabulario.
+E7 El Enigma del Tintero
+Se presenta el reto diario de palabras, sus pistas, teclado interactivo, intentos, progreso y estados de victoria o derrota. La implementación contempla guardado por usuario y día y consulta de la recompensa al servidor. Esta evidencia permite revisar una mecánica de juego completa y su relación con la economía Tinta y los logros.
+E8 El Interrogatorio a Ciegas
+Se describe la sesión de identidad oculta, preguntas limitadas, selección de sospechosos, ventajas y resolución de la partida. El módulo diferencia reto diario y práctica y administra las operaciones mediante servicios del backend. La evidencia demuestra integración de interfaz, persistencia e interacción con personajes; la calidad de las respuestas del proveedor requiere validación específica.
+E9 La Senda
+Se documenta el mapa de unidades y niveles, las lecturas y ejercicios, las vidas, las estrellas y el desbloqueo progresivo. Las pruebas existentes contemplan niveles bloqueados, orden de apertura de unidades, evaluación de respuestas y pruebas de salto. Esta evidencia demuestra organización del aprendizaje y seguimiento del progreso del usuario.
+Resguardo de calidad
+El control de versiones, las pruebas aisladas, el registro de defectos y las capturas permiten revisar cambios y reproducir comprobaciones. La matriz histórica de QA contiene 28 casos, pero sus estados no tienen una leyenda inequívoca y las celdas de evidencia están vacías. Debe normalizarse antes de calcular una tasa global de aprobación. La aceptación final de evidencias con el docente y del producto con el cliente sigue pendiente de registro.
+2. Monitoreo del Plan de Trabajo
+Examina cuidadosamente tu plan de trabajo, enfocándote especialmente en la columna de estado de avance y ajustes.
+Plan de Trabajo
+Plan de Trabajo
+Plan de Trabajo
+Plan de Trabajo
+Plan de Trabajo
+Plan de Trabajo
+Plan de Trabajo
+Plan de Trabajo
+Competencia o unidades de competencias
+Actividades
+Recursos
+Duración de la actividad
+Responsable
+Observaciones
+Estado de avance
+Ajustes
+Gestión de proyectos
+Requerimientos
+Guía, repositorio y tablero
+S1–S3
+Matias / Eithan
+Hay fuentes históricas inconsistentes.
+En curso. Alcance descrito; trazabilidad por formalizar.
+Actualizar fichas CU y separar base/V2.
+Modelamiento de datos
+Arquitectura y datos
+Django REST, PostgreSQL y Git
+S2–S4
+Luis
+Existen modelos y migraciones.
+En curso. Modelo implementado; cambios nuevos por validar.
+Documentar migraciones y verificar en entorno aislado.
+Desarrollo de software
+Frontend y lector
+Angular, navegador y pruebas
+S3–S8
+Christopher
+Hay registro de 46 pruebas aisladas del lector.
+En curso. Lectura y mejoras implementadas.
+Completar rendimiento, móvil físico y regresión.
+Desarrollo de software
+Backend y API
+Django REST, base de datos y Git
+S3–S8
+Luis
+API organizada por módulos.
+En curso. Rutas, modelos y servicios presentes.
+Revisar contratos, permisos y nuevas integraciones.
+Desarrollo de software
+IA y TTS
+APIs de IA y voz; caché de audio
+S6–S10
+Luis / Christopher
+Dependencia de cuotas y proveedores.
+En curso. Integración implementada; validación externa parcial.
+Probar disponibilidad, consumo y recuperación de fallos.
+Desarrollo de software
+Retratos de personajes
+Imágenes, manifiesto, almacenamiento y miniaturas
+Desde S6
+Christopher / Luis
+Cuidar identidad, encuadre y peso de las imágenes.
+En curso. Flujo de importación y miniaturas disponible.
+Revisar retratos pendientes y unificar imágenes de respaldo.
+Desarrollo e integración
+Reconstrucción de La Taberna
+Angular, API de comunidad, Bazar y pruebas
+Desde S6
+Christopher / Luis; Eithan en QA
+Reorganización visual y conexión de funciones sociales.
+En curso. Nueva estructura y cambios locales disponibles.
+Validar navegación, respuestas de API, móvil y rendimiento.
+Desarrollo y pruebas
+Juegos, El Enigma e Interrogatorio
+Angular, servicios de juego, IA y casos de prueba
+Desde S6
+Christopher / Luis; Eithan en QA
+Mantener reglas, estados y recompensas coherentes.
+En curso. Modalidades y sesiones implementadas.
+Validar reanudación, fin de partida y recompensas únicas.
+Desarrollo y datos
+La Senda
+Unidades, niveles, ejercicios y progreso
+Desde S6
+Christopher / Luis; Eithan en QA
+Coordinar desbloqueo, evaluación y guardado de avance.
+En curso. Mapa, actividades y controles implementados.
+Completar regresión de niveles, vidas y salto de unidad.
+Gestión y desarrollo
+Tinta y Webpay
+Backend, base de datos y sandbox
+S8–S11
+Luis / Eithan
+Mantener saldo y evitar cargos duplicados al reintentar.
+En curso. Flujo de pago y controles implementados.
+Verificar confirmación, cancelación e idempotencia.
+Pruebas y certificación
+QA y rendimiento
+Casos de prueba, logs y capturas
+S9–S14
+Eithan / equipo
+Hay evidencia puntual; falta cierre integral.
+En curso. Pruebas del lector documentadas.
+Normalizar QA y ejecutar regresión y concurrencia.
+Gestión y desarrollo
+Administración y métricas
+Dashboard, API y base de datos
+S10–S14
+Matias / Luis
+Existen vistas y rutas administrativas.
+En curso. Implementación presente; aceptación pendiente.
+Validar métricas y permisos con criterios definidos.
+Pruebas y gestión
+Integración y validación
+Sistema, checklist y actas
+S13–S16
+Todo el equipo
+Cambios locales y servicios externos pendientes.
+En curso en implementación; validación formal sin inicio acreditado.
+Ejecutar flujos completos y registrar revisión del cliente.
+Gestión de proyectos
+Cierre y entrega
+Documentación, demo y repositorio
+S15–S18
+Matias / equipo
+Depende del cierre de integración y QA.
+En curso en preparación del informe; cierre formal sin acreditar.
+Consolidar evidencias, pendientes y aceptación final.
+3. Ajustes a partir del monitoreo
+Profundiza en las observaciones de tu plan de trabajo. Analiza las actividades planificadas y señala qué aspectos facilitaron u obstaculizaron la ejecución del plan. Plantea cómo abordaste y/o abordarás los obstáculos. Por último, señala los ajustes que realizaste al plan de trabajo a partir de este análisis.
+Factores que han facilitado y dificultado el desarrollo del plan
+La base de software existente facilita avanzar por incrementos y reutilizar autenticación, catálogo, biblioteca y servicios. La separación entre Angular, API Django y modelos de datos permite distribuir las tareas según los roles definidos. El historial, las pruebas y las capturas del lector aportan una evidencia concreta para revisar cambios.
+Imágenes de los personajes. Una de las dificultades fue preparar retratos que representaran al personaje correcto y se vieran de manera consistente en las distintas pantallas. Fue necesario considerar la obra y edición de cada personaje para evitar asociaciones incorrectas entre nombres similares. Además, la descarga de imágenes completas para tarjetas pequeñas aumentaba el peso de carga. La implementación actual utiliza miniaturas, conserva la proporción, difiere la carga y dispone de una imagen de respaldo en el catálogo de personajes. El flujo de importación valida los archivos, los convierte a WebP y vincula cada retrato mediante su identificador. Queda por revisar la cobertura de retratos y unificar el manejo de imágenes ausentes entre las vistas.
+Reconstrucción de La Taberna. Fue necesario rehacer la organización del módulo para integrar comunidad, Bazar, amigos e interacción social de forma coherente. Esto implicó reorganizar rutas y componentes, separar la comunidad de la gestión de planes y coordinar las respuestas de la API con lo que esperaba la interfaz. El historial registra correcciones de estructuras de respuesta y códigos HTTP. La escena, las animaciones y la música también requieren comprobar compatibilidad, consumo de recursos y adaptación a móvil. El código incluye pausas cuando la pestaña está oculta, opciones de movimiento reducido y una alternativa ilustrada si falla WebGL; la revisión integral de la reconstrucción continúa pendiente.
+Integración de Tinta y servicios externos. Mantener coherentes el saldo, las cuotas y las operaciones entre pantallas supone una dificultad adicional. Se implementaron identificadores de solicitud y controles transaccionales para evitar repetir cargos al reintentar una operación. Las integraciones de IA, voz y pagos dependen también de configuración, cuotas y disponibilidad del proveedor. Se priorizarán pruebas de cancelación, recuperación de fallos y sincronización antes de cerrar estos flujos.
+Juegos y progreso. La integración de El Enigma, Interrogatorio y La Senda requiere mantener coherencia entre las respuestas, el estado de las partidas, las recompensas y el avance guardado. La implementación separa la presentación y la evaluación, e incluye pruebas de normalización, ocultamiento de respuestas y desbloqueo. Se priorizará comprobar reanudación, límites de intentos y entrega única de premios.
+Seguimiento y calidad. La reconstrucción de componentes obliga a revisar sus dependencias y actualizar las evidencias. Se propone consolidar cada ejecución con caso de uso, resultado, ambiente y evidencia; mantener el cronograma de 18 semanas y los responsables vigentes; y completar las pruebas que requieren PostgreSQL, ya que los resultados aislados en SQLite no acreditan su concurrencia.
+Actividades ajustadas o eliminadas
+Los cambios técnicos documentados del lector incluyen el formato de una o dos páginas, controles de navegación, marcadores, conservación del pasaje y extracción de funciones de paginación. El registro de verificación del 14 y 15 de octubre respalda estos cambios y sus 46 pruebas aisladas.
+Desde la semana 6 se da seguimiento específico a los retratos y a la reconstrucción de La Taberna. En los retratos, el ajuste consiste en separar la preparación visual, la asociación con el personaje y la publicación de archivos, incorporando miniaturas para su presentación. En La Taberna, el trabajo se descompone en reorganización de navegación, componentes sociales, conexión con la API y revisión visual y funcional. Este desglose hace visible el trabajo adicional de integración sin alterar el objetivo general del proyecto.
+Para el seguimiento académico se propone reforzar documentación y QA dentro de las actividades ya planificadas. Se deben convertir los casos de uso en fichas con actor, precondiciones, flujo principal, alternativas y resultado; representar los diagramas gráficamente; definir y aplicar una convención de nombres consistente con los requisitos del docente; y relacionar requerimientos con implementación y pruebas. Estas correcciones documentales no se presentan como ya terminadas.
+Se mantiene el horizonte de 18 semanas y la distribución principal de responsabilidades de la fase 1. El seguimiento desglosa retratos, La Taberna, juegos y La Senda, coordinados entre frontend y backend con apoyo de QA. La Carta Gantt debe reflejar este trabajo desde la semana 6 y conservar la relación con las actividades iniciales. No se registra eliminación de actividades. La publicación comercial de libros por autores externos queda fuera de los entregables acreditados en este informe.
+Actividades no iniciadas o con validación pendiente
+El seguimiento de la fase 2 comienza en la semana 6. Continúan pendientes la revisión de retratos aún no asociados o con rutas de respaldo inconsistentes y la validación integral de la nueva Taberna en sus recorridos principales, vista móvil y compatibilidad gráfica. La preparación de una imagen o la presencia de un componente no implican por sí solas el cierre de la actividad.
+La entrega final, la aceptación del cliente, las fichas de casos de uso y trazabilidad, la regresión integral, las pruebas de concurrencia en PostgreSQL y las validaciones externas de pagos, IA y voz requieren completar o consolidar sus evidencias. La reconstrucción de La Taberna y la revisión de imágenes se incorporan al seguimiento de prioridades. No se asigna un atraso en semanas sin una fecha comprometida y un avance semanal confirmado.
+Para avanzar se propone priorizar el recorrido registro, catálogo, biblioteca, lectura, guardado de progreso y reanudación. Después se comprobarán IA, narración y pagos, incluyendo errores y cancelaciones. Cada defecto deberá registrarse con responsable y condición de cierre. Las métricas de rendimiento y usabilidad deben acordarse antes de emitir una conclusión general de calidad.
+Para los retratos se propone revisar por lotes la identidad, el encuadre, la disponibilidad y la carga de cada imagen. Para La Taberna se propone comprobar navegación, Bazar, funciones sociales, permisos y respuestas de la API antes de cerrar el pulido gráfico. El cierre académico consolidará la versión entregada, documentación técnica, evidencias de prueba, demostración y registro de aceptación.
