@@ -19,7 +19,7 @@
   "rewrites": [
     {
       "source": "/api/public-home",
-      "destination": "https://literatusnovelistv2.onrender.com/api/v1/catalog/home/"
+      "destination": "https://literatus-novelist.westus.cloudapp.azure.com/api/v1/catalog/home/"
     },
     {
       "source": "/(.*)",

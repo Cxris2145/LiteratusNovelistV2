@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parsePublicHome } from '../src/app/core/data/public-home.mjs';
 
-const DEFAULT_API_URL = 'https://literatusnovelistv2.onrender.com/api/v1/';
+const DEFAULT_API_URL = 'https://literatus-novelist.westus.cloudapp.azure.com/api/v1/';
 const DEFAULT_OUTPUT = fileURLToPath(new URL('../src/assets/data/home-public.json', import.meta.url));
 const STARTERS = [
   'la-odisea-homero', 'la-metamorfosis-kafka-franz', 'romeo-y-julieta-shakespeare-william',

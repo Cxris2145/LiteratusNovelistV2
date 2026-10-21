@@ -43,7 +43,7 @@ npm run snapshot:home
 npm run build
 ```
 
-El exportador consulta `https://literatusnovelistv2.onrender.com/api/v1/catalog/home/`
+El exportador consulta `https://literatus-novelist.westus.cloudapp.azure.com/api/v1/catalog/home/`
 sin credenciales, con dos intentos y un timeout de 80 segundos por intento, para
 permitir el arranque de Render. Escribe `src/assets/data/home-public.json` de forma
 atómica. El archivo se genera en cada compilación y está excluido de Git.

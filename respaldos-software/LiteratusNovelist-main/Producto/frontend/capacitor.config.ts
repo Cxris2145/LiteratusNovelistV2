@@ -17,7 +17,7 @@ const config: CapacitorConfig = {
   },
   server: {
     // Permite que la app se comunique con el backend en producción
-    allowNavigation: ['literatus-novelist-backend.onrender.com']
+    allowNavigation: ['literatus-novelist.westus.cloudapp.azure.com']
   }
 };
 
