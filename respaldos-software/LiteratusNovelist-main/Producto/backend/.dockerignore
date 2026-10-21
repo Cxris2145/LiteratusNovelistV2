@@ -1,0 +1,28 @@
+# Lo que NO entra en la imagen del backend (ver Dockerfile).
+# Secretos: van como secretos de Azure (azure.env), nunca dentro de la imagen.
+.env
+env
+azure.env
+
+# Entorno local y archivos grandes que la web no lee
+.venv/
+**/__pycache__/
+*.py[cod]
+*.sqlite3
+*.sqlite3.*
+db.sqlite3.backup_pre_cleaning
+media/
+private_media/
+backups/
+docs/
+.tmp-*/
+backup_chapters_pre_cleaning.json
+biographies_backup.json
+synopses_backup.json
+listado_completo_libros_personajes.json
+
+# Archivos del propio despliegue
+Dockerfile
+.dockerignore
+deploy-azure.ps1
+azure.env.example

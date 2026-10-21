@@ -197,6 +197,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Render y Azure reciben HTTPS y pasan la petición a gunicorn por HTTP; este encabezado
+    # avisa a Django, así las URLs absolutas (portadas, narraciones) salen con https://.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ---------------------------------------------------------------------------
 # Django REST Framework

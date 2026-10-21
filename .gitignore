@@ -36,6 +36,8 @@ venv.bak/
 **/.env
 !.env.example
 !**/.env.example
+azure.env
+**/azure.env
 
 # Database
 *.sqlite3

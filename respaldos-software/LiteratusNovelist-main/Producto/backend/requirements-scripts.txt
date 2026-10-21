@@ -1,0 +1,11 @@
+# Solo para alinear audios con faster-whisper (scripts/colab_sync, se corren en Colab).
+# No se instala en el servidor: la web no los usa y pesan más de 150 MB.
+#   pip install -r requirements.txt -r requirements-scripts.txt
+faster-whisper==1.2.1
+ctranslate2==4.7.1
+onnxruntime==1.25.1
+av==17.0.1
+tokenizers==0.23.1
+huggingface_hub==1.12.2
+numpy==2.4.4
+imageio-ffmpeg==0.6.0
