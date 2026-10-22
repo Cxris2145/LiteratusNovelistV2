@@ -24,6 +24,7 @@ import { CharacterChatService } from './core/services/character-chat.service';
 import { ScrollRevealService } from './core/services/scroll-reveal.service';
 import { NotebookService } from './notebook/notebook.service';
 import { GuestSessionService } from './core/services/guest-session.service';
+import { AppUpdateService } from './core/services/app-update.service';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +38,8 @@ export class AppComponent implements OnInit {
   authService = inject(AuthService);
   /** Latido de las cuentas de prueba (se borran solas al cerrar la página). */
   private readonly guestSession = inject(GuestSessionService);
+  /** Si una sección no carga porque se publicó una versión nueva, recarga directo en ella. */
+  private readonly appUpdate = inject(AppUpdateService);
   chatService = inject(ChatService);
   settingsService = inject(SettingsService);
   favoritesService = inject(FavoritesService);

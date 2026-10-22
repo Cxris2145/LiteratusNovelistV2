@@ -1,4 +1,5 @@
 import { NotebookLauncherComponent } from './notebook/notebook-launcher/notebook-launcher.component';
+import { RouteProgressComponent } from './core/components/route-progress/route-progress.component';
 import { NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -76,6 +77,7 @@ import { BookSummaryComponent } from './core/components/book-summary/book-summar
     HttpClientModule,
     SharedModule,
     NotebookLauncherComponent,
+    RouteProgressComponent,
     ServiceWorkerModule.register('ngsw-worker.js', {
   enabled: !isDevMode(),
   // Register the ServiceWorker as soon as the application is stable
