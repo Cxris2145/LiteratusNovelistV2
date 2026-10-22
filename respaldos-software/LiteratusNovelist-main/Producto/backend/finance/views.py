@@ -13,7 +13,9 @@ from rest_framework.response import Response
 
 from catalog.models import Book, Edition
 from library.models import UserInventory
+from users.guests import is_guest
 from users.models import Profile
+from .guest_payments import guest_no_payments_response
 from .models import Transaction
 from . import webpay_service
 
@@ -44,6 +46,8 @@ def initiate_payment(request):
     Crea una transacción en estado INICIADA y devuelve la URL y token de Webpay
     para que el frontend construya el formulario de redirección.
     """
+    if is_guest(request.user):
+        return guest_no_payments_response()
     item_type = request.data.get('item_type')
     item_reference = request.data.get('item_reference')
 

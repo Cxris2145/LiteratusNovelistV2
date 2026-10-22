@@ -38,12 +38,13 @@
       </div>
 
       <button type="submit" class="glass-btn" [disabled]="loginForm.invalid || isLoading">
-        {{ isLoading && !isAdminLoading ? 'Conectando...' : 'Iniciar Sesión' }}
+        {{ isLoading && !isGuestLoading ? 'Conectando...' : 'Iniciar Sesión' }}
       </button>
 
-      <button type="button" class="glass-btn test-login-btn" (click)="loginAsAdmin()" [disabled]="isLoading">
-        {{ isAdminLoading ? 'Conectando...' : 'Ingreso de pruebas' }}
+      <button type="button" class="glass-btn test-login-btn" (click)="loginAsGuest()" [disabled]="isLoading">
+        {{ isGuestLoading ? 'Preparando tu cuenta de prueba…' : 'Probar sin cuenta' }}
       </button>
+      <p class="test-login-note">Cuenta temporal: se borra al cerrar la página o después de una hora.</p>
 
     </form>
 

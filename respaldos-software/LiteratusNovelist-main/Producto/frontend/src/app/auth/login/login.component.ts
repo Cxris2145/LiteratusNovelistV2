@@ -17,7 +17,7 @@ export class LoginComponent implements OnInit {
   needsVerification = false;
   isResending = false;
   isLoading = false;
-  isAdminLoading = false;
+  isGuestLoading = false;
   returnUrl: string = '/catalog';
   showPassword = false;
 
@@ -44,6 +44,10 @@ export class LoginComponent implements OnInit {
     // Llega aquí desde "Eliminar cuenta" en el perfil (ver AuthService.deleteAccount).
     if (this.route.snapshot.queryParams['cuenta'] === 'eliminada') {
       this.infoMsg = 'Tu cuenta y sus datos se borraron para siempre. Gracias por leer con nosotros.';
+    }
+    // Llega aquí cuando la cuenta de prueba se cerró o el servidor ya la borró (ver AuthService.logout).
+    if (this.route.snapshot.queryParams['prueba'] === 'terminada') {
+      this.infoMsg = 'Tu sesión de prueba terminó y sus datos se borraron. Puedes abrir otra cuando quieras.';
     }
   }
 
@@ -103,15 +107,17 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  loginAsAdmin() {
+  /**
+   * "Probar sin cuenta": cada clic crea una cuenta de prueba nueva (lector, sin permisos de
+   * administración) que el servidor borra al cerrar la página o después de una hora.
+   */
+  loginAsGuest() {
     this.isLoading = true;
-    this.isAdminLoading = true;
+    this.isGuestLoading = true;
     this.errorMsg = '';
+    this.infoMsg = '';
 
-    this.api.post<{access: string, refresh: string, user: any}>('users/login/', {
-      username: 'admin',
-      password: 'admin'
-    }).subscribe({
+    this.api.post<{access: string, refresh: string, user: any}>('users/guest/', {}).subscribe({
       next: (res) => {
         const target = (this.returnUrl && !this.returnUrl.startsWith('/dashboard') && this.returnUrl !== '/login')
           ? this.returnUrl
@@ -119,10 +125,11 @@ export class LoginComponent implements OnInit {
         this.enter(res, target);
       },
       error: (err) => {
-        console.error('Error al iniciar sesión como administrador:', err);
-        this.errorMsg = 'No se pudo conectar con las credenciales de administrador.';
+        this.errorMsg = err.status === 429
+          ? 'Se abrieron muchas cuentas de prueba desde esta red. Espera unos minutos e inténtalo de nuevo.'
+          : err.error?.detail || 'No pudimos abrir la cuenta de prueba. Inténtalo de nuevo.';
         this.isLoading = false;
-        this.isAdminLoading = false;
+        this.isGuestLoading = false;
       }
     });
   }

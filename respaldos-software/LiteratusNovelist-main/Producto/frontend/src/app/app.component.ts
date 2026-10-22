@@ -23,6 +23,7 @@ import { watchKeyboard } from './core/utils/keyboard-inset.util';
 import { CharacterChatService } from './core/services/character-chat.service';
 import { ScrollRevealService } from './core/services/scroll-reveal.service';
 import { NotebookService } from './notebook/notebook.service';
+import { GuestSessionService } from './core/services/guest-session.service';
 
 @Component({
   selector: 'app-root',
@@ -34,6 +35,8 @@ export class AppComponent implements OnInit {
   title = 'frontend';
   apiService = inject(ApiService);
   authService = inject(AuthService);
+  /** Latido de las cuentas de prueba (se borran solas al cerrar la página). */
+  private readonly guestSession = inject(GuestSessionService);
   chatService = inject(ChatService);
   settingsService = inject(SettingsService);
   favoritesService = inject(FavoritesService);
@@ -391,6 +394,11 @@ export class AppComponent implements OnInit {
 
   get isAdmin(): boolean {
     return this.authService.isAdmin();
+  }
+
+  /** Cuenta de prueba ("Probar sin cuenta"): el header lo dice. */
+  get isGuest(): boolean {
+    return !!this.authService.currentUser()?.is_guest;
   }
 
   logout() {

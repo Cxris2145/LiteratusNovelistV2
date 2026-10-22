@@ -81,6 +81,11 @@ export class ProfileComponent implements OnInit {
     this.loadProfile();
   }
 
+  /** Cuenta de prueba: no tiene contraseña con qué eliminarla; cerrar sesión ya la borra. */
+  get isGuest(): boolean {
+    return !!this.authService.currentUser()?.is_guest;
+  }
+
   logout() {
     this.authService.logout();
   }

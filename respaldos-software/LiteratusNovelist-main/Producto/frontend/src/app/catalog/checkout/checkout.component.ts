@@ -103,7 +103,8 @@ export class CheckoutComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMsg = err.error?.error || 'Error al iniciar el pago. Intenta nuevamente.';
+        // Las cuentas de prueba reciben un `message` (no pueden pagar con dinero real).
+        this.errorMsg = err.error?.error || err.error?.message || 'Error al iniciar el pago. Intenta nuevamente.';
       }
     });
   }

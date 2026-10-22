@@ -19,3 +19,5 @@ if os.environ.get('LITERATUS_PREVIEW_EMAIL_DIR'):
 ALLOWED_HOSTS = ['testserver', 'localhost', '127.0.0.1']
 DEBUG = True
 CORS_ALLOWED_ORIGINS = ['http://localhost:4300', 'http://127.0.0.1:4300']
+# Los tests barren a mano: un hilo aparte no ve la base en memoria de la prueba.
+GUEST_SWEEP_IN_BACKGROUND = False

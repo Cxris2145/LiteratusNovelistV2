@@ -96,8 +96,14 @@
   }
 }
 
-/* ── Botón de Ingreso de pruebas (mismo formato que Iniciar Sesión) ── */
+/* ── Botón "Probar sin cuenta" (mismo formato que Iniciar Sesión) ── */
 .test-login-btn {
   margin-top: 12px;
+}
+.test-login-note {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
 }
 

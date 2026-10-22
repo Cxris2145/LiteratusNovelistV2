@@ -87,6 +87,8 @@
           </ng-container>
 
           <ng-container *ngIf="isLoggedIn">
+            <span class="guest-chip" *ngIf="isGuest"
+                  title="Cuenta temporal: se borra al cerrar la página o después de una hora">Modo prueba</span>
             <button type="button" class="profile-trigger" [matMenuTriggerFor]="profileMenu"
                     [class.is-open]="profileMenuOpen"
                     (menuOpened)="profileMenuOpen = true" (menuClosed)="profileMenuOpen = false"

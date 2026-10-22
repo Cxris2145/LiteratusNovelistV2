@@ -86,6 +86,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Borra las cuentas de prueba vencidas (como mucho una vez por minuto, en un hilo aparte).
+    'users.middleware.GuestSweepMiddleware',
 ]
 
 # ---------------------------------------------------------------------------
@@ -230,6 +232,8 @@ REST_FRAMEWORK = {
         'password_reset_request': '10/hour',
         'password_reset_verify': '30/min',
         'account_delete': '10/hour',
+        # "Probar sin cuenta": holgado porque un curso entero suele salir por la misma IP.
+        'guest_create': '60/hour',
     },
 }
 

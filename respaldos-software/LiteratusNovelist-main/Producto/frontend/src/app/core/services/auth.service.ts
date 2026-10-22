@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, Subject, catchError, finalize, map, of, sh
 import { ApiService } from './api.service';
 import { ProfileRequestService } from './profile-request.service';
 import { environment } from '../../../environments/environment';
+import { sendGuestLeave } from '../utils/guest-leave';
 
 export interface UserProfile {
   id: string;
@@ -15,6 +16,8 @@ export interface UserProfile {
   has_completed_onboarding?: boolean;
   birth_date?: string;
   profile?: any;
+  /** Cuenta de prueba ("Probar sin cuenta"): el servidor la borra al cerrar la página o tras una hora. */
+  is_guest?: boolean;
 }
 
 const USER_KEY = 'user_profile';
@@ -250,6 +253,12 @@ export class AuthService {
    * garantiza que la siguiente cuenta no vea nada de la anterior.
    */
   logout(redirectTo = '/login'): void {
+    // Una cuenta de prueba que cierra sesión se borra ya (si el servidor no la borró antes),
+    // y el login avisa que terminó.
+    if (this.currentUser()?.is_guest) {
+      sendGuestLeave(true);
+      if (redirectTo === '/login') redirectTo = '/login?prueba=terminada';
+    }
     this.clearTokens();
     localStorage.removeItem(this.THEME_KEY);
     this.clearOfflineApiCache().finally(() => window.location.assign(redirectTo));

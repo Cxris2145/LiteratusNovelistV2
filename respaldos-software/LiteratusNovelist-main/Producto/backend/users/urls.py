@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import (
 from .views import (
     MyTokenObtainPairView, RegisterUserView, UserMeView, ProfileView, 
     AddInkView, SpendInkView, DeleteAccountView, VerifyEmailView, PasswordResetRequestView, PasswordResetVerifyView, PasswordResetConfirmView,
-    OnboardingView, ResendVerificationView
+    OnboardingView, ResendVerificationView, GuestStartView, GuestPingView, GuestLeaveView
 )
 
 urlpatterns = [
@@ -19,6 +19,11 @@ urlpatterns = [
     # Token para refrescar sub-sesiones en el frontend:
     path('login/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
+    # ---- Cuentas de prueba ("Probar sin cuenta"): se borran solas al cerrar la página ----
+    path('guest/', GuestStartView.as_view(), name='guest_start'),
+    path('guest/ping/', GuestPingView.as_view(), name='guest_ping'),
+    path('guest/leave/', GuestLeaveView.as_view(), name='guest_leave'),
+
     # ---- Registro y Cuentas ----
     path('register/', RegisterUserView.as_view(), name='register'),
     path('me/', UserMeView.as_view(), name='me'),

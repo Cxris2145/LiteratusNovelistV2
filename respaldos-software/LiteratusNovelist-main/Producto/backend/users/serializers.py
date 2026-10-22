@@ -89,18 +89,25 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     'detail': 'Tu cuenta aún no está verificada. Revisa tu correo y abre el enlace de activación.',
                 })
             raise
-        profile = getattr(self.user, 'profile', None)
-        has_onboarding = profile.has_completed_onboarding if profile else False
-        data['user'] = {
-            'id': str(self.user.id),
-            'email': self.user.email,
-            'username': self.user.username,
-            'role': self.user.role,
-            'is_staff': self.user.is_staff,
-            'is_superuser': self.user.is_superuser,
-            'has_completed_onboarding': has_onboarding,
-        }
+        data['user'] = login_user_data(self.user)
         return data
+
+
+def login_user_data(user):
+    """Lo que el frontend guarda de la cuenta al iniciar sesión (también la de prueba)."""
+    from .guests import is_guest
+
+    profile = getattr(user, 'profile', None)
+    return {
+        'id': str(user.id),
+        'email': user.email,
+        'username': user.username,
+        'role': user.role,
+        'is_staff': user.is_staff,
+        'is_superuser': user.is_superuser,
+        'has_completed_onboarding': profile.has_completed_onboarding if profile else False,
+        'is_guest': is_guest(user),
+    }
 
 
 class OnboardingSerializer(serializers.Serializer):
@@ -306,8 +313,16 @@ class UserWriteSerializer(serializers.ModelSerializer):
         return users.exclude(pk=self.instance.pk) if self.instance else users
 
     def validate_email(self, value):
+        from .guests import is_guest, is_guest_email
+
         # 'Ana@Correo.com' y 'ana@correo.com' son la misma bandeja: una sola cuenta.
         value = User.objects.normalize_email(value.strip()).lower()
+        # El dominio de las cuentas de prueba es reservado (por él se reconocen y se borran solas),
+        # y una cuenta de prueba no puede volverse permanente cambiando su correo.
+        if is_guest_email(value) and not (self.instance and value == self.instance.email):
+            raise serializers.ValidationError('Ese dominio de correo está reservado.')
+        if self.instance and is_guest(self.instance) and value != self.instance.email:
+            raise serializers.ValidationError('Las cuentas de prueba no pueden cambiar el correo.')
         if self._others().filter(email__iexact=value).exists():
             raise serializers.ValidationError('Ya existe una cuenta con este correo.')
         return value

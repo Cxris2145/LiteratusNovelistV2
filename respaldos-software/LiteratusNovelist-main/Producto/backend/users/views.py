@@ -1,9 +1,14 @@
 """
 users/views.py — Vistas para Autenticación (SimpleJWT), Registro y Gestión de Perfil.
 """
+import json
 import logging
 
 from rest_framework import generics, permissions, status
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.throttling import ScopedRateThrottle
@@ -14,9 +19,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Profile
 from django.db import transaction
 from django.db.models import Q
+from . import guests
 from .serializers import (
     MyTokenObtainPairSerializer, UserWriteSerializer, UserReadSerializer, ProfileSerializer,
-    find_user_by_login,
+    find_user_by_login, login_user_data,
     PasswordResetRequestSerializer, PasswordResetVerifySerializer, PasswordResetConfirmSerializer,
 )
 from .utils import email_is_configured, send_verification_email
@@ -177,6 +183,82 @@ class DeleteAccountView(APIView):
                 'code': 'SUBSCRIPTION_CANCEL_FAILED',
             }, status=status.HTTP_502_BAD_GATEWAY)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class GuestStartView(APIView):
+    """
+    Endpoint POST /api/v1/users/guest/ ("Probar sin cuenta" en el login).
+    Crea una cuenta de prueba nueva y responde como el login: {access, refresh, user}.
+    No mira el token que traiga la petición: quien prueba puede tener uno vencido.
+    """
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'guest_create'
+
+    def post(self, request, *args, **kwargs):
+        if guests.alive_count() >= guests.MAX_ALIVE:
+            guests.sweep()
+            if guests.alive_count() >= guests.MAX_ALIVE:
+                return Response({
+                    'detail': 'Hay muchas cuentas de prueba abiertas en este momento. Inténtalo de nuevo en unos minutos.',
+                    'code': 'guest_limit',
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        user = guests.create_guest()
+        refresh = RefreshToken.for_user(user)
+        return Response({'access': str(refresh.access_token), 'refresh': str(refresh), 'user': login_user_data(user)},
+                        status=status.HTTP_201_CREATED)
+
+
+class GuestPingView(APIView):
+    """Endpoint POST /api/v1/users/guest/ping/: la página de prueba sigue abierta."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if guests.is_guest(request.user):
+            guests.touch(request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class GuestLeaveView(APIView):
+    """
+    Endpoint POST /api/v1/users/guest/leave/
+    - {"final": true}: el invitado cerró sesión; se borra ya.
+    - sin "final": la página se ocultó o se cerró; se borra en el próximo barrido si no vuelve.
+
+    Al cerrar la página el navegador lo envía con sendBeacon, que no admite cabeceras: el token
+    puede venir en el cuerpo ({"token": ...}, como texto plano para no necesitar preflight).
+    """
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            body = json.loads(request.body or b'{}')
+        except ValueError:
+            body = {}
+        if not isinstance(body, dict):
+            body = {}
+        user = self._user(request, body.get('token'))
+        if user is not None and guests.is_guest(user):
+            if body.get('final') is True:
+                guests.delete_guest(user)
+            else:
+                guests.mark_leaving(user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @staticmethod
+    def _user(request, token):
+        auth = JWTAuthentication()
+        try:
+            found = auth.authenticate(request)
+            if found:
+                return found[0]
+            if isinstance(token, str) and token:
+                return auth.get_user(auth.get_validated_token(token))
+        except (InvalidToken, AuthenticationFailed):
+            return None
+        return None
 
 
 class AddInkView(APIView):
