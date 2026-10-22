@@ -149,9 +149,16 @@
   .rbc-stage { padding: 12px; gap: 10px; }
   /* La página del libro delgado es muy alta y angosta: la tapa cerrada usa la proporción de una portada. */
   .rbc-book { height: min(calc(100dvh - 190px), calc((100vw - 48px) / 0.66)); max-width: calc(100vw - 48px); aspect-ratio: 0.66; }
+  /* El libro delgado tiene el lomo a la izquierda: la contratapa también gira desde ahí. */
+  .rbc-back { border-radius: 3px 8px 8px 3px; }
+  .rbc-hinge-right { left: 0; right: auto; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rbc-book { animation: none; transition: none; }
+  /* Sin giro ni desplazamiento: la tapa solo aparece con un fundido corto. */
+  .rbc-book { animation: rbc-fade 180ms ease-out backwards; transition: none; }
   .rbc-front:hover, .rbc-back:hover { transform: none; }
+}
+@keyframes rbc-fade {
+  from { opacity: 0; }
 }

@@ -41,6 +41,8 @@ export interface BookFlipHost {
   gap(): number;
   /** Páginas a la vista: 2 (libro abierto) o 1 (libro delgado). */
   columns(): 1 | 2;
+  /** Pliego desde el que se puede dar vuelta hacia adelante dentro del capítulo (null si ahora no). */
+  forwardSpread(): number | null;
 }
 
 /** path: giro por clic (la esquina se levanta y baja sola); spring: resorte libre; drag: sigue al dedo. */
@@ -72,6 +74,8 @@ interface ActiveTurn {
   corner: FoldCorner;
   /** El reverso es la misma página al trasluz (una sola página). */
   ghost: boolean;
+  /** Ya está la copia de la página que queda quieta del otro lado del lomo (dos páginas). */
+  hasFixed: boolean;
   /** Esquina en coordenadas de la hoja (reader-book-fold.ts) y su velocidad en px/s. */
   pos: Vec;
   vel: Vec;
@@ -105,6 +109,9 @@ export class ReaderBookFlip {
   private frozen: { direction: 1 | -1; columns: 1 | 2; fixed: HTMLElement | null; front: HTMLElement; timer: ReturnType<typeof setTimeout> } | null = null;
   private raf: number | null = null;
   private safety: ReturnType<typeof setTimeout> | null = null;
+  /** La próxima hoja hacia adelante, armada y oculta, y para qué pliego y maqueta vale. */
+  private ready: { key: string; turn: ActiveTurn } | null = null;
+  private cancelIdle: (() => void) | null = null;
 
   constructor(private readonly host: BookFlipHost, private readonly zone: NgZone) {}
 
@@ -130,20 +137,30 @@ export class ReaderBookFlip {
    */
   turn(direction: 1 | -1, spread: number, move: () => void, corner: FoldCorner = 'bottom'): boolean {
     const columns = this.host.columns();
-    const peeled = this.active?.peel && this.active.direction === direction ? this.active : null;
-    if (!peeled) this.finishNow();
+    // Hoja ya armada: la esquina levantada por el mouse o la que se armó de antemano (prewarm).
+    let armed = this.active?.peel && this.active.direction === direction ? this.active : null;
+    if (!armed) {
+      this.finishNow();
+      armed = direction === 1 ? this.adoptReady(spread) : null;
+      if (armed) {
+        armed.corner = corner;
+        armed.pos = restCorner(armed.leaf, corner);
+        armed.target = armed.pos;
+      }
+    }
+    const fail = () => { if (armed) this.finishNow(); return false; };
     const incoming = columns === 1 && direction === -1;
     let fixed: HTMLElement | null = null;
     let front: HTMLElement | null = null;
     let under: HTMLElement | null = null;
     if (columns === 2) {
-      fixed = this.capturePage(spread, direction === 1 ? 0 : 1);
-      front = peeled ? null : this.capturePage(spread, direction === 1 ? 1 : 0);
-      if (!fixed || (!peeled && !front)) return false;
+      fixed = armed?.hasFixed ? null : this.capturePage(spread, direction === 1 ? 0 : 1);
+      front = armed ? null : this.capturePage(spread, direction === 1 ? 1 : 0);
+      if ((!fixed && !armed?.hasFixed) || (!armed && !front)) return fail();
     } else if (incoming) {
       under = this.capturePage(spread, 0);
       if (!under) return false;
-    } else if (!peeled) {
+    } else if (!armed) {
       front = this.capturePage(spread, 0);
       if (!front) return false;
     }
@@ -151,14 +168,14 @@ export class ReaderBookFlip {
     let back: HTMLElement | null = null;
     if (columns === 2) back = this.capturePage(spread + direction, direction === 1 ? 0 : 1);
     else if (incoming) back = this.ghostOf(this.capturePage(spread - 1, 0));
-    else if (!peeled) back = this.ghostOf(front!.cloneNode(true) as HTMLElement);
-    if (!back && !(peeled && columns === 1)) {
+    else if (!armed) back = this.ghostOf(front!.cloneNode(true) as HTMLElement);
+    if (!back && !(armed && columns === 1)) {
       this.finishNow();
       return false;
     }
-    if (peeled) {
-      // La esquina ya estaba levantada: la hoja sigue desde ahí, sin volver a empezar.
-      this.promotePeel(peeled, fixed, back);
+    if (armed) {
+      // La hoja sigue desde donde está (levantada o en reposo), sin volver a armarse.
+      this.promotePeel(armed, fixed, back);
     } else {
       this.start(direction, incoming, corner, { fixed, front, under, back: back! });
     }
@@ -235,12 +252,15 @@ export class ReaderBookFlip {
     if (a && (!a.peel || a.direction !== direction)) return;
     if (this.frozen) return;
     if (!a) {
-      const front = this.capturePage(spread, columns === 2 && direction === 1 ? 1 : 0);
-      if (!front) return;
-      // El reverso de una esquina es margen: papel en blanco (con una sola página, la misma al trasluz).
-      const back = columns === 2 ? this.blankPage() : this.ghostOf(front.cloneNode(true) as HTMLElement)!;
-      this.start(direction, false, 'bottom', { front, back });
-      a = this.active!;
+      a = direction === 1 ? this.adoptReady(spread) : null;
+      if (!a) {
+        const front = this.capturePage(spread, columns === 2 && direction === 1 ? 1 : 0);
+        if (!front) return;
+        // El reverso de una esquina es margen: papel en blanco (con una sola página, la misma al trasluz).
+        const back = columns === 2 ? this.blankPage() : this.ghostOf(front.cloneNode(true) as HTMLElement)!;
+        this.start(direction, false, 'bottom', { front, back });
+        a = this.active!;
+      }
       a.peel = true;
     }
     const rest = restCorner(a.leaf, a.corner);
@@ -273,6 +293,7 @@ export class ReaderBookFlip {
    */
   freeze(direction: 1 | -1, spread: number): boolean {
     this.finishNow();
+    this.dropReady();
     const columns = this.host.columns();
     const layer = this.host.layer();
     const fixed = columns === 2 ? this.capturePage(spread, direction === 1 ? 0 : 1) : null;
@@ -351,12 +372,113 @@ export class ReaderBookFlip {
 
   destroy(): void {
     this.finishNow();
+    this.dropReady();
     this.cancelLoop();
+  }
+
+  // ── La próxima hoja, armada de antemano ────────────────────────────────────
+  // Maquetar las copias de una página cuesta (el texto lleva guiones y cortes de línea cuidados):
+  // en un teléfono lento, varios cuadros justo cuando la hoja tiene que empezar a moverse. Por eso,
+  // con el libro quieto, se arma oculta la hoja que se daría vuelta hacia adelante; el giro la toma
+  // tal cual y solo copia lo que depende del pliego nuevo.
+
+  /** Arma la próxima hoja cuando el navegador esté libre (si cambió algo, la rehace). */
+  prewarmSoon(): void {
+    this.cancelPrewarm();
+    if (this.active || this.frozen) return;
+    this.zone.runOutsideAngular(() => {
+      const idle = (window as any).requestIdleCallback as ((cb: () => void, opts?: { timeout: number }) => number) | undefined;
+      if (idle) {
+        const id = idle(() => this.prewarm(), { timeout: 700 });
+        this.cancelIdle = () => (window as any).cancelIdleCallback?.(id);
+      } else {
+        const id = setTimeout(() => this.prewarm(), 250);
+        this.cancelIdle = () => clearTimeout(id);
+      }
+    });
+  }
+
+  /** Cambió el texto (subrayados, letra, capítulo…): la hoja armada ya no sirve. */
+  invalidate(): void {
+    this.dropReady();
+    this.prewarmSoon();
+  }
+
+  private prewarm(): void {
+    this.cancelIdle = null;
+    if (this.active || this.frozen) return;
+    const spread = this.host.forwardSpread();
+    if (spread === null) {
+      this.dropReady(); // último pliego, voz andando…: la que haya quedado ya no sirve
+      return;
+    }
+    const key = this.readyKey(spread);
+    if (!key || this.ready?.key === key) return;
+    const columns = this.host.columns();
+    const fixed = columns === 2 ? this.capturePage(spread, 0) : null;
+    const front = this.capturePage(spread, columns === 2 ? 1 : 0);
+    if (!front || (columns === 2 && !fixed)) return;
+    const back = columns === 2 ? this.blankPage() : this.ghostOf(front.cloneNode(true) as HTMLElement)!;
+    const layer = this.host.layer()!;
+    const turn = this.build(1, false, 'bottom', { fixed, front, back });
+    layer.classList.add('is-ready');
+    this.render(turn);
+    layer.getBoundingClientRect(); // se maqueta ahora, con el libro quieto, y no al empezar a girar
+    this.ready = { key, turn };
+  }
+
+  /** Toma la hoja armada si sigue sirviendo para este pliego. */
+  private adoptReady(spread: number): ActiveTurn | null {
+    const ready = this.ready;
+    this.ready = null;
+    this.cancelPrewarm();
+    const layer = this.host.layer();
+    layer?.classList.remove('is-ready');
+    if (!ready) return null;
+    const shell = this.host.shell();
+    if (!shell || ready.key !== this.readyKey(spread)) {
+      if (!this.active && !this.frozen) layer?.replaceChildren();
+      return null;
+    }
+    const rect = shell.getBoundingClientRect();
+    ready.turn.box = { left: rect.left, top: rect.top };
+    this.active = ready.turn;
+    this.host.container()?.classList.add('is-flipping');
+    return ready.turn;
+  }
+
+  private dropReady(): void {
+    this.cancelPrewarm();
+    if (!this.ready) return;
+    this.ready = null;
+    const layer = this.host.layer();
+    layer?.classList.remove('is-ready');
+    if (!this.active && !this.frozen) layer?.replaceChildren();
+  }
+
+  private cancelPrewarm(): void {
+    this.cancelIdle?.();
+    this.cancelIdle = null;
+  }
+
+  /** Lo que tiene que seguir igual para que la hoja armada valga: pliego, tamaño y maqueta del texto. */
+  private readyKey(spread: number): string {
+    const shell = this.host.shell();
+    const canvas = this.host.canvas();
+    if (!shell || !canvas) return '';
+    return [spread, this.host.columns(), shell.clientWidth, shell.clientHeight, canvas.scrollWidth, canvas.childElementCount].join('|');
   }
 
   // ── Armado de la hoja ──────────────────────────────────────────────────────
 
   private start(direction: 1 | -1, incoming: boolean, corner: FoldCorner, parts: TurnParts): void {
+    this.active = this.build(direction, incoming, corner, parts);
+    this.host.container()?.classList.add('is-flipping');
+    this.render(this.active);
+  }
+
+  /** Arma la hoja en la capa (sin mostrarla ni moverla). */
+  private build(direction: 1 | -1, incoming: boolean, corner: FoldCorner, parts: TurnParts): ActiveTurn {
     const layer = this.host.layer()!;
     const shell = this.host.shell()!;
     const columns = this.host.columns();
@@ -367,6 +489,10 @@ export class ReaderBookFlip {
     const side: 1 | -1 = columns === 1 || direction === 1 ? 1 : -1;
     const reach = Math.ceil(Math.hypot(width, height)) + 4;
     const band = Math.ceil(leaf.w * 0.42);
+    const rect = shell.getBoundingClientRect();
+    // Vaciar la capa descarta la hoja armada de antemano, si la había.
+    this.ready = null;
+    layer.classList.remove('is-ready');
     layer.replaceChildren();
     // Con una sola página no hay nada a la izquierda del lomo: lo que pasa de ahí no se ve.
     layer.classList.toggle('is-single', columns === 1);
@@ -401,29 +527,27 @@ export class ReaderBookFlip {
     near.append(front, drop, flap);
     frame.append(far, near);
     layer.appendChild(frame);
-    this.host.container()?.classList.add('is-flipping');
 
-    const rect = shell.getBoundingClientRect();
     const rest = restCorner(leaf, corner);
     const turned = turnedCorner(leaf, corner);
     const pos = incoming ? turned : rest;
-    this.active = {
-      direction, incoming, side, spineX, leaf, corner, ghost: columns === 1,
+    return {
+      direction, incoming, side, spineX, leaf, corner, ghost: columns === 1, hasFixed: !!parts.fixed,
       pos, vel: { x: 0, y: 0 }, target: pos, pathFrom: pos.x, motion: 'rest',
       response: columns === 1 ? TURN_RESPONSE_COMPACT : TURN_RESPONSE,
       peel: false, drag: null, box: { left: rect.left, top: rect.top },
       els: { frame, front, under, cast, drop, flap, dim, curl, reach, band },
       onDone: null, revertible: false,
     };
-    this.render(this.active);
   }
 
-  /** La esquina levantada pasa a ser un giro completo: se agrega la página que queda y el reverso. */
+  /** La hoja ya armada (levantada o lista) pasa a ser un giro completo: se agrega la página que queda y el reverso. */
   private promotePeel(a: ActiveTurn, fixed: HTMLElement | null, back: HTMLElement | null): void {
     const layer = this.host.layer()!;
     if (fixed) {
       fixed.style.left = `${a.side === 1 ? a.spineX - a.leaf.w : a.spineX}px`;
       layer.insertBefore(fixed, layer.firstChild);
+      a.hasFixed = true;
     }
     if (back) {
       back.style.left = '0px';
@@ -451,9 +575,10 @@ export class ReaderBookFlip {
     const grab = this.toLeaf(a, clientX, clientY);
     a.motion = 'drag';
     a.peel = false;
-    // Lejos del borde, el pliegue sigue al dedo; desde la esquina, la esquina queda bajo el dedo.
-    // La hoja que entra por el lomo viene de fuera de la vista: siempre la sigue el pliegue.
-    a.drag = { origin: { ...a.pos }, grab, gain: a.incoming ? 2 : dragGain(grab.x, a.leaf), samples: [{ p: a.pos, t: performance.now() }] };
+    // Con dos páginas, desde la esquina la esquina queda bajo el dedo y, lejos del borde, el pliegue
+    // sigue al dedo. Con una sola el dedo no tiene dónde cruzar el lomo: siempre lo sigue el pliegue
+    // (pasar la mitad de la página la da vuelta), también con la hoja que entra desde el lomo.
+    a.drag = { origin: { ...a.pos }, grab, gain: a.ghost ? 2 : dragGain(grab.x, a.leaf), samples: [{ p: a.pos, t: performance.now() }] };
     a.onDone = committed => { if (!committed) revert(); };
     this.render(a);
   }
@@ -573,6 +698,7 @@ export class ReaderBookFlip {
       const done = a.onDone;
       this.zone.run(() => done(committed));
     }
+    this.prewarmSoon();
   }
 
   /** Punto de la ventana en coordenadas de la hoja (el lomo en x = 0, hacia afuera positivo). */
@@ -581,6 +707,11 @@ export class ReaderBookFlip {
   }
 
   // ── Fotocopias de páginas ──────────────────────────────────────────────────
+
+  /** Copia de una página del pliego (la usa también la tapa que gira, en reader-book-covers.ts). */
+  copyPage(spread: number, slot: 0 | 1): HTMLElement | null {
+    return this.capturePage(spread, slot);
+  }
 
   /**
    * Ancho del libro abierto. Se mide en el papel y no en la capa: la capa vacía está oculta

@@ -168,7 +168,9 @@
   </ng-container>
 
   <!-- Libro cerrado: la tapa al empezar y la contratapa al terminar -->
-  <app-reader-book-closed *ngIf="isBookView && bookClosed" [side]="bookClosed" [cover]="bookCover"
+  <!-- Al abrir, la tapa sola sigue (oculta) mientras gira su copia: Angular quita los estilos de un
+       componente apenas desaparece, y la copia los necesita. -->
+  <app-reader-book-closed *ngIf="isBookView && (bookClosed || closedLeaving)" [side]="(bookClosed || closedLeaving)!" [cover]="bookCover"
                           [title]="bookTitle" [author]="authorName" [synopsis]="bookSynopsis"
                           (open)="openClosedBook()" (toggleChrome)="toggleChrome()"></app-reader-book-closed>
   <div class="rd-dimmer" aria-hidden="true"></div>
