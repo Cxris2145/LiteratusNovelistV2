@@ -1698,6 +1698,10 @@
 @media (max-width: 768px) {
   .main-header.glass-navbar {
     transition: transform 260ms var(--ease-out, ease);
+    /* El fondo ya es 92-94 % opaco: el blur casi no se ve y la GPU lo rehacía en cada
+       cuadro del scroll, sobre todo el contenido que pasa por debajo. */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .main-header.glass-navbar.header-hidden {
     transform: translateY(-100%);

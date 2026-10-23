@@ -145,7 +145,7 @@
   </section>
 
   <!-- Sección: Recomendados para ti (Editorial Showcase) -->
-  <section class="recommendations-section" *ngIf="!isHome && recommendedBooks.length > 0 && !searchTerm && !activeGenreSlug && !activeQuickFilter && audienceFilter === 'all' && currentPage === 1">
+  <section class="recommendations-section" *ngIf="recommendationsVisible && (recommendedBooks.length > 0 || isLoadingRecommendations)">
     <div class="rec-section-header">
       <div class="rec-title-group">
         <h2 class="rec-title">Recomendados para ti</h2>
@@ -154,7 +154,15 @@
       <span class="rec-badge" *ngIf="!hasPersonalizedRecommendations">Curaduría Editorial</span>
     </div>
 
-    <div class="rec-cards-row stagger-group">
+    <!-- Mientras llegan, tarjetas vacías del mismo alto: así la grilla de abajo no salta en pleno scroll. -->
+    <div class="rec-cards-row" *ngIf="recommendedBooks.length === 0" aria-hidden="true">
+      <div class="rec-card rec-card--skeleton" *ngFor="let i of [1, 2, 3, 4]">
+        <div class="rec-card-cover"></div>
+        <div class="rec-card-body"></div>
+      </div>
+    </div>
+
+    <div class="rec-cards-row stagger-group" *ngIf="recommendedBooks.length > 0">
       <div class="glass-panel rec-card"
            *ngFor="let rec of recommendedBooks; trackBy: trackBook"
            [routerLink]="['/book', rec.slug]">
@@ -251,7 +259,6 @@
              [attr.fetchpriority]="book.coverPriority ? 'high' : 'low'"
              decoding="async"
              width="360" height="360"
-             (load)="onImgLoad(book)"
              (error)="onImgError($event, book)">
 
         <!-- Botón de Favorito Flotante -->

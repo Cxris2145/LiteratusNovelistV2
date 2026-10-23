@@ -22,9 +22,8 @@
   grid-template-columns: repeat(5, 1fr);
   height: calc(60px + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: color-mix(in srgb, var(--color-surface, #14291F) 94%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  /* Opaca y sin blur: un blur fijo sobre la página obliga a la GPU a rehacerlo en cada cuadro del scroll. */
+  background: var(--color-surface, #14291F);
   border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.12));
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
 }

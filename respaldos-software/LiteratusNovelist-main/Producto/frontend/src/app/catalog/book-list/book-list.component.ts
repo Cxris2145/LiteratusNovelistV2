@@ -316,10 +316,6 @@ export class BookListComponent implements OnInit {
     });
   }
 
-  onImgLoad(book: Book): void {
-    book.coverLoaded = true;
-  }
-
   onImgError(event: Event, book?: Book): void {
     const img = event.target as HTMLImageElement;
     if (book) book.coverLoaded = true;
@@ -408,6 +404,12 @@ export class BookListComponent implements OnInit {
       },
       error: () => {}
     });
+  }
+
+  /** "Recomendados para ti" solo acompaña al catálogo completo, sin filtros y en la primera página. */
+  get recommendationsVisible(): boolean {
+    return !this.isHome && !this.searchTerm && !this.activeGenreSlug && !this.activeQuickFilter
+      && this.audienceFilter === 'all' && this.currentPage === 1;
   }
 
   get hasPersonalizedRecommendations(): boolean {
