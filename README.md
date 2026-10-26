@@ -4,7 +4,7 @@
 
 **Plataforma de lectura interactiva que combina literatura digital, biblioteca personal, economía virtual e inteligencia artificial conversacional para transformar obras clásicas en experiencias inmersivas.**
 
-[![Demo](https://img.shields.io/badge/Demo-novelatus.tech-6C4AB6?style=for-the-badge)]([https://www.novelatus.tech/](https://literatus-novelist-v2.vercel.app/))
+[![Demo](https://img.shields.io/badge/Demo-Literatus-Novelist-6C4AB6?style=for-the-badge)]([https://www.novelatus.tech/](https://literatus-novelist-v2.vercel.app/))
 [![Django](https://img.shields.io/badge/Django-REST_API-092E20?style=for-the-badge&logo=django)](https://www.djangoproject.com/)
 [![Angular](https://img.shields.io/badge/Angular-17-DD0031?style=for-the-badge&logo=angular)](https://angular.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
