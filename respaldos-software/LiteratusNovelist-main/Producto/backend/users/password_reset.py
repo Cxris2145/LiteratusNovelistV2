@@ -41,6 +41,9 @@ def request_recovery_code(email):
         user = get_user_model().objects.select_for_update().filter(email__iexact=email, is_active=True).first()
         if user is None or not user.has_usable_password():
             return
+        from parental.services import is_child_email
+        if is_child_email(user.email):  # correo interno de un hijo: se la cambia su tutor
+            return
         challenge = PasswordResetChallenge.objects.filter(user=user).first()
         if challenge and (now - challenge.sent_at).total_seconds() < RESEND_COOLDOWN_SECONDS:
             return

@@ -174,6 +174,26 @@ def ensure_streak(user, activity_type: str = 'quiz_passed') -> dict:
     }
 
 
+def learning_stats(user) -> dict:
+    """Estadísticas acumuladas de La Senda (solo lectura: también las usa el control parental)."""
+    from django.db.models import Avg, Sum
+
+    attempts = UserExerciseAttempt.objects.filter(user=user)
+    avg_score = attempts.aggregate(avg=Avg('score'))['avg'] or 0
+    total_time = attempts.aggregate(time=Sum('duration_seconds'))['time'] or 0
+    completed_levels = UserLevelProgress.objects.filter(user=user, is_completed=True)
+    return {
+        'total_completed_levels': completed_levels.count(),
+        'total_stars': completed_levels.aggregate(stars=Sum('stars'))['stars'] or 0,
+        'total_attempts': attempts.count(),
+        'total_passed': attempts.filter(passed=True).count(),
+        'accuracy_percentage': round(avg_score, 1),
+        'total_learning_time_minutes': round(total_time / 60, 1),
+        'streak_current': user.profile.streak_current,
+        'streak_max': user.profile.streak_max,
+    }
+
+
 def get_streak_details(user) -> dict:
     """
     Retorna el estado completo de racha para el frontend y widget del header.

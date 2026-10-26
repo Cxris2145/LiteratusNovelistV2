@@ -162,6 +162,10 @@
                 <span class="mat-symbol">emoji_events</span>
                 <span>Mis Logros y Nivel</span>
               </button>
+              <button mat-menu-item routerLink="/control-parental" *ngIf="!isGuest">
+                <span class="mat-symbol">family_restroom</span>
+                <span>Control parental</span>
+              </button>
               <button mat-menu-item routerLink="/publish-book">
                 <span class="mat-symbol">edit_note</span>
                 <span>Publicar mi Obra</span>

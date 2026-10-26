@@ -1,0 +1,295 @@
+.pc-hero {
+  max-width: 720px;
+  margin-bottom: 36px;
+}
+
+.pc-hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 4.4vw, 3rem);
+  line-height: 1.08;
+}
+
+.pc-lead {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+/* ── Avisos ── */
+.pc-notice {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 22px 24px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+  background: color-mix(in srgb, var(--color-accent-soft) 70%, var(--color-surface));
+  margin-bottom: 28px;
+}
+
+.pc-notice--muted {
+  border-color: var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+}
+
+.pc-notice h2 {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+}
+
+.pc-notice p {
+  margin: 0 0 14px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.pc-notice p:last-child { margin-bottom: 0; }
+
+.pc-notice-icon {
+  flex: none;
+  font-size: 30px;
+  color: var(--color-accent-text);
+}
+
+/* ── Hijos ── */
+.pc-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  margin-bottom: 18px;
+}
+
+.pc-section-head h2 {
+  margin: 0 0 2px;
+  font-size: 1.9rem;
+}
+
+.pc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pc-child-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.pc-child {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s var(--ease-out, ease);
+}
+
+.pc-child:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pc-child:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border));
+    background: color-mix(in srgb, var(--color-surface-elevated) 70%, transparent);
+  }
+  .pc-child:hover .pc-chevron { transform: translateX(3px); color: var(--color-accent-text); }
+}
+
+.pc-child-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pc-child-name {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  line-height: 1.15;
+}
+
+.pc-child-meta {
+  font-size: 0.86rem;
+  color: var(--color-text-secondary);
+}
+
+.pc-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 0.84rem;
+  color: var(--color-text-secondary);
+}
+
+.pc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-disabled, var(--color-border-strong));
+}
+
+.pc-presence.is-reading { color: var(--color-success); font-weight: 600; }
+.pc-presence.is-reading .pc-dot { background: var(--color-success); }
+
+.pc-child-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.pc-child-stats > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pc-child-stats .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--color-accent-text);
+}
+
+.pc-chevron {
+  flex: none;
+  color: var(--color-text-secondary);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+/* ── Primer ingreso ── */
+.pc-empty {
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+}
+
+.pc-steps {
+  list-style: none;
+  margin: 0 0 26px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.pc-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.pc-steps strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 1rem;
+  color: var(--color-text-strong);
+}
+
+.pc-steps p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.pc-steps em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.pc-step-n {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: lining-nums;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+}
+
+.pc-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Reglas ── */
+.pc-rules {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+
+.pc-rules h2 {
+  margin: 0 0 14px;
+  font-size: 1.45rem;
+}
+
+.pc-rules ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 28px;
+}
+
+.pc-rules li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.pc-rules .material-symbols-rounded {
+  flex: none;
+  font-size: 20px;
+  color: var(--color-accent-text);
+}
+
+@media (max-width: 768px) {
+  .pc-steps { grid-template-columns: 1fr; }
+  .pc-rules ul { grid-template-columns: 1fr; }
+  .pc-child { flex-wrap: wrap; }
+  .pc-child-stats { order: 3; width: 100%; justify-content: flex-start; padding-left: 68px; }
+  .pc-chevron { margin-left: auto; }
+}
+
+@media (max-width: 480px) {
+  .pc-actions, .pc-empty-actions { flex-direction: column; align-items: stretch; width: 100%; }
+  .pc-child-stats { padding-left: 0; }
+  .pc-notice { flex-direction: column; gap: 10px; padding: 18px; }
+  .pc-empty { padding: 20px 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-child, .pc-chevron { transition: none; }
+}

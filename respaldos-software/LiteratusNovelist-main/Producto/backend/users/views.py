@@ -169,6 +169,12 @@ class DeleteAccountView(APIView):
     throttle_scope = 'account_delete'
 
     def post(self, request, *args, **kwargs):
+        from parental.services import is_child_account
+
+        if is_child_account(request.user):
+            return Response({'error': 'Tu cuenta la administra tu padre, madre o tutor: solo esa persona '
+                                      'puede eliminarla, desde Control parental.',
+                             'code': 'CHILD_ACCOUNT_MANAGED'}, status=status.HTTP_403_FORBIDDEN)
         password = request.data.get('password')
         if not isinstance(password, str) or not password or not request.user.check_password(password):
             return Response({'error': 'La contraseña no es correcta.', 'code': 'PASSWORD_INVALID'},

@@ -2,6 +2,11 @@
   <div class="glass-panel login-box">
     <h2>Únete a Literatus</h2>
     <p class="subtitle">Crea tu cuenta y comienza a disfrutar de Literatus.</p>
+    <p class="register-parental-hint" *ngIf="!pendingEmail">
+      <span class="material-symbols-rounded" aria-hidden="true">family_restroom</span>
+      <span>¿La cuenta es para tu hijo o hija? Crea primero la tuya y después su perfil en
+        <strong>Control parental</strong>: tú tendrás el control y verás su historial.</span>
+    </p>
     
     <div class="verify-pending" *ngIf="pendingEmail">
       <div class="success-banner">{{ successMsg }}</div>

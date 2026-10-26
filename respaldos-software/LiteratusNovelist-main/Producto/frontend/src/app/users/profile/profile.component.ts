@@ -12,6 +12,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { copyText } from '../../community/clipboard.util';
 import { todayIsoDate } from '../../core/utils/birth-date.util';
+import { ParentalService } from '../../core/services/parental.service';
 
 export const TAGLINE_MAX = 80;
 export const BIO_MAX = 1000;
@@ -30,6 +31,9 @@ export class ProfileComponent implements OnInit {
   snackBar = inject(MatSnackBar);
   notificationService = inject(NotificationService);
   private dialog = inject(MatDialog);
+  private parental = inject(ParentalService);
+  /** Cuenta a cargo de un tutor (control parental): quién la administra. */
+  guardianName = '';
   loading = false;
   selectedTab: 'datos' | 'paleta' = 'datos';
   userInitials = 'V';
@@ -79,6 +83,13 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     this.loadProfile();
+    if (!this.isGuest) {
+      // Si falla (p. ej. un servidor sin el control parental), el perfil sigue como siempre.
+      this.parental.status().subscribe({
+        next: status => this.guardianName = status.guardian ? (status.guardian.first_name || status.guardian.username) : '',
+        error: () => {},
+      });
+    }
   }
 
   /** Cuenta de prueba: no tiene contraseña con qué eliminarla; cerrar sesión ya la borra. */

@@ -47,6 +47,7 @@ const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'profile', canActivate: [authGuard], loadChildren: () => import('./users/account.module').then(m => m.ProfileRouteModule) },
+  { path: 'control-parental', canActivate: [authGuard], loadChildren: () => import('./parental/parental.module').then(m => m.ParentalModule) },
   { path: 'catalog', component: BookListComponent },
   { path: 'authors', component: AuthorListComponent },
   { path: 'publish-book', canActivate: [authGuard], loadChildren: () => import('./users/account.module').then(m => m.PublishBookRouteModule) },

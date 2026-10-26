@@ -553,6 +553,8 @@ export class EnigmaGameComponent implements OnInit, OnDestroy, CanComponentDeact
       if (this.mistakesCount >= this.maxMistakes) {
         this.gameStatus = 'lost';
         this.notificationService.warning(`La palabra oculta era: «${this.currentWord.word}». ¡Vuelve a intentarlo mañana!`, 'Tinta Agotada');
+        // Antes solo lo sabía este navegador; así también cuenta en el historial del control parental.
+        if (this.isLoggedIn) this.api.post('library/daily-reward/abandon-enigma/', { reason: 'lost' }).subscribe({ error: () => {} });
       }
     }
 

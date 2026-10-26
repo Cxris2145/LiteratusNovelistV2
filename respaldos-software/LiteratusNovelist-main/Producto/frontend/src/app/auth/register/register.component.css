@@ -25,6 +25,29 @@
   margin-bottom: 30px;
 }
 
+/* Control parental: la cuenta del hijo la crea el tutor desde la suya */
+.register-parental-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -14px 0 26px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  text-align: left;
+  color: var(--text-muted);
+  background: var(--color-accent-soft);
+}
+
+.register-parental-hint .material-symbols-rounded {
+  flex: none;
+  font-size: 20px;
+  color: var(--color-accent-text);
+}
+
+.register-parental-hint strong { color: var(--color-text-primary); }
+
 .form-group {
   text-align: left;
   margin-bottom: 22px;

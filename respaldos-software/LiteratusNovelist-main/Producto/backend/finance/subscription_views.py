@@ -8,9 +8,10 @@ from rest_framework.response import Response
 from . import paypal
 from .models import SubscriptionPlan, UserSubscription, Transaction, PayPalSubscriptionBinding
 from .subscriptions import account_data, plan_data, has_paid_access, MAESTRO_FRAME, reconcile_subscription, process_webhook
+from parental.services import is_child_account
 from users.guests import is_guest
 from users.models import Profile
-from .guest_payments import guest_no_payments_response
+from .guest_payments import child_no_payments_response, guest_no_payments_response
 
 
 @api_view(['GET'])
@@ -30,6 +31,8 @@ def subscription(request):
 def subscribe(request):
     if is_guest(request.user):
         return guest_no_payments_response()
+    if is_child_account(request.user):
+        return child_no_payments_response()
     plan = get_object_or_404(SubscriptionPlan, pk=request.data.get('plan_code'), active=True)
     if not paypal.configured() or not plan.provider_plan_id:
         return Response({'message': 'Las suscripciones PayPal aún no están configuradas.'}, status=503)

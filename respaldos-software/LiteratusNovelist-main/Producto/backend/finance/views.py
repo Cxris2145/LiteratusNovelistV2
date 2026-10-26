@@ -13,9 +13,10 @@ from rest_framework.response import Response
 
 from catalog.models import Book, Edition
 from library.models import UserInventory
+from parental.services import is_child_account
 from users.guests import is_guest
 from users.models import Profile
-from .guest_payments import guest_no_payments_response
+from .guest_payments import child_no_payments_response, guest_no_payments_response
 from .models import Transaction
 from . import webpay_service
 
@@ -48,6 +49,8 @@ def initiate_payment(request):
     """
     if is_guest(request.user):
         return guest_no_payments_response()
+    if is_child_account(request.user):
+        return child_no_payments_response()
     item_type = request.data.get('item_type')
     item_reference = request.data.get('item_reference')
 

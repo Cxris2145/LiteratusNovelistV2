@@ -1,0 +1,84 @@
+<section class="cf-panel">
+  <header class="cf-head">
+    <span class="material-symbols-rounded cf-icon" aria-hidden="true">{{ mode === 'create' ? 'person_add' : 'link' }}</span>
+    <h2 id="cf-title">{{ mode === 'create' ? 'Crear el perfil de tu hijo' : 'Vincular la cuenta de tu hijo' }}</h2>
+  </header>
+
+  <div class="cf-switch" role="radiogroup" aria-label="¿Tu hijo ya tiene cuenta?">
+    <button type="button" role="radio" [attr.aria-checked]="mode === 'create'" [class.active]="mode === 'create'"
+            (click)="setMode('create')" [disabled]="saving">Perfil nuevo</button>
+    <button type="button" role="radio" [attr.aria-checked]="mode === 'link'" [class.active]="mode === 'link'"
+            (click)="setMode('link')" [disabled]="saving">Ya tiene cuenta</button>
+  </div>
+
+  <form (ngSubmit)="submit()" [attr.aria-busy]="saving" novalidate>
+    <ng-container *ngIf="mode === 'create'">
+      <p class="cf-lead">No necesita correo: entrará con el usuario y la contraseña que elijas aquí.</p>
+
+      <label for="cf-first-name">Su nombre <span class="cf-optional">(opcional)</span></label>
+      <input id="cf-first-name" class="cf-input" name="firstName" [(ngModel)]="firstName" maxlength="150"
+             autocomplete="off" placeholder="Ej.: Tomás" [disabled]="saving">
+
+      <label for="cf-username">Nombre de usuario</label>
+      <input id="cf-username" class="cf-input" name="username" [(ngModel)]="username" minlength="3" maxlength="150"
+             autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Con él entrará a Literatus"
+             [disabled]="saving" [attr.aria-invalid]="errors['username'] ? 'true' : null"
+             [attr.aria-describedby]="errors['username'] ? 'cf-username-error' : null">
+      <p class="cf-field-error" id="cf-username-error" *ngIf="errors['username']">{{ errors['username'] }}</p>
+    </ng-container>
+
+    <ng-container *ngIf="mode === 'link'">
+      <p class="cf-lead">Escribe los datos con que tu hijo entra a Literatus. Así confirmamos que tienes acceso a su cuenta.</p>
+
+      <label for="cf-identifier">Usuario o correo de tu hijo</label>
+      <input id="cf-identifier" class="cf-input" name="identifier" [(ngModel)]="identifier" maxlength="254"
+             autocomplete="off" autocapitalize="none" spellcheck="false" [disabled]="saving"
+             [attr.aria-invalid]="errors['identifier'] ? 'true' : null">
+      <p class="cf-field-error" *ngIf="errors['identifier']">{{ errors['identifier'] }}</p>
+    </ng-container>
+
+    <label for="cf-password">{{ mode === 'create' ? 'Contraseña' : 'Su contraseña' }}</label>
+    <div class="cf-password">
+      <input id="cf-password" class="cf-input" name="password" [type]="showPassword ? 'text' : 'password'"
+             [(ngModel)]="password" [autocomplete]="mode === 'create' ? 'new-password' : 'off'" [disabled]="saving"
+             [attr.aria-invalid]="errors['password'] ? 'true' : null"
+             [attr.aria-describedby]="mode === 'create' ? 'cf-password-hint' : null">
+      <button type="button" class="cf-eye" (click)="showPassword = !showPassword" [disabled]="saving"
+              [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" [attr.aria-pressed]="showPassword">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+      </button>
+    </div>
+    <p class="cf-hint" id="cf-password-hint" *ngIf="mode === 'create'">Mínimo 8 caracteres, que no sea solo números.</p>
+    <p class="cf-field-error" *ngIf="errors['password']">{{ errors['password'] }}</p>
+
+    <ng-container *ngIf="mode === 'create' || askBirthDate">
+      <label for="cf-birth-date">Su fecha de nacimiento</label>
+      <input id="cf-birth-date" class="cf-input" type="date" name="birthDate" [(ngModel)]="birthDate" [max]="today"
+             [disabled]="saving" [attr.aria-invalid]="errors['birth_date'] ? 'true' : null" aria-describedby="cf-birth-hint">
+      <p class="cf-hint" id="cf-birth-hint">Con ella le mostramos solo libros para su edad. Debe ser menor de 18 años.</p>
+      <p class="cf-field-error" *ngIf="errors['birth_date']">{{ errors['birth_date'] }}</p>
+    </ng-container>
+
+    <label class="cf-consent" [class.is-checked]="consent">
+      <input type="checkbox" name="consent" [(ngModel)]="consent" [disabled]="saving">
+      <span class="cf-check" aria-hidden="true">
+        <span class="material-symbols-rounded">check</span>
+      </span>
+      <span class="cf-consent-text">
+        <strong>{{ data.consentText }}</strong>
+        <small>Podrás ver su historial, cambiar su contraseña y eliminar su cuenta. Su cuenta no podrá pagar.</small>
+      </span>
+    </label>
+    <p class="cf-field-error" *ngIf="errors['consent']">{{ errors['consent'] }}</p>
+
+    <p *ngIf="error" class="cf-error" role="alert">{{ error }}</p>
+
+    <div class="cf-actions">
+      <button type="button" class="pc-btn pc-btn--ghost" (click)="dialogRef.close()" [disabled]="saving">Cancelar</button>
+      <button type="submit" class="pc-btn pc-btn--primary" [disabled]="!canSubmit">
+        <span *ngIf="saving" class="pc-spinner" aria-hidden="true"></span>
+        {{ saving ? 'Guardando…' : (mode === 'create' ? 'Crear su perfil' : 'Vincular su cuenta') }}
+      </button>
+    </div>
+  </form>
+</section>

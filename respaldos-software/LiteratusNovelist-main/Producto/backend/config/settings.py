@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'ai_engine.apps.AiEngineConfig',
     'learning.apps.LearningConfig',
     'community.apps.CommunityConfig',
+    'parental.apps.ParentalConfig',
     'dashboard',
 ]
 
@@ -234,6 +235,9 @@ REST_FRAMEWORK = {
         'account_delete': '10/hour',
         # "Probar sin cuenta": holgado porque un curso entero suele salir por la misma IP.
         'guest_create': '60/hour',
+        # Control parental: vincular prueba contraseñas ajenas; el resto pide la del tutor.
+        'parental_link': '10/hour',
+        'parental_action': '30/hour',
     },
 }
 

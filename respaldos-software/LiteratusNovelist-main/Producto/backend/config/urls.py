@@ -49,6 +49,7 @@ urlpatterns = [
     path('api/v1/dashboard/', include('dashboard.urls')),
     path('api/v1/learning/', include('learning.urls')),
     path('api/v1/community/', include('community.urls')),
+    path('api/v1/parental/', include('parental.urls')),
     path('api/v1/core/', include('core.urls')),
 
     # Endpoint alias directo para abandono del enigma

@@ -830,6 +830,8 @@ class DailyRewardViewSet(viewsets.ViewSet):
         - completed = True, attempted = True
         - score = 0, points_earned = 0, status = 'unsolved'
         - Inhabilita nuevos intentos para el resto de la jornada
+        Con reason='lost' registra una partida perdida por errores (reference_id='lost'), para
+        que el historial del control parental distinga perdidas de abandonadas.
         """
         from django.db import transaction
         from .models import InkTransaction
@@ -882,12 +884,13 @@ class DailyRewardViewSet(viewsets.ViewSet):
                 created_at__date=today
             ).first()
 
+            lost = str(request.data.get('reason', '')) == 'lost'
             if not abandoned_tx:
                 InkTransaction.objects.create(
                     user=user,
                     amount=0,
                     concept='daily_enigma_abandoned',
-                    reference_id='unsolved',
+                    reference_id='lost' if lost else 'unsolved',
                     balance_after=profile.ink_balance
                 )
 

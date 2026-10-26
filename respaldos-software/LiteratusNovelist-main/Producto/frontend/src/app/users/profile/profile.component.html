@@ -188,15 +188,20 @@
     <section class="account-zone" aria-labelledby="account-zone-title">
       <div class="account-zone-copy">
         <h3 id="account-zone-title">Tu cuenta</h3>
-        <p class="field-hint" *ngIf="!isGuest">Cierra la sesión en este navegador o elimina tu cuenta para siempre.</p>
+        <p class="field-hint" *ngIf="!isGuest && !guardianName">Cierra la sesión en este navegador o elimina tu cuenta para siempre.</p>
         <p class="field-hint" *ngIf="isGuest">Es una cuenta de prueba: al cerrar la sesión (o la página) se borra con todo lo que hiciste.</p>
+        <p class="field-hint parental-note" *ngIf="guardianName">
+          <span class="material-symbols-rounded" aria-hidden="true">shield_person</span>
+          <span>Tu cuenta la administra <strong>{{ guardianName }}</strong> con el control parental: puede ver lo que lees,
+            tus juegos y lo que escribes. Solo esa persona puede eliminar tu cuenta.</span>
+        </p>
       </div>
       <div class="account-zone-actions">
         <button type="button" class="avatar-action-btn" (click)="logout()">
           <span class="material-symbols-rounded" aria-hidden="true">logout</span>
           <span>Cerrar sesión</span>
         </button>
-        <button type="button" class="avatar-action-btn remove-photo-btn" *ngIf="!isGuest" (click)="openDeleteAccount()" aria-haspopup="dialog">
+        <button type="button" class="avatar-action-btn remove-photo-btn" *ngIf="!isGuest && !guardianName" (click)="openDeleteAccount()" aria-haspopup="dialog">
           <span class="material-symbols-rounded" aria-hidden="true">delete_forever</span>
           <span>Eliminar cuenta</span>
         </button>

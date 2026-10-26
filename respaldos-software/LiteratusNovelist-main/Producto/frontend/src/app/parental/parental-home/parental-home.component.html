@@ -1,0 +1,154 @@
+<main class="pc-page fade-in">
+  <header class="pc-hero">
+    <p class="pc-kicker">
+      <span class="material-symbols-rounded" aria-hidden="true">family_restroom</span>
+      Control parental
+    </p>
+    <h1>Acompaña lo que leen y juegan tus hijos</h1>
+    <p class="pc-lead">
+      Crea el perfil de tu hijo o hija y revisa su historial: qué lee y cuánto, cómo le va en La Senda,
+      El Enigma y el Interrogatorio, sus logros y todo lo que escribe.
+    </p>
+  </header>
+
+  <div class="pc-state" *ngIf="loading" role="status">
+    <span class="pc-spinner" aria-hidden="true"></span> Cargando…
+  </div>
+
+  <div class="pc-state pc-state--error" *ngIf="!loading && error" role="alert">
+    <p>{{ error }}</p>
+    <button type="button" class="pc-btn pc-btn--ghost" (click)="load()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="!loading && status as s">
+    <!-- La cuenta es de un hijo: le contamos quién la tiene a cargo y qué puede ver -->
+    <section class="pc-notice" *ngIf="s.is_child" aria-labelledby="pc-child-title">
+      <span class="material-symbols-rounded pc-notice-icon" aria-hidden="true">shield_person</span>
+      <div>
+        <h2 id="pc-child-title">Tu cuenta la administra {{ s.guardian?.first_name || s.guardian?.username }}</h2>
+        <p>
+          Puede ver lo que lees y por cuánto tiempo, tus juegos y logros, y lo que escribes (subrayados, notas,
+          cuaderno y chats). También puede cambiar tu contraseña o eliminar tu cuenta. Las compras las hace esa persona.
+        </p>
+      </div>
+    </section>
+
+    <!-- No puede ser tutor: el motivo y cómo resolverlo -->
+    <section class="pc-notice pc-notice--muted" *ngIf="!s.is_child && !s.can_be_parent" aria-labelledby="pc-reason-title">
+      <span class="material-symbols-rounded pc-notice-icon" aria-hidden="true">info</span>
+      <div>
+        <h2 id="pc-reason-title">Todavía no puedes usar el control parental</h2>
+        <p>{{ s.reason_message }}</p>
+        <a *ngIf="s.reason === 'no_birth_date'" routerLink="/profile" class="pc-btn pc-btn--primary">
+          <span class="material-symbols-rounded" aria-hidden="true">cake</span> Registrar mi fecha de nacimiento
+        </a>
+        <a *ngIf="s.reason === 'guest'" routerLink="/register" class="pc-btn pc-btn--primary">
+          <span class="material-symbols-rounded" aria-hidden="true">person_add</span> Crear mi cuenta
+        </a>
+      </div>
+    </section>
+
+    <ng-container *ngIf="s.can_be_parent">
+      <section class="pc-children" aria-labelledby="pc-children-title">
+        <div class="pc-section-head">
+          <div>
+            <h2 id="pc-children-title">Tus hijos</h2>
+            <p class="pc-muted">{{ s.children.length }} de {{ s.max_children }} perfiles a tu cargo</p>
+          </div>
+          <div class="pc-actions" *ngIf="s.children.length">
+            <button type="button" class="pc-btn pc-btn--ghost" (click)="openForm('link')" [disabled]="atLimit" aria-haspopup="dialog">
+              <span class="material-symbols-rounded" aria-hidden="true">link</span> Vincular una cuenta
+            </button>
+            <button type="button" class="pc-btn pc-btn--primary" (click)="openForm('create')" [disabled]="atLimit" aria-haspopup="dialog">
+              <span class="material-symbols-rounded" aria-hidden="true">person_add</span> Crear perfil de mi hijo
+            </button>
+          </div>
+        </div>
+
+        <!-- Primer ingreso: el paso a paso y la declaración -->
+        <div class="pc-empty" *ngIf="!s.children.length">
+          <ol class="pc-steps">
+            <li>
+              <span class="pc-step-n" aria-hidden="true">1</span>
+              <div>
+                <strong>Creas su perfil</strong>
+                <p>Usuario, contraseña y fecha de nacimiento. No necesita correo. Al crearlo confirmas:
+                  <em>«{{ s.consent_text }}»</em></p>
+              </div>
+            </li>
+            <li>
+              <span class="pc-step-n" aria-hidden="true">2</span>
+              <div>
+                <strong>Tu hijo entra con su usuario</strong>
+                <p>Ve solo libros para su edad y juega como cualquier lector.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pc-step-n" aria-hidden="true">3</span>
+              <div>
+                <strong>Tú revisas su historial aquí</strong>
+                <p>Lectura, juegos, logros, lo que escribe y su actividad día a día.</p>
+              </div>
+            </li>
+          </ol>
+          <div class="pc-empty-actions">
+            <button type="button" class="pc-btn pc-btn--primary pc-btn--lg" (click)="openForm('create')" aria-haspopup="dialog">
+              <span class="material-symbols-rounded" aria-hidden="true">person_add</span> Crear perfil de mi hijo
+            </button>
+            <button type="button" class="pc-btn pc-btn--ghost" (click)="openForm('link')" aria-haspopup="dialog">
+              <span class="material-symbols-rounded" aria-hidden="true">link</span> Ya tiene cuenta: vincularla
+            </button>
+          </div>
+        </div>
+
+        <ul class="pc-child-list" *ngIf="s.children.length">
+          <li *ngFor="let child of s.children">
+            <a class="pc-child" [routerLink]="['/control-parental', child.id]">
+              <span class="pc-avatar" [style.background-color]="child.avatar_color" aria-hidden="true">
+                {{ initialOf(displayName(child)) }}
+              </span>
+              <span class="pc-child-main">
+                <span class="pc-child-name">{{ displayName(child) }}</span>
+                <span class="pc-child-meta">
+                  &#64;{{ child.username }}<ng-container *ngIf="child.age !== null"> · {{ child.age }} años</ng-container>
+                </span>
+                <span class="pc-presence" [class.is-reading]="child.presence.kind === 'reading'">
+                  <span class="pc-dot" aria-hidden="true"></span>
+                  {{ child.presence.kind !== 'away' ? child.presence.label
+                     : (child.last_activity ? 'Última actividad ' + relativeTime(child.last_activity) : 'Todavía no entra a Literatus') }}
+                </span>
+              </span>
+              <span class="pc-child-stats">
+                <span title="Nivel">
+                  <span class="material-symbols-rounded" aria-hidden="true">workspace_premium</span>
+                  Nivel {{ child.level }}
+                </span>
+                <span title="Racha de días">
+                  <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
+                  {{ child.streak_current }} {{ child.streak_current === 1 ? 'día' : 'días' }}
+                </span>
+              </span>
+              <span class="material-symbols-rounded pc-chevron" aria-hidden="true">chevron_right</span>
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section class="pc-rules" aria-labelledby="pc-rules-title">
+        <h2 id="pc-rules-title">Qué controlas tú</h2>
+        <ul>
+          <li><span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+            Ves su historial completo: lectura, juegos, logros, lo que escribe y sus chats con personajes.</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">lock_person</span>
+            Solo tú puedes desvincular su cuenta o eliminarla.</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">credit_card_off</span>
+            Su cuenta no puede pagar planes ni comprar Tinta con dinero.</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">key</span>
+            Si olvida su contraseña, se la cambias tú.</li>
+          <li><span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+            Ve solo libros recomendados para su edad.</li>
+        </ul>
+      </section>
+    </ng-container>
+  </ng-container>
+</main>

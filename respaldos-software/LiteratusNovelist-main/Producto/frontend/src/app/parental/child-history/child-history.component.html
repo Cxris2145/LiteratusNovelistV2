@@ -1,0 +1,459 @@
+<main class="pc-page fade-in">
+  <a routerLink="/control-parental" class="ch-back">
+    <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Control parental
+  </a>
+
+  <div class="pc-state" *ngIf="loadingOverview" role="status">
+    <span class="pc-spinner" aria-hidden="true"></span> Cargando su historial…
+  </div>
+
+  <div class="pc-state pc-state--error" *ngIf="!loadingOverview && overviewError" role="alert">
+    <p>{{ notFound ? 'Esa cuenta no está a tu cargo.' : overviewError }}</p>
+    <a *ngIf="notFound" routerLink="/control-parental" class="pc-btn pc-btn--ghost">Volver a tus hijos</a>
+    <button *ngIf="!notFound" type="button" class="pc-btn pc-btn--ghost" (click)="loadOverview()">Reintentar</button>
+  </div>
+
+  <ng-container *ngIf="overview as o">
+    <header class="ch-header">
+      <span class="pc-avatar ch-avatar" [style.background-color]="o.child.avatar_color" aria-hidden="true">
+        {{ initialOf(childName) }}
+      </span>
+      <div class="ch-title">
+        <p class="pc-kicker">Historial de</p>
+        <h1>{{ childName }}</h1>
+        <p class="pc-muted">
+          &#64;{{ o.child.username }}<ng-container *ngIf="o.child.age !== null"> · {{ o.child.age }} años</ng-container>
+          · Nivel {{ o.profile.level }}, {{ o.profile.level_name }}
+          · {{ o.last_activity ? 'Última actividad ' + relativeTime(o.last_activity) : 'Todavía no entra a Literatus' }}
+        </p>
+      </div>
+    </header>
+
+    <nav class="ch-tabs" role="tablist" aria-label="Secciones del historial">
+      <button *ngFor="let t of tabs" type="button" role="tab" class="ch-tab" [class.active]="tab === t.id"
+              [attr.id]="'ch-tab-' + t.id" [attr.aria-selected]="tab === t.id" [attr.aria-controls]="'ch-panel-' + t.id"
+              (click)="selectTab(t.id)">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ t.icon }}</span>
+        <span>{{ t.label }}</span>
+      </button>
+    </nav>
+
+    <div class="pc-state" *ngIf="sectionLoading" role="status">
+      <span class="pc-spinner" aria-hidden="true"></span> Cargando…
+    </div>
+    <div class="pc-state pc-state--error" *ngIf="!sectionLoading && sectionError" role="alert">
+      <p>{{ sectionError }}</p>
+      <button type="button" class="pc-btn pc-btn--ghost" (click)="loadSection(true)">Reintentar</button>
+    </div>
+
+    <!-- ═══ Resumen ═══ -->
+    <section *ngIf="tab === 'resumen'" class="ch-panel" role="tabpanel" id="ch-panel-resumen" aria-labelledby="ch-tab-resumen">
+      <div class="ch-kpis">
+        <div class="ch-kpi">
+          <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+          <strong>{{ formatMinutes(o.reading.minutes_7d) }}</strong>
+          <span>leídos esta semana</span>
+          <small>{{ formatMinutes(o.reading.minutes_30d) }} en 30 días</small>
+        </div>
+        <div class="ch-kpi">
+          <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+          <strong>{{ o.library.books_read }}</strong>
+          <span>{{ o.library.books_read === 1 ? 'libro terminado' : 'libros terminados' }}</span>
+          <small>de {{ o.library.books }} en su biblioteca</small>
+        </div>
+        <div class="ch-kpi">
+          <span class="material-symbols-rounded" aria-hidden="true">route</span>
+          <strong>{{ o.senda.total_completed_levels }}</strong>
+          <span>niveles de La Senda</span>
+          <small>{{ o.senda.total_stars }} estrellas · {{ o.senda.accuracy_percentage }} % de acierto</small>
+        </div>
+        <div class="ch-kpi">
+          <span class="material-symbols-rounded" aria-hidden="true">emoji_events</span>
+          <strong>{{ o.games.achievements_unlocked }}</strong>
+          <span>logros</span>
+          <small>de {{ o.games.achievements_total }} posibles</small>
+        </div>
+        <div class="ch-kpi">
+          <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
+          <strong>{{ o.profile.streak_current }}</strong>
+          <span>{{ o.profile.streak_current === 1 ? 'día de racha' : 'días de racha' }}</span>
+          <small>su mejor racha: {{ o.profile.streak_max }}</small>
+        </div>
+        <div class="ch-kpi">
+          <span class="material-symbols-rounded" aria-hidden="true">sports_esports</span>
+          <strong>{{ o.games.enigmas_solved + o.games.interrogations_won }}</strong>
+          <span>juegos ganados</span>
+          <small>{{ o.games.enigmas_solved }} enigmas · {{ o.games.interrogations_won }} interrogatorios</small>
+        </div>
+      </div>
+
+      <div class="ch-grid-2">
+        <article class="pc-card">
+          <h2 class="ch-card-title">Sus últimos 30 días</h2>
+          <p class="pc-muted">Días en que leyó o avanzó en La Senda.</p>
+          <ol class="ch-calendar" aria-label="Calendario de actividad de los últimos 30 días">
+            <li *ngFor="let day of o.calendar" [class.is-active]="day.active" [class.is-today]="day.is_today"
+                [title]="formatShortDate(day.date) + (day.active ? ': con actividad' : ': sin actividad')">
+              <span class="sr-only">{{ formatShortDate(day.date) }}: {{ day.active ? 'con actividad' : 'sin actividad' }}</span>
+              <span aria-hidden="true">{{ day.day }}</span>
+            </li>
+          </ol>
+        </article>
+
+        <article class="pc-card">
+          <h2 class="ch-card-title">Lo que escribió</h2>
+          <ul class="ch-counts">
+            <li><span class="material-symbols-rounded" aria-hidden="true">forum</span> Chats con personajes <strong>{{ o.writing.chats }}</strong></li>
+            <li><span class="material-symbols-rounded" aria-hidden="true">format_ink_highlighter</span> Subrayados <strong>{{ o.writing.highlights }}</strong></li>
+            <li><span class="material-symbols-rounded" aria-hidden="true">sticky_note_2</span> Post-its <strong>{{ o.writing.post_its }}</strong></li>
+            <li><span class="material-symbols-rounded" aria-hidden="true">translate</span> Palabras guardadas <strong>{{ o.writing.vocabulary }}</strong></li>
+            <li><span class="material-symbols-rounded" aria-hidden="true">edit_note</span> Pestañas del cuaderno <strong>{{ o.writing.notebook_tabs }}</strong></li>
+          </ul>
+          <button type="button" class="pc-btn pc-btn--ghost" (click)="selectTab('escritura')">
+            Leer lo que escribió <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+          </button>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══ Lectura ═══ -->
+    <section *ngIf="tab === 'lectura' && reading as r" class="ch-panel" role="tabpanel" id="ch-panel-lectura" aria-labelledby="ch-tab-lectura">
+      <article class="pc-card">
+        <h2 class="ch-card-title">Minutos leídos por día</h2>
+        <p class="pc-muted">{{ readingDaysSummary(r.daily_minutes) }}</p>
+        <div class="ch-bars" role="img" [attr.aria-label]="readingDaysSummary(r.daily_minutes)">
+          <span class="ch-bar" *ngFor="let d of r.daily_minutes" [title]="formatShortDate(d.date) + ': ' + formatMinutes(d.minutes)">
+            <span class="ch-bar-fill" [style.height.%]="barHeight(d.minutes, r.daily_minutes)"></span>
+          </span>
+        </div>
+        <div class="ch-axis" aria-hidden="true">
+          <span>{{ formatShortDate(r.daily_minutes[0].date) }}</span>
+          <span>Hoy</span>
+        </div>
+      </article>
+
+      <h2 class="ch-h2">Sus libros <small>{{ r.totals.books }} en total · {{ r.totals.finished }} terminados · {{ formatMinutes(r.totals.minutes) }} leyendo</small></h2>
+      <p class="pc-empty-note" *ngIf="!r.books.length">Todavía no tiene libros en su biblioteca.</p>
+      <ul class="ch-books">
+        <li class="pc-card ch-book" *ngFor="let b of r.books">
+          <img *ngIf="b.cover" [src]="b.cover" alt="" class="ch-cover" loading="lazy">
+          <span *ngIf="!b.cover" class="ch-cover ch-cover--empty" aria-hidden="true">
+            <span class="material-symbols-rounded">menu_book</span>
+          </span>
+          <div class="ch-book-main">
+            <h3>{{ b.title }}</h3>
+            <p class="pc-muted">
+              {{ b.current_chapter ? 'Va en el capítulo ' + b.current_chapter + ' de ' + b.total_chapters : 'Todavía no lo empieza' }}
+            </p>
+            <div class="ch-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                 [attr.aria-valuenow]="b.completion_percentage" [attr.aria-label]="'Progreso de ' + b.title">
+              <span [style.width.%]="b.completion_percentage"></span>
+            </div>
+            <p class="ch-book-meta">
+              <span><strong>{{ b.completion_percentage | number:'1.0-0' }} %</strong></span>
+              <span>{{ formatMinutes(b.minutes) }} en {{ b.sessions }} {{ b.sessions === 1 ? 'sesión' : 'sesiones' }}</span>
+              <span *ngIf="b.last_read_at">Leído {{ relativeTime(b.last_read_at) }}</span>
+            </p>
+          </div>
+          <span class="pc-pill pc-pill--ok ch-book-badge" *ngIf="b.finished_at">
+            <span class="material-symbols-rounded" aria-hidden="true">task_alt</span> Terminado el {{ formatDate(b.finished_at) }}
+          </span>
+        </li>
+      </ul>
+
+      <h2 class="ch-h2">Sesiones recientes</h2>
+      <p class="pc-empty-note" *ngIf="!r.recent_sessions.length">Aún no abre el lector.</p>
+      <ul class="ch-list" *ngIf="r.recent_sessions.length">
+        <li *ngFor="let s of r.recent_sessions">
+          <span class="ch-list-main">
+            <strong>{{ s.book_title }}</strong>
+            <small>{{ formatDate(s.started_at) }}, {{ formatTime(s.started_at) }}</small>
+          </span>
+          <span class="ch-list-value" [class.is-live]="s.in_progress">
+            {{ s.in_progress ? 'Leyendo ahora' : (s.ended_at ? formatMinutes(s.minutes) : 'Sin cerrar') }}
+          </span>
+        </li>
+      </ul>
+      <p class="ch-footnote">El tiempo se cuenta desde que abre un libro hasta que sale del lector (como mucho 3 horas por sesión).</p>
+    </section>
+
+    <!-- ═══ Juegos ═══ -->
+    <section *ngIf="tab === 'juegos' && games as g" class="ch-panel" role="tabpanel" id="ch-panel-juegos" aria-labelledby="ch-tab-juegos">
+      <div class="ch-games">
+        <article class="pc-card ch-game">
+          <header class="ch-game-head">
+            <span class="material-symbols-rounded" aria-hidden="true">route</span>
+            <h2>La Senda del Lector</h2>
+          </header>
+          <div class="ch-mini-kpis">
+            <div><strong>{{ g.senda.total_completed_levels }}</strong><span>niveles</span></div>
+            <div><strong>{{ g.senda.total_stars }}</strong><span>estrellas</span></div>
+            <div><strong>{{ g.senda.accuracy_percentage }} %</strong><span>de acierto</span></div>
+            <div><strong>{{ formatMinutes(g.senda.total_learning_time_minutes) }}</strong><span>practicando</span></div>
+          </div>
+          <ul class="ch-units">
+            <li *ngFor="let u of startedUnits(g)">
+              <span class="ch-unit-name">Unidad {{ u.number }} · {{ u.title }}</span>
+              <span class="ch-meter" aria-hidden="true"><span [style.width.%]="percent(u.levels_completed, u.levels_total)"></span></span>
+              <span class="ch-unit-count">{{ u.levels_completed }}/{{ u.levels_total }} · ★ {{ u.stars }}</span>
+            </li>
+          </ul>
+          <h3>Últimos intentos</h3>
+          <p class="pc-empty-note" *ngIf="!g.senda.recent_attempts.length">Aún no juega La Senda.</p>
+          <ul class="ch-list" *ngIf="g.senda.recent_attempts.length">
+            <li *ngFor="let a of g.senda.recent_attempts">
+              <span class="ch-list-main">
+                <strong>{{ a.level_title }}</strong>
+                <small>Unidad {{ a.unit_number }} · {{ relativeTime(a.at) }} · {{ formatMinutes(a.duration_seconds / 60) }}</small>
+              </span>
+              <span class="pc-pill" [class.pc-pill--ok]="a.passed" [class.pc-pill--bad]="!a.passed">
+                {{ a.passed ? 'Aprobó' : 'No aprobó' }} · {{ a.score }} %
+              </span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="pc-card ch-game">
+          <header class="ch-game-head">
+            <span class="material-symbols-rounded" aria-hidden="true">extension</span>
+            <h2>El Enigma</h2>
+          </header>
+          <div class="ch-mini-kpis ch-mini-kpis--3">
+            <div><strong>{{ g.enigma.totals.solved }}</strong><span>resueltos</span></div>
+            <div><strong>{{ g.enigma.totals.lost }}</strong><span>perdidos</span></div>
+            <div><strong>{{ g.enigma.totals.abandoned }}</strong><span>abandonados</span></div>
+          </div>
+          <h3>Últimos 30 días</h3>
+          <p class="pc-empty-note" *ngIf="!g.enigma.recent.length">No jugó El Enigma este mes.</p>
+          <ul class="ch-chips" *ngIf="g.enigma.recent.length">
+            <li *ngFor="let e of g.enigma.recent" class="pc-pill" [class.pc-pill--ok]="e.result === 'solved'"
+                [class.pc-pill--bad]="e.result !== 'solved'">
+              {{ formatShortDate(e.date) }} · {{ e.label }}
+            </li>
+          </ul>
+        </article>
+
+        <article class="pc-card ch-game">
+          <header class="ch-game-head">
+            <span class="material-symbols-rounded" aria-hidden="true">psychology_alt</span>
+            <h2>Interrogatorio</h2>
+          </header>
+          <div class="ch-mini-kpis ch-mini-kpis--3">
+            <div><strong>{{ g.interrogation.totals.won }}</strong><span>adivinó</span></div>
+            <div><strong>{{ g.interrogation.totals.lost }}</strong><span>no adivinó</span></div>
+            <div><strong>{{ g.interrogation.totals.abandoned }}</strong><span>abandonó</span></div>
+          </div>
+          <p class="pc-empty-note" *ngIf="!g.interrogation.recent.length">Aún no juega el Interrogatorio.</p>
+          <ul class="ch-list" *ngIf="g.interrogation.recent.length">
+            <li *ngFor="let i of g.interrogation.recent">
+              <span class="ch-list-main">
+                <strong>{{ i.character || 'Partida en curso' }}</strong>
+                <small>{{ formatDate(i.at) }} · {{ i.questions_used }} de {{ i.questions_allowed }} preguntas<ng-container *ngIf="i.ink_earned"> · +{{ i.ink_earned }} Tinta</ng-container></small>
+              </span>
+              <span class="pc-pill" [class.pc-pill--ok]="i.status === 'won'" [class.pc-pill--bad]="i.status === 'lost' || i.status === 'abandoned'"
+                    [class.pc-pill--info]="i.status === 'playing'">{{ i.label }}</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="pc-card ch-game">
+          <header class="ch-game-head">
+            <span class="material-symbols-rounded" aria-hidden="true">emoji_events</span>
+            <h2>Logros</h2>
+            <span class="pc-muted">{{ g.achievements.unlocked.length }} de {{ g.achievements.total }}</span>
+          </header>
+          <p class="pc-empty-note" *ngIf="!g.achievements.unlocked.length">Todavía no desbloquea logros.</p>
+          <ul class="ch-list ch-achievements" *ngIf="g.achievements.unlocked.length">
+            <li *ngFor="let a of g.achievements.unlocked">
+              <span class="ch-ach-icon" aria-hidden="true">{{ a.icon }}</span>
+              <span class="ch-list-main">
+                <strong>{{ a.title }}</strong>
+                <small>{{ a.description }}</small>
+              </span>
+              <span class="ch-list-value">{{ formatShortDate(a.unlocked_at) }}</span>
+            </li>
+          </ul>
+          <ng-container *ngIf="g.achievements.next.length">
+            <h3>Le falta poco</h3>
+            <ul class="ch-units">
+              <li *ngFor="let n of g.achievements.next">
+                <span class="ch-unit-name">{{ n.icon }} {{ n.title }}</span>
+                <span class="ch-meter" aria-hidden="true"><span [style.width.%]="n.percentage"></span></span>
+                <span class="ch-unit-count">{{ n.current_progress }}/{{ n.threshold }}</span>
+              </li>
+            </ul>
+          </ng-container>
+        </article>
+      </div>
+    </section>
+
+    <!-- ═══ Lo que escribe ═══ -->
+    <section *ngIf="tab === 'escritura' && writing && chats" class="ch-panel" role="tabpanel" id="ch-panel-escritura" aria-labelledby="ch-tab-escritura">
+      <p class="ch-privacy">
+        <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+        Como su tutor, ves lo que {{ childName }} escribe en Literatus. Su cuenta le avisa que tú puedes verlo.
+      </p>
+
+      <h2 class="ch-h2">Chats con personajes <small>{{ chats.characters.length }}</small></h2>
+      <p class="pc-empty-note" *ngIf="!chats.characters.length">No ha conversado con personajes.</p>
+      <ul class="ch-accordion" *ngIf="chats.characters.length">
+        <li *ngFor="let c of chats.characters" class="pc-card ch-acc">
+          <button type="button" class="ch-acc-head" (click)="toggleChat(c.id)" [attr.aria-expanded]="openChats.has(c.id)"
+                  [attr.aria-controls]="'ch-chat-' + c.id">
+            <span class="material-symbols-rounded ch-acc-icon" aria-hidden="true">forum</span>
+            <span class="ch-list-main">
+              <strong>{{ c.character }}</strong>
+              <small>«{{ c.book_title }}» · {{ c.questions }} {{ c.questions === 1 ? 'mensaje suyo' : 'mensajes suyos' }} · {{ relativeTime(c.last_message_at) }}</small>
+            </span>
+            <span class="material-symbols-rounded ch-acc-chevron" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="ch-acc-body" *ngIf="openChats.has(c.id)" [id]="'ch-chat-' + c.id">
+            <p class="pc-muted" *ngIf="chatDetails[c.id] === 'loading'">Cargando la conversación…</p>
+            <p class="pc-muted" *ngIf="chatDetails[c.id] === 'error'">No pudimos cargarla. Ciérrala y vuelve a abrirla.</p>
+            <ol class="ch-dialogue" *ngIf="chatDetail(c.id) as d">
+              <li *ngFor="let m of d.messages" [class.is-child]="m.role === 'user'">
+                <span class="ch-who">{{ m.role === 'user' ? childName : d.character }} · {{ formatTime(m.at) }}</span>
+                <p>{{ m.content }}</p>
+              </li>
+              <li *ngIf="!d.messages.length" class="pc-muted">La conversación está vacía.</li>
+            </ol>
+          </div>
+        </li>
+      </ul>
+
+      <h2 class="ch-h2">Preguntas en el Interrogatorio <small>{{ chats.interrogations.length }}</small></h2>
+      <p class="pc-empty-note" *ngIf="!chats.interrogations.length">No ha hecho preguntas en el Interrogatorio.</p>
+      <ul class="ch-accordion" *ngIf="chats.interrogations.length">
+        <li *ngFor="let i of chats.interrogations" class="pc-card ch-acc">
+          <button type="button" class="ch-acc-head" (click)="toggleInterrogation(i.id)" [attr.aria-expanded]="openInterrogations.has(i.id)"
+                  [attr.aria-controls]="'ch-int-' + i.id">
+            <span class="material-symbols-rounded ch-acc-icon" aria-hidden="true">psychology_alt</span>
+            <span class="ch-list-main">
+              <strong>{{ i.character || 'Partida en curso' }}</strong>
+              <small>{{ formatDate(i.at) }} · {{ i.label }}</small>
+            </span>
+            <span class="material-symbols-rounded ch-acc-chevron" aria-hidden="true">expand_more</span>
+          </button>
+          <ol class="ch-dialogue ch-acc-body" *ngIf="openInterrogations.has(i.id)" [id]="'ch-int-' + i.id">
+            <li *ngFor="let m of i.dialogue" [class.is-child]="m.role === 'user'" [class.is-clue]="m.role === 'clue'">
+              <span class="ch-who">{{ m.role === 'user' ? childName : (m.role === 'clue' ? 'Pista' : 'Personaje misterioso') }}</span>
+              <p>{{ m.content }}</p>
+            </li>
+          </ol>
+        </li>
+      </ul>
+
+      <h2 class="ch-h2">Cuaderno <small>{{ writing.notebook.length }}</small></h2>
+      <p class="pc-empty-note" *ngIf="!writing.notebook.length">No ha escrito en el cuaderno.</p>
+      <div class="ch-notebook" *ngIf="writing.notebook.length">
+        <article class="pc-card" *ngFor="let n of writing.notebook">
+          <h3>{{ n.title }}</h3>
+          <p class="pc-muted">
+            <ng-container *ngIf="n.book_title">«{{ n.book_title }}» · </ng-container>editado {{ relativeTime(n.updated_at) }}
+          </p>
+          <p class="ch-pre">{{ n.text || 'Sin texto.' }}</p>
+          <span class="pc-pill pc-pill--info" *ngIf="n.has_drawing">
+            <span class="material-symbols-rounded" aria-hidden="true">draw</span> Incluye un dibujo
+          </span>
+        </article>
+      </div>
+
+      <h2 class="ch-h2">Subrayados <small>{{ writing.highlights.length }}</small></h2>
+      <p class="pc-empty-note" *ngIf="!writing.highlights.length">No ha subrayado pasajes.</p>
+      <ul class="ch-quotes" *ngIf="writing.highlights.length">
+        <li *ngFor="let h of writing.highlights" [attr.data-color]="h.color">
+          <blockquote>{{ h.text }}</blockquote>
+          <small>«{{ h.book_title }}» · {{ h.chapter }} · {{ formatDate(h.at) }}</small>
+        </li>
+      </ul>
+
+      <h2 class="ch-h2">Post-its <small>{{ writing.post_its.length }}</small></h2>
+      <p class="pc-empty-note" *ngIf="!writing.post_its.length">No ha pegado post-its.</p>
+      <ul class="ch-postits" *ngIf="writing.post_its.length">
+        <li *ngFor="let p of writing.post_its">
+          <p>{{ p.text }}</p>
+          <small>«{{ p.book_title }}» · {{ p.chapter }}</small>
+        </li>
+      </ul>
+
+      <h2 class="ch-h2">Palabras guardadas <small>{{ writing.vocabulary.length }}</small></h2>
+      <p class="pc-empty-note" *ngIf="!writing.vocabulary.length">No ha guardado palabras.</p>
+      <ul class="ch-words" *ngIf="writing.vocabulary.length">
+        <li *ngFor="let v of writing.vocabulary">
+          <strong>{{ v.word }}</strong>
+          <span class="pc-pill pc-pill--ok" *ngIf="v.is_learned">Aprendida</span>
+          <p *ngIf="v.definition">{{ v.definition }}</p>
+          <small *ngIf="v.book_title">«{{ v.book_title }}»</small>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ═══ Actividad ═══ -->
+    <section *ngIf="tab === 'actividad' && activity as a" class="ch-panel" role="tabpanel" id="ch-panel-actividad" aria-labelledby="ch-tab-actividad">
+      <article class="pc-card">
+        <h2 class="ch-card-title">Minutos leídos y nivel de actividad</h2>
+        <p class="pc-muted">Los últimos 30 días. Cada barra es un día; el punto marca días en que ganó XP.</p>
+        <div class="ch-bars" role="img" [attr.aria-label]="readingDaysSummary(a.days)">
+          <span class="ch-bar" *ngFor="let d of a.days" [class.has-xp]="d.xp_earned > 0"
+                [title]="formatShortDate(d.date) + ': ' + formatMinutes(d.minutes) + ' leyendo, ' + d.xp_earned + ' XP'">
+            <span class="ch-bar-fill" [style.height.%]="barHeight(d.minutes, a.days)"></span>
+          </span>
+        </div>
+        <div class="ch-axis" aria-hidden="true">
+          <span>{{ formatShortDate(a.days[0].date) }}</span>
+          <span>Hoy</span>
+        </div>
+      </article>
+
+      <p class="pc-empty-note" *ngIf="!a.events.length">No hay actividad en los últimos 30 días.</p>
+      <div class="ch-timeline">
+        <section *ngFor="let group of activityGroups" class="ch-day" [attr.aria-label]="group.heading">
+          <h2 class="ch-day-head">{{ group.heading }}</h2>
+          <ol>
+            <li *ngFor="let e of group.events" class="ch-event" [attr.data-kind]="e.kind">
+              <span class="material-symbols-rounded ch-event-icon" aria-hidden="true">{{ e.icon }}</span>
+              <div class="ch-event-body">
+                <p class="ch-event-title">{{ e.title }}</p>
+                <p class="ch-event-detail" *ngIf="e.detail">{{ e.detail }}</p>
+              </div>
+              <time [attr.datetime]="e.at">{{ formatTime(e.at) }}</time>
+            </li>
+          </ol>
+        </section>
+      </div>
+    </section>
+
+    <!-- ═══ Ajustes ═══ -->
+    <section *ngIf="tab === 'ajustes'" class="ch-panel" role="tabpanel" id="ch-panel-ajustes" aria-labelledby="ch-tab-ajustes">
+      <div class="ch-settings">
+        <article class="pc-card ch-setting">
+          <span class="material-symbols-rounded ch-setting-icon" aria-hidden="true">key</span>
+          <div>
+            <h2>Cambiar su contraseña</h2>
+            <p class="pc-muted">Si la olvidó o quieres cambiarla. Se cierran sus sesiones abiertas.</p>
+          </div>
+          <button type="button" class="pc-btn pc-btn--ghost" (click)="openAction('password')" aria-haspopup="dialog">Cambiar contraseña</button>
+        </article>
+        <article class="pc-card ch-setting">
+          <span class="material-symbols-rounded ch-setting-icon" aria-hidden="true">link_off</span>
+          <div>
+            <h2>Desvincular su cuenta</h2>
+            <p class="pc-muted">Dejas de ver su historial. Su cuenta sigue existiendo.</p>
+          </div>
+          <button type="button" class="pc-btn pc-btn--ghost" (click)="openAction('unlink')" aria-haspopup="dialog">Desvincular</button>
+        </article>
+        <article class="pc-card ch-setting ch-setting--danger">
+          <span class="material-symbols-rounded ch-setting-icon" aria-hidden="true">delete_forever</span>
+          <div>
+            <h2>Eliminar su cuenta</h2>
+            <p class="pc-muted">Borra para siempre su perfil, su biblioteca y su progreso.</p>
+          </div>
+          <button type="button" class="pc-btn pc-btn--danger" (click)="openAction('delete')" aria-haspopup="dialog">Eliminar cuenta</button>
+        </article>
+      </div>
+      <p class="ch-footnote">
+        Mientras esté a tu cargo, su cuenta no puede pagar planes ni comprar Tinta, y solo tú puedes desvincularla o eliminarla.
+      </p>
+    </section>
+  </ng-container>
+</main>

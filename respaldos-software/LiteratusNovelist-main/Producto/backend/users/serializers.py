@@ -313,13 +313,16 @@ class UserWriteSerializer(serializers.ModelSerializer):
         return users.exclude(pk=self.instance.pk) if self.instance else users
 
     def validate_email(self, value):
+        from parental.services import is_child_email
         from .guests import is_guest, is_guest_email
 
         # 'Ana@Correo.com' y 'ana@correo.com' son la misma bandeja: una sola cuenta.
         value = User.objects.normalize_email(value.strip()).lower()
         # El dominio de las cuentas de prueba es reservado (por él se reconocen y se borran solas),
-        # y una cuenta de prueba no puede volverse permanente cambiando su correo.
-        if is_guest_email(value) and not (self.instance and value == self.instance.email):
+        # y una cuenta de prueba no puede volverse permanente cambiando su correo. El de las cuentas
+        # que crea un tutor para sus hijos (control parental) también: es un correo interno.
+        if ((is_guest_email(value) or is_child_email(value))
+                and not (self.instance and value == self.instance.email)):
             raise serializers.ValidationError('Ese dominio de correo está reservado.')
         if self.instance and is_guest(self.instance) and value != self.instance.email:
             raise serializers.ValidationError('Las cuentas de prueba no pueden cambiar el correo.')

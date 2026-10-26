@@ -1,0 +1,25 @@
+.ga-danger {
+  border-color: color-mix(in srgb, var(--color-error) 45%, var(--color-border));
+}
+
+.ga-danger .cf-icon {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+.ga-warning {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.ga-warning .material-symbols-rounded { font-size: 18px; margin-top: 1px; }
+
+.cf-lead strong { color: var(--color-text-primary); }

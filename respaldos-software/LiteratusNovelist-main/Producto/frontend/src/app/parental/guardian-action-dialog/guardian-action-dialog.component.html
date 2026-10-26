@@ -1,0 +1,60 @@
+<section class="cf-panel" [class.ga-danger]="data.action === 'delete'">
+  <header class="cf-head">
+    <span class="material-symbols-rounded cf-icon" aria-hidden="true">{{ copy.icon }}</span>
+    <h2 id="ga-title">{{ copy.title }}</h2>
+  </header>
+
+  <ng-container [ngSwitch]="data.action">
+    <p class="cf-lead" *ngSwitchCase="'password'">
+      {{ data.childName }} entrará con la contraseña nueva y se cerrarán sus sesiones abiertas.
+    </p>
+    <ng-container *ngSwitchCase="'unlink'">
+      <p class="cf-lead">
+        La cuenta de {{ data.childName }} seguirá existiendo, pero dejarás de ver su historial y podrá pagar y
+        eliminar su cuenta por su cuenta.
+      </p>
+      <p class="ga-warning" *ngIf="!data.hasOwnEmail">
+        <span class="material-symbols-rounded" aria-hidden="true">warning</span>
+        Su cuenta no tiene correo propio: si después olvida la contraseña, no podrá recuperarla.
+      </p>
+    </ng-container>
+    <p class="cf-lead" *ngSwitchCase="'delete'">
+      Se borran para siempre el perfil de {{ data.childName }} (&#64;{{ data.username }}), su biblioteca, su progreso,
+      sus notas, logros y chats. <strong>No se puede deshacer.</strong>
+    </p>
+  </ng-container>
+
+  <form (ngSubmit)="submit()" [attr.aria-busy]="saving" novalidate>
+    <ng-container *ngIf="data.action === 'password'">
+      <label for="ga-new">Contraseña nueva para {{ data.childName }}</label>
+      <input id="ga-new" class="cf-input" name="newPassword" [type]="showPassword ? 'text' : 'password'"
+             [(ngModel)]="newPassword" autocomplete="new-password" [disabled]="saving"
+             [attr.aria-invalid]="errors['new_password'] ? 'true' : null">
+      <p class="cf-hint">Mínimo 8 caracteres, que no sea solo números.</p>
+      <p class="cf-field-error" *ngIf="errors['new_password']">{{ errors['new_password'] }}</p>
+    </ng-container>
+
+    <label for="ga-parent">Tu contraseña, para confirmar</label>
+    <div class="cf-password">
+      <input id="ga-parent" class="cf-input" name="parentPassword" [type]="showPassword ? 'text' : 'password'"
+             [(ngModel)]="parentPassword" autocomplete="current-password" [disabled]="saving"
+             [attr.aria-invalid]="errors['parent_password'] ? 'true' : null">
+      <button type="button" class="cf-eye" (click)="showPassword = !showPassword" [disabled]="saving"
+              [attr.aria-label]="showPassword ? 'Ocultar contraseñas' : 'Mostrar contraseñas'" [attr.aria-pressed]="showPassword">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+      </button>
+    </div>
+    <p class="cf-field-error" *ngIf="errors['parent_password']">{{ errors['parent_password'] }}</p>
+
+    <p *ngIf="error" class="cf-error" role="alert">{{ error }}</p>
+
+    <div class="cf-actions">
+      <button type="button" class="pc-btn pc-btn--ghost" (click)="dialogRef.close()" [disabled]="saving">Cancelar</button>
+      <button type="submit" class="pc-btn" [class.pc-btn--danger]="data.action !== 'password'"
+              [class.pc-btn--primary]="data.action === 'password'" [disabled]="!canSubmit">
+        <span *ngIf="saving" class="pc-spinner" aria-hidden="true"></span>
+        {{ saving ? copy.busy : copy.button }}
+      </button>
+    </div>
+  </form>
+</section>

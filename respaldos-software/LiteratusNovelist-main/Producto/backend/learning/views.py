@@ -6,7 +6,6 @@ from rest_framework import permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg, Sum, Count
 
 from .models import (
     LearningUnit,
@@ -29,6 +28,7 @@ from .services import (
     refill_hearts,
     ensure_streak,
     get_streak_details,
+    learning_stats,
     evaluate_and_record_attempt,
     check_answer,
     playable_questions,
@@ -528,24 +528,4 @@ class LearningStatsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        attempts = UserExerciseAttempt.objects.filter(user=user)
-        total_attempts = attempts.count()
-        total_passed = attempts.filter(passed=True).count()
-        avg_score = attempts.aggregate(avg=Avg('score'))['avg'] or 0
-        total_time = attempts.aggregate(time=Sum('duration_seconds'))['time'] or 0
-
-        completed_levels = UserLevelProgress.objects.filter(user=user, is_completed=True)
-        total_completed = completed_levels.count()
-        total_stars = completed_levels.aggregate(stars=Sum('stars'))['stars'] or 0
-
-        return Response({
-            'total_completed_levels': total_completed,
-            'total_stars': total_stars,
-            'total_attempts': total_attempts,
-            'total_passed': total_passed,
-            'accuracy_percentage': round(avg_score, 1),
-            'total_learning_time_minutes': round(total_time / 60, 1),
-            'streak_current': user.profile.streak_current,
-            'streak_max': user.profile.streak_max,
-        })
+        return Response(learning_stats(request.user))

@@ -510,6 +510,19 @@ label {
   font-size: 1.05rem;
 }
 
+.account-zone-copy .parental-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 46ch;
+}
+
+.account-zone-copy .parental-note .material-symbols-rounded {
+  flex: none;
+  font-size: 18px;
+  color: var(--color-accent-text);
+}
+
 .account-zone-copy .field-hint {
   margin: 0;
 }
