@@ -339,9 +339,10 @@
 .rd-book-compact .rd-bookmark-corner { top: calc(-1 * var(--book-board-w, 3px)); right: 10px; }
 .rd-book-compact .rd-running-head { font-size: 10.5px; }
 
-/* ── La hoja que se dobla ──
-   Estos elementos los crea reader-book-flip.ts: lleva el atributo de estilos del lector
-   (lo copia de .rd-flip-layer), así que estas reglas y las del lienzo también les aplican. */
+/* ── La hoja que se pliega ──
+   Estos elementos los crea reader-book-flip.ts (la geometría está en reader-book-fold.ts): llevan
+   el atributo de estilos del lector (lo copian de .rd-flip-layer), así que estas reglas y las del
+   lienzo también les aplican. Recortes y posiciones van en línea; aquí solo lo que no cambia. */
 .rd-flip-layer {
   position: absolute;
   inset: 0;
@@ -360,7 +361,60 @@
   position: absolute;
   inset: 0;
 }
-.rd-flip-leaf {
+/* Anverso y reverso: cada uno en su capa, así cambiar el recorte no vuelve a pintar el texto. */
+.rd-flip-face {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: var(--rd-paper);
+  will-change: transform, clip-path;
+}
+.rd-flip-face.is-back { transform-origin: 0 0; }
+.rd-fold-under,
+.rd-fold-flap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.rd-fold-flap { overflow: visible; }
+/* Esquina levantada con el mouse: debajo todavía está la misma página, se muestra solo papel. */
+.rd-fold-under.is-peel { background: var(--rd-paper); }
+.rd-fold-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.rd-fold-strip.is-curl {
+  background: linear-gradient(to right,
+    rgba(0, 0, 0, .3) 0, rgba(0, 0, 0, .07) 14%, rgba(255, 255, 255, .13) 28%,
+    rgba(255, 255, 255, .04) 52%, transparent 80%);
+}
+.rd-book-mode.theme-nocturno .rd-fold-strip,
+.rd-book-mode.rc-high-contrast .rd-fold-strip { display: none; }
+
+/* ── La tapa dura que se abre y se cierra (reader-book-cover.ts) ──
+   El cartón no se pliega: gira rígido sobre el lomo. Las máscaras tapan con el mismo fondo del
+   escenario (fixed: el degradé queda alineado con el de atrás) la mitad del libro que todavía no
+   debería verse. */
+.rd-cover-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  visibility: visible;
+}
+.rd-cover-layer:empty { display: none; }
+.rd-cover-mask {
+  position: absolute;
+  background: radial-gradient(120% 85% at 50% 40%, var(--book-stage) 0%, var(--book-stage-edge) 100%) fixed;
+}
+.rd-book-mode.theme-nocturno .rd-cover-mask { background: #000; }
+.rd-cover-leaf {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -368,28 +422,26 @@
   -webkit-transform-style: preserve-3d;
   will-change: transform;
 }
-.rd-flip-face {
+.rd-cover-face {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--rd-paper);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-.rd-flip-face.is-back { transform: rotateY(180deg); }
-.rd-flip-shade {
+.rd-cover-face.is-inner {
+  transform: rotateY(180deg);
+  background: var(--rd-paper);
+}
+.rd-cover-shade {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  background: #000;
   opacity: 0;
-}
-.rd-flip-cast {
-  position: absolute;
-  top: 0;
-  bottom: 0;
   pointer-events: none;
-  opacity: 0;
 }
+/* Mientras la tapa se cierra, el libro cerrado ya está puesto (para medir dónde cae) pero no se ve. */
+app-reader-book-closed.rbc-waiting { visibility: hidden; }
 /* Mientras gira, lo que se ancla a la página nueva espera a que la hoja asiente
    (los post-its viven en su propio componente: ::ng-deep). */
 .rd-book-mode.is-flipping .narration-marker,
