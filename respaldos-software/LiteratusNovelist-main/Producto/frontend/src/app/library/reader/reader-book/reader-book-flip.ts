@@ -1,9 +1,10 @@
 import { NgZone } from '@angular/core';
 
-import { SpringState, dragAngle, flipShading, isSettled, shouldCommitFlip, stepSpring } from './reader-book-flip-physics';
+import { SpringState, dragAngle, isSettled, shouldCommitFlip, stepSpring } from './reader-book-flip-physics';
+import { FoldCorner, Point, foldAt, foldShadow } from './reader-book-fold';
 
 /**
- * La hoja que se dobla de la vista Libro (dos páginas, escritorio).
+ * La hoja que se pliega de la vista Libro (dos páginas, escritorio).
  *
  * El capítulo es un solo lienzo de columnas que se traslada: solo puede mostrar un pliego seguido.
  * Mientras una hoja gira se ven cuatro páginas que no son seguidas (la que queda, las dos caras de
@@ -11,6 +12,10 @@ import { SpringState, dragAngle, flipShading, isSettled, shouldCommitFlip, stepS
  * faltan: se copian solo los párrafos de esa página en un lienzo igual, desde la misma altura de
  * columna, para que corten las líneas igual que el original. El lienzo real salta al pliego nuevo
  * y queda debajo; al terminar el giro las copias se quitan y solo queda el texto real.
+ *
+ * La hoja se dobla como el papel (reader-book-fold.ts): el anverso se recorta por el pliegue y el
+ * reverso se apoya encima ya girado, con sombra en el pliegue, sobre la página que se destapa y
+ * debajo de la solapa. Todo es recorte (clip-path) y matrices 2D: sin capas 3D, cada cuadro es barato.
  *
  * Las copias no tienen id ni reciben toques (la capa es aria-hidden): la voz, la selección, los
  * subrayados y los lectores de pantalla solo ven el texto real.
@@ -25,17 +30,22 @@ export interface BookFlipHost {
   gap(): number;
 }
 
-type Side = 'left' | 'right';
+export type BookPageSide = 'left' | 'right';
+type Side = BookPageSide;
 
 interface ActiveFlip {
   direction: 1 | -1;
-  leaf: HTMLElement;
+  corner: FoldCorner;
+  /** Anverso recortado por el pliegue, y su sombra donde empieza a curvarse. */
   front: HTMLElement;
-  back: HTMLElement;
   frontShade: HTMLElement;
+  /** La solapa: lleva la sombra que cae debajo; adentro, el reverso girado y su brillo. */
+  flap: HTMLElement;
+  back: HTMLElement;
   backShade: HTMLElement;
-  castUnder: HTMLElement;
-  castOver: HTMLElement;
+  /** Lo que la hoja destapa, con la sombra del pliegue encima. */
+  under: HTMLElement;
+  underShade: HTMLElement;
   state: SpringState;
   target: number;
   dragging: boolean;
@@ -68,7 +78,7 @@ export class ReaderBookFlip {
    * Da vuelta una hoja hacia `direction`. `move` lleva el lienzo real al pliego nuevo (sin animar)
    * y actualiza la vista; se llama en medio, después de copiar las páginas que se van.
    */
-  turn(direction: 1 | -1, spread: number, move: () => void): boolean {
+  turn(direction: 1 | -1, spread: number, move: () => void, corner: FoldCorner = 'bottom'): boolean {
     const peeled = this.active?.peel && this.active.direction === direction ? this.active : null;
     if (!peeled) this.finishNow();
     const staticSide: Side = direction === 1 ? 'left' : 'right';
@@ -86,7 +96,7 @@ export class ReaderBookFlip {
       // La esquina ya estaba levantada: la hoja sigue desde ahí, sin volver a empezar.
       this.promotePeel(peeled, fixed, back);
     } else {
-      this.startLeaf(direction, fixed, front!, back, { x: 0, v: 0 });
+      this.startLeaf(direction, fixed, front!, back, { x: 0, v: 0 }, corner);
     }
     this.active!.target = 180;
     this.active!.onDone = null;
@@ -96,8 +106,9 @@ export class ReaderBookFlip {
 
   // ── Arrastrar la hoja con el mouse o el dedo ───────────────────────────────
 
-  beginDrag(direction: 1 | -1, spread: number, move: () => void, revert: () => void): boolean {
-    const started = this.turn(direction, spread, move);
+  /** `corner`: la esquina más cercana a donde se agarró (arriba o abajo). */
+  beginDrag(direction: 1 | -1, spread: number, move: () => void, revert: () => void, corner: FoldCorner = 'bottom'): boolean {
+    const started = this.turn(direction, spread, move, corner);
     if (!started || !this.active) return false;
     this.cancelLoop();
     const a = this.active;
@@ -141,7 +152,9 @@ export class ReaderBookFlip {
     const front = this.capturePage(spread, leafSide);
     if (!front) return;
     const back = this.blankPage();
-    this.startLeaf(direction, null, front, back, { x: 0, v: 0 });
+    this.startLeaf(direction, null, front, back, { x: 0, v: 0 }, 'bottom');
+    // Debajo de la esquina todavía está la misma página: se ve papel, como el margen de la siguiente.
+    this.active!.under.classList.add('is-peel');
     this.active!.peel = true;
     this.active!.target = PEEL_ANGLE;
     this.loop();
@@ -187,7 +200,7 @@ export class ReaderBookFlip {
       this.host.container()?.classList.remove('is-flipping');
       return;
     }
-    this.startLeaf(f.direction, f.fixed, f.front, back, { x: 0, v: 0 });
+    this.startLeaf(f.direction, f.fixed, f.front, back, { x: 0, v: 0 }, 'bottom');
     this.active!.target = 180;
     this.loop();
   }
@@ -220,48 +233,48 @@ export class ReaderBookFlip {
 
   // ── Armado de la hoja ──────────────────────────────────────────────────────
 
-  private startLeaf(direction: 1 | -1, fixed: HTMLElement | null, front: HTMLElement, back: HTMLElement, state: SpringState): void {
+  private startLeaf(direction: 1 | -1, fixed: HTMLElement | null, front: HTMLElement, back: HTMLElement,
+                    state: SpringState, corner: FoldCorner): void {
     const layer = this.host.layer()!;
     const width = this.bookWidth();
     const leafSide: Side = direction === 1 ? 'right' : 'left';
     layer.replaceChildren();
-    layer.style.perspective = `${Math.round(Math.max(1600, width * 2.1))}px`;
 
     if (fixed) {
       this.place(fixed, leafSide === 'right' ? 'left' : 'right');
       layer.appendChild(fixed);
     }
-    const castOver = this.make('div', 'rd-flip-cast');
-    const castUnder = this.make('div', 'rd-flip-cast');
-    // La sombra cae del borde de la hoja hacia la página que destapa o que va a tapar.
-    const toward = direction === 1 ? 'to right' : 'to left';
-    const away = direction === 1 ? 'to left' : 'to right';
-    castUnder.style.background = `linear-gradient(${toward}, rgba(0,0,0,.36), rgba(0,0,0,.12) 38%, transparent 72%)`;
-    castOver.style.background = `linear-gradient(${away}, rgba(0,0,0,.3), rgba(0,0,0,.08) 40%, transparent 75%)`;
+    // Lo que se destapa: la página real de abajo (el lienzo ya saltó al pliego nuevo) con la sombra
+    // que la curva del pliegue proyecta sobre ella.
+    const under = this.make('div', 'rd-fold-under');
+    const underShade = this.make('div', 'rd-fold-strip');
+    underShade.style.background = 'linear-gradient(to right, rgba(0,0,0,.44), rgba(0,0,0,.16) 30%, transparent)';
+    under.appendChild(underShade);
 
-    const leaf = this.make('div', 'rd-flip-leaf');
-    leaf.style.left = leafSide === 'right' ? `${width / 2}px` : '0px';
-    leaf.style.width = `${width / 2}px`;
-    leaf.style.transformOrigin = leafSide === 'right' ? 'left center' : 'right center';
-    const frontFace = this.make('div', 'rd-flip-face is-front');
-    const backFace = this.make('div', 'rd-flip-face is-back');
+    const frontFace = this.make('div', 'rd-flip-face');
+    frontFace.style.left = leafSide === 'right' ? `${width / 2}px` : '0px';
+    frontFace.style.width = `${width / 2}px`;
     front.style.left = '0px';
+    // El anverso se oscurece donde empieza a levantarse, junto al pliegue.
+    const frontShade = this.make('div', 'rd-fold-strip');
+    frontShade.style.background = 'linear-gradient(to left, rgba(0,0,0,.26), rgba(0,0,0,.08) 45%, transparent)';
+    frontFace.append(front, frontShade);
+
+    const flap = this.make('div', 'rd-fold-flap');
+    const backFace = this.make('div', 'rd-flip-face is-back');
+    backFace.style.left = leafSide === 'right' ? '0px' : `${width / 2}px`;
+    backFace.style.width = `${width / 2}px`;
     back.style.left = '0px';
-    frontFace.appendChild(front);
-    backFace.appendChild(back);
-    const frontShade = this.make('div', 'rd-flip-shade');
-    const backShade = this.make('div', 'rd-flip-shade');
-    // Más oscuro hacia el lomo, donde la hoja se curva.
-    frontShade.style.background = `linear-gradient(${leafSide === 'right' ? 'to left' : 'to right'}, rgba(0,0,0,.55), rgba(0,0,0,.9))`;
-    backShade.style.background = `linear-gradient(${leafSide === 'right' ? 'to right' : 'to left'}, rgba(0,0,0,.55), rgba(0,0,0,.9))`;
-    frontFace.appendChild(frontShade);
-    backFace.appendChild(backShade);
-    leaf.append(frontFace, backFace);
-    layer.append(castUnder, castOver, leaf);
+    // La curva de la solapa: oscura en el pliegue, un brillo donde la hoja da a la luz y se apaga.
+    const backShade = this.make('div', 'rd-fold-strip is-curl');
+    backFace.append(back, backShade);
+    flap.appendChild(backFace);
+
+    layer.append(under, frontFace, flap);
     this.host.container()?.classList.add('is-flipping');
 
     this.active = {
-      direction, leaf, front: frontFace, back: backFace, frontShade, backShade, castUnder, castOver,
+      direction, corner, front: frontFace, frontShade, flap, back: backFace, backShade, under, underShade,
       state, target: 180, dragging: false, peel: false, samples: [], onDone: null,
     };
     this.render(this.active);
@@ -274,35 +287,62 @@ export class ReaderBookFlip {
     layer.insertBefore(fixed, layer.firstChild);
     back.style.left = '0px';
     a.back.replaceChildren(back, a.backShade);
+    a.under.classList.remove('is-peel'); // el lienzo ya saltó: debajo está la página siguiente
     a.peel = false;
   }
 
   private render(a: ActiveFlip): void {
     const width = this.bookWidth();
-    const angle = Math.min(180, Math.max(0, a.state.x));
-    a.leaf.style.transform = `rotateY(${a.direction === 1 ? -angle : angle}deg)`;
-    const shade = flipShading(angle);
-    a.frontShade.style.opacity = shade.front.toFixed(3);
-    a.backShade.style.opacity = shade.back.toFixed(3);
-    // Borde exterior de la hoja proyectado sobre el libro (en el sentido del avance).
-    const edge = (width / 2) * (1 + Math.cos((angle * Math.PI) / 180));
-    if (angle < 90) {
-      this.box(a, a.castUnder, edge, width - edge);
-      a.castUnder.style.opacity = shade.castUnder.toFixed(3);
-      a.castOver.style.opacity = '0';
-    } else {
-      this.box(a, a.castOver, 0, edge);
-      a.castOver.style.opacity = shade.castOver.toFixed(3);
-      a.castUnder.style.opacity = '0';
-    }
+    const height = this.host.shell()?.clientHeight ?? 0;
+    const w = width / 2;
+    const progress = Math.min(180, Math.max(0, a.state.x)) / 180;
+    const fold = foldAt(progress, a.direction, a.corner, w, height);
+    const shadow = foldShadow(progress);
+    const folded = fold.uncovered.length > 2;
+
+    this.clip(a.front, fold.front, -fold.leafLeft);
+    a.back.style.visibility = a.under.style.visibility = folded ? '' : 'hidden';
+    if (!folded) return;
+    const [ma, mb, mc, md, me, mf] = fold.backMatrix;
+    a.back.style.transform = `matrix(${ma},${mb},${mc},${md},${me},${mf})`;
+    this.clip(a.back, fold.backClip, 0);
+    this.clip(a.under, fold.uncovered, 0);
+    // La solapa flota sobre el papel: su sombra crece mientras está en el aire.
+    const blur = 4 + 14 * shadow;
+    a.flap.style.filter = shadow > 0.02
+      ? `drop-shadow(0 ${(2 * shadow).toFixed(1)}px ${blur.toFixed(1)}px color-mix(in srgb, var(--book-cast) ${Math.round(85 * shadow)}%, transparent))`
+      : '';
+
+    // Franjas de sombra pegadas al pliegue, del ancho que permite lo que ya se dobló.
+    const span = 3 * Math.hypot(w, height);
+    const { crease, normal, reach } = fold;
+    this.strip(a.underShade, crease, normal, Math.min(reach * 0.5, w * 0.24), span, 1, 0, shadow);
+    this.strip(a.frontShade, crease, normal, Math.min(reach * 0.32, w * 0.14), span, -1, -fold.leafLeft, shadow);
+    // En el reverso el pliegue está reflejado en el lomo: x → 2w - x, y la normal cambia de lado en x.
+    this.strip(a.backShade, { x: 2 * w - crease.x - fold.backLeft, y: crease.y }, { x: -normal.x, y: normal.y },
+      Math.min(reach * 0.6, w * 0.5), span, 1, 0, shadow);
   }
 
-  /** Ubica una sombra en coordenadas "hacia adelante"; hacia atrás se refleja. */
-  private box(a: ActiveFlip, el: HTMLElement, left: number, width: number): void {
-    const total = this.bookWidth();
-    const w = Math.max(0, width);
-    el.style.width = `${w}px`;
-    el.style.left = `${a.direction === 1 ? left : total - left - w}px`;
+  /** Recorta un elemento con un polígono en coordenadas del libro (desplazado `dx` a las suyas). */
+  private clip(el: HTMLElement, polygon: Point[], dx: number): void {
+    if (polygon.length < 3) {
+      el.style.clipPath = 'inset(50%)';
+      return;
+    }
+    el.style.clipPath = `polygon(${polygon.map(q => `${(q.x + dx).toFixed(2)}px ${q.y.toFixed(2)}px`).join(',')})`;
+  }
+
+  /**
+   * Franja de sombra alineada con el pliegue: nace en la línea y se abre `size` px hacia el lado
+   * `side` (1 = hacia donde apunta la normal, -1 = el otro). El degradé va de la línea hacia afuera.
+   */
+  private strip(el: HTMLElement, at: Point, normal: Point, size: number, span: number, side: 1 | -1, dx: number, opacity: number): void {
+    const angle = Math.atan2(normal.y, normal.x);
+    el.style.width = `${Math.max(0, size).toFixed(1)}px`;
+    el.style.height = `${span.toFixed(0)}px`;
+    el.style.transform = `translate(${(at.x + dx).toFixed(2)}px, ${at.y.toFixed(2)}px) rotate(${angle.toFixed(5)}rad)`
+      + ` translate(${side === 1 ? 0 : (-size).toFixed(2)}px, ${(-span / 2).toFixed(0)}px)`;
+    el.style.opacity = opacity.toFixed(3);
   }
 
   private loop(): void {
@@ -355,6 +395,11 @@ export class ReaderBookFlip {
   }
 
   // ── Fotocopias de páginas ──────────────────────────────────────────────────
+
+  /** Copia de una página del pliego `spread` (la cara de adentro de la tapa: reader-book-cover.ts). */
+  copyPage(spread: number, side: Side): HTMLElement | null {
+    return this.capturePage(spread, side);
+  }
 
   /**
    * Ancho del libro abierto. Se mide en el papel y no en la capa: la capa vacía está oculta

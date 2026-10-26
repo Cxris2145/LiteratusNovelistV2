@@ -1,7 +1,7 @@
 <div class="workbench-container" [ngClass]="'theme-' + currentTheme"
      [class.paged-view]="isPagedView" [class.book-view]="isPagedView"
      [class.rd-book-mode]="isBookView" [class.rd-book-compact]="isBookView && bookCompact"
-     [class.rd-book-closed]="isBookView && !!bookClosed"
+     [class.rd-book-closed]="isBookView && !!bookClosed && !bookCoverClosing"
      [class.rc-high-contrast]="highContrast" [class.rc-concentration]="concentrationMode">
   <app-reader-chrome></app-reader-chrome>
   <app-reader-more-sheet *ngIf="isMoreOpen"></app-reader-more-sheet>
@@ -143,8 +143,10 @@
     <div class="narration-marker" #narrationMarker aria-hidden="true">
       <span class="material-symbols-rounded">graphic_eq</span>
     </div>
-    <!-- La hoja que se dobla: aquí se arman las copias de las páginas mientras dura el giro. -->
+    <!-- La hoja que se pliega: aquí se arman las copias de las páginas mientras dura el giro. -->
     <div class="rd-flip-layer" #flipLayer aria-hidden="true"></div>
+    <!-- La tapa dura que gira al abrir o cerrar el libro (reader-book-cover.ts). -->
+    <div class="rd-cover-layer" #coverLayer aria-hidden="true"></div>
   </section>
 
   <!-- Vista Libro en pantallas grandes: flechas fuera del libro (no tapan el texto) -->
@@ -168,7 +170,8 @@
   </ng-container>
 
   <!-- Libro cerrado: la tapa al empezar y la contratapa al terminar -->
-  <app-reader-book-closed *ngIf="isBookView && bookClosed" [side]="bookClosed" [cover]="bookCover"
+  <app-reader-book-closed *ngIf="isBookView && (bookClosed || bookCoverOpening)" [side]="(bookClosed || bookCoverOpening)!"
+                          [cover]="bookCover" [class.rbc-waiting]="bookCoverClosing || !!bookCoverOpening"
                           [title]="bookTitle" [author]="authorName" [synopsis]="bookSynopsis"
                           (open)="openClosedBook()" (toggleChrome)="toggleChrome()"></app-reader-book-closed>
   <div class="rd-dimmer" aria-hidden="true"></div>

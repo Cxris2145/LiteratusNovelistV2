@@ -13,8 +13,11 @@ export interface SpringState {
   v: number;
 }
 
-/** Respuesta del resorte (s): cuánto tarda en llegar, sin ser una duración fija. */
-export const FLIP_RESPONSE = 0.46;
+/**
+ * Respuesta del resorte (s): cuánto tarda en llegar, sin ser una duración fija. El papel que se
+ * pliega pide un poco más de tiempo que una hoja rígida para que se lea la curva (~0,6 s el giro).
+ */
+export const FLIP_RESPONSE = 0.55;
 
 /**
  * Avanza el resorte `dt` segundos hacia `target`. Amortiguación 1 = sin rebote. Se integra en
@@ -55,22 +58,6 @@ export function dragAngle(dx: number, spreadWidth: number, direction: 1 | -1): n
 export function shouldCommitFlip(angle: number, velocity: number): boolean {
   if (Math.abs(velocity) > 260) return velocity > 0;
   return angle >= 90;
-}
-
-/**
- * Luz y sombra según el ángulo: la cara visible se oscurece al acercarse a 90° (queda de canto
- * a la luz) y la hoja proyecta sombra sobre la página que destapa o sobre la que va a tapar.
- */
-export function flipShading(angle: number): { front: number; back: number; castUnder: number; castOver: number } {
-  const a = clamp(angle, 0, 180);
-  const rad = (a * Math.PI) / 180;
-  const lift = Math.sin(rad);
-  return {
-    front: a <= 90 ? 0.32 * (a / 90) : 0,
-    back: a > 90 ? 0.32 * ((180 - a) / 90) : 0,
-    castUnder: a < 90 ? 0.55 * lift : 0,
-    castOver: a >= 90 ? 0.4 * lift : 0,
-  };
 }
 
 function clamp(value: number, min: number, max: number): number {

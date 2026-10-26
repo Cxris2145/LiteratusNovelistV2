@@ -1,4 +1,4 @@
-import { dragAngle, flipShading, isSettled, shouldCommitFlip, stepSpring } from './reader-book-flip-physics';
+import { dragAngle, isSettled, shouldCommitFlip, stepSpring } from './reader-book-flip-physics';
 
 describe('física de la hoja que se dobla', () => {
   const run = (from: number, to: number, v = 0, seconds = 2) => {
@@ -54,18 +54,5 @@ describe('física de la hoja que se dobla', () => {
     expect(shouldCommitFlip(150, -800)).toBeFalse();
     expect(shouldCommitFlip(100, 0)).toBeTrue();
     expect(shouldCommitFlip(80, 40)).toBeFalse();
-  });
-
-  it('la luz cambia de cara al cruzar los 90°', () => {
-    expect(flipShading(0)).toEqual({ front: 0, back: 0, castUnder: 0, castOver: 0 });
-    const half = flipShading(45);
-    expect(half.front).toBeGreaterThan(0);
-    expect(half.back).toBe(0);
-    expect(half.castUnder).toBeGreaterThan(0);
-    const late = flipShading(135);
-    expect(late.front).toBe(0);
-    expect(late.back).toBeGreaterThan(0);
-    expect(late.castOver).toBeGreaterThan(0);
-    expect(flipShading(180).back).toBe(0);
   });
 });
