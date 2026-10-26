@@ -10,7 +10,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 
-🌐 **Demo en vivo:** [https://www.novelatus.tech/](https://www.novelatus.tech/)
+🌐 **Demo en vivo:** [https://literatus-novelist-v2.vercel.app/](https://literatus-novelist-v2.vercel.app/)
 
 </div>
 
