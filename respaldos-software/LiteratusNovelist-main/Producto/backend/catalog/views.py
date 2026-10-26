@@ -181,11 +181,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         Devuelve hasta 6 libros recomendados para el carrusel de Explorar.
         """
         if not request.user.is_authenticated:
-            qs = self.get_queryset().filter(is_featured=True)[:6]
-            if not qs.exists():
-                qs = self.get_queryset()[:6]
-            serializer = self.get_serializer(qs, many=True)
-            return Response(serializer.data)
+            return self._featured_recommendations(request)
 
         # 1. Obtener libros ya adquiridos por el usuario (inventario)
         owned_book_ids = list(UserInventory.objects.filter(
@@ -212,10 +208,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
 
         # Si el usuario no tiene preferencias ni compras registradas, mostrar destacados
         if not owned_book_ids and not all_target_genre_ids and not pref_author_ids:
-            qs = self.get_queryset().filter(is_featured=True)[:6]
-            if not qs.exists():
-                qs = self.get_queryset()[:6]
-            return Response(self.get_serializer(qs, many=True).data)
+            return self._featured_recommendations(request)
 
         # 4. Candidatos a recomendar (excluyendo obras que ya posee)
         candidates = self.get_queryset().exclude(id__in=owned_book_ids)
@@ -258,6 +251,24 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = self.get_serializer(candidates[:6], many=True)
         return Response(serializer.data)
+
+    def _featured_recommendations(self, request):
+        """
+        Destacados para quien no tiene sesión o aún no tiene preferencias ni compras. Es la misma
+        lista para todos los lectores de la misma edad, así que se cachea como el listado: sin
+        caché eran 7 consultas al pooler remoto y Explorar la recibía segundos tarde, con la grilla
+        ya en pantalla, que saltaba hacia abajo en pleno scroll.
+        """
+        cache_key = f"catalog:recs:featured:age-v2:{allowed_age(request.user)}:{cache.get('catalog:age:revision', 'initial')}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return age_catalog_response(cached)
+        qs = self.get_queryset().filter(is_featured=True)[:6]
+        if not qs.exists():
+            qs = self.get_queryset()[:6]
+        data = self.get_serializer(qs, many=True).data
+        cache.set(cache_key, data, CATALOG_CACHE_TTL)
+        return age_catalog_response(data)
 
     @action(detail=True, methods=['GET'])
     def details(self, request, slug=None):

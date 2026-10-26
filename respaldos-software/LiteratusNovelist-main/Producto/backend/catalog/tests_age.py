@@ -111,6 +111,16 @@ class ParentalControlAPITests(APITestCase):
             self.assertEqual(response.status_code, 200)
             self.assertNotIn(self.adult_book.title, {b['title'] for b in response.data})
 
+    def test_featured_recommendations_cache_is_split_by_age(self):
+        # La adulta (sin preferencias ni compras) llena primero la caché de destacados.
+        for user, sees_adult in ((self.adult, True), (None, False), (self.unknown, False), (self.adult, True)):
+            with self.subTest(user=user):
+                self.client.force_authenticate(user)
+                response = self.client.get('/api/v1/catalog/books/recommendations/')
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(self.adult_book.title in {b['title'] for b in response.data}, sees_adult)
+                self.assertIn('no-store', response['Cache-Control'])
+
     def test_author_books_counts_and_recommendations_are_filtered(self):
         self.client.force_authenticate(self.minor)
         response = self.client.get(f'/api/v1/catalog/authors/{self.author.slug}/')

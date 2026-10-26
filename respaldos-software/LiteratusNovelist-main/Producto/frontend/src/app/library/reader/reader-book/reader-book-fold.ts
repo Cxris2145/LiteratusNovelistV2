@@ -1,170 +1,133 @@
 /**
- * Geometría del pliegue de la hoja que se da vuelta (funciones puras; las prueba reader-book-fold.spec.ts).
+ * Geometría de la hoja que se pliega (funciones puras; las prueba reader-book-fold.spec.ts).
  *
- * Se trabaja en coordenadas "de la hoja": el lomo es x = 0 y la página va de x = 0 a x = w (hacia
- * afuera), de y = 0 (arriba) a y = h. Se tira de una esquina del borde de afuera (arriba o abajo):
- * la esquina se mueve, y el pliegue es la línea que queda a mitad de camino entre donde estaba la
- * esquina y donde está ahora (la mediatriz). Lo que queda más allá del pliegue se refleja sobre él
- * y muestra el reverso de la hoja. Quien dibuja (reader-book-flip.ts) refleja estas coordenadas para
- * la hoja izquierda y las pasa a la capa.
+ * La hoja no gira rígida sobre el lomo: se dobla como el papel. Su esquina exterior (la de abajo o
+ * la de arriba) viaja en arco hasta el otro lado del libro y la hoja se pliega por la mediatriz entre
+ * esa esquina en reposo y donde está ahora. Lo que queda del lado del lomo es el anverso, recortado;
+ * lo que pasa del pliegue se refleja sobre él y deja ver el reverso.
+ *
+ * Coordenadas del libro abierto, en px: x de 0 a 2·w (el lomo en w), y de 0 (arriba) a h.
  */
 
-export interface Vec {
+export interface Point {
   x: number;
   y: number;
 }
 
-/** Transformación afín 2D en el orden de CSS matrix(a, b, c, d, e, f): x' = a·x + c·y + e, y' = b·x + d·y + f. */
-export type Affine = readonly [number, number, number, number, number, number];
+/** Esquina por la que se toma la hoja. */
+export type FoldCorner = 'bottom' | 'top';
 
-export type FoldCorner = 'top' | 'bottom';
-
-export interface LeafSize {
-  w: number;
-  h: number;
-}
+/** Cuánto se levanta la esquina a mitad de camino, relativo al ancho de la página. */
+export const FOLD_LIFT = 0.38;
 
 export interface Fold {
-  /** Esquina ya limitada (la hoja no se rasga ni se despega del lomo). */
-  corner: Vec;
-  /** Un punto del pliegue (el medio entre la esquina en reposo y la esquina movida). */
-  mid: Vec;
-  /** Normal del pliegue, de largo 1, hacia el lado que todavía no se dio vuelta (afuera). */
-  normal: Vec;
-  /** Distancia del pliegue a la esquina en reposo (cuánto de la hoja está doblado). */
-  depth: number;
-  /** 0 = la hoja plana en su página, 1 = plana del otro lado del lomo. */
-  progress: number;
-}
-
-/** Esquina de la hoja en reposo. */
-export function restCorner(leaf: LeafSize, corner: FoldCorner): Vec {
-  return { x: leaf.w, y: corner === 'bottom' ? leaf.h : 0 };
-}
-
-/** Esquina con la hoja dada vuelta del todo (sobre la otra página). */
-export function turnedCorner(leaf: LeafSize, corner: FoldCorner): Vec {
-  return { x: -leaf.w, y: corner === 'bottom' ? leaf.h : 0 };
+  /** Borde izquierdo de la hoja (su página) y del reverso (la página donde termina apoyado). */
+  leafLeft: number;
+  backLeft: number;
+  /** Anverso que sigue en su página. */
+  front: Point[];
+  /** Parte de la hoja que pasó del pliegue, en su lugar: ahí se ve la página de abajo. */
+  uncovered: Point[];
+  /** Esa misma parte ya doblada: la solapa, que muestra el reverso. */
+  flap: Point[];
+  /** La solapa en coordenadas del reverso (su página con origen arriba a la izquierda). */
+  backClip: Point[];
+  /** Un punto del pliegue y su normal unitaria, que apunta hacia la parte que se dobla. */
+  crease: Point;
+  normal: Point;
+  /** Distancia de la esquina a su lugar de reposo, en px (0 = hoja plana). */
+  reach: number;
+  /**
+   * matrix() de CSS que lleva el reverso (puesto en su página final, transform-origin 0 0) hasta la
+   * solapa. Son dos reflexiones seguidas (el lomo y el pliegue): una rotación, sin texto espejado.
+   */
+  backMatrix: [number, number, number, number, number, number];
 }
 
 /**
- * La hoja está cosida al lomo: la esquina no puede alejarse del pie (o la cabeza) del lomo más que el
- * ancho de la página, ni del otro extremo del lomo más que la diagonal. Tampoco se hunde bajo el libro.
+ * La hoja plegada en `progress` (0 = plana en su página, 1 = plana en la otra). `direction` 1 da
+ * vuelta la página derecha hacia adelante; -1, la izquierda hacia atrás.
  */
-export function constrainCorner(point: Vec, leaf: LeafSize, corner: FoldCorner): Vec {
-  const nearSpine = { x: 0, y: corner === 'bottom' ? leaf.h : 0 };
-  const farSpine = { x: 0, y: corner === 'bottom' ? 0 : leaf.h };
-  const diagonal = Math.hypot(leaf.w, leaf.h);
-  let p = { x: finite(point.x, leaf.w), y: finite(point.y, nearSpine.y) };
-  p.y = corner === 'bottom' ? Math.min(p.y, leaf.h) : Math.max(p.y, 0);
-  // Dos pasadas: al acercarla a un extremo del lomo puede quedar lejos del otro.
-  for (let i = 0; i < 2; i++) {
-    p = withinReach(p, nearSpine, leaf.w);
-    p = withinReach(p, farSpine, diagonal);
-  }
-  return p;
-}
+export function foldAt(progress: number, direction: 1 | -1, corner: FoldCorner, w: number, h: number): Fold {
+  const p = clamp(Number.isFinite(progress) ? progress : 0, 0, 1);
+  const leafLeft = direction === 1 ? w : 0;
+  const backLeft = direction === 1 ? 0 : w;
+  const rect = [pt(leafLeft, 0), pt(leafLeft + w, 0), pt(leafLeft + w, h), pt(leafLeft, h)];
 
-/** El pliegue para la esquina `point` (se limita antes con constrainCorner). */
-export function foldFor(point: Vec, leaf: LeafSize, corner: FoldCorner): Fold {
-  const rest = restCorner(leaf, corner);
-  const c = constrainCorner(point, leaf, corner);
-  const dx = rest.x - c.x;
-  const dy = rest.y - c.y;
-  const length = Math.hypot(dx, dy);
-  if (length < 0.01) {
-    // Plana: el "pliegue" queda en el borde de afuera y no dobla nada.
-    return { corner: rest, mid: rest, normal: { x: 1, y: 0 }, depth: 0, progress: 0 };
+  const rest = pt(direction === 1 ? 2 * w : 0, corner === 'bottom' ? h : 0);
+  // La esquina avanza hacia el otro lado y sube (o baja, si es la de arriba) en arco: con el arco
+  // a lo sumo del ancho de la página, el lomo nunca queda del lado que se dobla.
+  const lift = Math.min(FOLD_LIFT * w, h / 2) * Math.sin(Math.PI * p);
+  const tip = pt(rest.x - direction * 2 * w * p, rest.y + (corner === 'bottom' ? -lift : lift));
+  const reach = Math.hypot(rest.x - tip.x, rest.y - tip.y);
+
+  if (reach < 0.5) {
+    return {
+      leafLeft, backLeft, front: rect, uncovered: [], flap: [], backClip: [],
+      crease: rest, normal: pt(direction, 0), reach: 0, backMatrix: [1, 0, 0, 1, 0, 0],
+    };
   }
-  return {
-    corner: c,
-    mid: { x: (rest.x + c.x) / 2, y: (rest.y + c.y) / 2 },
-    normal: { x: dx / length, y: dy / length },
-    depth: length / 2,
-    progress: clamp((rest.x - c.x) / (2 * leaf.w), 0, 1),
+
+  const normal = pt((rest.x - tip.x) / reach, (rest.y - tip.y) / reach);
+  const crease = pt((rest.x + tip.x) / 2, (rest.y + tip.y) / 2);
+  const side = (q: Point) => (q.x - crease.x) * normal.x + (q.y - crease.y) * normal.y;
+  const reflect = (q: Point) => {
+    const s = 2 * side(q);
+    return pt(q.x - s * normal.x, q.y - s * normal.y);
   };
+
+  const front = clipHalfPlane(rect, q => -side(q));
+  const uncovered = clipHalfPlane(rect, side);
+  const flap = uncovered.map(reflect);
+  // Un punto de la hoja a distancia d del lomo es, en el reverso, el que queda a d del lomo del otro lado.
+  const backClip = uncovered.map(q => pt(2 * w - q.x - backLeft, q.y));
+
+  // Reverso → hoja (reflejo en el lomo) → solapa (reflejo en el pliegue), en una sola matriz.
+  const { x: nx, y: ny } = normal;
+  const r11 = 1 - 2 * nx * nx;
+  const r12 = -2 * nx * ny;
+  const r22 = 1 - 2 * ny * ny;
+  const k = 2 * (nx * crease.x + ny * crease.y);
+  const shift = 2 * w - backLeft;
+  const backMatrix: Fold['backMatrix'] = [
+    -r11, -r12, r12, r22,
+    r11 * shift + k * nx - backLeft,
+    r12 * shift + k * ny,
+  ];
+
+  return { leafLeft, backLeft, front, uncovered, flap, backClip, crease, normal, reach, backMatrix };
 }
 
 /**
- * Esquina mientras se arrastra: se mueve con el dedo (`delta`) multiplicado por `gain`. Con gain 1
- * la esquina queda bajo el dedo (se agarró la esquina); con 2 el pliegue sigue al dedo (se agarró
- * lejos del borde, o la hoja entra desde el lomo).
+ * Fuerza de las sombras del pliegue (0 a 1): nace apenas se levanta la esquina y se apaga al
+ * apoyarse, así el último cuadro es igual a la página quieta.
  */
-export function dragCorner(start: Vec, delta: Vec, gain: number, leaf: LeafSize, corner: FoldCorner): Vec {
-  return constrainCorner({ x: start.x + gain * delta.x, y: start.y + gain * delta.y }, leaf, corner);
+export function foldShadow(progress: number): number {
+  const p = clamp(Number.isFinite(progress) ? progress : 0, 0, 1);
+  return clamp(Math.sin(Math.PI * p) * 1.6, 0, 1);
 }
 
-/** Cuánto sigue la esquina al dedo según dónde se agarró la hoja (distancia al borde de afuera). */
-export function dragGain(grabX: number, leaf: LeafSize): number {
-  return 1 + clamp((leaf.w - grabX) / (leaf.w * 0.5), 0, 1);
+/** Lo que queda de un polígono convexo del lado donde `keep` es ≥ 0 (Sutherland–Hodgman). */
+export function clipHalfPlane(polygon: Point[], keep: (q: Point) => number): Point[] {
+  const out: Point[] = [];
+  for (let i = 0; i < polygon.length; i++) {
+    const a = polygon[i];
+    const b = polygon[(i + 1) % polygon.length];
+    const fa = keep(a);
+    const fb = keep(b);
+    if (fa >= 0) out.push(a);
+    if ((fa >= 0) !== (fb >= 0)) {
+      const t = fa / (fa - fb);
+      out.push(pt(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t));
+    }
+  }
+  return out;
 }
 
-// ── Transformaciones afines ──────────────────────────────────────────────
-
-export const IDENTITY: Affine = [1, 0, 0, 1, 0, 0];
-
-export function translate(x: number, y: number): Affine {
-  return [1, 0, 0, 1, x, y];
-}
-
-export function scale(x: number, y: number): Affine {
-  return [x, 0, 0, y, 0, 0];
-}
-
-/** Giro que lleva el eje x a la dirección (cos, sin) (de largo 1). */
-export function rotation(cos: number, sin: number): Affine {
-  return [cos, sin, -sin, cos, 0, 0];
-}
-
-/** Reflejo sobre la recta que pasa por `point` con normal `normal` (de largo 1). */
-export function reflection(point: Vec, normal: Vec): Affine {
-  const { x: nx, y: ny } = normal;
-  const k = 2 * (point.x * nx + point.y * ny);
-  return [1 - 2 * nx * nx, -2 * nx * ny, -2 * nx * ny, 1 - 2 * ny * ny, k * nx, k * ny];
-}
-
-/** Composición de derecha a izquierda: compose(m, n)(p) = m(n(p)). */
-export function compose(...ms: Affine[]): Affine {
-  return ms.reduce((m, n) => {
-    const [a1, b1, c1, d1, e1, f1] = m;
-    const [a2, b2, c2, d2, e2, f2] = n;
-    return [
-      a1 * a2 + c1 * b2, b1 * a2 + d1 * b2,
-      a1 * c2 + c1 * d2, b1 * c2 + d1 * d2,
-      a1 * e2 + c1 * f2 + e1, b1 * e2 + d1 * f2 + f1,
-    ] as Affine;
-  }, IDENTITY);
-}
-
-export function invert(m: Affine): Affine {
-  const [a, b, c, d, e, f] = m;
-  const det = a * d - b * c || 1e-9;
-  const ia = d / det, ib = -b / det, ic = -c / det, id = a / det;
-  return [ia, ib, ic, id, -(ia * e + ic * f), -(ib * e + id * f)];
-}
-
-export function apply(m: Affine, p: Vec): Vec {
-  return { x: m[0] * p.x + m[2] * p.y + m[4], y: m[1] * p.x + m[3] * p.y + m[5] };
-}
-
-/** Para style.transform (con transform-origin: 0 0). */
-export function toCss(m: Affine): string {
-  const r = (v: number, digits: number) => (Math.abs(v) < 1e-9 ? 0 : +v.toFixed(digits));
-  return `matrix(${r(m[0], 5)},${r(m[1], 5)},${r(m[2], 5)},${r(m[3], 5)},${r(m[4], 2)},${r(m[5], 2)})`;
-}
-
-function withinReach(p: Vec, anchor: Vec, reach: number): Vec {
-  const dx = p.x - anchor.x;
-  const dy = p.y - anchor.y;
-  const d = Math.hypot(dx, dy);
-  if (d <= reach || d === 0) return p;
-  return { x: anchor.x + (dx / d) * reach, y: anchor.y + (dy / d) * reach };
+function pt(x: number, y: number): Point {
+  return { x, y };
 }
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
-}
-
-function finite(value: number, fallback: number): number {
-  return Number.isFinite(value) ? value : fallback;
 }

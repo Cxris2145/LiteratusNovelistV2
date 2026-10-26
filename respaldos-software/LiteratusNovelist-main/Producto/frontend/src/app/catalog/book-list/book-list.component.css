@@ -637,6 +637,8 @@
   cursor: pointer;
   text-decoration: none;
   transition: all 0.25s ease;
+  backdrop-filter: none; /* fondo opaco: el blur de .glass-panel no se ve y cuesta en el scroll */
+  -webkit-backdrop-filter: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -740,6 +742,22 @@
   justify-content: space-between;
   font-size: 0.7rem;
   color: var(--text-muted, #A2B2A8);
+}
+
+/* Tarjetas vacías mientras llegan las recomendaciones: mismo alto que una con título de dos
+   líneas, y con el tono del esqueleto fijo, sin brillo animado (animar el fondo repinta en
+   cada cuadro). */
+.rec-card--skeleton {
+  pointer-events: none;
+}
+
+.rec-card--skeleton .rec-card-cover {
+  background: var(--color-skeleton-shine);
+}
+
+.rec-card--skeleton .rec-card-body {
+  box-sizing: border-box;
+  min-height: 136px;
 }
 
 /* ── Filtros Activos ── */
@@ -871,6 +889,10 @@
   position: relative;
   height: 100%;
   box-sizing: border-box;
+  /* .glass-panel trae blur(16px), pero aquí el fondo es opaco y no se ve: en el celular
+     cada tarjeta recalculaba ese blur en cada cuadro del scroll. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 @keyframes cardFadeIn {
@@ -989,7 +1011,6 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-family: var(--font-ui, sans-serif);
-  backdrop-filter: blur(6px);
   width: fit-content;
 }
 
@@ -1900,4 +1921,29 @@
 }
 @media (max-width: 480px) {
   .grid-container { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CELULAR: scroll fluido. Cada blur sobre la portada es una capa que la GPU recalcula en cada
+   cuadro, y con 24-50 tarjetas el scroll caía de cuadros. Sin blur, los fondos suben un poco su
+   opacidad para que el corazón y la barra de progreso se lean igual sobre portadas claras.
+   El reflejo de entrada (has-enter-sheen) también se omite: eran decenas de animaciones a la vez
+   justo cuando el lector empieza a deslizar.
+   ══════════════════════════════════════════════════════════════════ */
+@media (hover: none), (max-width: 768px) {
+  .card-favorite-btn,
+  .rec-heart-btn,
+  .card-reading-progress {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .card-favorite-btn,
+  .rec-heart-btn { background: rgba(8, 14, 26, 0.82); }
+  .card-favorite-btn.active { background: rgba(72, 22, 24, 0.86); }
+  .card-reading-progress { background: rgba(8, 14, 26, 0.92); }
+
+  .grid-container .book-card::after,
+  .rec-cards-row .rec-card-cover::after {
+    content: none;
+  }
 }

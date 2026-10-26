@@ -1,63 +1,89 @@
-import {
-  IDENTITY, apply, compose, constrainCorner, dragCorner, dragGain, foldFor, invert, reflection, restCorner, rotation,
-  toCss, translate, turnedCorner,
-} from './reader-book-fold';
+import { Point, foldAt, foldShadow } from './reader-book-fold';
 
-describe('pliegue de la hoja', () => {
-  const leaf = { w: 500, h: 700 };
-  const near = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-    expect(a.x).toBeCloseTo(b.x, 4);
-    expect(a.y).toBeCloseTo(b.y, 4);
-  };
+describe('geometría de la hoja que se pliega', () => {
+  const w = 400;
+  const h = 560;
+  const area = (poly: Point[]) => Math.abs(poly.reduce((sum, a, i) => {
+    const b = poly[(i + 1) % poly.length];
+    return sum + a.x * b.y - b.x * a.y;
+  }, 0)) / 2;
+  const apply = (m: number[], q: Point, left: number) => ({ x: m[0] * q.x + m[2] * q.y + m[4] + left, y: m[1] * q.x + m[3] * q.y + m[5] });
 
-  it('con la esquina en reposo no hay pliegue', () => {
-    const fold = foldFor(restCorner(leaf, 'bottom'), leaf, 'bottom');
-    expect(fold.progress).toBe(0);
-    expect(fold.depth).toBe(0);
-    expect(fold.normal).toEqual({ x: 1, y: 0 });
+  it('quieta, la hoja es entera y no hay solapa', () => {
+    const fold = foldAt(0, 1, 'bottom', w, h);
+    expect(area(fold.front)).toBeCloseTo(w * h, 3);
+    expect(fold.flap.length).toBe(0);
+    expect(fold.reach).toBe(0);
   });
 
-  it('dada vuelta del todo, el pliegue es el lomo', () => {
-    const fold = foldFor(turnedCorner(leaf, 'bottom'), leaf, 'bottom');
-    expect(fold.progress).toBe(1);
-    near(fold.mid, { x: 0, y: 700 });
-    near(fold.normal, { x: 1, y: 0 });
+  it('al final, la solapa cubre justo la otra página y el reverso queda derecho', () => {
+    const fold = foldAt(1, 1, 'bottom', w, h);
+    expect(area(fold.front)).toBeCloseTo(0, 3);
+    expect(area(fold.flap)).toBeCloseTo(w * h, 3);
+    for (const q of fold.flap) expect(q.x).toBeLessThanOrEqual(w + 1e-6);
+    const [a, b, c, d, e, f] = fold.backMatrix;
+    expect(a).toBeCloseTo(1, 6);
+    expect(b).toBeCloseTo(0, 6);
+    expect(c).toBeCloseTo(0, 6);
+    expect(d).toBeCloseTo(1, 6);
+    expect(e).toBeCloseTo(0, 6);
+    expect(f).toBeCloseTo(0, 6);
   });
 
-  it('el pliegue refleja la esquina en reposo sobre la esquina movida', () => {
-    const fold = foldFor({ x: 120, y: 610 }, leaf, 'bottom');
-    near(apply(reflection(fold.mid, fold.normal), restCorner(leaf, 'bottom')), fold.corner);
-    // La normal apunta hacia afuera (el lado que todavía no se dio vuelta).
-    expect(fold.normal.x).toBeGreaterThan(0);
-    expect(fold.progress).toBeCloseTo((500 - 120) / 1000, 6);
+  it('el papel no se estira: anverso y solapa suman una página', () => {
+    for (const p of [0.05, 0.2, 0.5, 0.8, 0.97]) {
+      const fold = foldAt(p, 1, 'bottom', w, h);
+      expect(area(fold.front) + area(fold.flap)).toBeCloseTo(w * h, 2);
+    }
   });
 
-  it('la hoja no se despega del lomo ni se hunde bajo el libro', () => {
-    const lejos = constrainCorner({ x: -900, y: 200 }, leaf, 'bottom');
-    expect(Math.hypot(lejos.x, lejos.y - 700)).toBeLessThanOrEqual(500.001);
-    const abajo = constrainCorner({ x: 400, y: 900 }, leaf, 'bottom');
-    expect(abajo.y).toBeLessThanOrEqual(700);
-    const arriba = constrainCorner({ x: 400, y: -80 }, leaf, 'top');
-    expect(arriba.y).toBeGreaterThanOrEqual(0);
-    const diagonal = constrainCorner({ x: -480, y: -500 }, leaf, 'bottom');
-    expect(Math.hypot(diagonal.x, diagonal.y)).toBeLessThanOrEqual(Math.hypot(500, 700) + 0.001);
+  it('el lomo nunca se dobla', () => {
+    for (const p of [0.02, 0.15, 0.4, 0.6, 0.85, 0.99]) {
+      for (const corner of ['bottom', 'top'] as const) {
+        const fold = foldAt(p, 1, corner, w, h);
+        const side = (q: Point) => (q.x - fold.crease.x) * fold.normal.x + (q.y - fold.crease.y) * fold.normal.y;
+        expect(side({ x: w, y: 0 })).toBeLessThanOrEqual(1e-6);
+        expect(side({ x: w, y: h })).toBeLessThanOrEqual(1e-6);
+      }
+    }
   });
 
-  it('al arrastrar: desde la esquina la sigue el dedo; lejos del borde, el pliegue', () => {
-    expect(dragGain(500, leaf)).toBe(1);
-    expect(dragGain(250, leaf)).toBe(2);
-    expect(dragGain(400, leaf)).toBeCloseTo(1.4, 6);
-    const start = restCorner(leaf, 'bottom');
-    near(dragCorner(start, { x: -100, y: 0 }, 1, leaf, 'bottom'), { x: 400, y: 700 });
-    near(dragCorner(start, { x: -100, y: 0 }, 2, leaf, 'bottom'), { x: 300, y: 700 });
+  it('el reverso llega a la solapa con una rotación (el texto no queda espejado)', () => {
+    for (const p of [0.1, 0.5, 0.9]) {
+      const fold = foldAt(p, 1, 'bottom', w, h);
+      const [a, b, c, d] = fold.backMatrix;
+      expect(a * d - b * c).toBeCloseTo(1, 6);
+      fold.backClip.forEach((q, i) => {
+        const moved = apply(fold.backMatrix, q, fold.backLeft);
+        expect(moved.x).toBeCloseTo(fold.flap[i].x, 6);
+        expect(moved.y).toBeCloseTo(fold.flap[i].y, 6);
+      });
+    }
   });
 
-  it('las transformaciones se componen y se invierten', () => {
-    const m = compose(translate(30, -12), rotation(Math.cos(0.7), Math.sin(0.7)), reflection({ x: 4, y: 9 }, { x: 0.6, y: 0.8 }));
-    const p = { x: 123, y: -45 };
-    near(apply(compose(invert(m), m), p), p);
-    near(apply(compose(m, invert(m)), p), p);
-    expect(compose()).toEqual(IDENTITY);
-    expect(toCss(translate(10.123, 0))).toBe('matrix(1,0,0,1,10.12,0)');
+  it('hacia atrás es el espejo de hacia adelante', () => {
+    const forward = foldAt(0.35, 1, 'bottom', w, h);
+    const backward = foldAt(0.35, -1, 'bottom', w, h);
+    expect(backward.leafLeft).toBe(0);
+    expect(backward.backLeft).toBe(w);
+    expect(area(backward.front)).toBeCloseTo(area(forward.front), 4);
+    expect(backward.crease.x).toBeCloseTo(2 * w - forward.crease.x, 6);
+    expect(backward.crease.y).toBeCloseTo(forward.crease.y, 6);
+    const end = foldAt(1, -1, 'bottom', w, h);
+    [1, 0, 0, 1, 0, 0].forEach((v, i) => expect(end.backMatrix[i]).toBeCloseTo(v, 6));
+  });
+
+  it('tomada de arriba es el espejo vertical de tomada de abajo', () => {
+    const low = foldAt(0.3, 1, 'bottom', w, h);
+    const high = foldAt(0.3, 1, 'top', w, h);
+    expect(area(high.front)).toBeCloseTo(area(low.front), 4);
+    expect(high.crease.y).toBeCloseTo(h - low.crease.y, 6);
+  });
+
+  it('las sombras nacen al levantarse y se apagan al apoyarse', () => {
+    expect(foldShadow(0)).toBe(0);
+    expect(foldShadow(0.07)).toBeGreaterThan(0.25);
+    expect(foldShadow(0.5)).toBe(1);
+    expect(foldShadow(1)).toBeLessThan(1e-9);
   });
 });
