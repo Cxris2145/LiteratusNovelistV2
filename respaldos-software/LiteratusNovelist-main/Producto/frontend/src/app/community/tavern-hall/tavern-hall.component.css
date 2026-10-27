@@ -278,20 +278,18 @@
   border-radius: var(--th-radius-panel, 18px);
 }
 /* Los botones flotantes (cuaderno y asistente) viven en la esquina inferior derecha: la columna
-   deja ese espacio al final para que la última fila del ranking se pueda llevar por encima. */
+   deja ese espacio al final para que la lista de amigos se pueda llevar por encima. */
 @media (min-width: 1001px) {
   .area-side { padding-bottom: 120px; }
 }
 .area-profile,
-.area-side > app-friend-list,
-.area-side > app-tavern-ranking {
+.area-side > app-friend-list {
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--th-border) transparent;
   border-radius: var(--th-radius-panel, 18px);
 }
-.area-side > app-tavern-ranking { max-height: none; }
 
 .th-visitor {
   display: grid;
@@ -355,7 +353,7 @@
   :host { --th-stage-height: 520px; }
   .th-layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas: 'scene scene' 'profile friends' 'profile ranking';
+    grid-template-areas: 'scene scene' 'profile friends';
   }
   .area-profile,
   .area-side {
@@ -365,9 +363,7 @@
   }
   .area-side { display: contents; }
   .area-side > app-friend-list { grid-area: friends; }
-  .area-side > app-tavern-ranking { grid-area: ranking; }
-  .area-side > app-friend-list,
-  .area-side > app-tavern-ranking { max-height: none; overflow: visible; }
+  .area-side > app-friend-list { max-height: none; overflow: visible; }
   .th-hero { flex-wrap: wrap; }
   .th-visitor { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'scene' 'welcome'; }
   .th-visitor-side { display: contents; }
@@ -390,7 +386,7 @@
   .th-actions .th-btn .material-symbols-rounded { font-size: 18px; }
   .th-layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'scene' 'profile' 'friends' 'ranking';
+    grid-template-areas: 'scene' 'profile' 'friends';
     gap: 16px;
   }
 }

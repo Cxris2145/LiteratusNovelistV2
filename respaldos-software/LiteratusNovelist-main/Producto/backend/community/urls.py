@@ -1,5 +1,5 @@
 """
-community/urls.py — La Taberna de Tinta: amigos, brindis, perfiles y ranking.
+community/urls.py — La Taberna de Tinta: amigos, brindis y perfiles.
 """
 from django.urls import path
 
@@ -17,7 +17,6 @@ from .views import (
     FriendRequestDeclineView,
     FriendRequestsView,
     PresenceView,
-    RankingView,
     ReadingClubBooksView,
     ReadingClubChapterMessagesView,
     ReadingClubDetailView,
@@ -49,7 +48,6 @@ urlpatterns = [
     path('requests/<uuid:pk>/', FriendRequestCancelView.as_view(), name='community-request-cancel'),
     path('profiles/<str:code>/', CommunityProfileView.as_view(), name='community-profile'),
     path('profiles/<str:code>/brindis/', BrindisView.as_view(), name='community-brindis'),
-    path('ranking/', RankingView.as_view(), name='community-ranking'),
     path('presence/', PresenceView.as_view(), name='community-presence'),
     path('tavern/messages/', TavernMessagesView.as_view(), name='tavern-messages'),
     path('tavern/messages/<uuid:pk>/', TavernMessageDetailView.as_view(), name='tavern-message-detail'),

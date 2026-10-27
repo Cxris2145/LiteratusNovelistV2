@@ -32,7 +32,6 @@ export interface Seat {
   slot: Slot;
   guest: SceneGuest;
   isMe: boolean;
-  isFirst: boolean;
   bubble: BubbleData | null;
   mug: boolean;
 }
@@ -92,7 +91,6 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   @Input() messages: TavernChatMessage[] = [];
   @Input() reactions: TavernReactionItem[] = [];
   @Input() toasting = false;
-  @Input() topRankUsername: string | null = null;
   /** El Bazar está abierto: la lámpara alumbra a tu Maguito, que hace de espejo. */
   @Input() fitting = false;
   /** Cambia con cada prenda probada, canjeada o puesta. */
@@ -420,16 +418,11 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private build(): void {
-    const isFirstRank = (u: string) => {
-      if (this.topRankUsername) return u.toLowerCase() === this.topRankUsername.toLowerCase();
-      return this.demo && u === 'Maguito';
-    };
-
     if (this.demo) {
       // Distribución idéntica a la maqueta:
       // Izquierda: Tercer amigo (sombrero rojo con flor)
       // Centro: Amigo de Maguito (barba y sombrero de mago)
-      // Derecha: Maguito con corona y gafas de aviador
+      // Derecha: Maguito con gafas de aviador
       const leftGuest = this.guests.find(g => g.code === 'demo-tercer') || this.guests[1] || this.guests[0];
       const centerGuest = this.guests.find(g => g.code === 'demo-amigo') || this.guests[0];
       const meGuest = this.me || { code: 'demo-me', username: 'Maguito', outfit: { head: 'aviator', cape: 'red' }, level: 12 };
@@ -439,7 +432,6 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
           slot: 'l1',
           guest: leftGuest,
           isMe: false,
-          isFirst: false,
           bubble: { text: '¡Qué gran capítulo! 📚', isChat: false },
           mug: true,
         },
@@ -447,7 +439,6 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
           slot: 'center',
           guest: centerGuest,
           isMe: false,
-          isFirst: false,
           bubble: { text: '¡Salud por más historias! 🍺', isChat: false },
           mug: true,
         },
@@ -455,7 +446,6 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
           slot: 'r1',
           guest: meGuest,
           isMe: true,
-          isFirst: true,
           bubble: { text: 'Siempre hay otra historia por contar… ✨', isChat: false },
           mug: true,
         },
@@ -469,11 +459,11 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     const seatedGuests = this.guests.filter(guest => guest.status?.kind === 'tavern');
     const slots: Slot[] = ['l1', 'r1', 'l2', 'r2'];
     this.seats = seatedGuests.slice(0, 4).map((guest, index) => ({
-      slot: slots[index], guest, isMe: false, isFirst: isFirstRank(guest.username),
+      slot: slots[index], guest, isMe: false,
       bubble: this.bubbleFor(guest, index), mug: true,
     }));
     if (this.me) this.seats.push({
-      slot: 'center', guest: this.me, isMe: true, isFirst: isFirstRank(this.me.username),
+      slot: 'center', guest: this.me, isMe: true,
       bubble: this.fitting ? FITTING_BUBBLE : this.hostBubble(), mug: !this.fitting,
     });
     this.emptySlots = slots.slice(seatedGuests.length, Math.max(2, Math.min(4, seatedGuests.length + 1)));

@@ -289,7 +289,7 @@ class PrivacyTests(CommunityAPITestCase):
     def test_unknown_code_is_404_and_anonymous_is_401(self):
         self.assertEqual(self.as_user(self.ana).get(f'{API}profiles/ZZZZZZ/').status_code, 404)
         self.client.force_authenticate(None)
-        for url in ('me/', 'friends/', 'requests/', 'ranking/', f'profiles/{code_of(self.ana)}/'):
+        for url in ('me/', 'friends/', 'requests/', f'profiles/{code_of(self.ana)}/'):
             self.assertEqual(self.client.get(API + url).status_code, status.HTTP_401_UNAUTHORIZED, url)
 
     def test_search_by_code_or_name_excludes_me_and_inactive(self):
@@ -451,46 +451,7 @@ class BrindisTests(CommunityAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class RankingTests(CommunityAPITestCase):
-    def setUp(self):
-        super().setUp()
-        self.befriend(self.ana, self.bruno)
-        Profile.objects.filter(user=self.ana).update(xp=100)
-        Profile.objects.filter(user=self.bruno).update(xp=300)
-        Profile.objects.filter(user=self.carla).update(xp=9999)  # no es amiga de Ana
-
-    def ranking(self, scope, **params):
-        return self.as_user(self.ana).get(f'{API}ranking/', {'scope': scope, **params}).data
-
-    def test_all_time_uses_total_xp_and_only_friends(self):
-        data = self.ranking('all')
-
-        self.assertEqual([(e['username'], e['points']) for e in data['entries']], [('bruno', 300), ('ana', 100)])
-        self.assertEqual(data['me']['rank'], 2)
-
-    def test_week_counts_only_this_week(self):
-        today = timezone.localdate()
-        monday = today - timedelta(days=today.weekday())
-        DailyActivityLog.objects.create(user=self.ana, date=today, xp_earned=40)
-        DailyActivityLog.objects.create(user=self.bruno, date=monday - timedelta(days=1), xp_earned=500)
-
-        data = self.ranking('week')
-
-        self.assertEqual([(e['username'], e['points']) for e in data['entries']], [('ana', 40), ('bruno', 0)])
-
-    def test_ties_share_rank_and_me_is_returned_outside_the_top(self):
-        Profile.objects.filter(user=self.ana).update(xp=300)
-        self.befriend(self.carla, self.ana)
-
-        data = self.ranking('all', limit=1)
-
-        self.assertEqual(len(data['entries']), 1)
-        self.assertEqual(data['me']['rank'], 2)  # carla 9999; ana y bruno empatan en 300
-        self.assertEqual(data['participants'], 3)
-
-    def test_invalid_scope(self):
-        self.assertEqual(self.as_user(self.ana).get(f'{API}ranking/', {'scope': 'year'}).status_code, 400)
-
+class DailyActivityLogTests(CommunityAPITestCase):
     def test_reward_activity_feeds_the_daily_log(self):
         reward_activity(self.ana, 'chapter_read')
         reward_activity(self.ana, 'chapter_read')

@@ -36,8 +36,6 @@ export class ProfileCardComponent {
   @Input() card: CommunityProfile | null = null;
   @Input() mine = false;
   @Input() compact = false;
-  /** Primer lugar del ranking semanal (con puntos). */
-  @Input() crowned = false;
   /** El Bazar está abierto (para aria-expanded del botón "Vestir a Maguito"). */
   @Input() dressing = false;
   /** "Vestir a Maguito": la página abre el ropero del Bazar. */

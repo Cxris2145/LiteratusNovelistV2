@@ -157,21 +157,6 @@ class BrindisView(CommunityView):
         return _result(services.remove_brindis(request.user, target)) if target else _not_found()
 
 
-class RankingView(CommunityView):
-    """GET ranking/?scope=week|month|all&limit=5 — Ranking de mis amigos y yo."""
-
-    def get(self, request):
-        scope = request.query_params.get('scope', 'week')
-        if scope not in services.RANKING_SCOPES:
-            return Response({'success': False, 'error': 'INVALID_SCOPE',
-                             'message': 'El periodo debe ser week, month o all.'}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            limit = max(1, min(int(request.query_params.get('limit', 5)), 50))
-        except ValueError:
-            limit = 5
-        return Response(services.ranking(request.user, scope, limit))
-
-
 class PresenceView(CommunityView):
     """POST presence/ — Latido mientras la página de La Taberna está abierta."""
 

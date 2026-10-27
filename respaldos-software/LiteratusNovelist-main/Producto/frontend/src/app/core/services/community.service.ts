@@ -7,7 +7,6 @@ import { MaguitoOutfit } from '../components/maguito/maguito-outfit';
 
 /** Qué relación tengo con otro lector. */
 export type Relation = 'self' | 'friend' | 'outgoing' | 'incoming' | 'none';
-export type RankingScope = 'week' | 'month' | 'all';
 
 /** Lo que ve alguien que no es tu amigo cuando el perfil es privado (y en búsquedas y sugerencias). */
 export interface TavernCard {
@@ -89,25 +88,6 @@ export interface FriendRequestItem {
   id: string;
   created_at: string;
   user: TavernCard;
-}
-
-export interface RankingEntry {
-  rank: number;
-  username: string;
-  friend_code: string;
-  outfit: MaguitoOutfit;
-  equipped_frame: string;
-  equipped_title: string;
-  points: number;
-  is_me: boolean;
-}
-
-export interface Ranking {
-  scope: RankingScope;
-  period_start: string | null;
-  entries: RankingEntry[];
-  me: RankingEntry | null;
-  participants: number;
 }
 
 export interface CommunityResult {
@@ -269,7 +249,7 @@ export interface ReadingClubMessageItem {
 }
 
 /**
- * La Taberna de Tinta: amigos, solicitudes, brindis, perfiles, ranking y chat social.
+ * La Taberna de Tinta: amigos, solicitudes, brindis, perfiles y chat social.
  * Son datos de la cuenta: nada pasa por la caché en memoria de ApiService.
  */
 @Injectable({ providedIn: 'root' })
@@ -335,10 +315,6 @@ export class CommunityService {
 
   removeBrindis(code: string): Observable<CommunityResult> {
     return this.api.delete(`${this.base}profiles/${code}/brindis/`);
-  }
-
-  ranking(scope: RankingScope, limit = 5): Observable<Ranking> {
-    return this.api.get(`${this.base}ranking/`, new HttpParams().set('scope', scope).set('limit', limit));
   }
 
   heartbeat(): Observable<{ pending_incoming: number }> {

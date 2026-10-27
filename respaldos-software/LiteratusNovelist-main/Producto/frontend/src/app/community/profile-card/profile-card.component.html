@@ -14,7 +14,7 @@
       <span *ngIf="mine" class="pc-online-dot" title="En la taberna"><span class="pc-sr">En la taberna</span></span>
     </div>
     <div class="pc-identity">
-      <h2 class="pc-name">{{ card.username }}<span *ngIf="crowned" class="material-symbols-rounded pc-crown" aria-label="Primer lugar de la semana" title="Primer lugar de la semana">crown</span></h2>
+      <h2 class="pc-name">{{ card.username }}</h2>
       <p class="pc-title" *ngIf="card.equipped_title">{{ card.equipped_title }}</p>
       <p class="pc-level">Nivel {{ card.level }} · {{ card.level_name }}</p>
     </div>

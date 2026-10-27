@@ -345,10 +345,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ts-name-crown {
-  font-size: 13px;
-  line-height: 1;
-}
 
 .ts-name.seat-center,
 .ts-name.seat-me {

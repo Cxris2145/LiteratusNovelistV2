@@ -452,8 +452,8 @@ def reward_activity(user, activity_type: str, reference_id: str = '', custom_ink
 
 def _log_daily_activity(user, xp: int, ink: int):
     """
-    Suma lo ganado hoy al registro diario: es el historial que usa el ranking semanal
-    y mensual de La Taberna. Todo el XP del sistema pasa por reward_activity.
+    Suma lo ganado hoy al registro diario: es el historial que usan La Senda y el control
+    parental. Todo el XP del sistema pasa por reward_activity.
     """
     from learning.models import DailyActivityLog
 

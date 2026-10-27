@@ -190,7 +190,6 @@
   <button *ngFor="let seat of seats; trackBy: trackSeat" type="button" class="ts-name" [ngClass]="'seat-' + seat.slot" [disabled]="demo" (click)="guestSelect.emit(seat.guest)" [attr.aria-label]="'Ver perfil de ' + seat.guest.username">
     <span class="th-dot" [ngClass]="seat.isMe ? 'tavern' : (seat.guest.status?.kind || 'tavern')"></span>
     <span class="ts-name-text">{{ seat.isMe ? (demo ? seat.guest.username : (me?.username || 'Tú')) : seat.guest.username }}</span>
-    <span *ngIf="seat.isFirst" class="ts-name-crown" title="Primer lugar del ranking">👑</span>
   </button>
 
 

@@ -44,9 +44,9 @@ describe('TavernHallComponent', () => {
 
   beforeEach(() => {
     community = jasmine.createSpyObj('CommunityService',
-      ['me', 'friends', 'requests', 'ranking', 'heartbeat', 'getActivity'], { changed$: new Subject<void>() });
+      ['me', 'friends', 'requests', 'heartbeat', 'getActivity'], { changed$: new Subject<void>() });
     // La carga real no importa en estas pruebas: queda pendiente.
-    for (const method of ['me', 'friends', 'requests', 'ranking', 'heartbeat', 'getActivity'] as const) {
+    for (const method of ['me', 'friends', 'requests', 'heartbeat', 'getActivity'] as const) {
       (community[method] as jasmine.Spy).and.returnValue(NEVER);
     }
     router = jasmine.createSpyObj('Router', ['navigate']);

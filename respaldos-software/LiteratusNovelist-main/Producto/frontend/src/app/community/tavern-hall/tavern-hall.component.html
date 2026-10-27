@@ -74,7 +74,7 @@
   <div class="th-layout" [class.is-bazar-open]="bazarOpen" *ngIf="loggedIn; else visitor">
     <!-- Columna izquierda: Tu perfil -->
     <app-profile-card #profileCard class="area-profile" [class.is-spotlight]="profileSpotlight"
-                      [compact]="true" [card]="me" [mine]="true" [crowned]="weeklyLeader"
+                      [compact]="true" [card]="me" [mine]="true"
                       [dressing]="bazarOpen" (dress)="openBazar('ropero')"
                       [savingPrivacy]="savingPrivacy" (privacyChange)="setPrivacy($event)"></app-profile-card>
 
@@ -94,7 +94,6 @@
         [messages]="messages"
         [reactions]="recentReactions"
         [toasting]="toasting"
-        [topRankUsername]="topRankUsername"
         [fitting]="bazarOpen"
         [fittingTick]="fittingTick"
         [fittingGesture]="fittingGesture"
@@ -107,7 +106,7 @@
       </app-tavern-scene>
     </div>
 
-    <!-- Columna derecha: Amigos y Ranking -->
+    <!-- Columna derecha: Amigos -->
     <div class="area-side">
       <app-friend-list
         [friends]="friends"
@@ -125,13 +124,6 @@
         (remove)="remove($event)"
         (addFriend)="openAddFriend()">
       </app-friend-list>
-
-      <app-tavern-ranking
-        [ranking]="ranking"
-        [scope]="scope"
-        [loading]="rankingLoading"
-        (scopeChange)="changeScope($event)">
-      </app-tavern-ranking>
     </div>
   </div>
 
@@ -188,7 +180,6 @@
         <ul>
           <li><span class="material-symbols-rounded" aria-hidden="true">badge</span>Recibe tu código de amigo y comparte tu perfil.</li>
           <li><span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>Brinda por las lecturas de tus amigos con jarras de hidromiel.</li>
-          <li><span class="material-symbols-rounded" aria-hidden="true">emoji_events</span>Compite en el ranking semanal leyendo.</li>
           <li><span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Viste a tu Maguito con gorro de aviador, sombrero de bruja o capa roja.</li>
         </ul>
         <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">Entra con tu Maguito</a>

@@ -7,7 +7,7 @@ import { filter, take, takeUntil } from 'rxjs/operators';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { AuthService } from '../../core/services/auth.service';
 import {
-  ChatUnread, CommunityMe, CommunityResult, CommunityService, FriendCard, FriendRequestItem, Ranking, RankingScope,
+  ChatUnread, CommunityMe, CommunityResult, CommunityService, FriendCard, FriendRequestItem,
   TavernChatMessage, TavernReactionItem, TavernInvitation,
 } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -56,7 +56,7 @@ const DEMO_GUESTS: SceneGuest[] = [
 
 /**
  * La Taberna de Tinta (/tavern): tu Maguito a la mesa con tus amigos, tu perfil,
- * la lista de amigos con sus solicitudes, el chat de la mesa, el ranking,
+ * la lista de amigos con sus solicitudes, el chat de la mesa,
  * El Bazar (?bazar=ropero|racha|perfil), donde tu Maguito se prueba la ropa en la mesa,
  * y las charlas privadas con cada amigo (?charla= para la lista, ?charla=CODIGO para una).
  */
@@ -114,10 +114,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   friends: FriendCard[] = [];
   incoming: FriendRequestItem[] = [];
   outgoing: FriendRequestItem[] = [];
-  ranking: Ranking | null = null;
-  scope: RankingScope = 'week';
-  weeklyLeader = false;
-  topRankUsername: string | null = null;
   sceneMe: SceneGuest | null = null;
   sceneGuests: SceneGuest[] = [];
 
@@ -143,7 +139,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private tableOpening = false;
 
   loading = true;
-  rankingLoading = false;
   savingPrivacy = false;
   error = '';
   busy: string | null = null;
@@ -206,7 +201,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       me: this.community.me(),
       friends: this.community.friends(),
       requests: this.community.requests(),
-      ranking: this.community.ranking(this.scope),
       activity: this.community.getActivity(),
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: data => {
@@ -214,7 +208,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.setFriends(data.friends.results);
         this.incoming = data.requests.incoming;
         this.outgoing = data.requests.outgoing;
-        this.setRanking(data.ranking);
         this.mergeMessages(data.activity.messages, ACTIVITY_MESSAGES);
         this.recentReactions = data.activity.reactions;
         this.setInvitations(data.activity.invitations);
@@ -269,15 +262,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         if (this.me) this.me = { ...this.me, is_public: previous };
         this.notification.error('No pudimos guardar la privacidad de tu perfil.', 'Taberna');
       },
-    });
-  }
-
-  changeScope(scope: RankingScope): void {
-    this.scope = scope;
-    this.rankingLoading = true;
-    this.community.ranking(scope).pipe(takeUntil(this.destroy$)).subscribe({
-      next: ranking => { this.setRanking(ranking); this.rankingLoading = false; },
-      error: () => { this.rankingLoading = false; },
     });
   }
 
@@ -642,16 +626,5 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private setInvitations(invitations?: { incoming: TavernInvitation[]; outgoing: TavernInvitation[] }): void {
     this.invitations = invitations?.incoming ?? [];
     this.outgoingInvitations = invitations?.outgoing ?? [];
-  }
-
-  private setRanking(ranking: Ranking): void {
-    this.ranking = ranking;
-    if (ranking.entries.length) {
-      this.topRankUsername = ranking.entries[0].username;
-    }
-    if (ranking.scope === 'week') {
-      const leader = ranking.entries[0];
-      this.weeklyLeader = !!leader && leader.is_me && leader.points > 0 && ranking.participants > 1;
-    }
   }
 }

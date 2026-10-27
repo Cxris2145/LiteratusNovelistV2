@@ -1,10 +1,10 @@
 """
 community/services.py — Lógica de La Taberna de Tinta: amistades, brindis, tarjetas de
-perfil, estado de los amigos y ranking.
+perfil y estado de los amigos.
 
 Las funciones que escriben devuelven {'success', 'error', 'message', 'status'} como el
 resto de servicios del proyecto; `status` es el código HTTP que debe responder la vista.
-Hacer amigos o brindar no da XP ni Tinta: así nadie infla el ranking con cuentas falsas.
+Hacer amigos o brindar no da XP ni Tinta: así nadie infla su nivel con cuentas falsas.
 """
 import base64
 import binascii
@@ -17,7 +17,7 @@ from django.contrib.auth import get_user_model
 from django.core import signing
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.db.models import Case, CharField, Count, OuterRef, Q, Subquery, Sum, Value, When
+from django.db.models import Case, CharField, Count, OuterRef, Q, Subquery, Value, When
 from django.db.models.functions import MD5, Left
 from django.utils import timezone
 
@@ -48,8 +48,6 @@ NEW_READER_WINDOW = timedelta(days=30)
 
 # Mismo alfabeto que users.models.FRIEND_CODE_ALPHABET (sin I, L, O, 0 ni 1).
 FRIEND_CODE_RE = re.compile(r'^[2-9A-HJKMNP-Z]{6}$')
-
-RANKING_SCOPES = ('week', 'month', 'all')
 
 
 def _ok(msg='', status=200, **data):
@@ -565,56 +563,6 @@ def give_brindis(me, other):
 def remove_brindis(me, other):
     Brindis.objects.filter(giver=me, receiver=other).delete()
     return _ok('Brindis retirado.', given=False, brindis_count=Brindis.objects.filter(receiver=other).count())
-
-
-# ── Ranking ───────────────────────────────────────────────────────────
-
-def period_start(scope):
-    today = timezone.localdate()
-    if scope == 'week':
-        return today - timedelta(days=today.weekday())  # la semana parte el lunes, como las misiones
-    if scope == 'month':
-        return today.replace(day=1)
-    return None
-
-
-def ranking(me, scope='week', limit=5):
-    """Ranking de tus amigos y tú. 'all' usa el XP total; semana y mes, el registro diario."""
-    from learning.models import DailyActivityLog
-
-    ids = friend_ids(me) | {me.pk}
-    profiles = list(_profiles().filter(user_id__in=ids))
-    start = period_start(scope)
-    if start is None:
-        points = {p.user_id: p.xp for p in profiles}
-    else:
-        rows = (DailyActivityLog.objects.filter(user_id__in=ids, date__gte=start)
-                .values('user_id').annotate(total=Sum('xp_earned')))
-        points = {row['user_id']: row['total'] or 0 for row in rows}
-
-    ordered = sorted(profiles, key=lambda p: (-points.get(p.user_id, 0), p.user.username.lower()))
-    entries, rank, previous = [], 0, None
-    for position, profile in enumerate(ordered, start=1):
-        value = points.get(profile.user_id, 0)
-        if value != previous:  # empates comparten puesto: 1, 2, 2, 4
-            rank, previous = position, value
-        entries.append({
-            'rank': rank,
-            'username': profile.user.username,
-            'friend_code': profile.friend_code,
-            'outfit': profile.outfit or {},
-            'equipped_frame': profile.equipped_frame,
-            'equipped_title': profile.equipped_title,
-            'points': value,
-            'is_me': profile.user_id == me.pk,
-        })
-    return {
-        'scope': scope,
-        'period_start': start,
-        'entries': entries[:limit],
-        'me': next((e for e in entries if e['is_me']), None),
-        'participants': len(entries),
-    }
 
 
 # ── Chat de la mesa y reacciones ──────────────────────────────────────

@@ -91,7 +91,6 @@
   letter-spacing: -.01em;
   overflow-wrap: anywhere;
 }
-.pc-crown { margin-left: 4px; color: var(--th-gold); font-size: .8em; vertical-align: -.12em; font-variation-settings: 'FILL' 1; }
 .pc-title {
   margin: 0;
   color: var(--th-gold);
