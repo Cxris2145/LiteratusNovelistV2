@@ -729,3 +729,45 @@
   }
   .rc-composer-wrap { margin-right: 0; }
 }
+
+/* Lectura simultánea: quien tiene el libro abierto ahora lleva un punto verde (dentro del círculo
+   del avatar, que recorta lo que sobresale). */
+.rc-mini-avatar,
+.rc-pill-avatar { position: relative; }
+.rc-live-dot {
+  --rc-live: #3ccf7a;
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rc-live);
+  box-shadow: 0 0 0 1.5px var(--rc-bg);
+}
+.rc-mini-avatar .rc-live-dot { right: 4px; bottom: 4px; }
+.rc-live-dot.is-inline {
+  position: static;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  animation: rc-live-pulse 2s ease-out infinite;
+}
+@keyframes rc-live-pulse {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, #3ccf7a 55%, transparent); }
+  to { box-shadow: 0 0 0 7px color-mix(in srgb, #3ccf7a 0%, transparent); }
+}
+.rc-member-pill.is-live { border-color: color-mix(in srgb, #3ccf7a 55%, transparent); }
+.rc-member-pill.is-live small { color: color-mix(in srgb, #3ccf7a 65%, var(--th-ink)); }
+.rc-chap-here.is-live {
+  background: color-mix(in srgb, #3ccf7a 26%, transparent);
+  color: color-mix(in srgb, #3ccf7a 55%, var(--th-ink));
+}
+.rc-live-hint {
+  margin: 8px 0 0;
+  font-size: .74rem;
+  color: var(--th-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rc-live-dot.is-inline { animation: none; }
+}

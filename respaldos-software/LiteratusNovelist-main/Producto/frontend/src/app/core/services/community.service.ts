@@ -173,14 +173,39 @@ export interface TavernInvitation {
 
 export type ReadingClubMode = 'spoiler_safe' | 'host_paced' | 'free';
 
+/** Dónde va un lector de la lectura conjunta según su lector abierto (palabra = primera a la vista). */
+export interface ReadingClubLivePosition {
+  chapter: number | null;
+  word: number | null;
+  fraction: number;
+  updated_at: string;
+  reading_now: boolean;
+}
+
 export interface ReadingClubMemberInfo {
   friend_code: string;
   username: string;
   outfit: MaguitoOutfit;
-  equipped_frame: string;
+  equipped_frame?: string;
   current_chapter: number;
   is_host: boolean;
   is_me: boolean;
+  reading_now?: boolean;
+  position?: ReadingClubLivePosition | null;
+}
+
+export interface ReadingClubLiveState {
+  success: boolean;
+  club: { id: string; name: string; mode: ReadingClubMode; chapters_count: number };
+  members: ReadingClubMemberInfo[];
+  poll_ms: number;
+}
+
+export interface ReadingClubForBook {
+  id: string;
+  name: string;
+  mode: ReadingClubMode;
+  is_host: boolean;
 }
 
 export interface ReadingClubChapterInfo {
@@ -422,6 +447,23 @@ export class CommunityService {
       content,
       is_spoiler: isSpoiler,
     });
+  }
+
+  // ── Lectura simultánea (sondeo corto mientras el lector está abierto) ──
+
+  clubsForBook(bookId: string): Observable<{ results: ReadingClubForBook[] }> {
+    return this.api.get(`${this.base}clubs/by-book/${bookId}/`);
+  }
+
+  /** Sin posición solo pregunta; con ella (o `{}`, "sigo con el libro abierto") también avisa. */
+  clubLive(clubId: string, position?: { chapter?: number; word?: number | null; fraction?: number }): Observable<ReadingClubLiveState> {
+    return position
+      ? this.api.post(`${this.base}clubs/${clubId}/live/`, position)
+      : this.api.get(`${this.base}clubs/${clubId}/live/`);
+  }
+
+  leaveClubLive(clubId: string): Observable<CommunityResult> {
+    return this.api.delete(`${this.base}clubs/${clubId}/live/`);
   }
 }
 

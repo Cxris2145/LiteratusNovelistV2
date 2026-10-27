@@ -12,6 +12,7 @@ from collections import Counter
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import IntegrityError, transaction
 from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.utils import timezone
@@ -857,25 +858,44 @@ def respond_to_tavern_invitation(me, pk, accept):
 CLUB_MODES = {choice[0] for choice in ReadingClub.Mode.choices}
 
 
-def _sync_member_reading_progress(member: ReadingClubMember, book_chapters_count: int) -> int:
-    """
-    Sincroniza automáticamente el capítulo del miembro si en el lector individual ha avanzado más
-    allá de su marca actual en el club.
-    """
+def _reader_chapter(user_id, book_id, book_chapters_count: int):
+    """(capítulo donde va en el lector, cuándo lo guardó), o (None, None) si nunca abrió el libro."""
     from library.models import ReadingProgress
     prog = (ReadingProgress.objects
-            .filter(inventory__user_id=member.user_id, inventory__edition__book_id=member.club.book_id)
+            .filter(inventory__user_id=user_id, inventory__edition__book_id=book_id)
             .order_by('-updated_at').first())
-    best = member.current_chapter or 1
-    if prog:
-        if prog.current_page and prog.current_page > best:
-            best = min(int(prog.current_page), max(1, book_chapters_count))
-        elif prog.completion_percentage and float(prog.completion_percentage) >= 100 and book_chapters_count > 0:
-            best = max(best, book_chapters_count)
-    if best != member.current_chapter:
-        member.current_chapter = best
+    if not prog:
+        return None, None
+    last = max(1, book_chapters_count)
+    if prog.completion_percentage and float(prog.completion_percentage) >= 100:
+        return last, prog.updated_at
+    chapter = min(int(prog.current_page or 0), last)
+    return (chapter or None), prog.updated_at
+
+
+def _sync_member_reading_progress(member: ReadingClubMember, book_chapters_count: int) -> int:
+    """
+    Sube el capítulo del miembro hasta donde va en el lector, si leyó después de su última marca.
+    Quien baja su capítulo a mano lo conserva hasta que vuelve a leer (antes saltaba de vuelta).
+    """
+    chapter, saved_at = _reader_chapter(member.user_id, member.club.book_id, book_chapters_count)
+    if chapter and chapter > (member.current_chapter or 1) and saved_at > member.updated_at:
+        member.current_chapter = chapter
         member.save(update_fields=['current_chapter', 'updated_at'])
-    return best
+    return member.current_chapter or 1
+
+
+def _join_club(club: ReadingClub, user, book_chapters_count: int):
+    """Suma al lector al círculo partiendo del capítulo donde ya va en su lector."""
+    chapter, _ = _reader_chapter(user.pk, club.book_id, book_chapters_count)
+    return ReadingClubMember.objects.get_or_create(club=club, user=user, defaults={'current_chapter': chapter or 1})
+
+
+def _live_member(position) -> dict:
+    return {
+        'reading_now': bool(position and position['reading_now']),
+        'position': position,
+    }
 
 
 def _club_summary(club: ReadingClub, me) -> dict:
@@ -892,6 +912,7 @@ def _club_summary(club: ReadingClub, me) -> dict:
            .filter(user=me, edition__book_id=club.book_id)
            .values_list('id', flat=True).first())
 
+    positions = live.club_positions(club.pk, user_ids)
     members_data = []
     for m in memberships:
         prof = profiles.get(m.user_id)
@@ -904,6 +925,7 @@ def _club_summary(club: ReadingClub, me) -> dict:
             'current_chapter': chap,
             'is_host': m.user_id == club.host_id,
             'is_me': m.user_id == me.pk,
+            **_live_member(positions.get(m.user_id)),
         })
 
     last_msg = club.messages.select_related('user').order_by('-created_at').first()
@@ -1000,14 +1022,14 @@ def create_reading_club(me, data: dict) -> dict:
         unlocked_until_chapter=unlocked,
         allow_member_invites=allow_invites,
     )
-    ReadingClubMember.objects.create(club=club, user=me, current_chapter=1)
+    _join_club(club, me, chapters_count)
 
     raw_codes = data.get('friend_codes') or []
     if isinstance(raw_codes, list) and raw_codes:
         friends = friend_ids(me)
         clean_codes = [normalize_code(c) for c in raw_codes if normalize_code(c)]
         for prof in _profiles().filter(friend_code__in=clean_codes, user_id__in=friends):
-            ReadingClubMember.objects.get_or_create(club=club, user=prof.user, defaults={'current_chapter': 1})
+            _join_club(club, prof.user, chapters_count)
 
     return _ok('¡Círculo de lectura creado!', status=201, club=_club_summary(club, me))
 
@@ -1110,7 +1132,9 @@ def update_my_club_progress(me, club_id, chapter_order: int) -> dict:
     member.current_chapter = target
     member.save(update_fields=['current_chapter', 'updated_at'])
     club.save(update_fields=['updated_at'])
-    return reading_club_detail(me, club.id)
+    res = reading_club_detail(me, club.id)
+    res['message'] = f'Tu capítulo en el círculo quedó en el {target}.'
+    return res
 
 
 @transaction.atomic
@@ -1123,11 +1147,10 @@ def invite_friends_to_club(me, club_id, friend_codes: list) -> dict:
 
     friends = friend_ids(me)
     clean_codes = [normalize_code(c) for c in (friend_codes or []) if normalize_code(c)]
+    chapters_count = max(1, club.book.chapters.count())
     added = 0
     for prof in _profiles().filter(friend_code__in=clean_codes, user_id__in=friends):
-        _, created = ReadingClubMember.objects.get_or_create(
-            club=club, user=prof.user, defaults={'current_chapter': 1}
-        )
+        _, created = _join_club(club, prof.user, chapters_count)
         if created:
             added += 1
     club.save(update_fields=['updated_at'])
@@ -1146,6 +1169,111 @@ def leave_or_delete_club(me, club_id) -> dict:
         return _ok('El círculo de lectura fue cerrado.')
     member.delete()
     return _ok('Saliste del círculo de lectura.')
+
+
+# ── Lectura simultánea: dónde va cada uno mientras lee ────────────────
+# El lector abierto avisa su posición cada pocos segundos (sondeo corto: el servidor corre un
+# solo proceso de gunicorn y sin websockets) y de vuelta recibe la de sus compañeros.
+
+LIVE_POLL_MS = 5000
+CHAPTERS_COUNT_TTL = 10 * 60
+
+
+def clubs_for_book(me, book_id) -> dict:
+    """Mis círculos de este libro, para que el lector sepa con quién se lee (del más activo al menos)."""
+    club_ids = ReadingClubMember.objects.filter(user=me, club__book_id=book_id).values_list('club_id', flat=True)
+    clubs = ReadingClub.objects.filter(id__in=club_ids).order_by('-updated_at')
+    return {'results': [{
+        'id': str(c.id),
+        'name': c.name,
+        'mode': c.mode,
+        'is_host': c.host_id == me.pk,
+    } for c in clubs]}
+
+
+def _chapters_count(club: ReadingClub) -> int:
+    # El lector pregunta cada 5 s: el número de capítulos de un libro casi nunca cambia.
+    return cache.get_or_set(f'club:chapters:{club.book_id}',
+                            lambda: max(1, club.book.chapters.count()), CHAPTERS_COUNT_TTL)
+
+
+def _clean_position(data) -> dict | None:
+    """{chapter, word, fraction} válidos, o None si no llegó un capítulo (solo sigue abierto)."""
+    if not isinstance(data, dict) or data.get('chapter') in (None, ''):
+        return None
+    try:
+        chapter = int(data['chapter'])
+    except (TypeError, ValueError):
+        raise ValueError
+    try:
+        word = int(data['word']) if data.get('word') not in (None, '') else None
+    except (TypeError, ValueError):
+        word = None
+    try:
+        fraction = float(data.get('fraction') or 0)
+    except (TypeError, ValueError):
+        fraction = 0.0
+    if fraction != fraction:  # NaN
+        fraction = 0.0
+    return {
+        'chapter': chapter,
+        'word': word if word is not None and word >= 0 else None,
+        'fraction': round(min(1.0, max(0.0, fraction)), 3),
+    }
+
+
+def club_live(me, club_id, data=None) -> dict:
+    """
+    GET: dónde va cada miembro y quién está leyendo ahora.
+    POST (data): además avisa que sigo leyendo y, si viene, mi posición.
+    """
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No formas parte de este círculo de lectura.', 404)
+    chapters_count = _chapters_count(club)
+
+    if data is not None:
+        try:
+            position = _clean_position(data)
+        except ValueError:
+            return _fail('INVALID_POSITION', 'Indica un número de capítulo válido.')
+        if position and not 1 <= position['chapter'] <= chapters_count:
+            return _fail('INVALID_POSITION', 'Ese capítulo no existe en el libro.')
+        live.touch_club_position(club.pk, me, position)
+        # Avanzar en el lector también avanza tu capítulo del círculo (y abre sus salas).
+        if position and position['chapter'] > member.current_chapter:
+            ReadingClubMember.objects.filter(pk=member.pk, current_chapter__lt=position['chapter']).update(
+                current_chapter=position['chapter'], updated_at=timezone.now())
+
+    memberships = list(club.memberships.select_related('user').order_by('created_at'))
+    profiles = {p.user_id: p for p in _profiles().filter(user_id__in=[m.user_id for m in memberships])}
+    positions = live.club_positions(club.pk, [m.user_id for m in memberships])
+    members = []
+    for m in memberships:
+        prof = profiles.get(m.user_id)
+        members.append({
+            'friend_code': prof.friend_code if prof else '',
+            'username': m.user.username,
+            'outfit': (prof.outfit or {}) if prof else {},
+            'is_host': m.user_id == club.host_id,
+            'is_me': m.user_id == me.pk,
+            'current_chapter': m.current_chapter,
+            **_live_member(positions.get(m.user_id)),
+        })
+    return _ok(
+        club={'id': str(club.id), 'name': club.name, 'mode': club.mode, 'chapters_count': chapters_count},
+        members=members,
+        poll_ms=LIVE_POLL_MS,
+    )
+
+
+def leave_club_live(me, club_id) -> dict:
+    """Cerró el lector: deja de verse «leyendo ahora» sin esperar a que caduque."""
+    club, member = _get_club_and_member(me, club_id)
+    if not club or not member:
+        return _fail('NOT_FOUND', 'No formas parte de este círculo de lectura.', 404)
+    live.leave_club_position(club.pk, me)
+    return _ok()
 
 
 def _club_msg_item(msg: ReadingClubMessage, me, profiles_map: dict) -> dict:

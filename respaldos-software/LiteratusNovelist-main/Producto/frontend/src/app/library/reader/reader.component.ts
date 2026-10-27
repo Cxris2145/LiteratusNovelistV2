@@ -19,7 +19,7 @@ import { BookSearchService } from './book-search.service';
 import { CharacterChatService } from '../../core/services/character-chat.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { VocabularyService } from '../../core/services/vocabulary.service';
-import { ReaderProgressSnapshot, readerProgressPayload } from './reader-progress.util';
+import { ReaderLivePosition, ReaderProgressSnapshot, readerProgressPayload } from './reader-progress.util';
 import { NotebookService } from '../../notebook/notebook.service';
 import { ReadingSummaryContent, ReadingSummaryService } from '../../core/services/reading-summary.service';
 import { ReaderSettingsService } from './reader-settings.service';
@@ -3134,12 +3134,44 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     // Mirar la tapa no es empezar a leer: hasta abrirlo, el libro vuelve a aparecer cerrado.
     if (this.bookClosed === 'front') return;
     const firstWord = !wordId && this.isFullyRendered ? this.visibleWordRange()?.[0] : undefined;
-    this.saveProgressSubject.next({
+    const anchor = wordId || (firstWord !== undefined ? `word-${firstWord}` : '');
+    this.saveProgressSubject.next({ chapter: this.currentPage, exactPage, wordId: anchor, immediate });
+    const word = Number(anchor.replace('word-', ''));
+    this.livePosition = {
       chapter: this.currentPage,
-      exactPage,
-      wordId: wordId || (firstWord !== undefined ? `word-${firstWord}` : ''),
-      immediate,
-    });
+      word: anchor && Number.isFinite(word) ? word : null,
+      fraction: Math.min(1, Math.max(0, this.chapterScrollPercent / 100)),
+    };
+    this.livePosition$.next(this.livePosition);
+  }
+
+  // ── LECTURA CONJUNTA (ver ReaderCompanionsComponent) ─────────────────
+
+  /** Dónde va la lectura (primera palabra a la vista): la lectura conjunta se la avisa a los compañeros. */
+  livePosition: ReaderLivePosition | null = null;
+  /** Avisa cada cambio de página; puede emitir fuera de la zona de Angular (el scroll va fuera). */
+  readonly livePosition$ = new Subject<ReaderLivePosition>();
+
+  /** Lleva a donde va un compañero. `quiet` (al seguirlo) pasa de página sin resaltar ni avisar. */
+  goToCompanion(chapter: number, word: number | null, label: string, quiet = false) {
+    const index = chapter - 1;
+    if (index < 0 || index >= this.chapters.length) return;
+    const sameChapter = index === this.currentPage - 1 && !this.bookClosed;
+    if (word === null) {
+      if (!sameChapter) this.openChapter(index);
+    } else if (!quiet) {
+      this.jumpToWord(index, word, label);
+    } else if (sameChapter) {
+      this.scrollWordIntoView(word, false);
+    } else {
+      this.openChapter(index, { wordIdx: word });
+    }
+  }
+
+  /** ¿Lo que lee el compañero ya está a la vista? Entonces seguirlo no pasa de página. */
+  isCompanionOnScreen(chapter: number, word: number | null): boolean {
+    if (this.bookClosed || chapter !== this.currentPage) return false;
+    return word === null || this.isWordVisible(word);
   }
 
   // ── MODAL PARA IMÁGENES EN CAPÍTULO ──────────────────────────────

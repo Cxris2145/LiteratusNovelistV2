@@ -4,6 +4,7 @@
      [class.rd-book-closed]="isBookView && !!bookClosed && !bookCoverClosing"
      [class.rc-high-contrast]="highContrast" [class.rc-concentration]="concentrationMode">
   <app-reader-chrome></app-reader-chrome>
+  <app-reader-companions></app-reader-companions>
   <app-reader-more-sheet *ngIf="isMoreOpen"></app-reader-more-sheet>
   <!-- ═══════════════════════════════════════════════════════════════ -->
   <!-- OVERLAY COMPARTIDO (click fuera cierra cualquier panel)         -->

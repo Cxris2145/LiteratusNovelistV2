@@ -9,13 +9,14 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from catalog.models import Book, Edition, Genre, Review
+from catalog.models import Book, Chapter, Edition, Genre, Review
 from learning.models import DailyActivityLog
 from library.achievement_engine import reward_activity
 from library.models import ReadingProgress, UserInventory
 from users.models import FRIEND_CODE_ALPHABET, Profile
 
-from .models import Brindis, FriendMessage, Friendship, TavernInvitation, TavernMessage
+from . import live
+from .models import Brindis, FriendMessage, Friendship, ReadingClubMember, TavernInvitation, TavernMessage
 
 User = get_user_model()
 API = '/api/v1/community/'
@@ -709,3 +710,181 @@ class SuggestionTests(CommunityAPITestCase):
         self.assertEqual(results[0]['reason'], '1 amigo en común')
         self.assertEqual(results[1]['reason'], 'También le gusta Fantasia')
         self.assertEqual(results[0]['relation'], 'none')
+
+
+class ReadingClubTestCase(CommunityAPITestCase):
+    """Un libro de 6 capítulos que Ana y Bruno leen juntos; Carla no es amiga de Ana."""
+
+    def setUp(self):
+        super().setUp()
+        self.befriend(self.ana, self.bruno)
+        self.book = Book.objects.create(title='La isla del tesoro', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        self.edition = Edition.objects.create(book=self.book, price=0)
+        for order in range(1, 7):
+            Chapter.objects.create(book=self.book, order=order, title=f'Capítulo {order}', content_html='<p>Texto</p>')
+
+    def read_in_reader(self, user, chapter):
+        """Lo que guarda el lector al pasar de página (ReadingProgress.current_page es el capítulo)."""
+        inventory, _ = UserInventory.objects.get_or_create(user=user, edition=self.edition)
+        progress, _ = ReadingProgress.objects.get_or_create(inventory=inventory)
+        progress.current_page = chapter
+        progress.save()
+        return progress
+
+    def create_club(self, mode='spoiler_safe', friends=()):
+        res = self.as_user(self.ana).post(f'{API}clubs/', {
+            'book_id': str(self.book.id), 'mode': mode, 'friend_codes': [code_of(f) for f in friends],
+        }, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED, res.data)
+        return res.data['club']['id']
+
+    def member(self, club_id, user):
+        return ReadingClubMember.objects.get(club_id=club_id, user=user)
+
+
+class ReadingClubTests(ReadingClubTestCase):
+    def test_create_adds_only_friends_and_starts_where_they_read(self):
+        self.read_in_reader(self.bruno, 3)
+        club_id = self.create_club(friends=[self.bruno, self.carla])
+
+        members = {m.user_id: m.current_chapter for m in ReadingClubMember.objects.filter(club_id=club_id)}
+        self.assertEqual(members, {self.ana.pk: 1, self.bruno.pk: 3})
+
+    def test_strangers_cannot_open_the_club(self):
+        club_id = self.create_club(friends=[self.bruno])
+
+        res = self.as_user(self.carla).get(f'{API}clubs/{club_id}/')
+
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_spoiler_safe_locks_chapters_ahead_of_my_progress(self):
+        club_id = self.create_club(friends=[self.bruno])
+        url = f'{API}clubs/{club_id}/chapters/4/messages/'
+
+        locked = self.as_user(self.bruno).get(url)
+        self.read_in_reader(self.bruno, 4)
+        unlocked = self.as_user(self.bruno).get(url)
+
+        self.assertEqual(locked.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(locked.data['error'], 'CHAPTER_LOCKED')
+        self.assertEqual(unlocked.status_code, status.HTTP_200_OK)
+
+    def test_lowering_my_chapter_by_hand_sticks_until_i_read_again(self):
+        club_id = self.create_club(friends=[self.bruno])
+        self.read_in_reader(self.ana, 5)
+        self.assertEqual(self.as_user(self.ana).get(f'{API}clubs/{club_id}/').data['club']['my_chapter'], 5)
+
+        res = self.as_user(self.ana).post(f'{API}clubs/{club_id}/progress/', {'chapter_order': 2}, format='json')
+        again = self.as_user(self.ana).get(f'{API}clubs/{club_id}/')
+
+        self.assertEqual(res.data['club']['my_chapter'], 2)
+        self.assertEqual(again.data['club']['my_chapter'], 2)
+
+        self.read_in_reader(self.ana, 6)
+        self.assertEqual(self.as_user(self.ana).get(f'{API}clubs/{club_id}/').data['club']['my_chapter'], 6)
+
+    def test_friend_sees_my_reader_chapter_in_the_club(self):
+        club_id = self.create_club(friends=[self.bruno])
+        self.read_in_reader(self.ana, 4)
+
+        members = self.as_user(self.bruno).get(f'{API}clubs/{club_id}/').data['club']['members']
+
+        self.assertEqual({m['username']: m['current_chapter'] for m in members}, {'ana': 4, 'bruno': 1})
+
+
+class ReadingClubLiveTests(ReadingClubTestCase):
+    def setUp(self):
+        super().setUp()
+        self.club_id = self.create_club(friends=[self.bruno])
+        self.live_url = f'{API}clubs/{self.club_id}/live/'
+
+    def report(self, user, **position):
+        return self.as_user(user).post(self.live_url, position, format='json')
+
+    def seen_by(self, viewer, username):
+        res = self.as_user(viewer).get(self.live_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK, res.data)
+        return next(m for m in res.data['members'] if m['username'] == username)
+
+    def test_friend_sees_where_i_am_reading_right_now(self):
+        res = self.report(self.ana, chapter=3, word=120, fraction=0.42)
+
+        ana = self.seen_by(self.bruno, 'ana')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['poll_ms'], 5000)
+        self.assertTrue(ana['reading_now'])
+        self.assertEqual((ana['position']['chapter'], ana['position']['word'], ana['position']['fraction']), (3, 120, 0.42))
+
+    def test_reading_now_fades_when_the_reader_stops_reporting(self):
+        self.report(self.ana, chapter=2, word=10)
+
+        later = timezone.now() + live.CLUB_LIVE_WINDOW + timedelta(seconds=1)
+        with mock.patch('community.live.timezone.now', return_value=later):
+            ana = self.seen_by(self.bruno, 'ana')
+
+        self.assertFalse(ana['reading_now'])
+        self.assertEqual(ana['position']['chapter'], 2)
+
+    def test_closing_the_reader_keeps_the_last_position(self):
+        self.report(self.ana, chapter=2, word=10)
+
+        res = self.as_user(self.ana).delete(self.live_url)
+        ana = self.seen_by(self.bruno, 'ana')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(ana['reading_now'])
+        self.assertEqual(ana['position']['word'], 10)
+
+    def test_heartbeat_without_position_keeps_the_last_one(self):
+        self.report(self.ana, chapter=4, word=7, fraction=0.5)
+        self.as_user(self.ana).delete(self.live_url)
+
+        self.report(self.ana)
+        ana = self.seen_by(self.bruno, 'ana')
+
+        self.assertTrue(ana['reading_now'])
+        self.assertEqual((ana['position']['chapter'], ana['position']['word']), (4, 7))
+
+    def test_reading_ahead_moves_my_club_chapter_but_going_back_does_not(self):
+        self.report(self.bruno, chapter=5, word=0)
+        self.report(self.bruno, chapter=2, word=0)
+
+        self.assertEqual(self.member(self.club_id, self.bruno).current_chapter, 5)
+        res = self.as_user(self.bruno).get(f'{API}clubs/{self.club_id}/chapters/5/messages/')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_invalid_positions_are_rejected(self):
+        for position in ({'chapter': 7}, {'chapter': 0}, {'chapter': 'dos'}):
+            res = self.report(self.ana, **position)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST, position)
+            self.assertEqual(res.data['error'], 'INVALID_POSITION')
+
+    def test_odd_word_and_fraction_are_cleaned(self):
+        self.report(self.ana, chapter=1, word=-3, fraction=9)
+
+        position = self.seen_by(self.bruno, 'ana')['position']
+
+        self.assertEqual((position['word'], position['fraction']), (None, 1.0))
+
+    def test_only_members_follow_the_live_reading(self):
+        for method in ('get', 'post', 'delete'):
+            res = getattr(self.as_user(self.carla), method)(self.live_url)
+            self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND, method)
+
+    def test_club_detail_marks_who_is_reading_now(self):
+        self.report(self.bruno, chapter=1, word=3)
+
+        members = self.as_user(self.ana).get(f'{API}clubs/{self.club_id}/').data['club']['members']
+
+        self.assertEqual({m['username']: m['reading_now'] for m in members}, {'ana': False, 'bruno': True})
+
+    def test_reader_finds_my_clubs_for_the_open_book(self):
+        other = Book.objects.create(title='Otro libro', status=Book.StatusChoices.PUBLISHED, is_published=True)
+
+        mine = self.as_user(self.bruno).get(f'{API}clubs/by-book/{self.book.id}/').data['results']
+        none = self.as_user(self.bruno).get(f'{API}clubs/by-book/{other.id}/').data['results']
+        stranger = self.as_user(self.carla).get(f'{API}clubs/by-book/{self.book.id}/').data['results']
+
+        self.assertEqual([c['id'] for c in mine], [self.club_id])
+        self.assertEqual((none, stranger), ([], []))

@@ -282,6 +282,28 @@ class ReadingClubProgressView(CommunityView):
         return _result(services.update_my_club_progress(request.user, pk, request.data.get('chapter_order')))
 
 
+class ReadingClubsForBookView(CommunityView):
+    """GET clubs/by-book/<uuid:book_id>/ — Mis círculos de este libro (el lector los busca al abrirlo)."""
+    def get(self, request, book_id):
+        return Response(services.clubs_for_book(request.user, book_id))
+
+
+class ReadingClubLiveView(CommunityView):
+    """
+    GET    clubs/<uuid:pk>/live/ — Dónde va cada miembro y quién está leyendo ahora.
+    POST   clubs/<uuid:pk>/live/ — El lector sigue abierto. Body opcional: {chapter, word, fraction}
+    DELETE clubs/<uuid:pk>/live/ — Cerré el lector.
+    """
+    def get(self, request, pk):
+        return _result(services.club_live(request.user, pk))
+
+    def post(self, request, pk):
+        return _result(services.club_live(request.user, pk, request.data))
+
+    def delete(self, request, pk):
+        return _result(services.leave_club_live(request.user, pk))
+
+
 class ReadingClubInviteView(CommunityView):
     """POST clubs/<uuid:pk>/invite/ — Sumar amigos al círculo de lectura."""
     def post(self, request, pk):

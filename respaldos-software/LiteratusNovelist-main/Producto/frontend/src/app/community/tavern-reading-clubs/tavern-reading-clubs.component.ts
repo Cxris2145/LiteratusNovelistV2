@@ -6,13 +6,14 @@ import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import {
-  ClubBookOption, CommunityService, FriendCard, ReadingClubChapterInfo,
+  ClubBookOption, CommunityService, FriendCard, ReadingClubChapterInfo, ReadingClubMemberInfo,
   ReadingClubMessageItem, ReadingClubMode, ReadingClubSummary,
 } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { clockTime, dayLabel, timeAgo } from '../time-ago.util';
 
 const POLL_MS = 4000;
+const LIVE_POLL_MS = 6000;  // dónde va cada uno y quién lee ahora, mientras el círculo está abierto
 export const CLUB_MSG_MAX_LENGTH = 500;
 
 type ClubViewMode = 'list' | 'create' | 'club' | 'chapter' | 'settings' | 'invite';
@@ -89,6 +90,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   error = '';
 
   private poll: ReturnType<typeof setInterval> | null = null;
+  private livePoll: ReturnType<typeof setInterval> | null = null;
   private request?: Subscription;
 
   readonly modes: ReadingClubMode[] = ['spoiler_safe', 'host_paced', 'free'];
@@ -131,6 +133,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
       this.enter = null;
       if (!this.open) {
         this.stopPolling();
+        this.stopLivePolling();
         return;
       }
     }
@@ -140,6 +143,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
         this.openClubDetail(this.clubId);
       } else {
         this.stopPolling();
+        this.stopLivePolling();
         this.view = 'list';
         this.activeClub = null;
         this.activeChapter = null;
@@ -150,6 +154,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopPolling();
+    this.stopLivePolling();
     this.request?.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
@@ -161,6 +166,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
 
   backToList(): void {
     this.stopPolling();
+    this.stopLivePolling();
     this.enter = 'back';
     this.activeClub = null;
     this.activeChapter = null;
@@ -257,6 +263,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
         if (this.view !== 'chapter' && this.view !== 'settings' && this.view !== 'invite') {
           this.view = 'club';
         }
+        this.startLivePolling();
       },
       error: err => {
         this.detailLoading = false;
@@ -274,7 +281,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
       next: res => {
         this.updatingProgress = false;
         this.activeClub = res.club;
-        this.notification.success(`Avance actualizado al Capítulo ${chap}.`, 'Lectura grupal');
+        this.notification.success(res.message || `Avance actualizado al Capítulo ${res.club.my_chapter}.`, 'Lectura grupal');
       },
       error: err => {
         this.updatingProgress = false;
@@ -283,14 +290,30 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
     });
   }
 
+  /** Con el libro en tu biblioteca abre el lector en lectura conjunta; si no, su ficha para sumarlo. */
   openReader(club: ReadingClubSummary): void {
     this.close();
     if (club.inventory_id) {
-      this.router.navigate(['/reader', club.inventory_id]);
+      this.router.navigate(['/reader', club.inventory_id], { queryParams: { lectura: club.id } });
     } else {
-      this.router.navigate(['/books', club.book.slug]);
+      this.router.navigate(['/book', club.book.slug]);
     }
   }
+
+  /** "Leyendo ahora · Cap. 7", "Con el libro abierto" o, si no lee ahora, el capítulo donde va. */
+  memberStatus(m: ReadingClubMemberInfo, club: ReadingClubSummary): string {
+    if (m.reading_now) {
+      return m.position?.chapter ? `Leyendo ahora · Cap. ${m.position.chapter}` : 'Con el libro abierto';
+    }
+    return `Cap. ${m.current_chapter} / ${club.book.chapters_count}`;
+  }
+
+  /** Quienes tienen este capítulo abierto en su lector ahora mismo. */
+  liveReadersOf(order: number): ReadingClubMemberInfo[] {
+    return (this.activeClub?.members || []).filter(m => m.reading_now && m.position?.chapter === order);
+  }
+
+  trackMember = (_: number, m: ReadingClubMemberInfo) => m.friend_code;
 
   openSettings(): void {
     if (!this.activeClub || !this.activeClub.is_host) return;
@@ -520,6 +543,47 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   private stopPolling(): void {
     if (this.poll) clearInterval(this.poll);
     this.poll = null;
+  }
+
+  private startLivePolling(): void {
+    if (this.livePoll) return;
+    this.zone.runOutsideAngular(() => {
+      this.livePoll = setInterval(() => {
+        if (!document.hidden && this.open && this.activeClub) this.zone.run(() => this.refreshLive());
+      }, LIVE_POLL_MS);
+    });
+  }
+
+  private stopLivePolling(): void {
+    if (this.livePoll) clearInterval(this.livePoll);
+    this.livePoll = null;
+  }
+
+  /** Mezcla en el círculo abierto dónde va cada uno y quién lee ahora (sin recargar capítulos ni salas). */
+  private refreshLive(): void {
+    const club = this.activeClub;
+    if (!club) return;
+    this.community.clubLive(club.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: state => {
+        const current = this.activeClub;
+        if (!current || current.id !== club.id) return;
+        const known = new Map(current.members.map(m => [m.friend_code, m]));
+        const members = state.members.map(m => ({ ...known.get(m.friend_code), ...m }));
+        const myChapter = members.find(m => m.is_me)?.current_chapter ?? current.my_chapter;
+        const opensUpTo = current.mode === 'spoiler_safe' ? myChapter : 0;
+        this.activeClub = {
+          ...current,
+          members,
+          my_chapter: myChapter,
+          chapters: current.chapters?.map(ch => ({
+            ...ch,
+            locked: ch.locked && ch.order > opensUpTo, // leer en el lector abre las salas de lo ya leído
+            readers_here: members.filter(m => m.current_chapter === ch.order),
+          })),
+        };
+      },
+      error: () => {},
+    });
   }
 
   private scrollToEnd(): void {

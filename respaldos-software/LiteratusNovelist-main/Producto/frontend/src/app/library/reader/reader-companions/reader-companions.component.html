@@ -1,0 +1,59 @@
+<div class="rd-co" *ngIf="club" [class.is-shown]="pillShown" [class.with-chrome]="r.chromeVisible()"
+     [attr.inert]="pillShown ? null : ''">
+  <button #pill type="button" class="rd-co-pill" [class.is-following]="!!leader" [class.is-live]="readingNow.length > 0"
+          (click)="toggle()" [attr.aria-expanded]="open" aria-controls="rd-co-panel"
+          [attr.aria-label]="'Lectura conjunta: ' + pillText">
+    <span class="rd-co-faces" aria-hidden="true">
+      <span class="rd-co-face" *ngFor="let c of faces; trackBy: trackMember">
+        <app-maguito crop="bust" [outfit]="c.outfit" [paused]="true" [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito>
+        <i class="rd-co-dot" *ngIf="c.reading_now"></i>
+      </span>
+      <span class="material-symbols-rounded rd-co-group" *ngIf="!faces.length">group</span>
+    </span>
+    <span class="rd-co-text">{{ pillText }}</span>
+  </button>
+
+  <section id="rd-co-panel" class="rd-co-panel" *ngIf="open" role="dialog" aria-labelledby="rd-co-title"
+           (keydown.escape)="close($event)">
+    <header class="rd-co-head">
+      <div class="rd-co-head-copy">
+        <h2 id="rd-co-title" tabindex="-1">Lectura conjunta</h2>
+        <p>{{ club.name }}</p>
+      </div>
+      <button type="button" class="rd-co-icon" (click)="close()" aria-label="Cerrar lectura conjunta">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <p class="rd-co-empty" *ngIf="!companions.length">Todavía no hay nadie más en este círculo. Suma amigos desde la Taberna.</p>
+
+    <ul class="rd-co-list" *ngIf="companions.length">
+      <li class="rd-co-row" *ngFor="let c of companions; trackBy: trackMember" [class.is-live]="c.reading_now">
+        <span class="rd-co-avatar" aria-hidden="true">
+          <app-maguito crop="bust" [outfit]="c.outfit" [paused]="true" [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito>
+          <i class="rd-co-dot" *ngIf="c.reading_now"></i>
+        </span>
+        <span class="rd-co-who">
+          <strong>{{ c.username }}</strong>
+          <small>{{ statusOf(c) }}</small>
+        </span>
+        <span class="rd-co-actions">
+          <button type="button" class="rd-co-btn" (click)="goTo(c)">
+            <span class="material-symbols-rounded" aria-hidden="true">my_location</span>Ir a su posición
+          </button>
+          <button type="button" class="rd-co-follow" role="switch" [attr.aria-checked]="followingCode === c.friend_code"
+                  [disabled]="!c.reading_now && followingCode !== c.friend_code" (click)="toggleFollow(c)"
+                  [attr.aria-label]="'Seguir a ' + c.username"
+                  [title]="c.reading_now ? 'Tu página avanza cuando avanza la suya' : 'Se puede seguir mientras lee'">
+            <span class="rd-co-track" aria-hidden="true"><span class="rd-co-thumb"></span></span>
+            Seguir a {{ c.username }}
+          </button>
+        </span>
+      </li>
+    </ul>
+
+    <a class="rd-co-link" routerLink="/tavern" [queryParams]="{ lectura: club.id }">
+      <span class="material-symbols-rounded" aria-hidden="true">forum</span>Conversar en la sala del círculo
+    </a>
+  </section>
+</div>

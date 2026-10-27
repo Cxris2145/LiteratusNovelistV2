@@ -51,8 +51,10 @@
 
           <div class="rc-members-row">
             <div class="rc-avatars">
-              <span class="rc-mini-avatar" *ngFor="let m of club.members.slice(0, 5)" [title]="m.username + ' · Cap. ' + m.current_chapter">
+              <span class="rc-mini-avatar" *ngFor="let m of club.members.slice(0, 5); trackBy: trackMember"
+                    [title]="m.username + (m.reading_now ? ' · leyendo ahora' : ' · Cap. ' + m.current_chapter)">
                 <app-maguito crop="bust" [outfit]="m.outfit" [paused]="true" [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito>
+                <i class="rc-live-dot" *ngIf="m.reading_now && !m.is_me" aria-hidden="true"></i>
               </span>
             </div>
             <span class="rc-my-progress">Vas en el Cap. {{ club.my_chapter }}</span>
@@ -212,16 +214,21 @@
             </button>
           </div>
           <div class="rc-member-pills">
-            <div class="rc-member-pill" *ngFor="let m of club.members" [class.is-me]="m.is_me">
+            <div class="rc-member-pill" *ngFor="let m of club.members; trackBy: trackMember" [class.is-me]="m.is_me"
+                 [class.is-live]="m.reading_now && !m.is_me">
               <span class="rc-pill-avatar">
                 <app-maguito crop="bust" [outfit]="m.outfit" [paused]="true" [calm]="true" [interactive]="false" [followPointer]="false"></app-maguito>
+                <i class="rc-live-dot" *ngIf="m.reading_now && !m.is_me" aria-hidden="true"></i>
               </span>
               <span class="rc-pill-info">
                 <strong>{{ m.username }} <span *ngIf="m.is_host" title="Anfitrión">👑</span></strong>
-                <small>Cap. {{ m.current_chapter }} / {{ club.book.chapters_count }}</small>
+                <small>{{ m.is_me ? 'Cap. ' + m.current_chapter + ' / ' + club.book.chapters_count : memberStatus(m, club) }}</small>
               </span>
             </div>
           </div>
+          <p class="rc-live-hint" *ngIf="club.inventory_id">
+            Abre el lector para ver dónde va cada uno, ir a su posición o seguir su lectura.
+          </p>
         </div>
       </section>
 
@@ -239,8 +246,8 @@
             <div class="rc-chap-main">
               <div class="rc-chap-title-row">
                 <strong>{{ ch.title }}</strong>
-                <span class="rc-chap-here" *ngIf="ch.readers_here.length"
-                      [title]="ch.readers_here.length + ' lector(es) en este capítulo'">
+                <span class="rc-chap-here" *ngIf="ch.readers_here.length" [class.is-live]="liveReadersOf(ch.order).length"
+                      [title]="liveReadersOf(ch.order).length ? 'Alguien lo está leyendo ahora' : ch.readers_here.length + ' lector(es) van en este capítulo'">
                   <span class="material-symbols-rounded" aria-hidden="true">group</span>
                   {{ ch.readers_here.length }}
                 </span>
@@ -376,10 +383,10 @@
       </button>
     </header>
 
-    <div class="rc-chap-readers-bar" *ngIf="activeChapter?.readers_here?.length">
-      <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+    <div class="rc-chap-readers-bar" *ngIf="activeChapter && liveReadersOf(activeChapter.order).length">
+      <i class="rc-live-dot is-inline" aria-hidden="true"></i>
       <span>Leyendo este capítulo ahora:</span>
-      <strong *ngFor="let r of activeChapter?.readers_here; let last = last">
+      <strong *ngFor="let r of liveReadersOf(activeChapter.order); let last = last">
         {{ r.username }}{{ !last ? ', ' : '' }}
       </strong>
     </div>
