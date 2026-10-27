@@ -194,13 +194,13 @@
 .fc-read { font-size: 14px; }
 .fc-read.is-read { color: var(--th-gold); }
 
-/* El margen derecho deja libre la esquina de los botones flotantes (asistente y cuaderno),
-   que van por encima de todo: si no, tapan el botón de enviar. */
+/* Con el cajón abierto, los botones flotantes (asistente y cuaderno) se esconden (styles.css):
+   la caja de escribir usa todo el ancho. */
 .fc-composer {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  margin: 10px 104px 14px 14px;
+  margin: 10px 14px 14px;
   padding: 6px 6px 6px 14px;
   border: 1px solid var(--fc-line);
   border-radius: 18px;

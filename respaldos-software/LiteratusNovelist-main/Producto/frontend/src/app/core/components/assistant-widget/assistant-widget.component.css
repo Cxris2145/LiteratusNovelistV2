@@ -2,8 +2,8 @@
    ASISTENTE GLOBAL — burbuja flotante + panel de conversación
    ========================================================================== */
 
-/* En la taberna (mesa, chat y Bazar), deja libres los controles cercanos. En escritorio la
-   burbuja se achica para tapar menos la columna de amigos. */
+/* En la taberna (escritorio) la burbuja se achica para tapar menos la columna de amigos. En el
+   celular no se muestra ahí: la caja de la mesa llega al borde (ver styles.css). */
 @media (min-width: 701px) {
   :host-context(body:has(app-tavern-hall)) .lit-bubble {
     width: 48px;
@@ -12,18 +12,6 @@
   :host-context(body:has(app-tavern-hall)) .lit-bubble-avatar {
     width: 40px;
     height: 40px;
-  }
-}
-@media (max-width: 700px) {
-  :host-context(body:has(app-tavern-hall)) .lit-bubble {
-    width: 40px;
-    height: 40px;
-    right: 8px;
-    bottom: 8px;
-  }
-  :host-context(body:has(app-tavern-hall)) .lit-bubble-avatar {
-    width: 32px;
-    height: 32px;
   }
 }
 
@@ -48,7 +36,8 @@
   cursor: pointer;
   padding: 0;
   z-index: 3000;
-  display: flex;
+  /* styles.css la pone en none mientras hay un chat a la vista. */
+  display: var(--floating-btn-display, flex);
   align-items: center;
   justify-content: center;
   animation: lit-float 4.5s ease-in-out infinite;

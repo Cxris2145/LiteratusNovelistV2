@@ -651,7 +651,6 @@
 .rc-composer-wrap {
   padding: 6px 14px 14px;
   border-top: 1px solid var(--rc-line);
-  margin-right: 90px; /* evita tapar botones flotantes de la esquina inferior derecha */
 }
 .rc-spoiler-toggle {
   display: inline-flex;

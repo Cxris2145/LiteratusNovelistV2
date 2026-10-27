@@ -1439,3 +1439,18 @@ html.tavern-morph-reduced::view-transition-new(root) { animation-duration: 150ms
 .cdk-overlay-container {
   z-index: 10000;
 }
+
+/* La burbuja del Asistente y el botón del cuaderno flotan en la esquina inferior derecha, justo
+   donde los chats tienen la caja de escribir y el botón de enviar. Mientras hay un chat a la vista
+   se esconden (como ya hacen con el teclado abierto) y vuelven al cerrarlo: Charlas, Lecturas
+   conjuntas, la página de un personaje y el Interrogatorio. Cada botón lee la variable en su CSS.
+   El chat rápido con personajes no necesita esto: va por encima de ellos (z-index 3100). */
+body:has(.fc-drawer.is-open, .rc-drawer.is-open, app-demo-chat-page, .interrogation-input-bar) {
+  --floating-btn-display: none;
+}
+/* En el celular la caja de la mesa de la Taberna ocupa todo el ancho de abajo. */
+@media (max-width: 700px) {
+  body:has(app-tavern-hall) {
+    --floating-btn-display: none;
+  }
+}

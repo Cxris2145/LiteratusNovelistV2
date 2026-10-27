@@ -767,8 +767,6 @@
   .seat-l2, .seat-r2 { display: none; }
   .ts-name { max-width: 30%; padding-inline: 10px; }
   .ts-name.seat-center, .ts-name.seat-me { max-width: 42%; }
-  /* La burbuja del asistente vive en la esquina inferior derecha: las reacciones no van bajo ella. */
-  .ts-dock-reactions { padding-inline-end: 40px; }
 }
 
 /* ── Mensaje interactivo de objetos (gato, poción, reloj) ──── */

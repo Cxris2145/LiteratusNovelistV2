@@ -29,7 +29,8 @@ import { NotebookService } from '../notebook.service';
       right: 32px;
       bottom: calc(100px + env(safe-area-inset-bottom, 0px));
       z-index: 3000;
-      display: grid;
+      /* styles.css lo pone en none mientras hay un chat a la vista. */
+      display: var(--floating-btn-display, grid);
       place-items: center;
       width: 48px;
       height: 48px;
