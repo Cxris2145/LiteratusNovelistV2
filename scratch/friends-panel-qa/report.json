@@ -1,0 +1,333 @@
+{
+  "checks": [
+    {
+      "name": "desktop-350",
+      "width": 350,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 3,
+      "allRowsInside": true,
+      "scrollContainers": [],
+      "allAvatarsPaused": true,
+      "chatTargets": [
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con admin"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con eithan, 3 mensajes sin leer"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Felipe"
+        }
+      ]
+    },
+    {
+      "name": "material-menu",
+      "expanded": "true",
+      "items": [
+        "badge\nVer perfil",
+        "chat\nConversar",
+        "sports_bar\nQuitar brindis",
+        "person_remove\nEliminar amigo"
+      ],
+      "rowColumns": "246px 36px 32px",
+      "children": [
+        {
+          "tag": "A",
+          "display": "flex"
+        },
+        {
+          "tag": "BUTTON",
+          "display": "grid"
+        },
+        {
+          "tag": "BUTTON",
+          "display": "grid"
+        },
+        {
+          "tag": "MAT-MENU",
+          "display": "none"
+        }
+      ]
+    },
+    {
+      "name": "desktop-280",
+      "width": 280,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 3,
+      "allRowsInside": true,
+      "scrollContainers": [],
+      "allAvatarsPaused": true,
+      "chatTargets": [
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con admin"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con eithan, 3 mensajes sin leer"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Felipe"
+        }
+      ]
+    },
+    {
+      "name": "mobile-390",
+      "width": 366,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 3,
+      "allRowsInside": true,
+      "scrollContainers": [],
+      "allAvatarsPaused": true,
+      "chatTargets": [
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con admin"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con eithan, 3 mensajes sin leer"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con Felipe"
+        }
+      ]
+    },
+    {
+      "name": "mobile-320",
+      "width": 296,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 3,
+      "allRowsInside": true,
+      "scrollContainers": [],
+      "allAvatarsPaused": true,
+      "chatTargets": [
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con admin"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con eithan, 3 mensajes sin leer"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con Felipe"
+        }
+      ]
+    },
+    {
+      "name": "mobile-confirmation",
+      "confirmWidth": 264,
+      "panelOverflow": 0,
+      "deleteLabel": "¿Eliminar a admin?"
+    },
+    {
+      "name": "mobile-long-requests",
+      "width": 296,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 3,
+      "allRowsInside": true,
+      "scrollContainers": [],
+      "allAvatarsPaused": true,
+      "chatTargets": [
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con admin"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con UnaLectoraConUnNombreExtraordinariamenteLargo, 3 mensajes sin leer"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con Felipe"
+        }
+      ]
+    },
+    {
+      "name": "mobile-empty",
+      "width": 366,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 0,
+      "allRowsInside": true,
+      "scrollContainers": [],
+      "allAvatarsPaused": true,
+      "chatTargets": []
+    },
+    {
+      "name": "desktop-long-list",
+      "width": 350,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 18,
+      "allRowsInside": false,
+      "scrollContainers": [
+        "fl-scroll ng-tns-c906805148-2"
+      ],
+      "allAvatarsPaused": true,
+      "chatTargets": [
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 1"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 2"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 3"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 4"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 5"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 6"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 7"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 8"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 9"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 10"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 11"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 12"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 13"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 14"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 15"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 16"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 17"
+        },
+        {
+          "width": 34,
+          "height": 34,
+          "accessibleName": "Conversar con Lector 18"
+        }
+      ]
+    },
+    {
+      "name": "reduced-motion",
+      "width": 366,
+      "panelOverflow": 0,
+      "documentOverflow": 0,
+      "rowCount": 3,
+      "allRowsInside": true,
+      "scrollContainers": [],
+      "allAvatarsPaused": true,
+      "chatTargets": [
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con admin"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con eithan, 3 mensajes sin leer"
+        },
+        {
+          "width": 42,
+          "height": 42,
+          "accessibleName": "Conversar con Felipe"
+        }
+      ]
+    },
+    {
+      "name": "reduced-motion-animations",
+      "running": 0
+    }
+  ],
+  "screenshots": [
+    "friends-desktop-350.png",
+    "tavern-desktop.png",
+    "tavern-menu-desktop.png",
+    "friends-desktop-280.png",
+    "friends-mobile-390.png",
+    "friends-mobile-320.png",
+    "friends-mobile-confirmation.png",
+    "friends-mobile-long-requests.png",
+    "friends-mobile-empty.png",
+    "friends-desktop-long-list.png"
+  ],
+  "runtimeErrors": []
+}

@@ -1,0 +1,471 @@
+{
+  "mode": "headless, default GPU settings",
+  "isolatedProfile": true,
+  "savedAutofillAvailable": false,
+  "browserExecutable": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+  "steps": [
+    {
+      "name": "mounted",
+      "valueLength": 0,
+      "valuePreview": "",
+      "focused": false,
+      "activeField": null,
+      "formValueLength": 0,
+      "usernameErrors": {
+        "required": true
+      },
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1179,
+        "LayoutCount": 24,
+        "RecalcStyleCount": 32,
+        "TaskDuration": 0.586704,
+        "JSHeapUsedSize": 18920528,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "mouse-focus",
+      "valueLength": 0,
+      "valuePreview": "",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 0,
+      "usernameErrors": {
+        "required": true
+      },
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1179,
+        "LayoutCount": 24,
+        "RecalcStyleCount": 34,
+        "TaskDuration": 0.590623,
+        "JSHeapUsedSize": 18980480,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "native-key-events-Cxris",
+      "valueLength": 5,
+      "valuePreview": "Cxris",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 5,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1180,
+        "LayoutCount": 55,
+        "RecalcStyleCount": 66,
+        "TaskDuration": 0.643282,
+        "JSHeapUsedSize": 19185976,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "native-key-events-admin",
+      "valueLength": 5,
+      "valuePreview": "admin",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 5,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1181,
+        "LayoutCount": 79,
+        "RecalcStyleCount": 88,
+        "TaskDuration": 0.66835,
+        "JSHeapUsedSize": 19466784,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "native-key-events-Christopher",
+      "valueLength": 11,
+      "valuePreview": "Christopher",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 11,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1182,
+        "LayoutCount": 125,
+        "RecalcStyleCount": 132,
+        "TaskDuration": 0.720084,
+        "JSHeapUsedSize": 19935164,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "native-key-events-letter-by-letter",
+      "valueLength": 11,
+      "valuePreview": "Christopher",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 11,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1182,
+        "LayoutCount": 125,
+        "RecalcStyleCount": 132,
+        "TaskDuration": 0.720462,
+        "JSHeapUsedSize": 19936380,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "tab-to-email",
+      "valueLength": 11,
+      "valuePreview": "Christopher",
+      "focused": false,
+      "activeField": "email",
+      "formValueLength": 11,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1182,
+        "LayoutCount": 127,
+        "RecalcStyleCount": 136,
+        "TaskDuration": 0.727704,
+        "JSHeapUsedSize": 19985400,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "shift-tab-back",
+      "valueLength": 11,
+      "valuePreview": "Christopher",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 11,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1184,
+        "LayoutCount": 130,
+        "RecalcStyleCount": 141,
+        "TaskDuration": 0.737576,
+        "JSHeapUsedSize": 20026756,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "autofill-popup-shortcut-empty-profile",
+      "valueLength": 11,
+      "valuePreview": "Christopher",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 11,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1184,
+        "LayoutCount": 131,
+        "RecalcStyleCount": 142,
+        "TaskDuration": 0.743783,
+        "JSHeapUsedSize": 20096624,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "paste-equivalent-insertText",
+      "valueLength": 22,
+      "valuePreview": "NombrePegado_Árbol_123",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 22,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1187,
+        "LayoutCount": 139,
+        "RecalcStyleCount": 149,
+        "TaskDuration": 0.758333,
+        "JSHeapUsedSize": 20200620,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "short-name-validation",
+      "valueLength": 1,
+      "valuePreview": "a",
+      "focused": false,
+      "activeField": "email",
+      "formValueLength": 1,
+      "usernameErrors": {
+        "minlength": {
+          "requiredLength": 3,
+          "actualLength": 1
+        }
+      },
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1192,
+        "LayoutCount": 147,
+        "RecalcStyleCount": 158,
+        "TaskDuration": 0.770371,
+        "JSHeapUsedSize": 20295608,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "long-input-8190-characters",
+      "valueLength": 8190,
+      "valuePreview": "LectorLectorLectorLectorLectorLectorLectorLectorLectorLector",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 8190,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1195,
+        "LayoutCount": 157,
+        "RecalcStyleCount": 171,
+        "TaskDuration": 0.791942,
+        "JSHeapUsedSize": 20441904,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "five-focus-blur-cycles",
+      "valueLength": 12,
+      "valuePreview": "lector_final",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 12,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1198,
+        "LayoutCount": 167,
+        "RecalcStyleCount": 203,
+        "TaskDuration": 0.832813,
+        "JSHeapUsedSize": 20761060,
+        "JSHeapTotalSize": 34508800
+      }
+    },
+    {
+      "name": "stable-three-seconds-after-input",
+      "valueLength": 12,
+      "valuePreview": "lector_final",
+      "focused": true,
+      "activeField": "username",
+      "formValueLength": 12,
+      "usernameErrors": null,
+      "bodyOverflow": -15,
+      "metrics": {
+        "Documents": 2,
+        "Nodes": 1198,
+        "LayoutCount": 213,
+        "RecalcStyleCount": 252,
+        "TaskDuration": 0.907033,
+        "JSHeapUsedSize": 21056820,
+        "JSHeapTotalSize": 34508800
+      }
+    }
+  ],
+  "crashes": [],
+  "runtimeErrors": [],
+  "consoleErrors": [],
+  "failedResources": [],
+  "registerRequests": [],
+  "screenshots": [
+    "register-brave-filled.png"
+  ],
+  "browserExit": null,
+  "unexpectedSocketClose": null,
+  "browserVersion": {
+    "Browser": "Chrome/156.0.8078.48",
+    "File-Path-Style": "windows",
+    "Protocol-Version": "1.3",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+    "V8-Version": "15.6.75.19",
+    "WebKit-Version": "537.36 (@52db4b25c0aa3038e9a1c6021428b136cc3cb5f)",
+    "webSocketDebuggerUrl": "ws://127.0.0.1:9348/devtools/browser/5e338961-a1fd-43eb-bb7e-d638ec28de1b"
+  },
+  "gpu": {
+    "gpu": {
+      "devices": [
+        {
+          "vendorId": 4098,
+          "deviceId": 5688,
+          "subSysId": 372641794,
+          "revision": 200,
+          "vendorString": "",
+          "deviceString": "AMD Radeon(TM) Graphics",
+          "driverVendor": "AMD",
+          "driverVersion": "31.0.21916.2"
+        },
+        {
+          "vendorId": 4098,
+          "deviceId": 5688,
+          "subSysId": 372641794,
+          "revision": 200,
+          "vendorString": "",
+          "deviceString": "AMD Radeon(TM) Graphics",
+          "driverVendor": "",
+          "driverVersion": "31.0.21916.2"
+        },
+        {
+          "vendorId": 5140,
+          "deviceId": 140,
+          "subSysId": 0,
+          "revision": 0,
+          "vendorString": "",
+          "deviceString": "Microsoft Basic Render Driver",
+          "driverVendor": "",
+          "driverVersion": "10.0.26100.9711"
+        }
+      ],
+      "auxAttributes": {
+        "amdSwitchable": false,
+        "bgra8OverlaySupport": "NONE",
+        "canSupportThreadedTextureMailbox": false,
+        "directComposition": true,
+        "directMLFeatureLevel": "Not supported",
+        "directRenderingVersion": "",
+        "displayType": "ANGLE_D3D11",
+        "dx12FeatureLevel": "Not supported",
+        "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_size GL_ANGLE_multiview_multisample GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_provoking_vertex GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_robust_client_memory GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_APPLE_clip_distance GL_ARM_rgba8 GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_external_wrap_modes GL_EXT_base_instance GL_EXT_blend_func_extended GL_EXT_blend_minmax GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_conservative_depth GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_render_snorm GL_EXT_robustness GL_EXT_sRGB GL_EXT_shader_texture_lod GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_norm16 GL_EXT_texture_rg GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_debug GL_KHR_parallel_shader_compile GL_KHR_robustness GL_NV_EGL_stream_consumer_external GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_depth24 GL_OES_depth32 GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_border_clamp GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OVR_multiview GL_OVR_multiview2 ",
+        "glImplementationParts": "(gl=egl-angle,angle=d3d11)",
+        "glRenderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001638) Direct3D11 vs_5_0 ps_5_0, D3D11-31.0.21916.2)",
+        "glResetNotificationStrategy": 33362,
+        "glVendor": "Google Inc. (AMD)",
+        "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.28973 git hash: 3b89d84e9d59)",
+        "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_d3d_share_handle_client_buffer EGL_ANGLE_d3d_texture_client_buffer EGL_ANGLE_surface_d3d_texture_2d_share_handle EGL_ANGLE_query_surface_pointer EGL_ANGLE_window_fixed_size EGL_ANGLE_keyed_mutex EGL_ANGLE_surface_orientation EGL_ANGLE_direct_composition EGL_NV_post_sub_buffer EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_stream EGL_KHR_stream_consumer_gltexture EGL_NV_stream_consumer_gltexture_yuv EGL_ANGLE_stream_producer_d3d_texture EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_CHROMIUM_sync_control EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANGLE_image_d3d11_texture EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_KHR_create_context_no_error EGL_KHR_reusable_sync EGL_ANGLE_memory_usage_report ",
+        "glWsVendor": "Google Inc. (AMD)",
+        "glWsVersion": "1.5 (ANGLE 2.1.28973 git hash: 3b89d84e9d59)",
+        "inProcessGpu": false,
+        "initializationTime": 0.125142,
+        "isAsan": false,
+        "isClangCoverage": false,
+        "jpegDecodeAcceleratorSupported": false,
+        "maxMsaaSamples": "8",
+        "nv12OverlaySupport": "NONE",
+        "optimus": false,
+        "p010OverlaySupport": "NONE",
+        "passthroughCmdDecoder": true,
+        "pixelShaderVersion": "5.0",
+        "processCrashCount": 0,
+        "rgb10a2OverlaySupport": "SCALING",
+        "sandboxed": true,
+        "skiaBackendType": "GaneshGL",
+        "subpixelFontRendering": true,
+        "supportsD3dSharedImages": true,
+        "supportsDirectML": false,
+        "supportsDx12": false,
+        "supportsOverlays": false,
+        "supportsVulkan": false,
+        "targetCpuBits": 64,
+        "vertexShaderVersion": "5.0",
+        "visibilityCallbackCallCount": 0,
+        "vulkanVersion": "Not supported",
+        "yuy2OverlaySupport": "NONE"
+      },
+      "featureStatus": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "driverBugWorkarounds": [
+        "disable_d3d11_vp9_ksvc_decoding",
+        "disable_d3d12_video_encoder",
+        "disable_direct_composition_sw_video_overlays",
+        "disable_h264_accelerator_sw_brc",
+        "disable_nv12_dynamic_textures",
+        "disable_video_overlay_if_moving",
+        "disable_vp_auto_hdr",
+        "disable_vp_super_resolution",
+        "enable_webgl_timer_query_extensions",
+        "exit_on_context_lost",
+        "force_rgb10a2_overlay_support",
+        "disabled_extension_GL_KHR_blend_equation_advanced",
+        "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+      ],
+      "videoDecoding": [],
+      "videoEncoding": []
+    },
+    "modelName": "",
+    "modelVersion": "",
+    "commandLine": "\"C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe\" --headless=new --no-first-run --remote-debugging-port=9348 --user-data-dir=\"C:\\Users\\Cxris\\Documents\\LiteratusNovelist\\scratch\\register-brave-qa\\browser-profile-1793068023251\" --noerrdialogs --disable-domain-reliability --enable-dom-distiller --enable-distillability-service --origin-trial-public-key=bYUKPJoPnCxeNvu72j4EmPuK7tr1PAC7SHh8ld9Mw3E=,fMS4mpO6buLQ/QMd+zJmxzty/VQ6B1EUZqoCU04zoRU= --lso-url=https://no-thanks.invalid --variations-server-url=https://variations.brave.com/seed --variations-insecure-server-url=https://variations.brave.com/seed --flag-switches-begin --flag-switches-end --component-updater=url-source=https://go-updater.brave.com/extensions about:blank"
+  },
+  "processInfo": {
+    "processInfo": [
+      {
+        "type": "browser",
+        "id": 22728,
+        "cpuTime": 3.144089
+      },
+      {
+        "type": "renderer",
+        "id": 19692,
+        "cpuTime": 0.044107
+      },
+      {
+        "type": "renderer",
+        "id": 15732,
+        "cpuTime": 1.56154
+      },
+      {
+        "type": "renderer",
+        "id": 25396,
+        "cpuTime": 0.049484
+      },
+      {
+        "type": "GPU",
+        "id": 19240,
+        "cpuTime": 2.366486
+      },
+      {
+        "type": "network.mojom.NetworkService",
+        "id": 1576,
+        "cpuTime": 0.685595
+      },
+      {
+        "type": "storage.mojom.StorageService",
+        "id": 4892,
+        "cpuTime": 0.038398
+      }
+    ]
+  },
+  "targets": [
+    {
+      "type": "page",
+      "url": "http://127.0.0.1:4398/register",
+      "attached": true
+    },
+    {
+      "type": "page",
+      "url": "about:blank",
+      "attached": false
+    }
+  ],
+  "result": "no-crash-reproduced"
+}

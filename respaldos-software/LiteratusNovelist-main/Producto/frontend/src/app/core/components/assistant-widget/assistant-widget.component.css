@@ -3,7 +3,7 @@
    ========================================================================== */
 
 /* En la taberna (mesa, chat y Bazar), deja libres los controles cercanos. En escritorio la
-   burbuja se achica para tapar menos la columna de amigos y ranking. */
+   burbuja se achica para tapar menos la columna de amigos. */
 @media (min-width: 701px) {
   :host-context(body:has(app-tavern-hall)) .lit-bubble {
     width: 48px;

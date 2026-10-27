@@ -52,6 +52,8 @@ export class FriendListComponent implements OnChanges, OnDestroy {
 
   /** Amigo cuyo botón "Eliminar" pide confirmación. */
   confirming: string | null = null;
+  /** Se recalcula solo al recibir la lista, no durante cada comprobación de la vista. */
+  presentCount = 0;
 
   readonly itemMotion = listItemParams();
   private readonly reduced = prefersReducedMotion();
@@ -62,9 +64,12 @@ export class FriendListComponent implements OnChanges, OnDestroy {
   awake: string | null = null;
   celebrating: string | null = null;
   private celebrated: string | null = null;
-  private timers: ReturnType<typeof setTimeout>[] = [];
+  private timers = new Set<ReturnType<typeof setTimeout>>();
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['friends']) {
+      this.presentCount = this.friends.reduce((count, friend) => count + Number(friend.status.kind === 'tavern'), 0);
+    }
     if (changes['unread']) {
       const before: Record<string, number> = changes['unread'].previousValue ?? {};
       this.bumped = new Set(Object.entries(this.unread ?? {})
@@ -76,13 +81,17 @@ export class FriendListComponent implements OnChanges, OnDestroy {
     if (code && code !== this.celebrated && this.friends.some(friend => friend.friend_code === code)) {
       this.celebrated = code;
       this.celebrating = code;
-      this.later(() => { this.celebrating = null; this.cdr.markForCheck(); }, CELEBRATE_MS);
+      this.later(() => {
+        if (this.celebrating === code) this.celebrating = null;
+        this.cdr.markForCheck();
+      }, CELEBRATE_MS);
       if (!this.reduced) this.wake(code, 'success', CELEBRATE_MS);
     }
   }
 
   ngOnDestroy(): void {
     this.timers.forEach(clearTimeout);
+    this.timers.clear();
   }
 
   /** Con mouse, el busto del amigo hace un gesto al pasar sobre su fila. */
@@ -93,9 +102,12 @@ export class FriendListComponent implements OnChanges, OnDestroy {
 
   /** Los bustos están en pausa (son muchos): uno despierta, hace su gesto y vuelve a dormir. */
   private wake(code: string, gesture: 'poke' | 'success', ms: number): void {
+    const friend = this.friends.find(item => item.friend_code === code);
+    if (!friend || this.photos.of(friend)) return;
     this.awake = code;
     this.cdr.markForCheck();
     this.later(() => {
+      if (this.awake !== code) return;
       // Solo las filas sin foto tienen Maguito: el índice se cuenta entre ellas.
       const index = this.friends.filter(friend => !this.photos.of(friend)).findIndex(friend => friend.friend_code === code);
       this.rowMaguitos?.get(index)?.play(gesture);
@@ -107,7 +119,11 @@ export class FriendListComponent implements OnChanges, OnDestroy {
   }
 
   private later(fn: () => void, ms: number): void {
-    this.timers.push(setTimeout(fn, ms));
+    const timer = setTimeout(() => {
+      this.timers.delete(timer);
+      fn();
+    }, ms);
+    this.timers.add(timer);
   }
 
   trackFriend = (_: number, friend: FriendCard) => friend.friend_code;

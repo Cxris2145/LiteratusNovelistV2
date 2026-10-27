@@ -1,10 +1,20 @@
 <section class="th-panel fl" aria-labelledby="fl-title">
-  <div class="th-panel-title">
-    <h2 id="fl-title">Mis amigos <span class="fl-count">({{ friends.length }})</span></h2>
-  </div>
+  <header class="fl-header">
+    <div class="th-panel-title">
+      <h2 id="fl-title">Mis amigos</h2>
+      <span class="fl-count" [attr.aria-label]="friends.length + ' amigos'">{{ friends.length }}</span>
+    </div>
+    <p class="fl-presence" [class.has-present]="presentCount > 0">
+      <span class="fl-presence-dot" aria-hidden="true"></span>
+      {{ loading && !friends.length ? 'Buscando a tus amigos…' : presentCount ? presentCount + ' en la taberna' : 'Aún nadie en la taberna' }}
+    </p>
+  </header>
+
+  <div class="fl-scroll" [attr.aria-busy]="loading">
 
   <!-- Solicitudes -->
   <div class="fl-requests" *ngIf="incoming.length || outgoing.length" @listContainer>
+    <h3 class="fl-section-title">Solicitudes <span>{{ incoming.length + outgoing.length }}</span></h3>
     <article class="fl-request is-incoming" *ngFor="let request of incoming; trackBy: trackRequest" [@listItem]="itemMotion">
       <app-avatar-frame [frame]="request.user.equipped_frame" size="sm">
         <img *ngIf="photos.of(request.user) as src; else requestMaguito" class="fl-avatar fl-photo" [src]="src" alt=""
@@ -38,18 +48,25 @@
     </article>
   </div>
 
-  <p class="th-empty" *ngIf="loading && !friends.length" role="status">Buscando a tus amigos…</p>
-
-  <div class="fl-empty" *ngIf="!loading && !friends.length">
-    <p class="th-empty">Tu mesa está vacía. Agrega a un amigo con su nombre o su código.</p>
-    <button type="button" class="th-btn secondary" (click)="addFriend.emit()">
-      <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Agregar amigo
-    </button>
+  <div class="fl-loading" *ngIf="loading && !friends.length" role="status">
+    <span class="sr-only">Buscando a tus amigos…</span>
+    <div class="fl-placeholder" *ngFor="let slot of [1, 2, 3]" aria-hidden="true">
+      <span class="fl-placeholder-avatar"></span>
+      <span class="fl-placeholder-copy"><span></span><span></span></span>
+    </div>
   </div>
 
-  <ul class="fl-list" *ngIf="friends.length">
+  <div class="fl-empty" *ngIf="!loading && !friends.length">
+    <span class="material-symbols-rounded fl-empty-icon" aria-hidden="true">chair_alt</span>
+    <h3>Hay sitio para tus amigos</h3>
+    <p class="th-empty">Encuéntralos por su nombre o código y compartan la próxima historia.</p>
+  </div>
+
+  <ul class="fl-list" *ngIf="friends.length" @listContainer>
     <li class="fl-friend" *ngFor="let friend of friends; trackBy: trackFriend"
-        [class.is-celebrating]="celebrating === friend.friend_code" (pointerenter)="poke(friend)">
+        [@listItem]="itemMotion" [class.is-celebrating]="celebrating === friend.friend_code"
+        [class.is-confirming]="confirming === friend.friend_code"
+        [class.has-unread]="unread[friend.friend_code] > 0" (pointerenter)="poke(friend)">
       <a class="fl-friend-link" [routerLink]="['/tavern/amigo', friend.friend_code]">
         <span class="fl-avatar-wrap">
           <app-avatar-frame [frame]="friend.equipped_frame" size="sm">
@@ -62,20 +79,20 @@
           <span class="th-dot fl-status-dot" [ngClass]="friend.status.kind" aria-hidden="true"></span>
         </span>
         <span class="fl-who">
-          <strong>{{ friend.username }}</strong>
-          <span class="fl-title" *ngIf="friend.equipped_title">{{ friend.equipped_title }}</span>
-          <span class="fl-status" [ngClass]="friend.status.kind">{{ friend.status.label }}</span>
+          <strong [title]="friend.username">{{ friend.username }}</strong>
+          <span class="fl-title" *ngIf="friend.equipped_title" [title]="friend.equipped_title">{{ friend.equipped_title }}</span>
+          <span class="fl-status" [ngClass]="friend.status.kind" [title]="friend.status.book_title || friend.status.label">{{ friend.status.label }}</span>
         </span>
       </a>
 
       <ng-container *ngIf="confirming === friend.friend_code; else menuTpl">
         <div class="fl-confirm" role="group" [attr.aria-label]="'¿Eliminar a ' + friend.username + '?'">
           <button type="button" class="th-btn ghost is-danger" (click)="confirmRemove(friend)" [disabled]="busy === friend.friend_code">Eliminar</button>
-          <button type="button" class="th-btn ghost" (click)="confirming = null">No</button>
+          <button type="button" class="th-btn ghost" (click)="confirming = null">Cancelar</button>
         </div>
       </ng-container>
       <ng-template #menuTpl>
-        <button type="button" class="th-icon-btn fl-chat" (click)="chat.emit(friend)"
+        <button type="button" class="th-icon-btn fl-chat" [class.has-unread]="unread[friend.friend_code] > 0" (click)="chat.emit(friend)"
                 [attr.aria-label]="'Conversar con ' + friend.username + (unread[friend.friend_code] ? ', ' + unread[friend.friend_code] + ' mensajes sin leer' : '')"
                 [title]="'Conversar con ' + friend.username">
           <span class="material-symbols-rounded" aria-hidden="true">chat</span>
@@ -111,4 +128,12 @@
       </ng-template>
     </li>
   </ul>
+  </div>
+
+  <footer class="fl-footer">
+    <button type="button" class="fl-invite" (click)="addFriend.emit()">
+      <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+      Agregar amigo
+    </button>
+  </footer>
 </section>

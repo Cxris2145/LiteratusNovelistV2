@@ -48,8 +48,11 @@ import { NotebookService } from '../notebook.service';
     @media (hover: hover) and (pointer: fine) {
       .nb-launcher:hover { transform: translateY(-2px); border-color: var(--color-500, #5e80b3); }
     }
+    /* Con el panel del asistente abierto, el botón quedaría encima de su caja de texto y del
+       micrófono: se esconde hasta que el panel se cierra o se minimiza. */
+    :host-context(body:has(.lit-panel)) .nb-launcher { display: none; }
     /* En La Taberna (escritorio) va junto al asistente y a su altura: los dos caben en el espacio
-       que la columna de amigos y ranking deja libre abajo, y no tapan las pestañas del ranking. */
+       que la columna de amigos deja libre abajo. */
     @media (min-width: 701px) {
       :host-context(body:has(app-tavern-hall)) .nb-launcher { right: 84px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
     }

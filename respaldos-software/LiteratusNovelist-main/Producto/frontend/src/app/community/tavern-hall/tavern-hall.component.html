@@ -14,9 +14,8 @@
       <p class="th-lead">Donde las historias nos reúnen.</p>
     </div>
     <div class="th-actions" *ngIf="loggedIn; else visitorActions">
-      <!-- Utilidades del salón: discretas, para no competir con las acciones. -->
-      <div class="th-utilities" role="group" aria-label="Ambiente de la taberna">
-        <app-tavern-music></app-tavern-music>
+      <!-- Control de la vista del salón. -->
+      <div class="th-utilities">
         <button type="button" class="th-icon-toggle" (click)="toggleCinema()" [attr.aria-pressed]="cinemaMode"
                 [attr.aria-label]="cinemaMode ? 'Salir del modo cine' : 'Modo cine: solo la mesa'">
           <span class="material-symbols-rounded" aria-hidden="true">{{ cinemaMode ? 'fullscreen_exit' : 'fullscreen' }}</span>
@@ -41,15 +40,9 @@
       <button type="button" class="th-btn secondary" (click)="openBazar()" [attr.aria-expanded]="bazarOpen" aria-controls="tavern-bazar">
         <span class="material-symbols-rounded" aria-hidden="true">storefront</span>El Bazar
       </button>
-      <button type="button" class="th-btn" (click)="openAddFriend()">
-        <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Agregar amigo
-      </button>
     </div>
     <ng-template #visitorActions>
       <div class="th-actions">
-        <div class="th-utilities" role="group" aria-label="Ambiente de la taberna">
-          <app-tavern-music></app-tavern-music>
-        </div>
         <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
           <span class="material-symbols-rounded" aria-hidden="true">login</span>Entra con tu Maguito
         </a>

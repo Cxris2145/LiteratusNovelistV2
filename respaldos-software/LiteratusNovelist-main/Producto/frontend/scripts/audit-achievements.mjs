@@ -162,9 +162,8 @@ try {
   await cmd('Page.navigate', { url: origin + '/tavern' });
   await waitFor('document.querySelector(".pc-avatar-wrap app-avatar-frame")?.getAttribute("data-frame") === "frame-owl"');
   await waitFor('document.querySelectorAll(".fl-friend app-avatar-frame[data-frame]").length === 2');
-  await waitFor('document.querySelectorAll(".rk-row app-avatar-frame[data-frame]").length >= 3');
-  assert(await evaluate(`document.querySelector('.pc-title')?.innerText === 'Cronista' && document.querySelectorAll('.rk-name small').length >= 3`), 'Títulos faltantes');
-  report.checks.push('Marco y título visibles en tarjeta, amigos, ranking y menú de la Taberna.');
+  assert(await evaluate(`document.querySelector('.pc-title')?.innerText === 'Cronista'`), 'Título faltante');
+  report.checks.push('Marco y título visibles en tarjeta, amigos y menú de la Taberna.');
   const { data } = await cmd('Page.captureScreenshot', { format: 'png', fromSurface: true });
   await writeFile(join(output, 'tavern-desktop.png'), Buffer.from(data, 'base64'));
   report.screenshots.push('tavern-desktop.png');

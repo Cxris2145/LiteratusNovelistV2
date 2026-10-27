@@ -43,7 +43,7 @@ export class RegisterComponent {
 
   constructor() {
     this.registerForm = this.fb.group({
-      username: ['', [Validators.required, Validators.minLength(3)]],
+      username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(150)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       birth_date: ['', [Validators.required, birthDateValidator]],
@@ -51,17 +51,11 @@ export class RegisterComponent {
     }, { validators: this.passwordMatchValidator });
   }
 
-  // Validador personalizado para asegurar que las contraseñas coinciden
+  // El error pertenece al grupo: validar no modifica ni borra errores de sus campos.
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-    const password = control.get('password');
-    const confirmPassword = control.get('confirmPassword');
-    
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      // Forzamos el error en el control de confirmPassword
-      confirmPassword.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
-    }
-    return null;
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+    return password && confirmPassword && password !== confirmPassword ? { passwordMismatch: true } : null;
   }
 
   get f() {

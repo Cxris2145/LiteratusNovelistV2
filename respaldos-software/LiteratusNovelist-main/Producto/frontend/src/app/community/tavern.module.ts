@@ -13,7 +13,6 @@ import { FriendProfileComponent } from './friend-profile/friend-profile.componen
 import { FriendChatComponent } from './friend-chat/friend-chat.component';
 import { TavernReadingClubsComponent } from './tavern-reading-clubs/tavern-reading-clubs.component';
 import { TavernCrowdComponent } from './tavern-crowd/tavern-crowd.component';
-import { TavernMusicComponent } from './tavern-music/tavern-music.component';
 import { TavernTableComponent } from './tavern-table/tavern-table.component';
 
 /** La Taberna (comunidad, El Bazar, mesa) se descarga al entrar a /tavern. */
@@ -24,7 +23,7 @@ import { TavernTableComponent } from './tavern-table/tavern-table.component';
     FriendChatComponent, TavernReadingClubsComponent, TavernCrowdComponent,
   ],
   imports: [
-    SharedModule, TavernMusicComponent, TavernTableComponent,
+    SharedModule, TavernTableComponent,
     RouterModule.forChild([
       { path: '', component: TavernHallComponent },
       { path: 'amigo/:code', component: FriendProfileComponent, canActivate: [authGuard] },

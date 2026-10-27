@@ -12,6 +12,16 @@
   max-width: 450px;
   padding: 40px 35px;
   text-align: center;
+  /* Superficie opaca: el cursor y las sugerencias nativas no necesitan recomponer un blur. */
+  background: var(--home-bg-surface, var(--bg-surface));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Al escribir solo cambian el borde y el anillo de foco, no todas las propiedades del campo. */
+.glass-input { transition: border-color 160ms ease, box-shadow 160ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .glass-input { transition: none; }
 }
 
 .login-box h2 {

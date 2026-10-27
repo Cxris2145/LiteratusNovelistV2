@@ -268,8 +268,14 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   openAddFriend(): void {
     this.dialog.open<AddFriendDialogComponent, AddFriendDialogData>(AddFriendDialogComponent, {
       data: { myCode: this.me?.friend_code ?? null },
-      panelClass: 'th-dialog-panel',
-      maxWidth: '100vw',
+      panelClass: ['th-dialog-panel', 'af-dialog-panel'],
+      width: '580px',
+      maxWidth: 'calc(100vw - 24px)',
+      maxHeight: 'calc(100dvh - 32px)',
+      ariaLabelledBy: 'af-title',
+      ariaDescribedBy: 'af-description',
+      enterAnimationDuration: prefersReducedMotion() ? 0 : 180,
+      exitAnimationDuration: prefersReducedMotion() ? 0 : 120,
       autoFocus: '#af-query',
     });
   }

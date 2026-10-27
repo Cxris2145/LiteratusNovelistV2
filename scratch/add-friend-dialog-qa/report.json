@@ -1,0 +1,357 @@
+{
+  "checks": [
+    {
+      "name": "desktop-six-suggestions",
+      "width": 580,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "search-results",
+      "width": 580,
+      "height": 520,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 2,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "cleared-search",
+      "width": 580,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "send-then-cancel",
+      "calls": [
+        {
+          "method": "suggestions"
+        },
+        {
+          "method": "search",
+          "query": "luna"
+        },
+        {
+          "method": "sendRequest",
+          "target": {
+            "friend_code": "K7Q2XM"
+          }
+        },
+        {
+          "method": "cancel",
+          "id": "qa-sent"
+        }
+      ],
+      "relation": "none",
+      "busy": null
+    },
+    {
+      "name": "accept-request",
+      "passed": true
+    },
+    {
+      "name": "cleared-inflight-search",
+      "width": 580,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "keyboard-focus-trap",
+      "trapped": true
+    },
+    {
+      "name": "escape-closes",
+      "passed": true
+    },
+    {
+      "name": "mobile-390",
+      "width": 366,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "mobile-320-long-names",
+      "width": 296,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "many-suggestions",
+      "width": 580,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 18,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "loading",
+      "width": 366,
+      "height": 576,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 0,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "empty-suggestions",
+      "width": 366,
+      "height": 540,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 0,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "suggestions-error",
+      "width": 366,
+      "height": 533,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 0,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": true
+      }
+    },
+    {
+      "name": "suggestions-retry",
+      "width": 366,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "search-error",
+      "width": 366,
+      "height": 497,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": true,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "light-reduced-motion",
+      "width": 366,
+      "height": 740,
+      "insideViewport": true,
+      "panelOverflow": 0,
+      "bodyOverflow": 0,
+      "scrollContainers": [
+        "af-content"
+      ],
+      "focused": "af-query",
+      "allAvatarsPaused": true,
+      "ariaLabelledBy": "af-title",
+      "state": {
+        "suggestions": 6,
+        "results": 0,
+        "searching": false,
+        "failed": false,
+        "suggestionsFailed": false
+      }
+    },
+    {
+      "name": "reduced-motion",
+      "running": 0
+    }
+  ],
+  "screenshots": [
+    "dialog-desktop-suggestions.png",
+    "dialog-desktop-search.png",
+    "dialog-mobile-390.png",
+    "dialog-mobile-320.png",
+    "dialog-desktop-many.png",
+    "dialog-mobile-loading.png",
+    "dialog-mobile-empty.png",
+    "dialog-mobile-error.png",
+    "dialog-mobile-search-error.png",
+    "dialog-mobile-light.png"
+  ],
+  "runtimeErrors": [],
+  "consoleErrors": [],
+  "backendRequests": [
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    },
+    {
+      "method": "GET",
+      "url": "http://localhost:8000/api/v1/users/profile/"
+    }
+  ],
+  "browserVersion": "Chrome/156.0.8078.48",
+  "result": "completed"
+}

@@ -60,7 +60,7 @@ describe('TavernHallComponent', () => {
     expect(community.me).not.toHaveBeenCalled();
     expect(community.heartbeat).not.toHaveBeenCalled();
     expect(fixture.nativeElement.querySelector('app-tavern-scene')).not.toBeNull();
-    expect(fixture.nativeElement.querySelectorAll('app-tavern-music').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('app-tavern-music')).toBeNull();
     expect(fixture.nativeElement.querySelector('app-tavern-bazar')).toBeNull();
   });
 
@@ -79,7 +79,7 @@ describe('TavernHallComponent', () => {
     expect(fixture.componentInstance.bazarOpen).toBeTrue();
     expect(fixture.componentInstance.bazarTab).toBe('racha');
     expect(fixture.nativeElement.querySelector('app-tavern-bazar')).not.toBeNull();
-    expect(fixture.nativeElement.querySelectorAll('app-tavern-music').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('app-tavern-music')).toBeNull();
   });
 
   it('el visitante que pide El Bazar va a iniciar sesión y vuelve al ropero', () => {

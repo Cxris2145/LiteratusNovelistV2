@@ -1,80 +1,134 @@
-<div class="af th-panel" role="document">
-  <div class="th-panel-title">
-    <h2 mat-dialog-title id="af-title">Agregar amigo</h2>
-    <button type="button" class="th-icon-btn" (click)="close()" aria-label="Cerrar">
+<section class="af" aria-labelledby="af-title">
+  <header class="af-header">
+    <div class="af-heading">
+      <span class="af-heading-icon material-symbols-rounded" aria-hidden="true">person_add</span>
+      <div>
+        <h2 mat-dialog-title id="af-title" class="af-title">Agregar amigo</h2>
+        <p id="af-description">Invita a un lector a tu mesa.</p>
+      </div>
+    </div>
+    <button type="button" class="af-close" (click)="close()" aria-label="Cerrar">
       <span class="material-symbols-rounded" aria-hidden="true">close</span>
     </button>
-  </div>
+  </header>
 
-  <label class="af-label" for="af-query">Nombre de usuario o código</label>
-  <div class="af-search">
-    <span class="material-symbols-rounded" aria-hidden="true">search</span>
-    <input id="af-query" type="search" [formControl]="query" placeholder="Ej. lunaescribe o #K7Q2XM"
-           autocomplete="off" spellcheck="false" cdkFocusInitial aria-describedby="af-hint af-live">
-  </div>
-  <p class="af-hint" id="af-hint">Escribe al menos 3 letras. El código lo ve cada lector en su perfil de La Taberna.</p>
-
-  <p class="sr-only" id="af-live" aria-live="polite">{{ liveMessage }}</p>
-  <p class="th-empty af-status" *ngIf="liveMessage && !results.length" aria-hidden="true">{{ liveMessage }}</p>
-
-  <!-- Con la búsqueda vacía: lectores que quizá conozcas -->
-  <section class="af-suggestions" *ngIf="showSuggestions" aria-labelledby="af-suggest-title">
-    <h3 id="af-suggest-title">Sugerencias para ti</h3>
-    <ul class="af-results" *ngIf="suggestionsLoading" aria-busy="true" aria-label="Cargando sugerencias">
-      <li *ngFor="let _ of [1, 2, 3]" class="af-skeleton" aria-hidden="true">
-        <span class="af-avatar"></span><span class="af-sk-line"></span>
-      </li>
-    </ul>
-    <p class="th-empty af-status" *ngIf="!suggestionsLoading && suggestionsFailed">
-      No pudimos traer sugerencias.
-      <button type="button" class="th-btn ghost" (click)="loadSuggestions()">Reintentar</button>
-    </p>
-    <p class="th-empty af-status" *ngIf="!suggestionsLoading && !suggestionsFailed && !suggestions.length">
-      Por ahora no hay lectores para sugerirte. Comparte tu código para que te encuentren.
-    </p>
-    <ul class="af-results af-suggest-list" *ngIf="!suggestionsLoading && suggestions.length">
-      <li *ngFor="let card of suggestions; trackBy: trackCard">
-        <img *ngIf="photos.of(card) as src; else suggestMaguito" class="af-avatar af-photo" [src]="src" alt=""
-             decoding="async" (error)="photos.failed(card.friend_code)">
-        <ng-template #suggestMaguito><app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
-                     [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
-        <a class="af-who af-who-link" [routerLink]="['/tavern/amigo', card.friend_code]" (click)="close()">
-          <strong>{{ card.username }}</strong>
-          <span class="af-reason">{{ card.reason }}</span>
-        </a>
-        <button type="button" class="th-btn af-suggest-btn" [class.secondary]="card.relation !== 'none'"
-                [disabled]="busy === card.friend_code || card.relation === 'friend'" (click)="act(card)"
-                [attr.aria-label]="suggestionLabel(card) + ': ' + card.username">
-          <!-- Una etiqueta por estado: al cambiar entra la nueva con un fundido corto. -->
-          <span class="af-btn-label" *ngFor="let label of [busy === card.friend_code ? 'Un momento…' : suggestionLabel(card)]">{{ label }}</span>
-        </button>
-      </li>
-    </ul>
-  </section>
-
-  <ul class="af-results" *ngIf="results.length">
-    <li *ngFor="let card of results; trackBy: trackCard">
-      <img *ngIf="photos.of(card) as src; else resultMaguito" class="af-avatar af-photo" [src]="src" alt=""
-           decoding="async" (error)="photos.failed(card.friend_code)">
-      <ng-template #resultMaguito><app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
-                   [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
-      <span class="af-who">
-        <strong>{{ card.username }}</strong>
-        <span class="th-code">#{{ card.friend_code }}</span>
-      </span>
-      <button type="button" class="th-btn"
-              [class.secondary]="card.relation === 'outgoing' || card.relation === 'friend'"
-              [disabled]="busy === card.friend_code || card.relation === 'friend'"
-              (click)="act(card)">
-        {{ busy === card.friend_code ? 'Un momento…' : actionLabel(card) }}
+  <div class="af-search-area">
+    <label class="af-label" for="af-query">Nombre de usuario o código</label>
+    <div class="af-search" [class.is-searching]="searching">
+      <span class="material-symbols-rounded af-search-icon" aria-hidden="true">search</span>
+      <input #searchInput id="af-query" type="search" [formControl]="query" placeholder="Ej. lunaescribe o #K7Q2XM"
+             autocomplete="off" autocapitalize="none" spellcheck="false" cdkFocusInitial aria-describedby="af-hint">
+      <button *ngIf="query.value" type="button" class="af-clear" (click)="clearQuery(); searchInput.focus()" aria-label="Limpiar búsqueda">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
-    </li>
-  </ul>
+    </div>
+    <p class="af-hint" id="af-hint">Escribe al menos 3 letras o pega un código de amigo.</p>
+  </div>
 
-  <div class="af-mine" *ngIf="data.myCode">
-    <span>Tu código: <strong class="th-code">#{{ data.myCode }}</strong></span>
-    <button type="button" class="th-btn ghost" (click)="copyMyCode()">
+  <p class="sr-only" aria-live="polite" aria-atomic="true">{{ liveMessage }}</p>
+
+  <div class="af-content">
+    <section *ngIf="showSuggestions; else searchResults" aria-labelledby="af-suggest-title">
+      <div class="af-section-heading">
+        <h3 id="af-suggest-title">Sugerencias para ti</h3>
+        <span class="af-count" *ngIf="!suggestionsLoading && suggestions.length">{{ suggestions.length }}</span>
+      </div>
+
+      <ng-container *ngIf="suggestionsLoading; else loadedSuggestions">
+        <ng-container *ngTemplateOutlet="loadingRows"></ng-container>
+      </ng-container>
+      <ng-template #loadedSuggestions>
+        <div class="af-empty" *ngIf="suggestionsFailed">
+          <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+          <p>No pudimos cargar las sugerencias.</p>
+          <button type="button" class="af-retry" (click)="loadSuggestions()">Volver a intentar</button>
+        </div>
+        <div class="af-empty" *ngIf="!suggestionsFailed && !suggestions.length">
+          <span class="material-symbols-rounded" aria-hidden="true">group_add</span>
+          <h3>Tu próxima historia, en compañía</h3>
+          <p>Busca a un lector o comparte tu código para que te encuentre.</p>
+        </div>
+        <ul class="af-results" *ngIf="!suggestionsFailed && suggestions.length">
+          <li class="af-row" *ngFor="let card of suggestions; trackBy: trackCard"
+              [class.is-pending]="card.relation === 'outgoing'" [class.is-friend]="card.relation === 'friend'">
+            <ng-container *ngTemplateOutlet="readerRow; context: { $implicit: card, detail: card.reason }"></ng-container>
+          </li>
+        </ul>
+      </ng-template>
+    </section>
+
+    <ng-template #searchResults>
+      <section aria-labelledby="af-results-title" [attr.aria-busy]="searching">
+        <div class="af-section-heading">
+          <h3 id="af-results-title">Resultados de búsqueda</h3>
+          <span class="af-count" *ngIf="searched && !failed">{{ results.length }}</span>
+          <span class="af-spinner" *ngIf="searching" aria-hidden="true"></span>
+        </div>
+        <ng-container *ngIf="!searched && !failed">
+          <ng-container *ngTemplateOutlet="loadingRows"></ng-container>
+        </ng-container>
+        <div class="af-empty" *ngIf="failed">
+          <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+          <p>No pudimos buscar ahora. Revisa tu conexión y vuelve a intentarlo.</p>
+        </div>
+        <div class="af-empty" *ngIf="searched && !failed && !results.length">
+          <span class="material-symbols-rounded" aria-hidden="true">search_off</span>
+          <h3>No encontramos a ese lector</h3>
+          <p>Revisa el nombre o prueba con su código de amigo.</p>
+        </div>
+        <ul class="af-results" *ngIf="!failed && results.length">
+          <li class="af-row" *ngFor="let card of results; trackBy: trackCard"
+              [class.is-pending]="card.relation === 'outgoing'" [class.is-friend]="card.relation === 'friend'">
+            <ng-container *ngTemplateOutlet="readerRow; context: { $implicit: card, detail: '#' + card.friend_code }"></ng-container>
+          </li>
+        </ul>
+      </section>
+    </ng-template>
+  </div>
+
+  <footer class="af-mine" *ngIf="data.myCode">
+    <div class="af-code-copy">
+      <span class="material-symbols-rounded af-code-icon" aria-hidden="true">badge</span>
+      <div><span class="af-code-label">Comparte tu código</span><strong class="th-code">#{{ data.myCode }}</strong></div>
+    </div>
+    <button type="button" class="af-copy" (click)="copyMyCode()" aria-label="Copiar mi código de amigo">
       <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
     </button>
-  </div>
-</div>
+  </footer>
+</section>
+
+<ng-template #readerRow let-card let-detail="detail">
+  <app-avatar-frame [frame]="card.equipped_frame" size="sm">
+    <img *ngIf="photos.of(card) as src; else cardMaguito" class="af-avatar af-photo" [src]="src" alt=""
+         loading="lazy" decoding="async" (error)="photos.failed(card.friend_code)">
+    <ng-template #cardMaguito><app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
+                  [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
+  </app-avatar-frame>
+  <a class="af-who" [routerLink]="['/tavern/amigo', card.friend_code]" (click)="close()">
+    <strong [title]="card.username">{{ card.username }}</strong>
+    <span class="af-reason" [title]="card.relation === 'outgoing' ? 'Solicitud enviada' : detail">
+      <span *ngIf="card.relation === 'outgoing'" class="material-symbols-rounded af-sent-icon" aria-hidden="true">check</span>
+      {{ card.relation === 'outgoing' ? 'Solicitud enviada' : detail }}
+    </span>
+  </a>
+  <button type="button" class="af-action" [class.is-pending]="card.relation === 'outgoing'"
+          [class.is-friend]="card.relation === 'friend' || card.relation === 'self'"
+          [disabled]="!!busy || card.relation === 'friend' || card.relation === 'self'" (click)="act(card)"
+          [attr.aria-label]="actionLabel(card) + ': ' + card.username" [attr.aria-busy]="busy === card.friend_code">
+    <span *ngIf="busy === card.friend_code; else actionIcon" class="af-spinner" aria-hidden="true"></span>
+    <ng-template #actionIcon>
+      <span class="material-symbols-rounded af-action-icon" aria-hidden="true">{{ card.relation === 'outgoing' ? 'close' : card.relation === 'friend' || card.relation === 'self' ? 'check' : 'person_add' }}</span>
+    </ng-template>
+    <span class="af-action-label" *ngFor="let label of [busy === card.friend_code ? 'Espera…' : card.relation === 'outgoing' ? 'Cancelar' : suggestionLabel(card)]">{{ label }}</span>
+  </button>
+</ng-template>
+
+<ng-template #loadingRows>
+  <ul class="af-loading" aria-busy="true" aria-label="Buscando lectores">
+    <li *ngFor="let slot of [1, 2, 3]" aria-hidden="true">
+      <span class="af-placeholder-avatar"></span>
+      <span class="af-placeholder-lines"><span></span><span></span></span>
+      <span class="af-placeholder-button"></span>
+    </li>
+  </ul>
+</ng-template>

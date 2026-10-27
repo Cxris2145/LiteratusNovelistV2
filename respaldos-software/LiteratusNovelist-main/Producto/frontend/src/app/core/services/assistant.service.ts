@@ -39,7 +39,7 @@ const SECTION_LABELS: { prefix: string; label: string }[] = [
   { prefix: '/chat/', label: 'Chat con personajes IA' },
   { prefix: '/demo-chat', label: 'Chat con personajes IA' },
   { prefix: '/planes', label: 'Sé parte de Literatus (planes mensuales, membresía y recarga de Tinta)' },
-  { prefix: '/tavern', label: 'La Taberna (amigos, brindis, ranking y El Bazar para vestir a Maguito)' },
+  { prefix: '/tavern', label: 'La Taberna (amigos, brindis y El Bazar para vestir a Maguito)' },
   { prefix: '/library', label: 'Mi Biblioteca' },
   { prefix: '/favorites', label: 'Favoritos' },
   { prefix: '/messages', label: 'Mensajes con personajes' },

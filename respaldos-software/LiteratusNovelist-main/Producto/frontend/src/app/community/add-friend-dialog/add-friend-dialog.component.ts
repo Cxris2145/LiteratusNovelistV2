@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { Observable, Subject, of } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Observable, Subject, of, timer } from 'rxjs';
+import { catchError, distinctUntilChanged, finalize, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { CommunityResult, CommunityService, FriendSuggestion, TavernCard } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -30,6 +30,7 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   private community = inject(CommunityService);
   private notification = inject(NotificationService);
   private destroy$ = new Subject<void>();
+  private closed = false;
 
   readonly query = new FormControl('', { nonNullable: true });
   /** La foto de perfil de cada lector; sin foto (o si no carga) se ve su Maguito. */
@@ -59,22 +60,25 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.dialogRef.beforeClosed().pipe(takeUntil(this.destroy$)).subscribe(() => this.stopPending());
     this.loadSuggestions();
     this.query.valueChanges.pipe(
       map(value => value.trim()),
-      debounceTime(300),
       distinctUntilChanged(),
-      tap(value => {
-        if (value.replace(/^#/, '').length < MIN_QUERY) {
-          this.results = [];
-          this.searched = false;
-        }
+      switchMap(value => {
+        // El cambio cancela incluso una petición ya iniciada, antes de esperar el debounce.
+        this.results = [];
+        this.searching = false;
+        this.searched = false;
+        this.failed = false;
+        if (value.replace(/^#/, '').length < MIN_QUERY) return EMPTY;
+        return timer(300).pipe(
+          tap(() => { this.searching = true; }),
+          switchMap(() => this.community.search(value).pipe(
+            catchError(() => { this.failed = true; return of({ results: [] as TavernCard[] }); }),
+          )),
+        );
       }),
-      filter(value => value.replace(/^#/, '').length >= MIN_QUERY),
-      tap(() => { this.searching = true; this.failed = false; }),
-      switchMap(value => this.community.search(value).pipe(
-        catchError(() => { this.failed = true; return of({ results: [] as TavernCard[] }); }),
-      )),
       takeUntil(this.destroy$),
     ).subscribe(({ results }) => {
       this.results = results;
@@ -84,13 +88,27 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopPending();
+  }
+
+  private stopPending(): void {
+    if (this.closed) return;
+    this.closed = true;
     this.destroy$.next();
     this.destroy$.complete();
+    this.searching = false;
+    this.suggestionsLoading = false;
+    this.busy = null;
+  }
+
+  clearQuery(): void {
+    this.query.setValue('');
   }
 
   trackCard = (_: number, card: TavernCard) => card.friend_code;
 
   loadSuggestions(): void {
+    if (this.closed) return;
     this.suggestionsLoading = true;
     this.suggestionsFailed = false;
     this.community.suggestions().pipe(takeUntil(this.destroy$)).subscribe({
@@ -100,8 +118,8 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   }
 
   suggestionLabel(card: TavernCard): string {
-    if (card.relation === 'outgoing') return 'Enviada · Cancelar';
-    if (card.relation === 'friend') return 'Ya son amigos';
+    if (card.relation === 'outgoing') return 'Enviada';
+    if (card.relation === 'friend') return 'Amigos';
     if (card.relation === 'incoming') return 'Aceptar';
     return 'Agregar';
   }
@@ -116,43 +134,46 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   }
 
   act(card: TavernCard): void {
-    if (this.busy || card.relation === 'friend' || card.relation === 'self') return;
+    if (this.closed || this.busy || card.relation === 'friend' || card.relation === 'self') return;
+    const previousRelation = card.relation;
     let request: Observable<CommunityResult>;
     if (card.relation === 'outgoing' && card.request_id) request = this.community.cancel(card.request_id);
     else if (card.relation === 'incoming' && card.request_id) request = this.community.accept(card.request_id);
     else request = this.community.sendRequest({ friend_code: card.friend_code });
 
     this.busy = card.friend_code;
-    request.subscribe({
+    request.pipe(
+      takeUntil(this.destroy$),
+      finalize(() => { this.busy = null; }),
+    ).subscribe({
       next: result => {
-        this.busy = null;
-        if (card.relation === 'outgoing') {
-          card.relation = 'none';
-          card.request_id = null;
-        } else if (card.relation === 'incoming' || result.state === 'accepted') {
-          card.relation = 'friend';
-        } else {
-          card.relation = 'outgoing';
-          card.request_id = result.id ?? null;
+        const relation = previousRelation === 'outgoing' ? 'none'
+          : previousRelation === 'incoming' || result.state === 'accepted' ? 'friend' : 'outgoing';
+        // La misma persona puede estar en sugerencias y resultados: ambas vistas conservan el estado.
+        for (const shown of new Set([card, ...this.results, ...this.suggestions])) {
+          if (shown.friend_code !== card.friend_code) continue;
+          shown.relation = relation;
+          shown.request_id = relation === 'outgoing' ? result.id ?? null : null;
         }
         this.notification.success(result.message, 'Taberna');
         this.community.changed$.next();
       },
       error: err => {
-        this.busy = null;
         this.notification.error(err.error?.message || 'No se pudo completar la acción. Inténtalo de nuevo.', 'Taberna');
       },
     });
   }
 
   async copyMyCode(): Promise<void> {
-    if (!this.data.myCode) return;
+    if (this.closed || !this.data.myCode) return;
     const copied = await copyText('#' + this.data.myCode);
+    if (this.closed) return;
     this.notification[copied ? 'success' : 'info'](
       copied ? 'Código copiado.' : `Tu código es #${this.data.myCode}.`, 'Taberna');
   }
 
   close(): void {
+    this.stopPending();
     this.dialogRef.close();
   }
 }

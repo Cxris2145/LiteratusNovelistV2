@@ -104,8 +104,8 @@
   line-height: 1.5;
   text-shadow: 0 1px 4px #160f0d, 0 2px 10px #160f0d;
 }
-/* Cabecera: utilidades (íconos) | separador | Charlas · El Bazar (secundarios) · Agregar amigo
-   (dorado, la única acción principal). Todo mide --th-control-h para quedar en una línea. */
+/* Cabecera: utilidades (íconos) | separador | Lecturas conjuntas · Charlas · El Bazar.
+   Todo mide --th-control-h para quedar en una línea. */
 .th-actions {
   display: flex;
   align-items: center;
@@ -261,15 +261,9 @@
 .th-invitation .th-btn { padding: 8px 12px; font-size: .8rem; }
 .area-side {
   grid-area: side;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--th-border) transparent;
+  min-width: 0;
+  --fl-max-height: max(300px, calc(var(--th-stage-height) - 88px));
 }
-.area-side > * { flex-shrink: 0; }
-.area-side > app-friend-list { max-height: 260px; }
 .area-profile,
 .area-side {
   position: sticky;
@@ -277,13 +271,8 @@
   max-height: var(--th-stage-height);
   border-radius: var(--th-radius-panel, 18px);
 }
-/* Los botones flotantes (cuaderno y asistente) viven en la esquina inferior derecha: la columna
-   deja ese espacio al final para que la lista de amigos se pueda llevar por encima. */
-@media (min-width: 1001px) {
-  .area-side { padding-bottom: 120px; }
-}
-.area-profile,
-.area-side > app-friend-list {
+/* Solo el contenido de la lista se desplaza; su cabecera y el botón de agregar siguen visibles. */
+.area-profile {
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -361,9 +350,8 @@
     max-height: none;
     overflow: visible;
   }
-  .area-side { display: contents; }
+  .area-side { display: contents; --fl-max-height: none; }
   .area-side > app-friend-list { grid-area: friends; }
-  .area-side > app-friend-list { max-height: none; overflow: visible; }
   .th-hero { flex-wrap: wrap; }
   .th-visitor { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'scene' 'welcome'; }
   .th-visitor-side { display: contents; }
@@ -381,8 +369,6 @@
   .th-actions { width: 100%; gap: 8px; }
   .th-actions-divider { display: none; }
   .th-actions .th-btn { flex: 1 1 0; min-width: 0; gap: 6px; padding-inline: 8px; font-size: .78rem; white-space: nowrap; }
-  /* Sonido, cine, Charlas y El Bazar en una fila; "Agregar amigo" (la acción principal) debajo. */
-  .th-actions > .th-btn:last-child { flex-basis: 100%; }
   .th-actions .th-btn .material-symbols-rounded { font-size: 18px; }
   .th-layout {
     grid-template-columns: minmax(0, 1fr);
