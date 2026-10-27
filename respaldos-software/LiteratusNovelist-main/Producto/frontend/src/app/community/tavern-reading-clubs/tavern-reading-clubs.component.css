@@ -407,6 +407,12 @@
   cursor: pointer;
 }
 .rc-link-btn .material-symbols-rounded { font-size: 15px; }
+.rc-no-books-link {
+  align-self: flex-start;
+  min-height: 36px;
+  margin-left: -6px;
+  text-decoration: none;
+}
 
 .rc-member-pills {
   display: flex;

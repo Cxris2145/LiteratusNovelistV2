@@ -963,38 +963,36 @@ def list_reading_clubs(me) -> dict:
 
 
 def available_books_for_club(me) -> dict:
-    """Libros publicados que tienen capítulos (priorizando los de Mi Biblioteca)."""
+    """Libros de Mi Biblioteca que tienen capítulos: solo se lee en grupo un libro que ya tienes."""
     from catalog.models import Book
     from catalog.age import visible_books
     from library.models import UserInventory
 
-    my_book_ids = set(UserInventory.objects.filter(user=me).values_list('edition__book_id', flat=True))
-    qs = visible_books(Book.objects.filter(is_published=True), me).annotate(
+    my_book_ids = UserInventory.objects.filter(user=me).values_list('edition__book_id', flat=True)
+    qs = visible_books(Book.objects.filter(is_published=True, pk__in=my_book_ids), me).annotate(
         chapters_count=Count('chapters')
-    ).filter(chapters_count__gt=0).order_by('-is_featured', 'title')[:40]
+    ).filter(chapters_count__gt=0).order_by('title')
 
-    books = []
-    for b in qs:
-        books.append({
-            'id': str(b.id),
-            'title': b.title,
-            'slug': b.slug,
-            'chapters_count': b.chapters_count,
-            'in_library': b.id in my_book_ids,
-        })
-    books.sort(key=lambda x: (0 if x['in_library'] else 1, x['title']))
-    return {'results': books}
+    return {'results': [{
+        'id': str(b.id),
+        'title': b.title,
+        'slug': b.slug,
+        'chapters_count': b.chapters_count,
+    } for b in qs]}
 
 
 @transaction.atomic
 def create_reading_club(me, data: dict) -> dict:
     from catalog.models import Book
     from catalog.age import visible_books
+    from library.models import UserInventory
 
     book_id = data.get('book_id')
     book = visible_books(Book.objects.filter(is_published=True), me).filter(pk=book_id).first() if book_id else None
     if not book:
         return _fail('BOOK_NOT_FOUND', 'Selecciona un libro válido para la lectura grupal.', 404)
+    if not UserInventory.objects.filter(user=me, edition__book=book).exists():
+        return _fail('BOOK_NOT_IN_LIBRARY', 'Solo puedes leer en grupo un libro de tu biblioteca.', 400)
 
     name = str(data.get('name') or '').strip()
     if not name:

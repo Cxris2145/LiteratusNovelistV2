@@ -249,7 +249,6 @@ export interface ClubBookOption {
   title: string;
   slug: string;
   chapters_count: number;
-  in_library: boolean;
 }
 
 export interface ReadingClubMessageItem {

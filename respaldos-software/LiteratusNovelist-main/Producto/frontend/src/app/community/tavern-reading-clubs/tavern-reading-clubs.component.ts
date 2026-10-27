@@ -204,7 +204,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
         },
         error: () => {
           this.booksLoading = false;
-          this.error = 'No pudimos cargar el catálogo de libros.';
+          this.error = 'No pudimos cargar los libros de tu biblioteca.';
         },
       });
     } else if (!this.createBookId && this.books.length) {

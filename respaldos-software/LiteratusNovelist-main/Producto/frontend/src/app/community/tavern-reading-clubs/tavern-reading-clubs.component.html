@@ -87,14 +87,20 @@
     <form class="rc-form" (ngSubmit)="submitCreate()">
       <p class="rc-error" role="alert" *ngIf="error">{{ error }}</p>
 
-      <label class="rc-field">
+      <label class="rc-field" *ngIf="booksLoading || books.length">
         <span class="rc-label">Libro para leer juntos</span>
         <select name="bookId" [(ngModel)]="createBookId" [disabled]="booksLoading || creating" required>
-          <option *ngFor="let b of books" [value]="b.id">
-            {{ b.in_library ? '★ ' : '' }}{{ b.title }} ({{ b.chapters_count }} cap.)
-          </option>
+          <option *ngFor="let b of books" [value]="b.id">{{ b.title }} ({{ b.chapters_count }} cap.)</option>
         </select>
+        <span class="rc-mode-hint">Solo aparecen los libros de tu biblioteca.</span>
       </label>
+      <div class="rc-field" *ngIf="!booksLoading && !books.length && !error" role="status">
+        <span class="rc-label">Libro para leer juntos</span>
+        <p class="rc-mode-hint">Para leer en grupo, primero agrega el libro a tu biblioteca.</p>
+        <a class="rc-link-btn rc-no-books-link" routerLink="/catalog">
+          <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>Ir al catálogo
+        </a>
+      </div>
 
       <label class="rc-field">
         <span class="rc-label">Nombre del grupo <small>(opcional)</small></span>

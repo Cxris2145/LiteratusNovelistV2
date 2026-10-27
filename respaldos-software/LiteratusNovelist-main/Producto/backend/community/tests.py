@@ -16,7 +16,7 @@ from library.models import ReadingProgress, UserInventory
 from users.models import FRIEND_CODE_ALPHABET, Profile
 
 from . import live
-from .models import Brindis, FriendMessage, Friendship, ReadingClubMember, TavernInvitation, TavernMessage
+from .models import Brindis, FriendMessage, Friendship, ReadingClub, ReadingClubMember, TavernInvitation, TavernMessage
 
 User = get_user_model()
 API = '/api/v1/community/'
@@ -722,6 +722,7 @@ class ReadingClubTestCase(CommunityAPITestCase):
         self.edition = Edition.objects.create(book=self.book, price=0)
         for order in range(1, 7):
             Chapter.objects.create(book=self.book, order=order, title=f'Capítulo {order}', content_html='<p>Texto</p>')
+        UserInventory.objects.create(user=self.ana, edition=self.edition)
 
     def read_in_reader(self, user, chapter):
         """Lo que guarda el lector al pasar de página (ReadingProgress.current_page es el capítulo)."""
@@ -749,6 +750,22 @@ class ReadingClubTests(ReadingClubTestCase):
 
         members = {m.user_id: m.current_chapter for m in ReadingClubMember.objects.filter(club_id=club_id)}
         self.assertEqual(members, {self.ana.pk: 1, self.bruno.pk: 3})
+
+    def test_book_list_shows_only_my_library(self):
+        other = Book.objects.create(title='Moby Dick', status=Book.StatusChoices.PUBLISHED, is_published=True)
+        Chapter.objects.create(book=other, order=1, title='Capítulo 1', content_html='<p>Texto</p>')
+
+        res = self.as_user(self.ana).get(f'{API}clubs/books/')
+
+        self.assertEqual([b['id'] for b in res.data['results']], [str(self.book.id)])
+        self.assertEqual(res.data['results'][0]['chapters_count'], 6)
+
+    def test_cannot_create_club_with_book_outside_my_library(self):
+        res = self.as_user(self.bruno).post(f'{API}clubs/', {'book_id': str(self.book.id)}, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data['error'], 'BOOK_NOT_IN_LIBRARY')
+        self.assertFalse(ReadingClub.objects.exists())
 
     def test_strangers_cannot_open_the_club(self):
         club_id = self.create_club(friends=[self.bruno])
