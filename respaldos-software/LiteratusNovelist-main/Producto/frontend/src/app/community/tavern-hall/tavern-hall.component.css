@@ -1,9 +1,9 @@
 :host {
   display: block;
-  --th-panel-background: rgba(16, 17, 30, 0.88);
+  /* Sin desenfoque detrás de los paneles: la gente del salón se mueve debajo y el blur se rehacía en
+     cada cuadro. Un fondo algo más opaco mantiene la lectura igual de cómoda. */
+  --th-panel-background: rgba(16, 17, 30, 0.93);
   --th-panel-border: rgba(212, 175, 55, 0.35);
-  /* Solo los tres paneles grandes desenfocan lo de atrás: el resto usa fondos opacos. */
-  --th-panel-filter: blur(12px);
   --th-panel-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.15), 0 14px 38px rgba(0, 0, 0, 0.55);
   /* Fondo del botón secundario de toda la sala (lo leen los paneles hijos y El Bazar). */
   --th-secondary-bg: rgba(22, 15, 12, .78);
@@ -318,7 +318,6 @@
 :host-context([data-theme='high-contrast-light']) {
   --th-panel-background: var(--home-bg-surface);
   --th-panel-border: var(--home-ink);
-  --th-panel-filter: none;
   --th-panel-shadow: none;
 }
 :host-context([data-theme='high-contrast-dark']) .th-actions .th-btn.secondary,

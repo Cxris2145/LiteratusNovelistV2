@@ -20,37 +20,37 @@
 
 <!-- Dos que conversan al fondo, con sus globitos alternados -->
 <div class="cr-actor cr-far" style="--x: 45.4%; --b: 47.2%; --w: 4.4%">
-  <div class="cr-bob is-slow"><app-maguito [outfit]="look['chatL']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div>
+  <div class="cr-bob is-slow"><app-maguito [calm]="true" [outfit]="look['chatL']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div>
   <span class="cr-say cr-say-a">📚</span>
 </div>
 <div class="cr-actor cr-far" style="--x: 50.2%; --b: 47.2%; --w: 4.4%">
-  <div class="cr-face is-left"><div class="cr-bob is-slow is-late"><app-maguito [outfit]="look['chatR']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div></div>
+  <div class="cr-face is-left"><div class="cr-bob is-slow is-late"><app-maguito [calm]="true" [outfit]="look['chatR']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div></div>
   <span class="cr-say cr-say-b">😂</span>
 </div>
 
 <!-- Amigos que brindan -->
 <div class="cr-actor cr-mid" style="--x: 62.2%; --b: 45.6%; --w: 5.2%">
-  <app-maguito [outfit]="look['friend1']" [mug]="true" [toasting]="toasting" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
+  <app-maguito [calm]="true" [outfit]="look['friend1']" [mug]="true" [toasting]="toasting" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
 </div>
 <div class="cr-actor cr-mid" style="--x: 66.6%; --b: 45.2%; --w: 5.2%">
-  <div class="cr-face is-left"><app-maguito [outfit]="look['friend2']" [mug]="true" [toasting]="toasting" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div>
+  <div class="cr-face is-left"><app-maguito [calm]="true" [outfit]="look['friend2']" [mug]="true" [toasting]="toasting" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div>
   <span class="cr-cheers" [class.is-on]="toasting">¡Salud!</span>
 </div>
 <div class="cr-actor cr-mid" style="--x: 71%; --b: 45.6%; --w: 5.2%">
-  <div class="cr-face is-left"><app-maguito [outfit]="look['friend3']" [mug]="true" [toasting]="toasting" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div>
+  <div class="cr-face is-left"><app-maguito [calm]="true" [outfit]="look['friend3']" [mug]="true" [toasting]="toasting" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div>
 </div>
 
 <!-- Duelo de varitas: una chispa dorada va, una violeta vuelve -->
 <div class="cr-actor cr-mid" style="--x: 28.6%; --b: 44.6%; --w: 5.6%">
   <div class="cr-bob cr-recoil-l">
-    <app-maguito [outfit]="look['duelL']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
+    <app-maguito [calm]="true" [outfit]="look['duelL']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
     <svg class="cr-wand" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 34 L30 10" /><path class="cr-wand-tip" d="M31 3l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" /></svg>
   </div>
 </div>
 <div class="cr-actor cr-mid" style="--x: 39.4%; --b: 44.6%; --w: 5.6%">
   <div class="cr-face is-left">
     <div class="cr-bob cr-recoil-r">
-      <app-maguito [outfit]="look['duelR']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
+      <app-maguito [calm]="true" [outfit]="look['duelR']" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
       <svg class="cr-wand" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 34 L30 10" /><path class="cr-wand-tip" d="M31 3l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" /></svg>
     </div>
   </div>
@@ -67,7 +67,7 @@
   <div class="cr-actor cr-near" style="--w: 6%">
     <div class="cr-face cr-face-waitress">
       <div class="cr-walk">
-        <app-maguito [outfit]="look['waitress']" [walking]="true" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
+        <app-maguito [calm]="true" [outfit]="look['waitress']" [walking]="true" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito>
         <svg class="cr-tray" viewBox="0 0 60 34" aria-hidden="true">
           <rect class="cr-mug" x="10" y="6" width="10" height="13" rx="2" /><ellipse class="cr-foam" cx="15" cy="6" rx="6" ry="3" />
           <rect class="cr-mug" x="25" y="4" width="10" height="15" rx="2" /><ellipse class="cr-foam" cx="30" cy="4" rx="6" ry="3" />
@@ -82,12 +82,12 @@
 <!-- Dos magos que cruzan el salón, cada uno a su ritmo -->
 <div class="cr-lane cr-lane-b" style="--b: 37%">
   <div class="cr-actor cr-near" style="--w: 6%">
-    <div class="cr-face cr-face-walker-b"><div class="cr-walk"><app-maguito [outfit]="look['walkerB']" [walking]="true" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div></div>
+    <div class="cr-face cr-face-walker-b"><div class="cr-walk"><app-maguito [calm]="true" [outfit]="look['walkerB']" [walking]="true" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div></div>
   </div>
 </div>
 <div class="cr-lane cr-lane-a" style="--b: 35.5%">
   <div class="cr-actor cr-near" style="--w: 6%">
-    <div class="cr-face cr-face-walker-a"><div class="cr-walk"><app-maguito [outfit]="look['walkerA']" [walking]="true" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div></div>
+    <div class="cr-face cr-face-walker-a"><div class="cr-walk"><app-maguito [calm]="true" [outfit]="look['walkerA']" [walking]="true" [paused]="reduced || paused" [interactive]="false" [followPointer]="false"></app-maguito></div></div>
   </div>
 </div>
 </div>

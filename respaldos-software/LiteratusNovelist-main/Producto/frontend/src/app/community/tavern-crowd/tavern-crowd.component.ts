@@ -15,9 +15,11 @@ const CHEERS_FOR_MS = 1900;
  * los lectores de pantalla) y vive en la misma caja que la pintura del salón, así cada uno pisa
  * el piso de la pintura sin importar el tamaño de la ventana.
  *
- * Cada personaje usa el mismo Maguito SVG del resto de la aplicación. Las animaciones CSS
- * se pausan fuera de pantalla y con la pestaña oculta; con "reducir movimiento" todos quedan
- * quietos en su lugar.
+ * Cada personaje usa el mismo Maguito SVG del resto de la aplicación, en modo `calm`: caminan,
+ * brindan y parpadean, pero sin respiración ni balanceo continuos. Son una veintena de SVG chicos
+ * y esos gestos finos (que a ese tamaño no se ven) obligaban a repintar la sala en cada cuadro.
+ * Las animaciones CSS se pausan fuera de pantalla y con la pestaña oculta; con "reducir
+ * movimiento" todos quedan quietos en su lugar.
  */
 @Component({
   selector: 'app-tavern-crowd',

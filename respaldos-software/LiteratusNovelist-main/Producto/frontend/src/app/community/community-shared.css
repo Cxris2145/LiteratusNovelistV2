@@ -44,8 +44,6 @@ h1, h2, h3 {
   border: 1px solid var(--th-panel-border, var(--th-border));
   border-radius: var(--th-radius-panel);
   padding: var(--th-panel-pad);
-  backdrop-filter: var(--th-panel-filter, none);
-  -webkit-backdrop-filter: var(--th-panel-filter, none);
   box-shadow: var(--th-panel-shadow, none);
 }
 .th-panel-title {

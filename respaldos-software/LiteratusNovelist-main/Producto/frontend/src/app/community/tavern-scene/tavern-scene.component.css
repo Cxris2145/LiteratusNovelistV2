@@ -295,7 +295,22 @@
   translate: -50% 0;
   z-index: 4;
   pointer-events: none;
-  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .5));
+}
+/* El respaldo SVG es quieto: su sombra se pinta una vez. */
+svg.ts-table-overlay { filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .5)); }
+/* La mesa 3D se redibuja de 15 a 30 veces por segundo y un drop-shadow sobre su canvas se recalculaba
+   en cada cuadro (era lo que más frenaba la sala). Una sombra fija debajo da el mismo apoyo. */
+app-tavern-table.ts-table-overlay::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 8%;
+  right: 8%;
+  bottom: -5%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .5), rgba(0, 0, 0, 0));
+  pointer-events: none;
 }
 .ts-table-fallback.is-replaced { display: none; }
 
