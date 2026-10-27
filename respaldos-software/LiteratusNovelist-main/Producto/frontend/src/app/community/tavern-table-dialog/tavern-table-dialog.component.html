@@ -1,70 +1,309 @@
-<header class="td-header">
-  <span class="material-symbols-rounded td-icon" aria-hidden="true">{{ icon[data.action] }}</span>
-  <h2 mat-dialog-title>{{ title[data.action] }}</h2>
+<header class="td-header" [attr.data-object]="data.action">
+  <app-table-object-art class="td-art" [action]="data.action" [open]="chestOpen"
+    [style.--potion]="potion?.color || null"></app-table-object-art>
+  <div class="td-heading">
+    <h2 mat-dialog-title>{{ title[data.action] }}</h2>
+    <p class="td-tagline">{{ tagline[data.action] }}</p>
+  </div>
   <button type="button" class="td-close" mat-dialog-close aria-label="Cerrar"><span class="material-symbols-rounded" aria-hidden="true">close</span></button>
 </header>
+
 <mat-dialog-content>
-  <p *ngIf="loading" role="status" class="td-muted">Abriendo {{ data.action === 'book' ? 'tu biblioteca' : 'tu cofre' }}…</p>
   <div *ngIf="error" class="td-error" role="alert">
     <p>{{ error }}</p>
-    <button *ngIf="!busy && data.action !== 'invite'" type="button" class="th-btn ghost" (click)="load()">Reintentar</button>
+    <button *ngIf="!busy && !['invite', 'potions'].includes(data.action)" type="button" class="th-btn ghost" (click)="load()">Reintentar</button>
   </div>
 
+  <!-- Mientras carga: la forma de lo que viene, no un texto suelto. -->
+  <div *ngIf="loading" class="td-skeleton" role="status" aria-label="Cargando">
+    <span class="td-sk td-sk--row"></span><span class="td-sk td-sk--row"></span><span class="td-sk td-sk--line"></span>
+  </div>
+
+  <!-- ═══ LIBRO: compartir lectura ═══ -->
   <ng-container *ngIf="data.action === 'book' && !loading">
     <ng-container *ngIf="readings.length; else emptyBooks">
-      <p class="td-muted">Trae tu lectura a la conversación o comparte una cita que te haya gustado.</p>
-      <label for="td-book">Tu libro</label>
-      <select id="td-book" [(ngModel)]="selectedId" [disabled]="!!busy">
-        <option *ngFor="let item of readings" [value]="item.id">{{ bookTitle(item) }}</option>
-      </select>
-      <div class="td-reading" *ngIf="selected as item">
-        <span>{{ item.author_name || 'De tu biblioteca' }}</span><span>{{ progress(item) | number:'1.0-0' }}% leído</span>
-      </div>
-      <label for="td-quote">Una cita <span class="td-muted">(opcional)</span></label>
-      <textarea id="td-quote" [(ngModel)]="quote" maxlength="140" rows="4" [disabled]="!!busy" placeholder="Escribe aquí el fragmento que quieres compartir…"></textarea>
-      <p class="td-note">Se publicará en el chat de tu mesa. {{ quote.length }}/140</p>
+      <section class="td-section" style="--d: 0">
+        <h3 class="td-label" id="td-books-label">Elige tu libro</h3>
+        <div class="td-shelf" role="radiogroup" aria-labelledby="td-books-label">
+          <button *ngFor="let item of readings; trackBy: trackById" type="button" class="td-book" role="radio"
+            [class.is-selected]="item.id === selectedId" [attr.aria-checked]="item.id === selectedId"
+            [disabled]="!!busy" (click)="selectReading(item.id)">
+            <span class="td-cover">
+              <img *ngIf="item.book_cover; else coverInitial" [src]="item.book_cover" alt="" loading="lazy" decoding="async">
+              <ng-template #coverInitial><span>{{ bookTitle(item).charAt(0) }}</span></ng-template>
+              <span class="td-check material-symbols-rounded" aria-hidden="true">check</span>
+            </span>
+            <span class="td-book-title">{{ bookTitle(item) }}</span>
+            <span class="td-meter" aria-hidden="true"><i [style.transform]="'scaleX(' + progress(item) / 100 + ')'"></i></span>
+            <span class="td-book-meta">{{ progress(item) | number:'1.0-0' }}% leído</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="td-section" style="--d: 1">
+        <h3 class="td-label" id="td-kind-label">¿Qué quieres contar?</h3>
+        <div class="td-chips" role="radiogroup" aria-labelledby="td-kind-label">
+          <ng-container *ngFor="let kind of shareKinds">
+            <button *ngIf="kind.value !== 'finished' || (selected && progress(selected) >= 100)" type="button" class="td-chip" role="radio"
+              [class.is-selected]="shareKind === kind.value" [attr.aria-checked]="shareKind === kind.value"
+              [disabled]="!!busy" (click)="setShareKind(kind.value)">
+              <span class="material-symbols-rounded" aria-hidden="true">{{ kind.icon }}</span>{{ kind.label }}
+            </button>
+          </ng-container>
+        </div>
+      </section>
+
+      <section class="td-section" style="--d: 2" *ngIf="shareKind === 'quote'">
+        <div class="td-quotes" *ngIf="highlights.length">
+          <p class="td-hint">Tus subrayados de este libro:</p>
+          <button *ngFor="let item of highlights; trackBy: trackById" type="button" class="td-quote"
+            [class.is-selected]="quoteFrom === item.id" [attr.aria-pressed]="quoteFrom === item.id"
+            [disabled]="!!busy" (click)="useHighlight(item)">“{{ item.text }}”</button>
+        </div>
+        <label for="td-quote" class="td-label">{{ highlights.length ? 'O escribe la tuya' : 'Escribe la cita' }}</label>
+        <textarea id="td-quote" [(ngModel)]="quote" (ngModelChange)="quoteFrom = ''" maxlength="140" rows="3" [disabled]="!!busy"
+          placeholder="El fragmento que quieres compartir…"></textarea>
+        <p class="td-note">{{ quote.length }}/140</p>
+      </section>
+
+      <section class="td-section td-preview" style="--d: 3" *ngIf="shareText" aria-live="polite">
+        <p class="td-hint">Así se verá en tu mesa</p>
+        <p class="td-bubble">{{ shareText }}</p>
+      </section>
     </ng-container>
-    <ng-template #emptyBooks><p class="td-muted" *ngIf="!error">Tu libro está esperando su primera historia. Añade una lectura a tu biblioteca.</p></ng-template>
+    <ng-template #emptyBooks>
+      <div class="td-empty td-section" *ngIf="!error">
+        <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>
+        <p>Tu libro está esperando su primera historia. Añade una lectura a tu biblioteca y vuelve a contarla aquí.</p>
+      </div>
+    </ng-template>
   </ng-container>
 
+  <!-- ═══ JARRAS: invitar y brindar ═══ -->
   <ng-container *ngIf="data.action === 'invite'">
-    <p class="td-muted">Invita a tus amigos a venir a la taberna. Quienes estén aquí pueden compartir un brindis contigo.</p>
-    <div class="td-friends" *ngIf="data.friends.length; else emptyFriends">
-      <article *ngFor="let friend of data.friends" class="td-friend">
-        <div><strong>{{ friend.username }}</strong><p><span class="th-dot" [ngClass]="friend.status.kind"></span>{{ friend.status.label }}</p></div>
-        <button *ngIf="friend.status.kind !== 'tavern'" type="button" class="th-btn secondary" (click)="invite(friend)" [disabled]="!!busy || sent.has(friend.friend_code)">
-          {{ sent.has(friend.friend_code) ? 'Invitación enviada' : busy === friend.friend_code ? 'Enviando…' : 'Invitar a la mesa' }}
-        </button>
-        <button *ngIf="friend.status.kind === 'tavern'" type="button" class="th-btn secondary" (click)="toast(friend)" [disabled]="!!busy || toasted.has(friend.friend_code)">
+    <section class="td-section td-code" style="--d: 0" *ngIf="data.myCode">
+      <span class="material-symbols-rounded" aria-hidden="true">badge</span>
+      <div><p class="td-hint">Tu código de amigo</p><strong>#{{ data.myCode }}</strong></div>
+      <button type="button" class="th-btn ghost td-copy" (click)="copyCode()" [attr.aria-label]="'Copiar el código #' + data.myCode">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ codeCopied ? 'check' : 'content_copy' }}</span>{{ codeCopied ? 'Copiado' : 'Copiar' }}
+      </button>
+    </section>
+
+    <ng-container *ngIf="data.friends.length; else emptyFriends">
+      <section class="td-section" style="--d: 1" *ngIf="here.length">
+        <h3 class="td-label">En la taberna ahora <span class="td-count">{{ here.length }}</span></h3>
+        <ng-container *ngTemplateOutlet="friendRows; context: { $implicit: here }"></ng-container>
+      </section>
+      <section class="td-section" style="--d: 2" *ngIf="away.length">
+        <h3 class="td-label">Invítalos a tu mesa <span class="td-count">{{ away.length }}</span></h3>
+        <ng-container *ngTemplateOutlet="friendRows; context: { $implicit: away }"></ng-container>
+      </section>
+      <p *ngIf="sent.size" class="td-note" role="status">Las invitaciones aparecen en la taberna de tus amigos y duran 30 minutos.</p>
+    </ng-container>
+    <ng-template #emptyFriends>
+      <div class="td-empty td-section">
+        <span class="material-symbols-rounded" aria-hidden="true">group_add</span>
+        <p>Hay sitio en tu mesa. Agrega a tu primer amigo con su código para compartir historias y brindar.</p>
+      </div>
+    </ng-template>
+  </ng-container>
+
+  <ng-template #friendRows let-list>
+    <ul class="td-friends">
+      <li *ngFor="let friend of list; trackBy: trackByCode" class="td-friend">
+        <span class="td-avatar">
+          <img *ngIf="photos.of(friend) as src; else friendMaguito" [src]="src" alt="" loading="lazy" decoding="async"
+            (error)="photos.failed(friend.friend_code)">
+          <ng-template #friendMaguito><app-maguito crop="bust" [outfit]="friend.outfit" [paused]="true" [calm]="true"
+            [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
+        </span>
+        <div class="td-friend-text">
+          <strong>{{ friend.username }}</strong>
+          <p><span class="th-dot" [ngClass]="friend.status.kind"></span>{{ friend.status.label }} · {{ friend.level_name }}</p>
+        </div>
+        <button *ngIf="friend.status.kind === 'tavern'" type="button" class="th-btn secondary td-row-btn" (click)="toast(friend)"
+          [disabled]="!!busy || toasted.has(friend.friend_code)">
+          <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>
           {{ toasted.has(friend.friend_code) ? 'Ya brindaste' : busy === friend.friend_code ? 'Brindando…' : 'Brindar' }}
         </button>
+        <button *ngIf="friend.status.kind !== 'tavern'" type="button" class="th-btn secondary td-row-btn" (click)="invite(friend)"
+          [disabled]="!!busy || sent.has(friend.friend_code)" [class.is-done]="sent.has(friend.friend_code)">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ sent.has(friend.friend_code) ? 'mark_email_read' : 'send' }}</span>
+          {{ sent.has(friend.friend_code) ? 'Invitado' : busy === friend.friend_code ? 'Enviando…' : 'Invitar' }}
+        </button>
+      </li>
+    </ul>
+  </ng-template>
+
+  <!-- ═══ COFRE: tesoro del lector ═══ -->
+  <ng-container *ngIf="data.action === 'rewards' && !loading">
+    <section class="td-section td-stats" style="--d: 0" *ngIf="profile">
+      <div class="td-stat">
+        <span class="material-symbols-rounded" aria-hidden="true">water_drop</span>
+        <strong>{{ profile.ink_balance | number }}</strong><span>Tinta</span>
+      </div>
+      <div class="td-stat td-stat--level">
+        <span class="material-symbols-rounded" aria-hidden="true">military_tech</span>
+        <strong>Nivel {{ profile.level }}</strong><span>{{ profile.level_name }}</span>
+        <span class="td-meter" [attr.aria-label]="profile.xp + ' de ' + profile.xp_to_next_level + ' XP'"><i [style.transform]="'scaleX(' + xpPercent / 100 + ')'"></i></span>
+      </div>
+      <div class="td-stat">
+        <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
+        <strong>{{ profile.streak_current }}</strong><span>{{ profile.streak_current === 1 ? 'día de racha' : 'días de racha' }}</span>
+      </div>
+    </section>
+
+    <section class="td-section td-daily" style="--d: 1" *ngIf="daily" [class.is-claimed]="!daily.can_claim">
+      <div class="td-daily-text">
+        <h3>{{ claimed ? '¡Cofre abierto!' : daily.can_claim ? 'Tu cofre del día está listo' : 'Ya abriste el cofre de hoy' }}</h3>
+        <p *ngIf="claimed" class="td-reward-pop" role="status">+{{ claimed.ink }} Tinta · +{{ claimed.xp }} XP</p>
+        <p *ngIf="!claimed">{{ daily.can_claim ? 'Ábrelo para recibir ' + daily.ink_reward + ' Tinta y ' + daily.xp_reward + ' XP.' : 'Vuelve mañana: se llena cada día.' }}</p>
+      </div>
+      <button *ngIf="daily.can_claim" type="button" class="th-btn" (click)="claimDaily()" [disabled]="!!busy">
+        <span class="material-symbols-rounded" aria-hidden="true">lock_open</span>{{ busy === 'claim' ? 'Abriendo…' : 'Abrir' }}
+      </button>
+    </section>
+
+    <section class="td-section" style="--d: 2">
+      <h3 class="td-label">Misiones de la semana</h3>
+      <article *ngFor="let item of missions; trackBy: trackById" class="td-mission" [class.is-complete]="item.is_completed">
+        <span class="material-symbols-rounded td-mission-icon" aria-hidden="true">{{ item.is_completed ? 'task_alt' : 'flag' }}</span>
+        <div class="td-mission-body">
+          <div class="td-mission-heading"><strong>{{ item.mission.title }}</strong><span>{{ item.is_completed ? 'Completada' : item.current_count + ' / ' + item.mission.target_count }}</span></div>
+          <p>{{ item.mission.description }}</p>
+          <span class="td-meter" [attr.aria-label]="item.mission.title + ': ' + item.progress_percentage + '%'"><i [style.transform]="'scaleX(' + item.progress_percentage / 100 + ')'"></i></span>
+          <div class="td-reward"><span *ngIf="item.mission.ink_reward">+{{ item.mission.ink_reward }} Tinta</span><span *ngIf="item.mission.xp_reward">+{{ item.mission.xp_reward }} XP</span></div>
+        </div>
       </article>
-    </div>
-    <ng-template #emptyFriends><p class="td-empty">Hay sitio en tu mesa. Agrega a tu primer amigo para compartir historias.</p></ng-template>
-    <p *ngIf="sent.size" class="td-note" role="status">Las invitaciones aparecen en la taberna de tus amigos y duran 30 minutos.</p>
+      <p *ngIf="!missions.length && !error" class="td-empty td-empty--inline">No hay misiones esta semana. Mira tus logros para más recompensas.</p>
+    </section>
   </ng-container>
 
-  <ng-container *ngIf="data.action === 'rewards' && !loading">
-    <p class="td-muted">Tus lecturas hacen crecer el cofre. Completa las misiones semanales para obtener Tinta y experiencia.</p>
-    <article *ngFor="let item of missions" class="td-mission" [class.is-complete]="item.is_completed">
-      <div class="td-mission-heading"><strong>{{ item.mission.title }}</strong><span>{{ item.is_completed ? 'Completada' : item.current_count + ' / ' + item.mission.target_count }}</span></div>
-      <p>{{ item.mission.description }}</p>
-      <progress [value]="item.progress_percentage" max="100" [attr.aria-label]="item.mission.title"></progress>
-      <div class="td-reward"><span *ngIf="item.mission.ink_reward">{{ item.mission.ink_reward }} Tinta</span><span *ngIf="item.mission.xp_reward">{{ item.mission.xp_reward }} XP</span></div>
-    </article>
-    <p *ngIf="!missions.length && !error" class="td-empty">No hay misiones semanales disponibles ahora. Puedes consultar tus logros y otras recompensas.</p>
-    <p *ngIf="missions.length" class="td-note">Las recompensas se abonan al completar cada misión.</p>
+  <!-- ═══ GATO: recomendación y curiosidad ═══ -->
+  <ng-container *ngIf="data.action === 'cat' && !loading">
+    <section class="td-section" style="--d: 0" *ngIf="catBook as book">
+      <h3 class="td-label">El gato te trae…</h3>
+      <!-- Una vuelta por recomendación: la tarjeta se monta de nuevo y entra animada. -->
+      <article class="td-pick" *ngFor="let turn of [catTurn]">
+        <span class="td-cover td-cover--lg">
+          <img *ngIf="book.cover; else pickInitial" [src]="book.cover" alt="" decoding="async">
+          <ng-template #pickInitial><span>{{ book.title.charAt(0) }}</span></ng-template>
+        </span>
+        <div class="td-pick-text">
+          <strong>{{ book.title }}</strong>
+          <span *ngIf="book.author">{{ book.author }}</span>
+          <p *ngIf="book.synopsis">{{ book.synopsis }}</p>
+          <a class="th-btn ghost td-row-btn" [routerLink]="['/book', book.slug]" (click)="dialog.close()">
+            <span class="material-symbols-rounded" aria-hidden="true">visibility</span>Ver el libro
+          </a>
+        </div>
+      </article>
+    </section>
+    <section class="td-section td-tale" style="--d: 1" *ngIf="catTale" aria-live="polite">
+      <span class="material-symbols-rounded" aria-hidden="true">pets</span>
+      <p><strong>¿Sabías que…?</strong> {{ catTale }}</p>
+    </section>
+  </ng-container>
+
+  <!-- ═══ POCIONES: libros por género ═══ -->
+  <ng-container *ngIf="data.action === 'potions'">
+    <section class="td-section" style="--d: 0">
+      <h3 class="td-label" id="td-potion-label">Elige una poción</h3>
+      <div class="td-potions" role="radiogroup" aria-labelledby="td-potion-label">
+        <button *ngFor="let item of potions; trackBy: trackBySlug" type="button" class="td-potion" role="radio"
+          [class.is-selected]="potion?.slug === item.slug" [attr.aria-checked]="potion?.slug === item.slug"
+          [style.--potion]="item.color" (click)="brew(item)">
+          <span class="td-vial" aria-hidden="true"><i></i></span>
+          <strong>{{ item.name }}</strong>
+          <span>{{ item.genre }}</span>
+        </button>
+      </div>
+    </section>
+    <section class="td-section" style="--d: 1" *ngIf="potion" aria-live="polite">
+      <p class="td-hint">{{ potion.note }}</p>
+      <div *ngIf="brewing" class="td-skeleton td-skeleton--books" aria-label="Preparando la poción" role="status">
+        <span class="td-sk td-sk--book"></span><span class="td-sk td-sk--book"></span><span class="td-sk td-sk--book"></span>
+      </div>
+      <div *ngIf="!brewing" class="td-brew">
+        <a *ngFor="let book of brewed; let i = index; trackBy: trackBySlug" class="td-brew-book" [style.--i]="i"
+          [routerLink]="['/book', book.slug]" (click)="dialog.close()">
+          <span class="td-cover">
+            <img *ngIf="book.cover; else brewInitial" [src]="book.cover" alt="" loading="lazy" decoding="async">
+            <ng-template #brewInitial><span>{{ book.title.charAt(0) }}</span></ng-template>
+          </span>
+          <strong>{{ book.title }}</strong>
+          <span>{{ book.author }}</span>
+        </a>
+        <p *ngIf="!brewed.length" class="td-empty td-empty--inline">Esta poción aún no tiene libros. Prueba otro sabor.</p>
+      </div>
+    </section>
+  </ng-container>
+
+  <!-- ═══ RELOJ DE ARENA: racha y seguir leyendo ═══ -->
+  <ng-container *ngIf="data.action === 'hourglass' && !loading">
+    <section class="td-section td-streak" style="--d: 0" *ngIf="streak">
+      <div class="td-streak-count">
+        <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
+        <strong>{{ streak.streak_current }}</strong>
+        <span>{{ streak.streak_current === 1 ? 'día seguido' : 'días seguidos' }}</span>
+      </div>
+      <ol class="td-week" aria-label="Días de esta semana con lectura">
+        <li *ngFor="let day of week" [class.is-active]="day.active" [class.is-today]="day.today" [class.is-future]="day.future"
+          [attr.aria-label]="day.label + (day.active ? ': leíste' : day.future ? '' : ': sin lectura')">
+          <span class="td-day-dot" aria-hidden="true"><span *ngIf="day.active" class="material-symbols-rounded">check</span></span>
+          {{ day.label }}
+        </li>
+      </ol>
+      <p class="td-streak-note" [class.is-warning]="streak.is_in_danger && !streak.is_secured_today">
+        {{ streak.is_secured_today ? 'Hoy ya sumaste a tu racha. ¡Bien hecho!' : 'Lee un capítulo o completa un nivel de La Senda para sumar hoy.' }}
+      </p>
+      <div class="td-streak-facts">
+        <span><span class="material-symbols-rounded" aria-hidden="true">emoji_events</span>Récord: {{ streak.streak_max }} {{ streak.streak_max === 1 ? 'día' : 'días' }}</span>
+        <span><span class="material-symbols-rounded" aria-hidden="true">shield</span>{{ streak.streak_shields }} {{ streak.streak_shields === 1 ? 'escudo' : 'escudos' }}</span>
+      </div>
+    </section>
+    <section class="td-section" style="--d: 1" *ngIf="current as item">
+      <h3 class="td-label">Sigue donde lo dejaste</h3>
+      <a class="td-continue" [routerLink]="['/reader', item.id]" (click)="dialog.close()">
+        <span class="td-cover">
+          <img *ngIf="item.book_cover; else continueInitial" [src]="item.book_cover" alt="" loading="lazy" decoding="async">
+          <ng-template #continueInitial><span>{{ bookTitle(item).charAt(0) }}</span></ng-template>
+        </span>
+        <span class="td-continue-text">
+          <strong>{{ bookTitle(item) }}</strong>
+          <span class="td-meter" aria-hidden="true"><i [style.transform]="'scaleX(' + progress(item) / 100 + ')'"></i></span>
+          <span>{{ progress(item) | number:'1.0-0' }}% leído</span>
+        </span>
+        <span class="material-symbols-rounded td-continue-arrow" aria-hidden="true">arrow_forward</span>
+      </a>
+    </section>
   </ng-container>
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <ng-container *ngIf="data.action === 'book'">
-    <button type="button" class="th-btn ghost" (click)="dialog.close({ openClubs: true })">Lectura grupal por capítulos</button>
-    <a class="th-btn ghost" routerLink="/library" (click)="dialog.close()">Mi biblioteca</a>
-    <a *ngIf="selected" class="th-btn secondary" [routerLink]="['/reader', selected.id]" (click)="dialog.close()">Continuar lectura</a>
-    <button *ngIf="readings.length" type="button" class="th-btn" [disabled]="!selected || !!busy" (click)="share()">{{ busy ? 'Compartiendo…' : 'Compartir en la mesa' }}</button>
+    <button type="button" class="th-btn ghost" (click)="dialog.close({ openClubs: true })">Lectura grupal</button>
+    <a *ngIf="selected" class="th-btn ghost" [routerLink]="['/reader', selected.id]" (click)="dialog.close()">Seguir leyendo</a>
+    <button *ngIf="readings.length" type="button" class="th-btn" [disabled]="!shareText || !!busy" (click)="share()">
+      <span class="material-symbols-rounded" aria-hidden="true">send</span>{{ busy ? 'Compartiendo…' : 'Compartir en la mesa' }}
+    </button>
     <a *ngIf="!readings.length && !loading && !error" class="th-btn" routerLink="/catalog" (click)="dialog.close()">Explorar libros</a>
   </ng-container>
-  <button *ngIf="data.action === 'invite'" type="button" class="th-btn" (click)="dialog.close({ addFriend: true })">Agregar amigo</button>
-  <a *ngIf="data.action === 'rewards'" class="th-btn" routerLink="/achievements" (click)="dialog.close()">Ver todos mis logros</a>
+  <button *ngIf="data.action === 'invite'" type="button" class="th-btn" (click)="dialog.close({ addFriend: true })">
+    <span class="material-symbols-rounded" aria-hidden="true">person_add</span>Agregar amigo
+  </button>
+  <a *ngIf="data.action === 'rewards'" class="th-btn ghost" routerLink="/achievements" (click)="dialog.close()">Ver todos mis logros</a>
+  <ng-container *ngIf="data.action === 'cat' && catBook">
+    <button type="button" class="th-btn ghost" (click)="nextCatPick()" [disabled]="!!busy">
+      <span class="material-symbols-rounded" aria-hidden="true">refresh</span>Otro libro
+    </button>
+    <button type="button" class="th-btn" (click)="shareCatPick()" [disabled]="!!busy">
+      <span class="material-symbols-rounded" aria-hidden="true">send</span>{{ busy === 'cat' ? 'Compartiendo…' : 'Compartir en la mesa' }}
+    </button>
+  </ng-container>
+  <button *ngIf="data.action === 'potions' && potion" type="button" class="th-btn ghost" (click)="brew(potion)" [disabled]="brewing">
+    <span class="material-symbols-rounded" aria-hidden="true">science</span>Otra tanda
+  </button>
+  <a *ngIf="data.action === 'potions'" class="th-btn" routerLink="/catalog" (click)="dialog.close()">Ver el catálogo</a>
+  <a *ngIf="data.action === 'hourglass'" class="th-btn" routerLink="/learn" (click)="dialog.close()">Ir a La Senda</a>
 </mat-dialog-actions>
-

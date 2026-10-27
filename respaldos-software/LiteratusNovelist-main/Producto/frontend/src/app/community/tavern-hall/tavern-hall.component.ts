@@ -285,16 +285,18 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern' } });
       return;
     }
-    // El gato, las pociones y el reloj de arena los resuelve la escena (globo y partículas).
     if (this.tableOpening || this.dialog.openDialogs.length) return;
     this.tableOpening = true;
     try {
       const { TavernTableDialogComponent } = await import('../tavern-table-dialog/tavern-table-dialog.component');
       if (this.destroy$.isStopped) return;
       this.dialog.open(TavernTableDialogComponent, {
-        data: { action, friends: this.friends, outgoing: this.outgoingInvitations },
-        panelClass: 'th-dialog-panel', width: '580px', maxWidth: 'calc(100vw - 24px)',
-        autoFocus: 'first-tabbable', restoreFocus: true,
+        data: { action, friends: this.friends, outgoing: this.outgoingInvitations, myCode: this.me?.friend_code ?? null },
+        panelClass: 'th-dialog-panel', width: '600px', maxWidth: 'calc(100vw - 24px)',
+        maxHeight: 'calc(100dvh - 32px)',
+        autoFocus: 'dialog', restoreFocus: true,
+        enterAnimationDuration: prefersReducedMotion() ? 0 : 200,
+        exitAnimationDuration: prefersReducedMotion() ? 0 : 140,
       }).afterClosed().pipe(takeUntil(this.destroy$)).subscribe(result => {
         if (result?.message) this.messages = [result.message, ...this.messages];
         if (result?.addFriend) this.openAddFriend();

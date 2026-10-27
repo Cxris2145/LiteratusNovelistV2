@@ -239,7 +239,7 @@
       <ng-template #leadIcon><span class="material-symbols-rounded ts-chat-lead-icon" aria-hidden="true">chat</span></ng-template>
 
       <!-- Acciones de la mesa: un "+" junto al chat (como adjuntar en una app de mensajes). Los objetos
-           de la mesa 3D (libro, jarras, cofre) hacen lo mismo. -->
+           de la mesa 3D hacen lo mismo; en el celular no se pueden tocar y este menú es el único camino. -->
       <div class="ts-actions">
         <button type="button" class="ts-chat-icon-btn ts-actions-toggle" (click)="toggleActions()"
                 [attr.aria-expanded]="actionsOpen" aria-controls="ts-actions-menu"
@@ -255,6 +255,16 @@
           </button>
           <button type="button" (click)="runAction('rewards')" (pointerenter)="tableHover = 'rewards'" (pointerleave)="tableHover = null">
             <span class="material-symbols-rounded" aria-hidden="true">redeem</span>Mi cofre
+          </button>
+          <span class="ts-actions-divider" aria-hidden="true"></span>
+          <button type="button" (click)="runAction('cat')" (pointerenter)="tableHover = 'cat'" (pointerleave)="tableHover = null">
+            <span class="material-symbols-rounded" aria-hidden="true">pets</span>El gato recomienda
+          </button>
+          <button type="button" (click)="runAction('potions')" (pointerenter)="tableHover = 'potions'" (pointerleave)="tableHover = null">
+            <span class="material-symbols-rounded" aria-hidden="true">science</span>Pociones de lectura
+          </button>
+          <button type="button" (click)="runAction('hourglass')" (pointerenter)="tableHover = 'hourglass'" (pointerleave)="tableHover = null">
+            <span class="material-symbols-rounded" aria-hidden="true">hourglass_bottom</span>Tiempo de lectura
           </button>
         </div>
       </div>

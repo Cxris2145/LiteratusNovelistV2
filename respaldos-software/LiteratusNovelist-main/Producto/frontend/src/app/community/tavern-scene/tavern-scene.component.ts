@@ -301,30 +301,30 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   catLeaving = false;
   private catTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /**
+   * Cada objeto reacciona en la mesa y abre su ventana. En la mesa de muestra (visitantes) el
+   * gato, las pociones y el reloj solo dejan un globo: sus ventanas necesitan una cuenta.
+   */
   activateTable(action: TavernTableAction): void {
     if (action === 'cat') {
       this.tableReaction = '🐾';
       this.tableReactionTick++;
       this.spawnParticle('🐾', 78);
-      this.triggerCatPurr();
-      return;
-    }
-    if (action === 'potions') {
+      if (this.demo) { this.triggerCatPurr(); return; }
+    } else if (action === 'potions') {
       this.tableReaction = '✨';
       this.tableReactionTick++;
       this.spawnParticle('✨', 65);
-      this.triggerPotionMagic();
-      return;
-    }
-    if (action === 'hourglass') {
+      if (this.demo) { this.triggerPotionMagic(); return; }
+    } else if (action === 'hourglass') {
       this.tableReaction = '⏳';
       this.tableReactionTick++;
       this.spawnParticle('⏳', 35);
-      this.triggerHourglassFlip();
-      return;
+      if (this.demo) { this.triggerHourglassFlip(); return; }
+    } else {
+      this.tableReaction = action === 'book' ? '📖' : action === 'rewards' ? '✨' : '🍺';
+      this.tableReactionTick++;
     }
-    this.tableReaction = action === 'book' ? '📖' : action === 'rewards' ? '✨' : '🍺';
-    this.tableReactionTick++;
     this.tableAction.emit(action);
   }
 

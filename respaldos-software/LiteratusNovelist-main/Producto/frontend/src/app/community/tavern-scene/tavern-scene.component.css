@@ -953,6 +953,8 @@
   transition: background-color .15s ease;
 }
 .ts-actions-menu .material-symbols-rounded { color: var(--th-gold); font-size: 20px; }
+/* Separa lo que se comparte con la mesa (libro, jarras, cofre) de los objetos que te sirven a ti. */
+.ts-actions-divider { height: 1px; margin: 4px 8px; background: rgba(212, 175, 55, .22); }
 .ts-actions-menu button:focus-visible { outline: 3px solid var(--th-gold); outline-offset: -3px; }
 @media (hover: hover) and (pointer: fine) {
   .ts-actions-menu button:hover { background: rgba(255, 214, 120, .12); }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Subject, Observable, BehaviorSubject, tap } from 'rxjs';
+import { Subject, Observable, BehaviorSubject, map, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ChatService } from './chat.service';
 import { NotificationService } from './notification.service';
@@ -85,8 +85,11 @@ export class GamificationService {
     return this.http.get<any[]>(environment.apiUrl + 'library/ink-history/');
   }
 
+  /** El backend pagina las misiones ({count, results}); quienes las usan esperan la lista. */
   getMissions(): Observable<any[]> {
-    return this.http.get<any[]>(environment.apiUrl + 'library/missions/');
+    return this.http.get<any[] | { results: any[] }>(environment.apiUrl + 'library/missions/').pipe(
+      map(response => Array.isArray(response) ? response : response?.results ?? [])
+    );
   }
 
   getDailyRewardStatus(): Observable<any> {
