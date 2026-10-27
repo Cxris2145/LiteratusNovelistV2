@@ -25,6 +25,17 @@ export interface HubAvatar {
   works?: { avatar_id: string; book_title: string; book_slug: string | null }[];
 }
 
+/** Dónde busca el texto del hub: en todo, o solo en el nombre, el libro o el autor. */
+export type HubSearchField = 'all' | 'name' | 'book' | 'author';
+
+/** featured = con retrato primero; daily = selección del día para el carrusel. */
+export type HubSort = 'featured' | 'popularity' | 'name' | 'daily';
+
+export interface HubFilters {
+  field?: HubSearchField;
+  withPhoto?: boolean;
+}
+
 /** Envoltorio de DRF PageNumberPagination. */
 export interface Paginated<T> {
   count: number;
@@ -127,11 +138,13 @@ export class ChatService {
    */
   getGlobalAvatars(
     query: string = '',
-    sort: string = '',
+    sort: HubSort | '' = '',
     page: number = 1,
-    pageSize: number = HUB_PAGE_SIZE
+    pageSize: number = HUB_PAGE_SIZE,
+    filters: HubFilters = {}
   ): Observable<Paginated<HubAvatar>> {
-    const cacheKey = `${localStorage.getItem('access_token') || 'guest'}|${todayIsoDate()}|${sort}|${pageSize}`;
+    const field = filters.field && filters.field !== 'all' ? filters.field : '';
+    const cacheKey = `${localStorage.getItem('access_token') || 'guest'}|${todayIsoDate()}|${sort}|${pageSize}|${filters.withPhoto ? 'photo' : ''}`;
     const cacheable = !query && page === 1;
     if (cacheable) {
       const hit = this.firstPageCache.get(cacheKey);
@@ -143,6 +156,8 @@ export class ChatService {
       .set('page', page)
       .set('page_size', pageSize);
     if (sort) params = params.set('sort', sort);
+    if (query && field) params = params.set('field', field);
+    if (filters.withPhoto) params = params.set('with_photo', 1);
 
     let request$ = this.http.get<Paginated<HubAvatar>>(`${this.API_URL}/hub/avatars/`, { params });
 

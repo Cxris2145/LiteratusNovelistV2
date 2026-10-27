@@ -1,10 +1,12 @@
 <div class="hub-container">
 
-  <!-- 1. HERO CAROUSEL (Personajes al azar destacados) -->
-  <section class="hero-section" *ngIf="!isSearching && heroCharacters.length > 0">
-    <div class="hero-carousel">
+  <!-- 1. HERO CAROUSEL (selección del día, solo con retrato) -->
+  <section class="hero-section" *ngIf="!isSearching && heroCharacters.length > 0"
+    aria-roledescription="carrusel" aria-label="Personajes destacados">
+    <div class="hero-carousel" #heroCarousel>
       <div class="hero-slide" *ngFor="let char of heroCharacters; let i = index; trackBy: trackById"
-        [class.active]="i === currentHeroIndex">
+        [class.active]="i === currentHeroIndex" [attr.aria-hidden]="i === currentHeroIndex ? null : 'true'"
+        [attr.inert]="i === currentHeroIndex ? null : ''">
 
         <!-- Fondo desenfocado. Solo el slide activo lo pinta: cinco blur(15px)
              simultáneos a pantalla completa costaban un repintado continuo. -->
@@ -36,54 +38,117 @@
         </div>
       </div>
 
-      <!-- Indicadores -->
-      <div class="carousel-indicators">
-        <span *ngFor="let dot of heroCharacters; let i = index; trackBy: trackByIndex"
-          [class.active]="i === currentHeroIndex" (click)="setHeroIndex(i)"></span>
+      <!-- Indicadores: la barra del activo marca el avance automático (ver heroCarousel). -->
+      <div class="carousel-indicators" role="group" aria-label="Elegir personaje destacado">
+        <button type="button" class="hero-dot" *ngFor="let char of heroCharacters; let i = index; trackBy: trackById"
+          [class.active]="i === currentHeroIndex" [attr.aria-current]="i === currentHeroIndex ? 'true' : null"
+          [attr.aria-label]="'Ver a ' + char.name" (click)="setHeroIndex(i)"></button>
       </div>
     </div>
   </section>
 
   <!-- Mientras cargan los personajes el hero guarda su alto: sin él, la búsqueda quedaba
        metida bajo el menú y saltaba hacia abajo al llegar los datos. -->
-  <section class="hero-section hero-skeleton" *ngIf="!isSearching && isLoading && heroCharacters.length === 0"
+  <section class="hero-section hero-skeleton" *ngIf="!isSearching && isHeroLoading && heroCharacters.length === 0"
     aria-hidden="true"></section>
 
-  <!-- 2. SEARCH BAR -->
+  <!-- 2. BÚSQUEDA Y FILTROS -->
   <section class="search-section">
     <div class="search-bar-wrapper">
       <span class="search-icon"><svg lucideSearch [size]="18" class="lucide-icon"></svg></span>
-      <input type="text" [(ngModel)]="searchQuery" (input)="onSearchChange()"
-        placeholder="Busca personajes, libros o autores..." class="search-input">
-      <button class="clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; onSearchChange()">
+      <input type="search" [(ngModel)]="searchQuery" (input)="onSearchChange()"
+        [placeholder]="placeholder" class="search-input" aria-label="Buscar personajes">
+      <button type="button" class="clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; onSearchChange()"
+        aria-label="Borrar la búsqueda">
         <svg lucideX [size]="18" class="lucide-icon"></svg>
       </button>
     </div>
+
+    <div class="hub-filters">
+      <div class="filter-group" role="radiogroup" aria-labelledby="hub-filter-field">
+        <span class="filter-label" id="hub-filter-field">Buscar en</span>
+        <div class="segmented">
+          <label class="segment" *ngFor="let option of searchFields">
+            <input type="radio" name="hub-field" [value]="option.value" [checked]="searchField === option.value"
+              (change)="setSearchField(option.value)">
+            <span>{{ option.label }}</span>
+          </label>
+          <!-- Copia en estado activo, recortada sobre la opción elegida: texto y fondo cambian juntos. -->
+          <div class="segmented-active" aria-hidden="true" [style.clipPath]="fieldClip">
+            <span *ngFor="let option of searchFields">{{ option.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-group" role="radiogroup" aria-labelledby="hub-filter-sort">
+        <span class="filter-label" id="hub-filter-sort">Ordenar</span>
+        <div class="segmented">
+          <label class="segment" *ngFor="let option of sortOptions">
+            <input type="radio" name="hub-sort" [value]="option.value" [checked]="sort === option.value"
+              (change)="setSort(option.value)">
+            <span>{{ option.label }}</span>
+          </label>
+          <div class="segmented-active" aria-hidden="true" [style.clipPath]="sortClip">
+            <span *ngFor="let option of sortOptions">{{ option.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-group filter-group--actions">
+        <button type="button" class="photo-toggle" [class.is-on]="withPhoto" [attr.aria-pressed]="withPhoto"
+          (click)="toggleWithPhoto()">
+          <span class="photo-toggle-box" aria-hidden="true">
+            <svg lucideCheck [size]="14" class="lucide-icon photo-toggle-check"></svg>
+          </span>
+          Solo con retrato
+        </button>
+        <button type="button" class="filters-clear" *ngIf="hasActiveFilters || searchQuery" (click)="clearFilters()">
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
   </section>
 
-  <!-- 3. RESULTADOS DE BÚSQUEDA -->
-  <section class="results-section" *ngIf="isSearching">
-    <h2 class="section-title">Resultados de "{{ searchQuery }}"</h2>
-    <p class="section-subtitle" *ngIf="searchTotal && !isLoading">
-      {{ searchTotal }} {{ searchTotal === 1 ? 'personaje' : 'personajes' }} · mostrando {{ filteredCharacters.length }}
+  <!-- 3. RESULTADOS DE BÚSQUEDA Y FILTROS -->
+  <section class="results-section" *ngIf="isSearching" aria-live="polite" [attr.aria-busy]="isLoading">
+    <h2 class="section-title">
+      <ng-container *ngIf="searchQuery.trim(); else allTitle">Resultados de "{{ searchQuery.trim() }}"</ng-container>
+      <ng-template #allTitle>Todos los personajes</ng-template>
+    </h2>
+    <p class="section-subtitle">
+      {{ sortLabel }}<ng-container *ngIf="withPhoto"> · solo con retrato</ng-container><ng-container
+        *ngIf="searchTotal && !isLoading"> · {{ searchTotal }} {{ searchTotal === 1 ? 'personaje' : 'personajes' }}</ng-container>
     </p>
-    <div class="character-grid">
-      <div class="char-card premium-card" *ngFor="let char of filteredCharacters; trackBy: trackById"
-        (click)="openChat(char)" role="button" tabindex="0"
+    <div class="character-grid results-grid" [class.is-refreshing]="isLoading && filteredCharacters.length > 0">
+      <div class="char-card premium-card result-card" *ngFor="let char of filteredCharacters; let i = index; trackBy: trackByResult"
+        [style.--i]="i % pageSize" (click)="openChat(char)" role="button" tabindex="0"
           (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
         <div class="card-img-wrapper">
           <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
             loading="lazy" decoding="async" width="300" height="375"
             (error)="onImgError($event, char.avatar_image_url)">
           <div class="overlay-gradient"></div>
+          <div class="trend-overlay" *ngIf="sort === 'popularity'">
+            <span class="chat-count"><svg lucideUsers [size]="14" class="lucide-icon inline-icon"></svg> {{ char.chat_count || 0 }}</span>
+          </div>
         </div>
         <div class="card-content">
           <h3 class="char-name">{{ char.name }}</h3>
           <p class="book-origin">{{ bookLabel(char) }}</p>
         </div>
       </div>
+      <ng-container *ngIf="isLoading && filteredCharacters.length === 0">
+        <div class="char-card skeleton-card" *ngFor="let s of skeletonArray; trackBy: trackByIndex" aria-hidden="true">
+          <div class="shimmer-img"></div>
+          <div class="shimmer-content">
+            <div class="shimmer-line title"></div>
+            <div class="shimmer-line subtitle"></div>
+          </div>
+        </div>
+      </ng-container>
       <div class="no-results" *ngIf="filteredCharacters.length === 0 && !isLoading">
-        <p>No se encontraron personajes que coincidan con tu búsqueda.</p>
+        <p>No se encontraron personajes con estos filtros.</p>
+        <button type="button" class="filters-clear" (click)="clearFilters()">Limpiar filtros</button>
       </div>
     </div>
 

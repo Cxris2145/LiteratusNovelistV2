@@ -91,6 +91,40 @@ class HubIdentityTests(TestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], str(latest.pk))
 
+    def test_search_field_limits_where_the_query_matches(self):
+        self.avatar(self.book('Veinte mil leguas', 'Julio Verne'), 'Capitán Nemo')
+        self.avatar(self.book('Don Quijote', 'Miguel de Cervantes'), 'Sancho Panza')
+        names = lambda **params: [row['name'] for row in self.hub(**params)['results']]
+        self.assertEqual(names(q='Verne', field='author'), ['Capitán Nemo'])
+        self.assertEqual(names(q='Verne'), ['Capitán Nemo'])
+        self.assertEqual(names(q='Quijote', field='book'), ['Sancho Panza'])
+        self.assertEqual(names(q='Quijote', field='name'), [])
+        self.assertEqual(names(q='Sancho', field='name'), ['Sancho Panza'])
+
+    def test_with_photo_keeps_every_work_of_the_group(self):
+        self.avatar(self.book('Estudio en escarlata', 'Arthur Conan Doyle'), 'Sherlock Holmes',
+                    avatar_image='ai_avatars/holmes.webp')
+        self.avatar(self.book('El signo de los cuatro', 'Arthur Conan Doyle'), 'Sherlock Holmes')
+        self.avatar(self.book('Otro libro'), 'Sin retrato')
+        result = self.hub(with_photo=1)
+        self.assertEqual(result['count'], 1)
+        self.assertEqual(result['results'][0]['book_count'], 2)
+
+    def test_featured_puts_portraits_first(self):
+        book = self.book('Un libro')
+        self.avatar(book, 'Alfa', chat_count=9)
+        self.avatar(book, 'Omega', avatar_image='ai_avatars/omega.webp')
+        self.assertEqual([row['name'] for row in self.hub(sort='featured')['results']], ['Omega', 'Alfa'])
+
+    def test_daily_selection_is_stable_and_shows_characters_before_authors(self):
+        for index in range(4):
+            book = self.book(f'Libro {index}', f'Autor {index}')
+            self.avatar(book, f'Autor {index}', is_author=True)
+            self.avatar(book, f'Personaje {index}')
+        first = self.hub(sort='daily')['results']
+        self.assertEqual([row['id'] for row in first], [row['id'] for row in self.hub(sort='daily')['results']])
+        self.assertEqual([row['name'].startswith('Personaje') for row in first], [True] * 4 + [False] * 4)
+
     def test_stable_popularity_pages_with_ties(self):
         for index in range(5):
             self.avatar(self.book(f'Libro {index}'), 'Mismo nombre')

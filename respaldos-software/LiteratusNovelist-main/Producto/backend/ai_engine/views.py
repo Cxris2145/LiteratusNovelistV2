@@ -17,6 +17,7 @@ from core.pagination import StandardResultsSetPagination
 
 from library.models import UserInventory
 from catalog.age import ensure_book_access, visible_books
+from catalog.models import BookAuthor
 from .models import AIAvatar, ChatSession, ChatMessage, AssistantConversation, AssistantMessage
 from .serializers import (
     AIAvatarListSerializer,
@@ -110,8 +111,14 @@ class AvatarDetailView(APIView):
 
 class GlobalAvatarListView(generics.ListAPIView):
     """
-    GET /api/v1/ai/hub/avatars/?q=&sort=popularity&page=&page_size=
+    GET /api/v1/ai/hub/avatars/?q=&field=&sort=popularity&with_photo=&page=&page_size=
     Hub Global: catálogo de avatares para la página estilo Character.ai.
+
+    - field: dónde busca q. all (nombre, descripción, libro y autor), name, book o author.
+    - sort: name, popularity, featured (con retrato primero) o daily (selección del día
+      para el carrusel: personajes antes que autores).
+    - with_photo=1: solo personajes con retrato. Se filtra después de agrupar para que
+      la ficha siga listando todas sus obras.
 
     Pagina con StandardResultsSetPagination (?page_size hasta 50). El catálogo
     completo sigue siendo alcanzable: el frontend encadena páginas con scroll
@@ -124,6 +131,8 @@ class GlobalAvatarListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         groups = group_hub_avatars(self.get_queryset(), request.query_params.get('sort', 'name'))
+        if request.query_params.get('with_photo') in ('1', 'true'):
+            groups = [group for group in groups if group['has_image']]
         page = self.paginate_queryset(groups)
         avatars = hydrate_hub_groups(page if page is not None else groups)
         data = self.get_serializer(avatars, many=True).data
@@ -139,11 +148,18 @@ class GlobalAvatarListView(generics.ListAPIView):
                                 self.request.user, 'edition__book__')
 
         if query:
-            avatars = avatars.filter(
-                Q(name__icontains=query) |
-                Q(description__icontains=query) |
-                Q(edition__book__title__icontains=query)
-            )
+            by_name = Q(name__icontains=query)
+            by_book = Q(edition__book__title__icontains=query)
+            # Subconsulta y no join: un libro con varios autores duplicaría filas y el grupo
+            # sumaría dos veces sus conversaciones.
+            by_author = Q(edition__book_id__in=BookAuthor.objects.filter(
+                role=BookAuthor.RoleChoices.PRIMARY, author__full_name__icontains=query,
+            ).values('book_id'))
+            avatars = avatars.filter({
+                'name': by_name,
+                'book': by_book,
+                'author': by_author,
+            }.get(params.get('field'), by_name | Q(description__icontains=query) | by_book | by_author))
 
         # 'id' cierra siempre el orden. Casi todos los avatares empatan en
         # chat_count=0 y hay nombres repetidos entre ediciones, así que sin un

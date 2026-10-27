@@ -19,8 +19,11 @@
   height: 100%;
   position: relative;
   background: var(--home-parchment);
+  /* El deslizamiento horizontal cambia de personaje; el vertical sigue siendo scroll. */
+  touch-action: pan-y;
 }
 
+/* Fundido entre diapositivas: vitrina que cambia sola, por eso se permite más de 300 ms. */
 .hero-slide {
   position: absolute;
   top: 0;
@@ -29,7 +32,7 @@
   height: 100%;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 1s ease, visibility 1s ease;
+  transition: opacity 700ms var(--ease-in-out), visibility 700ms var(--ease-in-out);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,13 +86,23 @@
 .hero-content {
   flex: 1;
   max-width: 550px;
-  transform: translateY(30px);
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.hero-slide.active .hero-content {
-  transform: translateY(0);
+/* El texto entra por partes (insignia → nombre → libro → descripción → botón). El retraso
+   solo vive en .active: al salir se va todo a la vez, sin hacer esperar a la siguiente. */
+.hero-content > * {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out);
 }
+.hero-slide.active .hero-content > * {
+  opacity: 1;
+  transform: none;
+}
+.hero-slide.active .hero-content > :nth-child(2) { transition-delay: 60ms; }
+.hero-slide.active .hero-content > :nth-child(3) { transition-delay: 120ms; }
+.hero-slide.active .hero-content > :nth-child(4) { transition-delay: 180ms; }
+.hero-slide.active .hero-content > :nth-child(5) { transition-delay: 240ms; }
 
 .hero-image-container {
   flex: 1;
@@ -98,14 +111,15 @@
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  transform: translateX(50px) scale(0.95);
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s;
+  transform: translateX(24px) scale(0.96);
+  transition: transform 600ms var(--ease-out), opacity 600ms var(--ease-out);
   opacity: 0;
 }
 
 .hero-slide.active .hero-image-container {
-  transform: translateX(0) scale(1);
+  transform: none;
   opacity: 1;
+  transition-delay: 80ms;
 }
 
 .hero-portrait {
@@ -165,12 +179,16 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
   display: flex;
   align-items: center;
   gap: 10px;
   border-color: var(--home-ink);
   box-shadow: none;
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -185,27 +203,65 @@
 
 .carousel-indicators {
   position: absolute;
-  bottom: 30px;
+  bottom: 26px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
+  gap: 4px;
   z-index: 10;
 }
 
-.carousel-indicators span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #A6979F;
-  cursor: pointer;
-  transition: width 0.3s ease, background-color 0.3s ease;
-}
-
-.carousel-indicators span.active {
-  background: var(--home-ink);
+/* Cada punto es una pista; la del activo se llena en 5 s (lineal: es progreso) y al llenarse
+   pasa al siguiente. Mismo ancho para todos: nada salta de tamaño. */
+.hero-dot {
+  position: relative;
   width: 30px;
-  border-radius: 10px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-dot::before,
+.hero-dot::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 999px;
+}
+.hero-dot::before {
+  background: color-mix(in srgb, var(--home-ink) 22%, transparent);
+}
+.hero-dot::after {
+  background: var(--home-ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.hero-dot.active::after {
+  animation: hero-progress 5s linear forwards;
+}
+.hero-dot:focus-visible {
+  outline: 2px solid var(--color-primary-text);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+/* Mientras se lee (puntero encima), se navega con teclado o la pestaña está oculta, no avanza. */
+.hero-carousel:has(:focus-visible) .hero-dot.active::after,
+.hero-carousel.is-paused .hero-dot.active::after {
+  animation-play-state: paused;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hero-carousel:hover .hero-dot.active::after {
+    animation-play-state: paused;
+  }
+}
+@keyframes hero-progress {
+  to { transform: scaleX(1); }
 }
 
 /* 2. SEARCH BAR */
@@ -266,6 +322,12 @@
   outline: none;
 }
 
+/* Ya está el botón propio para borrar. */
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  display: none;
+}
+
 .clear-btn {
   background: none;
   border: none;
@@ -274,6 +336,151 @@
   cursor: pointer;
   padding: 5px;
 }
+
+/* ── Filtros ─────────────────────────────────────────────────── */
+.hub-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px 20px;
+  max-width: 960px;
+  margin: 16px auto 0;
+}
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.filter-group--actions {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+}
+.filter-label {
+  padding-left: 6px;
+  color: var(--home-ink-muted);
+  font: 600 0.72rem/1 var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Control segmentado. Encima va una copia en estado activo, recortada con clip-path sobre la
+   opción elegida: al cambiar, el recorte se desliza y texto y fondo cambian a la vez. */
+.segmented {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 4px;
+  border: 1px solid var(--home-glass-border);
+  border-radius: 999px;
+  background: var(--home-bg-surface);
+}
+.segment,
+.segmented-active span {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  font: 600 0.84rem/1 var(--font-ui);
+  white-space: nowrap;
+}
+.segment {
+  position: relative;
+  border-radius: 999px;
+  color: var(--home-ink-muted);
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 150ms ease;
+}
+.segment input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.segment:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary-text);
+  outline-offset: 2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .segment:hover { color: var(--home-ink); }
+}
+.segmented-active {
+  position: absolute;
+  inset: 4px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  border-radius: 999px;
+  background: var(--home-ink);
+  color: var(--home-bg-surface);
+  pointer-events: none;
+  transition: clip-path 200ms var(--ease-in-out);
+}
+
+/* Interruptor "Solo con retrato": el check aparece con transición (se puede tocar seguido). */
+.photo-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--home-glass-border);
+  border-radius: 999px;
+  background: var(--home-bg-surface);
+  color: var(--home-ink);
+  font: 600 0.84rem/1 var(--font-ui);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms var(--ease-out), border-color 150ms ease;
+}
+.photo-toggle:active { transform: scale(0.97); }
+.photo-toggle:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: 2px; }
+.photo-toggle.is-on { border-color: var(--home-ink); }
+.photo-toggle-box {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--home-ink-muted);
+  border-radius: 6px;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.photo-toggle.is-on .photo-toggle-box {
+  background: var(--home-ink);
+  border-color: var(--home-ink);
+}
+.photo-toggle-check {
+  color: var(--home-bg-surface);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.photo-toggle.is-on .photo-toggle-check {
+  opacity: 1;
+  transform: none;
+}
+
+.filters-clear {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--color-primary-text);
+  font: 600 0.84rem/1 var(--font-ui);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+.filters-clear:active { transform: scale(0.97); }
+.filters-clear:focus-visible { outline: 2px solid var(--color-primary-text); outline-offset: 2px; border-radius: 8px; }
 
 /* 3. SECCIONES Y GRID */
 .hub-section {
@@ -525,23 +732,73 @@
   font-size: 1.2rem;
 }
 
+/* Al cambiar un filtro, lo de antes se atenúa mientras llega lo nuevo (no desaparece de golpe). */
+.results-grid {
+  transition: opacity 150ms ease;
+}
+.results-grid.is-refreshing {
+  opacity: 0.55;
+}
+
+/* Las tarjetas nuevas suben un poco, escalonadas 40 ms y solo las 12 primeras de cada página.
+   Animación (no transición) con `backwards`: al terminar no retiene el transform y el hover
+   de .char-card sigue funcionando. */
+.result-card {
+  animation: hub-card-in 300ms var(--ease-out) backwards;
+  animation-delay: calc(min(var(--i, 0), 11) * 40ms);
+}
+@keyframes hub-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
 /* ══════════════════════════════════════════════════════════════════
    CELULAR. La portada pasaba apretada en dos columnas (nombre partido en dos líneas, retrato
    angosto y los puntos del carrusel encima del botón), y "Todos los personajes" usaba media
-   pantalla en una sola columna. Ahora: portada a lo ancho, sin el retrato (ya es el fondo),
-   descripción de 3 líneas, puntos debajo, y grillas de dos columnas.
+   pantalla en una sola columna. Ahora: portada a lo ancho con el retrato de fondo,
+   descripción de 2 líneas, puntos debajo, y grillas de dos columnas.
    ══════════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
   .hero-section {
-    height: 400px;
+    height: 460px;
     margin-bottom: 20px;
   }
+  /* El retrato pasa a ser el fondo de la diapositiva (la capa .hero-overlay es opaca y tapaba
+     el difuminado): arriba se ve la cara y abajo un degradado deja leer el texto. */
   .hero-content-wrapper {
+    position: absolute;
+    inset: 0;
+    align-items: flex-end;
     padding: 0 20px 44px;
     gap: 0;
   }
   .hero-content { max-width: 100%; }
-  .hero-image-container { display: none; }
+  .hero-image-container {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    max-width: none;
+    height: auto;
+    transform: scale(1.04);
+  }
+  .hero-image-container::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top,
+      var(--home-parchment) 34%,
+      color-mix(in srgb, var(--home-parchment) 60%, transparent) 62%,
+      transparent 100%);
+  }
+  .hero-portrait {
+    object-fit: cover;
+    object-position: center 15%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
   .hero-name {
     font-size: clamp(2rem, 9vw, 2.6rem);
     line-height: 1.08;
@@ -556,7 +813,7 @@
     font-size: 0.98rem;
     margin-bottom: 18px;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -564,12 +821,25 @@
     white-space: nowrap;
     padding: 12px 22px;
   }
-  .carousel-indicators { bottom: 16px; }
+  .carousel-indicators { bottom: 10px; }
 
   .search-section {
     padding: 0 16px;
     margin-bottom: 24px;
   }
+  /* Cada filtro en su fila, a todo el ancho y con su etiqueta arriba. */
+  .hub-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .segment,
+  .segmented-active span {
+    padding: 0 4px;
+    font-size: 0.8rem;
+  }
+  .filter-group--actions { justify-content: space-between; }
   .hub-section { padding-left: 16px; padding-right: 16px; }
   .section-title { font-size: 1.5rem; }
 
@@ -595,4 +865,33 @@
 /* Las tarjetas traían un ancho mínimo y la segunda columna se salía de la pantalla. */
 @media (max-width: 640px) {
   .character-grid .char-card { min-width: 0; width: auto; max-width: none; }
+}
+
+/* Movimiento reducido: sin avance automático ni desplazamientos; quedan fundidos breves. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-slide { transition-duration: 200ms; }
+  .hero-bg { transition: none; }
+  .hero-content > *,
+  .hero-image-container { transform: none; }
+  .hero-slide .hero-content > :nth-child(n),
+  .hero-slide.active .hero-content > :nth-child(n),
+  .hero-slide.active .hero-image-container {
+    transition: opacity 200ms ease;
+    transition-delay: 0s;
+  }
+  .hero-dot.active::after {
+    animation: none;
+    transform: scaleX(1);
+  }
+  .result-card {
+    animation: hub-card-fade 200ms ease backwards;
+  }
+  .segmented-active { transition: none; }
+  .btn-primary:active,
+  .photo-toggle:active,
+  .filters-clear:active { transform: none; }
+  .photo-toggle-check { transform: none; transition: opacity 160ms ease; }
+}
+@keyframes hub-card-fade {
+  from { opacity: 0; }
 }

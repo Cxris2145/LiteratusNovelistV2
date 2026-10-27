@@ -12,17 +12,17 @@ import {
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { Subject, Subscription, interval } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { EMPTY, Subject, Subscription, timer } from 'rxjs';
+import { debounce, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 import { ApiService } from '../../core/services/api.service';
 import { CharacterChatService } from '../../core/services/character-chat.service';
 import { ScrollRevealService } from '../../core/services/scroll-reveal.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ChatService, HubAvatar } from '../../core/services/chat.service';
+import { ChatService, HUB_PAGE_SIZE, HubAvatar, HubSearchField, HubSort } from '../../core/services/chat.service';
 
 /** Retrato de respaldo mientras el personaje no tenga imagen generada. */
-import { FALLBACK_AVATAR, hubIdentity, portraitThumbnail, uniqueCharacters } from './character-hub.util';
+import { FALLBACK_AVATAR, hubIdentity, portraitThumbnail, segmentClip, uniqueCharacters } from './character-hub.util';
 
 /**
  * Diapositiva del carrusel. Lleva precalculados el extracto y las URLs de imagen
@@ -33,6 +33,29 @@ interface HeroSlide extends HubAvatar {
   excerpt: string;
   portrait: string;
   background: string;
+}
+
+type ListSort = Exclude<HubSort, 'daily'>;
+
+/** Lo que pide una búsqueda. `immediate`: un filtro tocado no espera como el texto. */
+interface HubQuery {
+  q: string;
+  field: HubSearchField;
+  sort: ListSort;
+  withPhoto: boolean;
+  immediate?: boolean;
+}
+
+/** Diapositivas del carrusel: se piden algunas de más por si el lector ya habló con ellas. */
+const HERO_SLIDES = 6;
+const HERO_REQUEST = 10;
+/** Desplazamiento horizontal mínimo para que un deslizamiento cambie de diapositiva. */
+const SWIPE_MIN = 40;
+
+/** El campo solo cuenta si hay texto: sin él, cambiar "Buscar en" no cambia los resultados. */
+function queryKey(query: HubQuery | null): string {
+  if (!query) return '';
+  return [query.q, query.q ? query.field : '', query.sort, query.withPhoto].join('|');
 }
 
 @Component({
@@ -56,6 +79,24 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
 
   readonly fallbackAvatar = FALLBACK_AVATAR;
 
+  readonly searchFields: { value: HubSearchField; label: string }[] = [
+    { value: 'all', label: 'Todo' },
+    { value: 'name', label: 'Nombre' },
+    { value: 'book', label: 'Libro' },
+    { value: 'author', label: 'Autor' },
+  ];
+  readonly sortOptions: { value: ListSort; label: string }[] = [
+    { value: 'featured', label: 'Destacados' },
+    { value: 'popularity', label: 'Más populares' },
+    { value: 'name', label: 'A–Z' },
+  ];
+  private readonly placeholders: Record<HubSearchField, string> = {
+    all: 'Busca personajes, libros o autores...',
+    name: 'Nombre del personaje...',
+    book: 'Título del libro...',
+    author: 'Nombre del autor...',
+  };
+
   // Datos para las secciones
   allCharacters: HubAvatar[] = [];
   catalogCharacters: HubAvatar[] = [];
@@ -63,29 +104,43 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   featuredCharacters: HubAvatar[] = [];
   recentCharacters: HubAvatar[] = [];
   filteredCharacters: HubAvatar[] = [];
+  /** Selección del día con retrato, tal como llega; updateSections descarta los recientes. */
+  private heroSource: HubAvatar[] = [];
 
   isLoading = true;
+  isHeroLoading = true;
   isLoadingMore = false;
-  searchQuery = '';
+  /** Hay texto o algún filtro distinto del predeterminado: se muestra la grilla de resultados. */
   isSearching = false;
+
+  // Filtros
+  searchQuery = '';
+  searchField: HubSearchField = 'all';
+  sort: ListSort = 'featured';
+  withPhoto = false;
 
   /** Total de personajes del catálogo, según el `count` del backend. */
   totalCount = 0;
 
   // Control del Carrusel Hero
   currentHeroIndex = 0;
-  private carouselSub?: Subscription;
 
   // Paginación del grid "Todos los Personajes"
   private page = 1;
   private hasMore = true;
 
   // Paginación de la búsqueda (antes solo se veía la primera página de resultados)
+  private activeQuery: HubQuery | null = null;
   private searchPage = 1;
   private searchHasMore = false;
   searchTotal = 0;
+  /** Las tarjetas escalonan su entrada dentro de cada página. */
+  readonly pageSize = HUB_PAGE_SIZE;
+  /** Cambia con cada búsqueda nueva: las tarjetas se montan de nuevo y entran todas parejas. */
+  private resultsVersion = 0;
 
-  private readonly search$ = new Subject<string>();
+  /** `null` vuelve a las secciones: corta la petición en curso y reinicia distinctUntilChanged. */
+  private readonly search$ = new Subject<HubQuery | null>();
   private readonly subs = new Subscription();
 
   // Skeleton
@@ -93,15 +148,15 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadFirstPage();
+    this.loadHero();
     this.loadRecent();
     this.initSearch();
-    this.startHeroCarousel();
   }
 
   ngOnDestroy() {
-    this.carouselSub?.unsubscribe();
     this.subs.unsubscribe();
     this.observer?.disconnect();
+    this.carouselCleanup?.();
   }
 
   // ─── Carga de datos ──────────────────────────────────────────────────────────
@@ -110,7 +165,7 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.page = 1;
 
-    this.subs.add(this.chatService.getGlobalAvatars('', 'popularity', 1).subscribe({
+    this.subs.add(this.chatService.getGlobalAvatars('', 'featured', 1).subscribe({
       next: (res) => {
         this.totalCount = res.count;
         this.allCharacters = uniqueCharacters(res.results);
@@ -122,6 +177,22 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.isLoading = false;
+        this.cdr.markForCheck();
+      }
+    }));
+  }
+
+  /** El carrusel solo muestra retratos: personajes del día primero y autores si faltan. */
+  private loadHero() {
+    this.subs.add(this.chatService.getGlobalAvatars('', 'daily', 1, HERO_REQUEST, { withPhoto: true }).subscribe({
+      next: (res) => {
+        this.heroSource = uniqueCharacters(res.results);
+        this.isHeroLoading = false;
+        this.updateSections();
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isHeroLoading = false;
         this.cdr.markForCheck();
       }
     }));
@@ -142,7 +213,7 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.isLoadingMore = true;
     this.cdr.markForCheck();
 
-    this.subs.add(this.chatService.getGlobalAvatars('', 'popularity', this.page + 1).subscribe({
+    this.subs.add(this.chatService.getGlobalAvatars('', 'featured', this.page + 1).subscribe({
       next: (res) => {
         this.page += 1;
         this.allCharacters = uniqueCharacters([...this.allCharacters, ...res.results]);
@@ -161,14 +232,14 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
 
   /** Siguiente página de la búsqueda, con el mismo scroll infinito del listado general. */
   private loadMoreResults() {
-    const q = this.searchQuery.trim();
-    if (!q || this.isLoading || this.isLoadingMore || !this.searchHasMore) return;
+    const query = this.activeQuery;
+    if (!query || this.isLoading || this.isLoadingMore || !this.searchHasMore) return;
     this.isLoadingMore = true;
     this.cdr.markForCheck();
-    this.subs.add(this.chatService.getGlobalAvatars(q, 'name', this.searchPage + 1).subscribe({
+    this.subs.add(this.fetchResults(query, this.searchPage + 1).subscribe({
       next: (res) => {
         this.isLoadingMore = false;
-        if (this.searchQuery.trim() !== q) return; // la búsqueda cambió mientras cargaba
+        if (this.activeQuery !== query) return; // la búsqueda cambió mientras cargaba
         this.searchPage += 1;
         this.filteredCharacters = uniqueCharacters([...this.filteredCharacters, ...res.results]);
         this.searchHasMore = !!res.next;
@@ -194,7 +265,28 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     }));
   }
 
-  // ─── Búsqueda ────────────────────────────────────────────────────────────────
+  // ─── Búsqueda y filtros ──────────────────────────────────────────────────────
+
+  get placeholder(): string {
+    return this.placeholders[this.searchField];
+  }
+
+  get hasActiveFilters(): boolean {
+    return this.searchField !== 'all' || this.sort !== 'featured' || this.withPhoto;
+  }
+
+  get sortLabel(): string {
+    return this.sortOptions.find(option => option.value === this.sort)?.label ?? '';
+  }
+
+  /** Recorte de la copia activa de cada control segmentado (receta "tab indicator"). */
+  get fieldClip(): string {
+    return segmentClip(this.searchFields.findIndex(option => option.value === this.searchField), this.searchFields.length);
+  }
+
+  get sortClip(): string {
+    return segmentClip(this.sortOptions.findIndex(option => option.value === this.sort), this.sortOptions.length);
+  }
 
   /**
    * `switchMap` cancela la petición anterior en cuanto llega otra pulsación: sin
@@ -204,15 +296,18 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   private initSearch() {
     this.subs.add(
       this.search$.pipe(
-        debounceTime(400),
-        distinctUntilChanged(),
-        switchMap((q) => {
+        debounce((query) => timer(query && !query.immediate ? 400 : 0)),
+        distinctUntilChanged((a, b) => queryKey(a) === queryKey(b)),
+        switchMap((query) => {
+          this.activeQuery = query;
+          if (!query) return EMPTY;
           this.isLoading = true;
           this.cdr.markForCheck();
-          return this.chatService.getGlobalAvatars(q, 'name', 1);
+          return this.fetchResults(query, 1);
         })
       ).subscribe({
         next: (res) => {
+          this.resultsVersion += 1;
           this.filteredCharacters = uniqueCharacters(res.results);
           this.searchPage = 1;
           this.searchHasMore = !!res.next;
@@ -229,43 +324,126 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     );
   }
 
-  onSearchChange() {
-    const q = this.searchQuery.trim();
+  private fetchResults(query: HubQuery, page: number) {
+    return this.chatService.getGlobalAvatars(query.q, query.sort, page, HUB_PAGE_SIZE,
+      { field: query.field, withPhoto: query.withPhoto });
+  }
 
-    if (!q) {
-      this.isSearching = false;
+  onSearchChange() {
+    this.refreshResults(false);
+  }
+
+  setSearchField(field: HubSearchField) {
+    this.searchField = field;
+    this.refreshResults(true);
+  }
+
+  setSort(sort: ListSort) {
+    this.sort = sort;
+    this.refreshResults(true);
+  }
+
+  toggleWithPhoto() {
+    this.withPhoto = !this.withPhoto;
+    this.refreshResults(true);
+  }
+
+  clearFilters() {
+    this.searchQuery = '';
+    this.searchField = 'all';
+    this.sort = 'featured';
+    this.withPhoto = false;
+    this.refreshResults(true);
+  }
+
+  private refreshResults(immediate: boolean) {
+    const q = this.searchQuery.trim();
+    this.isSearching = !!q || this.sort !== 'featured' || this.withPhoto;
+
+    if (!this.isSearching) {
       this.isLoading = false;
       this.filteredCharacters = [];
+      this.search$.next(null);
       this.cdr.markForCheck();
+      this.scrollReveal.debouncedScan();
       return;
     }
 
-    this.isSearching = true;
-    this.search$.next(q);
+    this.search$.next({ q, field: this.searchField, sort: this.sort, withPhoto: this.withPhoto, immediate });
+    this.cdr.markForCheck();
   }
 
   // ─── Carrusel ────────────────────────────────────────────────────────────────
 
+  private carouselCleanup?: () => void;
+
   /**
-   * El intervalo vive fuera de NgZone: dentro, cada tick disparaba un ciclo de
-   * detección de cambios de TODA la aplicación cada 5 segundos. Ahora solo se
-   * repinta este componente.
+   * El avance automático lo marca la barra de progreso del punto activo (CSS): al
+   * terminar su animación pasa a la siguiente. Así, pausarla con hover, foco o la
+   * pestaña oculta pausa también el avance, y con movimiento reducido no hay avance.
+   * Los listeners viven fuera de NgZone: dentro, cada cambio disparaba la detección
+   * de cambios de TODA la aplicación. Solo se repinta este componente.
    */
-  private startHeroCarousel() {
+  @ViewChild('heroCarousel')
+  set heroCarousel(el: ElementRef<HTMLElement> | undefined) {
+    this.carouselCleanup?.();
+    this.carouselCleanup = undefined;
+    if (!el) return;
+    const node = el.nativeElement;
+
     this.zone.runOutsideAngular(() => {
-      this.carouselSub = interval(5000).subscribe(() => {
-        if (this.heroCharacters.length === 0) return;
-        this.currentHeroIndex = (this.currentHeroIndex + 1) % this.heroCharacters.length;
-        this.cdr.detectChanges();
-      });
+      let startX = 0;
+      let startY = 0;
+      let tracking = false;
+      // Angular renombra los keyframes del componente (_ngcontent-…_hero-progress): se reconoce
+      // la barra por su elemento, no por el nombre exacto.
+      const onEnd = (event: AnimationEvent) => {
+        const target = event.target as Element;
+        if (event.pseudoElement === '::after' && target.classList?.contains('hero-dot')) {
+          this.showHero(this.currentHeroIndex + 1);
+        }
+      };
+      const onVisibility = () => node.classList.toggle('is-paused', document.hidden);
+      // Deslizar con el dedo (o lápiz); el mouse usa los puntos.
+      const onDown = (event: PointerEvent) => {
+        tracking = event.pointerType !== 'mouse';
+        startX = event.clientX;
+        startY = event.clientY;
+      };
+      const onUp = (event: PointerEvent) => {
+        if (!tracking) return;
+        tracking = false;
+        const dx = event.clientX - startX;
+        if (Math.abs(dx) >= SWIPE_MIN && Math.abs(dx) > Math.abs(event.clientY - startY)) {
+          this.showHero(this.currentHeroIndex + (dx < 0 ? 1 : -1));
+        }
+      };
+      const onCancel = () => { tracking = false; };
+
+      node.addEventListener('animationend', onEnd);
+      node.addEventListener('pointerdown', onDown);
+      node.addEventListener('pointerup', onUp);
+      node.addEventListener('pointercancel', onCancel);
+      document.addEventListener('visibilitychange', onVisibility);
+      this.carouselCleanup = () => {
+        node.removeEventListener('animationend', onEnd);
+        node.removeEventListener('pointerdown', onDown);
+        node.removeEventListener('pointerup', onUp);
+        node.removeEventListener('pointercancel', onCancel);
+        document.removeEventListener('visibilitychange', onVisibility);
+      };
     });
   }
 
   setHeroIndex(idx: number) {
-    this.currentHeroIndex = idx;
-    // Reiniciar intervalo si el usuario interactúa
-    this.carouselSub?.unsubscribe();
-    this.startHeroCarousel();
+    this.showHero(idx);
+  }
+
+  private showHero(index: number) {
+    const count = this.heroCharacters.length;
+    if (!count) return;
+    this.currentHeroIndex = (index + count) % count;
+    this.cdr.detectChanges();
   }
 
   // ─── Scroll infinito ─────────────────────────────────────────────────────────
@@ -322,6 +500,9 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     return hubIdentity(char);
   }
 
+  /** Sin la versión, una tarjeta repetida entre dos búsquedas saltaba de lugar sin animarse. */
+  trackByResult = (_: number, char: HubAvatar): string => `${this.resultsVersion}:${hubIdentity(char)}`;
+
   trackByIndex(index: number): number {
     return index;
   }
@@ -357,12 +538,17 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
       : character.book_title || '';
   }
 
+  /** Cada identidad sale una sola vez: recientes, carrusel, destacados y el resto. */
   private updateSections(): void {
     const recent = new Set(this.recentCharacters.map(hubIdentity));
-    const available = this.allCharacters.filter(character => !recent.has(hubIdentity(character)));
+    const hero = this.heroSource
+      .filter(character => !!character.avatar_image_url && !recent.has(hubIdentity(character)))
+      .slice(0, HERO_SLIDES);
+    const shown = new Set([...recent, ...hero.map(hubIdentity)]);
+    const available = this.allCharacters.filter(character => !shown.has(hubIdentity(character)));
+    this.heroCharacters = hero.map(character => this.toSlide(character));
     this.featuredCharacters = available.slice(0, 12);
-    this.heroCharacters = available.slice(12, 17).map(character => this.toSlide(character));
-    this.catalogCharacters = available.slice(17);
+    this.catalogCharacters = available.slice(12);
     this.currentHeroIndex %= this.heroCharacters.length || 1;
   }
 

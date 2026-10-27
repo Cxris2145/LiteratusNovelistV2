@@ -1,33 +1,42 @@
-import { ChangeDetectorRef, NgZone } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ChangeDetectorRef } from '@angular/core';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { CharacterHubComponent } from './character-hub.component';
-import { ChatService, HubAvatar } from '../../core/services/chat.service';
+import { ChatService, HubAvatar, HubFilters } from '../../core/services/chat.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CharacterChatService } from '../../core/services/character-chat.service';
 import { ScrollRevealService } from '../../core/services/scroll-reveal.service';
-import { hubIdentity } from './character-hub.util';
+import { hubIdentity, segmentClip } from './character-hub.util';
 
 describe('Character hub cards', () => {
   let component: CharacterHubComponent;
   let openChat: jasmine.Spy;
   let pickerClosed: Subject<string | undefined>;
   let openPicker: jasmine.Spy;
+  let getGlobalAvatars: jasmine.Spy;
   const characters = Array.from({length: 25}, (_, index) => ({
     id: String(index), group_key: `group-${index}`, name: `Character ${index}`,
     avatar_image_url: null, description: '', book_title: 'Book',
   } as HubAvatar));
+  // El carrusel pide retratos: uno viene sin imagen para comprobar que se descarta igual.
+  const portraits = [
+    ...characters.slice(20, 23).map(character => ({...character, avatar_image_url: `https://example.test/${character.id}.webp`})),
+    characters[24],
+  ];
 
   beforeEach(() => {
     openChat = jasmine.createSpy('open');
     pickerClosed = new Subject();
     openPicker = jasmine.createSpy('openPicker').and.returnValue({afterClosed: () => pickerClosed});
+    getGlobalAvatars = jasmine.createSpy('getGlobalAvatars').and.callFake(
+      (_q: string, sort: string, _page: number, _size: number, filters: HubFilters = {}) =>
+        of({count: 25, next: null, results: sort === 'daily' && filters.withPhoto ? portraits : characters}));
     TestBed.configureTestingModule({providers: [
       {provide: ChatService, useValue: {
-        getGlobalAvatars: () => of({count: 25, next: null, results: characters}),
+        getGlobalAvatars,
         getRecentAvatars: () => of([characters[0], characters[0]]),
       }},
       {provide: CharacterChatService, useValue: {open: openChat}},
@@ -36,7 +45,6 @@ describe('Character hub cards', () => {
       {provide: Router, useValue: {}},
       {provide: ChangeDetectorRef, useValue: {markForCheck() {}, detectChanges() {}}},
       {provide: ScrollRevealService, useValue: {debouncedScan() {}}},
-      {provide: NgZone, useValue: {runOutsideAngular: (action: () => unknown) => action()}},
     ]});
     component = TestBed.runInInjectionContext(() => new CharacterHubComponent());
   });
@@ -49,6 +57,45 @@ describe('Character hub cards', () => {
       ...component.heroCharacters, ...component.catalogCharacters].map(hubIdentity);
     expect(shown.length).toBe(25);
     expect(new Set(shown).size).toBe(25);
+  });
+
+  it('fills the carousel only with portraits from the daily selection', () => {
+    component.ngOnInit();
+    expect(getGlobalAvatars).toHaveBeenCalledWith('', 'daily', 1, jasmine.any(Number), {withPhoto: true});
+    expect(component.heroCharacters.map(slide => slide.id)).toEqual(['20', '21', '22']);
+    expect(component.featuredCharacters.map(hubIdentity)).not.toContain('group-20');
+  });
+
+  it('lists portraits first by default and asks for the chosen field, sort and photo filter', fakeAsync(() => {
+    component.ngOnInit();
+    expect(getGlobalAvatars).toHaveBeenCalledWith('', 'featured', 1);
+
+    component.searchQuery = 'Verne';
+    component.setSearchField('author');
+    component.setSort('popularity');
+    component.toggleWithPhoto();
+    tick(0);
+    expect(component.isSearching).toBeTrue();
+    expect(getGlobalAvatars).toHaveBeenCalledWith('Verne', 'popularity', 1, jasmine.any(Number),
+      {field: 'author', withPhoto: true});
+    expect(component.filteredCharacters.length).toBe(25);
+  }));
+
+  it('goes back to the sections when the filters are cleared', fakeAsync(() => {
+    component.ngOnInit();
+    component.setSort('name');
+    tick(0);
+    expect(component.isSearching).toBeTrue();
+    component.clearFilters();
+    tick(0);
+    expect(component.isSearching).toBeFalse();
+    expect(component.filteredCharacters).toEqual([]);
+    expect(component.hasActiveFilters).toBeFalse();
+  }));
+
+  it('clips the active copy of a segmented control over the chosen option', () => {
+    expect(segmentClip(0, 4)).toBe('inset(0 75% 0 0% round 999px)');
+    expect(segmentClip(3, 4)).toBe('inset(0 0% 0 75% round 999px)');
   });
 
   it('opens the selected book avatar instead of an arbitrary edition', () => {

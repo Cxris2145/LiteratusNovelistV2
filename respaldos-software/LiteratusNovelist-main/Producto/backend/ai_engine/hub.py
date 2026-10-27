@@ -1,6 +1,9 @@
 """Display identities for the hub; edition-specific avatars remain unchanged."""
+import hashlib
 import re
 import unicodedata
+
+from django.utils import timezone
 
 from catalog.models import BookAuthor
 
@@ -83,11 +86,22 @@ def group_hub_avatars(queryset, sort_by='name', recent_ids=None):
             'chat_count': sum(row['chat_count'] for row in members),
             'works': sorted(works.values(), key=lambda work: normalized(work['book_title'])),
             'recent_order': min((recent_order.get(str(row['id']), len(recent_order)) for row in members)),
+            'has_image': any(row['avatar_image'] for row in members),
         })
     if recent_ids is not None:
         result.sort(key=lambda group: (group['recent_order'], group['key']))
     elif sort_by == 'popularity':
         result.sort(key=lambda group: (-group['chat_count'], normalized(group['name']), group['key']))
+    elif sort_by == 'featured':
+        # Portraits first: most avatars still lack one and silhouettes buried the catalogue.
+        result.sort(key=lambda group: (
+            not group['has_image'], -group['chat_count'], normalized(group['name']), group['key']))
+    elif sort_by == 'daily':
+        # A different but stable selection each day, characters before their authors.
+        seed = timezone.localdate().isoformat()
+        result.sort(key=lambda group: (
+            group['key'].startswith('author:'),
+            hashlib.sha256(f"{seed}:{group['key']}".encode()).hexdigest()))
     else:
         result.sort(key=lambda group: (normalized(group['name']), group['key']))
     return result

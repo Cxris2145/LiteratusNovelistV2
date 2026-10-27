@@ -11,6 +11,13 @@ export function uniqueCharacters(characters: HubAvatar[]): HubAvatar[] {
   return [...new Map(characters.map(character => [hubIdentity(character), character])).values()];
 }
 
+/** Recorta la copia activa de un control segmentado de `count` partes iguales hasta la `index`. */
+export function segmentClip(index: number, count: number): string {
+  const step = 100 / count;
+  const start = Math.max(index, 0) * step;
+  return `inset(0 ${100 - start - step}% 0 ${start}% round 999px)`;
+}
+
 export function portraitThumbnail(url: string | null | undefined, width = 300): string {
   if (!url) return FALLBACK_AVATAR;
   if (!url.includes('/storage/v1/object/public/')) return url;
