@@ -1,51 +1,61 @@
-<section class="th-panel pc" *ngIf="card; else skeleton" [class.is-compact]="compact" [attr.aria-label]="mine ? 'Tu perfil' : 'Perfil de ' + card.username">
-  <div class="th-panel-title">
-    <h2>{{ mine ? 'Tu perfil' : 'Perfil' }}</h2>
-    <a *ngIf="mine" class="th-btn ghost" routerLink="/profile">
-      <span class="material-symbols-rounded" aria-hidden="true">edit</span>Editar perfil
-    </a>
+<section class="th-panel pc" *ngIf="card; else skeleton" [class.is-compact]="compact"
+         [attr.aria-label]="mine ? 'Tu perfil' : 'Perfil de ' + card.username">
+  <!-- Ficha de lector: retrato a la izquierda, quién es a la derecha. -->
+  <header class="pc-head">
+    <div class="pc-portrait">
+      <app-avatar-frame [frame]="card.equipped_frame" size="lg">
+        <div class="pc-avatar">
+          <app-maguito crop="bust" [outfit]="card.outfit" [followPointer]="false" [calm]="true"
+                       [label]="'Maguito de ' + card.username"></app-maguito>
+        </div>
+      </app-avatar-frame>
+      <img *ngIf="photo as src" class="pc-seal" [src]="src" [alt]="'Foto de perfil de ' + card.username"
+           decoding="async" (error)="hidePhoto()">
+      <span *ngIf="mine" class="pc-online-dot" title="En la taberna"><span class="pc-sr">En la taberna</span></span>
+    </div>
+    <div class="pc-identity">
+      <h2 class="pc-name">{{ card.username }}<span *ngIf="crowned" class="material-symbols-rounded pc-crown" aria-label="Primer lugar de la semana" title="Primer lugar de la semana">crown</span></h2>
+      <p class="pc-title" *ngIf="card.equipped_title">{{ card.equipped_title }}</p>
+      <p class="pc-level">Nivel {{ card.level }} · {{ card.level_name }}</p>
+    </div>
+  </header>
+
+  <div class="pc-voice">
+    <p class="pc-tagline" [class.is-placeholder]="!card.tagline">
+      <ng-container *ngIf="card.tagline; else taglinePlaceholder">«{{ card.tagline }}»</ng-container>
+      <ng-template #taglinePlaceholder>{{ mine ? 'Lector de mundos, escritor de posibilidades.' : 'Lector de mundos por descubrir' }}</ng-template>
+    </p>
+    <p class="pc-genres" *ngIf="genres">{{ mine ? 'Lees' : 'Lee' }} {{ genres }}.</p>
   </div>
 
-  <div class="pc-avatar-wrap">
-    <app-avatar-frame [frame]="card.equipped_frame" size="lg"><div class="pc-avatar">
-      <app-maguito crop="bust" [outfit]="card.outfit" [followPointer]="false" [calm]="true"
-                   [label]="'Maguito de ' + card.username"></app-maguito>
-    </div></app-avatar-frame>
-    <span class="pc-online-dot" title="En la taberna" aria-label="En línea"></span>
-  </div>
-
-  <h3 class="pc-name">
-    {{ card.username }}
-    <span *ngIf="crowned" class="material-symbols-rounded pc-crown" aria-label="Primer lugar de la semana" title="Primer lugar de la semana">crown</span>
-  </h3>
-  <p class="pc-title" *ngIf="card.equipped_title">{{ card.equipped_title }}</p>
-  <p class="pc-tagline" [class.is-placeholder]="!card.tagline">{{ card.tagline || (mine ? 'Lector de mundos, escritor de posibilidades.' : 'Lector de mundos por descubrir') }}</p>
-
-  <ul class="pc-genres" *ngIf="card.favorite_genres.length" aria-label="Géneros favoritos">
-    <li *ngFor="let genre of card.favorite_genres | slice:0:3">{{ genre.name }}</li>
-  </ul>
+  <span class="pc-rule" aria-hidden="true"></span>
 
   <dl class="pc-stats">
     <div>
-      <dt><span class="material-symbols-rounded">menu_book</span>Libros</dt>
+      <dt>{{ card.stats.books === 1 ? 'libro' : 'libros' }}</dt>
       <dd>{{ card.stats.books }}</dd>
     </div>
     <div>
-      <dt><span class="material-symbols-rounded">chat_bubble</span>Reseñas</dt>
+      <dt>{{ card.stats.reviews === 1 ? 'reseña' : 'reseñas' }}</dt>
       <dd>{{ card.stats.reviews }}</dd>
     </div>
     <div>
-      <dt><span class="material-symbols-rounded">group</span>Amigos</dt>
+      <dt>{{ card.stats.friends === 1 ? 'amigo' : 'amigos' }}</dt>
       <dd>{{ card.stats.friends }}</dd>
     </div>
   </dl>
 
-  <button *ngIf="mine" type="button" class="th-btn secondary pc-dress" (click)="dress.emit()" [attr.aria-expanded]="dressing">
-    <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir a Maguito
-  </button>
+  <div class="pc-actions" *ngIf="mine">
+    <button type="button" class="th-btn secondary pc-dress" (click)="dress.emit()" [attr.aria-expanded]="dressing">
+      <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir a Maguito
+    </button>
+    <a class="th-btn ghost pc-edit" routerLink="/profile" aria-label="Editar perfil">
+      <span class="material-symbols-rounded" aria-hidden="true">edit</span><span class="pc-edit-label">Editar</span>
+    </a>
+  </div>
 
   <!-- En la sala la tarjeta debe caber en pantalla: lo secundario se despliega con "Más sobre mí". -->
-  <ng-container *ngIf="compact; else extrasOpen">
+  <div class="pc-more-wrap" *ngIf="compact; else extrasOpen">
     <button type="button" class="pc-more-toggle" (click)="toggleMore()" [attr.aria-expanded]="moreOpen" aria-controls="pc-more">
       Más sobre mí
       <span class="material-symbols-rounded pc-more-chevron" aria-hidden="true">expand_more</span>
@@ -53,50 +63,57 @@
     <div class="pc-more" id="pc-more" [class.is-open]="moreOpen" [attr.inert]="moreOpen ? null : ''">
       <div class="pc-more-inner"><ng-container *ngTemplateOutlet="extras"></ng-container></div>
     </div>
-  </ng-container>
+  </div>
   <ng-template #extrasOpen><ng-container *ngTemplateOutlet="extras"></ng-container></ng-template>
 
   <ng-content></ng-content>
 
   <ng-template #extras>
-  <div class="pc-about">
-    <div class="pc-about-title-row">
+    <div class="pc-about">
       <h3>Sobre mí</h3>
-      <span class="material-symbols-rounded pc-quill-watermark" aria-hidden="true">history_edu</span>
+      <p [class.is-placeholder]="!card.bio">{{ card.bio || (mine ? 'Creo en los finales que empiezan de nuevo. Siempre hay tiempo para otra historia.' : 'Aún no escribe nada sobre sí.') }}</p>
+      <p class="pc-since" *ngIf="memberSince">En la Taberna desde {{ memberSince }}</p>
     </div>
-    <p [class.is-placeholder]="!card.bio">{{ card.bio || (mine ? 'Creo en los finales que empiezan de nuevo. Siempre hay tiempo para otra historia.' : 'Aún no escribe nada sobre sí.') }}</p>
-  </div>
 
-  <div class="pc-privacy" *ngIf="mine">
-    <span class="material-symbols-rounded pc-privacy-icon" aria-hidden="true">{{ card.is_public ? 'public' : 'lock' }}</span>
-    <span class="pc-privacy-copy">
-      <strong aria-hidden="true">Perfil público</strong>
-      <span id="pc-privacy-hint">{{ card.is_public
-        ? 'Cualquiera ve tu tarjeta y puedes salir en las sugerencias de amigos.'
-        : 'Privado: solo tus amigos ven tu tarjeta y te encuentran por tu código.' }}</span>
-    </span>
-    <button type="button" role="switch" class="pc-switch" [attr.aria-checked]="card.is_public"
-            aria-label="Perfil público" aria-describedby="pc-privacy-hint"
-            [disabled]="savingPrivacy" (click)="privacyChange.emit(!card.is_public)">
-      <span class="pc-switch-thumb" aria-hidden="true"></span>
-    </button>
-  </div>
-
-  <div class="pc-code" *ngIf="mine">
-    <span>Tu código de amigo</span>
-    <strong class="th-code">#{{ card.friend_code }}</strong>
-    <button type="button" class="th-btn ghost" (click)="copyCode()">
-      <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
-    </button>
-  </div>
+    <ul class="pc-settings" *ngIf="mine">
+      <li class="pc-privacy">
+        <span class="material-symbols-rounded pc-setting-icon" aria-hidden="true">{{ card.is_public ? 'public' : 'lock' }}</span>
+        <span class="pc-setting-copy">
+          <strong aria-hidden="true">Perfil público</strong>
+          <span id="pc-privacy-hint">{{ card.is_public
+            ? 'Cualquiera ve tu tarjeta y puedes salir en las sugerencias de amigos.'
+            : 'Privado: solo tus amigos ven tu tarjeta y te encuentran por tu código.' }}</span>
+        </span>
+        <button type="button" role="switch" class="pc-switch" [attr.aria-checked]="card.is_public"
+                aria-label="Perfil público" aria-describedby="pc-privacy-hint"
+                [disabled]="savingPrivacy" (click)="privacyChange.emit(!card.is_public)">
+          <span class="pc-switch-thumb" aria-hidden="true"></span>
+        </button>
+      </li>
+      <li class="pc-code">
+        <span class="material-symbols-rounded pc-setting-icon" aria-hidden="true">tag</span>
+        <span class="pc-setting-copy">
+          <strong>Tu código de amigo</strong>
+          <span class="th-code">#{{ card.friend_code }}</span>
+        </span>
+        <button type="button" class="th-btn ghost" (click)="copyCode()" [attr.aria-label]="'Copiar tu código #' + card.friend_code">
+          <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
+        </button>
+      </li>
+    </ul>
   </ng-template>
 </section>
 
 <ng-template #skeleton>
   <section class="th-panel pc is-loading" aria-busy="true" aria-label="Cargando perfil">
-    <div class="pc-avatar sk"></div>
-    <div class="sk sk-line"></div>
-    <div class="sk sk-line short"></div>
+    <div class="pc-head">
+      <div class="pc-avatar sk"></div>
+      <div class="pc-identity">
+        <div class="sk sk-line"></div>
+        <div class="sk sk-line short"></div>
+      </div>
+    </div>
+    <div class="sk sk-line wide"></div>
     <div class="sk sk-block"></div>
   </section>
 </ng-template>

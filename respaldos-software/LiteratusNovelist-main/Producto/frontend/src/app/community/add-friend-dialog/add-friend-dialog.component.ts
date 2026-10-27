@@ -7,6 +7,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap,
 import { CommunityResult, CommunityService, FriendSuggestion, TavernCard } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { copyText } from '../clipboard.util';
+import { ReaderPhotos } from '../reader-photo.util';
 
 export interface AddFriendDialogData {
   myCode: string | null;
@@ -31,6 +32,8 @@ export class AddFriendDialogComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   readonly query = new FormControl('', { nonNullable: true });
+  /** La foto de perfil de cada lector; sin foto (o si no carga) se ve su Maguito. */
+  readonly photos = new ReaderPhotos();
   results: TavernCard[] = [];
   searching = false;
   searched = false;

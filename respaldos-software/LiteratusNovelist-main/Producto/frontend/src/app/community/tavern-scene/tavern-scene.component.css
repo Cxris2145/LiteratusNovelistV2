@@ -1,8 +1,6 @@
 :host {
   display: block;
   width: 100%;
-  /* Contenedor para que la mesa calcule su alto mínimo según su propio ancho (ver .ts-stage). */
-  container: ts-host / inline-size;
 }
 
 .ts-stage {
@@ -11,11 +9,14 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  width: 100%;
-  /* Los asientos y Maguito crecen con el ANCHO de la mesa (cqw), pero el alto sale de la ventana:
-     en pantallas anchas y bajas el globo de Maguito se cortaba arriba. El mínimo según el ancho
-     (48cqw + 70px) deja siempre aire sobre el globo. */
-  height: max(var(--th-stage-height, 560px), calc(48cqw + 70px));
+  /* Los asientos y Maguito crecen con el ANCHO de la mesa (cqw y %), pero el alto sale de la ventana.
+     El borde de arriba del globo de Maguito queda a ~0,425 × ancho + 112px del piso; con 20px de aire,
+     la mesa necesita 0,425 × ancho + 132px de alto. En pantallas anchas y bajas la mesa se angosta
+     (centrada) en vez de crecer hacia abajo: el globo no se corta y la Taberna cabe sin barra de
+     desplazamiento. */
+  width: min(100%, calc((var(--th-stage-height, 560px) - 132px) / .425));
+  margin-inline: auto;
+  height: var(--th-stage-height, 560px);
   background: transparent;
 }
 

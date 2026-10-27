@@ -6,15 +6,19 @@ Las funciones que escriben devuelven {'success', 'error', 'message', 'status'} c
 resto de servicios del proyecto; `status` es el código HTTP que debe responder la vista.
 Hacer amigos o brindar no da XP ni Tinta: así nadie infla el ranking con cuentas falsas.
 """
+import base64
+import binascii
 import re
 import uuid
 from collections import Counter
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core import signing
 from django.core.cache import cache
 from django.db import IntegrityError, transaction
-from django.db.models import Count, OuterRef, Q, Subquery, Sum
+from django.db.models import Case, CharField, Count, OuterRef, Q, Subquery, Sum, Value, When
+from django.db.models.functions import MD5, Left
 from django.utils import timezone
 
 from users.models import Profile
@@ -66,8 +70,13 @@ def normalize_code(raw) -> str | None:
 
 
 def _profiles():
-    # El avatar es un data URL de decenas de KB: en la comunidad la identidad es Maguito.
-    return Profile.objects.select_related('user').defer('avatar').filter(user__is_active=True)
+    # El avatar es un data URL de decenas de KB: no se trae. `avatar_v` es su huella (la base de
+    # datos la calcula) y la foto se sirve aparte con un enlace firmado (avatar_url).
+    return (Profile.objects.select_related('user').defer('avatar').filter(user__is_active=True)
+            .annotate(avatar_v=Case(
+                When(avatar__startswith='data:image/', then=Left(MD5('avatar'), 12)),
+                When(avatar__startswith='https://', then='avatar'),
+                default=Value(''), output_field=CharField())))
 
 
 def profile_by_code(raw_code):
@@ -106,6 +115,43 @@ def pending_incoming_count(user) -> int:
     return Friendship.objects.filter(addressee=user, status=Friendship.Status.PENDING).count()
 
 
+# ── Fotos de perfil ───────────────────────────────────────────────────
+
+AVATAR_SALT = 'community.avatar'
+AVATAR_TYPES = ('image/jpeg', 'image/png', 'image/webp', 'image/gif')
+DATA_URL_RE = re.compile(r'^data:(image/[a-z+.-]+);base64,(.*)$', re.S)
+
+
+def avatar_url(profile) -> str | None:
+    """
+    Foto que subió el lector, o None (entonces se ve su Maguito). Un enlace https va tal cual; un
+    data URL va como community/avatar/<firma>/ (relativo a /api/v1/). La firma lleva la huella de
+    la foto: si la cambia, el enlace cambia y el navegador puede guardar cada foto para siempre.
+    """
+    version = getattr(profile, 'avatar_v', '')
+    if not version:
+        return None
+    if version.startswith('https://'):
+        return version
+    return f"community/avatar/{signing.dumps([profile.friend_code, version], salt=AVATAR_SALT)}/"
+
+
+def avatar_image(token) -> tuple[bytes, str] | None:
+    """(bytes, tipo) de la foto de un enlace firmado; None si la firma o la foto no sirven."""
+    try:
+        code, _version = signing.loads(token, salt=AVATAR_SALT)
+    except (signing.BadSignature, TypeError, ValueError):
+        return None
+    profile = Profile.objects.filter(friend_code=code, user__is_active=True).only('avatar').first()
+    match = DATA_URL_RE.match(profile.avatar) if profile else None
+    if not match or match.group(1) not in AVATAR_TYPES:
+        return None
+    try:
+        return base64.b64decode(match.group(2)), match.group(1)
+    except (binascii.Error, ValueError):
+        return None
+
+
 # ── Tarjetas ──────────────────────────────────────────────────────────
 
 def minimal_card(profile, relation='none', request_id=None) -> dict:
@@ -114,6 +160,8 @@ def minimal_card(profile, relation='none', request_id=None) -> dict:
         'full': False,
         'friend_code': profile.friend_code,
         'username': profile.user.username,
+        # Un perfil privado muestra su foto solo a sus amigos; mientras tanto se ve su Maguito.
+        'avatar': avatar_url(profile) if profile.is_public else None,
         'outfit': profile.outfit or {},
         'equipped_frame': profile.equipped_frame,
         'equipped_title': profile.equipped_title,
@@ -149,6 +197,7 @@ def full_card(profile, relation, request_id=None) -> dict:
         'full': True,
         'friend_code': profile.friend_code,
         'username': user.username,
+        'avatar': avatar_url(profile),
         'tagline': profile.tagline,
         'bio': profile.bio,
         'outfit': profile.outfit or {},
@@ -341,6 +390,7 @@ def friends_list(me) -> list:
     return [{
         'friend_code': p.friend_code,
         'username': p.user.username,
+        'avatar': avatar_url(p),
         'outfit': p.outfit or {},
         'tagline': p.tagline,
         'level': p.level,

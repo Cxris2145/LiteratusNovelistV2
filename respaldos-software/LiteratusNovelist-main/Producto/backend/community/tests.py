@@ -1,3 +1,4 @@
+import base64
 import importlib
 from datetime import timedelta
 from unittest import mock
@@ -246,8 +247,8 @@ class PrivacyTests(CommunityAPITestCase):
 
         data = self.as_user(self.ana).get(f'{API}profiles/{code_of(self.bruno)}/').data
 
-        self.assertEqual(set(data), {'full', 'friend_code', 'username', 'outfit', 'equipped_frame', 'equipped_title',
-                                     'is_public', 'relation', 'request_id'})
+        self.assertEqual(set(data), {'full', 'friend_code', 'username', 'avatar', 'outfit', 'equipped_frame',
+                                     'equipped_title', 'is_public', 'relation', 'request_id'})
         self.assertFalse(data['full'])
         self.assertFalse(data['is_public'])
 
@@ -263,7 +264,7 @@ class PrivacyTests(CommunityAPITestCase):
         self.assertEqual((data['relation'], data['request_id']), ('outgoing', pk))
         self.assertIn('stats', data)
         self.assertNotIn('brindis_given', data)
-        self.assertNotIn('avatar', data)
+        self.assertIsNone(data['avatar'])  # sin foto: se ve su Maguito
 
     def test_friends_see_the_full_card_even_if_private(self):
         self.befriend(self.ana, self.bruno)
@@ -283,7 +284,7 @@ class PrivacyTests(CommunityAPITestCase):
         self.assertTrue(data['full'])
         self.assertEqual(data['bio'], 'Leo de noche')
         self.assertEqual(data['stats']['friends'], 1)
-        self.assertNotIn('avatar', data)
+        self.assertIsNone(data['avatar'])  # sin foto: se ve su Maguito
 
     def test_unknown_code_is_404_and_anonymous_is_401(self):
         self.assertEqual(self.as_user(self.ana).get(f'{API}profiles/ZZZZZZ/').status_code, 404)
@@ -321,6 +322,78 @@ class PrivacyTests(CommunityAPITestCase):
         self.assertEqual(data['pending_incoming'], 1)
         self.assertEqual(set(data['stats']), {'books', 'books_read', 'reviews', 'friends', 'brindis'})
         self.assertTrue(data['is_public'])
+
+
+class ProfilePhotoTests(CommunityAPITestCase):
+    PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+
+    def set_photo(self, user, avatar):
+        Profile.objects.filter(user=user).update(avatar=avatar)
+
+    def friend_card(self, viewer, friend):
+        friends = self.as_user(viewer).get(f'{API}friends/').data['results']
+        return next(f for f in friends if f['username'] == friend.username)
+
+    def test_friends_see_the_photo_and_anyone_with_the_link_can_load_it(self):
+        self.befriend(self.ana, self.bruno)
+        self.set_photo(self.bruno, f'data:image/png;base64,{self.PNG}')
+        link = self.friend_card(self.ana, self.bruno)['avatar']
+        self.client.force_authenticate(None)  # lo pide un <img>, sin el token de sesión
+
+        res = self.client.get(f'/api/v1/{link}')
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res['Content-Type'], 'image/png')
+        self.assertIn('immutable', res['Cache-Control'])
+        self.assertEqual(res.content, base64.b64decode(self.PNG))
+        self.assertTrue(link.startswith('community/avatar/'))  # el data URL pesado nunca va en la tarjeta
+
+    def test_without_photo_the_card_has_none_and_maguito_stays(self):
+        self.befriend(self.ana, self.bruno)
+
+        self.assertIsNone(self.friend_card(self.ana, self.bruno)['avatar'])
+
+    def test_a_new_photo_gets_a_new_link(self):
+        self.befriend(self.ana, self.bruno)
+        self.set_photo(self.bruno, f'data:image/png;base64,{self.PNG}')
+        before = self.friend_card(self.ana, self.bruno)['avatar']
+        self.set_photo(self.bruno, f'data:image/jpeg;base64,{base64.b64encode(b"otra foto").decode()}')
+
+        after = self.friend_card(self.ana, self.bruno)['avatar']
+
+        self.assertNotEqual(before, after)
+        self.assertEqual(self.client.get(f'/api/v1/{after}')['Content-Type'], 'image/jpeg')
+
+    def test_photo_links_from_https_go_as_they_are(self):
+        self.befriend(self.ana, self.bruno)
+        self.set_photo(self.bruno, 'https://fotos.example.com/bruno.jpg')
+
+        self.assertEqual(self.friend_card(self.ana, self.bruno)['avatar'], 'https://fotos.example.com/bruno.jpg')
+
+    def test_forged_links_and_non_images_are_not_served(self):
+        self.befriend(self.ana, self.bruno)
+        self.set_photo(self.bruno, 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=')
+        link = self.friend_card(self.ana, self.bruno)['avatar']
+
+        self.assertEqual(self.client.get(f'/api/v1/{link}').status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(self.client.get(f'{API}avatar/inventado/').status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_search_shows_the_photo_of_public_profiles_only(self):
+        self.set_photo(self.bruno, f'data:image/png;base64,{self.PNG}')
+
+        public = self.as_user(self.ana).get(f'{API}search/', {'q': 'bruno'}).data['results']
+        Profile.objects.filter(user=self.bruno).update(is_public=False)
+        private = self.client.get(f'{API}search/', {'q': code_of(self.bruno)}).data['results']
+
+        self.assertTrue(public[0]['avatar'].startswith('community/avatar/'))
+        self.assertIsNone(private[0]['avatar'])
+
+    def test_friends_see_the_photo_even_if_the_profile_is_private(self):
+        self.befriend(self.ana, self.bruno)
+        self.set_photo(self.bruno, f'data:image/png;base64,{self.PNG}')
+        Profile.objects.filter(user=self.bruno).update(is_public=False)
+
+        self.assertIsNotNone(self.friend_card(self.ana, self.bruno)['avatar'])
 
 
 class ProfileStatsTests(CommunityAPITestCase):

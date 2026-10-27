@@ -1,161 +1,192 @@
 :host { display: block; }
 
-.pc { display: flex; flex-direction: column; gap: 10px; }
-.pc .th-panel-title { margin-bottom: 4px; }
-
-.pc-avatar-wrap {
-  position: relative;
-  width: 136px;
-  margin: 4px auto 8px;
+/* Ficha de lector. Ritmo con base de 4 px: cada grupo va apretado por dentro (identidad, frase,
+   números) y separado de los demás por el gap de la tarjeta. */
+.pc {
+  --pc-portrait: 96px;
+  --pc-seal: 36px;
+  --pc-ring: var(--home-bg-surface);
+  /* La ficha se acomoda a su propio ancho (columna de la sala, página del amigo, celular). */
+  container: pc / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
+.pc.is-compact {
+  --pc-portrait: 76px;
+  --pc-seal: 30px;
+  gap: 14px;
+}
+
+/* ── Retrato + quién es ─────────────────────────────────────────── */
+.pc-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  /* El marco equipado sale 10 px por fuera del retrato: el gap lo deja respirar. */
+  gap: 20px;
+  padding: 4px 0 0 4px;
+}
+.pc-portrait {
+  position: relative;
+  width: var(--pc-portrait);
+}
+.pc-portrait app-avatar-frame { display: block; }
 .pc-avatar {
-  width: 136px;
+  width: var(--pc-portrait);
   aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.2), #0f1426 72%);
-  border: 1px solid var(--th-border);
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
   display: grid;
   place-items: end center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--th-gold) 24%, transparent),
+              color-mix(in srgb, var(--home-bg) 85%, #000) 72%);
+  border: 1px solid color-mix(in srgb, var(--th-gold) 35%, var(--th-border));
 }
 .pc-avatar app-maguito { width: 100%; }
 
+/* La foto de perfil, como un sello lacrado sobre el retrato de Maguito. */
+.pc-seal {
+  position: absolute;
+  left: -6px;
+  bottom: -6px;
+  z-index: 3;
+  width: var(--pc-seal);
+  height: var(--pc-seal);
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--pc-ring);
+  border: 2px solid var(--pc-ring);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .4);
+}
 .pc-online-dot {
   position: absolute;
-  right: 6px;
-  bottom: 6px;
-  width: 15px;
-  height: 15px;
+  right: 3px;
+  bottom: 3px;
+  z-index: 3;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: #4ade80;
-  border: 2.5px solid #0f1426;
-  box-shadow: 0 0 8px #4ade80;
-  z-index: 2;
-  animation: pc-dot-glow 2.5s ease-in-out infinite alternate;
+  background: var(--th-online);
+  border: 2.5px solid var(--pc-ring);
 }
-@keyframes pc-dot-glow {
-  0% { box-shadow: 0 0 4px #4ade80; }
-  100% { box-shadow: 0 0 12px #4ade80, 0 0 20px rgba(74, 222, 128, 0.4); }
+.pc-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
+.pc-identity {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
 .pc-name {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  font-size: 1.7rem;
+  font-size: 1.75rem;
   font-weight: 600;
-  text-align: center;
+  line-height: 1.05;
+  letter-spacing: -.01em;
   overflow-wrap: anywhere;
 }
-.pc-crown { color: var(--th-gold); font-size: 24px; font-variation-settings: 'FILL' 1; }
-.pc-level {
-  margin: -4px 0 0;
-  text-align: center;
-  font-size: .8rem;
+.pc-crown { margin-left: 4px; color: var(--th-gold); font-size: .8em; vertical-align: -.12em; font-variation-settings: 'FILL' 1; }
+.pc-title {
+  margin: 0;
   color: var(--th-gold);
+  font: 600 1.02rem/1.2 var(--font-display, Georgia, serif);
+  overflow-wrap: anywhere;
+}
+.pc-level {
+  margin: 0;
+  color: var(--th-muted);
+  font-size: .76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Su voz: la frase y lo que lee ─────────────────────────────── */
+.pc-voice {
+  display: grid;
+  gap: 6px;
 }
 .pc-tagline {
   margin: 0;
-  text-align: center;
   color: var(--th-ink);
-  font-size: 0.88rem;
+  font: italic 500 1.1rem/1.35 var(--font-display, Georgia, serif);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pc-genres {
+  margin: 0;
+  color: var(--th-muted);
+  font-size: .8rem;
   line-height: 1.45;
 }
 .is-placeholder { color: var(--th-muted) !important; font-style: italic; }
 
-.pc-genres {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  margin: 4px 0 0;
-  padding: 0;
-  list-style: none;
+/* Filete con rombo, como el que separa capítulos en un libro. */
+.pc-rule {
+  position: relative;
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--th-gold) 50%, transparent) 20%,
+              color-mix(in srgb, var(--th-gold) 50%, transparent) 80%, transparent);
 }
-.pc-genres li {
-  padding: 4px 12px;
-  border-radius: 99px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(14, 18, 36, 0.6);
-  font-size: .75rem;
-  color: var(--th-ink);
+.pc-rule::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  translate: -50% -50%;
+  rotate: 45deg;
+  background: var(--pc-ring);
+  border: 1px solid var(--th-gold);
 }
 
+/* ── Números: "2 libros · 0 reseñas · 3 amigos", en una línea ─────── */
 .pc-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: 8px 0 0;
-  padding: 12px 0;
-  border-block: 1px solid rgba(255, 255, 255, 0.08);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
 }
 .pc-stats > div {
-  text-align: center;
   display: flex;
-  flex-direction: column-reverse;
-  gap: 4px;
-}
-.pc-stats > div + div { border-left: 1px solid rgba(255, 255, 255, 0.08); }
-.pc-stats dt {
-  display: flex;
-  align-items: center;
+  flex-direction: row-reverse;
   justify-content: center;
-  gap: 4px;
-  font-size: .72rem;
-  color: var(--th-muted);
-}
-.pc-stats dt .material-symbols-rounded {
-  font-size: 14px;
-  color: var(--th-gold);
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
 }
 .pc-stats dd {
   margin: 0;
-  font: 700 1.35rem var(--font-display, Georgia, serif);
   color: var(--th-ink);
-  font-variant-numeric: tabular-nums;
+  font: 700 1.4rem/1 var(--font-display, Georgia, serif);
+  font-variant-numeric: tabular-nums lining-nums;
 }
-
-.pc-about {
-  margin-top: 4px;
-}
-.pc-about-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-.pc-about h3 { font-size: 1.15rem; margin: 0; }
-.pc-quill-watermark {
-  color: rgba(212, 175, 55, 0.45);
-  font-size: 22px;
-}
-.pc-about p {
-  margin: 0;
+.pc-stats dt {
   color: var(--th-muted);
-  font-size: .86rem;
-  line-height: 1.55;
-  white-space: pre-line;
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: .78rem;
 }
 
-.pc-code {
+/* ── Acciones propias ───────────────────────────────────────────── */
+.pc-actions {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 2px 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--home-bg) 55%, transparent);
-  border: 1px dashed color-mix(in srgb, var(--th-gold) 45%, transparent);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
 }
-.pc-code > span { grid-column: 1; font-size: .72rem; color: var(--th-muted); }
-.pc-code > strong { grid-column: 1; color: var(--th-gold); font-size: 1.05rem; }
-.pc-code > button { grid-column: 2; grid-row: 1 / span 2; }
-.pc-dress { width: 100%; }
+.pc-actions .th-btn {
+  min-height: 42px;
+  padding: 8px 12px;
+  gap: 6px;
+  white-space: nowrap;
+}
 
 /* "Más sobre mí": el alto se abre con grid-template-rows (0fr → 1fr), el único caso en que la
    Taberna anima un alto; cerrado queda inert, así su contenido no se alcanza con el teclado. */
@@ -165,6 +196,7 @@
   justify-content: center;
   gap: 4px;
   min-height: var(--th-control-h-sm);
+  margin-top: -6px;
   padding: 4px 10px;
   border: 0;
   border-radius: var(--th-radius-control);
@@ -179,6 +211,8 @@
 }
 .pc-more-chevron { font-size: 20px; transition: transform 200ms var(--th-ease-out); }
 .pc-more-toggle[aria-expanded='true'] .pc-more-chevron { transform: rotate(180deg); }
+/* El botón y lo que despliega van juntos: cerrado no suma espacio a la tarjeta. */
+.pc-more-wrap { display: grid; }
 .pc-more {
   display: grid;
   grid-template-rows: 0fr;
@@ -187,27 +221,54 @@
 }
 .pc-more.is-open { grid-template-rows: 1fr; opacity: 1; }
 /* El relleno con margen negativo deja lugar al anillo de foco sin correr el contenido. */
-.pc-more-inner { display: grid; gap: 8px; min-height: 0; overflow: hidden; padding: 6px; margin: -6px; }
+.pc-more-inner { display: grid; gap: 14px; min-height: 0; overflow: hidden; padding: 6px; margin: -6px; }
+.pc-more-inner > :first-child { margin-top: 8px; }
 @media (prefers-reduced-motion: reduce) {
   .pc-more { transition: opacity 150ms ease; }
   .pc-more-chevron { transition: none; }
 }
 
-/* Perfil público / privado */
-.pc-privacy {
+/* ── Sobre mí ───────────────────────────────────────────────────── */
+.pc-about { display: grid; gap: 6px; }
+.pc-about h3 { font-size: 1.12rem; font-weight: 600; }
+.pc-about p {
+  margin: 0;
+  color: var(--th-ink);
+  font-size: .86rem;
+  line-height: 1.55;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pc-about .pc-since {
+  color: var(--th-muted);
+  font-size: .74rem;
+}
+
+/* ── Ajustes propios: una lista con filetes, sin cajas dentro de la tarjeta ── */
+.pc-settings {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pc-settings > li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--home-bg) 55%, transparent);
-  border: 1px solid var(--th-border);
+  padding: 10px 0;
+  border-top: 1px solid var(--th-border);
 }
-.pc-privacy-icon { color: var(--th-gold); font-size: 20px; }
-.pc-privacy-copy { display: grid; gap: 1px; min-width: 0; }
-.pc-privacy-copy strong { font-size: .82rem; }
-.pc-privacy-copy span { color: var(--th-muted); font-size: .7rem; line-height: 1.35; }
+.pc-setting-icon { color: var(--th-gold); font-size: 20px; }
+.pc-setting-copy { display: grid; gap: 2px; min-width: 0; }
+.pc-setting-copy strong { font-size: .82rem; font-weight: 600; }
+.pc-setting-copy > span { color: var(--th-muted); font-size: .72rem; line-height: 1.35; }
+.pc-code .th-code { color: var(--th-gold); font-size: .98rem; }
+
 .pc-switch {
   position: relative;
   flex: none;
@@ -240,37 +301,41 @@
   .pc-switch, .pc-switch-thumb { transition: none; }
 }
 
-/* La tarjeta lateral deja más espacio visible para el salón y el chat. */
-.pc.is-compact { gap: 8px; }
-.pc.is-compact .th-panel-title { gap: 8px; }
-.pc.is-compact .th-panel-title .th-btn { padding-inline: 8px; font-size: .75rem; }
-.pc.is-compact .pc-avatar-wrap,
-.pc.is-compact .pc-avatar { width: 104px; }
-.pc.is-compact .pc-avatar-wrap { margin-block: 0; }
+/* ── En la sala (columna angosta) ───────────────────────────────── */
 .pc.is-compact .pc-name { font-size: 1.5rem; }
-.pc.is-compact .pc-stats { margin-top: 4px; padding-block: 8px; }
-.pc.is-compact .pc-genres li {
-  padding: 3px 8px;
-  background: color-mix(in srgb, var(--home-bg) 70%, transparent);
-  border-color: var(--th-border);
+.pc.is-compact .pc-title { font-size: .94rem; }
+.pc.is-compact .pc-tagline { font-size: 1.02rem; }
+.pc.is-compact .pc-stats dd { font-size: 1.25rem; }
+
+/* Columna de 240 px (notebooks de 1001 a 1180 px): retrato más chico para que el nombre quepa
+   entero, y "Editar" queda como ícono (su nombre accesible sigue siendo "Editar perfil"). */
+@container pc (max-width: 240px) {
+  .pc-head { --pc-portrait: 60px; --pc-seal: 26px; gap: 16px; }
+  .pc .pc-head .pc-name { font-size: 1.3rem; }
+  .pc .pc-head .pc-title { font-size: .88rem; }
+  .pc-dress .material-symbols-rounded { display: none; }
+  .pc-edit { width: 42px; padding-inline: 0; }
+  .pc-edit-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pc-online-dot { animation: none; }
-}
-
-/* Esqueleto mientras carga */
-.pc.is-loading { min-height: 420px; }
+/* ── Esqueleto mientras carga ───────────────────────────────────── */
+.pc.is-loading { min-height: 360px; }
 .sk {
   border-radius: 10px;
   background: color-mix(in srgb, var(--th-ink) 7%, transparent);
   animation: pc-pulse 1.4s ease-in-out infinite;
 }
-.pc-avatar.sk { border: 0; box-shadow: none; }
-.sk-line { height: 18px; width: 70%; margin: 0 auto; }
-.sk-line.short { width: 45%; }
-.sk-block { height: 120px; }
+.pc-avatar.sk { border: 0; }
+.sk-line { height: 16px; width: 80%; }
+.sk-line.short { width: 50%; }
+.sk-line.wide { width: 100%; }
+.sk-block { height: 110px; }
 @keyframes pc-pulse { 50% { opacity: .5; } }
 @media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
-
-.pc-title { margin: 0; color: var(--th-gold); text-align: center; font: 500 1.1rem var(--font-display); overflow-wrap: anywhere; }

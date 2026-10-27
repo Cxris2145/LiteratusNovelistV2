@@ -6,6 +6,7 @@ import {
 import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
 import { FriendCard, FriendRequestItem } from '../../core/services/community.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
+import { ReaderPhotos } from '../reader-photo.util';
 import { listContainerMotion, listItemMotion, listItemParams } from '../tavern-motion';
 
 /** Tiempo que un busto "despierta" para hacer su gesto (después vuelve a quedar en pausa). */
@@ -26,6 +27,8 @@ const CELEBRATE_MS = 1100;
 export class FriendListComponent implements OnChanges, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   @ViewChildren('rowMaguito') private rowMaguitos?: QueryList<MaguitoComponent>;
+  /** La foto de perfil de cada lector; sin foto (o si no carga) se ve su Maguito. */
+  readonly photos = new ReaderPhotos();
 
   @Input() friends: FriendCard[] = [];
   @Input() incoming: FriendRequestItem[] = [];
@@ -93,7 +96,8 @@ export class FriendListComponent implements OnChanges, OnDestroy {
     this.awake = code;
     this.cdr.markForCheck();
     this.later(() => {
-      const index = this.friends.findIndex(friend => friend.friend_code === code);
+      // Solo las filas sin foto tienen Maguito: el índice se cuenta entre ellas.
+      const index = this.friends.filter(friend => !this.photos.of(friend)).findIndex(friend => friend.friend_code === code);
       this.rowMaguitos?.get(index)?.play(gesture);
     }, 0);
     this.later(() => {

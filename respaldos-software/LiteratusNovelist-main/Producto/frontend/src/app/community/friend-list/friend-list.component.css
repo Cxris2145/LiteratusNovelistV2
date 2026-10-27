@@ -37,6 +37,7 @@
   background: color-mix(in srgb, var(--th-gold) 10%, var(--home-bg));
   border: 1px solid var(--th-border);
 }
+.fl-photo { display: block; object-fit: cover; }
 .fl-status-dot {
   position: absolute;
   right: -1px;

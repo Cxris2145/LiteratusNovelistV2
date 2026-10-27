@@ -8,9 +8,10 @@
   /* Fondo del botón secundario de toda la sala (lo leen los paneles hijos y El Bazar). */
   --th-secondary-bg: rgba(22, 15, 12, .78);
   /* Alto de las tres columnas. La fila que se recoge libera fondo, pero no cambia la altura de la
-     mesa. 120px = relleno superior + encabezado (~71) + su margen + aire abajo. La mesa además se
-     asegura un mínimo según su ancho (tavern-scene.component.css) para que el globo no se corte. */
-  --th-stage-height: max(440px, calc(100svh - var(--navbar-expanded-h, var(--navbar-h, 182px)) - 120px));
+     mesa. 128px = relleno superior (16) + encabezado (~71) + su margen (16) + relleno inferior (24)
+     + 1 de redondeo: con menos, el salón queda unos píxeles más alto que la ventana y aparece la
+     barra de desplazamiento. Si la ventana es baja, la mesa se angosta (tavern-scene.component.css). */
+  --th-stage-height: max(440px, calc(100svh - var(--navbar-expanded-h, var(--navbar-h, 182px)) - 128px));
   --th-top-pad: calc(16px + var(--tavern-nav-fill, 0px));
   --th-pad: clamp(16px, 2vw, 40px);
   --th-gap: 20px;

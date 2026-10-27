@@ -7,6 +7,7 @@ from .views import (
     BrindisView,
     ChatMessagesView,
     ChatThreadsView,
+    CommunityAvatarView,
     CommunityMeView,
     CommunityProfileView,
     CommunitySearchView,
@@ -37,6 +38,7 @@ from .views import (
 
 urlpatterns = [
     path('me/', CommunityMeView.as_view(), name='community-me'),
+    path('avatar/<str:token>/', CommunityAvatarView.as_view(), name='community-avatar'),
     path('search/', CommunitySearchView.as_view(), name='community-search'),
     path('suggestions/', SuggestionsView.as_view(), name='community-suggestions'),
     path('friends/', FriendListView.as_view(), name='community-friends'),

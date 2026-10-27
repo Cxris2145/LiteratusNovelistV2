@@ -2,6 +2,7 @@
 community/views.py — API de La Taberna de Tinta (/api/v1/community/). Todo exige sesión.
 """
 from django.contrib.auth import get_user_model
+from django.http import HttpResponse
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -25,6 +26,25 @@ def _not_found():
 
 class CommunityView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+
+
+class CommunityAvatarView(APIView):
+    """
+    GET avatar/<firma>/ — Foto de perfil de un lector. Va sin sesión porque la pide un <img>; el
+    enlace firmado solo aparece en las tarjetas que la API ya le muestra a quien está conectado.
+    """
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, token):
+        image = services.avatar_image(token)
+        if image is None:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        data, content_type = image
+        response = HttpResponse(data, content_type=content_type)
+        # La firma cambia con la foto: cada enlace muestra siempre la misma imagen.
+        response['Cache-Control'] = 'private, max-age=31536000, immutable'
+        return response
 
 
 class CommunityMeView(CommunityView):

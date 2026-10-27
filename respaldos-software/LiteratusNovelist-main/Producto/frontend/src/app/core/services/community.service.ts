@@ -14,6 +14,8 @@ export interface TavernCard {
   full: false;
   friend_code: string;
   username: string;
+  /** Foto de perfil (ver readerPhotoUrl); null si no subió una o si su perfil es privado. */
+  avatar: string | null;
   outfit: MaguitoOutfit;
   equipped_frame: string;
   equipped_title: string;
@@ -41,6 +43,7 @@ export interface CommunityProfile {
   full: true;
   friend_code: string;
   username: string;
+  avatar?: string | null;
   tagline: string;
   bio: string;
   outfit: MaguitoOutfit;
@@ -71,6 +74,7 @@ export interface FriendStatus {
 export interface FriendCard {
   friend_code: string;
   username: string;
+  avatar: string | null;
   outfit: MaguitoOutfit;
   equipped_frame: string;
   equipped_title: string;

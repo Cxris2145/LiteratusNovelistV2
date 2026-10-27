@@ -60,6 +60,7 @@
   background: color-mix(in srgb, var(--th-gold) 10%, var(--home-bg));
   border: 1px solid var(--th-border);
 }
+.af-photo { display: block; object-fit: cover; }
 .af-who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .af-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .af-who .th-code { font-size: .74rem; color: var(--th-muted); }

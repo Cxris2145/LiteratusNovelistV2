@@ -34,8 +34,10 @@
     </p>
     <ul class="af-results af-suggest-list" *ngIf="!suggestionsLoading && suggestions.length">
       <li *ngFor="let card of suggestions; trackBy: trackCard">
-        <app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
-                     [interactive]="false" [followPointer]="false"></app-maguito>
+        <img *ngIf="photos.of(card) as src; else suggestMaguito" class="af-avatar af-photo" [src]="src" alt=""
+             decoding="async" (error)="photos.failed(card.friend_code)">
+        <ng-template #suggestMaguito><app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
+                     [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
         <a class="af-who af-who-link" [routerLink]="['/tavern/amigo', card.friend_code]" (click)="close()">
           <strong>{{ card.username }}</strong>
           <span class="af-reason">{{ card.reason }}</span>
@@ -52,8 +54,10 @@
 
   <ul class="af-results" *ngIf="results.length">
     <li *ngFor="let card of results; trackBy: trackCard">
-      <app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
-                   [interactive]="false" [followPointer]="false"></app-maguito>
+      <img *ngIf="photos.of(card) as src; else resultMaguito" class="af-avatar af-photo" [src]="src" alt=""
+           decoding="async" (error)="photos.failed(card.friend_code)">
+      <ng-template #resultMaguito><app-maguito class="af-avatar" crop="bust" [outfit]="card.outfit" [paused]="true" [calm]="true"
+                   [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
       <span class="af-who">
         <strong>{{ card.username }}</strong>
         <span class="th-code">#{{ card.friend_code }}</span>

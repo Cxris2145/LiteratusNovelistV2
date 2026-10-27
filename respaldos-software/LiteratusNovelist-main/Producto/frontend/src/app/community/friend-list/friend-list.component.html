@@ -6,8 +6,12 @@
   <!-- Solicitudes -->
   <div class="fl-requests" *ngIf="incoming.length || outgoing.length" @listContainer>
     <article class="fl-request is-incoming" *ngFor="let request of incoming; trackBy: trackRequest" [@listItem]="itemMotion">
-      <app-avatar-frame [frame]="request.user.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
-                   [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
+      <app-avatar-frame [frame]="request.user.equipped_frame" size="sm">
+        <img *ngIf="photos.of(request.user) as src; else requestMaguito" class="fl-avatar fl-photo" [src]="src" alt=""
+             decoding="async" (error)="photos.failed(request.user.friend_code)">
+        <ng-template #requestMaguito><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
+                     [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
+      </app-avatar-frame>
       <div class="fl-who">
         <strong>{{ request.user.username }}</strong>
         <span>Quiere sentarse a tu mesa</span>
@@ -18,8 +22,12 @@
       </div>
     </article>
     <article class="fl-request" *ngFor="let request of outgoing; trackBy: trackRequest" [@listItem]="itemMotion">
-      <app-avatar-frame [frame]="request.user.equipped_frame" size="sm"><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
-                   [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
+      <app-avatar-frame [frame]="request.user.equipped_frame" size="sm">
+        <img *ngIf="photos.of(request.user) as src; else requestMaguito" class="fl-avatar fl-photo" [src]="src" alt=""
+             decoding="async" (error)="photos.failed(request.user.friend_code)">
+        <ng-template #requestMaguito><app-maguito class="fl-avatar" crop="bust" [outfit]="request.user.outfit" [paused]="true" [calm]="true"
+                     [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
+      </app-avatar-frame>
       <div class="fl-who">
         <strong>{{ request.user.username }}</strong>
         <span>Esperando respuesta</span>
@@ -44,9 +52,13 @@
         [class.is-celebrating]="celebrating === friend.friend_code" (pointerenter)="poke(friend)">
       <a class="fl-friend-link" [routerLink]="['/tavern/amigo', friend.friend_code]">
         <span class="fl-avatar-wrap">
-          <app-avatar-frame [frame]="friend.equipped_frame" size="sm"><app-maguito #rowMaguito class="fl-avatar" crop="bust" [outfit]="friend.outfit"
-                       [paused]="awake !== friend.friend_code" [calm]="true"
-                       [interactive]="false" [followPointer]="false"></app-maguito></app-avatar-frame>
+          <app-avatar-frame [frame]="friend.equipped_frame" size="sm">
+            <img *ngIf="photos.of(friend) as src; else friendMaguito" class="fl-avatar fl-photo" [src]="src" alt=""
+                 loading="lazy" decoding="async" (error)="photos.failed(friend.friend_code)">
+            <ng-template #friendMaguito><app-maguito #rowMaguito class="fl-avatar" crop="bust" [outfit]="friend.outfit"
+                         [paused]="awake !== friend.friend_code" [calm]="true"
+                         [interactive]="false" [followPointer]="false"></app-maguito></ng-template>
+          </app-avatar-frame>
           <span class="th-dot fl-status-dot" [ngClass]="friend.status.kind" aria-hidden="true"></span>
         </span>
         <span class="fl-who">
