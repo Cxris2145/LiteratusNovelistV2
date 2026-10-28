@@ -49,6 +49,15 @@ azure.env
 **/backend/media/
 **/backend/epubs_elejandria/
 **/errores_inyeccion.txt
+# Respaldos con datos de usuarios y trabajo local de retratos.
+# Los resultados finales optimizados se versionan en docs/retratos/.
+/respaldos-software/respaldo-catalogo-*/
+/outputs/auditoria-retratos-cuentos-2026-10-28/
+/outputs/retratos-animados-2026-10-28/
+/outputs/retratos-animados-2026-10-28.zip
+/outputs/retratos-con-fondo-2026-10-28/
+/outputs/retratos-con-fondo-2026-10-28.zip
+/outputs/retratos-prioritarios-peliculas-2026-10-28/
 # Imagenes extraidas de los EPUB al reconstruir el catalogo (regenerables con import_epubs)
 respaldos-software/books/*/images/
 

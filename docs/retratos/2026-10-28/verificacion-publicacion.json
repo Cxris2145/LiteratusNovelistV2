@@ -1,0 +1,12 @@
+{
+  "checked_at_utc": "2026-10-28T04:30:16.763915+00:00",
+  "database_transaction_read_only": "on",
+  "books_checked": 200,
+  "characters_checked": 697,
+  "published_links_matched": 40,
+  "other_characters_unchanged": 657,
+  "existing_photos_replaced": 38,
+  "previously_missing_photos_created": 2,
+  "public_bytes_verified_by_importer": 40,
+  "errors": []
+}

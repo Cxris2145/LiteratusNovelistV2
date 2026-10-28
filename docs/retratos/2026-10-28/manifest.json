@@ -1,0 +1,408 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-28T01:31:10.289445-03:00",
+  "database_fingerprint": "8f2ae7a675660d2fc1098781bc3fdfc1c03336d80ae45c7a07595ef5368e22fc",
+  "style": "published-literary-character-portraits-2026-10-28",
+  "avatars": [
+    {
+      "avatar_id": "8c717e28-4efc-46b3-a808-b828461d446a",
+      "name": "La Tortuga",
+      "edition_id": "05717c02-68ab-45f5-ad3d-1cc303d2eafa",
+      "book_id": "89dc9326-f051-4d99-9128-4a5b5c292730",
+      "book_title": "Fábulas",
+      "is_author": false,
+      "identity_key": "character:89dc9326-f051-4d99-9128-4a5b5c292730:la tortuga",
+      "output_image": "images/8c717e28-4efc-46b3-a808-b828461d446a.webp"
+    },
+    {
+      "avatar_id": "ab98c481-dcf5-4174-93a4-d82e562d7bd2",
+      "name": "El Gato con Botas",
+      "edition_id": "bba1d8c0-f9a9-4881-a6e1-a5a87d0d8122",
+      "book_id": "2d0c659f-82b9-4073-a91f-f4e7c3fefca3",
+      "book_title": "Gato con botas",
+      "is_author": false,
+      "identity_key": "character:2d0c659f-82b9-4073-a91f-f4e7c3fefca3:el gato con botas",
+      "output_image": "images/ab98c481-dcf5-4174-93a4-d82e562d7bd2.webp"
+    },
+    {
+      "avatar_id": "0d715f7b-56ae-485e-81aa-853d7be81d0a",
+      "name": "Gretel",
+      "edition_id": "e900a119-fbb9-4579-81cb-33c9b1fa5679",
+      "book_id": "98ff9bcf-767a-4fba-956e-064176cca6b6",
+      "book_title": "Hansel y Gretel",
+      "is_author": false,
+      "identity_key": "character:98ff9bcf-767a-4fba-956e-064176cca6b6:gretel",
+      "output_image": "images/0d715f7b-56ae-485e-81aa-853d7be81d0a.webp"
+    },
+    {
+      "avatar_id": "e4a796b9-f0d7-438d-b985-371511996c64",
+      "name": "Hansel",
+      "edition_id": "e900a119-fbb9-4579-81cb-33c9b1fa5679",
+      "book_id": "98ff9bcf-767a-4fba-956e-064176cca6b6",
+      "book_title": "Hansel y Gretel",
+      "is_author": false,
+      "identity_key": "character:98ff9bcf-767a-4fba-956e-064176cca6b6:hansel",
+      "output_image": "images/e4a796b9-f0d7-438d-b985-371511996c64.webp"
+    },
+    {
+      "avatar_id": "2ca766fb-4273-4fd4-9bab-ee575b1e2d51",
+      "name": "La Bruja",
+      "edition_id": "e900a119-fbb9-4579-81cb-33c9b1fa5679",
+      "book_id": "98ff9bcf-767a-4fba-956e-064176cca6b6",
+      "book_title": "Hansel y Gretel",
+      "is_author": false,
+      "identity_key": "character:98ff9bcf-767a-4fba-956e-064176cca6b6:la bruja",
+      "output_image": "images/2ca766fb-4273-4fd4-9bab-ee575b1e2d51.webp"
+    },
+    {
+      "avatar_id": "362037d7-e394-49bb-be1f-543c05a7bd21",
+      "name": "Heidi",
+      "edition_id": "daf6e303-7b1f-479f-a7e6-e49c6878a46f",
+      "book_id": "633bcbd7-11f9-46c8-8828-1efabc7774bc",
+      "book_title": "Heidi",
+      "is_author": false,
+      "identity_key": "character:633bcbd7-11f9-46c8-8828-1efabc7774bc:heidi",
+      "output_image": "images/362037d7-e394-49bb-be1f-543c05a7bd21.webp"
+    },
+    {
+      "avatar_id": "07940243-7823-4e62-a62d-2da12a08ef51",
+      "name": "Rebecca",
+      "edition_id": "740462a2-f586-40df-8c7b-84e74497ab57",
+      "book_id": "1d950d1a-c03e-4140-a104-9034ca05e513",
+      "book_title": "Ivanhoe",
+      "is_author": false,
+      "identity_key": "character:1d950d1a-c03e-4140-a104-9034ca05e513:rebecca",
+      "output_image": "images/07940243-7823-4e62-a62d-2da12a08ef51.webp"
+    },
+    {
+      "avatar_id": "05a91719-363a-41d2-8444-90e7721795f6",
+      "name": "Wilfredo de Ivanhoe",
+      "edition_id": "740462a2-f586-40df-8c7b-84e74497ab57",
+      "book_id": "1d950d1a-c03e-4140-a104-9034ca05e513",
+      "book_title": "Ivanhoe",
+      "is_author": false,
+      "identity_key": "character:1d950d1a-c03e-4140-a104-9034ca05e513:wilfredo de ivanhoe",
+      "output_image": "images/05a91719-363a-41d2-8444-90e7721795f6.webp"
+    },
+    {
+      "avatar_id": "860897ca-08fa-4218-9e50-5d2ca29a8cbb",
+      "name": "Aikiga",
+      "edition_id": "a17639ec-1c17-4bce-9e9e-6350a773c793",
+      "book_id": "d59338c9-ea96-45a8-903a-ca48e8e4d25d",
+      "book_title": "La historia de Keesh",
+      "is_author": false,
+      "identity_key": "character:d59338c9-ea96-45a8-903a-ca48e8e4d25d:aikiga",
+      "output_image": "images/860897ca-08fa-4218-9e50-5d2ca29a8cbb.webp"
+    },
+    {
+      "avatar_id": "e92030d1-9712-4019-8e93-6311145a2e66",
+      "name": "Keesh",
+      "edition_id": "a17639ec-1c17-4bce-9e9e-6350a773c793",
+      "book_id": "d59338c9-ea96-45a8-903a-ca48e8e4d25d",
+      "book_title": "La historia de Keesh",
+      "is_author": false,
+      "identity_key": "character:d59338c9-ea96-45a8-903a-ca48e8e4d25d:keesh",
+      "output_image": "images/e92030d1-9712-4019-8e93-6311145a2e66.webp"
+    },
+    {
+      "avatar_id": "2085a4d6-54ce-4e07-8e12-b951f959dd08",
+      "name": "Jim Hawkins",
+      "edition_id": "2446f880-95c2-45f0-a0ff-98afd4b0ce28",
+      "book_id": "5d5a0032-5c3c-4be2-ab21-c9e99238931c",
+      "book_title": "La isla del tesoro",
+      "is_author": false,
+      "identity_key": "character:5d5a0032-5c3c-4be2-ab21-c9e99238931c:jim hawkins",
+      "output_image": "images/2085a4d6-54ce-4e07-8e12-b951f959dd08.webp"
+    },
+    {
+      "avatar_id": "71401137-6032-4d7b-aede-14c28d1afa21",
+      "name": "Long John Silver",
+      "edition_id": "2446f880-95c2-45f0-a0ff-98afd4b0ce28",
+      "book_id": "5d5a0032-5c3c-4be2-ab21-c9e99238931c",
+      "book_title": "La isla del tesoro",
+      "is_author": false,
+      "identity_key": "character:5d5a0032-5c3c-4be2-ab21-c9e99238931c:long john silver",
+      "output_image": "images/71401137-6032-4d7b-aede-14c28d1afa21.webp"
+    },
+    {
+      "avatar_id": "f0683de2-b560-4442-b1dd-f3e464f6b15b",
+      "name": "La Sirenita",
+      "edition_id": "ec52cd15-9278-4030-9084-faaf5955e0a2",
+      "book_id": "9f530ddd-6c3d-4645-b28a-b9b5687b976d",
+      "book_title": "La Sirenita",
+      "is_author": false,
+      "identity_key": "character:9f530ddd-6c3d-4645-b28a-b9b5687b976d:la sirenita",
+      "output_image": "images/f0683de2-b560-4442-b1dd-f3e464f6b15b.webp"
+    },
+    {
+      "avatar_id": "1367fe4d-27a0-4728-899f-81921338a28d",
+      "name": "Aouda",
+      "edition_id": "a667999d-89e2-4b17-a843-e2994b0a2625",
+      "book_id": "d98e4b7e-b60c-4bc5-a2a2-15c0ee125999",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "is_author": false,
+      "identity_key": "character:d98e4b7e-b60c-4bc5-a2a2-15c0ee125999:aouda",
+      "output_image": "images/1367fe4d-27a0-4728-899f-81921338a28d.webp"
+    },
+    {
+      "avatar_id": "4eec7d17-6c49-49c0-a30b-3d836570daba",
+      "name": "Detective Fix",
+      "edition_id": "a667999d-89e2-4b17-a843-e2994b0a2625",
+      "book_id": "d98e4b7e-b60c-4bc5-a2a2-15c0ee125999",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "is_author": false,
+      "identity_key": "character:d98e4b7e-b60c-4bc5-a2a2-15c0ee125999:detective fix",
+      "output_image": "images/4eec7d17-6c49-49c0-a30b-3d836570daba.webp"
+    },
+    {
+      "avatar_id": "c85d8d04-026e-4eb1-b801-752048a4fd42",
+      "name": "Jean Passepartout",
+      "edition_id": "a667999d-89e2-4b17-a843-e2994b0a2625",
+      "book_id": "d98e4b7e-b60c-4bc5-a2a2-15c0ee125999",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "is_author": false,
+      "identity_key": "character:d98e4b7e-b60c-4bc5-a2a2-15c0ee125999:jean passepartout",
+      "output_image": "images/c85d8d04-026e-4eb1-b801-752048a4fd42.webp"
+    },
+    {
+      "avatar_id": "22ec5bd8-180f-47e9-b3a8-7cccd2740ecc",
+      "name": "Phileas Fogg",
+      "edition_id": "a667999d-89e2-4b17-a843-e2994b0a2625",
+      "book_id": "d98e4b7e-b60c-4bc5-a2a2-15c0ee125999",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "is_author": false,
+      "identity_key": "character:d98e4b7e-b60c-4bc5-a2a2-15c0ee125999:phileas fogg",
+      "output_image": "images/22ec5bd8-180f-47e9-b3a8-7cccd2740ecc.webp"
+    },
+    {
+      "avatar_id": "13f54176-d6fc-4ec9-a9c6-eb99071f89d3",
+      "name": "Huckleberry Finn",
+      "edition_id": "7fcd90e9-12ee-4a4b-a664-cb91cb8295b0",
+      "book_id": "f568f21d-02f3-4843-98d2-b68d022099c5",
+      "book_title": "Las aventuras de Huckleberry Finn",
+      "is_author": false,
+      "identity_key": "character:f568f21d-02f3-4843-98d2-b68d022099c5:huckleberry finn",
+      "output_image": "images/13f54176-d6fc-4ec9-a9c6-eb99071f89d3.webp"
+    },
+    {
+      "avatar_id": "06135bbe-6896-44f4-b626-f2e7f7878fec",
+      "name": "Tía Polly",
+      "edition_id": "08ab1a01-60b0-4c02-bb61-f061f728aba9",
+      "book_id": "7f0364d4-52a7-4680-83cd-e939ea2ed7ba",
+      "book_title": "Las aventuras de Tom Sawyer",
+      "is_author": false,
+      "identity_key": "character:7f0364d4-52a7-4680-83cd-e939ea2ed7ba:tía polly",
+      "output_image": "images/06135bbe-6896-44f4-b626-f2e7f7878fec.webp"
+    },
+    {
+      "avatar_id": "99b206ed-4560-4aed-8b48-404f9190b854",
+      "name": "Tom Sawyer",
+      "edition_id": "08ab1a01-60b0-4c02-bb61-f061f728aba9",
+      "book_id": "7f0364d4-52a7-4680-83cd-e939ea2ed7ba",
+      "book_title": "Las aventuras de Tom Sawyer",
+      "is_author": false,
+      "identity_key": "character:7f0364d4-52a7-4680-83cd-e939ea2ed7ba:tom sawyer",
+      "output_image": "images/99b206ed-4560-4aed-8b48-404f9190b854.webp"
+    },
+    {
+      "avatar_id": "d144928b-dc48-41d5-9327-034c58979b56",
+      "name": "Athos",
+      "edition_id": "f69b0046-92a2-47a8-81f4-5d59331a7ff3",
+      "book_id": "44a0d953-99c5-409e-aab0-0cbe4532b85b",
+      "book_title": "Los tres mosqueteros",
+      "is_author": false,
+      "identity_key": "character:44a0d953-99c5-409e-aab0-0cbe4532b85b:athos",
+      "output_image": "images/d144928b-dc48-41d5-9327-034c58979b56.webp"
+    },
+    {
+      "avatar_id": "db481d31-b836-434a-8d24-7be7f050d8c5",
+      "name": "Cardenal Richelieu",
+      "edition_id": "f69b0046-92a2-47a8-81f4-5d59331a7ff3",
+      "book_id": "44a0d953-99c5-409e-aab0-0cbe4532b85b",
+      "book_title": "Los tres mosqueteros",
+      "is_author": false,
+      "identity_key": "character:44a0d953-99c5-409e-aab0-0cbe4532b85b:cardenal richelieu",
+      "output_image": "images/db481d31-b836-434a-8d24-7be7f050d8c5.webp"
+    },
+    {
+      "avatar_id": "fbae9b82-e42a-4d4c-a861-72816466a631",
+      "name": "D'Artagnan",
+      "edition_id": "f69b0046-92a2-47a8-81f4-5d59331a7ff3",
+      "book_id": "44a0d953-99c5-409e-aab0-0cbe4532b85b",
+      "book_title": "Los tres mosqueteros",
+      "is_author": false,
+      "identity_key": "character:44a0d953-99c5-409e-aab0-0cbe4532b85b:d'artagnan",
+      "output_image": "images/fbae9b82-e42a-4d4c-a861-72816466a631.webp"
+    },
+    {
+      "avatar_id": "73250a04-ad84-4c86-bd67-3838573f82fb",
+      "name": "Claude Frollo",
+      "edition_id": "46a4dc81-00bf-42ea-900d-748c6eb2ddf8",
+      "book_id": "bb620fad-e858-410d-92da-f94ba5d0b34c",
+      "book_title": "Nuestra señora de París",
+      "is_author": false,
+      "identity_key": "character:bb620fad-e858-410d-92da-f94ba5d0b34c:claude frollo",
+      "output_image": "images/73250a04-ad84-4c86-bd67-3838573f82fb.webp"
+    },
+    {
+      "avatar_id": "88666afa-7205-4e93-bd71-fca58238e91a",
+      "name": "Esmeralda",
+      "edition_id": "46a4dc81-00bf-42ea-900d-748c6eb2ddf8",
+      "book_id": "bb620fad-e858-410d-92da-f94ba5d0b34c",
+      "book_title": "Nuestra señora de París",
+      "is_author": false,
+      "identity_key": "character:bb620fad-e858-410d-92da-f94ba5d0b34c:esmeralda",
+      "output_image": "images/88666afa-7205-4e93-bd71-fca58238e91a.webp"
+    },
+    {
+      "avatar_id": "8ece46b3-3768-4ab3-a8b5-ce7a6cbcd057",
+      "name": "Quasimodo",
+      "edition_id": "46a4dc81-00bf-42ea-900d-748c6eb2ddf8",
+      "book_id": "bb620fad-e858-410d-92da-f94ba5d0b34c",
+      "book_title": "Nuestra señora de París",
+      "is_author": false,
+      "identity_key": "character:bb620fad-e858-410d-92da-f94ba5d0b34c:quasimodo",
+      "output_image": "images/8ece46b3-3768-4ab3-a8b5-ce7a6cbcd057.webp"
+    },
+    {
+      "avatar_id": "26528b96-a603-45db-908e-b036588cce56",
+      "name": "Oliver Twist",
+      "edition_id": "8f8b2a8e-ee89-4e2e-8418-93e78ff02f65",
+      "book_id": "09d8bd2c-7ae3-4ab3-a64b-35e1ace1997a",
+      "book_title": "Oliver Twist",
+      "is_author": false,
+      "identity_key": "character:09d8bd2c-7ae3-4ab3-a64b-35e1ace1997a:oliver twist",
+      "output_image": "images/26528b96-a603-45db-908e-b036588cce56.webp"
+    },
+    {
+      "avatar_id": "d4cca590-03b8-4c35-9c21-cfe9cf21a98a",
+      "name": "Campanilla",
+      "edition_id": "2a2a6d82-4b23-4aba-95ff-30b49cbc3891",
+      "book_id": "a3e47d34-0891-4991-9de6-724049dc3f31",
+      "book_title": "Peter Pan y Wendy",
+      "is_author": false,
+      "identity_key": "character:a3e47d34-0891-4991-9de6-724049dc3f31:campanilla",
+      "output_image": "images/d4cca590-03b8-4c35-9c21-cfe9cf21a98a.webp"
+    },
+    {
+      "avatar_id": "2d418787-c666-4ece-bd9c-823c2c5f27d9",
+      "name": "Robinson Crusoe",
+      "edition_id": "db1e1815-d487-4e18-a7da-1503c531fd0c",
+      "book_id": "67ecaeea-16f3-43f6-9d8e-7f71f4e6c24c",
+      "book_title": "Robinson Crusoe",
+      "is_author": false,
+      "identity_key": "character:67ecaeea-16f3-43f6-9d8e-7f71f4e6c24c:robinson crusoe",
+      "output_image": "images/2d418787-c666-4ece-bd9c-823c2c5f27d9.webp"
+    },
+    {
+      "avatar_id": "a2cfbdc1-b44e-4e2d-a1e4-6baaa434fe84",
+      "name": "Fray Lorenzo",
+      "edition_id": "c17e6fbc-d6b6-4f51-bde3-86cf9fe0b2e1",
+      "book_id": "afdd1651-186c-4813-a174-27272d0dc1ce",
+      "book_title": "Romeo y Julieta",
+      "is_author": false,
+      "identity_key": "character:afdd1651-186c-4813-a174-27272d0dc1ce:fray lorenzo",
+      "output_image": "images/a2cfbdc1-b44e-4e2d-a1e4-6baaa434fe84.webp"
+    },
+    {
+      "avatar_id": "10ad9349-d908-494e-96bc-0fb33614113b",
+      "name": "Julieta Capuleto",
+      "edition_id": "c17e6fbc-d6b6-4f51-bde3-86cf9fe0b2e1",
+      "book_id": "afdd1651-186c-4813-a174-27272d0dc1ce",
+      "book_title": "Romeo y Julieta",
+      "is_author": false,
+      "identity_key": "character:afdd1651-186c-4813-a174-27272d0dc1ce:julieta capuleto",
+      "output_image": "images/10ad9349-d908-494e-96bc-0fb33614113b.webp"
+    },
+    {
+      "avatar_id": "983169fb-c899-44b7-9dd4-2930e21d10f3",
+      "name": "Romeo Montesco",
+      "edition_id": "c17e6fbc-d6b6-4f51-bde3-86cf9fe0b2e1",
+      "book_id": "afdd1651-186c-4813-a174-27272d0dc1ce",
+      "book_title": "Romeo y Julieta",
+      "is_author": false,
+      "identity_key": "character:afdd1651-186c-4813-a174-27272d0dc1ce:romeo montesco",
+      "output_image": "images/983169fb-c899-44b7-9dd4-2930e21d10f3.webp"
+    },
+    {
+      "avatar_id": "fcf24182-4384-4f4a-98f4-fd9706841cbf",
+      "name": "Simbad",
+      "edition_id": "0e9a4994-4803-4da3-9ee1-ccc790f20024",
+      "book_id": "36d94dde-da93-4b8d-9248-045023f41992",
+      "book_title": "Simbad el marino",
+      "is_author": false,
+      "identity_key": "character:36d94dde-da93-4b8d-9248-045023f41992:simbad",
+      "output_image": "images/fcf24182-4384-4f4a-98f4-fd9706841cbf.webp"
+    },
+    {
+      "avatar_id": "adf75b6a-3251-4bc4-86e1-4c51d5e3c725",
+      "name": "Capitán Nemo",
+      "edition_id": "c94cb5a6-281e-4b49-8e1e-9015ed22a5d6",
+      "book_id": "1667f2f6-67f6-4374-a039-7e116a233237",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "is_author": false,
+      "identity_key": "character:1667f2f6-67f6-4374-a039-7e116a233237:capitán nemo",
+      "output_image": "images/adf75b6a-3251-4bc4-86e1-4c51d5e3c725.webp"
+    },
+    {
+      "avatar_id": "664c5d6a-6712-46e7-92c9-1e35ac1d9da2",
+      "name": "Conseil",
+      "edition_id": "c94cb5a6-281e-4b49-8e1e-9015ed22a5d6",
+      "book_id": "1667f2f6-67f6-4374-a039-7e116a233237",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "is_author": false,
+      "identity_key": "character:1667f2f6-67f6-4374-a039-7e116a233237:conseil",
+      "output_image": "images/664c5d6a-6712-46e7-92c9-1e35ac1d9da2.webp"
+    },
+    {
+      "avatar_id": "147ead24-8df0-4503-9cf1-a3293e762bf0",
+      "name": "Ned Land",
+      "edition_id": "c94cb5a6-281e-4b49-8e1e-9015ed22a5d6",
+      "book_id": "1667f2f6-67f6-4374-a039-7e116a233237",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "is_author": false,
+      "identity_key": "character:1667f2f6-67f6-4374-a039-7e116a233237:ned land",
+      "output_image": "images/147ead24-8df0-4503-9cf1-a3293e762bf0.webp"
+    },
+    {
+      "avatar_id": "8912eff1-2d56-4230-957a-809af309f65a",
+      "name": "Profesor Pierre Aronnax",
+      "edition_id": "c94cb5a6-281e-4b49-8e1e-9015ed22a5d6",
+      "book_id": "1667f2f6-67f6-4374-a039-7e116a233237",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "is_author": false,
+      "identity_key": "character:1667f2f6-67f6-4374-a039-7e116a233237:profesor pierre aronnax",
+      "output_image": "images/8912eff1-2d56-4230-957a-809af309f65a.webp"
+    },
+    {
+      "avatar_id": "3118e0b2-0283-4029-90b9-53955b6ee7cc",
+      "name": "Axel Lidenbrock",
+      "edition_id": "2e4819f9-dbee-45fc-b2a8-cfd797238e97",
+      "book_id": "63813ddb-f547-4978-8630-fc40087dc323",
+      "book_title": "Viaje al Centro de la Tierra",
+      "is_author": false,
+      "identity_key": "character:63813ddb-f547-4978-8630-fc40087dc323:axel lidenbrock",
+      "output_image": "images/3118e0b2-0283-4029-90b9-53955b6ee7cc.webp"
+    },
+    {
+      "avatar_id": "25855234-4c3e-46a5-95c0-4bbf5225bb7a",
+      "name": "Hans Bjelke",
+      "edition_id": "2e4819f9-dbee-45fc-b2a8-cfd797238e97",
+      "book_id": "63813ddb-f547-4978-8630-fc40087dc323",
+      "book_title": "Viaje al Centro de la Tierra",
+      "is_author": false,
+      "identity_key": "character:63813ddb-f547-4978-8630-fc40087dc323:hans bjelke",
+      "output_image": "images/25855234-4c3e-46a5-95c0-4bbf5225bb7a.webp"
+    },
+    {
+      "avatar_id": "e2ca3dcf-a24b-4365-956b-90fda3195f24",
+      "name": "Otto Lidenbrock",
+      "edition_id": "2e4819f9-dbee-45fc-b2a8-cfd797238e97",
+      "book_id": "63813ddb-f547-4978-8630-fc40087dc323",
+      "book_title": "Viaje al Centro de la Tierra",
+      "is_author": false,
+      "identity_key": "character:63813ddb-f547-4978-8630-fc40087dc323:otto lidenbrock",
+      "output_image": "images/e2ca3dcf-a24b-4365-956b-90fda3195f24.webp"
+    }
+  ]
+}

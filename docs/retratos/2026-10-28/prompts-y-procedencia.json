@@ -1,0 +1,395 @@
+{
+  "records": [
+    {
+      "avatar_id": "8c717e28-4efc-46b3-a808-b828461d446a",
+      "name": "La Tortuga",
+      "book_title": "Fábulas",
+      "image": "images/8c717e28-4efc-46b3-a808-b828461d446a.webp",
+      "sha256": "aea33548825bd3476f82747ef661f62993a6790b23c7c4c35558cd94987ee6ee",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: La Tortuga\nLiterary work: Fábulas\nApproved appearance: One expressive anthropomorphic tortoise from Aesop, a real tortoise rather than a human in costume. Warm earthy green skin, beautifully patterned shell visible behind neck, large wise kind eyes, calm determined smile. Softly painted colorful meadow."
+    },
+    {
+      "avatar_id": "ab98c481-dcf5-4174-93a4-d82e562d7bd2",
+      "name": "El Gato con Botas",
+      "book_title": "Gato con botas",
+      "image": "images/ab98c481-dcf5-4174-93a4-d82e562d7bd2.webp",
+      "sha256": "c1bda21f744573b6996e2284cf5f45f6c36276a1ab0b0f2233c1beadd4c24f82",
+      "mode": "Python local composition explicitly authorized by user; original character, generated empty environment",
+      "background_prompt": "Create a beautiful EMPTY ENVIRONMENT BACKGROUND for compositing a large portrait on top later. Vertical 4:5, approximately 1024x1280. Detailed richly colored edges, deliberately soft unobstructed central area with restrained contrast so a portrait will remain readable. Edge-to-edge environment artwork, no border. STRICTLY no people, no characters, no silhouettes, no faces, no statues, no animals, no text, no letters, no logos, no watermark. An idyllic medieval storybook village beside a lush green woodland, warmly colored timber and stone cottages framing the sides, flower boxes and winding cobbled lane, golden late-afternoon sunlight and gentle green foliage. Premium polished 3D animated environment look, inviting and colorful with richly detailed materials. Keep the middle area soft and airy, with a lightly blurred open village lane and foliage. Empty peaceful setting.",
+      "scale": 3.0,
+      "position": [
+        -450,
+        80
+      ],
+      "blur": 2.1,
+      "character_redrawn": false
+    },
+    {
+      "avatar_id": "0d715f7b-56ae-485e-81aa-853d7be81d0a",
+      "name": "Gretel",
+      "book_title": "Hansel y Gretel",
+      "image": "images/0d715f7b-56ae-485e-81aa-853d7be81d0a.webp",
+      "sha256": "13f6ad91e663b4b8ef66194029741314d450b42b7266bd63eda41de810bb096f",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Gretel, a character in Hansel y Gretel.\nAPPROVED APPEARANCE: Wholesome girl around ten, chestnut hair in two braids, bright brown eyes, blue traditional Germanic dress over a high-neck cream blouse with embroidered trim. Resourceful kind expression. Fully clothed child portrait, soft enchanted forest.\nBACKGROUND: Soft enchanted forest, emerald leaves and warm golden glimmers."
+    },
+    {
+      "avatar_id": "e4a796b9-f0d7-438d-b985-371511996c64",
+      "name": "Hansel",
+      "book_title": "Hansel y Gretel",
+      "image": "images/e4a796b9-f0d7-438d-b985-371511996c64.webp",
+      "sha256": "f30d17c700eb1d7f23266746142666fe38c9151aa952db766fa0abd9deba63a0",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Single person, dignified friendly personality, looking near viewer. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Hansel from Hansel y Gretel. Appearance: Wholesome boy around twelve, sandy-brown tousled hair, cheerful freckled face, hazel eyes, forest-green waistcoat over high-neck cream shirt. Curious optimistic expression. Fully clothed child portrait, soft enchanted forest. Background: Soft painted enchanted woodland greens."
+    },
+    {
+      "avatar_id": "2ca766fb-4273-4fd4-9bab-ee575b1e2d51",
+      "name": "La Bruja",
+      "book_title": "Hansel y Gretel",
+      "image": "images/2ca766fb-4273-4fd4-9bab-ee575b1e2d51.webp",
+      "sha256": "1c6ab6d375a9ad61b4aaeaf01a94335d36020cdbad072b55ad53d0f73f98d33c",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: La Bruja\nLiterary work: Hansel y Gretel\nApproved appearance: Elderly fairy-tale witch, expressive long angular nose, clever green eyes, silver wisps of hair, pointed plum hat and dark violet high-neck dress with gold embroidery. Memorable theatrical animated face, sly smile. No horror or violence.",
+      "edit_prompt": "Edit only the framing of this existing portrait. Keep the exact same witch face, expression, costume, plum hat design, colors, clean hand-drawn Disney 2D animated-film linework and luminous cel shading. Zoom out modestly and reposition the head lower so that the ENTIRE pointed hat and its entire wide brim are visible, with clear painted background margin on all sides and especially above the hat. Maintain a vertical 4:5 head-and-chest portrait with face centered and large enough for an avatar. Extend the same softly painted forest background naturally. Exactly one character, no lettering, no logos, no watermark. Preserve all identity and artistic style."
+    },
+    {
+      "avatar_id": "362037d7-e394-49bb-be1f-543c05a7bd21",
+      "name": "Heidi",
+      "book_title": "Heidi",
+      "image": "images/362037d7-e394-49bb-be1f-543c05a7bd21.webp",
+      "sha256": "220fdd53eb598cea6a2027d47350f3be4eba3a0411c5e0f8a2b02f1090fe8016",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Heidi, a character in Heidi.\nAPPROVED APPEARANCE: Wholesome Alpine girl around eight, short wavy chestnut hair, brown eyes, rosy cheeks and lively smile. Traditional red Alpine dress and cream high-neck blouse, small embroidered floral detail. Fully clothed child portrait, sunny mountain meadow.\nBACKGROUND: Sunny Alpine meadow, subtly painted distant mountain peaks and small wildflowers."
+    },
+    {
+      "avatar_id": "07940243-7823-4e62-a62d-2da12a08ef51",
+      "name": "Rebecca",
+      "book_title": "Ivanhoe",
+      "image": "images/07940243-7823-4e62-a62d-2da12a08ef51.webp",
+      "sha256": "f44df435dc3c0ce762f429900d2e54d6ad5b41760a65cf0eada06f4198cf3da5",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Single person, dignified friendly personality, looking near viewer. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Rebecca from Ivanhoe. Appearance: Young adult English Jewish woman around twenty-two, warm olive skin, softly broad oval face, large dark brown eyes, thick softly curved black eyebrows, prominent gently curved nose and full natural lips. Long black hair gathered under a simple cream linen head covering, modest medieval deep teal robe with subtle woven edging, calm thoughtful expression. Background: Subtle medieval stone garden and warm evening sky."
+    },
+    {
+      "avatar_id": "05a91719-363a-41d2-8444-90e7721795f6",
+      "name": "Wilfredo de Ivanhoe",
+      "book_title": "Ivanhoe",
+      "image": "images/05a91719-363a-41d2-8444-90e7721795f6.webp",
+      "sha256": "458beb922d111781d2f013ea46288510044386646d55f23064fda9243d76e294",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: Wilfredo de Ivanhoe\nLiterary work: Ivanhoe\nApproved appearance: English young adult man around twenty-five, wide angular face with a shallow cleft chin, broad straight nose, clear hazel eyes, thick fair eyebrows, close-cropped dark blond hair and short blond beard. Simple twelfth-century chainmail at the shoulders over a plain cream surcoat, no helmet, no heraldic text, steady neutral gaze."
+    },
+    {
+      "avatar_id": "860897ca-08fa-4218-9e50-5d2ca29a8cbb",
+      "name": "Aikiga",
+      "book_title": "La historia de Keesh",
+      "image": "images/860897ca-08fa-4218-9e50-5d2ca29a8cbb.webp",
+      "sha256": "3549a5f5f7aca9324b266b8ee75d8ff4603a473926158321b7b9c7178a2b98a1",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Aikiga, a character in La historia de Keesh.\nAPPROVED APPEARANCE: Adult Inuit woman, warm brown complexion, dark steady eyes, black hair neatly braided, lined expressive face, simple historically appropriate Arctic fur-lined parka.\nBACKGROUND: Peaceful Arctic light, soft turquoise snow and simple distant coast."
+    },
+    {
+      "avatar_id": "e92030d1-9712-4019-8e93-6311145a2e66",
+      "name": "Keesh",
+      "book_title": "La historia de Keesh",
+      "image": "images/e92030d1-9712-4019-8e93-6311145a2e66.webp",
+      "sha256": "4dd72e9d6810db0b4070f0e4261b698244515c628f15f9543dbdf55b5267a78c",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Single person, dignified friendly personality, looking near viewer. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Keesh from La historia de Keesh. Appearance: Wholesome young Inuit teenager, warm brown skin, straight black hair, alert dark eyes, proud thoughtful face. Practical traditionally made fur-trimmed high-neck Arctic parka. Fully clothed and respectful character design, luminous snowy-blue backdrop. Background: Soft luminous Arctic snow-blue sky."
+    },
+    {
+      "avatar_id": "2085a4d6-54ce-4e07-8e12-b951f959dd08",
+      "name": "Jim Hawkins",
+      "book_title": "La isla del tesoro",
+      "image": "images/2085a4d6-54ce-4e07-8e12-b951f959dd08.webp",
+      "sha256": "23fa534b3c95ddcb80d9282471c721dab4ee357955bdc04714cf32b7db8b4e33",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Jim Hawkins, a character in La isla del tesoro.\nAPPROVED APPEARANCE: English adolescent boy, youthful freckled face, tousled brown hair, natural curious gaze, simple eighteenth-century linen shirt and plain brown waistcoat.\nBACKGROUND: Softly painted turquoise sea, golden light, subtle eighteenth-century sailing-ship rigging."
+    },
+    {
+      "avatar_id": "71401137-6032-4d7b-aede-14c28d1afa21",
+      "name": "Long John Silver",
+      "book_title": "La isla del tesoro",
+      "image": "images/71401137-6032-4d7b-aede-14c28d1afa21.webp",
+      "sha256": "ce17be5b0f4104d452ab8a5f75d300acf3c43b42159a7fe051e5455be0cd2226",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Single person, dignified friendly personality, looking near viewer. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Long John Silver from La isla del tesoro. Appearance: Older English sailor, broad weathered face, graying brown hair, short beard, plain dark eighteenth-century maritime coat and unadorned neckerchief. Background: Soft maritime blue sky and distant ship shapes, no weapons."
+    },
+    {
+      "avatar_id": "f0683de2-b560-4442-b1dd-f3e464f6b15b",
+      "name": "La Sirenita",
+      "book_title": "La Sirenita",
+      "image": "images/f0683de2-b560-4442-b1dd-f3e464f6b15b.webp",
+      "sha256": "7c9990943499c9b99f59e3de63a930582dd875c407fbf661d0f91c87a4ab3642",
+      "mode": "Python local composition explicitly authorized by user; original character, generated empty environment",
+      "background_prompt": "Create a beautiful EMPTY ENVIRONMENT BACKGROUND for compositing a large portrait on top later. Vertical 4:5, approximately 1024x1280. Detailed richly colored edges, deliberately soft unobstructed central area with restrained contrast so a portrait will remain readable. Edge-to-edge environment artwork, no border. STRICTLY no people, no characters, no silhouettes, no faces, no statues, no animals, no text, no letters, no logos, no watermark. A luminous underwater coral reef, turquoise and azure blue water, sunbeams streaming down from the surface above, delicate tiny bubbles, vibrant softly painted coral formations and sea plants framing the lower corners and side edges. Hand-painted 2D animation environment with vivid color harmony and dreamy aquatic light. Keep central water soft, open and quiet, without marine creatures. No fish or animals, only empty water and coral-shaped scenery.",
+      "scale": 2.9,
+      "position": [
+        -225,
+        135
+      ],
+      "blur": 1.5,
+      "character_redrawn": false
+    },
+    {
+      "avatar_id": "1367fe4d-27a0-4728-899f-81921338a28d",
+      "name": "Aouda",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "image": "images/1367fe4d-27a0-4728-899f-81921338a28d.webp",
+      "sha256": "0c0e62d44cbecff34d567b7e28dbdf1b9e70a1e0859bc5b3ab5d2ef6d3be8952",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Single person, dignified friendly personality, looking near viewer. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Aouda from La vuelta al mundo en ochenta días. Appearance: Young adult Indian Parsi woman, warm brown skin, dark expressive eyes, long black hair neatly dressed, elegant nineteenth-century ivory sari with restrained embroidery. Background: Soft painted flowering Indian garden and luminous sky."
+    },
+    {
+      "avatar_id": "4eec7d17-6c49-49c0-a30b-3d836570daba",
+      "name": "Detective Fix",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "image": "images/4eec7d17-6c49-49c0-a30b-3d836570daba.webp",
+      "sha256": "d952b57cef3bcc08e0276746b65c2d759fe087f5e537fec08b8a96b7a17d9502",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: Detective Fix\nLiterary work: La vuelta al mundo en ochenta días\nApproved appearance: Middle-aged English man, compact face, alert gray eyes, thinning reddish-brown hair and short sideburns, conservative Victorian dark coat and waistcoat.",
+      "edit_prompt": "Edit only the framing of this existing character portrait. Keep the exact same Detective Fix identity, face, expression, dark Victorian clothing, top hat, London background, clean hand-drawn Disney 2D animation linework and luminous cel shading. Zoom out modestly and reposition the head lower so that the ENTIRE TOP HAT is visible, with a clear 10 percent image-height band of painted sky above the hat. Maintain vertical 4:5 head-and-chest portrait, one character, centered face large enough for avatar use. Extend the same illustrated background naturally. No lettering, logos or watermark. Do not change the identity or style."
+    },
+    {
+      "avatar_id": "c85d8d04-026e-4eb1-b801-752048a4fd42",
+      "name": "Jean Passepartout",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "image": "images/c85d8d04-026e-4eb1-b801-752048a4fd42.webp",
+      "sha256": "6c57a20c645d8b9d66743a6b335d43487cb8ae1740ad2dbd3e0425bcd4222b27",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Jean Passepartout, a character in La vuelta al mundo en ochenta días.\nAPPROVED APPEARANCE: French man around thirty, round expressive face, brown wavy hair, small neat moustache, practical nineteenth-century brown jacket and pale shirt.\nBACKGROUND: Softly painted nineteenth-century railway station with subtle turquoise ironwork and warm golden daylight, no visible text."
+    },
+    {
+      "avatar_id": "22ec5bd8-180f-47e9-b3a8-7cccd2740ecc",
+      "name": "Phileas Fogg",
+      "book_title": "La vuelta al mundo en ochenta días",
+      "image": "images/22ec5bd8-180f-47e9-b3a8-7cccd2740ecc.webp",
+      "sha256": "54cd75dd2258cc0ae55aa0d13e3fc6b95e9770bdc00bbd4e5731613800a0138f",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Single person, dignified friendly personality, looking near viewer. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Phileas Fogg from La vuelta al mundo en ochenta días. Appearance: English gentleman around forty, composed angular face, neat brown hair and short sideburns, clean-shaven, dark Victorian suit and high ivory collar. Background: Subtle Victorian London architecture and softly glowing sky."
+    },
+    {
+      "avatar_id": "13f54176-d6fc-4ec9-a9c6-eb99071f89d3",
+      "name": "Huckleberry Finn",
+      "book_title": "Las aventuras de Huckleberry Finn",
+      "image": "images/13f54176-d6fc-4ec9-a9c6-eb99071f89d3.webp",
+      "sha256": "42625d1999a655b62abf1573f5a4ffaedb26cec30d49275298bcacb30a8ede9e",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Huckleberry Finn, a character in Las aventuras de Huckleberry Finn.\nAPPROVED APPEARANCE: American adolescent boy, sun-kissed youthful face, shaggy light-brown hair, steady curious eyes, worn nineteenth-century cotton shirt and simple vest.\nBACKGROUND: Softly painted Misisipi riverside, turquoise water, emerald foliage, golden late-afternoon light."
+    },
+    {
+      "avatar_id": "06135bbe-6896-44f4-b626-f2e7f7878fec",
+      "name": "Tía Polly",
+      "book_title": "Las aventuras de Tom Sawyer",
+      "image": "images/06135bbe-6896-44f4-b626-f2e7f7878fec.webp",
+      "sha256": "5daae452fff2096acc345982df1e6facb1e1969337394e906ff281b1c8ea504f",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Tía Polly, a character in Las aventuras de Tom Sawyer.\nAPPROVED APPEARANCE: Older American woman, kindly lined face, gray hair in a neat bun, small spectacles, modest mid-nineteenth-century dark dress with high white collar.\nBACKGROUND: Softly painted nineteenth-century American porch, green garden, warm amber afternoon light."
+    },
+    {
+      "avatar_id": "99b206ed-4560-4aed-8b48-404f9190b854",
+      "name": "Tom Sawyer",
+      "book_title": "Las aventuras de Tom Sawyer",
+      "image": "images/99b206ed-4560-4aed-8b48-404f9190b854.webp",
+      "sha256": "c2c164c44c1225473b1552a37469222d0ad9105e93b48fa13bf8e854c8268db7",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Single person, dignified friendly personality, looking near viewer. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Tom Sawyer from Las aventuras de Tom Sawyer. Appearance: American adolescent boy, youthful freckled face, untidy brown hair, bright eyes, plain mid-nineteenth-century cotton shirt with an open collar. Background: Soft Mississippi river and leafy sunlit bank, nineteenth-century storybook atmosphere."
+    },
+    {
+      "avatar_id": "d144928b-dc48-41d5-9327-034c58979b56",
+      "name": "Athos",
+      "book_title": "Los tres mosqueteros",
+      "image": "images/d144928b-dc48-41d5-9327-034c58979b56.webp",
+      "sha256": "d68a226dcff626b5a1f8562e7b8f6a66fb1f63e5ef22f8b084b02a776869b155",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: Athos\nLiterary work: Los tres mosqueteros\nApproved appearance: French nobleman around thirty-eight with an elongated rectangular face, high broad forehead, long straight nose, deep-set blue-gray eyes, heavy straight brows, dark brown hair brushed back and a short pointed dark beard with discreet moustache. Restrained dark seventeenth-century doublet and ivory collar, sober expression.\nFraming priority: leave a visible band of background above the complete head or hat, at least 12% of image height. Keep every hat brim, feather and hair tip inside the canvas. Do not crop the hat at any image edge."
+    },
+    {
+      "avatar_id": "db481d31-b836-434a-8d24-7be7f050d8c5",
+      "name": "Cardenal Richelieu",
+      "book_title": "Los tres mosqueteros",
+      "image": "images/db481d31-b836-434a-8d24-7be7f050d8c5.webp",
+      "sha256": "ebb3b4374d4ea8bf2b6f74aac2c3022dc3d97826abeae2e902fb4ac7b0128e67",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Cardenal Richelieu, a character in Los tres mosqueteros.\nAPPROVED APPEARANCE: Older French man around fifty-five, narrow face, aquiline nose, hooded gray eyes, thin arched brows, receding dark hair with gray temples, pointed gray-black goatee and narrow moustache. Seventeenth-century cardinal-red robe, small red skullcap, white collar. Animated expressive statesman.\nBACKGROUND: Softly painted seventeenth-century French palace details, turquoise shadows and warm gold window light, understated burgundy accents."
+    },
+    {
+      "avatar_id": "fbae9b82-e42a-4d4c-a861-72816466a631",
+      "name": "D'Artagnan",
+      "book_title": "Los tres mosqueteros",
+      "image": "images/fbae9b82-e42a-4d4c-a861-72816466a631.webp",
+      "sha256": "43e1c9cd3dcf1afc6ec592f32c04af4685455b39f21aa5ba62029353c9f766d9",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Ensure 8% safe margin above all hair or feathers and around the widest headwear. Single person, personality appropriate to character, looking near viewer. Hands outside frame, no weapons. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: D'Artagnan from Los tres mosqueteros. Appearance: Young adult Gascon French man around twenty-two, slim angular heart-shaped face, narrow bright dark eyes, straight fine nose, slender chin, smooth olive skin, straight shoulder-length dark brown hair and small narrow moustache. Seventeenth-century blue wool doublet with modest white linen collar, no hat. Background: Soft painted seventeenth-century French courtyard with golden stone and turquoise shadow."
+    },
+    {
+      "avatar_id": "73250a04-ad84-4c86-bd67-3838573f82fb",
+      "name": "Claude Frollo",
+      "book_title": "Nuestra señora de París",
+      "image": "images/73250a04-ad84-4c86-bd67-3838573f82fb.webp",
+      "sha256": "adfb3b9f5e6385f8a4be2895709570d201ce44091b51ebd239ce3ec94cd79f86",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: one finished square character portrait avatar, 1024x1024 square composition.\nArt direction: gorgeous classic hand-painted fairy-tale animation in 2D, original character design drawn directly from Victor Hugo's novel, a richly colored, refined character portrait with cinematic polish. Clean graceful linework, appealing expressive character design, detailed costume textures, luminous cel shading and a painterly background. Warm golden rim lighting and delicate turquoise reflected shadows. Jewel colors and luminous atmosphere, beautiful, sophisticated and full of visual design.\nComposition: ONE character only, framed from the upper chest to above the head. Entire hair, hat if present and shoulders fully in frame, some breathing room above the head. Face centered and large, readable as a tiny circular chat avatar; direct eye contact or a very gentle three-quarter angle. A real character portrait, no wide scene.\nBackground: softly painted, richly colored medieval Notre Dame stained glass and stone details, softly out of focus, subordinate to the face.\nConstraints: no text, no letters, no typography, no logos, no watermark, no border, no collage, no panels, no cover design, no mockup, no extra people, no extra limbs, no modern items.\nSubject: Claude Frollo, the mature medieval archdeacon of Victor Hugo's Notre-Dame de Paris. A long, narrow, angular face, high cheekbones, thin lips and gray hair visible at the temples. Stern, thoughtful expression with sharply observant eyes directed toward the viewer. Restrained black ecclesiastical robe with subtle deep-purple accents, fine dark fabric, carefully drawn folds and a high severe collar, no gaudy regalia. A refined dark cap if needed that remains completely in frame. His severity should remain humane and expressive, with no grotesque horror. Warm golden stained-glass light illuminates one side of his face while rich turquoise and amethyst shadows sculpt the other. A beautiful dramatic portrait with deep garnet and violet accents in the background."
+    },
+    {
+      "avatar_id": "88666afa-7205-4e93-bd71-fca58238e91a",
+      "name": "Esmeralda",
+      "book_title": "Nuestra señora de París",
+      "image": "images/88666afa-7205-4e93-bd71-fca58238e91a.webp",
+      "sha256": "58aa58255243eb68ff97dbbfad21af25e4716782f4ac0971cda2e8b6bf3387ad",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: one finished square character portrait avatar, 1024x1024 square composition.\nArt direction: gorgeous classic hand-painted fairy-tale animation in 2D, original character design drawn directly from Victor Hugo's novel, a richly colored, refined character portrait with cinematic polish. Clean graceful linework, appealing expressive character design, detailed costume textures, luminous cel shading and a painterly background. Warm golden rim lighting and delicate turquoise reflected shadows. Jewel colors and luminous atmosphere, beautiful, sophisticated and full of visual design.\nComposition: ONE character only, framed from the upper chest to above the head. Entire hair, hat if present and shoulders fully in frame, some breathing room above the head. Face centered and large, readable as a tiny circular chat avatar; direct eye contact or a very gentle three-quarter angle. A real character portrait, no wide scene.\nBackground: softly painted, richly colored medieval Notre Dame stained glass and stone details, softly out of focus, subordinate to the face.\nConstraints: no text, no letters, no typography, no logos, no watermark, no border, no collage, no panels, no cover design, no mockup, no extra people, no extra limbs, no modern items.\nSubject: Esmeralda, the young adult Romani dancer of Victor Hugo's Notre-Dame de Paris. Warm brown skin, long voluminous wavy black hair with a subtle jewel-purple headscarf, luminous green eyes, expressive eyebrows and a warm, free-spirited smile. Beautiful medieval dress visible at the shoulders in deep turquoise with a rich purple scarf and tasteful golden embroidery. Delicate gold hoop earrings and a simple gold necklace, carefully drawn rich textile detail. Graceful confident posture and warm intelligent gaze. Luminous teal and violet stained glass behind her, warm gold highlights and rich colorful shadows. Tasteful, fully clothed, appealing and full of personality."
+    },
+    {
+      "avatar_id": "8ece46b3-3768-4ab3-a8b5-ce7a6cbcd057",
+      "name": "Quasimodo",
+      "book_title": "Nuestra señora de París",
+      "image": "images/8ece46b3-3768-4ab3-a8b5-ce7a6cbcd057.webp",
+      "sha256": "3d6b3bd42e4c519d3306ca8843c54bacaf2323db4ea17cd6f45d4e0ab82ea17d",
+      "mode": "Python local composition explicitly authorized by user; original character, generated empty environment",
+      "background_prompt": "Create a beautiful EMPTY ENVIRONMENT BACKGROUND for compositing a large portrait on top later. Vertical 4:5, approximately 1024x1280. Detailed richly colored edges, deliberately soft unobstructed central area with restrained contrast so a portrait will remain readable. Edge-to-edge environment artwork, no border. STRICTLY no people, no characters, no silhouettes, no faces, no statues, no animals, no text, no letters, no logos, no watermark. A magnificent Parisian Gothic bell tower architectural interior, tall elegant pointed arches around the edges and subtle distant bell forms, beautiful deep blue and violet stained glass windows, warm golden evening light crossing softly through the architecture. Hand-painted 2D animation environment art, luminous color and meticulous decorative stonework at edges. The central region is softly painted warm atmospheric stone and gentle light; leave it visually quiet. No narrative event.",
+      "scale": 1.6,
+      "position": [
+        -300,
+        -140
+      ],
+      "blur": 1.4,
+      "character_redrawn": false
+    },
+    {
+      "avatar_id": "26528b96-a603-45db-908e-b036588cce56",
+      "name": "Oliver Twist",
+      "book_title": "Oliver Twist",
+      "image": "images/26528b96-a603-45db-908e-b036588cce56.webp",
+      "sha256": "951c1b465402a9392d040907932131ffe86c98423884b221a299ea96efdae3e7",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: Oliver Twist\nLiterary work: Oliver Twist\nApproved appearance: English boy around ten, slight build, pale youthful face, short soft brown hair, gentle eyes, plain early-Victorian shirt and modest dark jacket.\nFraming priority: leave a visible band of background above the complete head or hat, at least 12% of image height. Keep every hat brim, feather and hair tip inside the canvas. Do not crop the hat at any image edge."
+    },
+    {
+      "avatar_id": "d4cca590-03b8-4c35-9c21-cfe9cf21a98a",
+      "name": "Campanilla",
+      "book_title": "Peter Pan y Wendy",
+      "image": "images/d4cca590-03b8-4c35-9c21-cfe9cf21a98a.webp",
+      "sha256": "f92293d30920c3328989f65102312fa8dafad9c90e56131e39f5e63506a65496",
+      "mode": "Python local composition explicitly authorized by user; original character, generated empty environment",
+      "background_prompt": "Create a beautiful EMPTY ENVIRONMENT BACKGROUND for compositing a large portrait on top later. Vertical 4:5, approximately 1024x1280. Detailed richly colored edges, deliberately soft unobstructed central area with restrained contrast so a portrait will remain readable. Edge-to-edge environment artwork, no border. STRICTLY no people, no characters, no silhouettes, no faces, no statues, no animals, no text, no letters, no logos, no watermark. An exquisite lush enchanted woodland, tiny colorful wildflowers and moss along the lower edges, rich turquoise and emerald green fern leaves framing both sides, warm golden bokeh light points floating gently in the distance and soft sunlight through foliage. Luminous polished 3D animated environment art, richly detailed and welcoming. Central region softly defocused green and turquoise light with no distinct objects, designed for an overlaid portrait. No fairies, no figures, no creatures.",
+      "scale": 2.35,
+      "position": [
+        -160,
+        -60
+      ],
+      "blur": 2.1,
+      "character_redrawn": false
+    },
+    {
+      "avatar_id": "2d418787-c666-4ece-bd9c-823c2c5f27d9",
+      "name": "Robinson Crusoe",
+      "book_title": "Robinson Crusoe",
+      "image": "images/2d418787-c666-4ece-bd9c-823c2c5f27d9.webp",
+      "sha256": "b546a6359989d9e8b990ec464858e86945deb5fc24f94a6c514322f308a114e5",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Ensure 8% safe margin above all hair or feathers and around the widest headwear. Single person, personality appropriate to character, looking near viewer. Hands outside frame, no weapons. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Robinson Crusoe from Robinson Crusoe. Appearance: Mature English man, weathered oval face, long brown hair and full brown beard, simple rough linen shirt and muted practical wool outer layer. Background: Soft painted tropical island palm foliage, sparkling blue ocean, no plot events."
+    },
+    {
+      "avatar_id": "a2cfbdc1-b44e-4e2d-a1e4-6baaa434fe84",
+      "name": "Fray Lorenzo",
+      "book_title": "Romeo y Julieta",
+      "image": "images/a2cfbdc1-b44e-4e2d-a1e4-6baaa434fe84.webp",
+      "sha256": "94181099d8ce343c321ecda7a349fbe4e6e5e3a5ac575f0e1b550857dcfb4623",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Asset type: one individual character avatar for a literature app.\nCreate a beautiful SQUARE head-and-chest portrait in the rich, expressive hand-drawn 2D style of a classic Disney animated feature, with exquisite cinematic polish. Only ONE character, centered face, whole hairstyle visible with breathing room above the head. Portrait must read clearly as a small circular chat avatar. Soft three-quarter pose looking toward the viewer, very appealing character design, confident clean contour drawing, refined luminous cel shading and subtle painted texture, highly detailed period clothing. Intense jewel colors, warm golden light and teal-tinted shadows, atmospheric depth, beautiful softly illustrated background that complements the face without distracting. No text, no logos, no watermark, no collage, no panels, no full body, no other people.\nSubject: Friar Laurence from Shakespeare's Romeo and Juliet, an elderly Italian Franciscan friar with a kindly wise face. Gray thinning hair with a traditional tonsure, soft thick gray eyebrows, neatly kept short silver beard, thoughtful hazel eyes, benevolent quiet smile. Wear a textured warm-brown Franciscan habit with a hood resting down, subtle stitching and a small wooden cross. Rich characterful facial design, dignity, warmth and personality. Background: a softly painted monastery herb garden and sunlit stone arch, luminous sage and turquoise foliage with amber light. No large props or hands obscuring his face."
+    },
+    {
+      "avatar_id": "10ad9349-d908-494e-96bc-0fb33614113b",
+      "name": "Julieta Capuleto",
+      "book_title": "Romeo y Julieta",
+      "image": "images/10ad9349-d908-494e-96bc-0fb33614113b.webp",
+      "sha256": "3b38e5daec214f8884ddf893e9f41bc01094015e00a36394ca78b2d64ae7feb5",
+      "mode": "built-in image_gen",
+      "prompt": "Create one original, richly colored, hand-drawn 2D animated character portrait for a classic literature app. Subject: an adult Italian noblewoman, age 25, an original interpretation of Juliet Capulet in Renaissance Verona. Square head-and-shoulders portrait, one person, full head and hair visible with generous margin, centered expressive brown eyes and a warm intelligent smile. Long dark brown hair with a fine pearl ornament. A fully clothed elegant rose-colored Renaissance gown with gold floral embroidery, ivory neckline and beautifully drawn fabric. Cinematic warm golden light, soft turquoise and violet shadows, clean graceful drawing and exquisite painted color. Background is a softly painted Italian garden arch at golden hour with small rose accents. Rich family animation aesthetic, original character design, no reference to a particular movie or existing screen character. No text, logos, watermark, other people or narrative scene.",
+      "edit_prompt": "Use case: style-transfer. Edit the attached portrait of an adult Renaissance noblewoman. Convert the rendering strongly and visibly into a classic hand-drawn 2D family animated feature aesthetic: expressive drawn eyes, graceful simplified facial shapes, clean ink contour lines, clear cel-shaded shadow shapes, painted background, charming animated character design. Use the same animation rendering language as a richly colored classic Disney feature. Preserve her adult identity, pose, complete hairstyle, pearl hair ornaments, fully clothed rose-and-ivory embroidered gown, framing, the garden arch, warm golden light, square dimensions, and vibrant palette. Keep this a single head-and-shoulders character portrait. Make the face and hair clearly drawn animation; remove the photorealistic skin rendering and photographic hair texture. No text, logos, additional people or narrative scenes."
+    },
+    {
+      "avatar_id": "983169fb-c899-44b7-9dd4-2930e21d10f3",
+      "name": "Romeo Montesco",
+      "book_title": "Romeo y Julieta",
+      "image": "images/983169fb-c899-44b7-9dd4-2930e21d10f3.webp",
+      "sha256": "d1b15d02a86be506a3161e3b37f8455cf90c160585a3f6a22e6d382438777a1e",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Asset type: one individual character avatar for a literature app.\nCreate a beautiful SQUARE head-and-chest portrait in the rich, expressive hand-drawn 2D style of a classic Disney animated feature, with exquisite cinematic polish. Only ONE character, centered face, whole hairstyle visible with breathing room above the head. Portrait must read clearly as a small circular chat avatar. Soft three-quarter pose looking toward the viewer, very appealing character design, confident clean contour drawing, refined luminous cel shading and subtle painted texture, highly detailed period clothing. Intense jewel colors, warm golden light and teal-tinted shadows, atmospheric depth, beautiful softly illustrated background that complements the face without distracting. No text, no logos, no watermark, no collage, no panels, no full body, no other people.\nSubject: Romeo Montesco from Shakespeare's Romeo and Juliet, portrayed as a young adult Renaissance Italian romantic hero. Tousled chestnut hair, warm brown eyes, handsome gentle face, subtly hopeful smile, expressive thoughtful gaze. Wear a richly embroidered midnight-blue Renaissance doublet with a burgundy mantle over one shoulder and an ivory collar, elegant golden stitchwork. Background: softly painted Verona arches and a hint of climbing roses, a luminous blue and warm amber dusk. Keep face the main focus and don't show a balcony scene."
+    },
+    {
+      "avatar_id": "fcf24182-4384-4f4a-98f4-fd9706841cbf",
+      "name": "Simbad",
+      "book_title": "Simbad el marino",
+      "image": "images/fcf24182-4384-4f4a-98f4-fd9706841cbf.webp",
+      "sha256": "a3a264b63863b1a4d51f940af40115dc35ac3d63407725f96fddc065ff3af006",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: Simbad\nLiterary work: Simbad el marino\nApproved appearance: Arabian sailor-adventurer around thirty, warm olive complexion, brown eyes, dark curly hair and short beard. Ivory cloth turban and textured teal-gold nautical waistcoat over cream high-neck shirt. Confident friendly smile, softly painted turquoise harbor.\nFraming priority: leave a visible band of background above the complete head or hat, at least 12% of image height. Keep every hat brim, feather and hair tip inside the canvas. Do not crop the hat at any image edge."
+    },
+    {
+      "avatar_id": "adf75b6a-3251-4bc4-86e1-4c51d5e3c725",
+      "name": "Capitán Nemo",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "image": "images/adf75b6a-3251-4bc4-86e1-4c51d5e3c725.webp",
+      "sha256": "e0a67bde2ff1d83fc4cb790b26d7c1d4601503e29c4cc8e807f2d2c86f42c997",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Capitán Nemo, a character in Veinte mil leguas de viaje submarino.\nAPPROVED APPEARANCE: Dignified mature sea captain around fifty, warm brown complexion, deep dark eyes, thick wavy dark hair gray at temples, full neatly trimmed dark beard. Elegant deep-navy high-neck nineteenth-century captain coat with restrained gold embroidery. Intense thoughtful expression, luminous underwater nautical backdrop.\nBACKGROUND: Softly painted elegant nineteenth-century submarine interior, subtle brass nautical details and a turquoise underwater window, luminous and refined."
+    },
+    {
+      "avatar_id": "664c5d6a-6712-46e7-92c9-1e35ac1d9da2",
+      "name": "Conseil",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "image": "images/664c5d6a-6712-46e7-92c9-1e35ac1d9da2.webp",
+      "sha256": "a9a366dfdcc1f67df4205eb896e6a1c9be0ac877d9d5f51748bf8e73c3ff5465",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE beautiful, original, individually designed literary character portrait for a colorful classic story collection. Style/medium: classic Disney hand-drawn 2D animated feature film, unmistakably DRAWN animation with clear flowing ink contours, expressive appealing character design, luminous crisp cel shading, rich saturated jewel colors, expertly painted restrained storybook background, golden key light and turquoise shadow accents, richly detailed period fabrics. NOT a photograph, NOT photorealistic, NOT semi-realistic, NOT a 3D render. Format: vertical 4:5, centered head-and-upper-chest portrait, face near center for circular avatar crop, entire head/hair/headwear comfortably inside frame with generous margins. Ensure 8% safe margin above all hair or feathers and around the widest headwear. Single person, personality appropriate to character, looking near viewer. Hands outside frame, no weapons. No plot scene, no text, no lettering, no captions, no logo, no watermark, no frame. Fully clothed. Subject: Conseil from Veinte mil leguas de viaje submarino. Appearance: Adult Flemish man around thirty, calm open face, neatly combed fair-brown hair, clean-shaven, plain tidy nineteenth-century dark jacket and collar. Background: Subtle painted blue submarine observation window and brass trim, no machinery or plot focus."
+    },
+    {
+      "avatar_id": "147ead24-8df0-4503-9cf1-a3293e762bf0",
+      "name": "Ned Land",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "image": "images/147ead24-8df0-4503-9cf1-a3293e762bf0.webp",
+      "sha256": "719e53560e216f950f6c8440a8f943ff8757d6adbbda322270143715fa48a714",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: a finished individual character portrait avatar, vertical 4:5 aspect ratio.\nArt direction: CLASSIC HAND-DRAWN DISNEY 2D ANIMATED FEATURE FILM artwork. Expressive elegant character design, beautifully drawn clean flowing contours, refined luminous flat-color cel shading, subtle painterly detail in clothing and background, vivid saturated jewel colors, warm golden key light with cool turquoise shadows. Clearly an animation drawing, absolutely not a photograph, not live action, not photorealistic, not 3D CGI.\nComposition: exactly one character, head and upper chest, face centered and large enough to read at tiny avatar size or within a circular crop. Show the complete head, hair and hat with generous margin above. Gentle three-quarter turn or front-facing portrait; expressive eyes visible. Rich, carefully designed period clothing. Subtle illustrated background associated with the literary setting, softly out of focus and subordinate to the face, no narrative scene.\nConstraints: no text, no lettering, no logos, no watermark, no borders, no book cover or mockup, no group, no other person, no plot event. Wholesome fully clothed portrait. Preserve the distinctive character appearance below; do not depict a real author.\n\nCharacter: Ned Land\nLiterary work: Veinte mil leguas de viaje submarino\nApproved appearance: Robust adult Canadian sailor, broad weathered face, brown hair and short beard, dark wool maritime jacket over a plain striped shirt.\nFraming priority: leave a visible band of background above the complete head or hat, at least 12% of image height. Keep every hat brim, feather and hair tip inside the canvas. Do not crop the hat at any image edge."
+    },
+    {
+      "avatar_id": "8912eff1-2d56-4230-957a-809af309f65a",
+      "name": "Profesor Pierre Aronnax",
+      "book_title": "Veinte mil leguas de viaje submarino",
+      "image": "images/8912eff1-2d56-4230-957a-809af309f65a.webp",
+      "sha256": "997ac2f106ffd93b8cc7ec1984c90691d27e43dbea4210de7493a98677d0ede5",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset: one finished VERTICAL 4:5 animated character portrait for a literature chat avatar.\nSTYLE: classic Disney hand-drawn 2D feature animation. Clearly a DRAWING, expressive stylized face, clean ink outlines, refined flat luminous cel-shaded color shapes, painted backdrop. Exquisite character design and detailed period clothing, saturated jewel colors, warm golden rim lighting and turquoise reflected shadows. No photorealism, no photographic skin, no 3D render.\nCOMPOSITION: exactly ONE character, head and upper chest, face centered large and readable in a tiny circular avatar, entire hair/headwear in frame with generous margin above and at the sides. Face toward the viewer or gentle three-quarter angle. Portrait fills vertical 4:5 frame. Soft subtle background subordinate to the face, no large narrative scene.\nCONSTRAINTS: no writing, text, lettering, logo, watermark, signature, panels, collage, book cover or mockup. No weapons or violence. Fully clothed, tasteful, healthy portrait.\nSUBJECT: Profesor Pierre Aronnax, a character in Veinte mil leguas de viaje submarino.\nAPPROVED APPEARANCE: French scholar around forty, thoughtful long face, dark brown hair with restrained sideburns and neat beard, sober nineteenth-century jacket and waistcoat.\nBACKGROUND: Softly painted elegant nineteenth-century study aboard a submarine, subtle brass fittings, a distant turquoise underwater window and warm golden lamplight; no text."
+    },
+    {
+      "avatar_id": "3118e0b2-0283-4029-90b9-53955b6ee7cc",
+      "name": "Axel Lidenbrock",
+      "book_title": "Viaje al Centro de la Tierra",
+      "image": "images/3118e0b2-0283-4029-90b9-53955b6ee7cc.webp",
+      "sha256": "e713fd9f69968e336b26572e2ef8293b0fa626147f29257be8e010a47cdea2b7",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: standalone square head-and-chest character portrait avatar for a classic literature library. Exactly one character.\nStyle and medium: beautiful classic Disney 2D animated feature-film style, sophisticated expressive character design, clean flowing linework, refined luminous cel shading, richly detailed period costume, saturated jewel colors, golden warm key light, cool turquoise shadows, painterly background. Charming cinematic animation art, not photorealistic.\nComposition: square image, head and chest only, centered face clearly readable inside a circular avatar crop, complete hair and head with breathing room above, face occupies much of the canvas, calm eye-level camera, gentle three-quarter turn while eyes engage viewer. Simple luminous illustrated cavern and crystal background with subtle atmospheric depth, secondary to the face.\nConstraints: one individual character only, no full-body scene, no group, no text, no lettering, no logos, no watermarks, no frame, no mockup. Anatomically coherent face.\nSubject: Axel Lidenbrock, young adult German geology student from Jules Verne's Journey to the Centre of the Earth. Wavy medium-brown hair, curious intelligent eyes, youthful clean-shaven face, warm open expression with a hint of adventurous uncertainty. Elegant yet practical mid-nineteenth-century expedition clothing: forest-green wool jacket, cream high-collar shirt, textured burgundy neck scarf and subtle leather expedition strap. Fine fabric stitching and brass fastenings. Subtle luminous teal crystals behind him, warm amber highlights."
+    },
+    {
+      "avatar_id": "25855234-4c3e-46a5-95c0-4bbf5225bb7a",
+      "name": "Hans Bjelke",
+      "book_title": "Viaje al Centro de la Tierra",
+      "image": "images/25855234-4c3e-46a5-95c0-4bbf5225bb7a.webp",
+      "sha256": "acef1021a2639adecfc2d00cd980b3f83ef326f09271224748af79daa36e2050",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: standalone square head-and-chest character portrait avatar for a classic literature library. Exactly one character.\nStyle and medium: beautiful classic Disney 2D animated feature-film style, sophisticated expressive character design, clean flowing linework, refined luminous cel shading, richly detailed period costume, saturated jewel colors, golden warm key light, cool turquoise shadows, painterly background. Charming cinematic animation art, not photorealistic.\nComposition: square image, head and chest only, centered face clearly readable inside a circular avatar crop, complete hair and head with breathing room above, face occupies much of the canvas, calm eye-level camera, gentle three-quarter turn while eyes engage viewer. Simple luminous illustrated cavern and crystal background with subtle atmospheric depth, secondary to the face.\nConstraints: one individual character only, no full-body scene, no group, no text, no lettering, no logos, no watermarks, no frame, no mockup. Anatomically coherent face.\nSubject: Hans Bjelke, adult Icelandic expedition guide from Jules Verne's Journey to the Centre of the Earth. Strong broad-shouldered adult man with light brown-blond hair, neatly kept short beard, steady kind eyes, a serene confident expression, dignified capable look. Practical mid-nineteenth-century Icelandic clothing: beautifully textured deep blue-gray wool expedition coat, warm rust knitted scarf, sturdy leather strap and small brass buckle. Face clearly distinct from the younger Axel and older Otto. Subtle luminous teal cavern shapes and warm golden reflected lantern light in the background."
+    },
+    {
+      "avatar_id": "e2ca3dcf-a24b-4365-956b-90fda3195f24",
+      "name": "Otto Lidenbrock",
+      "book_title": "Viaje al Centro de la Tierra",
+      "image": "images/e2ca3dcf-a24b-4365-956b-90fda3195f24.webp",
+      "sha256": "47c08fb5d19d11e2ffbe48874828cd31d941b31acac0ade35e23c0636cae44ad",
+      "mode": "built-in image_gen",
+      "prompt": "Use case: illustration-story.\nAsset type: standalone square head-and-chest character portrait avatar for a classic literature library. Exactly one character.\nStyle and medium: beautiful classic Disney 2D animated feature-film style, sophisticated expressive character design, clean flowing linework, refined luminous cel shading, richly detailed period costume, saturated jewel colors, golden warm key light, cool turquoise shadows, painterly background. Charming cinematic animation art, not photorealistic.\nComposition: square image, head and chest only, centered face clearly readable inside a circular avatar crop, complete hair and head with breathing room above, face occupies much of the canvas, calm eye-level camera, gentle three-quarter turn while eyes engage viewer. Simple luminous illustrated cavern and crystal background with subtle atmospheric depth, secondary to the face.\nConstraints: one individual character only, no full-body scene, no group, no text, no lettering, no logos, no watermarks, no frame, no mockup. Anatomically coherent face.\nSubject: Professor Otto Lidenbrock, older German mineralogist from Jules Verne's Journey to the Centre of the Earth. Distinctive gray hair slightly wild and swept back, bushy expressive eyebrows, generous gray sideburns, small round spectacles perched on his nose, intelligent energetic face with enthusiastic determined smile. Mid-nineteenth-century scholar-explorer costume: richly textured brown tweed jacket, dark teal patterned waistcoat, cream high-collar shirt, neatly tied golden-ochre cravat, fine brass buttons. Strong lively facial character. Subtle turquoise mineral cavern glow and warm gold reflected light."
+    }
+  ]
+}
