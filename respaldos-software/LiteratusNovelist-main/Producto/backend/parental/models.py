@@ -31,6 +31,7 @@ class ParentalLink(TimeStampedModel):
     consent_at = models.DateTimeField()
 
     class Meta:
+        app_label = 'parental'
         verbose_name = 'Parental Link'
         verbose_name_plural = 'Parental Links'
         ordering = ['created_at']
