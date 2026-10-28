@@ -49,6 +49,15 @@ export class LoginComponent implements OnInit {
     if (this.route.snapshot.queryParams['prueba'] === 'terminada') {
       this.infoMsg = 'Tu sesión de prueba terminó y sus datos se borraron. Puedes abrir otra cuando quieras.';
     }
+    // Mensaje explicativo cuando se intenta acceder a una sección que requiere iniciar sesión
+    const returnUrl = this.route.snapshot.queryParams['returnUrl'];
+    if (returnUrl && !this.infoMsg) {
+      if (returnUrl.includes('enigma')) {
+        this.infoMsg = 'Inicia sesión para jugar al Enigma Diario.';
+      } else if (returnUrl.includes('learn')) {
+        this.infoMsg = 'Inicia sesión para continuar en La Senda.';
+      }
+    }
   }
 
   onSubmit() {

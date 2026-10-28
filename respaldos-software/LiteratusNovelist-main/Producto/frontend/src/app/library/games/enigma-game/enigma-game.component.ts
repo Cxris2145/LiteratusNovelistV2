@@ -4,7 +4,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ChatService } from '../../../core/services/chat.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../../../core/services/notification.service';
-import { userStorageKey } from '../../../core/services/auth.service';
+import { AuthService, userStorageKey } from '../../../core/services/auth.service';
 import { Observable, Subject } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
@@ -38,6 +38,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy, CanComponentDeact
   private snackBar = inject(MatSnackBar);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private auth = inject(AuthService);
 
   // Banco curado de respaldo con obras clásicas universales
   readonly wordsBank: EnigmaWord[] = [
@@ -193,6 +194,10 @@ export class EnigmaGameComponent implements OnInit, OnDestroy, CanComponentDeact
   private normalizedSecretWord = '';
 
   ngOnInit(): void {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/games/enigma' } });
+      return;
+    }
     this.todayDateStr = this.getTodayDateString();
     this.todayDisplayDate = this.getFormattedToday();
     this.checkAuthStatus();
@@ -349,7 +354,7 @@ export class EnigmaGameComponent implements OnInit, OnDestroy, CanComponentDeact
   }
 
   checkAuthStatus(): void {
-    this.isLoggedIn = !!localStorage.getItem('access_token');
+    this.isLoggedIn = this.auth.isLoggedIn();
     if (this.isLoggedIn) {
       this.fetchUserBalance();
     }
