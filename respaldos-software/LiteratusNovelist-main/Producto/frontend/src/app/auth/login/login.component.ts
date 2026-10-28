@@ -54,6 +54,8 @@ export class LoginComponent implements OnInit {
     if (returnUrl && !this.infoMsg) {
       if (returnUrl.includes('enigma')) {
         this.infoMsg = 'Inicia sesión para jugar al Enigma Diario.';
+      } else if (returnUrl.includes('interrogatorio')) {
+        this.infoMsg = 'Inicia sesión o usa una cuenta de prueba para jugar a El Interrogatorio a Ciegas.';
       } else if (returnUrl.includes('learn')) {
         this.infoMsg = 'Inicia sesión para continuar en La Senda.';
       }

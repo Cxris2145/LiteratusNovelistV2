@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { ChatService } from '../../../core/services/chat.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Observable, Subject } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { CanComponentDeactivate } from '../../../core/guards/enigma-exit.guard';
@@ -64,6 +65,7 @@ export class BlindInterrogationComponent implements OnInit, OnDestroy, CanCompon
   private chatService = inject(ChatService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private auth = inject(AuthService);
 
   session: InterrogationSessionData | null = null;
   isLoading = true;
@@ -86,6 +88,10 @@ export class BlindInterrogationComponent implements OnInit, OnDestroy, CanCompon
   private exitSubject?: Subject<boolean>;
 
   ngOnInit(): void {
+    if (!this.auth.isLoggedIn()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/games/interrogatorio' } });
+      return;
+    }
     this.fetchUserBalance();
     this.initGame();
   }
@@ -124,7 +130,12 @@ export class BlindInterrogationComponent implements OnInit, OnDestroy, CanCompon
           this.startNewGame();
         }
       },
-      error: () => {
+      error: (err) => {
+        if (err?.status === 401 || !this.auth.isLoggedIn()) {
+          this.isLoading = false;
+          this.router.navigate(['/login'], { queryParams: { returnUrl: '/games/interrogatorio' } });
+          return;
+        }
         this.startNewGame();
       }
     });
@@ -142,6 +153,10 @@ export class BlindInterrogationComponent implements OnInit, OnDestroy, CanCompon
       },
       error: (err) => {
         this.isLoading = false;
+        if (err?.status === 401 || !this.auth.isLoggedIn()) {
+          this.router.navigate(['/login'], { queryParams: { returnUrl: '/games/interrogatorio' } });
+          return;
+        }
         this.notificationService.error(
           err?.error?.error || 'No se pudo iniciar el interrogatorio. Inténtalo más tarde.',
           'Error al iniciar'

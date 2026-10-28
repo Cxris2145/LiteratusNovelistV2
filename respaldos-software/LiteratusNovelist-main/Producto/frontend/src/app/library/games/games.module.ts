@@ -14,7 +14,7 @@ import { BlindInterrogationComponent } from './blind-interrogation/blind-interro
     SharedModule,
     RouterModule.forChild([
       { path: 'enigma', component: EnigmaGameComponent, canActivate: [authGuard], canDeactivate: [enigmaExitGuard] },
-      { path: 'interrogatorio', component: BlindInterrogationComponent, canDeactivate: [enigmaExitGuard] },
+      { path: 'interrogatorio', component: BlindInterrogationComponent, canActivate: [authGuard], canDeactivate: [enigmaExitGuard] },
       { path: 'blind-interrogation', redirectTo: 'interrogatorio', pathMatch: 'full' },
     ]),
   ],
