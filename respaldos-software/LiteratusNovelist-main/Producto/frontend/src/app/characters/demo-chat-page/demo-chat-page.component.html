@@ -35,23 +35,16 @@
 
         <p class="dchat-char-desc">{{ avatar.description }}</p>
 
-        <!-- Contador -->
-        <div class="dchat-counter" *ngIf="!auth.isLoggedIn()">
-          <span class="material-symbols-rounded" style="font-size:16px;">bolt</span>
-          {{ remainingMessages }} / {{ avatar.limit }} mensajes de prueba
-          <div class="dchat-counter-bar">
-            <div class="dchat-counter-fill"
-                 [style.width.%]="(remainingMessages / (avatar.limit || 3)) * 100">
-            </div>
-          </div>
-        </div>
       </div>
 
-      <!-- Register CTA en sidebar -->
+      <!-- Login / Register CTA en sidebar sin sesión -->
       <div class="dchat-sidebar-cta" *ngIf="!auth.isLoggedIn()">
-        <p>¿Te gustó la experiencia?</p>
-        <button class="dchat-register-btn" (click)="goToRegister()" id="dchat-sidebar-register">
-          Regístrate gratis y elige cómo conversar
+        <p>Inicia sesión para conversar con {{ avatar.name }} y explorar todos sus secretos.</p>
+        <button class="dchat-register-btn" (click)="goToLogin()" id="dchat-sidebar-login">
+          Iniciar sesión
+        </button>
+        <button class="dchat-register-btn dchat-register-btn--ghost" (click)="goToRegister()" id="dchat-sidebar-register" style="margin-top: 8px;">
+          Crear cuenta gratis
         </button>
       </div>
     </aside>
@@ -162,23 +155,32 @@
         </div>
       </div>
 
-      <!-- Limit reached banner -->
+      <!-- Medidor de uso con sesión -->
       <app-ai-usage-meter *ngIf="sessionId" [sessionId]="sessionId"></app-ai-usage-meter>
       <app-ink-day-pass *ngIf="offerPass" [usage]="offerPass" (activated)="onPassActivated()"></app-ink-day-pass>
       <p role="alert" *ngIf="chatError">{{ chatError }}</p>
-      <div class="dchat-limit-banner" *ngIf="limitReached">
-        <span class="material-symbols-rounded">lock</span>
-        <div>
-          <strong>Has usado tus {{ avatar.limit }} mensajes de prueba</strong>
-          <p>Regístrate gratis para continuar hablando con {{ avatar.name }} y todos los personajes.</p>
-        </div>
-        <button class="dchat-cta-btn" (click)="goToRegister()" id="dchat-limit-register">
-          Crear cuenta gratis →
-        </button>
-      </div>
 
-      <!-- Input -->
-      <footer class="dchat-input-wrap" *ngIf="!limitReached" [class.call-mode-footer]="isCallMode">
+      <!-- Banner de autenticación requerida para visitantes sin sesión -->
+      <footer class="dchat-auth-prompt" *ngIf="!auth.isLoggedIn()">
+        <div class="dchat-auth-prompt-card">
+          <span class="material-symbols-rounded dchat-auth-icon" aria-hidden="true">lock</span>
+          <div class="dchat-auth-text">
+            <strong>Inicia sesión para conversar con {{ avatar.name }}</strong>
+            <p>Conéctate o crea tu cuenta gratuita para responderle y charlar con todos los personajes.</p>
+          </div>
+          <div class="dchat-auth-actions">
+            <button type="button" class="dchat-cta-btn" (click)="goToLogin()" id="dchat-prompt-login">
+              Iniciar sesión
+            </button>
+            <button type="button" class="dchat-cta-btn dchat-cta-btn--secondary" (click)="goToRegister()" id="dchat-prompt-register">
+              Crear cuenta gratis
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      <!-- Input para usuarios con sesión iniciada -->
+      <footer class="dchat-input-wrap" *ngIf="auth.isLoggedIn()" [class.call-mode-footer]="isCallMode">
         <div class="dchat-input-inner">
           <button class="dchat-mic-btn" (click)="speechService.toggleListening()" [class.recording]="speechService.isListening$ | async" title="Hablar">
             <span class="material-symbols-rounded">mic</span>
@@ -204,11 +206,6 @@
             <span class="material-symbols-rounded">send</span>
           </button>
         </div>
-        <p class="dchat-hint" *ngIf="!auth.isLoggedIn()">
-          <span class="material-symbols-rounded" style="font-size:13px; color:var(--glow-gold);">info</span>
-          {{ remainingMessages }} mensaje{{ remainingMessages !== 1 ? 's' : '' }} restante{{ remainingMessages !== 1 ? 's' : '' }} ·
-          <a (click)="goToRegister()" style="color:var(--home-amber-ink); cursor:pointer; text-decoration:underline;">Regístrate gratis</a> y elige cómo continuar tus conversaciones
-        </p>
       </footer>
 
     </main>

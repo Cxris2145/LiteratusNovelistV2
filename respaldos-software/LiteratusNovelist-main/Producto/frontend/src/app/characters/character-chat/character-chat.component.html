@@ -66,14 +66,16 @@
 
 <footer class="cc-compose" *ngIf="state === 'ready'">
   <p class="cc-error" *ngIf="error">{{ error }}</p>
-  <p class="cc-demo" *ngIf="isDemo && !limitReached && remaining !== null">
-    Te quedan {{ remaining }} {{ remaining === 1 ? 'mensaje' : 'mensajes' }} de prueba.
-    <a routerLink="/register" (click)="closed.emit()">Crea tu cuenta</a> para seguir.
-  </p>
-  <p class="cc-demo" *ngIf="limitReached">
-    Se acabaron los mensajes de prueba. <a routerLink="/register" (click)="closed.emit()">Crea tu cuenta gratis</a> para seguir conversando.
-  </p>
-  <div class="cc-input-row" *ngIf="!limitReached">
+  
+  <div class="cc-guest-banner" *ngIf="isDemo">
+    <p>Inicia sesión o crea tu cuenta gratis para conversar con {{ avatar?.name }}.</p>
+    <div class="cc-guest-actions">
+      <a routerLink="/login" [queryParams]="{ returnUrl: '/chat/' + currentId }" (click)="closed.emit()" class="cc-primary-sm">Iniciar sesión</a>
+      <a routerLink="/register" [queryParams]="{ returnUrl: '/chat/' + currentId }" (click)="closed.emit()" class="cc-secondary-sm">Crear cuenta</a>
+    </div>
+  </div>
+
+  <div class="cc-input-row" *ngIf="!isDemo">
     <textarea #input class="cc-input" rows="1" maxlength="1000" enterkeyhint="send"
               [placeholder]="'Escríbele a ' + (avatar?.name || 'este personaje') + '…'"
               [attr.aria-label]="'Mensaje para ' + (avatar?.name || 'el personaje')"

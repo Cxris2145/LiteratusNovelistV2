@@ -47,7 +47,7 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   messages: DemoMessage[] = [];
   inputText = '';
   isSending = false;
-  remainingMessages = 3;
+  remainingMessages = 0;
   limitReached = false;
 
   ngOnInit(): void {
@@ -94,8 +94,8 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
     this.api.get<any>(url).subscribe({
       next: (data) => {
         this.avatar = data;
-        this.remainingMessages = data.remaining_messages ?? 3;
-        this.limitReached = this.remainingMessages <= 0;
+        this.remainingMessages = 0;
+        this.limitReached = !this.auth.isLoggedIn();
         // Start with greeting
         if (data.greeting_message) {
           this.messages = [{ role: 'assistant', content: data.greeting_message }];
@@ -110,8 +110,9 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   sendMessage(): void {
+    if (!this.auth.isLoggedIn()) return;
     const msg = this.inputText.trim();
-    if (!msg || this.isSending || this.limitReached || (this.auth.isLoggedIn() && !this.sessionId)) return;
+    if (!msg || this.isSending || this.limitReached || !this.sessionId) return;
     this.chatError = '';
 
     this.messages.push({ role: 'user', content: msg });
@@ -173,12 +174,13 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void { this.router.navigate(['/characters']); }
+  goToLogin(): void {
+    const returnUrl = this.avatarId ? `/chat/${this.avatarId}` : '/chat';
+    this.router.navigate(['/login'], { queryParams: { returnUrl } });
+  }
   goToRegister(): void { 
-    if (this.avatar && this.avatar.book_slug) {
-      this.router.navigate(['/register'], { queryParams: { returnUrl: `/book/${this.avatar.book_slug}` } });
-    } else {
-      this.router.navigate(['/register']);
-    }
+    const returnUrl = this.avatarId ? `/chat/${this.avatarId}` : '/chat';
+    this.router.navigate(['/register'], { queryParams: { returnUrl } });
   }
 
   toggleCallMode() {

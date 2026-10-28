@@ -238,3 +238,43 @@
 @media (pointer: coarse) {
   .cc-input { font-size: 16px; }
 }
+
+/* ── Guest Auth Banner en ventana rápida ── */
+.cc-guest-banner {
+  padding: 12px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: 10px;
+  text-align: center;
+}
+.cc-guest-banner p {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--cc-ink);
+}
+.cc-guest-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.cc-guest-actions .cc-primary-sm {
+  background: var(--glow-gold, #fbbf24);
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.cc-guest-actions .cc-secondary-sm {
+  background: transparent;
+  color: var(--cc-ink);
+  border: 1px solid var(--cc-line);
+  font-weight: 500;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+}

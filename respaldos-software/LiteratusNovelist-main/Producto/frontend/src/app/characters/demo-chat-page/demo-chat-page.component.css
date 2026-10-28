@@ -931,3 +931,90 @@
   padding: 8px;
   margin-left: -12px;
 }
+
+/* ── Auth Prompt Footer (Sin sesión) ── */
+.dchat-auth-prompt {
+  padding: 16px 24px 24px;
+  background: linear-gradient(180deg, transparent, rgba(8, 14, 26, 0.6) 30%);
+  z-index: 10;
+}
+
+.dchat-auth-prompt-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 15px rgba(251, 191, 36, 0.1);
+  padding: 16px 20px;
+  border-radius: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.dchat-auth-icon {
+  font-size: 28px;
+  color: var(--glow-gold, #fbbf24);
+  background: rgba(251, 191, 36, 0.15);
+  padding: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dchat-auth-text {
+  flex: 1;
+}
+
+.dchat-auth-text strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--text-main, #fff);
+  margin-bottom: 3px;
+}
+
+.dchat-auth-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.dchat-auth-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.dchat-cta-btn--secondary {
+  background: transparent !important;
+  color: var(--text-main, #fff) !important;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.2)) !important;
+}
+
+.dchat-cta-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dchat-register-btn--ghost {
+  background: transparent !important;
+  color: var(--text-main, #fff) !important;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.2)) !important;
+}
+
+@media (max-width: 768px) {
+  .dchat-auth-prompt {
+    padding: 12px 14px;
+  }
+  .dchat-auth-prompt-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  .dchat-auth-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  .dchat-auth-actions button {
+    width: 100%;
+  }
+}

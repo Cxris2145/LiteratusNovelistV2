@@ -123,7 +123,7 @@ export class CharacterChatComponent implements OnDestroy {
       this.loadSub = this.api.get<ChatAvatar>(`ai/demo-chat/?avatar_id=${id}`).subscribe({
         next: avatar => {
           this.avatar = avatar;
-          this.remaining = avatar.remaining_messages ?? 3;
+          this.remaining = 0;
           this.messages = avatar.greeting_message ? [{ role: 'assistant', content: avatar.greeting_message }] : [];
           this.state = 'ready';
           this.afterRender();
@@ -200,9 +200,10 @@ export class CharacterChatComponent implements OnDestroy {
   }
 
   send(): void {
+    if (this.isDemo) return;
     const text = this.draft.trim();
-    if (!text || this.isSending || this.limitReached || this.state !== 'ready') return;
-    if (!this.isDemo && !this.sessionId) return;
+    if (!text || this.isSending || this.state !== 'ready') return;
+    if (!this.sessionId) return;
     this.error = '';
     this.messages.push({ role: 'user', content: text });
     this.draft = '';
