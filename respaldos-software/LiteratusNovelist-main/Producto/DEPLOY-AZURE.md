@@ -22,7 +22,8 @@ Cómo se arma:
 | Máquina `literatus-vm` | Ubuntu 24.04 Arm64 en `westus`, grupo `Literatus`, con Docker |
 | Backend | contenedor `backend` (gunicorn en el puerto 8080, solo dentro de la máquina) |
 | HTTPS | contenedor `caddy`: certificado de Let's Encrypt automático para `literatus-novelist.westus.cloudapp.azure.com` |
-| Publicar | `backend/deploy-azure.ps1` |
+| Publicar | `backend/deploy-azure.ps1` (crear la máquina, cambiar variables, volver atrás) |
+| Actualización automática | `update-backend.sh` en la máquina: `literatus-update.timer` lo corre cada 5 minutos y publica solo la imagen nueva |
 
 ---
 
@@ -109,20 +110,24 @@ Commit + push → Vercel vuelve a publicar solo. Abre el sitio, inicia sesión y
 
 Cuando todo funcione un par de días: Render → tu servicio → **Settings → Suspend Web Service**. No lo borres hasta estar seguro. Si configuraste un ping en cron-job.org, desactívalo.
 
-**Migraciones:** Render ejecutaba `migrate` en cada despliegue; la máquina no. Cuando haya migraciones nuevas, ejecútalas desde tu PC (tu `.env` local ya apunta a Supabase):
-
-```powershell
-cd Producto/backend
-.venv\Scripts\python.exe manage.py migrate
-```
-
 ---
 
-## Actualizar el backend más adelante
+## Actualizar el backend más adelante (automático)
 
-1. Push a `main` con los cambios del backend.
-2. Espera el ✓ de **Imagen del backend** en Actions.
-3. `.\deploy-azure.ps1` (o, si solo cambiaste `azure.env`, también basta con esto).
+Desde el 28-10-2026 la máquina se actualiza sola, como Render:
+
+1. Alguien hace push a `main` con cambios en `Producto/backend`.
+2. GitHub construye la imagen (**Imagen del backend** en Actions, ~10 min) y la publica como `:latest`.
+3. En los 5 minutos siguientes, la máquina la descarga y corre `migrate` con la versión nueva. Si las migraciones fallan, sigue atendiendo la versión anterior.
+4. Arranca el backend nuevo. Si no responde en 90 s, vuelve solo a la versión anterior y no reintenta esa imagen hasta que llegue otra.
+
+En total, un cambio del backend sale **unos 15 minutos después del push**, sin que nadie haga nada. Ojo: `migrate` corre contra la base de producción en Supabase.
+
+`.\deploy-azure.ps1` sigue sirviendo para:
+
+- **Cambiar variables:** edita `azure.env` y ejecútalo.
+- **Volver a una versión anterior:** `.\deploy-azure.ps1 -Tag <sha del commit>`. Eso pausa las actualizaciones automáticas para que la máquina no vuelva sola a la última; un `.\deploy-azure.ps1` sin `-Tag` las reanuda.
+- **Instalar o actualizar** el propio `update-backend.sh` (cada ejecución lo reescribe).
 
 ## Cómo está configurado y por qué
 
@@ -139,6 +144,18 @@ cd Producto/backend
 
   ```powershell
   az vm run-command invoke -g Literatus -n literatus-vm --command-id RunShellScript --scripts "docker logs --tail 100 backend" --query "value[0].message" -o tsv
+  ```
+
+- **Ver qué hicieron las actualizaciones automáticas:**
+
+  ```powershell
+  az vm run-command invoke -g Literatus -n literatus-vm --command-id RunShellScript --scripts "journalctl -u literatus-update --no-pager -n 40 -o cat" --query "value[0].message" -o tsv
+  ```
+
+- **Pausar las actualizaciones automáticas** (por ejemplo, antes de un push delicado). Para reanudarlas, `rm` en vez de `touch`, o un `.\deploy-azure.ps1` sin `-Tag`:
+
+  ```powershell
+  az vm run-command invoke -g Literatus -n literatus-vm --command-id RunShellScript --scripts "touch /opt/literatus/pausa" --query "value[0].message" -o tsv
   ```
 
 - **Reiniciar el backend:** vuelve a ejecutar `.\deploy-azure.ps1`.
