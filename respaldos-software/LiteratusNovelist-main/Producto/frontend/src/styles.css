@@ -1390,6 +1390,24 @@ html.tavern-morph-reduced::view-transition-old(root),
 html.tavern-morph-reduced::view-transition-new(root) { animation-duration: 150ms; animation-timing-function: ease; }
 
 /* ═════════════════════════════════════════════════════════════════════
+   TABERNA: PANTALLA COMPLETA (sin scroll ni desplazamiento innecesario)
+   ═════════════════════════════════════════════════════════════════════ */
+html:has(.th-hall.is-cinema),
+body:has(.th-hall.is-cinema) {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+body:has(.th-hall.is-cinema) app-bottom-nav {
+  display: none !important;
+}
+
+body:has(.th-hall.is-cinema) .site-body.with-bottom-nav {
+  --bottom-nav-h: 0px !important;
+  padding-bottom: 0px !important;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
    NORMALIZED MAT-SNACKBAR THEME (LITERATUS BOUTIQUE)
    ═════════════════════════════════════════════════════════════════════ */
 .mat-mdc-snack-bar-container {

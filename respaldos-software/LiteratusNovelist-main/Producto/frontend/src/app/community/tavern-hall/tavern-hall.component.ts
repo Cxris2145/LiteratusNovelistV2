@@ -98,6 +98,9 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   private setCinema(on: boolean): void {
     if (this.cinemaMode === on) return;
+    if (on && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
     morphLayout(() => {
       this.cinemaMode = on;
       this.cdr.detectChanges(); // la View Transition captura el DOM ya cambiado

@@ -43,6 +43,13 @@
     </div>
     <ng-template #visitorActions>
       <div class="th-actions">
+        <div class="th-utilities">
+          <button type="button" class="th-icon-toggle" (click)="toggleCinema()" [attr.aria-pressed]="cinemaMode"
+                  [attr.aria-label]="cinemaMode ? 'Salir del modo cine' : 'Modo cine: solo la mesa'">
+            <span class="material-symbols-rounded" aria-hidden="true">{{ cinemaMode ? 'fullscreen_exit' : 'fullscreen' }}</span>
+            <span class="th-tip" aria-hidden="true">{{ cinemaMode ? 'Salir del modo cine' : 'Modo cine' }}</span>
+          </button>
+        </div>
         <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
           <span class="material-symbols-rounded" aria-hidden="true">login</span>Entra con tu Maguito
         </a>
