@@ -278,3 +278,164 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+/* ── Auth Hint en la barra inferior ── */
+.cc-auth-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--glow-gold, #fbbf24);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.cc-auth-hint:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+.cc-auth-hint .material-symbols-rounded {
+  font-size: 15px;
+}
+
+/* ── Ventana emergente (Modal) ── */
+.cc-auth-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 14, 26, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: cc-fade-in 0.2s ease-out;
+}
+
+.cc-auth-modal {
+  position: relative;
+  background: #0f172a;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(251, 191, 36, 0.12);
+  border-radius: 16px;
+  padding: 24px 20px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  animation: cc-scale-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cc-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cc-scale-up {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.cc-auth-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.cc-auth-modal-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cc-auth-modal-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.cc-auth-modal-icon {
+  font-size: 24px;
+  color: var(--glow-gold, #fbbf24);
+}
+
+.cc-auth-modal-title {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.cc-auth-modal-desc {
+  margin: 0 0 20px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+
+.cc-auth-modal-desc strong {
+  color: #e2e8f0;
+}
+
+.cc-auth-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cc-auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.cc-auth-btn--primary {
+  background: var(--glow-gold, #fbbf24);
+  color: #0f172a;
+}
+.cc-auth-btn--primary:hover {
+  background: #f59e0b;
+  transform: translateY(-1px);
+}
+
+.cc-auth-btn--secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+}
+.cc-auth-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.cc-auth-btn--ghost {
+  background: transparent;
+  color: #64748b;
+  padding: 6px;
+  font-size: 0.82rem;
+}
+.cc-auth-btn--ghost:hover {
+  color: #94a3b8;
+}

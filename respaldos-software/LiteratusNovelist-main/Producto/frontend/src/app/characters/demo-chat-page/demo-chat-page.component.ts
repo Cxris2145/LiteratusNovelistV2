@@ -49,6 +49,15 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   isSending = false;
   remainingMessages = 0;
   limitReached = false;
+  showAuthModal = false;
+
+  openAuthModal(): void {
+    this.showAuthModal = true;
+  }
+
+  closeAuthModal(): void {
+    this.showAuthModal = false;
+  }
 
   ngOnInit(): void {
     window.scrollTo(0, 0);
@@ -110,7 +119,10 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   sendMessage(): void {
-    if (!this.auth.isLoggedIn()) return;
+    if (!this.auth.isLoggedIn()) {
+      this.openAuthModal();
+      return;
+    }
     const msg = this.inputText.trim();
     if (!msg || this.isSending || this.limitReached || !this.sessionId) return;
     this.chatError = '';
@@ -184,6 +196,10 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   toggleCallMode() {
+    if (!this.auth.isLoggedIn()) {
+      this.openAuthModal();
+      return;
+    }
     this.isCallMode = !this.isCallMode;
     if (this.isCallMode) {
       this.speechService.startListening();

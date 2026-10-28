@@ -66,22 +66,48 @@
 
 <footer class="cc-compose" *ngIf="state === 'ready'">
   <p class="cc-error" *ngIf="error">{{ error }}</p>
-  
-  <div class="cc-guest-banner" *ngIf="isDemo">
-    <p>Inicia sesión o crea tu cuenta gratis para conversar con {{ avatar?.name }}.</p>
-    <div class="cc-guest-actions">
-      <a routerLink="/login" [queryParams]="{ returnUrl: '/chat/' + currentId }" (click)="closed.emit()" class="cc-primary-sm">Iniciar sesión</a>
-      <a routerLink="/register" [queryParams]="{ returnUrl: '/chat/' + currentId }" (click)="closed.emit()" class="cc-secondary-sm">Crear cuenta</a>
-    </div>
-  </div>
 
-  <div class="cc-input-row" *ngIf="!isDemo">
+  <p class="cc-auth-hint" *ngIf="isDemo" (click)="openAuthModal()">
+    <span class="material-symbols-rounded">lock</span>
+    Para chatear debes iniciar sesión
+  </p>
+
+  <div class="cc-input-row" (click)="isDemo && openAuthModal()">
     <textarea #input class="cc-input" rows="1" maxlength="1000" enterkeyhint="send"
-              [placeholder]="'Escríbele a ' + (avatar?.name || 'este personaje') + '…'"
+              [placeholder]="isDemo ? ('Inicia sesión para conversar con ' + (avatar?.name || 'este personaje') + '…') : ('Escríbele a ' + (avatar?.name || 'este personaje') + '…')"
               [attr.aria-label]="'Mensaje para ' + (avatar?.name || 'el personaje')"
-              [(ngModel)]="draft" (input)="autosize()" (keydown)="onKeydown($event)" [disabled]="isSending"></textarea>
-    <button type="button" class="cc-send" (click)="send()" [disabled]="!draft.trim() || isSending" aria-label="Enviar">
-      <span class="material-symbols-rounded" aria-hidden="true">send</span>
+              [(ngModel)]="draft" (input)="autosize()" (keydown)="onKeydown($event)"
+              [disabled]="isSending || isDemo" [readonly]="isDemo"></textarea>
+    <button type="button" class="cc-send" (click)="send()" [disabled]="isSending || (!isDemo && !draft.trim())" [attr.aria-label]="isDemo ? 'Para chatear debes iniciar sesión' : 'Enviar'">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ isDemo ? 'lock' : 'send' }}</span>
     </button>
   </div>
 </footer>
+
+<!-- Ventana emergente (Modal): Para chatear debes iniciar sesión -->
+<div class="cc-auth-modal-backdrop" *ngIf="showAuthModal" (click)="closeAuthModal()">
+  <div class="cc-auth-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <button type="button" class="cc-auth-modal-close" (click)="closeAuthModal()" aria-label="Cerrar ventana emergente">
+      <span class="material-symbols-rounded">close</span>
+    </button>
+    <div class="cc-auth-modal-icon-wrap">
+      <span class="material-symbols-rounded cc-auth-modal-icon">chat</span>
+    </div>
+    <h3 id="auth-modal-title" class="cc-auth-modal-title">Para chatear debes iniciar sesión</h3>
+    <p class="cc-auth-modal-desc">
+      Inicia sesión o crea tu cuenta gratuita para conversar con <strong>{{ avatar?.name }}</strong> y descubrir todos sus secretos literarios.
+    </p>
+    <div class="cc-auth-modal-actions">
+      <a [routerLink]="['/login']" [queryParams]="{ returnUrl: '/chat/' + currentId }" (click)="closed.emit()" class="cc-auth-btn cc-auth-btn--primary">
+        <span class="material-symbols-rounded">login</span>
+        Iniciar sesión
+      </a>
+      <a [routerLink]="['/register']" [queryParams]="{ returnUrl: '/chat/' + currentId }" (click)="closed.emit()" class="cc-auth-btn cc-auth-btn--secondary">
+        Crear cuenta gratis
+      </a>
+      <button type="button" class="cc-auth-btn cc-auth-btn--ghost" (click)="closeAuthModal()">
+        Ahora no
+      </button>
+    </div>
+  </div>
+</div>

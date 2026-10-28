@@ -160,29 +160,14 @@
       <app-ink-day-pass *ngIf="offerPass" [usage]="offerPass" (activated)="onPassActivated()"></app-ink-day-pass>
       <p role="alert" *ngIf="chatError">{{ chatError }}</p>
 
-      <!-- Banner de autenticación requerida para visitantes sin sesión -->
-      <footer class="dchat-auth-prompt" *ngIf="!auth.isLoggedIn()">
-        <div class="dchat-auth-prompt-card">
-          <span class="material-symbols-rounded dchat-auth-icon" aria-hidden="true">lock</span>
-          <div class="dchat-auth-text">
-            <strong>Inicia sesión para conversar con {{ avatar.name }}</strong>
-            <p>Conéctate o crea tu cuenta gratuita para responderle y charlar con todos los personajes.</p>
-          </div>
-          <div class="dchat-auth-actions">
-            <button type="button" class="dchat-cta-btn" (click)="goToLogin()" id="dchat-prompt-login">
-              Iniciar sesión
-            </button>
-            <button type="button" class="dchat-cta-btn dchat-cta-btn--secondary" (click)="goToRegister()" id="dchat-prompt-register">
-              Crear cuenta gratis
-            </button>
-          </div>
-        </div>
-      </footer>
-
-      <!-- Input para usuarios con sesión iniciada -->
-      <footer class="dchat-input-wrap" *ngIf="auth.isLoggedIn()" [class.call-mode-footer]="isCallMode">
-        <div class="dchat-input-inner">
-          <button class="dchat-mic-btn" (click)="speechService.toggleListening()" [class.recording]="speechService.isListening$ | async" title="Hablar">
+      <!-- Input bar (unificada, abre modal si no hay sesión) -->
+      <footer class="dchat-input-wrap" [class.call-mode-footer]="isCallMode">
+        <p class="dchat-auth-hint-text" *ngIf="!auth.isLoggedIn()" (click)="openAuthModal()">
+          <span class="material-symbols-rounded">lock</span>
+          Para chatear debes iniciar sesión
+        </p>
+        <div class="dchat-input-inner" (click)="!auth.isLoggedIn() && openAuthModal()">
+          <button class="dchat-mic-btn" (click)="speechService.toggleListening()" [class.recording]="speechService.isListening$ | async" title="Hablar" [disabled]="!auth.isLoggedIn()">
             <span class="material-symbols-rounded">mic</span>
           </button>
           <textarea
@@ -190,8 +175,9 @@
             enterkeyhint="send"
             [(ngModel)]="inputText"
             (keydown)="onKeydown($event)"
-            [placeholder]="isCallMode ? 'Escribe o habla por el micrófono...' : ('Escribe algo a ' + avatar.name + '...')"
-            [disabled]="isSending"
+            [placeholder]="!auth.isLoggedIn() ? ('Inicia sesión para conversar con ' + avatar.name + '…') : (isCallMode ? 'Escribe o habla por el micrófono...' : ('Escribe algo a ' + avatar.name + '...'))"
+            [disabled]="isSending || !auth.isLoggedIn()"
+            [readonly]="!auth.isLoggedIn()"
             rows="1"
             maxlength="500"
             id="dchat-input"
@@ -199,14 +185,42 @@
           <button
             class="dchat-send-btn"
             (click)="sendMessage()"
-            [disabled]="isSending || !inputText.trim()"
+            [disabled]="isSending || (auth.isLoggedIn() && !inputText.trim())"
             id="dchat-send-btn"
-            aria-label="Enviar"
+            [attr.aria-label]="!auth.isLoggedIn() ? 'Para chatear debes iniciar sesión' : 'Enviar'"
           >
-            <span class="material-symbols-rounded">send</span>
+            <span class="material-symbols-rounded">{{ !auth.isLoggedIn() ? 'lock' : 'send' }}</span>
           </button>
         </div>
       </footer>
+
+      <!-- Ventana emergente (Modal): Para chatear debes iniciar sesión -->
+      <div class="dchat-modal-backdrop" *ngIf="showAuthModal" (click)="closeAuthModal()">
+        <div class="dchat-modal-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="dchat-modal-title">
+          <button type="button" class="dchat-modal-close" (click)="closeAuthModal()" aria-label="Cerrar aviso">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+          <div class="dchat-modal-icon-wrap">
+            <span class="material-symbols-rounded dchat-modal-icon">chat</span>
+          </div>
+          <h3 id="dchat-modal-title" class="dchat-modal-title">Para chatear debes iniciar sesión</h3>
+          <p class="dchat-modal-desc">
+            Inicia sesión o crea tu cuenta gratuita para conversar con <strong>{{ avatar.name }}</strong> y descubrir todos sus secretos literarios.
+          </p>
+          <div class="dchat-modal-actions">
+            <button type="button" class="dchat-modal-btn dchat-modal-btn--primary" (click)="goToLogin()" id="dchat-modal-login-btn">
+              <span class="material-symbols-rounded">login</span>
+              Iniciar sesión
+            </button>
+            <button type="button" class="dchat-modal-btn dchat-modal-btn--secondary" (click)="goToRegister()" id="dchat-modal-register-btn">
+              Crear cuenta gratis
+            </button>
+            <button type="button" class="dchat-modal-btn dchat-modal-btn--ghost" (click)="closeAuthModal()">
+              Ahora no
+            </button>
+          </div>
+        </div>
+      </div>
 
     </main>
   </div>

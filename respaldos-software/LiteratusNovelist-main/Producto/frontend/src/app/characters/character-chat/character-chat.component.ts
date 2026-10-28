@@ -85,6 +85,15 @@ export class CharacterChatComponent implements OnDestroy {
   draft = '';
   isSending = false;
   isAdding = false;
+  showAuthModal = false;
+
+  openAuthModal(): void {
+    this.showAuthModal = true;
+  }
+
+  closeAuthModal(): void {
+    this.showAuthModal = false;
+  }
   /** Modo demo (sin sesión): mensajes que quedan. */
   remaining: number | null = null;
   /** Sin plan ni pase: se ofrece el pase del día aquí mismo y el mensaje espera en el campo. */
@@ -200,7 +209,10 @@ export class CharacterChatComponent implements OnDestroy {
   }
 
   send(): void {
-    if (this.isDemo) return;
+    if (this.isDemo) {
+      this.openAuthModal();
+      return;
+    }
     const text = this.draft.trim();
     if (!text || this.isSending || this.state !== 'ready') return;
     if (!this.sessionId) return;
