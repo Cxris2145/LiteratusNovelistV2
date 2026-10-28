@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject } from '@angular/core';
 
-import { userStorageKey } from '../../core/services/auth.service';
+import { AuthService, userStorageKey } from '../../core/services/auth.service';
 import { CommunityProfile } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { copyText } from '../clipboard.util';
@@ -25,6 +25,11 @@ const MONTH_YEAR = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric
 })
 export class ProfileCardComponent {
   private notification = inject(NotificationService);
+  private auth = inject(AuthService);
+
+  get isGuest(): boolean {
+    return this.auth.isGuest() || !!(this.card as any)?.is_guest;
+  }
 
   moreOpen = readMore();
 
@@ -68,6 +73,10 @@ export class ProfileCardComponent {
   }
 
   async copyCode(): Promise<void> {
+    if (this.isGuest) {
+      this.notification.info('Inicia sesión para tener tu código de amigo.', 'Taberna');
+      return;
+    }
     if (!this.card) return;
     const copied = await copyText('#' + this.card.friend_code);
     if (copied) {

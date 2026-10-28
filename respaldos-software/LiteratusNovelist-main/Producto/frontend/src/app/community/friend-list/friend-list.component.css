@@ -246,3 +246,28 @@
 :host-context([data-theme='high-contrast-light']) .fl-invite { border-color: currentColor; }
 @keyframes fl-fade { from { opacity: 0; } }
 @keyframes fl-glow-soft { 0%, 100% { opacity: 0; } 35% { opacity: 1; } }
+
+
+.fl-guest-invite-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(212, 175, 55, 0.35);
+  color: #c9d1d9;
+  font: 500 .82rem var(--font-ui);
+  text-align: center;
+}
+.fl-guest-invite-notice .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--th-gold);
+}
+.fl-guest-empty-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+}

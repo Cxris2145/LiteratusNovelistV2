@@ -57,9 +57,15 @@
   </div>
 
   <div class="fl-empty" *ngIf="!loading && !friends.length">
-    <span class="material-symbols-rounded fl-empty-icon" aria-hidden="true">chair_alt</span>
-    <h3>Hay sitio para tus amigos</h3>
-    <p class="th-empty">Encuéntralos por su nombre o código y compartan la próxima historia.</p>
+    <span class="material-symbols-rounded fl-empty-icon" aria-hidden="true">{{ isGuest ? 'lock' : 'chair_alt' }}</span>
+    <h3>{{ isGuest ? 'Función para miembros' : 'Hay sitio para tus amigos' }}</h3>
+    <p class="th-empty">{{ isGuest ? 'Inicia sesión con tu cuenta para agregar amigos, ver cuándo están en la taberna y compartir lecturas.' : 'Encuéntralos por su nombre o código y compartan la próxima historia.' }}</p>
+    <div class="fl-guest-empty-actions" *ngIf="isGuest" style="margin-top: 14px;">
+      <a routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }" class="th-btn primary sm" style="text-decoration: none;">
+        <span class="material-symbols-rounded" aria-hidden="true">login</span>
+        Iniciar sesión
+      </a>
+    </div>
   </div>
 
   <ul class="fl-list" *ngIf="friends.length" @listContainer>
@@ -92,7 +98,7 @@
         </div>
       </ng-container>
       <ng-template #menuTpl>
-        <button type="button" class="th-icon-btn fl-chat" [class.has-unread]="unread[friend.friend_code] > 0" (click)="chat.emit(friend)"
+        <button type="button" class="th-icon-btn fl-chat" [class.has-unread]="unread[friend.friend_code] > 0" (click)="onChatClick(friend)"
                 [attr.aria-label]="'Conversar con ' + friend.username + (unread[friend.friend_code] ? ', ' + unread[friend.friend_code] + ' mensajes sin leer' : '')"
                 [title]="'Conversar con ' + friend.username">
           <span class="material-symbols-rounded" aria-hidden="true">chat</span>
@@ -131,9 +137,15 @@
   </div>
 
   <footer class="fl-footer">
-    <button type="button" class="fl-invite" (click)="addFriend.emit()">
+    <button *ngIf="!isGuest; else guestAddFriend" type="button" class="fl-invite" (click)="addFriend.emit()">
       <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
       Agregar amigo
     </button>
+    <ng-template #guestAddFriend>
+      <div class="fl-guest-invite-notice">
+        <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+        <span>Inicia sesión para agregar amigos</span>
+      </div>
+    </ng-template>
   </footer>
 </section>

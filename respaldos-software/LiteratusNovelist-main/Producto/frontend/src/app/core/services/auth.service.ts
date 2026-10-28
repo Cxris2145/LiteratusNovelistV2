@@ -68,6 +68,11 @@ export class AuthService {
   private _currentUser = signal<UserProfile | null>(this.loadUserFromStorage());
   public readonly currentUser = this._currentUser.asReadonly();
 
+  public isGuest(): boolean {
+    const user = this._currentUser() || this.loadUserFromStorage();
+    return !!user?.is_guest || (user?.email?.toLowerCase().endsWith('@invitado.literatus') ?? false);
+  }
+
   private api = inject(ApiService);
   private httpBackend = inject(HttpBackend);
   private profileRequests = inject(ProfileRequestService);

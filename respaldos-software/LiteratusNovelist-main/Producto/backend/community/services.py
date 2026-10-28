@@ -154,9 +154,12 @@ def avatar_image(token) -> tuple[bytes, str] | None:
 
 def minimal_card(profile, relation='none', request_id=None) -> dict:
     """Lo que ve alguien que todavía no es tu amigo: lo justo para reconocerte e invitarte."""
+    from users.guests import is_guest
+    user_is_guest = is_guest(profile.user)
     return {
         'full': False,
-        'friend_code': profile.friend_code,
+        'friend_code': None if user_is_guest else profile.friend_code,
+        'is_guest': user_is_guest,
         'username': profile.user.username,
         # Un perfil privado muestra su foto solo a sus amigos; mientras tanto se ve su Maguito.
         'avatar': avatar_url(profile) if profile.is_public else None,
@@ -191,9 +194,12 @@ def profile_stats(user) -> dict:
 def full_card(profile, relation, request_id=None) -> dict:
     """Perfil completo: para uno mismo, para los amigos y para cualquiera si el perfil es público."""
     user = profile.user
+    from users.guests import is_guest
+    user_is_guest = is_guest(user)
     return {
         'full': True,
-        'friend_code': profile.friend_code,
+        'friend_code': None if user_is_guest else profile.friend_code,
+        'is_guest': user_is_guest,
         'username': user.username,
         'avatar': avatar_url(profile),
         'tagline': profile.tagline,
@@ -243,10 +249,13 @@ def search(me, raw_query) -> list:
     Busca por código exacto y por nombre de usuario que empiece con el texto. Los perfiles
     privados solo aparecen con su código.
     """
+    from users.guests import is_guest
+    if is_guest(me):
+        return []
     query = str(raw_query or '').strip().lstrip('#').strip()
     if len(query) < 3:
         return []
-    base = _profiles().exclude(user=me)
+    base = _profiles().exclude(user=me).exclude(user__email__endswith='@invitado.literatus')
     found = []
     code = normalize_code(query)
     if code:
@@ -268,10 +277,13 @@ def suggestions(me, limit=SUGGESTION_LIMIT) -> list:
     después, las más nuevas), luego las solicitudes pendientes y al final tus amigos.
     Un perfil privado solo aparece si ya tiene una amistad o una solicitud contigo.
     """
+    from users.guests import is_guest
+    if is_guest(me):
+        return []
     connected = {b if a == me.pk else a for a, b in
                  Friendship.objects.filter(Q(requester=me) | Q(addressee=me))
                  .exclude(status=Friendship.Status.DECLINED).values_list('requester_id', 'addressee_id')}
-    base = _profiles().filter(Q(is_public=True) | Q(user_id__in=connected)).exclude(user=me)
+    base = _profiles().filter(Q(is_public=True) | Q(user_id__in=connected)).exclude(user=me).exclude(user__email__endswith='@invitado.literatus')
 
     mine = friend_ids(me)
     mutual = Counter()

@@ -977,3 +977,76 @@ app-tavern-table.ts-table-overlay::before {
 @keyframes ts-menu-in { from { opacity: 0; transform: scale(.95); } }
 :host-context([data-theme='high-contrast-light']) .ts-actions-menu { background: #fff; border-color: #171717; }
 :host-context([data-theme='high-contrast-light']) .ts-actions-menu button { color: #171717; }
+
+
+/* ── Barra bloqueada para cuentas de prueba (invitados) ────── */
+.ts-guest-lock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: rgba(14, 16, 30, .92);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 236, 205, .08), 0 8px 24px rgba(0, 0, 0, .4);
+  backdrop-filter: blur(8px);
+}
+
+.ts-guest-lock-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: #fff;
+  font: 500 .84rem/1.35 var(--font-ui);
+}
+
+.ts-guest-lock-icon {
+  font-size: 20px;
+  color: var(--th-gold);
+  flex-shrink: 0;
+}
+
+.ts-guest-lock-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.ts-guest-lock-text strong {
+  color: var(--th-gold);
+  font-weight: 700;
+}
+
+.ts-guest-lock-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ts-guest-btn {
+  white-space: nowrap;
+  text-decoration: none;
+  font-size: .8rem;
+  padding: 6px 12px;
+}
+
+@media (max-width: 720px) {
+  .ts-guest-lock-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px 10px;
+    gap: 8px;
+    text-align: center;
+  }
+  .ts-guest-lock-info {
+    justify-content: center;
+    font-size: .78rem;
+  }
+  .ts-guest-lock-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}

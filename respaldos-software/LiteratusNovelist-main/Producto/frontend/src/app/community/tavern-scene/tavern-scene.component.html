@@ -197,139 +197,161 @@
   <!-- BARRA DE CHAT Y REACCIONES RÁPIDAS DE LA TABERNA             -->
   <!-- ============================================================ -->
   <footer class="ts-chat-dock">
-    <!-- Historial de la mesa: lo que se dijo, del más viejo al más nuevo. -->
-    <section class="ts-history" id="ts-history" *ngIf="historyOpenState" aria-labelledby="ts-history-title">
-      <header class="ts-history-head">
-        <h3 id="ts-history-title">Conversación de la mesa</h3>
-        <button type="button" class="ts-chat-icon-btn" (click)="closeHistory()" aria-label="Cerrar el historial">
-          <span class="material-symbols-rounded" aria-hidden="true">close</span>
-        </button>
-      </header>
-      <ol class="ts-history-list" aria-live="polite">
-        <li *ngIf="!historyGroups.length" class="ts-history-empty">
-          Todavía nadie ha dicho nada. Escribe algo para tu mesa: lo verán tus amigos.
-        </li>
-        <li *ngFor="let group of historyGroups; trackBy: trackGroup" class="ts-history-group" [class.is-me]="group.isMe">
-          <app-maguito class="ts-history-avatar" crop="bust" [outfit]="group.outfit" [paused]="true" [calm]="true"
-                       [interactive]="false" [followPointer]="false" aria-hidden="true"></app-maguito>
-          <div class="ts-history-body">
-            <p class="ts-history-author">{{ group.isMe ? 'Tú' : group.username }}</p>
-            <div *ngFor="let message of group.messages; trackBy: trackMessage" class="ts-history-message"
-                 [class.is-new]="historyFresh.has(message.id)">
-              <p class="ts-history-text">{{ message.content }}</p>
-              <time class="ts-history-time" [attr.datetime]="message.created_at">{{ timeAgo(message.created_at) }}</time>
-              <button *ngIf="message.is_me" type="button" class="ts-history-delete" (click)="removeMessage(message)"
-                      aria-label="Borrar este mensaje">
-                <span class="material-symbols-rounded" aria-hidden="true">delete</span>
-              </button>
+    <ng-container *ngIf="!isGuest; else guestBar">
+      <!-- Historial de la mesa: lo que se dijo, del más viejo al más nuevo. -->
+      <section class="ts-history" id="ts-history" *ngIf="historyOpenState" aria-labelledby="ts-history-title">
+        <header class="ts-history-head">
+          <h3 id="ts-history-title">Conversación de la mesa</h3>
+          <button type="button" class="ts-chat-icon-btn" (click)="closeHistory()" aria-label="Cerrar el historial">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </header>
+        <ol class="ts-history-list" aria-live="polite">
+          <li *ngIf="!historyGroups.length" class="ts-history-empty">
+            Todavía nadie ha dicho nada. Escribe algo para tu mesa: lo verán tus amigos.
+          </li>
+          <li *ngFor="let group of historyGroups; trackBy: trackGroup" class="ts-history-group" [class.is-me]="group.isMe">
+            <app-maguito class="ts-history-avatar" crop="bust" [outfit]="group.outfit" [paused]="true" [calm]="true"
+                         [interactive]="false" [followPointer]="false" aria-hidden="true"></app-maguito>
+            <div class="ts-history-body">
+              <p class="ts-history-author">{{ group.isMe ? 'Tú' : group.username }}</p>
+              <div *ngFor="let message of group.messages; trackBy: trackMessage" class="ts-history-message"
+                   [class.is-new]="historyFresh.has(message.id)">
+                <p class="ts-history-text">{{ message.content }}</p>
+                <time class="ts-history-time" [attr.datetime]="message.created_at">{{ timeAgo(message.created_at) }}</time>
+                <button *ngIf="message.is_me" type="button" class="ts-history-delete" (click)="removeMessage(message)"
+                        aria-label="Borrar este mensaje">
+                  <span class="material-symbols-rounded" aria-hidden="true">delete</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </li>
-      </ol>
-    </section>
+          </li>
+        </ol>
+      </section>
 
-    <div class="ts-chat-bar">
-      <button *ngIf="!demo; else leadIcon" type="button" class="ts-chat-icon-btn ts-history-toggle" (click)="toggleHistory()"
-              [attr.aria-expanded]="historyOpenState" aria-controls="ts-history"
-              [attr.aria-label]="unseenCount ? 'Ver la conversación de la mesa, ' + unseenCount + ' mensajes nuevos' : 'Ver la conversación de la mesa'"
-              title="Conversación de la mesa">
-        <span class="material-symbols-rounded" aria-hidden="true">history</span>
-        <span class="ts-history-badge" *ngIf="unseenCount" aria-hidden="true">{{ unseenCount > 9 ? '9+' : unseenCount }}</span>
-      </button>
-      <ng-template #leadIcon><span class="material-symbols-rounded ts-chat-lead-icon" aria-hidden="true">chat</span></ng-template>
-
-      <!-- Acciones de la mesa: un "+" junto al chat (como adjuntar en una app de mensajes). Los objetos
-           de la mesa 3D hacen lo mismo; en el celular no se pueden tocar y este menú es el único camino. -->
-      <div class="ts-actions">
-        <button type="button" class="ts-chat-icon-btn ts-actions-toggle" (click)="toggleActions()"
-                [attr.aria-expanded]="actionsOpen" aria-controls="ts-actions-menu"
-                aria-label="Acciones de la mesa" title="Acciones de la mesa">
-          <span class="material-symbols-rounded" aria-hidden="true">add</span>
+      <div class="ts-chat-bar">
+        <button *ngIf="!demo; else leadIcon" type="button" class="ts-chat-icon-btn ts-history-toggle" (click)="toggleHistory()"
+                [attr.aria-expanded]="historyOpenState" aria-controls="ts-history"
+                [attr.aria-label]="unseenCount ? 'Ver la conversación de la mesa, ' + unseenCount + ' mensajes nuevos' : 'Ver la conversación de la mesa'"
+                title="Conversación de la mesa">
+          <span class="material-symbols-rounded" aria-hidden="true">history</span>
+          <span class="ts-history-badge" *ngIf="unseenCount" aria-hidden="true">{{ unseenCount > 9 ? '9+' : unseenCount }}</span>
         </button>
-        <div class="ts-actions-menu" id="ts-actions-menu" *ngIf="actionsOpen">
-          <button type="button" (click)="runAction('book')" (pointerenter)="tableHover = 'book'" (pointerleave)="tableHover = null">
-            <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>Compartir lectura
-          </button>
-          <button type="button" (click)="runAction('invite')" (pointerenter)="tableHover = 'invite'" (pointerleave)="tableHover = null">
-            <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>Invitar y brindar
-          </button>
-          <button type="button" (click)="runAction('rewards')" (pointerenter)="tableHover = 'rewards'" (pointerleave)="tableHover = null">
-            <span class="material-symbols-rounded" aria-hidden="true">redeem</span>Mi cofre
-          </button>
-          <span class="ts-actions-divider" aria-hidden="true"></span>
-          <button type="button" (click)="runAction('cat')" (pointerenter)="tableHover = 'cat'" (pointerleave)="tableHover = null">
-            <span class="material-symbols-rounded" aria-hidden="true">pets</span>El gato recomienda
-          </button>
-          <button type="button" (click)="runAction('potions')" (pointerenter)="tableHover = 'potions'" (pointerleave)="tableHover = null">
-            <span class="material-symbols-rounded" aria-hidden="true">science</span>Pociones de lectura
-          </button>
-          <button type="button" (click)="runAction('hourglass')" (pointerenter)="tableHover = 'hourglass'" (pointerleave)="tableHover = null">
-            <span class="material-symbols-rounded" aria-hidden="true">hourglass_bottom</span>Tiempo de lectura
-          </button>
-        </div>
-      </div>
+        <ng-template #leadIcon><span class="material-symbols-rounded ts-chat-lead-icon" aria-hidden="true">chat</span></ng-template>
 
-      <input
-        type="text"
-        class="ts-chat-input"
-        [(ngModel)]="chatText"
-        (keydown.enter)="sendChat()"
-        placeholder="Escribe a tu mesa…"
-        maxlength="200"
-        [disabled]="busySending"
-        aria-label="Mensaje para la mesa"
-      />
-
-      <div class="ts-chat-tools">
-        <!-- Selector rápido de emojis -->
-        <div class="ts-emoji-picker-wrap" *ngIf="showEmojiList">
-          <div class="ts-emoji-grid">
-            <button *ngFor="let em of quickEmojis" type="button" class="ts-emoji-pick-btn" (click)="insertEmoji(em)">
-              {{ em }}
+        <!-- Acciones de la mesa: un "+" junto al chat (como adjuntar en una app de mensajes). Los objetos
+             de la mesa 3D hacen lo mismo; en el celular no se pueden tocar y este menú es el único camino. -->
+        <div class="ts-actions">
+          <button type="button" class="ts-chat-icon-btn ts-actions-toggle" (click)="toggleActions()"
+                  [attr.aria-expanded]="actionsOpen" aria-controls="ts-actions-menu"
+                  aria-label="Acciones de la mesa" title="Acciones de la mesa">
+            <span class="material-symbols-rounded" aria-hidden="true">add</span>
+          </button>
+          <div class="ts-actions-menu" id="ts-actions-menu" *ngIf="actionsOpen">
+            <button type="button" (click)="runAction('book')" (pointerenter)="tableHover = 'book'" (pointerleave)="tableHover = null">
+              <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>Compartir lectura
+            </button>
+            <button type="button" (click)="runAction('invite')" (pointerenter)="tableHover = 'invite'" (pointerleave)="tableHover = null">
+              <span class="material-symbols-rounded" aria-hidden="true">sports_bar</span>Invitar y brindar
+            </button>
+            <button type="button" (click)="runAction('rewards')" (pointerenter)="tableHover = 'rewards'" (pointerleave)="tableHover = null">
+              <span class="material-symbols-rounded" aria-hidden="true">redeem</span>Mi cofre
+            </button>
+            <span class="ts-actions-divider" aria-hidden="true"></span>
+            <button type="button" (click)="runAction('cat')" (pointerenter)="tableHover = 'cat'" (pointerleave)="tableHover = null">
+              <span class="material-symbols-rounded" aria-hidden="true">pets</span>El gato recomienda
+            </button>
+            <button type="button" (click)="runAction('potions')" (pointerenter)="tableHover = 'potions'" (pointerleave)="tableHover = null">
+              <span class="material-symbols-rounded" aria-hidden="true">science</span>Pociones de lectura
+            </button>
+            <button type="button" (click)="runAction('hourglass')" (pointerenter)="tableHover = 'hourglass'" (pointerleave)="tableHover = null">
+              <span class="material-symbols-rounded" aria-hidden="true">hourglass_bottom</span>Tiempo de lectura
             </button>
           </div>
         </div>
 
-        <button type="button" class="ts-chat-icon-btn ts-emoji-toggle" (click)="toggleEmojiList()" title="Añadir emoji" aria-label="Añadir emoji" [attr.aria-expanded]="showEmojiList">
-          <span class="material-symbols-rounded" aria-hidden="true">mood</span>
-        </button>
+        <input
+          type="text"
+          class="ts-chat-input"
+          [(ngModel)]="chatText"
+          (keydown.enter)="sendChat()"
+          placeholder="Escribe a tu mesa…"
+          maxlength="200"
+          [disabled]="busySending"
+          aria-label="Mensaje para la mesa"
+        />
 
-        <!-- Botón enviar circular dorado con flecha -->
-        <button
-          type="button"
-          class="ts-chat-send-btn"
-          (click)="sendChat()"
-          [disabled]="!chatText.trim() || busySending"
-          title="Enviar mensaje"
-          aria-label="Enviar mensaje"
-        >
-          <span class="material-symbols-rounded" aria-hidden="true">send</span>
-        </button>
-      </div>
+        <div class="ts-chat-tools">
+          <!-- Selector rápido de emojis -->
+          <div class="ts-emoji-picker-wrap" *ngIf="showEmojiList">
+            <div class="ts-emoji-grid">
+              <button *ngFor="let em of quickEmojis" type="button" class="ts-emoji-pick-btn" (click)="insertEmoji(em)">
+                {{ em }}
+              </button>
+            </div>
+          </div>
 
-      <!-- Divisor hacia las reacciones rápidas -->
-      <div class="ts-dock-separator" aria-hidden="true"></div>
+          <button type="button" class="ts-chat-icon-btn ts-emoji-toggle" (click)="toggleEmojiList()" title="Añadir emoji" aria-label="Añadir emoji" [attr.aria-expanded]="showEmojiList">
+            <span class="material-symbols-rounded" aria-hidden="true">mood</span>
+          </button>
 
-      <!-- Reacciones rápidas: 🍺 ❤️ 👏 📖 ✨ -->
-      <div class="ts-dock-reactions">
-        <div class="ts-dock-reactions-list">
-          <button type="button" class="ts-react-pill" (click)="react('🍺')" title="¡Salud!" aria-label="Reaccionar: ¡Salud!">
-            🍺
-          </button>
-          <button type="button" class="ts-react-pill" (click)="react('❤️')" title="Me encanta" aria-label="Reaccionar: me encanta">
-            ❤️
-          </button>
-          <button type="button" class="ts-react-pill" (click)="react('👏')" title="¡Gran logro!" aria-label="Reaccionar: ¡gran logro!">
-            👏
-          </button>
-          <button type="button" class="ts-react-pill" (click)="react('📖')" title="Buena lectura" aria-label="Reaccionar: buena lectura">
-            📖
-          </button>
-          <button type="button" class="ts-react-pill" (click)="react('✨')" title="Magia literaria" aria-label="Reaccionar: magia literaria">
-            ✨
+          <!-- Botón enviar circular dorado con flecha -->
+          <button
+            type="button"
+            class="ts-chat-send-btn"
+            (click)="sendChat()"
+            [disabled]="!chatText.trim() || busySending"
+            title="Enviar mensaje"
+            aria-label="Enviar mensaje"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">send</span>
           </button>
         </div>
+
+        <!-- Divisor hacia las reacciones rápidas -->
+        <div class="ts-dock-separator" aria-hidden="true"></div>
+
+        <!-- Reacciones rápidas: 🍺 ❤️ 👏 📖 ✨ -->
+        <div class="ts-dock-reactions">
+          <div class="ts-dock-reactions-list">
+            <button type="button" class="ts-react-pill" (click)="react('🍺')" title="¡Salud!" aria-label="Reaccionar: ¡Salud!">
+              🍺
+            </button>
+            <button type="button" class="ts-react-pill" (click)="react('❤️')" title="Me encanta" aria-label="Reaccionar: me encanta">
+              ❤️
+            </button>
+            <button type="button" class="ts-react-pill" (click)="react('👏')" title="¡Gran logro!" aria-label="Reaccionar: ¡gran logro!">
+              👏
+            </button>
+            <button type="button" class="ts-react-pill" (click)="react('📖')" title="Buena lectura" aria-label="Reaccionar: buena lectura">
+              📖
+            </button>
+            <button type="button" class="ts-react-pill" (click)="react('✨')" title="Magia literaria" aria-label="Reaccionar: magia literaria">
+              ✨
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </ng-container>
+
+    <ng-template #guestBar>
+      <div class="ts-guest-lock-bar" role="status">
+        <div class="ts-guest-lock-info">
+          <span class="material-symbols-rounded ts-guest-lock-icon" aria-hidden="true">lock</span>
+          <span class="ts-guest-lock-text">
+            <strong>Cuenta de prueba:</strong> Inicia sesión para conversar en la mesa, reaccionar y usar los objetos.
+          </span>
+        </div>
+        <div class="ts-guest-lock-actions">
+          <a routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }" class="th-btn primary sm ts-guest-btn">
+            <span class="material-symbols-rounded" aria-hidden="true">login</span>
+            Iniciar sesión
+          </a>
+          <a routerLink="/register" class="th-btn secondary sm ts-guest-btn">
+            Crear cuenta
+          </a>
+        </div>
+      </div>
+    </ng-template>
   </footer>
 </section>

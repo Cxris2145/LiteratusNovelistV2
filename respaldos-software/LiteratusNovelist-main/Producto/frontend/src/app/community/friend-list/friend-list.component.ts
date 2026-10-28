@@ -6,6 +6,7 @@ import {
 import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
 import { FriendCard, FriendRequestItem } from '../../core/services/community.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
+import { AuthService } from '../../core/services/auth.service';
 import { ReaderPhotos } from '../reader-photo.util';
 import { listContainerMotion, listItemMotion, listItemParams } from '../tavern-motion';
 
@@ -26,6 +27,11 @@ const CELEBRATE_MS = 1100;
 })
 export class FriendListComponent implements OnChanges, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
+  private auth = inject(AuthService);
+
+  get isGuest(): boolean {
+    return this.auth.isGuest();
+  }
   @ViewChildren('rowMaguito') private rowMaguitos?: QueryList<MaguitoComponent>;
   /** La foto de perfil de cada lector; sin foto (o si no carga) se ve su Maguito. */
   readonly photos = new ReaderPhotos();
@@ -128,6 +134,11 @@ export class FriendListComponent implements OnChanges, OnDestroy {
 
   trackFriend = (_: number, friend: FriendCard) => friend.friend_code;
   trackRequest = (_: number, request: FriendRequestItem) => request.id;
+
+  onChatClick(friend: FriendCard): void {
+    if (this.isGuest) return;
+    this.chat.emit(friend);
+  }
 
   askRemove(friend: FriendCard): void {
     this.confirming = friend.friend_code;

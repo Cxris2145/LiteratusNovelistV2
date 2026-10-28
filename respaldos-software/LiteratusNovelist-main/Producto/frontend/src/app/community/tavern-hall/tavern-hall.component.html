@@ -30,8 +30,8 @@
       <button type="button" class="th-btn secondary th-chats-btn" (click)="chatOpen ? closeChat() : openChat()"
               [attr.aria-expanded]="chatOpen" aria-controls="friend-chat"
               [attr.aria-label]="chatUnread.total ? 'Charlas, ' + chatUnread.total + ' mensajes sin leer' : 'Charlas'">
-        <span class="material-symbols-rounded" aria-hidden="true">forum</span>Charlas
-        <ng-container *ngIf="chatUnread.total">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ isGuest ? "lock" : "forum" }}</span>Charlas
+        <ng-container *ngIf="chatUnread.total && !isGuest">
           <!-- Un elemento por número: así el salto se repite cada vez que sube. -->
           <span class="th-count-badge" *ngFor="let count of [chatUnread.total]" [class.is-up]="chatUnreadUp"
                 aria-hidden="true">{{ count > 99 ? '99+' : count }}</span>

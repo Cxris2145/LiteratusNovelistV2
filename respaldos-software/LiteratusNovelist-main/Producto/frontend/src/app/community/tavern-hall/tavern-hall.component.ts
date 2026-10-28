@@ -79,6 +79,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private poll: ReturnType<typeof setInterval> | null = null;
 
   readonly loggedIn = this.auth.isLoggedIn();
+  get isGuest(): boolean { return this.auth.isGuest(); }
   readonly demoMe = DEMO_ME;
   readonly demoGuests = DEMO_GUESTS;
 
@@ -166,7 +167,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.bazarOpen = false;
         this.onBazarPreview(null);
       }
-      this.chatOpen = params.has('charla') && !bazar;
+      this.chatOpen = params.has('charla') && !bazar && !this.isGuest;
       this.chatCode = this.chatOpen ? (params.get('charla') || '').trim().toUpperCase() : '';
       this.clubsOpen = params.has('lectura') && !bazar && !this.chatOpen;
       this.activeClubId = this.clubsOpen ? (params.get('lectura') || '').trim() : '';
@@ -269,6 +270,10 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   openAddFriend(): void {
+    if (this.isGuest) {
+      this.notification.info('Inicia sesión o crea tu cuenta para agregar amigos.', 'Taberna');
+      return;
+    }
     this.dialog.open<AddFriendDialogComponent, AddFriendDialogData>(AddFriendDialogComponent, {
       data: { myCode: this.me?.friend_code ?? null },
       panelClass: ['th-dialog-panel', 'af-dialog-panel'],
@@ -319,6 +324,10 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   /** Abre la lista de charlas o, con código, la conversación con ese amigo. Cierra El Bazar y Lecturas. */
   openChat(code = ''): void {
     if (!this.loggedIn) return;
+    if (this.isGuest) {
+      this.notification.info('Inicia sesión con tu cuenta para usar las charlas privadas con amigos.', 'Taberna');
+      return;
+    }
     if (this.bazarOpen) { this.bazarOpen = false; this.onBazarPreview(null); }
     this.clubsOpen = false;
     this.activeClubId = '';

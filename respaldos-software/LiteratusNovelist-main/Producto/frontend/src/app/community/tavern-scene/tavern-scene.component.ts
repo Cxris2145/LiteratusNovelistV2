@@ -5,7 +5,7 @@ import {
 
 import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
-import { userStorageKey } from '../../core/services/auth.service';
+import { AuthService, userStorageKey } from '../../core/services/auth.service';
 import { FriendStatus, TavernChatMessage, TavernReactionItem } from '../../core/services/community.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
 import { TavernTableAction } from '../tavern-table/tavern-table.types';
@@ -84,6 +84,11 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   private zone = inject(NgZone);
   private cdr = inject(ChangeDetectorRef);
   private host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private auth = inject(AuthService);
+
+  get isGuest(): boolean {
+    return this.auth.isGuest();
+  }
 
   @Input() me: SceneGuest | null = null;
   @Input() guests: SceneGuest[] = [];
@@ -202,6 +207,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   trackMessage = (_: number, message: TavernChatMessage) => message.id;
 
   sendChat(): void {
+    if (this.isGuest) return;
     const text = this.chatText.trim();
     if (!text || this.busySending) return;
     this.sendMessage.emit(text);
@@ -210,6 +216,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   react(emoji: string): void {
+    if (this.isGuest) return;
     this.sendReaction.emit(emoji);
     this.spawnParticle(emoji, this.demo ? SEAT_X.r1 : SEAT_X.center);
     if (emoji === '🍺') {
@@ -221,6 +228,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   actionsOpen = false;
 
   toggleActions(): void {
+    if (this.isGuest) return;
     this.actionsOpen = !this.actionsOpen;
     if (this.actionsOpen) {
       this.historyOpenState = false;
@@ -229,12 +237,14 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   runAction(action: TavernTableAction): void {
+    if (this.isGuest) return;
     this.actionsOpen = false;
     this.tableHover = null;
     this.activateTable(action);
   }
 
   toggleHistory(): void {
+    if (this.isGuest) return;
     this.historyOpenState = !this.historyOpenState;
     this.showEmojiList = false;
     this.actionsOpen = false;
@@ -264,6 +274,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   toggleEmojiList(): void {
+    if (this.isGuest) return;
     this.showEmojiList = !this.showEmojiList;
     this.actionsOpen = false;
   }

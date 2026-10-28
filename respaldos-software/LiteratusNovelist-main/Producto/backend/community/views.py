@@ -9,6 +9,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from . import services
+from users.guests import is_guest
 
 User = get_user_model()
 
@@ -22,6 +23,11 @@ def _result(result):
 def _not_found():
     return Response({'success': False, 'error': 'NOT_FOUND', 'message': 'No encontramos a ese lector.'},
                     status=status.HTTP_404_NOT_FOUND)
+
+
+def _guest_forbidden(msg='Inicia sesión con tu cuenta para usar esta función.'):
+    return Response({'success': False, 'error': 'GUEST_RESTRICTED', 'message': msg},
+                    status=status.HTTP_403_FORBIDDEN)
 
 
 class CommunityView(APIView):
@@ -103,6 +109,8 @@ class FriendRequestsView(CommunityView):
         return Response(services.requests_overview(request.user))
 
     def post(self, request):
+        if is_guest(request.user):
+            return _guest_forbidden('Las cuentas de prueba no pueden agregar amigos. Inicia sesión para continuar.')
         code = request.data.get('friend_code')
         username = str(request.data.get('username') or '').strip()
         if code:
@@ -120,6 +128,8 @@ class FriendRequestsView(CommunityView):
 
 class FriendRequestAcceptView(CommunityView):
     def post(self, request, pk):
+        if is_guest(request.user):
+            return _guest_forbidden('Las cuentas de prueba no pueden aceptar solicitudes. Inicia sesión para continuar.')
         return _result(services.accept_request(request.user, pk))
 
 
@@ -149,6 +159,8 @@ class BrindisView(CommunityView):
         return profile.user if profile else None
 
     def post(self, request, code):
+        if is_guest(request.user):
+            return _guest_forbidden('Inicia sesión para brindar con tus amigos.')
         target = self._target(code)
         return _result(services.give_brindis(request.user, target)) if target else _not_found()
 
@@ -178,6 +190,8 @@ class TavernMessagesView(CommunityView):
         return Response({'results': services.list_tavern_messages(request.user, limit)})
 
     def post(self, request):
+        if is_guest(request.user):
+            return _guest_forbidden('Las cuentas de prueba no pueden conversar en la mesa. Inicia sesión para continuar.')
         content = request.data.get('content')
         return _result(services.send_tavern_message(request.user, content))
 
@@ -191,6 +205,8 @@ class TavernMessageDetailView(CommunityView):
 class TavernReactionsView(CommunityView):
     """POST tavern/reactions/ — Reaccionar (🍺, ❤️, 👏, 📖, ✨). No se guarda. Body: {reaction}"""
     def post(self, request):
+        if is_guest(request.user):
+            return _guest_forbidden('Las cuentas de prueba no pueden enviar reacciones. Inicia sesión para continuar.')
         return _result(services.send_tavern_reaction(request.user, request.data.get('reaction')))
 
 
@@ -205,6 +221,8 @@ class TavernInvitationsView(CommunityView):
     throttle_scope = 'community_write'
 
     def post(self, request):
+        if is_guest(request.user):
+            return _guest_forbidden('Las cuentas de prueba no pueden invitar amigos. Inicia sesión para continuar.')
         profile = services.profile_by_code(request.data.get('friend_code'))
         return _result(services.invite_to_tavern(request.user, profile.user)) if profile else _not_found()
 
@@ -221,6 +239,8 @@ class ChatThreadsView(CommunityView):
     """GET chats/ — Tus amigos con su último mensaje y los no leídos."""
 
     def get(self, request):
+        if is_guest(request.user):
+            return Response({'threads': [], 'total_unread': 0})
         return Response(services.chat_threads(request.user))
 
 
@@ -235,12 +255,16 @@ class ChatMessagesView(CommunityView):
         return profile.user if profile else None
 
     def get(self, request, code):
+        if is_guest(request.user):
+            return _guest_forbidden('Las cuentas de prueba no pueden acceder a las charlas privadas. Inicia sesión para continuar.')
         friend = self._friend(code)
         if friend is None:
             return _not_found()
         return _result(services.chat_messages(request.user, friend, request.query_params.get('after')))
 
     def post(self, request, code):
+        if is_guest(request.user):
+            return _guest_forbidden('Las cuentas de prueba no pueden enviar mensajes privados. Inicia sesión para continuar.')
         friend = self._friend(code)
         if friend is None:
             return _not_found()

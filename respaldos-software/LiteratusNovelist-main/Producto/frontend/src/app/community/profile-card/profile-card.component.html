@@ -90,16 +90,28 @@
           <span class="pc-switch-thumb" aria-hidden="true"></span>
         </button>
       </li>
-      <li class="pc-code">
-        <span class="material-symbols-rounded pc-setting-icon" aria-hidden="true">tag</span>
+      <li class="pc-code" *ngIf="isGuest; else normalFriendCode">
+        <span class="material-symbols-rounded pc-setting-icon" aria-hidden="true">lock</span>
         <span class="pc-setting-copy">
           <strong>Tu código de amigo</strong>
-          <span class="th-code">#{{ card.friend_code }}</span>
+          <span class="pc-guest-notice" style="color: #c9d1d9; font-size: 0.8rem;">Inicia sesión para tener tu código</span>
         </span>
-        <button type="button" class="th-btn ghost" (click)="copyCode()" [attr.aria-label]="'Copiar tu código #' + card.friend_code">
-          <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
-        </button>
+        <a routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }" class="th-btn ghost pc-guest-link" style="text-decoration: none; font-size: 0.8rem; padding: 4px 10px;">
+          Entrar
+        </a>
       </li>
+      <ng-template #normalFriendCode>
+        <li class="pc-code" *ngIf="card.friend_code">
+          <span class="material-symbols-rounded pc-setting-icon" aria-hidden="true">tag</span>
+          <span class="pc-setting-copy">
+            <strong>Tu código de amigo</strong>
+            <span class="th-code">#{{ card.friend_code }}</span>
+          </span>
+          <button type="button" class="th-btn ghost" (click)="copyCode()" [attr.aria-label]="'Copiar tu código #' + card.friend_code">
+            <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>Copiar
+          </button>
+        </li>
+      </ng-template>
     </ul>
   </ng-template>
 </section>
