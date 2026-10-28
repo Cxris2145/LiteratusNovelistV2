@@ -226,6 +226,8 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  /* En modo cine el fondo ilustrado ya cubre todo; el fondo solido queda transparente */
+  background-color: transparent;
 }
 
 .th-hall.is-cinema .th-backdrop {
