@@ -196,7 +196,7 @@
   <!-- ============================================================ -->
   <!-- BARRA DE CHAT Y REACCIONES RÁPIDAS DE LA TABERNA             -->
   <!-- ============================================================ -->
-  <footer class="ts-chat-dock">
+  <footer class="ts-chat-dock" *ngIf="isLoggedIn && !demo">
     <ng-container *ngIf="!isGuest; else guestBar">
       <!-- Historial de la mesa: lo que se dijo, del más viejo al más nuevo. -->
       <section class="ts-history" id="ts-history" *ngIf="historyOpenState" aria-labelledby="ts-history-title">

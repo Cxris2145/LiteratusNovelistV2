@@ -90,6 +90,10 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     return this.auth.isGuest();
   }
 
+  get isLoggedIn(): boolean {
+    return this.auth.isLoggedIn();
+  }
+
   @Input() me: SceneGuest | null = null;
   @Input() guests: SceneGuest[] = [];
   @Input() demo = false;
