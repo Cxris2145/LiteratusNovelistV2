@@ -1,0 +1,12 @@
+{
+  "name": "literatus-novelist-v2-root",
+  "version": "1.0.0",
+  "description": "Literatus Novelist V2 - Atajos de inicio rapido",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File ./iniciar.ps1",
+    "backend": "cd respaldos-software/LiteratusNovelist-main/Producto/backend && .venv\\Scripts\\python.exe manage.py runserver 127.0.0.1:8000",
+    "frontend": "cd respaldos-software/LiteratusNovelist-main/Producto/frontend && npm start",
+    "install:frontend": "cd respaldos-software/LiteratusNovelist-main/Producto/frontend && npm install --legacy-peer-deps",
+    "build:frontend": "cd respaldos-software/LiteratusNovelist-main/Producto/frontend && npm run build"
+  }
+}
