@@ -1173,3 +1173,109 @@
 .dchat-modal-btn--ghost:hover {
   color: #94a3b8;
 }
+
+/* ── Opción de chat bloqueada en página completa ── */
+.dchat-locked-footer {
+  padding: 16px 24px 24px;
+  background: linear-gradient(180deg, transparent, rgba(8, 14, 26, 0.6) 30%);
+  z-index: 10;
+}
+
+.dchat-locked-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.12);
+  padding: 18px 24px;
+  border-radius: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.dchat-locked-icon {
+  font-size: 28px;
+  color: var(--glow-gold, #fbbf24);
+  background: rgba(251, 191, 36, 0.12);
+  padding: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dchat-locked-info {
+  flex: 1;
+}
+
+.dchat-locked-title {
+  display: block;
+  font-size: 1rem;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.dchat-locked-sub {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #94a3b8;
+}
+
+.dchat-locked-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.dchat-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--glow-gold, #fbbf24);
+  color: #0f172a;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dchat-btn-primary:hover {
+  background: #f59e0b;
+  transform: translateY(-1px);
+}
+
+.dchat-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dchat-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+  .dchat-locked-box {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 16px;
+  }
+  .dchat-locked-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  .dchat-locked-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}

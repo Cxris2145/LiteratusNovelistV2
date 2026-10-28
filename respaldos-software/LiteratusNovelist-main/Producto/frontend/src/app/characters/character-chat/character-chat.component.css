@@ -439,3 +439,88 @@
 .cc-auth-btn--ghost:hover {
   color: #94a3b8;
 }
+
+/* ── Opción de chat bloqueada para visitantes sin sesión ── */
+.cc-locked-box {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(251, 191, 36, 0.1);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.cc-locked-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cc-locked-icon {
+  font-size: 20px;
+  color: var(--glow-gold, #fbbf24);
+  background: rgba(251, 191, 36, 0.12);
+  padding: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cc-locked-text {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: #e2e8f0;
+}
+
+.cc-locked-text strong {
+  color: var(--glow-gold, #fbbf24);
+}
+
+.cc-locked-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.cc-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--glow-gold, #fbbf24);
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.84rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+.cc-btn-primary:hover {
+  background: #f59e0b;
+  transform: translateY(-1px);
+}
+
+.cc-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+  font-weight: 500;
+  font-size: 0.84rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cc-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
