@@ -8,7 +8,7 @@ import { ApiService } from '../core/services/api.service';
 import { CharacterChatService } from '../core/services/character-chat.service';
 import { AuthService } from '../core/services/auth.service';
 import { ScrollRevealService } from '../core/services/scroll-reveal.service';
-import { coverThumb } from '../core/utils/cover-thumb.util';
+import { coverThumb, imageThumb } from '../core/utils/cover-thumb.util';
 import { HomeDataService } from '../core/services/home-data.service';
 
 export interface Book {
@@ -240,9 +240,10 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
           this.totalGenres = home.stats.total_genres;
           this.allBooks = home.books;
           this.wallColumns = this.buildWall(this.allBooks);
-          this.genreTiles = home.genres;
-          this.starterBooks = home.starter_books;
-          this.cast = home.cast;
+          // Miniaturas: los originales pesan 60-180 KB y aquí se ven a 120-300 px.
+          this.genreTiles = home.genres.map((g, i) => ({ ...g, image: imageThumb(g.image, i === 0 ? 800 : 480) }));
+          this.starterBooks = home.starter_books.map(b => ({ ...b, cover: coverThumb(b.cover, 300, 450) }));
+          this.cast = home.cast.map(c => ({ ...c, image: imageThumb(c.image, 480) }));
           this.odysseus = this.cast.find(card => card.bookSlug === 'la-odisea-homero') ?? null;
           this.castLoaded = true;
           this.cdr.detectChanges();
@@ -258,7 +259,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private buildWall(books: Book[]): string[][] {
-    const covers = Array.from(new Set(books.map(b => b.cover_image).filter((c): c is string => !!c)));
+    const covers = Array.from(new Set(books.map(b => b.cover_image).filter((c): c is string => !!c)))
+      .map(c => coverThumb(c, 320, 320));
     if (covers.length < 10) return [];
     const columns = 6;
     const perColumn = Math.min(6, Math.floor(covers.length / columns));

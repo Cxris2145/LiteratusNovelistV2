@@ -16,7 +16,20 @@
   <link rel="preconnect" href="https://tknsbrxgkreikcbowvla.supabase.co" crossorigin>
   <link rel="preconnect" href="https://srbmswjsbkpftjabcurg.supabase.co" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <!--
+    Iconos Material Symbols servidos desde el sitio, con solo los iconos que usa el código
+    (363 KB y 277 KB en vez de 5,4 MB y 4 MB). Se generan con scripts/icon-fonts/subset_icons.py;
+    `npm start` y `npm run build` avisan si el código usa un icono que no está.
+    Sin <link rel="preload">: en 4G lenta competía con el JS y atrasaba la primera pintura.
+  -->
+  <style>
+    @font-face { font-family: 'Material Symbols Outlined'; font-style: normal; font-weight: 100 700; font-display: block; src: url(/assets/fonts/material-symbols-outlined.woff2) format('woff2'); }
+    @font-face { font-family: 'Material Symbols Rounded'; font-style: normal; font-weight: 100 700; font-display: block; src: url(/assets/fonts/material-symbols-rounded.woff2) format('woff2'); }
+    .material-symbols-outlined, .material-symbols-rounded { font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+    .material-symbols-outlined { font-family: 'Material Symbols Outlined'; }
+    .material-symbols-rounded { font-family: 'Material Symbols Rounded'; }
+  </style>
 
   <!--
     SISTEMA TIPOGRÁFICO DE LITERATUS NOVELIST
@@ -28,9 +41,6 @@
   -->
 
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&amp;family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&amp;family=Cinzel:wght@400;600;700;900&amp;family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&amp;display=swap" rel="stylesheet">
-
-  <!-- Material Symbols Rounded — Iconos nítidos para el dropdown del menú -->
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
   <!--
     TIPOGRAFÍAS DEL LECTOR (opciones de "Aa" → Tipografía).

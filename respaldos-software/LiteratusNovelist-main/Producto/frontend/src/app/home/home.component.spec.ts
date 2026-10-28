@@ -63,6 +63,24 @@ describe('HomeComponent public data', () => {
     expect(component.castLoaded).toBeTrue();
   });
 
+  it('asks Supabase for thumbnails instead of the original images', () => {
+    const storage = 'https://x.supabase.co/storage/v1/object/public/literatus-media';
+    const covers = Array.from({ length: 12 }, (_, i) => `${storage}/book_covers/libro-${i}.jpg`);
+    homeData.getHome.and.returnValue(of({
+      ...home,
+      books: covers.map((cover_image, i) => ({ ...home.books[0], id: String(i), slug: `libro-${i}`, cover_image })),
+      starter_books: [{ ...home.starter_books[0], cover: covers[0] }],
+      genres: [{ ...home.genres[0], image: `${storage}/category_covers/clasicos.webp` }],
+      cast: [{ ...home.cast[0], image: `${storage}/ai_avatars/odiseo.webp` }]
+    }));
+    fixture.detectChanges();
+    const thumb = `${storage.replace('/object/', '/render/image/')}`;
+    expect(component.wallColumns.flat().every(src => src.startsWith(thumb) && src.includes('width=320'))).toBeTrue();
+    expect(component.starterBooks[0].cover).toContain(`${thumb}/book_covers/libro-0.jpg?width=300&height=450`);
+    expect(component.genreTiles[0].image).toBe(`${thumb}/category_covers/clasicos.webp?width=800&quality=62`);
+    expect(component.cast[0].image).toBe(`${thumb}/ai_avatars/odiseo.webp?width=480&quality=62`);
+  });
+
   it('keeps profile and inventory separate from the public response for signed-in readers', () => {
     loggedIn = true;
     api.get.and.returnValues(of({ level: 2 }), of([]));

@@ -21,3 +21,13 @@ export function coverThumb(
   }
   return url;
 }
+
+/**
+ * Igual que coverThumb, pero solo fija el ancho y conserva la proporción original.
+ * Para imágenes que el CSS recorta con su propio object-position (retratos, categorías).
+ */
+export function imageThumb(url: string | null | undefined, width: number, quality = 62): string {
+  if (!url || !url.includes('/storage/v1/object/public/')) return url ?? '';
+  return url.replace('/object/public/', '/render/image/public/')
+    + (url.includes('?') ? '&' : '?') + `width=${width}&quality=${quality}`;
+}

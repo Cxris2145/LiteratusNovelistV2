@@ -1,30 +1,19 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { LoginComponent } from './auth/login/login.component';
-import { RegisterComponent } from './auth/register/register.component';
-import { VerifyEmailComponent } from './auth/verify-email/verify-email.component';
-import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
-import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
-import { BookListComponent } from './catalog/book-list/book-list.component';
-import { BookDetailPageComponent } from './catalog/book-detail-page/book-detail-page.component';
 import { authGuard } from './core/guards/auth.guard';
 import { legacyShopRedirect } from './core/guards/legacy-shop.redirect';
 import { adminGuard } from './guards/admin.guard';
-import { AuthorDetailPageComponent } from './catalog/author-detail-page/author-detail-page.component';
-import { LibraryListComponent } from './library/library-list/library-list.component';
-import { OnboardingComponent } from './auth/onboarding/onboarding.component';
 import { onboardingGuard } from './core/guards/onboarding.guard';
+import { IdlePreloadStrategy } from './core/idle-preload.strategy';
 
 import { HomeComponent } from './home/home.component';
 
-import { AuthorListComponent } from './catalog/author-list/author-list.component';
-import { CategoriesComponent } from './categories/categories.component';
-import { CategoryDetailComponent } from './categories/category-detail/category-detail.component';
-
-// Las páginas del catálogo, la biblioteca y el ingreso van en el paquete inicial. El resto
-// (lector, La Taberna, juegos, personajes, compras y cuenta) se descarga al abrirlas: en un
-// celular con 4G la app abre bastante antes. Cada `loadChildren` trae un módulo con su página.
+// Solo la portada va en el paquete inicial. Cada `loadChildren` trae un módulo con su página
+// al abrirla: en un celular con 4G la app abre bastante antes. Las rutas con `preload` (catálogo,
+// ficha de libro, autores, categorías, biblioteca e ingreso) son livianas y se bajan solas en
+// segundo plano cuando la app ya cargó, así que al tocarlas abren al instante.
+const preload = { preload: true };
 const routes: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'favorites', canActivate: [authGuard], loadChildren: () => import('./users/account.module').then(m => m.FavoritesRouteModule) },
@@ -40,27 +29,27 @@ const routes: Routes = [
   { path: 'tavern/tienda', canActivate: [legacyShopRedirect], children: [] },
   { path: 'tavern', loadChildren: () => import('./community/tavern.module').then(m => m.TavernModule) },
   { path: 'planes', loadChildren: () => import('./catalog/commerce.module').then(m => m.PlanesRouteModule) },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'onboarding', component: OnboardingComponent, canActivate: [onboardingGuard] },
-  { path: 'verify-email', component: VerifyEmailComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'login', data: preload, loadChildren: () => import('./auth/auth-pages.module').then(m => m.LoginRouteModule) },
+  { path: 'register', data: preload, loadChildren: () => import('./auth/auth-pages.module').then(m => m.RegisterRouteModule) },
+  { path: 'onboarding', canActivate: [onboardingGuard], loadChildren: () => import('./auth/auth-pages.module').then(m => m.OnboardingRouteModule) },
+  { path: 'verify-email', loadChildren: () => import('./auth/auth-pages.module').then(m => m.VerifyEmailRouteModule) },
+  { path: 'forgot-password', loadChildren: () => import('./auth/auth-pages.module').then(m => m.ForgotPasswordRouteModule) },
+  { path: 'reset-password', loadChildren: () => import('./auth/auth-pages.module').then(m => m.ResetPasswordRouteModule) },
   { path: 'profile', canActivate: [authGuard], loadChildren: () => import('./users/account.module').then(m => m.ProfileRouteModule) },
   { path: 'control-parental', canActivate: [authGuard], loadChildren: () => import('./parental/parental.module').then(m => m.ParentalModule) },
-  { path: 'catalog', component: BookListComponent },
-  { path: 'authors', component: AuthorListComponent },
+  { path: 'catalog', data: preload, loadChildren: () => import('./catalog/book-list/book-list.module').then(m => m.CatalogRouteModule) },
+  { path: 'authors', data: preload, loadChildren: () => import('./catalog/author-list/author-list.module').then(m => m.AuthorsRouteModule) },
   { path: 'publish-book', canActivate: [authGuard], loadChildren: () => import('./users/account.module').then(m => m.PublishBookRouteModule) },
   { path: 'authors/publish', redirectTo: 'publish-book', pathMatch: 'full' },
   { path: 'characters', loadChildren: () => import('./characters/characters.module').then(m => m.CharacterHubRouteModule) },
   { path: 'chat', loadChildren: () => import('./characters/characters.module').then(m => m.DemoChatRouteModule) },
   { path: 'demo-chat', redirectTo: 'chat', pathMatch: 'full' },
   { path: 'demo-chat/:avatarId', redirectTo: 'chat/:avatarId' },
-  { path: 'book/:slug', component: BookDetailPageComponent },
-  { path: 'author/:slug', component: AuthorDetailPageComponent },
+  { path: 'book/:slug', data: preload, loadChildren: () => import('./catalog/book-detail-page/book-detail-page.module').then(m => m.BookDetailRouteModule) },
+  { path: 'author/:slug', data: preload, loadChildren: () => import('./catalog/author-detail-page/author-detail-page.module').then(m => m.AuthorDetailRouteModule) },
   { path: 'checkout', loadChildren: () => import('./catalog/commerce.module').then(m => m.CheckoutRouteModule) },
   { path: 'payment', loadChildren: () => import('./catalog/commerce.module').then(m => m.PaymentRouteModule) },
-  { path: 'library', component: LibraryListComponent, canActivate: [authGuard] },
+  { path: 'library', canActivate: [authGuard], data: preload, loadChildren: () => import('./library/library-list/library-list.module').then(m => m.LibraryRouteModule) },
   // El lector conserva "reader/:id" en el primer nivel: AppRouteReuseStrategy compara ese path
   // para crear un lector nuevo al cambiar de libro, y el hijo vacío hereda el parámetro :id.
   { path: 'reader/:id', canActivate: [authGuard], loadChildren: () => import('./library/reader/reader.module').then(m => m.ReaderModule) },
@@ -74,14 +63,13 @@ const routes: Routes = [
     loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
     canActivate: [adminGuard]
   },
-  { path: 'categories', component: CategoriesComponent },
-  { path: 'categories/:slug', component: CategoryDetailComponent },
+  { path: 'categories', data: preload, loadChildren: () => import('./categories/categories.module').then(m => m.CategoriesRouteModule) },
   { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
+  imports: [RouterModule.forRoot(routes, { preloadingStrategy: IdlePreloadStrategy })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "node scripts/build-home-snapshot.mjs && ng build",
+    "start": "node scripts/icon-fonts.mjs && ng serve",
+    "build": "node scripts/icon-fonts.mjs && node scripts/build-home-snapshot.mjs && ng build",
     "snapshot:home": "node scripts/build-home-snapshot.mjs",
+    "icons:list": "node scripts/icon-fonts.mjs --write",
+    "icons:fonts": "python scripts/icon-fonts/subset_icons.py",
     "test:home-snapshot": "node --test scripts/public-home.test.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
