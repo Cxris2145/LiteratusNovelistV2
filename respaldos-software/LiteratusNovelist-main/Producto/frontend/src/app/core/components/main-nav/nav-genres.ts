@@ -9,13 +9,13 @@ export interface NavGenre {
 }
 
 export const NAV_GENRES: NavGenre[] = [
-  { label: 'Cuentos clásicos', slug: 'cuentos', icon: 'auto_stories' },
+  { label: 'Cuentos e infantil', slug: 'cuentos', icon: 'auto_stories' },
   { label: 'Aventuras', slug: 'accion-y-aventura', icon: 'sailing' },
-  { label: 'Fantasía', slug: 'fantasia', icon: 'castle' },
-  { label: 'Misterio', slug: 'policiaca-negra-y-suspense', icon: 'search_insights' },
-  { label: 'Ciencia ficción', slug: 'ciencia-ficcion', icon: 'rocket_launch' },
+  { label: 'Ciencia ficción y fantasía', slug: 'ciencia-ficcion', icon: 'rocket_launch' },
+  { label: 'Terror y misterio', slug: 'terror', icon: 'search_insights' },
   { label: 'Romance', slug: 'romantica', icon: 'favorite' },
-  { label: 'Terror', slug: 'terror', icon: 'skull' },
+  { label: 'Novela clásica', slug: 'ficcion-clasica', icon: 'menu_book' },
+  { label: 'Novela histórica', slug: 'ficcion-historica', icon: 'history_edu' },
 ];
 
 /** Los cinco primeros van como filtros rápidos bajo el buscador. */

@@ -133,14 +133,16 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
     // IA Books: hardcoded slugs that have IA characters
     const iaSlugs = new Set([
-      'el-gato-negro-allan-poe-edgar',
-      'el-principe-feliz-y-otros-cuentos-wilde-oscar',
+      'la-odisea-homero',
+      'la-iliada-homero',
+      'la-divina-comedia-dante-alighieri',
       'la-metamorfosis-kafka-franz',
       'las-metamorfosis-ovidio',
-      'el-corazon-delator-allan-poe-edgar',
-      'alicia-en-el-pais-de-las-maravillas-carroll-lewis',
-      'el-cuervo-allan-poe-edgar',
-      'la-caida-de-la-casa-usher-allan-poe-edgar'
+      'las-aventuras-de-alicia-en-el-pais-de-las-maravillas-carroll-lewis',
+      'frankenstein-mary-shelley',
+      'hamlet-shakespeare-william',
+      'romeo-y-julieta-shakespeare-william',
+      'veinte-mil-leguas-de-viaje-submarino-verne-julio'
     ]);
     this.iaBooks = pool.filter(b => iaSlugs.has(b.slug));
 

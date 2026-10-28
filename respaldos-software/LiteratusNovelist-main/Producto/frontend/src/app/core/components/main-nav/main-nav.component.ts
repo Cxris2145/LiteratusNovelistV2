@@ -28,7 +28,7 @@ const CLOSE_DELAY_MS = 160;
 const LIBRARY_TTL_MS = 60_000;
 const PANEL_MAX_WIDTH = 500;
 const PANEL_GUTTER = 16;
-const AUTHORS_BANNER_GENRE = 'biografias-diarios-y-hechos-reales';
+const AUTHORS_BANNER_GENRE = 'filosofia';
 
 /** true solo la primera vez que se consulta la clave en esta pestaña. */
 export function firstTimeThisSession(key: string): boolean {
@@ -69,7 +69,7 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
   readonly genres = NAV_GENRES;
   readonly featuredGenres = [
     { slug: 'cuentos', title: 'Cuentos clásicos', text: 'Las historias que nunca pasan de moda.', cover: '' },
-    { slug: 'fantasia', title: 'Fantasía', text: 'Mundos mágicos y grandes aventuras.', cover: '' },
+    { slug: 'ciencia-ficcion', title: 'Ciencia ficción y fantasía', text: 'Viajes a la Luna y mundos mágicos.', cover: '' },
   ];
   readonly authors = [
     { name: 'Oscar Wilde', slug: 'oscar-wilde', photo: '' },

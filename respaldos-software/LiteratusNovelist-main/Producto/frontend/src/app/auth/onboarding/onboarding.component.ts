@@ -105,16 +105,16 @@ export class OnboardingComponent implements OnInit {
         this.isLoadingGenres = false;
         // Fallback robusto con géneros clave
         this.availableGenres = [
-          { id: 'fantasia', name: 'Fantasía', slug: 'fantasia' },
-          { id: 'ciencia-ficcion', name: 'Ciencia Ficción', slug: 'ciencia-ficcion' },
-          { id: 'misterio', name: 'Misterio y Suspenso', slug: 'misterio' },
-          { id: 'novela-historica', name: 'Novela Histórica', slug: 'novela-historica' },
-          { id: 'cuentos', name: 'Cuentos Clásicos', slug: 'cuentos' },
-          { id: 'filosofia', name: 'Filosofía y Ensayo', slug: 'filosofia' },
-          { id: 'romance', name: 'Romance y Drama', slug: 'romance' },
-          { id: 'terror', name: 'Terror y Gótico', slug: 'terror' },
-          { id: 'aventura', name: 'Acción y Aventura', slug: 'aventura' },
-          { id: 'poesia', name: 'Poesía', slug: 'poesia' },
+          { id: 'ficcion-clasica', name: 'Novela clásica', slug: 'ficcion-clasica' },
+          { id: 'accion-y-aventura', name: 'Aventura y viajes', slug: 'accion-y-aventura' },
+          { id: 'ciencia-ficcion', name: 'Ciencia ficción y fantasía', slug: 'ciencia-ficcion' },
+          { id: 'terror', name: 'Terror y misterio', slug: 'terror' },
+          { id: 'romantica', name: 'Romántica', slug: 'romantica' },
+          { id: 'ficcion-historica', name: 'Novela histórica', slug: 'ficcion-historica' },
+          { id: 'cuentos', name: 'Cuentos e infantil', slug: 'cuentos' },
+          { id: 'teatro', name: 'Teatro', slug: 'teatro' },
+          { id: 'poesia', name: 'Poesía y épica', slug: 'poesia' },
+          { id: 'filosofia', name: 'Filosofía y ensayo', slug: 'filosofia' },
         ];
       }
     });

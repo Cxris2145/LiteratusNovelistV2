@@ -89,7 +89,7 @@ export class BookListComponent implements OnInit {
   readonly PINNED_GENRES: { name: string; slug: string | null }[] = [
     { name: 'Todos', slug: null },
     { name: 'Aventura', slug: 'accion-y-aventura' },
-    { name: 'Fantasía', slug: 'fantasia' },
+    { name: 'Ciencia ficción', slug: 'ciencia-ficcion' },
     { name: 'Clásicos', slug: 'ficcion-clasica' },
     { name: 'Cuentos', slug: 'cuentos' },
     { name: 'Terror', slug: 'terror' },
@@ -216,18 +216,10 @@ export class BookListComponent implements OnInit {
   }
 
   private readonly FICTION_SLUGS = new Set<string>([
-    'accion-y-aventura', 'antologias', 'ciencia-ficcion', 'cuentos', 'fantasia',
-    'ficcion-clasica', 'ficcion-contemporanea', 'ficcion-erotica', 'ficcion-historica',
-    'ficcion-religiosa-y-espiritual', 'literatura-de-viaje', 'mitos-leyendas-y-sagas',
-    'novela-corta', 'poesia', 'policiaca-negra-y-suspense', 'romantica', 'satira',
-    'teatro', 'terror', 'infantil-y-juvenil', 'humor', 'relatos'
+    'accion-y-aventura', 'ciencia-ficcion', 'cuentos', 'ficcion-clasica', 'ficcion-historica',
+    'poesia', 'romantica', 'teatro', 'terror'
   ]);
-  private readonly NONFICTION_SLUGS = new Set<string>([
-    'biografias-diarios-y-hechos-reales', 'ensayos', 'filosofia', 'historia',
-    'psicologia', 'sociedad-y-ciencias-sociales', 'religion', 'politica',
-    'autoayuda-y-superacion-personal', 'ciencias-tecnologia-y-medicina',
-    'arte-cine-y-fotografia', 'historia-teoria-literaria-y-critica'
-  ]);
+  private readonly NONFICTION_SLUGS = new Set<string>(['filosofia']);
 
   private readonly EAGER_COVERS = 8;
   searchTerm = '';
@@ -606,16 +598,16 @@ export class BookListComponent implements OnInit {
       let score = 70;
       let reason = 'Excelente obra recomendada para ti';
 
-      if (this.wizardMood === 'epico' && (book.genres?.some(g => g.slug === 'fantasia' || g.slug === 'accion-y-aventura') || book.is_featured)) {
+      if (this.wizardMood === 'epico' && (book.genres?.some(g => g.slug === 'ciencia-ficcion' || g.slug === 'accion-y-aventura') || book.is_featured)) {
         score += 25;
         reason = 'Aventura épica y mundos fantásticos';
-      } else if (this.wizardMood === 'misterio' && book.genres?.some(g => g.slug === 'terror' || g.slug === 'policiaca-negra-y-suspense')) {
+      } else if (this.wizardMood === 'misterio' && book.genres?.some(g => g.slug === 'terror')) {
         score += 26;
         reason = 'Intriga inmersiva y giros sorprendentes';
-      } else if (this.wizardMood === 'reflexion' && (book.genres?.some(g => g.slug === 'ficcion-clasica' || g.slug === 'filosofia' || g.slug === 'ensayos'))) {
+      } else if (this.wizardMood === 'reflexion' && (book.genres?.some(g => g.slug === 'ficcion-clasica' || g.slug === 'filosofia'))) {
         score += 27;
         reason = 'Profundidad literaria y reflexión atemporal';
-      } else if (this.wizardMood === 'ligero' && (book.genres?.some(g => g.slug === 'cuentos' || g.slug === 'humor' || g.slug === 'relatos') || (book.page_count && book.page_count < 120))) {
+      } else if (this.wizardMood === 'ligero' && (book.genres?.some(g => g.slug === 'cuentos') || (book.page_count && book.page_count < 120))) {
         score += 24;
         reason = 'Lectura ágil, absorbente y placentera';
       }

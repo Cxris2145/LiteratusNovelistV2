@@ -14,6 +14,12 @@ Uso:
     python manage.py import_epubs --source ../../books  # carpeta explícita
     python manage.py import_epubs --limit 20            # prueba con 20 libros
     python manage.py import_epubs --skip-existing       # no re-procesa libros ya con capítulos
+    python manage.py import_epubs --only a,b --chapters-only --dry-run  # repara capítulos (informe)
+    python manage.py import_epubs --only a,b --chapters-only            # repara capítulos
+
+Con --chapters-only solo se reemplazan los capítulos de libros que ya existen: no se
+tocan título, autores, edición ni géneros (sin él, al final se reasignan TODAS las
+categorías de elejandria_master.json, incluidas las que el catálogo curado ya no usa).
 """
 
 import json
@@ -21,11 +27,12 @@ import os
 import re
 import shutil
 import traceback
+import warnings
 import zipfile
 from decimal import Decimal
 from pathlib import Path
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, XMLParsedAsHTMLWarning
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -236,6 +243,131 @@ def _chapters_manual(epub_path, slug):
     return chapters
 
 
+SPLIT_WORDS = 6000  # documentos más largos que esto se cortan en sus títulos
+# Páginas de índice, el rótulo publicitario de la fuente y los rótulos vacíos del TOC.
+INDEX_TITLE = re.compile(r"^([íi]ndice|contenido|table of contents|tabla de contenidos?)\b", re.IGNORECASE)
+SPAM_TITLE = re.compile(r"gracias por leer", re.IGNORECASE)
+GENERIC_TOC_TITLES = {"start", "iniciar", "comenzar", "inicio"}
+
+
+def _split_by_headings(body):
+    """
+    Corta un documento largo en sus títulos (h1/h2/h3) para que el lector no reciba
+    capítulos de 100.000 palabras. Devuelve [(título, html)]; [] si no hay dónde cortar.
+    """
+    container = body
+    while True:
+        kids = [c for c in container.children if getattr(c, "name", None)]
+        if len(kids) == 1 and kids[0].name in ("div", "section", "article"):
+            container = kids[0]
+        else:
+            break
+    kids = [c for c in container.children if getattr(c, "name", None) or str(c).strip()]
+    counts = {h: sum(1 for c in kids if getattr(c, "name", None) == h) for h in ("h1", "h2", "h3")}
+    # El nivel con más títulos son los capítulos (h2 suele marcar partes y h3 capítulos);
+    # los títulos de nivel superior también cortan.
+    level = max(counts, key=lambda h: (counts[h], -int(h[1])))
+    if counts[level] < 2:
+        return []
+    cuts = {h for h in counts if int(h[1]) <= int(level[1])}
+    parts, title, buf = [], "", []
+    for child in kids:
+        name = getattr(child, "name", None)
+        if name in cuts:
+            if buf:
+                parts.append((title, "".join(buf)))
+                buf = []
+            title = child.get_text(" ", strip=True)[:200]
+        buf.append(str(child))
+    if buf:
+        parts.append((title, "".join(buf)))
+    # Trozos casi vacíos (un prefacio corto, el título de una parte) se unen al siguiente.
+    merged = []
+    for i, (t, html) in enumerate(parts):
+        if i + 1 < len(parts) and len(BeautifulSoup(html, "html.parser").get_text(strip=True)) < 300:
+            parts[i + 1] = (parts[i + 1][0], html + parts[i + 1][1])
+            continue
+        merged.append((t, html))
+    return merged if len(merged) > 1 else []
+
+
+def _chapters_spine(epub_path, slug):
+    """
+    Un capítulo por documento del spine, en orden y sin repetir archivos. Es la vía
+    para reparar libros que el TOC dejó cortados (anclas anidadas) o duplicados
+    (varias entradas del índice apuntando al mismo archivo).
+    """
+    import urllib.parse
+
+    chapters, seen = [], set()
+    with zipfile.ZipFile(epub_path) as z:
+        container = z.read("META-INF/container.xml").decode("utf-8")
+        opf_path = re.search(r'full-path="([^"]+)"', container).group(1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", XMLParsedAsHTMLWarning)
+            opf = BeautifulSoup(z.read(opf_path).decode("utf-8", errors="ignore"), "html.parser")
+        base = os.path.dirname(opf_path)
+        manifest = {it.get("id"): it for it in opf.find_all("item") if it.get("id") and it.get("href")}
+        # Nombre que el índice (toc.ncx) da a cada archivo, para los que no traen título propio.
+        toc_titles = {}
+        ncx = next((it for it in manifest.values() if it.get("media-type") == "application/x-dtbncx+xml"), None)
+        if ncx:
+            try:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", XMLParsedAsHTMLWarning)
+                    nav = BeautifulSoup(z.read(os.path.join(base, urllib.parse.unquote(ncx["href"])).replace("\\", "/"))
+                                        .decode("utf-8", errors="ignore"), "html.parser")
+                for point in nav.find_all("navpoint"):
+                    label, content = point.find("text"), point.find("content")
+                    if label and content and content.get("src"):
+                        key = os.path.basename(urllib.parse.unquote(content["src"].split("#")[0]))
+                        toc_titles.setdefault(key, label.get_text(" ", strip=True)[:200])
+            except KeyError:
+                pass
+        for ref in opf.find_all("itemref"):
+            item = manifest.get(ref.get("idref"))
+            if not item or "nav" in (item.get("properties") or ""):
+                continue
+            href = urllib.parse.unquote(item["href"])
+            skip = ("cover", "titlepage", "toc", "nav", "indice", "portadilla", "titulo")
+            if href in seen or any(k in href.lower() for k in skip):
+                continue
+            seen.add(href)
+            try:
+                raw = z.read(os.path.join(base, href).replace("\\", "/"))
+            except KeyError:
+                continue
+            soup = BeautifulSoup(raw.decode("utf-8", errors="ignore"), "html.parser")
+            body = soup.body or soup
+            if len(body.get_text(strip=True)) < 100:
+                continue
+            pieces = _split_by_headings(body) if len(body.get_text(" ").split()) > SPLIT_WORDS else []
+            if not pieces:
+                heading = body.find(["h1", "h2", "h3"])
+                pieces = [(heading.get_text(" ", strip=True)[:200] if heading else "", body.decode_contents())]
+            toc_title = toc_titles.get(os.path.basename(href), "")
+            if toc_title.lower() in GENERIC_TOC_TITLES:
+                toc_title = ""
+            for title, html in pieces:
+                if SPAM_TITLE.search(title):
+                    title = ""  # la publicidad se borra del texto; lo que siga (p. ej. notas) se queda
+                content = _clean_html(BeautifulSoup(html, "html.parser"), slug)
+                page = BeautifulSoup(content, "html.parser")
+                text = page.get_text(strip=True)
+                if len(text) < 100:
+                    continue
+                link_text = sum(len(a.get_text(strip=True)) for a in page.find_all("a"))
+                looks_like_index = INDEX_TITLE.search(title.strip()) or INDEX_TITLE.search(text[:40])
+                if link_text > len(text) * (0.5 if looks_like_index else 0.8):
+                    continue  # página de índice: puros enlaces (a veces va al final y sin título)
+                chapters.append({
+                    "title": title or toc_title or f"Parte {len(chapters) + 1}",
+                    "content": content,
+                    "order": len(chapters) + 1,
+                })
+    return chapters
+
+
 def _chapters_wholebook(epub_path, slug):
     """Último recurso: mete TODO el texto (x)html del EPUB en un solo capítulo."""
     parts = []
@@ -260,6 +392,19 @@ def _chapters_wholebook(epub_path, slug):
     return [{"title": "Texto completo", "content": "\n".join(parts), "order": 1}]
 
 
+def _chapter_rows(book, chapters):
+    """Capítulos listos para bulk_create (descarta la portada suelta del inicio)."""
+    return [
+        Chapter(
+            book=book, title=ch["title"] or f"Capítulo {ch['order']}",
+            content_html=ch["content"], order=ch["order"],
+        )
+        for ch in chapters
+        if not (ch["order"] == 1 and ch["content"].count("<img") == 1
+                and len(ch["content"]) < 500)
+    ]
+
+
 class Command(BaseCommand):
     help = "Reconstruye el catálogo (libros, capítulos, autores, géneros) desde una carpeta de EPUBs."
 
@@ -270,6 +415,13 @@ class Command(BaseCommand):
         parser.add_argument("--limit", type=int, default=0, help="Procesa como máximo N libros.")
         parser.add_argument("--skip-existing", action="store_true",
                             help="Salta libros que ya tienen capítulos.")
+        parser.add_argument("--only", default=None, help="Slugs separados por coma: procesa solo esas carpetas.")
+        parser.add_argument("--chapters-only", action="store_true",
+                            help="Solo reemplaza los capítulos de libros existentes (no toca autores, edición ni géneros).")
+        parser.add_argument("--dry-run", action="store_true",
+                            help="Con --chapters-only: informa capítulos y palabras sin escribir nada.")
+        parser.add_argument("--spine", action="store_true",
+                            help="Extrae un capítulo por documento del spine en vez de seguir el TOC.")
 
     def handle(self, *args, **opts):
         src = _resolve_source(opts["source"])
@@ -277,6 +429,14 @@ class Command(BaseCommand):
         w(f"Fuente de EPUBs: {src}")
 
         folders = sorted(f for f in src.iterdir() if f.is_dir() and any(f.glob("*.epub")))
+        if opts["only"]:
+            wanted = {s.strip() for s in opts["only"].split(",") if s.strip()}
+            folders = [f for f in folders if f.name[:100] in wanted]
+            missing = wanted - {f.name[:100] for f in folders}
+            if missing:
+                w(f"Sin carpeta con EPUB: {sorted(missing)}")
+        if opts["dry_run"] and not opts["chapters_only"]:
+            raise CommandError("--dry-run solo funciona junto con --chapters-only.")
         if opts["limit"]:
             folders = folders[: opts["limit"]]
         w(f"Carpetas con EPUB: {len(folders)}")
@@ -291,10 +451,16 @@ class Command(BaseCommand):
                     skipped += 1
                     continue
 
-                _extract_images(epub_path, slug)
+                if not opts["dry_run"]:
+                    _extract_images(epub_path, slug)
                 title, author = _metadata_from_opf(epub_path)
 
                 chapters = []
+                if opts["spine"]:
+                    try:
+                        chapters = _chapters_spine(epub_path, slug)
+                    except Exception:  # noqa: BLE001
+                        chapters = []
                 try:
                     from ebooklib import epub as _epub
                     be = _epub.read_epub(str(epub_path))
@@ -304,9 +470,10 @@ class Command(BaseCommand):
                     if not title:
                         ti = be.get_metadata("DC", "title")
                         title = str(ti[0][0]) if ti else None
-                    chapters = _chapters_structural(be, slug)
+                    if not chapters:
+                        chapters = _chapters_structural(be, slug)
                 except Exception:  # noqa: BLE001
-                    chapters = []
+                    pass
                 # Fallback: si el TOC no dio capítulos, extraer por spine.
                 if not chapters:
                     try:
@@ -333,6 +500,24 @@ class Command(BaseCommand):
                     w(f"  ! {slug}: sin capítulos extraíbles")
                     continue
 
+                if opts["chapters_only"]:
+                    if not existing:
+                        failed += 1
+                        w(f"  ! {slug}: no existe en la base")
+                        continue
+                    rows = _chapter_rows(existing, chapters)
+                    sizes = [len(re.sub(r"<[^>]+>", " ", r.content_html).split()) for r in rows]
+                    before = existing.recount_words(save=False)
+                    w(f"  {slug}: {len(rows)} capítulos, {sum(sizes)} palabras (antes {before}), "
+                      f"el mayor de {max(sizes, default=0)}")
+                    if not opts["dry_run"]:
+                        with transaction.atomic():
+                            existing.chapters.all().delete()
+                            Chapter.objects.bulk_create(rows, batch_size=200)
+                            existing.recount_words()
+                    ok += 1
+                    continue
+
                 with transaction.atomic():
                     author_obj, _ = Author.objects.get_or_create(
                         slug=_slugify(author), defaults={"full_name": author[:255]}
@@ -347,16 +532,7 @@ class Command(BaseCommand):
                         defaults={"file": f"books/{slug}/{epub_path.name}", "price": Decimal("0.00")},
                     )
                     book_obj.chapters.all().delete()
-                    rows = [
-                        Chapter(
-                            book=book_obj, title=ch["title"] or f"Capítulo {ch['order']}",
-                            content_html=ch["content"], order=ch["order"],
-                        )
-                        for ch in chapters
-                        if not (ch["order"] == 1 and ch["content"].count("<img") == 1
-                                and len(ch["content"]) < 500)
-                    ]
-                    Chapter.objects.bulk_create(rows, batch_size=200)
+                    Chapter.objects.bulk_create(_chapter_rows(book_obj, chapters), batch_size=200)
                     # Nº exacto de palabras/páginas para el catálogo.
                     book_obj.recount_words()
                 ok += 1
@@ -367,7 +543,8 @@ class Command(BaseCommand):
                 failed += 1
                 w(f"  ! {slug}: error\n{traceback.format_exc(limit=2)}")
 
-        self._sync_categories(opts["categories"], w)
+        if not opts["chapters_only"]:
+            self._sync_categories(opts["categories"], w)
         w(self.style.SUCCESS(
             f"\nListo. {ok} importados, {skipped} saltados, {failed} fallidos. "
             f"Libros en catálogo: {Book.objects.count()}"
