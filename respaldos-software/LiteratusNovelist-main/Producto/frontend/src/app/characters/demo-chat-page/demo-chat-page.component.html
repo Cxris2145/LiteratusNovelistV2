@@ -38,7 +38,7 @@
       </div>
 
       <!-- Login / Register CTA en sidebar sin sesión -->
-      <div class="dchat-sidebar-cta" *ngIf="!auth.isLoggedIn()">
+      <div class="dchat-sidebar-cta" *ngIf="!isRealUser">
         <p>Inicia sesión para conversar con {{ avatar.name }} y explorar todos sus secretos.</p>
         <button class="dchat-register-btn" (click)="goToLogin()" id="dchat-sidebar-login">
           Iniciar sesión
@@ -161,7 +161,7 @@
       <p role="alert" *ngIf="chatError">{{ chatError }}</p>
 
       <!-- Si no ha iniciado sesión: Opción bloqueada con comentario claro -->
-      <footer class="dchat-locked-footer" *ngIf="!auth.isLoggedIn()">
+      <footer class="dchat-locked-footer" *ngIf="!isRealUser">
         <div class="dchat-locked-box">
           <span class="material-symbols-rounded dchat-locked-icon" aria-hidden="true">lock</span>
           <div class="dchat-locked-info">
@@ -181,7 +181,7 @@
       </footer>
 
       <!-- Si tiene sesión iniciada: Campo para escribir -->
-      <footer class="dchat-input-wrap" *ngIf="auth.isLoggedIn()" [class.call-mode-footer]="isCallMode">
+      <footer class="dchat-input-wrap" *ngIf="isRealUser" [class.call-mode-footer]="isCallMode">
         <div class="dchat-input-inner">
           <button class="dchat-mic-btn" (click)="speechService.toggleListening()" [class.recording]="speechService.isListening$ | async" title="Hablar">
             <span class="material-symbols-rounded">mic</span>

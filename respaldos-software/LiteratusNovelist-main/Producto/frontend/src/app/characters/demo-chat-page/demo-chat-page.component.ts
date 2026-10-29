@@ -24,6 +24,11 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private api = inject(ApiService);
   public auth = inject(AuthService);
+
+  /** Verdadero solo si tiene cuenta real (no es guest/prueba). Usado en el template. */
+  get isRealUser(): boolean {
+    return this.auth.isLoggedIn() && !this.auth.isGuest();
+  }
   private subscriptions = inject(SubscriptionService);
   sessionId: string | null = null;
   chatError = '';
@@ -81,13 +86,13 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   private loadAvatar(): void {
-    if (this.auth.isLoggedIn() && !this.avatarId) {
+    if (this.isRealUser && !this.avatarId) {
       this.api.get<any>('ai/demo-chat/').pipe(takeUntil(this.destroy$)).subscribe({ next: avatar => {
         this.avatarId = avatar.id; this.loadAvatar();
       }, error: () => { this.avatarLoading = false; this.router.navigate(['/characters']); } });
       return;
     }
-    if (this.auth.isLoggedIn() && this.avatarId) {
+    if (this.isRealUser && this.avatarId) {
       this.api.get<any>(`ai/avatars/${this.avatarId}/`).pipe(
         switchMap(avatar => { this.avatar = avatar; return this.api.get<any>(`ai/sessions/?avatar_id=${this.avatarId}`); }),
         switchMap(session => { this.sessionId = session.id; return this.api.get<any[]>(`ai/sessions/${session.id}/messages/`); }),
@@ -104,7 +109,7 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.avatar = data;
         this.remainingMessages = 0;
-        this.limitReached = !this.auth.isLoggedIn();
+        this.limitReached = !this.auth.isLoggedIn() || this.auth.isGuest();
         // Start with greeting
         if (data.greeting_message) {
           this.messages = [{ role: 'assistant', content: data.greeting_message }];
@@ -119,7 +124,8 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   sendMessage(): void {
-    if (!this.auth.isLoggedIn()) {
+    // Bloquear si no hay sesion o si es cuenta de prueba (guest)
+    if (!this.auth.isLoggedIn() || this.auth.isGuest()) {
       this.openAuthModal();
       return;
     }
@@ -196,7 +202,7 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   toggleCallMode() {
-    if (!this.auth.isLoggedIn()) {
+    if (!this.auth.isLoggedIn() || this.auth.isGuest()) {
       this.openAuthModal();
       return;
     }

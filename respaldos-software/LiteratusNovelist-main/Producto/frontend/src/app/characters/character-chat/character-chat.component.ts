@@ -102,7 +102,8 @@ export class CharacterChatComponent implements OnDestroy {
   private loadSub?: Subscription;
 
   get isDemo(): boolean {
-    return !this.auth.isLoggedIn();
+    // Demo = sin sesion O con cuenta temporal (guest/pruebas)
+    return !this.auth.isLoggedIn() || this.auth.isGuest();
   }
 
   get limitReached(): boolean {

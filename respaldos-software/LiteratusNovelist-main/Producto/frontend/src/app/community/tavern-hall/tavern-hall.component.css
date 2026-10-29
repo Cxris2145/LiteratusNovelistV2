@@ -215,28 +215,45 @@
   gap: var(--th-gap);
 }
 /* Modo Cine / Pantalla completa: solo la mesa y compañeros, sin scroll vertical innecesario */
+/* En modo cine: el fondo ilustrado cubre TODA el area sin bordes ni padding visible */
 .th-hall.is-cinema {
   --th-stage-height: max(380px, calc(100svh - var(--header-offset, var(--navbar-h, 182px)) - 108px));
   min-height: calc(100svh - var(--header-offset, var(--navbar-h, 182px)));
   max-height: calc(100svh - var(--header-offset, var(--navbar-h, 182px)));
   height: calc(100svh - var(--header-offset, var(--navbar-h, 182px)));
-  padding-top: 10px;
-  padding-bottom: 10px;
+  /* Quitar todo el padding para que la imagen ocupe 100%: el contenido flota con z-index */
+  padding: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  /* En modo cine el fondo ilustrado ya cubre todo; el fondo solido queda transparente */
   background-color: transparent;
+  position: relative;
 }
 
+/* En modo cine el backdrop pasa a absolute y llena el contenedor sin sticky ni margenes */
 .th-hall.is-cinema .th-backdrop {
-  height: calc(100svh - var(--header-offset, var(--navbar-h, 182px)));
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  margin: 0;
+  top: 0;
 }
 
+/* El titulo, el banner y la mesa flotan sobre la imagen con padding propio */
+.th-hall.is-cinema .th-hero,
+.th-hall.is-cinema .th-cinema-banner,
+.th-hall.is-cinema .th-layout,
+.th-hall.is-cinema .th-visitor,
+.th-hall.is-cinema .th-error {
+  position: relative;
+  z-index: 1;
+}
+
+/* Restaurar padding lateral en el hero y el layout para que el contenido tenga aire */
 .th-hall.is-cinema .th-hero {
   margin-bottom: 6px;
-  padding: 2px 0;
+  padding: 10px var(--th-pad, clamp(16px, 2vw, 40px)) 2px;
   flex-shrink: 0;
 }
 
@@ -259,9 +276,11 @@
   height: 100%;
   grid-template-columns: 1fr;
   grid-template-areas: 'scene';
-  max-width: 1440px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
+  padding: 0 var(--th-pad, clamp(16px, 2vw, 40px));
+  box-sizing: border-box;
 }
 
 .th-hall.is-cinema .area-profile,
