@@ -213,28 +213,55 @@
         <p>Sé el primero en compartir tu opinión.</p>
       </div>
       
-      <!-- FORMULARIO DE RESEÑA -->
-      <div class="review-form-container" *ngIf="(auth.isLoggedIn$ | async) && isOwned">
-        <h4 style="font-family: var(--font-display); font-size: 1.5rem; color: var(--home-ink-strong); margin-bottom:1rem;">Tu opinión</h4>
-        <div class="star-rating-input">
-          <span class="star-input" *ngFor="let s of [1,2,3,4,5]" 
-                [class.filled]="s <= reviewRating" 
-                (click)="setRating(s)">★</span>
+      <!-- FORMULARIO DE RESEÑA PARA LECTORES REGISTRADOS -->
+      <div class="review-form-container" *ngIf="isRegisteredUser && !hasUserReviewed">
+        <div class="review-form-top">
+          <h4 class="review-form-title">Tu opinión</h4>
+          <div class="star-rating-input" role="radiogroup" aria-label="Calificación en estrellas">
+            <span class="star-input" *ngFor="let s of [1,2,3,4,5]" 
+                  [class.filled]="s <= reviewRating" 
+                  (click)="setRating(s)">★</span>
+          </div>
         </div>
+
         <textarea class="review-textarea" 
                   [(ngModel)]="reviewComment" 
-                  placeholder="¿Qué te pareció esta obra? (Opcional)" 
-                  rows="3"></textarea>
-        
-        <div class="purchase-alert error" *ngIf="reviewErrorMsg" style="margin-bottom:1rem;">
+                  (ngModelChange)="onReviewCommentInput()"
+                  [attr.maxlength]="maxReviewLength"
+                  placeholder="Comparte tu reseña sobre esta obra con la comunidad..." 
+                  rows="4"></textarea>
+
+        <div class="review-form-footer">
+          <span class="review-char-counter"
+                [class.near-limit]="reviewComment.length >= maxReviewLength - 50 && reviewComment.length < maxReviewLength"
+                [class.at-limit]="reviewComment.length >= maxReviewLength">
+            {{ reviewComment.length }} / {{ maxReviewLength }} caracteres
+          </span>
+
+          <button class="glass-btn primary" 
+                  (click)="submitReview()" 
+                  [disabled]="isSubmittingReview || reviewComment.trim().length < minReviewLength"
+                  style="width: auto; padding: 0.8rem 2.5rem;">
+            {{ isSubmittingReview ? 'Publicando...' : 'Publicar reseña' }}
+          </button>
+        </div>
+
+        <div class="purchase-alert error" *ngIf="reviewErrorMsg" style="margin-top: 1rem; margin-bottom: 0;">
           {{ reviewErrorMsg }}
         </div>
-        
-        <button class="glass-btn primary" 
-                (click)="submitReview()" 
-                [disabled]="isSubmittingReview" style="width: auto; padding: 0.8rem 2.5rem;">
-          {{ isSubmittingReview ? 'Publicando...' : 'Publicar' }}
-        </button>
+      </div>
+
+      <!-- AVISO SI EL LECTOR REGISTRADO YA RESEÑÓ -->
+      <div class="review-status-banner reviewed" *ngIf="isRegisteredUser && hasUserReviewed">
+        <span>✨ Ya has publicado tu reseña para esta obra. ¡Gracias por compartir tu opinión con la comunidad!</span>
+      </div>
+
+      <!-- AVISO PARA VISITANTES O CUENTAS DE INVITADO -->
+      <div class="review-status-banner guest-prompt" *ngIf="!isRegisteredUser">
+        <span>Inicia sesión con una cuenta de lector registrado para calificar y publicar tu reseña.</span>
+        <a routerLink="/login" [queryParams]="{ returnUrl: '/book/' + slug }" class="glass-btn secondary review-login-btn">
+          Iniciar sesión
+        </a>
       </div>
 
       <!-- LISTA DE RESEÑAS -->

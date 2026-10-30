@@ -9,7 +9,8 @@ export type NotificationType =
   | 'ink'
   | 'xp'
   | 'level_up'
-  | 'achievement';
+  | 'achievement'
+  | 'achievement_high_rarity';
 
 export interface NotificationAction {
   label: string;
@@ -23,6 +24,8 @@ export interface AppNotification {
   message: string;
   amount?: number;
   icon?: string;
+  rarityTier?: 'bronze' | 'silver' | 'gold' | 'diamond';
+  globalRarityPct?: number;
   duration?: number; // ms, 0 = persistent
   action?: NotificationAction;
   createdAt: number;
@@ -158,6 +161,8 @@ export class NotificationService {
         return 'workspace_premium';
       case 'achievement':
         return 'emoji_events';
+      case 'achievement_high_rarity':
+        return 'diamond';
       default:
         return 'notifications';
     }

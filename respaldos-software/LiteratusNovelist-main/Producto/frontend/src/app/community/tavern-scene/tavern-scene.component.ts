@@ -26,6 +26,8 @@ export interface BubbleData {
   text: string;
   isChat: boolean;
   fullText?: string;
+  dismissible?: boolean;
+  fadingOut?: boolean;
 }
 
 export interface Seat {
@@ -58,6 +60,9 @@ const FITTING_BUBBLE: BubbleData = { text: '¿Cómo me queda? ✨', isChat: fals
 /** Un mensaje de la mesa se ve como globo sobre su Maguito solo un rato; después queda en el historial. */
 const BUBBLE_MS = 10 * 60_000;
 const HISTORY_SEEN_KEY = 'literatus_tavern_history_seen';
+const WELCOME_BUBBLE_DISMISSED_KEY = 'literatus_tavern_welcome_bubble_dismissed';
+const WELCOME_BUBBLE_DURATION_MS = 30_000;
+const WELCOME_BUBBLE_FADE_MS = 450;
 
 /** Mensajes seguidos de una misma persona en el historial de la mesa. */
 export interface HistoryGroup {
@@ -145,6 +150,11 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   private tick = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private welcomeTimer: ReturnType<typeof setTimeout> | null = null;
+  private welcomeFadeTimer: ReturnType<typeof setTimeout> | null = null;
+  private welcomeDismissed = false;
+  private welcomeFadingOut = false;
+  private welcomeShownInSession = false;
   private observer?: IntersectionObserver;
   private seenReactionIds = new Set<string>();
   private reactionLoads = 0;
@@ -191,9 +201,14 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.welcomeShownInSession) {
+      this.saveWelcomeDismissed();
+    }
     if (this.timer) clearInterval(this.timer);
     if (this.toastTimer) clearTimeout(this.toastTimer);
     if (this.catTimer) clearTimeout(this.catTimer);
+    if (this.welcomeTimer) clearTimeout(this.welcomeTimer);
+    if (this.welcomeFadeTimer) clearTimeout(this.welcomeFadeTimer);
     this.observer?.disconnect();
     document.removeEventListener('visibilitychange', this.syncAmbient);
   }
@@ -479,7 +494,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     }));
     if (this.me) this.seats.push({
       slot: 'center', guest: this.me, isMe: true,
-      bubble: this.fitting ? FITTING_BUBBLE : this.hostBubble(), mug: !this.fitting,
+      bubble: this.fitting ? FITTING_BUBBLE : this.hostBubble(seatedGuests.length), mug: !this.fitting,
     });
     this.emptySlots = slots.slice(seatedGuests.length, Math.max(2, Math.min(4, seatedGuests.length + 1)));
     this.summary = this.describe(seatedGuests);
@@ -492,16 +507,95 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     return this.messages.filter(m => Date.parse(m.created_at) >= since);
   }
 
-  private hostBubble(): BubbleData | null {
+  private isWelcomeBubbleDismissed(): boolean {
+    if (this.welcomeDismissed) return true;
+    try {
+      const byUserKey = localStorage.getItem(userStorageKey(WELCOME_BUBBLE_DISMISSED_KEY)) === '1';
+      const byMeKey = this.me?.username
+        ? localStorage.getItem(`${WELCOME_BUBBLE_DISMISSED_KEY}:${this.me.username}`) === '1'
+        : false;
+      if (byUserKey || byMeKey) {
+        this.welcomeDismissed = true;
+        return true;
+      }
+    } catch { /* sin almacenamiento */ }
+    return false;
+  }
+
+  private saveWelcomeDismissed(): void {
+    this.welcomeDismissed = true;
+    try {
+      localStorage.setItem(userStorageKey(WELCOME_BUBBLE_DISMISSED_KEY), '1');
+      if (this.me?.username) {
+        localStorage.setItem(`${WELCOME_BUBBLE_DISMISSED_KEY}:${this.me.username}`, '1');
+      }
+    } catch { /* sin almacenamiento */ }
+  }
+
+  private startWelcomeBubbleTimer(): void {
+    if (this.welcomeTimer || this.welcomeFadeTimer || this.welcomeFadingOut) return;
+    this.welcomeShownInSession = true;
+    this.welcomeTimer = setTimeout(() => {
+      this.welcomeTimer = null;
+      this.triggerWelcomeFadeOut();
+    }, WELCOME_BUBBLE_DURATION_MS);
+  }
+
+  private triggerWelcomeFadeOut(): void {
+    if (this.welcomeFadingOut || this.welcomeDismissed) return;
+    if (this.welcomeTimer) {
+      clearTimeout(this.welcomeTimer);
+      this.welcomeTimer = null;
+    }
+    this.welcomeFadingOut = true;
+    this.saveWelcomeDismissed();
+    this.build();
+    this.welcomeFadeTimer = setTimeout(() => {
+      this.welcomeFadeTimer = null;
+      this.welcomeFadingOut = false;
+      this.build();
+    }, WELCOME_BUBBLE_FADE_MS);
+  }
+
+  dismissWelcomeBubble(event?: Event): void {
+    event?.stopPropagation();
+    this.triggerWelcomeFadeOut();
+  }
+
+  private hostBubble(seatedGuestsCount: number): BubbleData | null {
     if (this.me) {
       const myMsg = this.bubbleMessages.find(m => m.is_me || m.username === this.me!.username);
       if (myMsg && myMsg.content) {
+        if (!this.welcomeDismissed) {
+          if (this.welcomeTimer) { clearTimeout(this.welcomeTimer); this.welcomeTimer = null; }
+          if (this.welcomeFadeTimer) { clearTimeout(this.welcomeFadeTimer); this.welcomeFadeTimer = null; }
+          this.welcomeFadingOut = false;
+          this.saveWelcomeDismissed();
+        }
         return { text: this.shorten(myMsg.content, 48), fullText: myMsg.content, isChat: true };
       }
     }
-    return this.guests.length
-      ? { text: 'Siempre hay otra historia por contar… ✨', isChat: false }
-      : { text: 'Esta mesa espera a tus amigos 🍺', isChat: false };
+
+    if (this.welcomeFadingOut) {
+      return {
+        text: 'Esta mesa espera a tus amigos 🍺',
+        isChat: false,
+        dismissible: true,
+        fadingOut: true,
+      };
+    }
+
+    if (seatedGuestsCount === 0 && this.me && !this.isWelcomeBubbleDismissed()) {
+      this.startWelcomeBubbleTimer();
+      return {
+        text: 'Esta mesa espera a tus amigos 🍺',
+        isChat: false,
+        dismissible: true,
+        fadingOut: false,
+      };
+    }
+
+    return null;
   }
 
   private bubbleFor(guest: SceneGuest, seatIndex: number): BubbleData | null {

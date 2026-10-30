@@ -5,6 +5,7 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  HostListener,
 } from '@angular/core';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -17,16 +18,18 @@ import {
   UserAchievement,
   Achievement,
   AchievementCategory,
-  AchievementRarity,
+  NormalizedRarity,
+  normalizeAchievementRarity,
 } from '../../core/services/achievements.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { ChatService } from '../../core/services/chat.service';
 
-type CategoryFilter = 'all' | AchievementCategory;
+export type PillarCategoryFilter = 'all' | 'reading' | 'social' | 'games' | 'learning';
+export type SortOption = 'default' | 'rarest' | 'recent' | 'missing';
 type MainTab = 'achievements' | 'collection' | 'history' | 'missions' | 'levels';
 
 interface CategoryTab {
-  key: CategoryFilter;
+  key: PillarCategoryFilter;
   label: string;
   icon: string;
 }
@@ -43,7 +46,16 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   userAchievements: UserAchievement[] = [];
   catalogAchievements: Achievement[] = [];
   isLoading = true;
-  activeFilter: CategoryFilter = 'all';
+
+  /** Fase 1: Únicamente los 5 pilares fundamentales en la barra de filtrado rápido */
+  activeFilter: PillarCategoryFilter = 'all';
+
+  /** Fase 3: Ordenamiento independiente de los filtros de categoría */
+  sortBy: SortOption = 'default';
+  sortMenuOpen = false;
+
+  /** Fase 2: Logro inspeccionado mediante clic para ver porcentaje global en dispositivos táctiles o escritorio */
+  inspectedCode: string | null = null;
 
   profile: any = null;
   inkHistory: any[] = [];
@@ -56,26 +68,33 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   collectionFilter: 'profile_frame' | 'title' | 'maguito_wear' = 'profile_frame';
   busyItem = '';
   previewItem: ShopItem | null = null;
-  readonly rarityLabels: Record<AchievementRarity, string> = {
-    common: 'Común', rare: 'Raro', epic: 'Épico', legendary: 'Legendario',
+
+  readonly rarityLabels: Record<NormalizedRarity, string> = {
+    bronze: 'Bronce',
+    silver: 'Plata',
+    gold: 'Oro',
+    diamond: 'Diamante',
   };
+
+  readonly sortOptions: { key: SortOption; label: string; icon: string }[] = [
+    { key: 'default', label: 'Por defecto', icon: 'apps' },
+    { key: 'rarest',  label: 'Más raros primero', icon: 'diamond' },
+    { key: 'recent',  label: 'Recientes', icon: 'schedule' },
+    { key: 'missing', label: 'Faltantes', icon: 'pending_actions' },
+  ];
 
   // Recompensa Diaria
   dailyReward: any = null;
   isClaimingReward = false;
   rewardClaimedSuccess = false;
 
+  /** Fase 1: Pilares fundamentales acotados (Racha, Horario y Lector activo consolidados en Lectura; Exploración y Colección en La Senda + Perfil) */
   readonly tabs: CategoryTab[] = [
-    { key: 'all',         label: 'Todos',       icon: '🌟' },
-    { key: 'reading',     label: 'Lectura',      icon: '📚' },
-    { key: 'streak',      label: 'Racha',        icon: '⚡' },
-    { key: 'exploration', label: 'Exploración',  icon: '🗺️' },
-    { key: 'time',        label: 'Horario',      icon: '🕐' },
-    { key: 'social',      label: 'Social',       icon: '🥂' },
-    { key: 'learning',    label: 'La Senda',     icon: '🥾' },
-    { key: 'games',       label: 'Juegos',       icon: '🧩' },
-    { key: 'reader',      label: 'Lector activo', icon: '✍️' },
-    { key: 'collection',  label: 'Colección',    icon: '🎖️' },
+    { key: 'all',      label: 'Todos',    icon: '🌟' },
+    { key: 'reading',  label: 'Lectura',  icon: '📚' },
+    { key: 'social',   label: 'Social',   icon: '🥂' },
+    { key: 'games',    label: 'Juegos',   icon: '🧩' },
+    { key: 'learning', label: 'La Senda', icon: '🥾' },
   ];
 
   constructor(
@@ -109,6 +128,14 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     this.loadCollection();
   }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.sortMenuOpen) {
+      this.sortMenuOpen = false;
+      this.cdr.markForCheck();
+    }
+  }
+
   loadDailyReward(): void {
     this.gamificationService.getDailyRewardStatus()
       .pipe(takeUntil(this.destroy$))
@@ -137,7 +164,6 @@ export class AchievementsComponent implements OnInit, OnDestroy {
             this.dailyReward.can_claim = false;
           }
 
-          // Actualizar inmediatamente el perfil local en pantalla
           if (this.profile && res.new_ink_balance !== undefined) {
             this.profile = {
               ...this.profile,
@@ -147,19 +173,16 @@ export class AchievementsComponent implements OnInit, OnDestroy {
             };
           }
 
-          // Actualizar el saldo global de tinta en la barra de navegación
           if (res.new_ink_balance !== undefined) {
             this.chatService.updateInkBalance(res.new_ink_balance);
           }
 
-          // Notificaciones flotantes
           this.gamificationService.notifyInk(res.ink_reward, 'Recompensa Diaria');
           this.gamificationService.notifyXP(res.xp_reward, 'Recompensa Diaria');
 
           const toastMessage = res.message || `¡Has recibido +${res.ink_reward} Gotas de Tinta y +${res.xp_reward} XP!`;
           this.notificationService.success(toastMessage, 'Recompensa Reclamada');
 
-          // Actualizar historial de tinta
           this.gamificationService.getInkHistory().pipe(takeUntil(this.destroy$)).subscribe(h => {
             this.inkHistory = h;
             this.cdr.markForCheck();
@@ -185,7 +208,6 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   }
 
   loadData(): void {
-    // Ensure profile is loaded if it hasn't been yet
     this.gamificationService.loadInitialProfile();
 
     this.gamificationService.getInkHistory()
@@ -225,8 +247,71 @@ export class AchievementsComponent implements OnInit, OnDestroy {
       });
   }
 
-  setFilter(filter: CategoryFilter): void {
-    this.activeFilter = filter;
+  /** Normaliza cualquier categoría heredada hacia uno de los 4 pilares temáticos */
+  mapToPillar(category: AchievementCategory | string): PillarCategoryFilter {
+    switch (category) {
+      case 'reading':
+      case 'streak':
+      case 'time':
+      case 'reader':
+        return 'reading';
+      case 'social':
+        return 'social';
+      case 'games':
+        return 'games';
+      case 'learning':
+      case 'exploration':
+      case 'collection':
+        return 'learning';
+      default:
+        return 'reading';
+    }
+  }
+
+  setFilter(filter: PillarCategoryFilter | AchievementCategory): void {
+    if (filter === 'all') {
+      this.activeFilter = 'all';
+    } else {
+      this.activeFilter = this.mapToPillar(filter);
+    }
+  }
+
+  setSort(option: SortOption, event?: Event): void {
+    event?.stopPropagation();
+    this.sortBy = option;
+    this.sortMenuOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  toggleSortMenu(event: Event): void {
+    event.stopPropagation();
+    this.sortMenuOpen = !this.sortMenuOpen;
+  }
+
+  get currentSortLabel(): string {
+    return this.sortOptions.find(o => o.key === this.sortBy)?.label || 'Por defecto';
+  }
+
+  toggleInspect(code: string, event?: Event): void {
+    event?.stopPropagation();
+    this.inspectedCode = this.inspectedCode === code ? null : code;
+  }
+
+  rarityTier(ua: UserAchievement): NormalizedRarity {
+    return normalizeAchievementRarity(ua.achievement.rarity);
+  }
+
+  rarityWeight(ua: UserAchievement): number {
+    const tier = this.rarityTier(ua);
+    return tier === 'diamond' ? 4 : tier === 'gold' ? 3 : tier === 'silver' ? 2 : 1;
+  }
+
+  globalPercentage(ua: UserAchievement): number {
+    if (ua.achievement.global_unlock_percentage !== undefined && ua.achievement.global_unlock_percentage !== null) {
+      return ua.achievement.global_unlock_percentage;
+    }
+    const tier = this.rarityTier(ua);
+    return tier === 'diamond' ? 1.8 : tier === 'gold' ? 8.5 : tier === 'silver' ? 22.0 : 52.0;
   }
 
   switchTab(tab: MainTab) {
@@ -235,20 +320,16 @@ export class AchievementsComponent implements OnInit, OnDestroy {
 
   /**
    * Fusiona el catálogo con el progreso del usuario.
-   * Los logros del catálogo que el usuario aún no tiene se muestran
-   * como bloqueados (progreso 0).
    */
   get allAchievements(): UserAchievement[] {
     const userMap = new Map(
       this.userAchievements.map(ua => [ua.achievement.code, ua])
     );
 
-    // Convertir catálogo en UserAchievements virtuales para los no iniciados
-    const merged: UserAchievement[] = this.catalogAchievements.map(cat => {
+    return this.catalogAchievements.map(cat => {
       if (userMap.has(cat.code)) {
         return userMap.get(cat.code)!;
       }
-      // Logro no iniciado: construir un UserAchievement virtual con progreso 0
       return {
         id: 'virtual-' + cat.code,
         achievement: cat,
@@ -259,12 +340,65 @@ export class AchievementsComponent implements OnInit, OnDestroy {
         notified: false,
       } as UserAchievement;
     });
+  }
 
-    return merged;
+  /** Sub-hitos de Exploración y Colección integrados en el resumen del perfil y en La Senda */
+  get explorationSubMilestones(): { unlocked: number; total: number } {
+    const codes = new Set(['classic_explorer_3', 'classic_explorer_10', 'genres_5']);
+    const list = this.allAchievements.filter(
+      ua => ua.achievement.sub_group === 'exploration' || ua.achievement.category === 'exploration' || codes.has(ua.achievement.code)
+    );
+    return {
+      unlocked: list.filter(ua => ua.is_unlocked).length,
+      total: list.length || 3,
+    };
+  }
+
+  get collectionSubMilestones(): { unlocked: number; total: number } {
+    const codes = new Set(['level_5', 'bazar_5', 'maguito_full']);
+    const list = this.allAchievements.filter(
+      ua => ua.achievement.sub_group === 'collection' || ua.achievement.category === 'collection' || codes.has(ua.achievement.code)
+    );
+    return {
+      unlocked: list.filter(ua => ua.is_unlocked).length,
+      total: list.length || 3,
+    };
   }
 
   get mergedAchievements(): UserAchievement[] {
-    return this.allAchievements.filter(ua => this.activeFilter === 'all' || ua.achievement.category === this.activeFilter);
+    const filtered = this.allAchievements.filter(
+      ua => this.activeFilter === 'all' || this.mapToPillar(ua.achievement.category) === this.activeFilter
+    );
+
+    const list = [...filtered];
+    switch (this.sortBy) {
+      case 'rarest':
+        return list.sort((a, b) => {
+          const pctDiff = this.globalPercentage(a) - this.globalPercentage(b);
+          if (Math.abs(pctDiff) > 0.05) return pctDiff;
+          return this.rarityWeight(b) - this.rarityWeight(a);
+        });
+      case 'recent':
+        return list.sort((a, b) => {
+          if (a.is_unlocked && b.is_unlocked) {
+            const timeA = a.unlocked_at ? Date.parse(a.unlocked_at) : 0;
+            const timeB = b.unlocked_at ? Date.parse(b.unlocked_at) : 0;
+            return timeB - timeA;
+          }
+          if (a.is_unlocked !== b.is_unlocked) return a.is_unlocked ? -1 : 1;
+          return b.progress_percentage - a.progress_percentage;
+        });
+      case 'missing':
+        return list.sort((a, b) => {
+          if (a.is_unlocked !== b.is_unlocked) return a.is_unlocked ? 1 : -1;
+          if (!a.is_unlocked && !b.is_unlocked) {
+            return b.progress_percentage - a.progress_percentage || (a.achievement.sort_order - b.achievement.sort_order);
+          }
+          return a.achievement.sort_order - b.achievement.sort_order;
+        });
+      default:
+        return list.sort((a, b) => a.achievement.sort_order - b.achievement.sort_order);
+    }
   }
 
   get almostThere(): UserAchievement[] {
@@ -337,7 +471,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     if (!item.earned_by) return;
     this.activeTab = 'achievements';
     const achievement = this.catalogAchievements.find(a => a.code === item.earned_by?.code);
-    this.activeFilter = achievement?.category || 'all';
+    this.activeFilter = achievement ? this.mapToPillar(achievement.category) : 'all';
     setTimeout(() => document.getElementById('achievement-' + item.earned_by?.code)?.scrollIntoView({ block: 'center' }));
   }
 

@@ -7,12 +7,10 @@
   --th-panel-shadow: inset 0 1px 0 rgba(255, 235, 170, 0.15), 0 14px 38px rgba(0, 0, 0, 0.55);
   /* Fondo del botón secundario de toda la sala (lo leen los paneles hijos y El Bazar). */
   --th-secondary-bg: rgba(22, 15, 12, .78);
-  /* Alto de las tres columnas. La fila que se recoge libera fondo, pero no cambia la altura de la
-     mesa. 128px = relleno superior (16) + encabezado (~71) + su margen (16) + relleno inferior (24)
-     + 1 de redondeo: con menos, el salón queda unos píxeles más alto que la ventana y aparece la
-     barra de desplazamiento. Si la ventana es baja, la mesa se angosta (tavern-scene.component.css). */
-  --th-stage-height: max(440px, calc(100svh - var(--navbar-expanded-h, var(--navbar-h, 182px)) - 128px));
-  --th-top-pad: calc(16px + var(--tavern-nav-fill, 0px));
+  /* Alto de las tres columnas ajustado dinámicamente al alto real disponible bajo el encabezado
+     para que la Taberna quede fija en pantalla sin generar scroll vertical. */
+  --th-stage-height: max(300px, calc(100svh - var(--navbar-h, 182px) - 96px));
+  --th-top-pad: 12px;
   --th-pad: clamp(16px, 2vw, 40px);
   --th-gap: 20px;
   --th-profile-w: clamp(260px, 18vw, 310px);
@@ -24,11 +22,49 @@
 /* La ilustración pertenece al salón completo, no al recuadro de la mesa. */
 .th-hall {
   isolation: isolate;
+  position: relative;
   min-height: calc(100svh - var(--navbar-h, 182px));
   width: 100%;
-  padding: var(--th-top-pad) var(--th-pad) 24px;
+  padding: var(--th-top-pad) var(--th-pad) 12px;
+  box-sizing: border-box;
   background-color: #1c1320;
 }
+
+@media (min-width: 1001px) {
+  .th-hall {
+    height: calc(100svh - var(--navbar-h, 182px));
+    max-height: calc(100svh - var(--navbar-h, 182px));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .th-hall .th-backdrop {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    margin: 0;
+    top: 0;
+  }
+  .th-hall .th-hero,
+  .th-hall .th-cinema-banner,
+  .th-hall .th-layout,
+  .th-hall .th-visitor,
+  .th-hall .th-error {
+    position: relative;
+    z-index: 1;
+  }
+  .th-hall .th-hero {
+    flex-shrink: 0;
+    margin-bottom: 10px;
+    padding: 4px 0;
+  }
+  .th-hall .th-layout,
+  .th-hall .th-visitor {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+}
+
 /* Antes era un fondo con background-attachment: fixed, que obliga a repintar toda la página en
    cada desplazamiento. Una capa pegajosa del alto de la ventana se ve igual, la compone el
    navegador sin repintar y no se sale del salón (no tapa el pie de página). */
@@ -351,7 +387,7 @@
 .area-side {
   grid-area: side;
   min-width: 0;
-  --fl-max-height: max(300px, calc(var(--th-stage-height) - 88px));
+  --fl-max-height: var(--th-stage-height);
 }
 .area-profile,
 .area-side {

@@ -1,4 +1,4 @@
-export type NavPanel = 'categories' | 'authors' | 'library';
+export type NavPanel = 'categories' | 'authors' | 'library' | 'games';
 
 export interface NavItem {
   label: string;
@@ -17,8 +17,12 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Personajes', icon: 'groups', link: '/characters', match: ['/characters', '/demo-chat', '/chat/'] },
   { label: 'La Taberna', icon: 'local_cafe', link: '/tavern', match: ['/tavern'] },
   { label: 'Mi Biblioteca', icon: 'menu_book', link: '/library', match: ['/library', '/favorites', '/flashcards'], panel: 'library' },
-  { label: 'La Senda', icon: 'map', link: '/learn', match: ['/learn'] },
-  { label: 'El Enigma', icon: 'extension', link: '/games/enigma', match: ['/games/enigma'] },
-  { label: 'Interrogatorio', icon: 'visibility_off', link: '/games/interrogatorio', match: ['/games/interrogatorio', '/games/blind-interrogation', '/interrogatorio'] },
+  {
+    label: 'Salón de Juegos',
+    icon: 'extension',
+    link: '/games',
+    match: ['/games', '/learn', '/enigma', '/interrogatorio'],
+    panel: 'games',
+  },
   { label: 'Logros', icon: 'emoji_events', link: '/achievements', match: ['/achievements'] },
 ];

@@ -58,6 +58,32 @@
           </div>
         </div>
 
+        <!-- SUB-HITOS DE EXPLORACIÓN (Integrados en Perfil y La Senda) -->
+        <button
+          type="button"
+          class="metric-box metric-box--interactive"
+          (click)="switchTab('achievements'); setFilter('learning')"
+          title="Ver sub-hitos de Exploración en La Senda">
+          <span class="metric-icon material-symbols-rounded">explore</span>
+          <div class="metric-info">
+            <span class="metric-value">{{ explorationSubMilestones.unlocked }} / {{ explorationSubMilestones.total }}</span>
+            <span class="metric-label">Exploración</span>
+          </div>
+        </button>
+
+        <!-- SUB-HITOS DE COLECCIÓN (Integrados en Perfil y La Senda) -->
+        <button
+          type="button"
+          class="metric-box metric-box--interactive"
+          (click)="switchTab('achievements'); setFilter('learning')"
+          title="Ver sub-hitos de Colección en La Senda">
+          <span class="metric-icon material-symbols-rounded">military_tech</span>
+          <div class="metric-info">
+            <span class="metric-value">{{ collectionSubMilestones.unlocked }} / {{ collectionSubMilestones.total }}</span>
+            <span class="metric-label">Hitos Colección</span>
+          </div>
+        </button>
+
         <!-- RECOMPENSA DIARIA (DAILY REWARD) -->
         <div class="metric-box daily-reward-box" *ngIf="dailyReward" [class.claimed-box]="!dailyReward.can_claim">
           <span class="metric-icon material-symbols-rounded daily-gift-icon" [class.bounce]="dailyReward.can_claim" [class.claimed-icon]="!dailyReward.can_claim">
@@ -235,19 +261,52 @@
       </div>
     </section>
     
-    <!-- ── TABS DE CATEGORÍA ─────────────────────────────────────── -->
-    <nav class="achievements-tabs" aria-label="Filtrar logros">
-      <button
-        *ngFor="let tab of tabs"
-        class="achievements-tabs__btn"
-        [class.achievements-tabs__btn--active]="activeFilter === tab.key"
-        [attr.aria-pressed]="activeFilter === tab.key"
-        (click)="setFilter(tab.key)"
-      >
-        <span class="tab-icon" aria-hidden="true">{{ tab.icon }}</span>
-        <span class="tab-label">{{ tab.label }}</span>
-      </button>
-    </nav>
+    <!-- ── BARRA DE HERRAMIENTAS: 5 PILARES DE FILTRADO + ORDENAR POR (Fase 1 y Fase 3) ── -->
+    <div class="achievements-toolbar">
+      <nav class="achievements-tabs" aria-label="Filtrar logros por pilar">
+        <button
+          *ngFor="let tab of tabs"
+          type="button"
+          class="achievements-tabs__btn"
+          [class.achievements-tabs__btn--active]="activeFilter === tab.key"
+          [attr.aria-pressed]="activeFilter === tab.key"
+          (click)="setFilter(tab.key)"
+        >
+          <span class="tab-icon" aria-hidden="true">{{ tab.icon }}</span>
+          <span class="tab-label">{{ tab.label }}</span>
+        </button>
+      </nav>
+
+      <!-- Menú desplegable de Ordenar por (independiente de las categorías) -->
+      <div class="achievements-sort" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          class="sort-trigger-btn"
+          [attr.aria-expanded]="sortMenuOpen"
+          aria-haspopup="listbox"
+          (click)="toggleSortMenu($event)">
+          <span class="material-symbols-rounded sort-icon" aria-hidden="true">sort</span>
+          <span class="sort-label-prefix">Ordenar por:</span>
+          <strong class="sort-current">{{ currentSortLabel }}</strong>
+          <span class="material-symbols-rounded sort-caret" [class.is-open]="sortMenuOpen" aria-hidden="true">expand_more</span>
+        </button>
+
+        <ul class="sort-dropdown" *ngIf="sortMenuOpen" role="listbox" aria-label="Opciones de ordenamiento">
+          <li *ngFor="let opt of sortOptions" role="option" [attr.aria-selected]="sortBy === opt.key">
+            <button
+              type="button"
+              class="sort-option-btn"
+              [class.is-selected]="sortBy === opt.key"
+              (click)="setSort(opt.key, $event)">
+              <span class="material-symbols-rounded" aria-hidden="true">{{ opt.icon }}</span>
+              <span>{{ opt.label }}</span>
+              <span class="material-symbols-rounded sort-check" *ngIf="sortBy === opt.key" aria-hidden="true">check</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
     <div class="achievements-empty" *ngIf="loadError" role="alert"><p>{{ loadError }}</p><button class="collection-action" (click)="loadAchievements()">Reintentar</button></div>
 
     <!-- ── SKELETON LOADER ───────────────────────────────────────── -->
@@ -259,7 +318,7 @@
       </div>
     </div>
 
-    <!-- ── GRID DE LOGROS ────────────────────────────────────────── -->
+    <!-- ── GRID DE LOGROS (Fase 2: Marcos de Rareza Bronce, Plata, Oro, Diamante + Porcentaje Global en Hover/Clic) ── -->
     <ul
       class="achievements-grid"
       *ngIf="!isLoading"
@@ -270,34 +329,54 @@
         *ngFor="let ua of mergedAchievements; trackBy: trackByCode"
         class="achievement-card"
         [id]="'achievement-' + ua.achievement.code"
-        [attr.data-rarity]="ua.achievement.rarity"
+        [attr.data-rarity]="rarityTier(ua)"
         [class.achievement-card--unlocked]="ua.is_unlocked"
         [class.achievement-card--locked]="!ua.is_unlocked"
+        [class.is-inspected]="inspectedCode === ua.achievement.code"
+        (click)="toggleInspect(ua.achievement.code, $event)"
+        tabindex="0"
+        (keydown.enter)="toggleInspect(ua.achievement.code, $event)"
         role="listitem"
       >
-        <!-- Insignia -->
-        <div class="achievement-card__badge" [attr.aria-label]="ua.achievement.title">
+        <!-- Insignia con marco visual de rareza (Bronce, Plata, Oro, Diamante) sin texto extra en vista general -->
+        <div class="achievement-card__badge" [attr.aria-label]="ua.achievement.title + ' (' + rarityLabels[rarityTier(ua)] + ')'">
+          <span class="badge-aura" aria-hidden="true"></span>
+          <span class="badge-ring" aria-hidden="true"></span>
           <span class="achievement-card__icon" aria-hidden="true">
             {{ ua.achievement.icon }}
           </span>
           <!-- Overlay de candado para logros bloqueados -->
           <div class="achievement-card__lock" *ngIf="!ua.is_unlocked" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="11" width="14" height="10" rx="2" ry="2"/>
+              <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
             </svg>
           </div>
           <!-- Checkmark para logros desbloqueados -->
           <div class="achievement-card__check" *ngIf="ua.is_unlocked" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="19 7 10 16 5 11"/>
             </svg>
           </div>
         </div>
 
-        <!-- Contenido textual -->
+        <!-- Tooltip / Popover de Rareza y Porcentaje Global (visible en hover o clic) -->
+        <div class="rarity-popover" role="tooltip">
+          <div class="rarity-popover__head">
+            <span class="rarity-gem-dot" aria-hidden="true"></span>
+            <strong class="rarity-tier-name">Medalla de {{ rarityLabels[rarityTier(ua)] }}</strong>
+            <span class="rarity-pct-value">{{ globalPercentage(ua) }}%</span>
+          </div>
+          <div class="rarity-popover__bar" aria-hidden="true">
+            <span class="rarity-popover__fill" [style.width.%]="globalPercentage(ua)"></span>
+          </div>
+          <p class="rarity-popover__caption">
+            Desbloqueado por el <strong>{{ globalPercentage(ua) }}%</strong> de los lectores a nivel global
+          </p>
+        </div>
+
+        <!-- Contenido textual (sin texto de rareza en la vista general) -->
         <div class="achievement-card__body">
-          <span class="rarity-label">{{ rarityLabels[ua.achievement.rarity] }}</span>
           <h3 class="achievement-card__title">{{ ua.achievement.title }}</h3>
           <p class="achievement-card__desc">{{ ua.achievement.description }}</p>
 
@@ -328,7 +407,7 @@
             <span class="reward-icon" aria-hidden="true">🖋️</span>
             <span class="reward-amount">+{{ ua.achievement.ink_reward }} Tinta <span class="xp-reward">+25 XP</span></span>
           </div>
-          <div class="cosmetic-reward" *ngIf="ua.achievement.reward as reward" [class.is-title]="reward.item_type === 'title'">
+          <div class="cosmetic-reward" *ngIf="ua.achievement.reward as reward" [class.is-title]="reward.item_type === 'title'" (click)="$event.stopPropagation()">
             <app-cosmetic-preview [item]="reward" [avatar]="profile?.avatar" [avatarColor]="profile?.avatar_color || '#655099'"
               [initial]="profile?.username?.charAt(0) || 'L'" [outfit]="profile?.outfit"></app-cosmetic-preview>
             <span><small>{{ ua.is_unlocked ? 'Premio obtenido' : 'Premio exclusivo' }}</small><strong>{{ reward.name }}</strong></span>

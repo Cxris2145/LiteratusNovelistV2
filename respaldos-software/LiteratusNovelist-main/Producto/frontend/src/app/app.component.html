@@ -281,6 +281,7 @@
 
   <div
     class="unified-popup-card popup-{{ currentNotification.type }}"
+    [attr.data-rarity-tier]="currentNotification.rarityTier || null"
     [class.popup-closing]="currentNotification.isClosing"
     (click)="$event.stopPropagation()"
     (mouseenter)="pauseToastTimer(currentNotification.id)"
@@ -309,7 +310,13 @@
 
     <!-- Cuerpo del Pop-up -->
     <div class="popup-body">
+      <span class="popup-rarity-crest" *ngIf="currentNotification.type === 'achievement_high_rarity'">
+        {{ currentNotification.rarityTier === 'diamond' ? '❖ RELIQUIA DIAMANTE DESBLOQUEADA ❖' : '✦ MEDALLA DE ORO DESBLOQUEADA ✦' }}
+      </span>
       <h3 class="popup-title" *ngIf="currentNotification.title">{{ currentNotification.title }}</h3>
+      <span class="popup-rarity-pct" *ngIf="currentNotification.type === 'achievement_high_rarity' && currentNotification.globalRarityPct !== undefined">
+        Solo el {{ currentNotification.globalRarityPct }}% de los lectores posee este logro
+      </span>
 
       <div class="popup-reward-badge" *ngIf="currentNotification.amount">
         <span class="material-symbols-rounded badge-sparkle">auto_awesome</span>

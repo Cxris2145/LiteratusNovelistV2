@@ -15,6 +15,7 @@ export interface TavernCard {
   username: string;
   /** Foto de perfil (ver readerPhotoUrl); null si no subió una o si su perfil es privado. */
   avatar: string | null;
+  avatar_color?: string;
   outfit: MaguitoOutfit;
   equipped_frame: string;
   equipped_title: string;
@@ -43,6 +44,7 @@ export interface CommunityProfile {
   friend_code: string;
   username: string;
   avatar?: string | null;
+  avatar_color?: string;
   tagline: string;
   bio: string;
   outfit: MaguitoOutfit;
@@ -74,6 +76,7 @@ export interface FriendCard {
   friend_code: string;
   username: string;
   avatar: string | null;
+  avatar_color?: string;
   outfit: MaguitoOutfit;
   equipped_frame: string;
   equipped_title: string;

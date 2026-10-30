@@ -1,128 +1,1287 @@
-:host { display: block; color: var(--text-main); --bg-card: var(--color-surface); --bg-body: var(--color-bg-primary); --border-color: var(--color-border); --ach-accent: var(--color-warning); }
-.gamification-page { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; font-family: var(--font-ui); }
-.page-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 26px; }
-.page-heading h1 { font: 600 clamp(2rem, 4vw, 3rem)/1.1 var(--font-display, Georgia, serif); margin: 0 0 8px; }
-.page-heading p, .section-intro p, .collection-intro p { margin: 0; color: var(--text-muted); line-height: 1.6; }
-.collection-link { color: var(--ach-accent); font-weight: 600; white-space: nowrap; }
-.gamification-header { display: flex; align-items: center; gap: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
-.level-ring { width: 90px; height: 90px; position: relative; }
-.ring-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring-bg, .ring-fill { fill: none; stroke-width: 2.5; }
-.ring-bg { stroke: var(--border-color); }
-.ring-fill { stroke: var(--ach-accent); stroke-linecap: round; }
-.level-number { position: absolute; inset: 0; display: grid; place-items: center; font: 600 2.5rem var(--font-display); }
-.gamification-stats-container { flex: 1; min-width: 0; }
-.gamification-title-area { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 16px; }
-.gamification-title { font: 600 1.7rem var(--font-display); margin: 0; }
-.gamification-xp-text { color: var(--text-muted); font-size: .85rem; margin: 0; }
-.gamification-metrics { display: flex; align-items: center; flex-wrap: wrap; gap: 18px 28px; }
-.metric-box { display: flex; align-items: center; gap: 10px; }
-.metric-icon { color: var(--ach-accent); font-size: 25px; }
-.metric-info { display: flex; flex-direction: column; gap: 3px; }
-.metric-value { font-size: 1.05rem; font-weight: 650; font-variant-numeric: tabular-nums; }
-.metric-label { font-size: .75rem; color: var(--text-muted); }
-.daily-reward-box { margin-left: auto; padding-left: 20px; border-left: 1px solid var(--border-color); }
-.daily-claim-btn, .collection-action { border: 1px solid var(--color-border-strong); border-radius: 7px; background: var(--color-selected); color: var(--text-main); padding: 9px 13px; cursor: pointer; font: 600 .8rem var(--font-ui); text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 38px; }
-.daily-claim-btn:disabled, .collection-action:disabled { opacity: .65; cursor: default; }
-.claim-btn-loading { display: flex; align-items: center; gap: 6px; }
-.claimed-icon { color: var(--color-success); }
-.main-tabs { display: flex; gap: 20px; overflow-x: auto; border-bottom: 1px solid var(--border-color); margin-bottom: 28px; }
-.main-tab-btn { background: none; border: 0; border-bottom: 3px solid transparent; padding: 13px 2px; white-space: nowrap; font: 600 .9rem var(--font-ui); color: var(--text-muted); cursor: pointer; }
-.main-tab-btn.active { color: var(--text-main); border-bottom-color: var(--ach-accent); }
-.tab-count { display: inline-block; margin-left: 4px; padding: 2px 6px; border-radius: 5px; background: var(--color-hover); font-size: .7rem; }
-.almost-there { margin-bottom: 28px; }
-.section-intro { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; margin-bottom: 12px; }
-.section-intro h2, .collection-intro h2 { margin: 0; font: 600 1.7rem var(--font-display); }
-.section-intro p { font-size: .85rem; }
-.almost-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.almost-item { display: flex; align-items: center; gap: 10px; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 9px; padding: 14px; text-align: left; cursor: pointer; }
-.almost-icon { font-size: 1.4rem; }
-.almost-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-.almost-body strong { font: 600 .82rem var(--font-ui); }
-.almost-body .progress-bar { flex: none; width: 100%; }
-.achievements-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
-.achievements-tabs__btn { border: 1px solid var(--border-color); border-radius: 7px; background: transparent; color: var(--text-muted); padding: 9px 12px; display: flex; align-items: center; gap: 7px; font: 500 .82rem var(--font-ui); cursor: pointer; min-height: 38px; }
-.achievements-tabs__btn--active { background: var(--color-selected); border-color: var(--color-border-strong); color: var(--text-main); }
-.achievements-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; padding: 0; margin: 0; list-style: none; }
-.achievement-card { --medal: var(--text-muted); display: flex; align-items: flex-start; gap: 14px; padding: 20px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; scroll-margin-top: 120px; }
-.achievement-card[data-rarity='rare'] { --medal: var(--color-info); }
-.achievement-card[data-rarity='epic'] { --medal: color-mix(in srgb, #a264d7 60%, var(--text-main)); }
-.achievement-card[data-rarity='legendary'] { --medal: var(--ach-accent); }
-.achievement-card__badge { flex: 0 0 50px; height: 56px; position: relative; display: grid; place-items: center; background: color-mix(in srgb, var(--medal) 14%, var(--bg-body)); border: 1px solid color-mix(in srgb, var(--medal) 45%, var(--border-color)); border-radius: 50% 50% 40% 40%; }
-.achievement-card__icon { font-size: 1.6rem; }
-.achievement-card__lock, .achievement-card__check { position: absolute; width: 18px; height: 18px; bottom: -2px; right: -3px; background: var(--bg-card); border-radius: 50%; padding: 2px; color: var(--text-muted); }
-.achievement-card__check { color: var(--color-success); }
-.achievement-card__lock svg, .achievement-card__check svg { width: 100%; height: 100%; }
-.achievement-card__body { flex: 1; min-width: 0; }
-.rarity-label { display: block; color: var(--medal); font-size: .73rem; margin-bottom: 5px; }
-.achievement-card__title { margin: 0 0 7px; font: 600 1.22rem/1.2 var(--font-display); }
-.achievement-card__desc { color: var(--text-muted); font-size: .82rem; line-height: 1.65; margin: 0 0 14px; }
-.achievement-card__date { color: var(--text-muted); font-size: .72rem; line-height: 1.5; margin: 8px 0; }
-.achievement-card__progress { display: flex; align-items: center; gap: 9px; margin: 14px 0; }
-.progress-bar { display: block; height: 5px; flex: 1; background: var(--border-color); border-radius: 6px; overflow: hidden; }
-.progress-bar__fill { display: block; height: 100%; background: var(--ach-accent); border-radius: inherit; }
-.progress-text { white-space: nowrap; font-size: .73rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.achievement-card__reward { display: flex; gap: 7px; font-size: .75rem; color: var(--ach-accent); margin-top: 12px; }
-.xp-reward { color: var(--text-muted); margin-left: 7px; }
-.cosmetic-reward { display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--border-color); margin-top: 15px; padding-top: 10px; }
-.cosmetic-reward app-cosmetic-preview { flex: 0 0 64px; }
-.cosmetic-reward small { color: var(--text-muted); display: block; font-size: .68rem; margin-bottom: 5px; }
-.cosmetic-reward strong { display: block; font-size: .75rem; line-height: 1.5; font-weight: 500; overflow-wrap: anywhere; }
-.cosmetic-reward.is-title { flex-direction: column; }
-.achievements-empty { padding: 40px 16px; text-align: center; color: var(--text-muted); line-height: 1.6; }
-.achievement-card--skeleton { min-height: 150px; }
-.skeleton-badge { width: 48px; height: 48px; border-radius: 50%; background: var(--border-color); }
-.collection-intro { margin-bottom: 24px; }
-.collection-intro h2 { margin-bottom: 8px; }
-.collection-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 30px; align-items: start; }
-.collection-mirror { position: sticky; top: 100px; display: flex; flex-direction: column; align-items: center; gap: 13px; padding: 28px 18px 18px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; text-align: center; }
-.mirror-avatar { width: 82px; height: 82px; display: grid; place-items: center; border-radius: 50%; overflow: hidden; color: white; font-size: 2rem; }
-.mirror-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.mirror-name { margin-top: 8px; font-size: .95rem; overflow-wrap: anywhere; }
-.mirror-title { font: 500 1.05rem var(--font-display); color: var(--ach-accent); }
-.mirror-maguito { width: 140px; }
-.collection-mirror p { margin: 0; font-size: .78rem; color: var(--text-muted); line-height: 1.5; }
-.collection-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; list-style: none; padding: 0; margin: 0; }
-.collection-item { display: flex; flex-direction: column; padding: 17px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-card); }
-.collection-state { font-size: .7rem; color: var(--text-muted); }
-.collection-origin { margin: 0 0 12px; }
-.collection-origin > span { color: var(--ach-accent); font-size: .73rem; font-weight: 600; }
-.collection-item .collection-origin p { margin: 4px 0 0; }
-.collection-origin .earned-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0; }
-.collection-origin .earned-link:focus-visible { outline: 2px solid var(--ach-accent); outline-offset: 3px; border-radius: 3px; }
-.is-equipped .collection-state { color: var(--color-success); }
-.preview-button { background: transparent; border: 0; padding: 15px 4px 10px; color: inherit; cursor: pointer; }
-.collection-item h3 { font: 600 1.15rem/1.3 var(--font-display); margin: 8px 0; overflow-wrap: anywhere; }
-.collection-item p { font-size: .78rem; line-height: 1.6; color: var(--text-muted); margin: 0 0 17px; }
-.collection-item-actions { margin-top: auto; display: flex; flex-wrap: wrap; gap: 6px; }
-.collection-action.subtle { background: transparent; border-color: var(--border-color); color: var(--text-muted); }
-.earned-link { background: none; border: 0; padding: 0 0 8px; text-align: left; color: var(--ach-accent); font: 500 .75rem/1.55 var(--font-ui); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.levels-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-.level-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 22px; }
-.current-level { border-color: var(--ach-accent); }
-.level-card-header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.level-card-badge-wrap { color: var(--ach-accent); }
-.level-card-name { margin: 3px 0; font: 600 1.4rem var(--font-display); }
-.level-card-tier, .current-badge, .discount-badge, .mission-tag { color: var(--text-muted); font-size: .72rem; }
-.level-req-box { display: flex; gap: 10px; align-items: center; margin: 18px 0; }
-.req-val { font-weight: 600; }
-.perks-title { font-size: .85rem; font-weight: 500; }
-.level-perks-list ul { list-style: none; padding: 0; }
-.level-perks-list li { display: flex; gap: 8px; font-size: .8rem; line-height: 1.6; color: var(--text-muted); margin: 8px 0; }
-.perk-icon { color: var(--color-success); font-size: 18px; }
-.history-list { display: flex; flex-direction: column; }
-.history-item { display: flex; align-items: center; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--border-color); }
-.tx-details { flex: 1; min-width: 0; }
-.tx-concept { font-size: .9rem; overflow-wrap: anywhere; }
-.tx-date, .tx-balance { font-size: .75rem; color: var(--text-muted); margin-top: 5px; }
-.tx-amounts { text-align: right; font-size: .9rem; }
-.positive { color: var(--color-success); }
-.negative { color: var(--color-error); }
-button:focus-visible, a:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; }
-@media (hover: hover) { .collection-action:hover, .achievements-tabs__btn:hover, .almost-item:hover { border-color: var(--color-border-strong); background: var(--color-hover); } }
-@media (max-width: 1050px) { .achievements-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .collection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .daily-reward-box { margin-left: 0; border: 0; padding: 0; } }
-@media (max-width: 700px) { .gamification-page { padding: 22px 16px 40px; } .page-heading { align-items: flex-start; flex-direction: column; gap: 12px; } .gamification-header { align-items: flex-start; padding: 18px; gap: 14px; } .level-ring { width: 66px; height: 66px; } .level-number { font-size: 2rem; } .gamification-metrics { gap: 15px; } .metric-icon { font-size: 21px; } .almost-list { grid-template-columns: 1fr; } .main-tabs { gap: 20px; } .collection-layout { grid-template-columns: 1fr; gap: 20px; } .collection-mirror { position: static; display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; text-align: left; padding: 24px; } .collection-mirror > app-avatar-frame { grid-row: span 2; } .mirror-name { margin: 0; } .mirror-maguito { grid-row: span 3; width: 90px; } .collection-mirror p { grid-column: 2; } }
-@media (max-width: 480px) { .achievements-grid { grid-template-columns: 1fr; } .achievement-card { padding: 18px; } .gamification-header { flex-wrap: wrap; } .level-badge-container { display: none; } .gamification-title { font-size: 1.5rem; } .collection-grid { gap: 10px; } .collection-item { padding: 13px; } .collection-item-actions { flex-direction: column; } .collection-action { font-size: .75rem; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+:host {
+  display: block;
+  color: var(--text-main);
+  --bg-card: var(--color-surface);
+  --bg-body: var(--color-bg-primary);
+  --border-color: var(--color-border);
+  --ach-accent: var(--color-warning);
+}
 
-.cosmetic-reward.is-title app-cosmetic-preview { flex-basis: auto; min-height: 40px; width: 100%; }
+.gamification-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  font-family: var(--font-ui);
+}
+
+.page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+
+.page-heading h1 {
+  font: 600 clamp(2rem, 4vw, 3rem)/1.1 var(--font-display, Georgia, serif);
+  margin: 0 0 8px;
+}
+
+.page-heading p,
+.section-intro p,
+.collection-intro p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.collection-link {
+  color: var(--ach-accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── ENCABEZADO DEL PERFIL Y SUB-HITOS ── */
+.gamification-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.level-ring {
+  width: 90px;
+  height: 90px;
+  position: relative;
+}
+
+.ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-bg,
+.ring-fill {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.ring-bg {
+  stroke: var(--border-color);
+}
+
+.ring-fill {
+  stroke: var(--ach-accent);
+  stroke-linecap: round;
+}
+
+.level-number {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 600 2.5rem var(--font-display);
+}
+
+.gamification-stats-container {
+  flex: 1;
+  min-width: 0;
+}
+
+.gamification-title-area {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 16px;
+}
+
+.gamification-title {
+  font: 600 1.7rem var(--font-display);
+  margin: 0;
+}
+
+.gamification-xp-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.gamification-metrics {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
+.metric-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metric-box--interactive {
+  background: color-mix(in srgb, var(--bg-body) 45%, transparent);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px 12px;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.metric-box--interactive:hover {
+  border-color: var(--ach-accent);
+  background: var(--color-hover);
+  transform: translateY(-1px);
+}
+
+.metric-icon {
+  color: var(--ach-accent);
+  font-size: 24px;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-value {
+  font-size: 1rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-label {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+}
+
+.daily-reward-box {
+  margin-left: auto;
+  padding-left: 20px;
+  border-left: 1px solid var(--border-color);
+}
+
+.daily-claim-btn,
+.collection-action {
+  border: 1px solid var(--color-border-strong);
+  border-radius: 7px;
+  background: var(--color-selected);
+  color: var(--text-main);
+  padding: 9px 13px;
+  cursor: pointer;
+  font: 600 0.8rem var(--font-ui);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+}
+
+.daily-claim-btn:disabled,
+.collection-action:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.claim-btn-loading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.claimed-icon {
+  color: var(--color-success);
+}
+
+/* ── NAVEGACIÓN PRINCIPAL ── */
+.main-tabs {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 28px;
+}
+
+.main-tab-btn {
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  padding: 13px 2px;
+  white-space: nowrap;
+  font: 600 0.9rem var(--font-ui);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.main-tab-btn.active {
+  color: var(--text-main);
+  border-bottom-color: var(--ach-accent);
+}
+
+.tab-count {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: var(--color-hover);
+  font-size: 0.7rem;
+}
+
+.almost-there {
+  margin-bottom: 28px;
+}
+
+.section-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 20px;
+  margin-bottom: 12px;
+}
+
+.section-intro h2,
+.collection-intro h2 {
+  margin: 0;
+  font: 600 1.7rem var(--font-display);
+}
+
+.section-intro p {
+  font-size: 0.85rem;
+}
+
+.almost-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.almost-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.almost-icon {
+  font-size: 1.4rem;
+}
+
+.almost-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.almost-body strong {
+  font: 600 0.82rem var(--font-ui);
+}
+
+.almost-body .progress-bar {
+  flex: none;
+  width: 100%;
+}
+
+/* ── BARRA DE HERRAMIENTAS: 5 PILARES + ORDENAR POR (Fase 1 y Fase 3) ── */
+.achievements-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.achievements-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.achievements-tabs__btn {
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg-card) 80%, transparent);
+  color: var(--text-muted);
+  padding: 8px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 0.83rem var(--font-ui);
+  cursor: pointer;
+  min-height: 40px;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.achievements-tabs__btn--active {
+  background: var(--color-selected);
+  border-color: var(--ach-accent);
+  color: var(--text-main);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+/* Menú Ordenar por */
+.achievements-sort {
+  position: relative;
+  margin-left: auto;
+}
+
+.sort-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font: 500 0.82rem var(--font-ui);
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.sort-trigger-btn:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-hover);
+}
+
+.sort-icon {
+  font-size: 18px;
+  color: var(--ach-accent);
+}
+
+.sort-label-prefix {
+  color: var(--text-muted);
+}
+
+.sort-current {
+  font-weight: 650;
+  color: var(--text-main);
+}
+
+.sort-caret {
+  font-size: 18px;
+  color: var(--text-muted);
+  transition: transform 180ms ease;
+}
+
+.sort-caret.is-open {
+  transform: rotate(180deg);
+}
+
+.sort-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 215px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--bg-card);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+}
+
+.sort-option-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font: 500 0.83rem var(--font-ui);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.sort-option-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.sort-option-btn:hover {
+  background: var(--color-hover);
+  color: var(--text-main);
+}
+
+.sort-option-btn.is-selected {
+  background: color-mix(in srgb, var(--ach-accent) 16%, transparent);
+  color: var(--ach-accent);
+  font-weight: 600;
+}
+
+.sort-check {
+  margin-left: auto;
+  color: var(--ach-accent);
+}
+
+/* ── GRID DE LOGROS Y SISTEMA DE MARCOS DE RAREZA (Fase 2) ── */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.achievement-card {
+  /* Bronce por defecto */
+  --rarity-color: #d98a4e;
+  --rarity-secondary: #8c4a20;
+  --rarity-glow: rgba(217, 138, 78, 0.28);
+  --rarity-border: rgba(217, 138, 78, 0.55);
+
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  scroll-margin-top: 120px;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+/* 1. BRONCE */
+.achievement-card[data-rarity='bronze'] {
+  --rarity-color: #d98a4e;
+  --rarity-secondary: #9c5221;
+  --rarity-glow: rgba(217, 138, 78, 0.25);
+  --rarity-border: rgba(217, 138, 78, 0.6);
+}
+
+/* 2. PLATA */
+.achievement-card[data-rarity='silver'] {
+  --rarity-color: #cbd5e1;
+  --rarity-secondary: #64748b;
+  --rarity-glow: rgba(203, 213, 225, 0.34);
+  --rarity-border: rgba(226, 232, 240, 0.72);
+}
+
+/* 3. ORO */
+.achievement-card[data-rarity='gold'] {
+  --rarity-color: #fbbf24;
+  --rarity-secondary: #d97706;
+  --rarity-glow: rgba(251, 191, 36, 0.48);
+  --rarity-border: rgba(251, 191, 36, 0.85);
+}
+
+/* 4. DIAMANTE */
+.achievement-card[data-rarity='diamond'] {
+  --rarity-color: #67e8f9;
+  --rarity-secondary: #a78bfa;
+  --rarity-glow: rgba(103, 232, 249, 0.58);
+  --rarity-border: rgba(103, 232, 249, 0.92);
+}
+
+.achievement-card--unlocked[data-rarity='gold'] {
+  border-color: color-mix(in srgb, var(--rarity-color) 42%, var(--border-color));
+}
+
+.achievement-card--unlocked[data-rarity='diamond'] {
+  border-color: color-mix(in srgb, var(--rarity-color) 55%, var(--border-color));
+  box-shadow: 0 8px 28px rgba(103, 232, 249, 0.12);
+}
+
+.achievement-card:hover,
+.achievement-card.is-inspected {
+  border-color: var(--rarity-border);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32), 0 0 20px var(--rarity-glow);
+}
+
+/* Insignia con Marco, Contorno y Efecto de Brillo según Rareza */
+.achievement-card__badge {
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 28%,
+    color-mix(in srgb, var(--rarity-color) 28%, var(--bg-body)),
+    color-mix(in srgb, var(--rarity-secondary) 16%, var(--bg-body))
+  );
+  border: 2px solid var(--rarity-border);
+  box-shadow:
+    0 0 16px var(--rarity-glow),
+    inset 0 1px 2px rgba(255, 255, 255, 0.28);
+  isolation: isolate;
+}
+
+/* Contorno interior metálico/cristalino */
+.badge-ring {
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  border: 1px dashed color-mix(in srgb, var(--rarity-color) 55%, transparent);
+  pointer-events: none;
+}
+
+.achievement-card[data-rarity='silver'] .badge-ring {
+  border-style: solid;
+  border-color: rgba(241, 245, 249, 0.45);
+}
+
+.achievement-card[data-rarity='gold'] .badge-ring {
+  border-style: double;
+  border-width: 2px;
+  border-color: rgba(251, 191, 36, 0.68);
+}
+
+.achievement-card[data-rarity='diamond'] .badge-ring {
+  border-style: solid;
+  border-width: 1.5px;
+  border-color: rgba(167, 139, 250, 0.78);
+  box-shadow: inset 0 0 10px rgba(103, 232, 249, 0.45);
+}
+
+/* Halo de brillo para Oro y Diamante */
+.badge-aura {
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+  background: radial-gradient(circle, var(--rarity-glow) 0%, transparent 72%);
+  opacity: 0.45;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.achievement-card[data-rarity='gold'] .badge-aura {
+  opacity: 0.78;
+}
+
+.achievement-card[data-rarity='diamond'] .badge-aura {
+  opacity: 0.95;
+  background: conic-gradient(
+    from 0deg,
+    rgba(103, 232, 249, 0.55),
+    rgba(167, 139, 250, 0.55),
+    rgba(244, 114, 182, 0.45),
+    rgba(103, 232, 249, 0.55)
+  );
+  filter: blur(8px);
+}
+
+.achievement-card:hover .badge-aura,
+.achievement-card.is-inspected .badge-aura {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.achievement-card--locked .achievement-card__badge {
+  filter: saturate(0.72);
+  opacity: 0.86;
+}
+
+.achievement-card__icon {
+  font-size: 1.65rem;
+  z-index: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.achievement-card__lock,
+.achievement-card__check {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  bottom: -3px;
+  right: -3px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: var(--bg-card);
+  border: 1.5px solid var(--rarity-border);
+  border-radius: 50%;
+  padding: 3.5px;
+  color: var(--text-muted);
+  line-height: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.achievement-card__check {
+  color: var(--color-success);
+}
+
+.achievement-card__lock svg,
+.achievement-card__check svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ── POPOVER DE PORCENTAJE GLOBAL DE COMUNIDAD (Hover o Clic) ── */
+.rarity-popover {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: -12px;
+  transform: translateY(-100%) scale(0.96);
+  z-index: 30;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-body) 96%, black);
+  border: 1px solid var(--rarity-border);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 18px var(--rarity-glow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease, visibility 0s linear 160ms;
+}
+
+.achievement-card:hover .rarity-popover,
+.achievement-card:focus-visible .rarity-popover,
+.achievement-card.is-inspected .rarity-popover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-100%) scale(1);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 0s;
+}
+
+.rarity-popover__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.rarity-gem-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rarity-color);
+  box-shadow: 0 0 8px var(--rarity-color);
+}
+
+.rarity-tier-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--rarity-color);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rarity-pct-value {
+  margin-left: auto;
+  font-size: 0.82rem;
+  font-weight: 750;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.rarity-popover__bar {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.rarity-popover__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--rarity-secondary), var(--rarity-color));
+}
+
+.rarity-popover__caption {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.rarity-popover__caption strong {
+  color: var(--text-main);
+}
+
+/* ── CUERPO DE LA TARJETA ── */
+.achievement-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.achievement-card__title {
+  margin: 0 0 6px;
+  font: 600 1.2rem/1.2 var(--font-display);
+}
+
+.achievement-card__desc {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.achievement-card__date {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+.achievement-card__progress {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 12px 0;
+}
+
+.progress-bar {
+  display: block;
+  height: 5px;
+  flex: 1;
+  background: var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  display: block;
+  height: 100%;
+  background: var(--ach-accent);
+  border-radius: inherit;
+}
+
+.progress-text {
+  white-space: nowrap;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.achievement-card__reward {
+  display: flex;
+  gap: 7px;
+  font-size: 0.75rem;
+  color: var(--ach-accent);
+  margin-top: 10px;
+}
+
+.xp-reward {
+  color: var(--text-muted);
+  margin-left: 7px;
+}
+
+.cosmetic-reward {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 14px;
+  padding-top: 10px;
+}
+
+.cosmetic-reward app-cosmetic-preview {
+  flex: 0 0 64px;
+}
+
+.cosmetic-reward small {
+  color: var(--text-muted);
+  display: block;
+  font-size: 0.68rem;
+  margin-bottom: 4px;
+}
+
+.cosmetic-reward strong {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.cosmetic-reward.is-title {
+  flex-direction: column;
+}
+
+.cosmetic-reward.is-title app-cosmetic-preview {
+  flex-basis: auto;
+  min-height: 40px;
+  width: 100%;
+}
+
+.achievements-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.achievement-card--skeleton {
+  min-height: 150px;
+}
+
+.skeleton-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--border-color);
+}
+
+/* ── COLECCIÓN, NIVELES E HISTORIAL ── */
+.collection-intro {
+  margin-bottom: 24px;
+}
+
+.collection-intro h2 {
+  margin-bottom: 8px;
+}
+
+.collection-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 30px;
+  align-items: start;
+}
+
+.collection-mirror {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 13px;
+  padding: 28px 18px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.mirror-avatar {
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  color: white;
+  font-size: 2rem;
+}
+
+.mirror-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mirror-name {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.mirror-title {
+  font: 500 1.05rem var(--font-display);
+  color: var(--ach-accent);
+}
+
+.mirror-maguito {
+  width: 140px;
+}
+
+.collection-mirror p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.collection-item {
+  display: flex;
+  flex-direction: column;
+  padding: 17px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-card);
+}
+
+.collection-state {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.collection-origin {
+  margin: 0 0 12px;
+}
+
+.collection-origin > span {
+  color: var(--ach-accent);
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.collection-item .collection-origin p {
+  margin: 4px 0 0;
+}
+
+.collection-origin .earned-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+}
+
+.collection-origin .earned-link:focus-visible {
+  outline: 2px solid var(--ach-accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.is-equipped .collection-state {
+  color: var(--color-success);
+}
+
+.preview-button {
+  background: transparent;
+  border: 0;
+  padding: 15px 4px 10px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.collection-item h3 {
+  font: 600 1.15rem/1.3 var(--font-display);
+  margin: 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.collection-item p {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0 0 17px;
+}
+
+.collection-item-actions {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.collection-action.subtle {
+  background: transparent;
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+.earned-link {
+  background: none;
+  border: 0;
+  padding: 0 0 8px;
+  text-align: left;
+  color: var(--ach-accent);
+  font: 500 0.75rem/1.55 var(--font-ui);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.levels-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.level-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 22px;
+}
+
+.current-level {
+  border-color: var(--ach-accent);
+}
+
+.level-card-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.level-card-badge-wrap {
+  color: var(--ach-accent);
+}
+
+.level-card-name {
+  margin: 3px 0;
+  font: 600 1.4rem var(--font-display);
+}
+
+.level-card-tier,
+.current-badge,
+.discount-badge,
+.mission-tag {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.level-req-box {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 18px 0;
+}
+
+.req-val {
+  font-weight: 600;
+}
+
+.perks-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.level-perks-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.level-perks-list li {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 8px 0;
+}
+
+.perk-icon {
+  color: var(--color-success);
+  font-size: 18px;
+}
+
+.history-list {
+  display: flex;
+  column-gap: 16px;
+  flex-direction: column;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tx-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.tx-concept {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.tx-date,
+.tx-balance {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+.tx-amounts {
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.positive {
+  color: var(--color-success);
+}
+
+.negative {
+  color: var(--color-error);
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) {
+  .collection-action:hover,
+  .achievements-tabs__btn:hover,
+  .almost-item:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-hover);
+  }
+}
+
+@media (max-width: 1050px) {
+  .achievements-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .daily-reward-box {
+    margin-left: 0;
+    border: 0;
+    padding: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .gamification-page {
+    padding: 22px 16px 40px;
+  }
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .gamification-header {
+    align-items: flex-start;
+    padding: 18px;
+    gap: 14px;
+  }
+  .level-ring {
+    width: 66px;
+    height: 66px;
+  }
+  .level-number {
+    font-size: 2rem;
+  }
+  .gamification-metrics {
+    gap: 12px;
+  }
+  .metric-icon {
+    font-size: 21px;
+  }
+  .almost-list {
+    grid-template-columns: 1fr;
+  }
+  .main-tabs {
+    gap: 20px;
+  }
+  .achievements-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .achievements-sort {
+    margin-left: 0;
+    width: 100%;
+  }
+  .sort-trigger-btn {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .sort-dropdown {
+    left: 0;
+    right: 0;
+  }
+  .collection-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .collection-mirror {
+    position: static;
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    align-items: center;
+    text-align: left;
+    padding: 24px;
+  }
+  .collection-mirror > app-avatar-frame {
+    grid-row: span 2;
+  }
+  .mirror-name {
+    margin: 0;
+  }
+  .mirror-maguito {
+    grid-row: span 3;
+    width: 90px;
+  }
+  .collection-mirror p {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .achievements-grid {
+    grid-template-columns: 1fr;
+  }
+  .achievement-card {
+    padding: 18px;
+  }
+  .gamification-header {
+    flex-wrap: wrap;
+  }
+  .level-badge-container {
+    display: none;
+  }
+  .gamification-title {
+    font-size: 1.5rem;
+  }
+  .collection-grid {
+    gap: 10px;
+  }
+  .collection-item {
+    padding: 13px;
+  }
+  .collection-item-actions {
+    flex-direction: column;
+  }
+  .collection-action {
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

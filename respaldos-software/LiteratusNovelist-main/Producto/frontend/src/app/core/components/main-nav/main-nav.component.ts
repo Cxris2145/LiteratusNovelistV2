@@ -90,6 +90,7 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
     categories: { left: 0, origin: '50% 0' },
     authors: { left: 0, origin: '50% 0' },
     library: { left: 0, origin: '50% 0' },
+    games: { left: 0, origin: '50% 0' },
   };
 
   /** El destello del botón destacado se ve una vez por sesión, no en cada recarga del header. */
@@ -298,7 +299,7 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
 
   // ── Datos de los paneles (se piden al primer uso) ───────────────────
 
-  private load(panel: NavPanel): void {
+  private load(panel: NavPanel): void { if (panel === 'games') return;
     if (panel === 'library') {
       this.loadLibrary();
       return;

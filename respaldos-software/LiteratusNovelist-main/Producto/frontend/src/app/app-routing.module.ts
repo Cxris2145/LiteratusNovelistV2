@@ -69,7 +69,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { preloadingStrategy: IdlePreloadStrategy })],
+  imports: [RouterModule.forRoot(routes, { preloadingStrategy: IdlePreloadStrategy, scrollPositionRestoration: 'top' })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

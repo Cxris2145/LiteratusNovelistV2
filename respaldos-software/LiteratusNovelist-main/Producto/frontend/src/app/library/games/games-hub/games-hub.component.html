@@ -1,0 +1,91 @@
+<div class="oraculo-wrapper">
+  <div class="oraculo-glow oraculo-glow--gold" aria-hidden="true"></div>
+  <div class="oraculo-glow oraculo-glow--cyan" aria-hidden="true"></div>
+  <div class="oraculo-glow oraculo-glow--violet" aria-hidden="true"></div>
+
+  <div class="oraculo-container">
+    <!-- ═══ HERO DEL ORÁCULO ═══ -->
+    <header class="oraculo-hero">
+      <div class="oraculo-hero-copy">
+        <span class="oraculo-eyebrow">
+          <span class="material-symbols-rounded" aria-hidden="true">auto_awesome</span>
+          <span>Desafíos y Pasatiempos Literarios</span>
+        </span>
+        <h1 class="oraculo-title">Salón de Juegos</h1>
+        <p class="oraculo-subtitle">
+          Tres pruebas de ingenio, memoria y deducción donde las obras de tu biblioteca cobran vida.
+          Pon a prueba tus lecturas y gana Gotas de Tinta en cada victoria.
+        </p>
+      </div>
+
+      <div class="oraculo-hero-meta">
+        <div class="oraculo-metric-pill" *ngIf="isLoggedIn" title="Saldo actual de Tinta">
+          <span class="material-symbols-rounded pill-icon" aria-hidden="true">ink_pen</span>
+          <div class="pill-info">
+            <span class="pill-label">Tu Reserva</span>
+            <strong class="pill-value">{{ userInkBalance | number }} Tinta</strong>
+          </div>
+        </div>
+        <a routerLink="/achievements" class="oraculo-achievements-link">
+          <span class="material-symbols-rounded" aria-hidden="true">emoji_events</span>
+          <span>Ver Mis Logros</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- ═══ TARJETAS DE LOS 3 JUEGOS ═══ -->
+    <section class="oraculo-grid" aria-label="Juegos disponibles">
+      <article
+        *ngFor="let game of games"
+        class="oraculo-card"
+        [attr.data-accent]="game.accent">
+        <div class="oraculo-card-glow" aria-hidden="true"></div>
+
+        <header class="oraculo-card-head">
+          <div class="oraculo-icon-badge">
+            <span class="material-symbols-rounded" aria-hidden="true">{{ game.icon }}</span>
+          </div>
+          <span class="oraculo-badge">{{ game.badge }}</span>
+        </header>
+
+        <div class="oraculo-card-body">
+          <span class="oraculo-card-eyebrow">{{ game.eyebrow }}</span>
+          <h2 class="oraculo-card-title">{{ game.title }}</h2>
+          <p class="oraculo-card-desc">{{ game.description }}</p>
+
+          <ul class="oraculo-highlights">
+            <li *ngFor="let item of game.highlights">
+              <span class="material-symbols-rounded highlight-icon" aria-hidden="true">{{ item.icon }}</span>
+              <span>{{ item.text }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <footer class="oraculo-card-footer">
+          <a [routerLink]="game.route" class="oraculo-cta">
+            <span>{{ game.ctaLabel }}</span>
+            <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+          </a>
+        </footer>
+      </article>
+    </section>
+
+    <!-- ═══ NOTA DE SINERGIA CON LA BIBLIOTECA ═══ -->
+    <aside class="oraculo-lore-banner">
+      <div class="lore-icon-wrap" aria-hidden="true">
+        <span class="material-symbols-rounded">menu_book</span>
+      </div>
+      <div class="lore-copy">
+        <strong>Tus lecturas dan vida al Salón de Juegos</strong>
+        <p>
+          A medida que sumas obras a <em>Mi Biblioteca</em> y avanzas en sus capítulos, las preguntas de
+          La Senda, las palabras del Enigma y los sospechosos del Interrogatorio se personalizan con tus propios libros.
+        </p>
+      </div>
+      <a routerLink="/library" class="lore-action">
+        <span>Ir a Mi Biblioteca</span>
+        <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+      </a>
+    </aside>
+  </div>
+</div>

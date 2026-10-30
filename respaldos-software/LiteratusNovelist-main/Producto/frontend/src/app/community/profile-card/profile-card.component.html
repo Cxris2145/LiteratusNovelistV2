@@ -5,12 +5,20 @@
     <div class="pc-portrait">
       <app-avatar-frame [frame]="card.equipped_frame" size="lg">
         <div class="pc-avatar">
-          <app-maguito crop="bust" [outfit]="card.outfit" [followPointer]="false" [calm]="true"
-                       [label]="'Maguito de ' + card.username"></app-maguito>
+          <img *ngIf="photo as src; else avatarFallback" class="pc-photo" [src]="src"
+               [alt]="'Foto de perfil de ' + card.username" decoding="async" (error)="hidePhoto()">
+          <ng-template #avatarFallback>
+            <span *ngIf="!mine; else myMaguito" class="pc-initials"
+                  [style.background-color]="card.avatar_color || '#3b82f6'">
+              {{ (card.username || '?')[0] | uppercase }}
+            </span>
+          </ng-template>
+          <ng-template #myMaguito>
+            <app-maguito crop="bust" [outfit]="card.outfit" [followPointer]="false" [calm]="true"
+                         [label]="'Maguito de ' + card.username"></app-maguito>
+          </ng-template>
         </div>
       </app-avatar-frame>
-      <img *ngIf="photo as src" class="pc-seal" [src]="src" [alt]="'Foto de perfil de ' + card.username"
-           decoding="async" (error)="hidePhoto()">
       <span *ngIf="mine" class="pc-online-dot" title="En la taberna"><span class="pc-sr">En la taberna</span></span>
     </div>
     <div class="pc-identity">

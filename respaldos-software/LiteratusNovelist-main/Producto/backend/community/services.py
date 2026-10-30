@@ -163,6 +163,7 @@ def minimal_card(profile, relation='none', request_id=None) -> dict:
         'username': profile.user.username,
         # Un perfil privado muestra su foto solo a sus amigos; mientras tanto se ve su Maguito.
         'avatar': avatar_url(profile) if profile.is_public else None,
+        'avatar_color': profile.avatar_color or '#3b82f6',
         'outfit': profile.outfit or {},
         'equipped_frame': profile.equipped_frame,
         'equipped_title': profile.equipped_title,
@@ -202,6 +203,7 @@ def full_card(profile, relation, request_id=None) -> dict:
         'is_guest': user_is_guest,
         'username': user.username,
         'avatar': avatar_url(profile),
+        'avatar_color': profile.avatar_color or '#3b82f6',
         'tagline': profile.tagline,
         'bio': profile.bio,
         'outfit': profile.outfit or {},
@@ -401,6 +403,7 @@ def friends_list(me) -> list:
         'friend_code': p.friend_code,
         'username': p.user.username,
         'avatar': avatar_url(p),
+        'avatar_color': p.avatar_color or '#3b82f6',
         'outfit': p.outfit or {},
         'tagline': p.tagline,
         'level': p.level,

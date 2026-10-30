@@ -1392,6 +1392,14 @@ html.tavern-morph-reduced::view-transition-new(root) { animation-duration: 150ms
 /* ═════════════════════════════════════════════════════════════════════
    TABERNA: PANTALLA COMPLETA (sin scroll ni desplazamiento innecesario)
    ═════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1001px) {
+  html:has(.th-hall),
+  body:has(.th-hall) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+}
+
 html:has(.th-hall.is-cinema),
 body:has(.th-hall.is-cinema) {
   overflow: hidden !important;

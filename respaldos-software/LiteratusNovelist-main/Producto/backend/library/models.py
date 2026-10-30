@@ -303,12 +303,17 @@ class Achievement(TimeStampedModel):
         RARE = 'rare', 'Raro'
         EPIC = 'epic', 'Épico'
         LEGENDARY = 'legendary', 'Legendario'
+        BRONZE = 'bronze', 'Bronce'
+        SILVER = 'silver', 'Plata'
+        GOLD = 'gold', 'Oro'
+        DIAMOND = 'diamond', 'Diamante'
 
     code = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=150)
     description = models.TextField()
     category = models.CharField(max_length=20, choices=Category.choices)
-    rarity = models.CharField(max_length=12, choices=Rarity.choices, default=Rarity.COMMON)
+    rarity = models.CharField(max_length=12, choices=Rarity.choices, default=Rarity.BRONZE)
+    predefined_rarity_pct = models.FloatField(default=45.0, help_text="Porcentaje base predefinido de rareza antes del cálculo dinámico comunitario.")
     reward_item = models.ForeignKey(
         'learning.ShopItem',
         on_delete=models.SET_NULL,

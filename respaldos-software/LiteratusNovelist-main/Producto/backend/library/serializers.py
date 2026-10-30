@@ -195,14 +195,52 @@ class AchievementSerializer(serializers.ModelSerializer):
     Expone todos los campos visibles sin información de usuario.
     """
     reward = serializers.SerializerMethodField()
+    rarity = serializers.SerializerMethodField()
+    global_unlock_percentage = serializers.SerializerMethodField()
+    sub_group = serializers.SerializerMethodField()
 
     class Meta:
         model = Achievement
         fields = [
             'id', 'code', 'title', 'description', 'category', 'rarity',
+            'predefined_rarity_pct', 'global_unlock_percentage', 'sub_group',
             'icon', 'badge_image', 'threshold', 'ink_reward', 'sort_order', 'reward',
         ]
         read_only_fields = fields
+
+    def get_rarity(self, obj):
+        mapping = {'common': 'bronze', 'rare': 'silver', 'epic': 'gold', 'legendary': 'diamond'}
+        return mapping.get(obj.rarity, obj.rarity or 'bronze')
+
+    def _get_community_stats(self):
+        if '_ach_stats' not in self.context:
+            from django.db.models import Count
+            total_users = UserAchievement.objects.filter(is_active=True).values('user_id').distinct().count()
+            unlocks = dict(
+                UserAchievement.objects
+                .filter(is_active=True, unlocked_at__isnull=False)
+                .values('achievement_id')
+                .annotate(c=Count('user_id', distinct=True))
+                .values_list('achievement_id', 'c')
+            )
+            self.context['_ach_stats'] = (total_users, unlocks)
+        return self.context['_ach_stats']
+
+    def get_global_unlock_percentage(self, obj):
+        from .achievement_catalog import PREDEFINED_RARITY_PCT
+        baseline = float(getattr(obj, 'predefined_rarity_pct', None) or PREDEFINED_RARITY_PCT.get(obj.code, 45.0))
+        total_users, unlocks = self._get_community_stats()
+        if total_users <= 0:
+            return round(baseline, 1)
+        unlocked_count = unlocks.get(obj.id, 0)
+        dynamic_pct = (unlocked_count / total_users) * 100.0
+        baseline_weight = 12.0
+        blended = ((baseline * baseline_weight) + (dynamic_pct * total_users)) / (baseline_weight + total_users)
+        return round(max(0.1, min(99.9, blended)), 1)
+
+    def get_sub_group(self, obj):
+        from .achievement_catalog import SUB_GROUPS
+        return SUB_GROUPS.get(obj.code)
 
     def get_reward(self, obj):
         """Marco, título o accesorio que regala el logro (exclusivo si no se vende en El Bazar)."""

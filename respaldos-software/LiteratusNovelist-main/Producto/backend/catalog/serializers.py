@@ -178,7 +178,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     Reseñas de usuarios.
     """
     username = serializers.CharField(source='user.username', read_only=True)
-    user_avatar = serializers.ImageField(source='user.profile.avatar', read_only=True)
+    user_avatar = serializers.CharField(source='user.profile.avatar', read_only=True, default='')
 
     class Meta:
         model = Review

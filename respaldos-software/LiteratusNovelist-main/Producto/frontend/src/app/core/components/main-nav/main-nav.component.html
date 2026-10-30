@@ -1,5 +1,5 @@
 <div class="mn-row">
-  <div class="mn-items" (mouseenter)="warmUp()">
+  <div class="mn-items" [style.--mn-count]="items.length" (mouseenter)="warmUp()">
     <!-- Una sola pieza que se desliza a la sección activa: fondo + subrayado. -->
     <span class="mn-indicator" aria-hidden="true" [class.is-visible]="indicatorVisible"
       [class.is-instant]="indicatorInstant" [style.transform]="'translateX(' + indicatorIndex * 100 + '%)'"></span>
@@ -208,6 +208,50 @@
           </div>
         </ng-template>
       </div>
+    </div>
+  </section>
+
+  <!-- Salón de Juegos -->
+  <section id="mn-panel-games" class="mn-panel" aria-label="Salón de Juegos"
+    [class.is-open]="openPanel === 'games'" [style.left.px]="pos.games.left"
+    [style.transform-origin]="pos.games.origin" (mouseenter)="onPanelEnter()" (mouseleave)="onPanelLeave()"
+    (keydown)="onPanelKeydown($event, 'games')">
+    <header class="mn-panel-head">
+      <h2>Salón de Juegos</h2>
+      <a routerLink="/games" class="mn-see-all">Ir al salón <span class="material-symbols-rounded"
+          aria-hidden="true">arrow_forward</span></a>
+    </header>
+    <div class="mn-games-list">
+      <a routerLink="/learn" class="mn-game-card mn-game-card--gold">
+        <span class="mn-game-icon material-symbols-rounded" aria-hidden="true">map</span>
+        <span class="mn-game-body">
+          <span class="mn-game-head">
+            <strong>La Senda del Lector</strong>
+            <span class="mn-game-tag">Mapa de Niveles</span>
+          </span>
+          <span class="mn-game-desc">Supera trivias y misiones sobre tus obras para ganar XP y cofres de Tinta.</span>
+        </span>
+      </a>
+      <a routerLink="/games/enigma" class="mn-game-card mn-game-card--cyan">
+        <span class="mn-game-icon material-symbols-rounded" aria-hidden="true">extension</span>
+        <span class="mn-game-body">
+          <span class="mn-game-head">
+            <strong>El Enigma del Tintero</strong>
+            <span class="mn-game-tag">+15 Tinta · Diario</span>
+          </span>
+          <span class="mn-game-desc">Descifra letra por letra la obra oculta antes de agotar las 5 gotas de tu pluma.</span>
+        </span>
+      </a>
+      <a routerLink="/games/interrogatorio" class="mn-game-card mn-game-card--violet">
+        <span class="mn-game-icon material-symbols-rounded" aria-hidden="true">visibility_off</span>
+        <span class="mn-game-body">
+          <span class="mn-game-head">
+            <strong>El Interrogatorio a Ciegas</strong>
+            <span class="mn-game-tag">Deducción IA</span>
+          </span>
+          <span class="mn-game-desc">Formula preguntas en vivo y descubre qué personaje te responde desde las sombras.</span>
+        </span>
+      </a>
     </div>
   </section>
 </div>

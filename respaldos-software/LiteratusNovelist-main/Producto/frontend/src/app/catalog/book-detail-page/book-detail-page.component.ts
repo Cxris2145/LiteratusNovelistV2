@@ -56,6 +56,8 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   private ttsUtterance: SpeechSynthesisUtterance | null = null;
 
   // Review State
+  readonly maxReviewLength = 500;
+  readonly minReviewLength = 3;
   reviewRating = 5;
   reviewComment = '';
   isSubmittingReview = false;
@@ -317,19 +319,171 @@ handleAction(): void {
     this.avatarsCanScroll = !!el && el.scrollWidth - el.clientWidth > 8;
   }
 
+  private static readonly PROFANE_WORDS = new Set<string>([
+    'puto', 'putos', 'puta', 'putas', 'putazo', 'putear', 'puteria',
+    'hijodeputa', 'hijosdeputa', 'hijadeputa', 'hdp',
+    'mierda', 'mierdas', 'mierdero',
+    'carajo', 'carajos',
+    'cabron', 'cabrona', 'cabrones', 'cabronas',
+    'pendejo', 'pendeja', 'pendejos', 'pendejas', 'pendejada', 'pendejadas',
+    'imbecil', 'imbeciles', 'idiota', 'idiotas',
+    'estupido', 'estupida', 'estupidos', 'estupidas',
+    'tarado', 'tarada', 'tarados', 'taradas',
+    'mongolico', 'mongolica', 'subnormal', 'subnormales',
+    'marica', 'maricas', 'maricon', 'maricones', 'maricona', 'mariconada',
+    'joder', 'jodido', 'jodida', 'jodidos', 'jodidas', 'jodete',
+    'coño', 'coños', 'gilipollas', 'capullo', 'polla', 'pollas', 'soplapollas',
+    'verga', 'vergas', 'vergazo',
+    'chinga', 'chingar', 'chingado', 'chingada', 'chingados', 'chingadas',
+    'chingatumadre', 'pinche', 'pinches',
+    'culero', 'culera', 'culeros', 'culeras',
+    'mamaguevo', 'mamahuevo', 'malparido', 'malparida', 'malparidos', 'malparidas',
+    'gonorrea', 'pirobo', 'carechimba',
+    'culo', 'culos',
+    'culiao', 'culia', 'culiaos', 'culias', 'culiado', 'culiada', 'culiados', 'culiadas',
+    'qlo', 'qlia', 'qliao', 'ctm',
+    'conchetumare', 'conchatumadre', 'conchetumadre', 'conchesumadre',
+    'chuchetumare', 'chuchatumadre',
+    'weon', 'weona', 'weones', 'weonas',
+    'hueon', 'hueona', 'hueones', 'hueonas',
+    'aweonao', 'aweona', 'aweonaos', 'ahuevao',
+    'wea', 'weas', 'huevada', 'huevadas', 'webada', 'webadas',
+    'chucha', 'chuchas', 'maraco', 'maraca', 'maracos', 'maracas',
+    'pichula', 'pichulas', 'chupapico', 'tula',
+    'zorra', 'zorras', 'prostituta', 'prostitutas', 'ramera', 'rameras',
+    'pelotudo', 'pelotuda', 'pelotudos', 'pelotudas',
+    'boludo', 'boluda', 'boludos', 'boludas',
+    'conchudo', 'conchuda', 'conchudos', 'conchudas',
+    'pija', 'pijas', 'poronga', 'porongas',
+    'ojete', 'pajero', 'pajera', 'pajeros', 'pajeras',
+    'mamon', 'mamona', 'mamones', 'mamonas',
+    'chupapija', 'chupaverga', 'chupapolla', 'lameculos',
+    'cagar', 'cagada', 'cagado', 'cagadas', 'cagados', 'cagon', 'cagona',
+    'fuck', 'fucker', 'fuckers', 'fucking', 'fucked', 'motherfucker', 'motherfucking',
+    'shit', 'shitty', 'bullshit',
+    'bitch', 'bitches',
+    'asshole', 'assholes', 'bastard', 'bastards',
+    'dickhead', 'cock', 'cunt', 'whore', 'slut',
+    'nigger', 'nigga', 'faggot', 'retard', 'retarded'
+  ]);
+
+  private static readonly PROFANE_PHRASES = [
+    'hijo de puta',
+    'hija de puta',
+    'hijos de puta',
+    'la concha de tu madre',
+    'la concha de su madre',
+    'concha tu madre',
+    'concha de tu madre',
+    'vete a la mierda',
+    'andate a la mierda',
+    'andate a la chucha',
+    'vete a la chucha',
+    'chupa el pico',
+    'chupame el pico',
+    'chupame la pija',
+    'chupame la verga'
+  ];
+
+  get isRegisteredUser(): boolean {
+    return this.auth.isLoggedIn() && !this.auth.isGuest();
+  }
+
+  get hasUserReviewed(): boolean {
+    const username = this.auth.currentUser()?.username;
+    if (!username || !this.book?.reviews) return false;
+    return this.book.reviews.some((r: any) => r.username === username);
+  }
+
   setRating(rating: number): void {
     this.reviewRating = rating;
   }
 
+  onReviewCommentInput(): void {
+    if (this.reviewComment.length > this.maxReviewLength) {
+      this.reviewComment = this.reviewComment.slice(0, this.maxReviewLength);
+    }
+    if (this.reviewErrorMsg) {
+      this.reviewErrorMsg = '';
+    }
+  }
+
+  containsProfanity(text: string): boolean {
+    if (!text || !text.trim()) return false;
+
+    const placeholder = '\u0000';
+    const noAccents = text
+      .toLowerCase()
+      .replace(/ñ/g, placeholder)
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .normalize('NFC')
+      .replace(new RegExp(placeholder, 'g'), 'ñ');
+
+    const leetMap: Record<string, string> = {
+      '0': 'o', '1': 'i', '3': 'e', '4': 'a', '@': 'a', '$': 's', '5': 's', '7': 't', '!': 'i'
+    };
+    const cleanedLeet = noAccents.replace(/[0134@$57!]/g, ch => leetMap[ch] || ch);
+
+    const normalizedSpaces = cleanedLeet.replace(/[^a-zñ\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    for (const phrase of BookDetailPageComponent.PROFANE_PHRASES) {
+      const regex = new RegExp(`\\b${phrase}\\b`, 'i');
+      if (regex.test(normalizedSpaces)) return true;
+    }
+
+    const compactPunct = cleanedLeet.replace(/([a-zñ])[._*\-~]+(?=[a-zñ])/g, '$1');
+    const tokens = [
+      ...(cleanedLeet.match(/[a-zñ]+/g) || []),
+      ...(compactPunct.match(/[a-zñ]+/g) || [])
+    ];
+
+    for (const token of tokens) {
+      if (token.length < 3) continue;
+      const collapsedAll = token.replace(/(.)\1+/g, '$1');
+      const collapsedDigraphSafe = token.replace(/([^rlceos])\1+/g, '$1').replace(/(.)\1{2,}/g, '$1$1');
+      if (
+        BookDetailPageComponent.PROFANE_WORDS.has(token) ||
+        BookDetailPageComponent.PROFANE_WORDS.has(collapsedAll) ||
+        BookDetailPageComponent.PROFANE_WORDS.has(collapsedDigraphSafe)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   submitReview(): void {
     if (!this.slug || this.isSubmittingReview) return;
-    
+
+    if (!this.isRegisteredUser) {
+      this.reviewErrorMsg = 'Solo los lectores registrados pueden publicar reseñas.';
+      return;
+    }
+
+    const trimmedComment = this.reviewComment.trim();
+
+    if (trimmedComment.length < this.minReviewLength) {
+      this.reviewErrorMsg = `Por favor escribe una reseña de al menos ${this.minReviewLength} caracteres.`;
+      return;
+    }
+
+    if (trimmedComment.length > this.maxReviewLength) {
+      this.reviewErrorMsg = `La reseña no puede superar los ${this.maxReviewLength} caracteres.`;
+      return;
+    }
+
+    if (this.containsProfanity(trimmedComment)) {
+      this.reviewErrorMsg = 'Tu reseña contiene lenguaje inapropiado u obsceno. Por favor, mantén un tono respetuoso para la comunidad.';
+      return;
+    }
+
     this.isSubmittingReview = true;
     this.reviewErrorMsg = '';
 
     const payload = {
       rating: this.reviewRating,
-      comment: this.reviewComment
+      comment: trimmedComment
     };
 
     this.api.post<any>(`catalog/books/${this.slug}/add_review/`, payload).subscribe({
@@ -339,6 +493,7 @@ handleAction(): void {
         this.book.reviews.unshift(res.review);
         this.reviewComment = '';
         this.reviewRating = 5;
+        this.notificationService.success('Tu opinión ya está disponible en la sección de reseñas.', '¡Reseña publicada!');
         this.liyumi.wave('¡Gracias por tu reseña! A la comunidad le encantará.');
       },
       error: (err) => {

@@ -1400,6 +1400,41 @@
   --popup-bg-accent: rgba(245, 158, 11, 0.22);
 }
 
+.unified-popup-card.popup-achievement_high_rarity {
+  --popup-accent: #FBBF24;
+  --popup-glow: rgba(251, 191, 36, 0.72);
+  --popup-bg-accent: rgba(251, 191, 36, 0.28);
+  border: 2px solid rgba(251, 191, 36, 0.75);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.72), 0 0 42px var(--popup-glow);
+}
+
+.unified-popup-card.popup-achievement_high_rarity[data-rarity-tier="diamond"] {
+  --popup-accent: #67E8F9;
+  --popup-glow: rgba(103, 232, 249, 0.78);
+  --popup-bg-accent: rgba(167, 139, 250, 0.32);
+  border: 2px solid rgba(103, 232, 249, 0.85);
+}
+
+.popup-rarity-crest {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--popup-accent);
+  background: var(--popup-bg-accent);
+  border: 1px solid var(--popup-accent);
+  box-shadow: 0 0 16px var(--popup-glow);
+}
+
+.popup-rarity-pct {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--popup-accent);
+  opacity: 0.92;
+}
+
 /* ── Halo Ambiental Superior ── */
 .popup-ambient-glow {
   position: absolute;

@@ -447,54 +447,67 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     def add_review(self, request, slug=None):
         """
         Añade una reseña a una obra.
-        Solo usuarios autenticados que posean la obra.
+        Habilitado para todos los lectores registrados (no cuentas de invitado).
+        Valida longitud máxima coherente y filtro de palabras obscenas.
         Otorga Tinta y XP al usuario.
         """
         if not request.user.is_authenticated:
             return Response({'error': 'Debes iniciar sesión para escribir una reseña.'}, status=status.HTTP_401_UNAUTHORIZED)
-            
-        book = self.get_object()
-        
 
-        # Verificar si el usuario posee la obra
-        owns_book = UserInventory.objects.filter(
-            user=request.user, 
-            edition__book=book
-        ).exists()
-        
-        if not owns_book:
-            return Response({'error': 'Debes adquirir la obra antes de poder reseñarla.'}, status=status.HTTP_403_FORBIDDEN)
-            
+        from users.guests import is_guest
+        if is_guest(request.user):
+            return Response(
+                {'error': 'Solo los lectores registrados pueden publicar reseñas. Crea una cuenta o inicia sesión.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        book = self.get_object()
+
         # Verificar si ya reseñó
         if Review.objects.filter(user=request.user, book=book).exists():
             return Response({'error': 'Ya has escrito una reseña para esta obra.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
         rating = request.data.get('rating')
-        comment = request.data.get('comment', '')
-        
+        comment = str(request.data.get('comment') or '').strip()
+
         if not rating or not str(rating).isdigit() or int(rating) < 1 or int(rating) > 5:
             return Response({'error': 'La calificación debe ser un número entre 1 y 5.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
+        from .moderation import MAX_REVIEW_COMMENT_LENGTH, MIN_REVIEW_COMMENT_LENGTH, contains_profanity
+
+        if len(comment) < MIN_REVIEW_COMMENT_LENGTH:
+            return Response(
+                {'error': f'Por favor escribe una reseña de al menos {MIN_REVIEW_COMMENT_LENGTH} caracteres.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if len(comment) > MAX_REVIEW_COMMENT_LENGTH:
+            return Response(
+                {'error': f'La reseña no puede superar los {MAX_REVIEW_COMMENT_LENGTH} caracteres (actual: {len(comment)}).'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if contains_profanity(comment):
+            return Response(
+                {'error': 'Tu reseña contiene lenguaje inapropiado u obsceno. Por favor, mantén un tono respetuoso para la comunidad.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         review = Review.objects.create(
             user=request.user,
             book=book,
             rating=int(rating),
             comment=comment
         )
-        
+
         # Recompensar actividad de reseña
         from library.achievement_engine import reward_activity
         reward_activity(request.user, 'review_written', reference_id=str(review.id))
-        
+
+        from .serializers import ReviewSerializer
         return Response({
             'message': 'Reseña publicada con éxito.',
-            'review': {
-                'id': review.id,
-                'user': review.user.username,
-                'rating': review.rating,
-                'comment': review.comment,
-                'created_at': review.created_at
-            }
+            'review': ReviewSerializer(review, context={'request': request}).data
         }, status=status.HTTP_201_CREATED)
 
 

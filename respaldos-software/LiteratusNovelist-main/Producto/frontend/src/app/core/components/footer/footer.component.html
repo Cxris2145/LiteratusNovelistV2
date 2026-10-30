@@ -1,7 +1,7 @@
 <footer class="app-footer">
   <div class="footer-container">
     <div class="footer-brand">
-      <a routerLink="/" class="logo" style="text-decoration: none;">
+      <a routerLink="/" (click)="scrollToTop()" class="logo" style="text-decoration: none;">
         <span class="literatus">Literatus</span><span class="novelist">Novelist</span>
       </a>
       <p class="brand-tagline">
@@ -13,9 +13,9 @@
       <div class="footer-col">
         <h4>Explorar</h4>
         <ul>
-          <li><a routerLink="/catalog">Catálogo de Libros</a></li>
-          <li><a routerLink="/authors">Nuestros Autores</a></li>
-          <li><a routerLink="/characters">Personajes IA</a></li>
+          <li><a routerLink="/catalog" (click)="scrollToTop()">Catálogo de Libros</a></li>
+          <li><a routerLink="/authors" (click)="scrollToTop()">Nuestros Autores</a></li>
+          <li><a routerLink="/characters" (click)="scrollToTop()">Personajes IA</a></li>
         </ul>
       </div>
 
@@ -23,19 +23,20 @@
         <h4>Ayuda & Guía</h4>
         <ul>
           <li><a href="javascript:void(0)" (click)="openGuide()">¿Cómo funciona Literatus?</a></li>
-          <li><a routerLink="/learn">La Senda del Lector</a></li>
-          <li><a routerLink="/achievements">Niveles & Recompensas</a></li>
+          <li><a routerLink="/games" (click)="scrollToTop()">Salón de Juegos</a></li>
+          <li><a routerLink="/learn" (click)="scrollToTop()">La Senda del Lector</a></li>
+          <li><a routerLink="/achievements" (click)="scrollToTop()">Niveles & Recompensas</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <h4>Mi Cuenta</h4>
         <ul>
-          <li><a routerLink="/library">Mi Biblioteca</a></li>
-          <li><a routerLink="/tavern">La Taberna</a></li>
-          <li><a routerLink="/planes">Sé parte de Literatus</a></li>
-          <li><a routerLink="/planes" fragment="tinta">Recargar Tinta</a></li>
-          <li><a routerLink="/login">Iniciar Sesión</a></li>
+          <li><a routerLink="/library" (click)="scrollToTop()">Mi Biblioteca</a></li>
+          <li><a routerLink="/tavern" (click)="scrollToTop()">La Taberna</a></li>
+          <li><a routerLink="/planes" (click)="scrollToTop()">Sé parte de Literatus</a></li>
+          <li><a routerLink="/planes" (click)="scrollToTop()">Recargar Tinta</a></li>
+          <li *ngIf="!isLoggedIn"><a routerLink="/login" (click)="scrollToTop()">Iniciar Sesión</a></li>
         </ul>
       </div>
 

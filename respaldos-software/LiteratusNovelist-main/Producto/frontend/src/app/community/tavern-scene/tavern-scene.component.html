@@ -30,9 +30,19 @@
     <span *ngIf="seat.isMe" class="ts-fit-light" aria-hidden="true"></span>
     <div class="ts-seat-chair" aria-hidden="true"><i></i><i></i><i></i></div>
     <!-- Bocadillo de diálogo (chat o frase temática con emojis): uno nuevo por frase. -->
-    <div class="ts-bubble" *ngFor="let bubble of seat.bubble ? [seat.bubble] : []; trackBy: trackBubble" [class.is-chat]="bubble.isChat" [attr.tabindex]="bubble.isChat ? 0 : null" [attr.title]="bubble.fullText || bubble.text" [attr.aria-label]="seat.guest.username + ': ' + (bubble.fullText || bubble.text)">
+    <div class="ts-bubble" *ngFor="let bubble of seat.bubble ? [seat.bubble] : []; trackBy: trackBubble"
+         [class.is-chat]="bubble.isChat"
+         [class.is-dismissible]="bubble.dismissible"
+         [class.is-fading-out]="bubble.fadingOut"
+         [attr.tabindex]="bubble.isChat ? 0 : null"
+         [attr.title]="bubble.fullText || bubble.text"
+         [attr.aria-label]="seat.guest.username + ': ' + (bubble.fullText || bubble.text)">
       <span *ngIf="bubble.isChat" class="material-symbols-rounded ts-chat-indicator" aria-hidden="true">chat_bubble</span>
       <span class="ts-bubble-text">{{ bubble.text }}</span>
+      <button *ngIf="bubble.dismissible" type="button" class="ts-bubble-close"
+              (click)="dismissWelcomeBubble($event)" aria-label="Quitar mensaje">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
+      </button>
     </div>
     <span *ngIf="seat.isMe" class="ts-fit-bursts" aria-hidden="true">
       <span *ngFor="let burst of fitBursts; trackBy: trackBurst" class="ts-fit-burst">

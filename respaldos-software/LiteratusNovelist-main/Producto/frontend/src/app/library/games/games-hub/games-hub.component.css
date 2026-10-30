@@ -1,0 +1,473 @@
+:host {
+  display: block;
+  width: 100%;
+  color: var(--color-text-primary, #f1f5f9);
+  font-family: var(--font-ui, 'Plus Jakarta Sans', system-ui, sans-serif);
+}
+
+.oraculo-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: calc(100vh - var(--navbar-h, 160px));
+  padding: clamp(28px, 4vw, 52px) var(--home-gutter, 24px) 64px;
+  box-sizing: border-box;
+}
+
+.oraculo-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(120px);
+  opacity: 0.16;
+  z-index: 0;
+}
+
+.oraculo-glow--gold {
+  width: 440px;
+  height: 440px;
+  top: -80px;
+  left: 6%;
+  background: radial-gradient(circle, #ffb353 0%, transparent 70%);
+}
+
+.oraculo-glow--cyan {
+  width: 420px;
+  height: 420px;
+  top: 18%;
+  left: 42%;
+  background: radial-gradient(circle, #38bdf8 0%, transparent 70%);
+}
+
+.oraculo-glow--violet {
+  width: 460px;
+  height: 460px;
+  bottom: -80px;
+  right: 6%;
+  background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+}
+
+.oraculo-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ═══ HERO ═══ */
+.oraculo-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border, #263b61) 80%, transparent);
+}
+
+.oraculo-hero-copy {
+  max-width: 700px;
+}
+
+.oraculo-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 179, 83, 0.12);
+  border: 1px solid rgba(255, 179, 83, 0.3);
+  color: var(--color-accent-text, #ffb353);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.oraculo-eyebrow .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.oraculo-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
+  font-size: clamp(2.1rem, 3.6vw, 3rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-text-strong, #ffffff);
+  letter-spacing: -0.01em;
+}
+
+.oraculo-subtitle {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.2vw, 1.06rem);
+  line-height: 1.6;
+  color: var(--color-text-secondary, #9fb6d9);
+}
+
+.oraculo-hero-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.oraculo-metric-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-surface, #1e3050) 88%, transparent);
+  border: 1px solid rgba(255, 179, 83, 0.32);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+
+.oraculo-metric-pill .pill-icon {
+  font-size: 22px;
+  color: #ffb353;
+}
+
+.oraculo-metric-pill .pill-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.oraculo-metric-pill .pill-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary, #9fb6d9);
+}
+
+.oraculo-metric-pill .pill-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-strong, #ffffff);
+}
+
+.oraculo-achievements-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-surface, #1e3050) 75%, transparent);
+  border: 1px solid var(--color-border, #263b61);
+  color: var(--color-text-primary, #dee7f4);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 160ms ease, transform 160ms ease, background-color 160ms ease;
+}
+
+.oraculo-achievements-link .material-symbols-rounded {
+  font-size: 20px;
+  color: #ffb353;
+}
+
+.oraculo-achievements-link:hover {
+  border-color: rgba(255, 179, 83, 0.45);
+  background: color-mix(in srgb, var(--color-surface-elevated, #263b61) 85%, transparent);
+  transform: translateY(-1px);
+}
+
+/* ═══ GRID DE JUEGOS ═══ */
+.oraculo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.oraculo-card {
+  --card-accent: #ffb353;
+  --card-accent-soft: rgba(255, 179, 83, 0.14);
+  --card-accent-border: rgba(255, 179, 83, 0.34);
+
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 26px 24px 24px;
+  border-radius: 22px;
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-surface, #1e3050) 94%, transparent),
+    color-mix(in srgb, var(--color-bg-primary, #15233b) 96%, transparent)
+  );
+  border: 1px solid var(--color-border, #263b61);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.oraculo-card[data-accent="gold"] {
+  --card-accent: #ffb353;
+  --card-accent-soft: rgba(255, 179, 83, 0.15);
+  --card-accent-border: rgba(255, 179, 83, 0.42);
+}
+
+.oraculo-card[data-accent="cyan"] {
+  --card-accent: #38bdf8;
+  --card-accent-soft: rgba(56, 189, 248, 0.15);
+  --card-accent-border: rgba(56, 189, 248, 0.42);
+}
+
+.oraculo-card[data-accent="violet"] {
+  --card-accent: #a78bfa;
+  --card-accent-soft: rgba(167, 139, 250, 0.15);
+  --card-accent-border: rgba(167, 139, 250, 0.42);
+}
+
+.oraculo-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-accent-border);
+  box-shadow:
+    0 24px 52px rgba(0, 0, 0, 0.44),
+    0 0 28px var(--card-accent-soft);
+}
+
+.oraculo-card-glow {
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--card-accent-soft) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.oraculo-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.oraculo-icon-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-accent-soft);
+  border: 1px solid var(--card-accent-border);
+  color: var(--card-accent);
+  box-shadow: 0 6px 18px var(--card-accent-soft);
+}
+
+.oraculo-icon-badge .material-symbols-rounded {
+  font-size: 27px;
+}
+
+.oraculo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--card-accent);
+  background: var(--card-accent-soft);
+  border: 1px solid var(--card-accent-border);
+}
+
+.oraculo-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.oraculo-card-eyebrow {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--card-accent);
+  margin-bottom: 6px;
+}
+
+.oraculo-card-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display, 'Cormorant Garamond', Georgia, serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--color-text-strong, #ffffff);
+}
+
+.oraculo-card-desc {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #9fb6d9);
+}
+
+.oraculo-highlights {
+  list-style: none;
+  margin: auto 0 24px;
+  padding: 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-bg-primary, #15233b) 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border, #263b61) 70%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oraculo-highlights li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12.8px;
+  line-height: 1.45;
+  color: var(--color-text-primary, #dee7f4);
+}
+
+.oraculo-highlights .highlight-icon {
+  font-size: 17px;
+  color: var(--card-accent);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.oraculo-card-footer {
+  margin-top: auto;
+}
+
+.oraculo-cta {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 18px;
+  border-radius: 13px;
+  background: var(--card-accent-soft);
+  border: 1px solid var(--card-accent-border);
+  color: var(--color-text-strong, #ffffff);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.oraculo-cta .material-symbols-rounded {
+  font-size: 19px;
+  color: var(--card-accent);
+  transition: transform 180ms ease;
+}
+
+.oraculo-cta:hover {
+  background: color-mix(in srgb, var(--card-accent) 26%, transparent);
+  box-shadow: 0 8px 20px var(--card-accent-soft);
+}
+
+.oraculo-cta:hover .material-symbols-rounded {
+  transform: translateX(3px);
+}
+
+/* ═══ BANNER DE SINERGIA ═══ */
+.oraculo-lore-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+   gap: 20px;
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 179, 83, 0.1),
+    color-mix(in srgb, var(--color-surface, #1e3050) 86%, transparent) 45%
+  );
+  border: 1px solid rgba(255, 179, 83, 0.28);
+}
+
+.lore-icon-wrap {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 179, 83, 0.15);
+  color: #ffb353;
+}
+
+.lore-icon-wrap .material-symbols-rounded {
+  font-size: 24px;
+}
+
+.lore-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.lore-copy strong {
+  display: block;
+  font-size: 15px;
+  color: var(--color-text-strong, #ffffff);
+  margin-bottom: 3px;
+}
+
+.lore-copy p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--color-text-secondary, #9fb6d9);
+}
+
+.lore-action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 179, 83, 0.35);
+  background: rgba(255, 179, 83, 0.12);
+  color: #ffb353;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.lore-action:hover {
+  background: rgba(255, 179, 83, 0.22);
+  transform: translateX(2px);
+}
+
+@media (max-width: 1024px) {
+  .oraculo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .oraculo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .oraculo-lore-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lore-action {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -60,7 +60,7 @@
     <span class="material-symbols-rounded fl-empty-icon" aria-hidden="true">{{ isGuest ? 'lock' : 'chair_alt' }}</span>
     <h3>{{ isGuest ? 'Función para miembros' : 'Hay sitio para tus amigos' }}</h3>
     <p class="th-empty">{{ isGuest ? 'Inicia sesión con tu cuenta para agregar amigos, ver cuándo están en la taberna y compartir lecturas.' : 'Encuéntralos por su nombre o código y compartan la próxima historia.' }}</p>
-    <div class="fl-guest-empty-actions" *ngIf="isGuest" style="margin-top: 14px;">
+    <div class="fl-guest-empty-actions" *ngIf="isGuest">
       <a routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }" class="th-btn primary sm" style="text-decoration: none;">
         <span class="material-symbols-rounded" aria-hidden="true">login</span>
         Iniciar sesión

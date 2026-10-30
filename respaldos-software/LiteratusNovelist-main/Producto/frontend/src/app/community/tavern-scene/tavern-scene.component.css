@@ -8,6 +8,7 @@
   --ts-table-bottom: 50px;
   position: relative;
   isolation: isolate;
+  overflow: visible !important;
   overflow: hidden;
   /* Los asientos y Maguito crecen con el ANCHO de la mesa (cqw y %), pero el alto sale de la ventana.
      El borde de arriba del globo de Maguito queda a ~0,425 × ancho + 112px del piso; con 20px de aire,
@@ -285,6 +286,41 @@
 .ts-bubble.is-chat::after {
   border-top-color: #d4af37;
 }
+.ts-bubble.is-dismissible {
+  max-width: min(240px, 72vw);
+  padding: 8px 10px 8px 14px;
+  gap: 6px;
+}
+.ts-bubble-close {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(38, 22, 34, 0.08);
+  color: #5a4352;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+.ts-bubble-close .material-symbols-rounded {
+  font-size: 14px;
+  line-height: 1;
+}
+.ts-bubble-close:hover,
+.ts-bubble-close:focus-visible {
+  background: rgba(38, 22, 34, 0.18);
+  color: #261622;
+  transform: scale(1.08);
+}
+.ts-bubble.is-fading-out {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.95);
+  transition: opacity 420ms ease, transform 420ms ease;
+  pointer-events: none;
+}
 
 /* ── Mesa en primer plano (SVG) ─────────────────────────────── */
 .ts-table-overlay {
@@ -430,6 +466,17 @@ app-tavern-table.ts-table-overlay::before {
   left: 16px;
   right: 16px;
   bottom: 14px;
+  z-index: 25;
+}
+@media (min-width: 1001px) {
+  .ts-chat-dock {
+    left: 50%;
+    right: auto;
+    translate: -50% 0;
+    width: max(calc(100% - 32px), min(660px, 44vw));
+  }
+}
+.ts-chat-dock-noop {
   z-index: 25;
 }
 
@@ -738,7 +785,7 @@ app-tavern-table.ts-table-overlay::before {
 /* La barra de chat se parte en dos filas solo cuando la mesa es angosta (no según la ventana):
    en un notebook cabe en una fila y la mesa baja, dejando aire entre los bocadillos y los botones. */
 @media (min-width: 721px) {
-  @container (max-width: 600px) {
+  @container (max-width: 440px) {
     .ts-seat, .ts-empty-seat, .ts-table-overlay { --ts-table-bottom: 96px; }
     .ts-chat-bar { flex-wrap: wrap; }
     .ts-dock-separator { display: none; }
@@ -772,7 +819,7 @@ app-tavern-table.ts-table-overlay::before {
 .ts-object-bubble.is-leaving { opacity: 0; transition: opacity 150ms var(--th-ease-out); }
 
 /* El salón conserva sus laterales en notebook; la mesa responde a su propio ancho. */
-@container (max-width: 580px) {
+@container (max-width: 440px) {
   .ts-bubble { max-width: 30cqw; padding: 6px 8px; font-size: .7rem; }
   .ts-seat.seat-l1 .ts-bubble { left: 0; translate: 0; }
   .ts-seat.seat-r1 .ts-bubble { left: auto; right: 0; translate: 0; }

@@ -7,7 +7,7 @@
   --mn-accent-ink: var(--color-accent-text, #FFB353);
   --mn-on-accent: var(--color-on-accent, #15233B);
   --mn-link: var(--color-300);
-  --mn-item-w: 88px;
+  --mn-item-w: 114px;
 }
 
 /* En los temas elegibles (claros, alto contraste) el ámbar no contrasta: se usa su primario. */
@@ -26,18 +26,18 @@
 .mn-row {
   display: flex;
   align-items: stretch;
+  justify-content: center;
   gap: 20px;
   padding: 0 var(--home-gutter, 24px);
 }
 
 .mn-items {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
-  max-width: 1100px;
-  margin-inline: auto;
+  max-width: calc(var(--mn-count, 8) * 118px);
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--mn-count, 8), minmax(0, 1fr));
 }
 
 /* Fondo + subrayado de la sección activa. Mide lo mismo que una columna, así
@@ -47,7 +47,7 @@
   top: 0;
   bottom: 0;
   left: 0;
-  width: calc(100% / 10);
+  width: calc(100% / var(--mn-count, 8));
   pointer-events: none;
   opacity: 0;
   transition:
@@ -67,7 +67,7 @@
 .mn-indicator::before {
   content: '';
   position: absolute;
-  inset: 6px 8px 9px;
+  inset: 6px 2px 9px;
   border-radius: 14px;
   background: linear-gradient(180deg,
     color-mix(in srgb, var(--mn-accent) 24%, transparent),
@@ -100,6 +100,7 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
+  min-width: 0;
   min-height: 74px;
   padding: 10px 4px 14px;
   border-radius: 14px;
@@ -110,7 +111,7 @@
 .mn-item::after {
   content: '';
   position: absolute;
-  inset: 6px 8px 9px;
+  inset: 6px 2px 9px;
   z-index: -1;
   border-radius: 14px;
   background: var(--color-hover);
@@ -156,12 +157,14 @@
 .mn-label-row {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  max-width: 100%;
 }
 
 .mn-link {
   color: inherit;
   text-decoration: none;
-  font: 500 13px/1.2 var(--font-ui);
+  font: 500 clamp(11px, 0.86vw, 13px)/1.2 var(--font-ui);
   white-space: nowrap;
   transition: color 150ms ease;
 }
@@ -192,8 +195,9 @@
   z-index: 1;
   display: inline-grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 18px;
   margin-left: 1px;
   padding: 0;
   border: 0;
@@ -204,7 +208,7 @@
 }
 
 .mn-caret .material-symbols-rounded {
-  font-size: 18px;
+  font-size: 16px;
   transition: transform 200ms var(--ease-out);
 }
 
@@ -940,10 +944,91 @@
   }
 }
 
+/* ── Panel de El Oráculo (Juegos) ────────────────────────────────── */
+.mn-games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mn-game-card {
+  --game-accent: var(--mn-accent);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 13px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-bg-primary) 50%, transparent);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: border-color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.mn-game-card--gold { --game-accent: #ffb353; }
+.mn-game-card--cyan { --game-accent: #38bdf8; }
+.mn-game-card--violet { --game-accent: #a78bfa; }
+
+.mn-game-card:hover {
+  border-color: color-mix(in srgb, var(--game-accent) 55%, var(--color-border));
+  background: color-mix(in srgb, var(--game-accent) 10%, var(--color-bg-primary));
+  transform: translateX(2px);
+}
+
+.mn-game-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--game-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--game-accent) 36%, transparent);
+  color: var(--game-accent);
+  font-size: 21px;
+}
+
+.mn-game-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mn-game-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mn-game-head strong {
+  font: 600 13.5px/1.25 var(--font-ui);
+  color: var(--color-text-strong);
+}
+
+.mn-game-tag {
+  font: 600 10.5px/1 var(--font-ui);
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--game-accent);
+  background: color-mix(in srgb, var(--game-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--game-accent) 30%, transparent);
+  white-space: nowrap;
+}
+
+.mn-game-desc {
+  font: 400 12px/1.4 var(--font-ui);
+  color: var(--color-text-secondary);
+}
+
 /* ── Responsivo ───────────────────────────────────────────────────── */
 @media (max-width: 1180px) {
   .mn-row {
-    gap: 12px;
+    gap: 10px;
+    padding: 0 12px;
   }
 
   .mn-icon {
@@ -951,15 +1036,15 @@
   }
 
   .mn-link {
-    font-size: 12px;
+    font-size: clamp(10.5px, 1vw, 12px);
   }
 
   .mn-caret {
-    width: 16px;
+    width: 14px;
   }
 
   .mn-caret .material-symbols-rounded {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   /* El botón queda en su ícono; el texto sigue ahí para lectores de pantalla. */
@@ -983,14 +1068,14 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .mn-row {
     padding: 0 8px;
   }
 
   /* La fila se desliza; el borde derecho se desvanece para que se note que hay más. */
   .mn-items {
-    grid-template-columns: repeat(10, var(--mn-item-w));
+    grid-template-columns: repeat(var(--mn-count, 8), var(--mn-item-w));
     margin: 0;
     overflow-x: auto;
     scrollbar-width: none;
@@ -1008,7 +1093,7 @@
 
   .mn-item {
     min-height: 62px;
-    padding: 8px 2px 12px;
+    padding: 8px 4px 12px;
   }
 
   .mn-icon {

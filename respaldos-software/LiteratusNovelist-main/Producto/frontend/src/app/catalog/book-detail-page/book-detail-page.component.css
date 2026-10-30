@@ -610,34 +610,106 @@
   border: 1px solid var(--home-glass-border);
 }
 
+.review-form-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.review-form-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--home-ink-strong);
+  margin: 0;
+}
+
 .star-rating-input {
   display: flex;
   gap: 0.5rem;
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+  font-size: 2.2rem;
+  margin: 0;
+  user-select: none;
 }
 
 .star-input { color: #C9BFC4; cursor: pointer; transition: 0.2s; }
  .star-input.filled { color: var(--color-primary-text); }
 @media (hover: hover) and (pointer: fine) {
-  .star-input:hover { color: var(--color-primary-text); }
+  .star-input:hover { color: var(--color-primary-text); transform: scale(1.1); }
 }
 
 .review-textarea {
   width: 100%;
+  box-sizing: border-box;
   background: var(--home-bg-surface);
   border: 1px solid var(--home-glass-border);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   color: var(--home-ink);
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  resize: vertical;
+  min-height: 110px;
 }
 
 .review-textarea:focus {
   outline: none;
   border-color: var(--home-sage-ink);
   box-shadow: 0 0 0 3px var(--color-focus-soft);
+}
+
+.review-form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.review-char-counter {
+  font-size: 0.9rem;
+  color: var(--home-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.review-char-counter.near-limit {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.review-char-counter.at-limit {
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.review-status-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  background: var(--home-bg-surface);
+  border: 1px solid var(--home-glass-border);
+  border-radius: 14px;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 2.5rem;
+  color: var(--home-ink-muted);
+  font-size: 1rem;
+}
+
+.review-status-banner.reviewed {
+  border-color: rgba(240, 180, 76, 0.35);
+  color: var(--home-ink-strong);
+}
+
+.review-login-btn {
+  width: auto !important;
+  padding: 0.65rem 1.5rem !important;
+  text-decoration: none;
+  font-size: 0.95rem;
 }
 
 .comments-grid {
@@ -676,7 +748,7 @@
 }
 
 .comment-user { font-weight: 700; color: var(--home-ink-strong); font-size: 1.1rem; }
-.comment-text { color: var(--home-ink-muted); line-height: 1.8; }
+.comment-text { color: var(--home-ink-muted); line-height: 1.8; overflow-wrap: anywhere; word-break: break-word; }
 
 /* ────────────────────────────────────────────────────────
    RESPONSIVE DESIGN

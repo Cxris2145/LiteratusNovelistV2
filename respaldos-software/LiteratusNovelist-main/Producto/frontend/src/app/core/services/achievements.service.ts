@@ -8,7 +8,25 @@ import { ChatService } from './chat.service';
 import { Router } from '@angular/router';
 
 export type AchievementCategory = 'reading' | 'streak' | 'exploration' | 'time' | 'social' | 'learning' | 'games' | 'reader' | 'collection';
-export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';
+export type AchievementRarity = 'bronze' | 'silver' | 'gold' | 'diamond' | 'common' | 'rare' | 'epic' | 'legendary';
+export type NormalizedRarity = 'bronze' | 'silver' | 'gold' | 'diamond';
+
+export function normalizeAchievementRarity(rarity: AchievementRarity | string | undefined): NormalizedRarity {
+  switch (rarity) {
+    case 'diamond':
+    case 'legendary':
+      return 'diamond';
+    case 'gold':
+    case 'epic':
+      return 'gold';
+    case 'silver':
+    case 'rare':
+      return 'silver';
+    default:
+      return 'bronze';
+  }
+}
+
 export interface AchievementReward {
   code: string;
   name: string;
@@ -25,6 +43,9 @@ export interface Achievement {
   description: string;
   category: AchievementCategory;
   rarity: AchievementRarity;
+  predefined_rarity_pct?: number;
+  global_unlock_percentage?: number;
+  sub_group?: string | null;
   reward: AchievementReward | null;
   icon: string;
   badge_image: string | null;
@@ -134,19 +155,30 @@ export class AchievementsService {
     const ua = this.queue.shift()!;
     this.shown.add(ua.id);
     const reward = ua.achievement.reward;
+    const tier = normalizeAchievementRarity(ua.achievement.rarity);
+    const isHighRarity = tier === 'gold' || tier === 'diamond';
+    const pct = ua.achievement.global_unlock_percentage;
+
     this.notifications.show({
-      type: 'achievement', title: ua.achievement.title,
-      message: `${reward ? 'Ganaste ' + reward.name + '. ' : ''}+${ua.achievement.ink_reward} Tinta y +25 XP.`,
-      duration: 6000,
-      action: { label: reward ? 'Ver premio' : 'Ver logros', run: () => {
-        this.router.navigate(['/achievements'], { queryParams: reward ? { tab: 'collection' } : {} });
-      } },
+      type: isHighRarity ? 'achievement_high_rarity' : 'achievement',
+      icon: tier === 'diamond' ? 'diamond' : tier === 'gold' ? 'workspace_premium' : 'emoji_events',
+      rarityTier: tier,
+      globalRarityPct: pct,
+      title: ua.achievement.title,
+      message: `${reward ? 'Desbloqueaste el premio exclusivo «' + reward.name + '». ' : ''}+${ua.achievement.ink_reward} Tinta y +25 XP.`,
+      duration: isHighRarity ? 8500 : 6000,
+      action: {
+        label: reward ? 'Ver premio' : 'Ver medalla',
+        run: () => {
+          this.router.navigate(['/achievements'], { queryParams: reward ? { tab: 'collection' } : {} });
+        }
+      },
     });
     this.markNotified(ua.id).subscribe({ error: () => {} });
     this.celebrationTimer = setTimeout(() => {
       this.celebrationTimer = undefined;
       this.celebrateNext();
-    }, 6500);
+    }, isHighRarity ? 9000 : 6500);
   }
 
   /** Marca un logro como notificado (el toast ya se mostró) */
