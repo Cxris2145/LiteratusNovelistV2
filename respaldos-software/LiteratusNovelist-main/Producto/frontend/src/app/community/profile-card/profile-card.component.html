@@ -55,7 +55,10 @@
 
   <div class="pc-actions" *ngIf="mine">
     <button type="button" class="th-btn secondary pc-dress" (click)="dress.emit()" [attr.aria-expanded]="dressing">
-      <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir a Maguito
+      <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>Vestir
+    </button>
+    <button type="button" class="th-btn secondary pc-dyes-btn" (click)="customize.emit()" title="Personalizar colores del Maguito">
+      <span class="material-symbols-rounded" aria-hidden="true">palette</span>Personalizar
     </button>
     <a class="th-btn ghost pc-edit" routerLink="/profile" aria-label="Editar perfil">
       <span class="material-symbols-rounded" aria-hidden="true">edit</span><span class="pc-edit-label">Editar</span>

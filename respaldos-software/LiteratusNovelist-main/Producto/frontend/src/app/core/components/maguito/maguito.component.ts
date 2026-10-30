@@ -3,7 +3,8 @@ import {
   OnChanges, OnDestroy, Output, SimpleChanges, inject,
 } from '@angular/core';
 
-import { MaguitoLook, MaguitoOutfit, WearSlot, resolveOutfit } from './maguito-outfit';
+import { MaguitoLook, MaguitoOutfit, WearSlot, resolveOutfit } from './maguito-outfit';
+import { MaguitoCustomColors, applyMaguitoColors } from './maguito-colors';
 
 /**
  * Estados de Maguito:
@@ -126,7 +127,9 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   /** Brinda chocando la jarra con sus compañeros. */
   @Input() toasting = false;
   /** Accesorios comprados en El Bazar. Sin outfit lleva el atuendo de siempre. */
-  @Input() outfit: MaguitoOutfit | null | undefined = null;
+  @Input() outfit: MaguitoOutfit | null | undefined = null;
+  /** Paleta de colores personalizada de Maguito. */
+  @Input() colors: Partial<MaguitoCustomColors> | null | undefined = null;
 
   /** El outfit ya resuelto: cada espacio con una variante que este componente sabe dibujar. */
   look: MaguitoLook = resolveOutfit(null);
@@ -180,7 +183,8 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     // Antes del primer render también: el primer ngOnChanges llega sin vista.
-    if (changes['outfit']) this.look = resolveOutfit(this.outfit);
+    if (changes['outfit']) this.look = resolveOutfit(this.outfit);
+    if (changes['colors'] && this.colors) applyMaguitoColors(this.host, this.colors);
     if (!this.viewReady) return;
     if (changes['state']) this.show(this.state);
     if (changes['paused']) this.updateRunning();
@@ -188,7 +192,8 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.pupils = Array.from(this.host.querySelectorAll<SVGGElement>('.mg-pupil'));
-    this.face = this.host.querySelector<SVGGElement>('.mg-face');
+    this.face = this.host.querySelector<SVGGElement>('.mg-face');
+    if (this.colors) applyMaguitoColors(this.host, this.colors);
     this.viewReady = true;
     this.show(this.state);
 

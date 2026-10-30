@@ -45,6 +45,8 @@ export class ProfileCardComponent {
   @Input() dressing = false;
   /** "Vestir a Maguito": la página abre el ropero del Bazar. */
   @Output() dress = new EventEmitter<void>();
+  /** Abre el taller de personalización de colores. */
+  @Output() customize = new EventEmitter<void>();
   /** Se guarda el cambio de perfil público/privado (deshabilita el interruptor). */
   @Input() savingPrivacy = false;
   /** El interruptor de perfil público: la página lo guarda. */

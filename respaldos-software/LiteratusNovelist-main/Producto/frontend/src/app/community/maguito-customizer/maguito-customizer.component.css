@@ -1,0 +1,420 @@
+/* ─────────────────────────────────────────────────────────────
+   ESTILOS: TALLER DE PERSONALIZACIÓN DEL MAGUITO (TABERNA)
+   ───────────────────────────────────────────────────────────── */
+
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  color: #f7f0df;
+  font-family: inherit;
+  --mg-touch-size: 44px; /* Touch target estándar */
+  --mg-gold: #f5b73b;
+  --mg-gold-light: #ffd875;
+  --mg-wood-dark: #1b120c;
+  --mg-wood-card: #281a11;
+  --mg-wood-light: #382519;
+  --mg-wood-border: #4d3322;
+  --mg-parchment: #fcf7ea;
+  --mg-parchment-muted: #cdbe9d;
+}
+
+.mg-customizer-root {
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 15%, #2e1d13 0%, #150d08 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--mg-wood-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65);
+}
+
+@media (min-width: 820px) {
+  .mg-customizer-root:not(.is-compact) {
+    flex-direction: row;
+    min-height: 580px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   1. STAGE PANEL & VISTA PREVIA
+   ───────────────────────────────────────────────────────────── */
+.mg-stage-panel {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1rem 0.75rem;
+  background: linear-gradient(180deg, rgba(27, 18, 12, 0.98) 0%, rgba(27, 18, 12, 0.92) 80%, rgba(27, 18, 12, 0.8) 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(245, 183, 59, 0.2);
+}
+
+@media (min-width: 820px) {
+  .mg-customizer-root:not(.is-compact) .mg-stage-panel {
+    position: relative;
+    top: auto;
+    flex: 1 1 42%;
+    border-bottom: none;
+    border-right: 2px solid var(--mg-wood-border);
+    padding: 2.5rem 1.5rem;
+    background: radial-gradient(circle at 50% 40%, #3a2517 0%, #191009 100%);
+  }
+}
+
+.mg-stage-frame {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 820px) {
+  .mg-customizer-root:not(.is-compact) .mg-stage-frame {
+    width: 260px;
+    height: 260px;
+  }
+}
+
+.mg-maguito-anchor {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.65));
+}
+
+.mg-stage-pedestal {
+  position: absolute;
+  bottom: 0px;
+  width: 130px;
+  height: 10px;
+  background: #3f2a1b;
+  border-radius: 999px;
+  border: 1px solid var(--mg-gold);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.mg-stage-tools {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.mg-tool-btn {
+  min-height: 34px;
+  padding: 0 0.85rem;
+  background: var(--mg-wood-card);
+  border: 1px solid var(--mg-wood-border);
+  border-radius: 999px;
+  color: var(--mg-parchment-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+}
+
+.mg-tool-btn:active {
+  transform: scale(0.95);
+  background: var(--mg-wood-light);
+  border-color: var(--mg-gold);
+  color: var(--mg-gold);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   2. PANEL DE TINTES Y PESTAÑAS
+   ───────────────────────────────────────────────────────────── */
+.mg-dyes-panel {
+  flex: 1 1 58%;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.25rem;
+  background: rgba(22, 14, 9, 0.65);
+}
+
+.mg-dyes-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--mg-gold);
+  background: rgba(245, 183, 59, 0.12);
+  border: 1px solid rgba(245, 183, 59, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 0.35rem;
+}
+
+.mg-badge-icon {
+  font-size: 1rem;
+}
+
+.mg-dyes-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--mg-parchment);
+}
+
+.mg-dyes-desc {
+  margin: 0.25rem 0 0.85rem;
+  font-size: 0.84rem;
+  color: var(--mg-parchment-muted);
+  line-height: 1.35;
+}
+
+/* Píldoras de navegación por zona (Touch-Friendly) */
+.mg-zone-tabs {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mg-zone-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mg-tab-pill {
+  min-height: var(--mg-touch-size);
+  padding: 0 0.95rem;
+  background: var(--mg-wood-card);
+  color: var(--mg-parchment-muted);
+  border: 1px solid var(--mg-wood-border);
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.2s ease;
+}
+
+.mg-tab-pill.is-active {
+  background: var(--mg-gold);
+  color: #1f1105;
+  font-weight: 700;
+  border-color: var(--mg-gold-light);
+  box-shadow: 0 2px 10px rgba(245, 183, 59, 0.4);
+}
+
+/* Cuerpo de zonas */
+.mg-zone-body {
+  flex: 1;
+  min-height: 180px;
+}
+
+/* Cartas de Paletas */
+.mg-presets-deck {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
+}
+
+@media (min-width: 500px) {
+  .mg-presets-deck {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.mg-preset-card {
+  min-height: 52px;
+  padding: 0.75rem 0.9rem;
+  background: var(--mg-wood-card);
+  border: 1px solid var(--mg-wood-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all 0.15s ease;
+}
+
+.mg-preset-card:hover, .mg-preset-card:active {
+  background: var(--mg-wood-light);
+  border-color: var(--mg-gold);
+  transform: translateY(-2px);
+}
+
+.mg-preset-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.mg-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.mg-preset-name {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--mg-parchment);
+}
+
+.mg-preset-flavor {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  color: var(--mg-parchment-muted);
+  line-height: 1.25;
+}
+
+/* Campos de Color y Swatches */
+.mg-color-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.mg-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.mg-field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mg-parchment);
+}
+
+.mg-swatches-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.mg-swatches-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.mg-swatch {
+  width: var(--mg-touch-size);
+  height: var(--mg-touch-size);
+  border-radius: 50%;
+  border: 2px solid var(--mg-wood-dark);
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.12s ease;
+}
+
+.mg-swatch:active {
+  transform: scale(0.92);
+}
+
+.mg-swatch.is-active {
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px var(--mg-gold), 0 0 10px var(--mg-gold);
+  transform: scale(1.08);
+}
+
+/* Pipeta de Color Nativa */
+.mg-picker-pipette {
+  width: var(--mg-touch-size);
+  height: var(--mg-touch-size);
+  border-radius: 50%;
+  background: var(--mg-wood-card);
+  border: 2px dashed var(--mg-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.mg-picker-pipette input[type="color"] {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.mg-pipette-icon {
+  font-size: 1.2rem;
+  pointer-events: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   3. BARRA INFERIOR DE ACCIONES (SAFE AREA COMPATIBLE)
+   ───────────────────────────────────────────────────────────── */
+.mg-actions-footer {
+  position: sticky;
+  bottom: 0;
+  margin-top: 1.5rem;
+  padding: 0.85rem 0;
+  padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(0deg, rgba(27, 18, 12, 0.95) 80%, transparent 100%);
+  display: flex;
+  gap: 0.75rem;
+}
+
+.mg-btn-cancel {
+  min-height: 46px;
+  flex: 1;
+  background: transparent;
+  color: var(--mg-parchment-muted);
+  border: 1px solid var(--mg-wood-border);
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.mg-btn-cancel:active {
+  background: var(--mg-wood-card);
+}
+
+.mg-btn-save {
+  min-height: 46px;
+  flex: 2;
+  background: linear-gradient(180deg, #f8cb58 0%, #d99723 100%);
+  color: #261504;
+  border: 1px solid #ffea9e;
+  border-radius: 12px;
+  font-size: 0.96rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(217, 151, 35, 0.45);
+  touch-action: manipulation;
+  transition: transform 0.12s ease;
+}
+
+.mg-btn-save:active {
+  transform: scale(0.98);
+}
+
+.mg-btn-save:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+

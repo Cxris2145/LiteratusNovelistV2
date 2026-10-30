@@ -14,6 +14,7 @@ import { FriendChatComponent } from './friend-chat/friend-chat.component';
 import { TavernReadingClubsComponent } from './tavern-reading-clubs/tavern-reading-clubs.component';
 import { TavernCrowdComponent } from './tavern-crowd/tavern-crowd.component';
 import { TavernTableComponent } from './tavern-table/tavern-table.component';
+import { MaguitoCustomizerComponent } from './maguito-customizer/maguito-customizer.component';
 
 /** La Taberna (comunidad, El Bazar, mesa) se descarga al entrar a /tavern. */
 @NgModule({
@@ -23,12 +24,14 @@ import { TavernTableComponent } from './tavern-table/tavern-table.component';
     FriendChatComponent, TavernReadingClubsComponent, TavernCrowdComponent,
   ],
   imports: [
-    SharedModule, TavernTableComponent,
+    SharedModule, TavernTableComponent, MaguitoCustomizerComponent,
     RouterModule.forChild([
       { path: '', component: TavernHallComponent },
+      { path: 'personalizar', component: MaguitoCustomizerComponent },
       { path: 'amigo/:code', component: FriendProfileComponent, canActivate: [authGuard] },
     ]),
   ],
+  exports: [MaguitoCustomizerComponent],
 })
 export class TavernModule {}
 

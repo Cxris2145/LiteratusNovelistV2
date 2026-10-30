@@ -75,7 +75,7 @@
     <!-- Columna izquierda: Tu perfil -->
     <app-profile-card #profileCard class="area-profile" [class.is-spotlight]="profileSpotlight"
                       [compact]="true" [card]="me" [mine]="true"
-                      [dressing]="bazarOpen" (dress)="openBazar('ropero')"
+                      [dressing]="bazarOpen" (dress)="openBazar('ropero')" (customize)="openBazar('tintes')"
                       [savingPrivacy]="savingPrivacy" (privacyChange)="setPrivacy($event)"></app-profile-card>
 
     <!-- Columna central: mesa interactiva y chat sobre el fondo compartido. -->

@@ -39,8 +39,17 @@
   </div>
 
   <div class="bz-body">
+    <!-- Taller de Tintes: Personalización interactiva de colores de Maguito -->
+    <div class="bz-dyes-slot" *ngIf="tab === 'tintes'">
+      <app-maguito-customizer
+        [compact]="true"
+        (saved)="onCustomizerSaved($event)"
+        (canceled)="close()">
+      </app-maguito-customizer>
+    </div>
+
     <!-- Probador: en escritorio el espejo es tu Maguito sentado a la mesa; aquí solo se ve en pantallas angostas. -->
-    <section class="bz-fitting" *ngIf="hasWear" aria-label="Probador de Maguito">
+    <section class="bz-fitting" *ngIf="hasWear && tab !== 'tintes'" aria-label="Probador de Maguito">
       <div class="bz-mirror">
         <app-maguito [outfit]="previewOutfit" [followPointer]="false" [interactive]="true" [paused]="!open"
                      [label]="previewItem ? 'Tu Maguito probándose ' + previewItem.name : 'Tu Maguito'"></app-maguito>
@@ -64,7 +73,7 @@
       </div>
     </section>
 
-    <div class="bz-tools" *ngIf="loaded">
+    <div class="bz-tools" *ngIf="loaded && tab !== 'tintes'">
       <label class="bz-search">
         <span class="material-symbols-rounded" aria-hidden="true">search</span>
         <input type="search" [(ngModel)]="query" (ngModelChange)="applyFilter()" placeholder="Buscar en el Bazar" aria-label="Buscar en el Bazar" />
@@ -90,7 +99,7 @@
       <button type="button" class="th-btn ghost" (click)="load()">Reintentar</button>
     </div>
 
-    <div class="bz-grid" *ngIf="loaded" (mouseleave)="peek(null)">
+    <div class="bz-grid" *ngIf="loaded && tab !== 'tintes'" (mouseleave)="peek(null)">
       <article class="bz-item" *ngFor="let item of visibleItems; let i = index; trackBy: trackItem"
                [style.--i]="i" [class.is-wear]="isWear(item)" [class.is-trying]="isWear(item) && isTrying(item)"
                [class.is-equipped]="item.is_equipped" [class.is-bought]="justBought === item.code"

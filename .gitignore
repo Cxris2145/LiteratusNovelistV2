@@ -88,3 +88,4 @@ android/capacitor-cordova-android-plugins/build/
 **/android/.gradle/
 **/android/build/
 **/android/app/build/
+".env" 

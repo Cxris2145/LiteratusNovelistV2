@@ -12,12 +12,13 @@ import { LearningService, ShopItem } from '../../core/services/learning.service'
 import { NotificationService } from '../../core/services/notification.service';
 
 /** Mostradores del Bazar: el ropero de Maguito, lo que cuida tu racha y lo que adorna tu perfil. */
-export type BazarTab = 'ropero' | 'racha' | 'perfil';
+export type BazarTab = 'ropero' | 'tintes' | 'racha' | 'perfil';
 export type BazarGesture = 'try' | 'buy' | 'equip';
 type WearFilter = 'all' | WearSlot;
 
 const TAB_ITEMS: Record<BazarTab, ShopItem['item_type'][]> = {
   ropero: ['maguito_wear'],
+  tintes: [],
   racha: ['streak_shield', 'streak_repair', 'hearts_refill'],
   perfil: ['profile_frame', 'title', 'theme'],
 };
@@ -25,7 +26,7 @@ const TAB_ITEMS: Record<BazarTab, ShopItem['item_type'][]> = {
 const CONSUMABLES = TAB_ITEMS.racha;
 
 export function isBazarTab(value: string | null | undefined): value is BazarTab {
-  return value === 'ropero' || value === 'racha' || value === 'perfil';
+  return value === 'ropero' || value === 'tintes' || value === 'racha' || value === 'perfil';
 }
 
 /**
@@ -61,8 +62,8 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild('heading') private heading?: ElementRef<HTMLElement>;
 
-  readonly tabLabels: Record<BazarTab, string> = { ropero: 'Ropero', racha: 'Racha y vidas', perfil: 'Perfil' };
-  readonly tabIcons: Record<BazarTab, string> = { ropero: 'checkroom', racha: 'local_fire_department', perfil: 'badge' };
+  readonly tabLabels: Record<BazarTab, string> = { ropero: 'Ropero', tintes: 'Tintes', racha: 'Racha y vidas', perfil: 'Perfil' };
+  readonly tabIcons: Record<BazarTab, string> = { ropero: 'checkroom', tintes: 'palette', racha: 'local_fire_department', perfil: 'badge' };
   private readonly wearFilterLabels: Record<WearFilter, string> = {
     all: 'Todo', head: 'Sombreros', eyes: 'Lentes', face: 'Rostro', neck: 'Accesorios', cape: 'Capas',
   };
@@ -182,7 +183,11 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   applyFilter(): void {
-    const types = TAB_ITEMS[this.tab];
+    if (this.tab === 'tintes') {
+      this.visibleItems = [];
+      return;
+    }
+    const types = TAB_ITEMS[this.tab] || [];
     const query = normalize(this.query.trim());
     this.visibleItems = this.items.filter(item => {
       if (!types.includes(item.item_type)) return false;
@@ -190,6 +195,10 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
       if (this.ownedOnly && !item.is_owned) return false;
       return !query || normalize(item.name + ' ' + item.description).includes(query);
     });
+  }
+
+  onCustomizerSaved(colors: any): void {
+    this.gesture.emit('equip');
   }
 
   // ── Probador ──────────────────────────────────────────────
@@ -325,7 +334,7 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   /** Cuánto del precio ya tienes, de 0 a 1 (para la barra de "te faltan"). */
   progressTo(item: ShopItem): number { return item.cost_ink ? Math.min(1, this.balance / item.cost_ink) : 1; }
   format(value: number): string { return Number(value || 0).toLocaleString('es-CL'); }
-  count(tab: BazarTab): number { return this.items.filter(item => TAB_ITEMS[tab].includes(item.item_type)).length; }
+  count(tab: BazarTab): number { return tab === 'tintes' ? 1 : this.items.filter(item => (TAB_ITEMS[tab] || []).includes(item.item_type)).length; }
   get hasWear(): boolean { return this.tab === 'ropero' && this.items.some(item => this.isWear(item)); }
   get mirrorCaption(): string {
     if (this.tryingItems.length > 1) return `Tu combinación de ${this.tryingItems.length} piezas`;

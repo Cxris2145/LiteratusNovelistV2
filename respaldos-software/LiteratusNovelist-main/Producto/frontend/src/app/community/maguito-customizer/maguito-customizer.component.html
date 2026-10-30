@@ -1,0 +1,342 @@
+<div class="mg-customizer-root" [class.is-compact]="compact">
+  
+  <!-- 1. STAGE CON VISTA PREVIA EN VIVO (STICKY EN PANTALLAS MÓVILES) -->
+  <section class="mg-stage-panel" aria-label="Probador mágico en vivo">
+    <div class="mg-stage-ambient" aria-hidden="true"></div>
+
+    <div class="mg-stage-frame">
+      <div class="mg-maguito-anchor">
+        <app-maguito
+          [colors]="currentColors"
+          [interactive]="true"
+          [aura]="true"
+          label="Tu Maguito personalizado">
+        </app-maguito>
+      </div>
+
+      <!-- Pedestal de roble de taberna -->
+      <div class="mg-stage-pedestal" aria-hidden="true">
+        <span class="mg-pedestal-rim"></span>
+        <span class="mg-pedestal-wood"></span>
+      </div>
+    </div>
+
+    <!-- Controles rápidos del probador -->
+    <div class="mg-stage-tools" role="toolbar" aria-label="Acciones del probador">
+      <button type="button" class="mg-tool-btn" (click)="randomize()" title="Mezcla mágica al azar">
+        <span class="mg-btn-icon" aria-hidden="true">🎲</span>
+        <span>Azar</span>
+      </button>
+      <button type="button" class="mg-tool-btn" (click)="resetOriginal()" title="Restablecer colores originales">
+        <span class="mg-btn-icon" aria-hidden="true">↺</span>
+        <span>Original</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 2. PANEL DE TINTES Y PERSONALIZACIÓN -->
+  <section class="mg-dyes-panel" aria-label="Catálogo de tintes y pigmentos">
+    
+    <header class="mg-dyes-header">
+      <span class="mg-dyes-badge">
+        <span class="material-symbols-rounded mg-badge-icon" aria-hidden="true">palette</span>
+        Taller de Tintes
+      </span>
+      <h3 class="mg-dyes-title">Personaliza a tu Maguito</h3>
+      <p class="mg-dyes-desc">Mezcla esencias y pigmentos para crear un compañero único en La Taberna.</p>
+    </header>
+
+    <!-- Pestañas horizontales ergonómicas para móviles (scroll-snap) -->
+    <nav class="mg-zone-tabs" role="tablist" aria-label="Zonas para personalizar">
+      <button type="button" role="tab" class="mg-tab-pill" [class.is-active]="activeZone === 'presets'" (click)="setZone('presets')">
+        <span aria-hidden="true">✨</span> Paletas
+      </button>
+      <button type="button" role="tab" class="mg-tab-pill" [class.is-active]="activeZone === 'cape'" (click)="setZone('cape')">
+        <span aria-hidden="true">🧥</span> Túnica
+      </button>
+      <button type="button" role="tab" class="mg-tab-pill" [class.is-active]="activeZone === 'hat'" (click)="setZone('hat')">
+        <span aria-hidden="true">🧙</span> Sombrero
+      </button>
+      <button type="button" role="tab" class="mg-tab-pill" [class.is-active]="activeZone === 'body'" (click)="setZone('body')">
+        <span aria-hidden="true">🫧</span> Cuerpo
+      </button>
+      <button type="button" role="tab" class="mg-tab-pill" [class.is-active]="activeZone === 'magic'" (click)="setZone('magic')">
+        <span aria-hidden="true">🔮</span> Aura & Magia
+      </button>
+      <button type="button" role="tab" class="mg-tab-pill" [class.is-active]="activeZone === 'details'" (click)="setZone('details')">
+        <span aria-hidden="true">🪙</span> Hebilla
+      </button>
+    </nav>
+
+    <!-- Contenido de la zona activa -->
+    <div class="mg-zone-body">
+
+      <!-- PESTAÑA: PALETAS DE LA TABERNA -->
+      <div *ngIf="activeZone === 'presets'" class="mg-presets-deck">
+        <article *ngFor="let preset of presets" 
+                 class="mg-preset-card" 
+                 (click)="applyPreset(preset)"
+                 role="button"
+                 tabindex="0"
+                 (keydown.enter)="applyPreset(preset)">
+          <div class="mg-preset-dots" aria-hidden="true">
+            <span class="mg-dot" [style.backgroundColor]="preset.colors.capeA"></span>
+            <span class="mg-dot" [style.backgroundColor]="preset.colors.hatA"></span>
+            <span class="mg-dot" [style.backgroundColor]="preset.colors.bodyA"></span>
+            <span class="mg-dot" [style.backgroundColor]="preset.colors.magicAura"></span>
+          </div>
+          <div class="mg-preset-info">
+            <h4 class="mg-preset-name">{{ preset.name }}</h4>
+            <p class="mg-preset-flavor">{{ preset.flavor }}</p>
+          </div>
+        </article>
+      </div>
+
+      <!-- PESTAÑA: TÚNICA -->
+      <div *ngIf="activeZone === 'cape'" class="mg-color-fields">
+        <div class="mg-field-group">
+          <label class="mg-field-label">Tinte Primario de la Capa</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.capeA === hex"
+                      [attr.aria-label]="'Color ' + hex"
+                      (click)="updateColor('capeA', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette" title="Selector libre de color">
+              <input type="color" [ngModel]="currentColors.capeA" (ngModelChange)="updateColor('capeA', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mg-field-group">
+          <label class="mg-field-label">Sombra de la Túnica</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.capeB === hex"
+                      [attr.aria-label]="'Color ' + hex"
+                      (click)="updateColor('capeB', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette" title="Selector libre de color">
+              <input type="color" [ngModel]="currentColors.capeB" (ngModelChange)="updateColor('capeB', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mg-field-group">
+          <label class="mg-field-label">Ribete y Costura del Vuelo</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.capeTrim === hex"
+                      [attr.aria-label]="'Color ' + hex"
+                      (click)="updateColor('capeTrim', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette" title="Selector libre de color">
+              <input type="color" [ngModel]="currentColors.capeTrim" (ngModelChange)="updateColor('capeTrim', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PESTAÑA: SOMBRERO -->
+      <div *ngIf="activeZone === 'hat'" class="mg-color-fields">
+        <div class="mg-field-group">
+          <label class="mg-field-label">Copa del Sombrero</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.hatA === hex"
+                      (click)="updateColor('hatA', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.hatA" (ngModelChange)="updateColor('hatA', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mg-field-group">
+          <label class="mg-field-label">Ala y Sombras</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.hatB === hex"
+                      (click)="updateColor('hatB', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.hatB" (ngModelChange)="updateColor('hatB', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mg-field-group">
+          <label class="mg-field-label">Cinta Decorativa</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.hatBand === hex"
+                      (click)="updateColor('hatBand', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.hatBand" (ngModelChange)="updateColor('hatBand', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PESTAÑA: CUERPO -->
+      <div *ngIf="activeZone === 'body'" class="mg-color-fields">
+        <div class="mg-field-group">
+          <label class="mg-field-label">Pigmento Espiritual del Cuerpo</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.bodyA === hex"
+                      (click)="updateColor('bodyA', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.bodyA" (ngModelChange)="updateColor('bodyA', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mg-field-group">
+          <label class="mg-field-label">Profundidad y Manos</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.bodyB === hex"
+                      (click)="updateColor('bodyB', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.bodyB" (ngModelChange)="updateColor('bodyB', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PESTAÑA: MAGIA -->
+      <div *ngIf="activeZone === 'magic'" class="mg-color-fields">
+        <div class="mg-field-group">
+          <label class="mg-field-label">Resplandor del Aura</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.magicAura === hex"
+                      (click)="updateColor('magicAura', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.magicAura" (ngModelChange)="updateColor('magicAura', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="mg-field-group">
+          <label class="mg-field-label">Chispas de la Varita</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of swatches"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.magicSparks === hex"
+                      (click)="updateColor('magicSparks', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.magicSparks" (ngModelChange)="updateColor('magicSparks', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PESTAÑA: DETALLES / HEBILLA -->
+      <div *ngIf="activeZone === 'details'" class="mg-color-fields">
+        <div class="mg-field-group">
+          <label class="mg-field-label">Metal de la Hebilla y Broches</label>
+          <div class="mg-swatches-row">
+            <div class="mg-swatches-grid">
+              <button *ngFor="let hex of ['#ffd700', '#d6a64f', '#c0c0c0', '#b87333', '#1e293b', '#e2e8f0']"
+                      type="button"
+                      class="mg-swatch"
+                      [style.backgroundColor]="hex"
+                      [class.is-active]="currentColors.metal === hex"
+                      (click)="updateColor('metal', hex)">
+              </button>
+            </div>
+            <label class="mg-picker-pipette">
+              <input type="color" [ngModel]="currentColors.metal" (ngModelChange)="updateColor('metal', $event)"/>
+              <span class="mg-pipette-icon" aria-hidden="true">🎨</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. BARRA INFERIOR DE ACCIONES -->
+    <footer class="mg-actions-footer">
+      <button type="button" class="mg-btn-cancel" (click)="cancel()">
+        Cancelar
+      </button>
+
+      <button type="button" 
+              class="mg-btn-save" 
+              [disabled]="isSaving" 
+              (click)="save()">
+        <span *ngIf="!isSaving">Guardar Apariencia ✍️</span>
+        <span *ngIf="isSaving">Encantando Tinta… ✨</span>
+      </button>
+    </footer>
+
+  </section>
+
+</div>
+
