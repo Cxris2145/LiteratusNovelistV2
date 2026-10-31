@@ -1,12 +1,15 @@
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from catalog.models import Book, Author
 
 User = get_user_model()
 
 class CatalogAPITests(APITestCase):
     def setUp(self):
+        # La caché del catálogo se invalida con on_commit, que no corre dentro de un test.
+        cache.clear()
         # Crear usuario para las pruebas
         self.user = User.objects.create_user(
             username='testuser_catalog',

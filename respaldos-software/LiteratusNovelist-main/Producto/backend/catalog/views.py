@@ -8,14 +8,14 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.utils.cache import patch_vary_headers
 from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
 from library.models import UserInventory
 from . import summary as book_summary
 from .age import age_block_message, allowed_age, ensure_book_access, visible_books
-from .search_suggest import suggest
+from .search_suggest import search_book_ids, suggest
 from .home import cached_home_payload
 from .models import Book, Author, Genre, Tag, Review, BookErrorReport
 from .serializers import (
@@ -93,6 +93,28 @@ class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
             return AuthorDetailSerializer
         return AuthorReadSerializer
 
+class BookSearchFilter(filters.SearchFilter):
+    """?search=odisea — busca sin tildes y por palabras sueltas (ver search_suggest.search_book_ids).
+
+    Solo filtra dentro del queryset de la vista, así que la edad sigue mandando. Sin ?ordering=
+    explícito, el resultado sale ordenado por parecido: títulos, luego autores, luego géneros.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        raw = request.query_params.get(self.search_param, '')
+        if not raw.strip():
+            return queryset
+        ids = search_book_ids(raw)
+        if not ids:
+            return queryset.none()
+        queryset = queryset.filter(id__in=ids)
+        if request.query_params.get('ordering'):
+            return queryset
+        position = Case(*[When(id=book_id, then=Value(i)) for i, book_id in enumerate(ids)],
+                        output_field=IntegerField())
+        return queryset.annotate(search_position=position).order_by('search_position')
+
+
 class BookViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Vista de Lectura del Catálogo.
@@ -107,17 +129,15 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         'genres__slug': ['exact'],
         'is_featured': ['exact'],
     }
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    # La búsqueda (?search=) va después del orden porque ordena por parecido.
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, BookSearchFilter]
     lookup_field = 'slug'
 
     def get_object(self):
         book = super().get_object()
         ensure_book_access(self.request.user, book)
         return book
-    
-    # Búsqueda múltiple DRF: ?search=garcia
-    search_fields = ['^title', '^book_authors__author__full_name', '^genres__name']
-    
+
     # Ordenamiento DRF: ?ordering=-created_at
     ordering_fields = ['title', 'created_at', 'is_featured', 'ai_character_count']
     ordering = ['-is_featured', '-created_at', 'id'] # Orden determinístico y estático

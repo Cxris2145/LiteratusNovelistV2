@@ -20,7 +20,7 @@
       <input type="text"
              placeholder="Busca por título, autor, saga o palabra clave…"
              [value]="searchTerm"
-             (keyup)="onSearch($event)"
+             (input)="onSearch($event)"
              class="glass-input search-input">
       <button class="clear-search-btn" *ngIf="searchTerm" (click)="searchTerm = ''; fetchBooks()">✕</button>
     </div>

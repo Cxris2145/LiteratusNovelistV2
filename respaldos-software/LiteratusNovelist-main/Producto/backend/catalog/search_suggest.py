@@ -6,6 +6,9 @@ plegados) y se filtra en Python: con mil obras cada consulta toma 1-4 ms. Armarl
 ~1 s contra Supabase; se renueva al instante cuando cambia una obra (catalog:age:revision, ver
 signals.py) y, para autores y géneros, a los 30 minutos. El buscador lo precalienta al
 enfocarse con una consulta vacía.
+
+La búsqueda de Explorar el catálogo (?search= de catalog/books/) usa el mismo plegado con su
+propio índice: ver search_book_ids.
 """
 import heapq
 import unicodedata
@@ -147,3 +150,66 @@ def suggest(raw_query, age, absolute_url=lambda url: url):
             'type': 'genre', 'id': g['id'], 'slug': g['slug'], 'title': g['title'], 'book_count': count,
         } for _, g, count in top_genres],
     }
+
+
+# Artículos y preposiciones: "la odisea" busca "odisea". Solo se ignoran si queda otra palabra.
+STOPWORDS = {'el', 'la', 'los', 'las', 'lo', 'un', 'una', 'unos', 'unas',
+             'de', 'del', 'al', 'a', 'en', 'y', 'e', 'o', 'u', 'con', 'por', 'para'}
+
+
+def word_match(folded, token):
+    """0 = alguna palabra empieza así, 1 = aparece dentro (desde 3 letras); None = no está."""
+    if folded.startswith(token) or f' {token}' in folded:
+        return 0
+    if len(token) >= CONTAINS_FROM and token in folded:
+        return 1
+    return None
+
+
+def _build_catalog_index():
+    # Todas las obras: qué puede ver cada lector lo decide después el queryset de la vista.
+    rows = []
+    for book in Book.objects.only('id', 'title', 'is_featured').prefetch_related('book_authors__author', 'genres', 'tags'):
+        labels = [genre.name for genre in book.genres.all()] + [tag.name for tag in book.tags.all()]
+        rows.append({
+            'id': book.id,
+            'title': fold(book.title),
+            'authors': fold(' '.join(credit.author.full_name for credit in book.book_authors.all())),
+            'labels': fold(' '.join(labels)),
+            'featured': book.is_featured,
+        })
+    return rows
+
+
+def get_catalog_index():
+    revision = cache.get('catalog:age:revision', 'initial')
+    return cache.get_or_set(f'catalog:search-index:v1:{revision}', _build_catalog_index, INDEX_TTL)
+
+
+def search_book_ids(raw_query):
+    """Ids de las obras que calzan con `raw_query`, de la más a la menos parecida.
+
+    Cada palabra tiene que aparecer, sin tildes, en el título, en los autores o en los géneros y
+    etiquetas: "odisea" encuentra «La Odisea», "iliada" «La Ilíada» y "stoker" a Bram Stoker.
+    Primero van las obras cuyo título calza, después las que calzan por autor y al final las que
+    calzan por género o etiqueta.
+    """
+    query = fold(raw_query[:MAX_QUERY])
+    tokens = [token for token in query.split() if token not in STOPWORDS] or query.split()
+    ranked = []
+    for book in get_catalog_index() if tokens else []:
+        worst = 0
+        for token in tokens:
+            level = word_match(book['title'], token)
+            if level is None and word_match(book['authors'], token) is not None:
+                level = 2
+            if level is None and word_match(book['labels'], token) == 0:
+                level = 3
+            if level is None:
+                break
+            worst = max(worst, level)
+        else:
+            phrase = match_rank(book['title'], query)
+            ranked.append(((3 if phrase is None else phrase, worst, not book['featured'], book['title']), book['id']))
+    ranked.sort(key=lambda item: item[0])
+    return [book_id for _, book_id in ranked]
