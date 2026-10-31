@@ -213,6 +213,8 @@ def sync_achievements(Achievement, ShopItem, overwrite_texts=False):
     """
     rewards = {item.code: item for item in ShopItem.objects.filter(
         code__in=[r[-1] for r in ACHIEVEMENTS if r[-1]])}
+    # Las migraciones viejas (0011) reciben el modelo de su época, todavía sin predefined_rarity_pct.
+    model_fields = {field.name for field in Achievement._meta.get_fields()}
     for code, title, description, category, icon, threshold, ink, order, rarity, reward in ACHIEVEMENTS:
         predefined_pct = PREDEFINED_RARITY_PCT.get(code, 45.0)
         texts = {'title': title, 'description': description, 'icon': icon,
@@ -224,6 +226,7 @@ def sync_achievements(Achievement, ShopItem, overwrite_texts=False):
             'predefined_rarity_pct': predefined_pct,
             'reward_item': rewards.get(reward) if reward else None,
         }
+        extra = {name: value for name, value in extra.items() if name in model_fields}
         achievement = Achievement.objects.filter(code=code).first()
         if achievement is None:
             Achievement.objects.create(code=code, **texts, **extra)
