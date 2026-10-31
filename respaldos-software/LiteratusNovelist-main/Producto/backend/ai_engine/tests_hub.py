@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from ai_engine.models import AIAvatar, ChatSession
-from catalog.models import Author, Book, BookAuthor, Edition
+from catalog.models import Author, Book, BookAuthor, Edition, Genre
 from users.models import User
 
 
@@ -131,3 +131,34 @@ class HubIdentityTests(TestCase):
         ids = [self.hub(page_size=1, page=page, sort='popularity')['results'][0]['id'] for page in range(1, 6)]
         self.assertEqual(len(set(ids)), 5)
         self.assertEqual(self.hub(page_size=1, page=1, sort='popularity')['results'][0]['id'], ids[0])
+
+
+    def test_kind_shows_only_characters_or_only_authors(self):
+        book = self.book('Veinte mil leguas', 'Julio Verne')
+        self.avatar(book, 'Capitán Nemo')
+        self.avatar(book, 'Julio Verne', is_author=True)
+        names = lambda **params: [row['name'] for row in self.hub(**params)['results']]
+        self.assertEqual(names(kind='character'), ['Capitán Nemo'])
+        self.assertEqual(names(kind='author'), ['Julio Verne'])
+        self.assertEqual(sorted(names(kind='otro')), ['Capitán Nemo', 'Julio Verne'])
+
+    def test_genre_keeps_only_works_of_that_category(self):
+        terror = Genre.objects.create(name='Terror y misterio', slug='terror')
+        dracula = self.book('Drácula', 'Bram Stoker')
+        dracula.genres.add(terror)
+        self.avatar(dracula, 'Bram Stoker', is_author=True)
+        self.avatar(self.book('La joya de las siete estrellas', 'Bram Stoker'), 'Bram Stoker', is_author=True)
+        self.avatar(self.book('Mujercitas'), 'Jo March')
+        result = self.hub(genre='terror')
+        self.assertEqual([row['name'] for row in result['results']], ['Bram Stoker'])
+        self.assertEqual(result['results'][0]['book_count'], 1)
+
+    def test_skip_starts_after_the_first_ones_of_the_order(self):
+        book = self.book('Un libro')
+        for name in ('Ana', 'Beto', 'Carla', 'Dario'):
+            self.avatar(book, name)
+        result = self.hub(sort='name', skip=2, page_size=1)
+        self.assertEqual(result['count'], 2)
+        self.assertEqual(result['results'][0]['name'], 'Carla')
+        self.assertEqual(self.hub(sort='name', skip='x')['count'], 4)
+        self.assertEqual(self.hub(sort='name', skip=-3)['count'], 4)

@@ -12,17 +12,19 @@ import {
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { EMPTY, Subject, Subscription, timer } from 'rxjs';
-import { debounce, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { EMPTY, Observable, Subject, Subscription, merge, throwError, timer } from 'rxjs';
+import { catchError, debounce, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 
 import { ApiService } from '../../core/services/api.service';
 import { CharacterChatService } from '../../core/services/character-chat.service';
 import { ScrollRevealService } from '../../core/services/scroll-reveal.service';
 import { AuthService } from '../../core/services/auth.service';
-import { ChatService, HUB_PAGE_SIZE, HubAvatar, HubSearchField, HubSort } from '../../core/services/chat.service';
+import {
+  ChatService, HUB_PAGE_SIZE, HubAvatar, HubKind, HubSearchField, HubSort, Paginated
+} from '../../core/services/chat.service';
 
 /** Retrato de respaldo mientras el personaje no tenga imagen generada. */
-import { FALLBACK_AVATAR, hubIdentity, portraitThumbnail, segmentClip, uniqueCharacters } from './character-hub.util';
+import { FALLBACK_AVATAR, hubIdentity, pageWindow, portraitThumbnail, segmentClip, uniqueCharacters } from './character-hub.util';
 
 /**
  * Diapositiva del carrusel. Lleva precalculados el extracto y las URLs de imagen
@@ -37,25 +39,45 @@ interface HeroSlide extends HubAvatar {
 
 type ListSort = Exclude<HubSort, 'daily'>;
 
-/** Lo que pide una búsqueda. `immediate`: un filtro tocado no espera como el texto. */
+/** Lo que pide la grilla. `immediate`: un filtro tocado no espera como el texto. */
 interface HubQuery {
   q: string;
   field: HubSearchField;
   sort: ListSort;
   withPhoto: boolean;
+  kind: HubKind;
+  genre: string;
+  /** Sin filtros, la grilla empieza después de los que ya mostró «Más destacados». */
+  skip: number;
   immediate?: boolean;
+}
+
+/** Una página de la grilla. `focusTitle`: se pidió desde el paginador de abajo. */
+interface GridRequest {
+  query: HubQuery;
+  page: number;
+  reveal: boolean;
+  focusTitle?: boolean;
+}
+
+interface GenreOption {
+  slug: string;
+  name: string;
 }
 
 /** Diapositivas del carrusel: se piden algunas de más por si el lector ya habló con ellas. */
 const HERO_SLIDES = 6;
 const HERO_REQUEST = 10;
+/** Tarjetas de «Más destacados». La grilla de abajo empieza después de ellas. */
+const FEATURED_STRIP = 12;
+/** Páginas guardadas: volver a una ya vista (o a la que se precargó) es instantáneo. */
+const PAGE_CACHE_LIMIT = 30;
 /** Desplazamiento horizontal mínimo para que un deslizamiento cambie de diapositiva. */
 const SWIPE_MIN = 40;
 
 /** El campo solo cuenta si hay texto: sin él, cambiar "Buscar en" no cambia los resultados. */
-function queryKey(query: HubQuery | null): string {
-  if (!query) return '';
-  return [query.q, query.q ? query.field : '', query.sort, query.withPhoto].join('|');
+function queryKey(query: HubQuery): string {
+  return [query.q, query.q ? query.field : '', query.sort, query.withPhoto, query.kind, query.genre, query.skip].join('|');
 }
 
 @Component({
@@ -76,6 +98,8 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   private zone = inject(NgZone);
   private dialog = inject(MatDialog);
   @ViewChild('bookPicker') private bookPicker!: TemplateRef<unknown>;
+  @ViewChild('gridTop') private gridTop?: ElementRef<HTMLElement>;
+  @ViewChild('gridTitle') private gridTitle?: ElementRef<HTMLElement>;
 
   readonly fallbackAvatar = FALLBACK_AVATAR;
 
@@ -85,9 +109,14 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     { value: 'book', label: 'Libro' },
     { value: 'author', label: 'Autor' },
   ];
+  readonly kindOptions: { value: HubKind; label: string }[] = [
+    { value: 'all', label: 'Todos' },
+    { value: 'character', label: 'Personajes' },
+    { value: 'author', label: 'Autores' },
+  ];
   readonly sortOptions: { value: ListSort; label: string }[] = [
     { value: 'featured', label: 'Destacados' },
-    { value: 'popularity', label: 'Más populares' },
+    { value: 'popularity', label: 'Populares' },
     { value: 'name', label: 'A–Z' },
   ];
   private readonly placeholders: Record<HubSearchField, string> = {
@@ -97,20 +126,20 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     author: 'Nombre del autor...',
   };
 
-  // Datos para las secciones
-  allCharacters: HubAvatar[] = [];
-  catalogCharacters: HubAvatar[] = [];
+  /** Categorías del catálogo para el filtro. */
+  genres: GenreOption[] = [];
+
+  // Secciones de arriba
   heroCharacters: HeroSlide[] = [];
   featuredCharacters: HubAvatar[] = [];
   recentCharacters: HubAvatar[] = [];
-  filteredCharacters: HubAvatar[] = [];
-  /** Selección del día con retrato, tal como llega; updateSections descarta los recientes. */
+  /** Tal como llegan; updateSections los reparte sin repetir a nadie. */
   private heroSource: HubAvatar[] = [];
+  private stripSource: HubAvatar[] = [];
 
-  isLoading = true;
+  isStripLoading = true;
   isHeroLoading = true;
-  isLoadingMore = false;
-  /** Hay texto o algún filtro distinto del predeterminado: se muestra la grilla de resultados. */
+  /** Hay texto o algún filtro distinto del predeterminado: se ocultan las secciones de arriba. */
   isSearching = false;
 
   // Filtros
@@ -118,65 +147,64 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   searchField: HubSearchField = 'all';
   sort: ListSort = 'featured';
   withPhoto = false;
-
-  /** Total de personajes del catálogo, según el `count` del backend. */
-  totalCount = 0;
+  kind: HubKind = 'all';
+  genre = '';
 
   // Control del Carrusel Hero
   currentHeroIndex = 0;
 
-  // Paginación del grid "Todos los Personajes"
-  private page = 1;
-  private hasMore = true;
-
-  // Paginación de la búsqueda (antes solo se veía la primera página de resultados)
-  private activeQuery: HubQuery | null = null;
-  private searchPage = 1;
-  private searchHasMore = false;
-  searchTotal = 0;
-  /** Las tarjetas escalonan su entrada dentro de cada página. */
+  // Grilla paginada (sin filtros: «Más personajes»; con filtros: los resultados)
+  gridCharacters: HubAvatar[] = [];
+  gridPage = 1;
+  /** `count` del backend para la consulta actual. */
+  gridTotal = 0;
+  gridLoading = true;
+  gridError = false;
+  /** -1, 0 o 1: hacia dónde entran las tarjetas (0 al cambiar los filtros). */
+  gridDirection = 0;
   readonly pageSize = HUB_PAGE_SIZE;
-  /** Cambia con cada búsqueda nueva: las tarjetas se montan de nuevo y entran todas parejas. */
+  /** Lo que muestra (o está pidiendo) la grilla. */
+  private gridQuery!: HubQuery;
+  private gridKey = '';
+  /** Cambia con cada página: las tarjetas se montan de nuevo y entran todas parejas. */
   private resultsVersion = 0;
 
-  /** `null` vuelve a las secciones: corta la petición en curso y reinicia distinctUntilChanged. */
-  private readonly search$ = new Subject<HubQuery | null>();
+  private readonly query$ = new Subject<HubQuery>();
+  private readonly pageNav$ = new Subject<GridRequest>();
+  private readonly pageCache = new Map<string, Observable<Paginated<HubAvatar>>>();
   private readonly subs = new Subscription();
 
   // Skeleton
   skeletonArray = Array(6).fill(0);
+  readonly gridSkeleton = Array(12).fill(0);
 
   ngOnInit() {
-    this.loadFirstPage();
+    this.loadStrip();
     this.loadHero();
     this.loadRecent();
-    this.initSearch();
+    this.loadGenres();
+    this.initGrid();
+    this.refreshResults(true);
   }
 
   ngOnDestroy() {
     this.subs.unsubscribe();
-    this.observer?.disconnect();
     this.carouselCleanup?.();
   }
 
   // ─── Carga de datos ──────────────────────────────────────────────────────────
 
-  private loadFirstPage() {
-    this.isLoading = true;
-    this.page = 1;
-
-    this.subs.add(this.chatService.getGlobalAvatars('', 'featured', 1).subscribe({
+  private loadStrip() {
+    this.subs.add(this.chatService.getGlobalAvatars('', 'featured', 1, FEATURED_STRIP).subscribe({
       next: (res) => {
-        this.totalCount = res.count;
-        this.allCharacters = uniqueCharacters(res.results);
+        this.stripSource = uniqueCharacters(res.results);
+        this.isStripLoading = false;
         this.updateSections();
-        this.hasMore = !!res.next;
-        this.isLoading = false;
         this.cdr.markForCheck();
         this.scrollReveal.debouncedScan();
       },
       error: () => {
-        this.isLoading = false;
+        this.isStripLoading = false;
         this.cdr.markForCheck();
       }
     }));
@@ -198,61 +226,6 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     }));
   }
 
-  /**
-   * Trae la siguiente página del catálogo y la concatena. Así el hub sigue dando
-   * acceso a los ~4.500 personajes completos, pero repartidos en peticiones que
-   * el navegador puede digerir.
-   */
-  loadMore() {
-    if (this.isSearching) {
-      this.loadMoreResults();
-      return;
-    }
-    if (this.isLoading || this.isLoadingMore || !this.hasMore) return;
-
-    this.isLoadingMore = true;
-    this.cdr.markForCheck();
-
-    this.subs.add(this.chatService.getGlobalAvatars('', 'featured', this.page + 1).subscribe({
-      next: (res) => {
-        this.page += 1;
-        this.allCharacters = uniqueCharacters([...this.allCharacters, ...res.results]);
-        this.updateSections();
-        this.hasMore = !!res.next;
-        this.isLoadingMore = false;
-        this.cdr.markForCheck();
-        this.scrollReveal.debouncedScan();
-      },
-      error: () => {
-        this.isLoadingMore = false;
-        this.cdr.markForCheck();
-      }
-    }));
-  }
-
-  /** Siguiente página de la búsqueda, con el mismo scroll infinito del listado general. */
-  private loadMoreResults() {
-    const query = this.activeQuery;
-    if (!query || this.isLoading || this.isLoadingMore || !this.searchHasMore) return;
-    this.isLoadingMore = true;
-    this.cdr.markForCheck();
-    this.subs.add(this.fetchResults(query, this.searchPage + 1).subscribe({
-      next: (res) => {
-        this.isLoadingMore = false;
-        if (this.activeQuery !== query) return; // la búsqueda cambió mientras cargaba
-        this.searchPage += 1;
-        this.filteredCharacters = uniqueCharacters([...this.filteredCharacters, ...res.results]);
-        this.searchHasMore = !!res.next;
-        this.cdr.markForCheck();
-        this.scrollReveal.debouncedScan();
-      },
-      error: () => {
-        this.isLoadingMore = false;
-        this.cdr.markForCheck();
-      }
-    }));
-  }
-
   private loadRecent() {
     this.subs.add(this.chatService.getRecentAvatars().subscribe({
       next: (data) => {
@@ -265,6 +238,145 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     }));
   }
 
+  private loadGenres() {
+    this.subs.add(this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000).subscribe({
+      next: (res) => {
+        this.genres = (res?.results ?? res ?? [])
+          .filter((genre: any) => (genre.book_count ?? 0) > 0)
+          .map((genre: any) => ({ slug: genre.slug, name: genre.name }));
+        this.cdr.markForCheck();
+      },
+      error: () => {}
+    }));
+  }
+
+  // ─── Grilla paginada ─────────────────────────────────────────────────────────
+
+  get gridPages(): number {
+    return Math.max(1, Math.ceil(this.gridTotal / this.pageSize));
+  }
+
+  get pageItems(): (number | null)[] {
+    return pageWindow(this.gridPage, this.gridPages);
+  }
+
+  get gridSummary(): string {
+    if (!this.isSearching) {
+      return this.gridTotal ? `${this.gridTotal + FEATURED_STRIP} personajes para conversar, de ${this.pageSize} en ${this.pageSize}.` : '';
+    }
+    const parts = [this.sortLabel];
+    if (this.genre) parts.push(this.genres.find(genre => genre.slug === this.genre)?.name ?? '');
+    if (this.withPhoto) parts.push('solo con retrato');
+    if (!this.gridLoading) {
+      const one = this.gridTotal === 1;
+      const noun = this.kind === 'author' ? (one ? 'autor' : 'autores') : (one ? 'personaje' : 'personajes');
+      parts.push(`${this.gridTotal} ${noun}`);
+    }
+    return parts.filter(Boolean).join(' · ');
+  }
+
+  /** Título de la grilla con filtros y sin texto. */
+  get resultsTitle(): string {
+    return this.kind === 'author' ? 'Todos los autores' : 'Todos los personajes';
+  }
+
+  /**
+   * Filtros (con espera para el texto) y cambios de página entran por el mismo `switchMap`:
+   * la última página pedida gana aunque una anterior responda después.
+   */
+  private initGrid() {
+    const fromFilters$ = this.query$.pipe(
+      debounce((query) => timer(query.immediate ? 0 : 400)),
+      // Escribir y borrar dentro de la espera vuelve a lo que ya se ve: no se pide de nuevo.
+      filter((query) => queryKey(query) !== this.gridKey),
+      map((query): GridRequest => ({ query, page: 1, reveal: false })),
+    );
+    this.subs.add(merge(fromFilters$, this.pageNav$).pipe(
+      tap((request) => {
+        if (request.page === 1 && !request.reveal) this.gridDirection = 0;
+        this.gridQuery = request.query;
+        this.gridKey = queryKey(request.query);
+        this.gridPage = request.page;
+        this.gridLoading = true;
+        this.gridError = false;
+        this.cdr.markForCheck();
+      }),
+      switchMap((request) => this.fetchPage(request.query, request.page).pipe(
+        map((res) => ({ request, res })),
+        catchError(() => {
+          this.gridLoading = false;
+          this.gridError = true;
+          this.cdr.markForCheck();
+          return EMPTY;
+        }),
+      )),
+    ).subscribe(({ request, res }) => {
+      this.resultsVersion += 1;
+      this.gridCharacters = uniqueCharacters(res.results);
+      this.gridTotal = res.count;
+      this.gridLoading = false;
+      this.cdr.markForCheck();
+      this.scrollReveal.debouncedScan();
+      if (request.reveal) this.revealGrid(request.focusTitle);
+    }));
+  }
+
+  private fetchPage(query: HubQuery, page: number): Observable<Paginated<HubAvatar>> {
+    const key = `${queryKey(query)}#${page}`;
+    let page$ = this.pageCache.get(key);
+    if (!page$) {
+      page$ = this.chatService.getGlobalAvatars(query.q, query.sort, page, this.pageSize, {
+        field: query.field, withPhoto: query.withPhoto, kind: query.kind, genre: query.genre, skip: query.skip,
+      }).pipe(
+        // Un fallo no se queda guardado: el siguiente intento vuelve a pedirla.
+        catchError((err) => {
+          this.pageCache.delete(key);
+          return throwError(() => err);
+        }),
+        shareReplay(1),
+      );
+      this.pageCache.set(key, page$);
+      if (this.pageCache.size > PAGE_CACHE_LIMIT) {
+        this.pageCache.delete(this.pageCache.keys().next().value as string);
+      }
+    }
+    return page$;
+  }
+
+  /** `fromPager`: el botón quedó abajo, así que el foco sube al título de la grilla. */
+  goToPage(page: number, fromPager = false) {
+    if (!this.gridQuery || page < 1 || page > this.gridPages || page === this.gridPage) return;
+    this.gridDirection = page > this.gridPage ? 1 : -1;
+    this.pageNav$.next({ query: this.gridQuery, page, reveal: true, focusTitle: fromPager });
+  }
+
+  /** Al apuntar a una flecha ya se pide esa página: al hacer clic suele estar lista. */
+  prefetch(page: number) {
+    if (!this.gridQuery || page < 1 || page > this.gridPages || page === this.gridPage) return;
+    this.subs.add(this.fetchPage(this.gridQuery, page).subscribe({ error: () => {} }));
+  }
+
+  retryGrid() {
+    if (this.gridQuery) this.pageNav$.next({ query: this.gridQuery, page: this.gridPage, reveal: false });
+  }
+
+  /**
+   * Si el comienzo de la grilla quedó arriba (bajo el menú), vuelve a él. Desde el paginador de
+   * abajo es más de una pantalla: salta de una vez, como al dar vuelta la hoja.
+   */
+  private revealGrid(focusTitle = false) {
+    const section = this.gridTop?.nativeElement;
+    if (!section) return;
+    const headerBottom = document.querySelector('header.main-header')?.getBoundingClientRect().bottom ?? 0;
+    const distance = section.getBoundingClientRect().top - headerBottom - 16;
+    if (distance < 0) {
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const far = -distance > window.innerHeight;
+      window.scrollTo({ top: window.scrollY + distance, behavior: reduced || far ? 'auto' : 'smooth' });
+    }
+    if (focusTitle) this.gridTitle?.nativeElement.focus({ preventScroll: true });
+  }
+
   // ─── Búsqueda y filtros ──────────────────────────────────────────────────────
 
   get placeholder(): string {
@@ -272,7 +384,8 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   }
 
   get hasActiveFilters(): boolean {
-    return this.searchField !== 'all' || this.sort !== 'featured' || this.withPhoto;
+    return this.searchField !== 'all' || this.sort !== 'featured' || this.withPhoto
+      || this.kind !== 'all' || !!this.genre;
   }
 
   get sortLabel(): string {
@@ -280,53 +393,12 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   }
 
   /** Recorte de la copia activa de cada control segmentado (receta "tab indicator"). */
-  get fieldClip(): string {
-    return segmentClip(this.searchFields.findIndex(option => option.value === this.searchField), this.searchFields.length);
+  get kindClip(): string {
+    return segmentClip(this.kindOptions.findIndex(option => option.value === this.kind), this.kindOptions.length);
   }
 
   get sortClip(): string {
     return segmentClip(this.sortOptions.findIndex(option => option.value === this.sort), this.sortOptions.length);
-  }
-
-  /**
-   * `switchMap` cancela la petición anterior en cuanto llega otra pulsación: sin
-   * él ganaba la última respuesta en llegar, no la última pedida, y los
-   * resultados podían corresponder a un texto ya borrado.
-   */
-  private initSearch() {
-    this.subs.add(
-      this.search$.pipe(
-        debounce((query) => timer(query && !query.immediate ? 400 : 0)),
-        distinctUntilChanged((a, b) => queryKey(a) === queryKey(b)),
-        switchMap((query) => {
-          this.activeQuery = query;
-          if (!query) return EMPTY;
-          this.isLoading = true;
-          this.cdr.markForCheck();
-          return this.fetchResults(query, 1);
-        })
-      ).subscribe({
-        next: (res) => {
-          this.resultsVersion += 1;
-          this.filteredCharacters = uniqueCharacters(res.results);
-          this.searchPage = 1;
-          this.searchHasMore = !!res.next;
-          this.searchTotal = res.count;
-          this.isLoading = false;
-          this.cdr.markForCheck();
-          this.scrollReveal.debouncedScan();
-        },
-        error: () => {
-          this.isLoading = false;
-          this.cdr.markForCheck();
-        }
-      })
-    );
-  }
-
-  private fetchResults(query: HubQuery, page: number) {
-    return this.chatService.getGlobalAvatars(query.q, query.sort, page, HUB_PAGE_SIZE,
-      { field: query.field, withPhoto: query.withPhoto });
   }
 
   onSearchChange() {
@@ -343,6 +415,16 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.refreshResults(true);
   }
 
+  setKind(kind: HubKind) {
+    this.kind = kind;
+    this.refreshResults(true);
+  }
+
+  setGenre(genre: string) {
+    this.genre = genre;
+    this.refreshResults(true);
+  }
+
   toggleWithPhoto() {
     this.withPhoto = !this.withPhoto;
     this.refreshResults(true);
@@ -353,24 +435,23 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.searchField = 'all';
     this.sort = 'featured';
     this.withPhoto = false;
+    this.kind = 'all';
+    this.genre = '';
     this.refreshResults(true);
   }
 
   private refreshResults(immediate: boolean) {
     const q = this.searchQuery.trim();
-    this.isSearching = !!q || this.sort !== 'featured' || this.withPhoto;
-
-    if (!this.isSearching) {
-      this.isLoading = false;
-      this.filteredCharacters = [];
-      this.search$.next(null);
-      this.cdr.markForCheck();
-      this.scrollReveal.debouncedScan();
-      return;
-    }
-
-    this.search$.next({ q, field: this.searchField, sort: this.sort, withPhoto: this.withPhoto, immediate });
+    this.isSearching = !!q || this.sort !== 'featured' || this.withPhoto || this.kind !== 'all' || !!this.genre;
+    const query: HubQuery = {
+      q, field: this.searchField, sort: this.sort, withPhoto: this.withPhoto, kind: this.kind, genre: this.genre,
+      skip: this.isSearching ? 0 : FEATURED_STRIP, immediate,
+    };
+    // Mientras espera, lo de antes se atenúa; si se volvió a lo que ya se ve, no.
+    this.gridLoading = queryKey(query) !== this.gridKey;
+    this.query$.next(query);
     this.cdr.markForCheck();
+    this.scrollReveal.debouncedScan();
   }
 
   // ─── Carrusel ────────────────────────────────────────────────────────────────
@@ -446,33 +527,6 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // ─── Scroll infinito ─────────────────────────────────────────────────────────
-
-  private observer?: IntersectionObserver;
-
-  /**
-   * El centinela vive dentro de un *ngIf, así que se observa desde el setter del
-   * ViewChild en vez de en ngAfterViewInit: aparece y desaparece al alternar
-   * entre el grid y los resultados de búsqueda.
-   */
-  @ViewChild('scrollSentinel')
-  set scrollSentinel(el: ElementRef<HTMLElement> | undefined) {
-    this.observer?.disconnect();
-    if (!el) return;
-
-    this.zone.runOutsideAngular(() => {
-      this.observer = new IntersectionObserver(
-        (entries) => {
-          if (entries.some(e => e.isIntersecting)) {
-            this.zone.run(() => this.loadMore());
-          }
-        },
-        { rootMargin: '600px' }
-      );
-      this.observer.observe(el.nativeElement);
-    });
-  }
-
   // ─── Imágenes ────────────────────────────────────────────────────────────────
 
   /**
@@ -500,7 +554,7 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     return hubIdentity(char);
   }
 
-  /** Sin la versión, una tarjeta repetida entre dos búsquedas saltaba de lugar sin animarse. */
+  /** Sin la versión, una tarjeta repetida entre dos páginas saltaba de lugar sin animarse. */
   trackByResult = (_: number, char: HubAvatar): string => `${this.resultsVersion}:${hubIdentity(char)}`;
 
   trackByIndex(index: number): number {
@@ -509,6 +563,10 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
 
   trackByTag(_: number, tag: string): string {
     return tag;
+  }
+
+  trackBySlug(_: number, genre: GenreOption): string {
+    return genre.slug;
   }
 
   // ─── Navegación ──────────────────────────────────────────────────────────────
@@ -538,17 +596,15 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
       : character.book_title || '';
   }
 
-  /** Cada identidad sale una sola vez: recientes, carrusel, destacados y el resto. */
+  /** Arriba, cada identidad sale una sola vez: recientes, carrusel y destacados. */
   private updateSections(): void {
     const recent = new Set(this.recentCharacters.map(hubIdentity));
     const hero = this.heroSource
       .filter(character => !!character.avatar_image_url && !recent.has(hubIdentity(character)))
       .slice(0, HERO_SLIDES);
     const shown = new Set([...recent, ...hero.map(hubIdentity)]);
-    const available = this.allCharacters.filter(character => !shown.has(hubIdentity(character)));
     this.heroCharacters = hero.map(character => this.toSlide(character));
-    this.featuredCharacters = available.slice(0, 12);
-    this.catalogCharacters = available.slice(12);
+    this.featuredCharacters = this.stripSource.filter(character => !shown.has(hubIdentity(character)));
     this.currentHeroIndex %= this.heroCharacters.length || 1;
   }
 

@@ -6,8 +6,8 @@ import { environment } from '../../../environments/environment';
 import { SubscriptionService } from './subscription.service';
 import { todayIsoDate } from '../utils/birth-date.util';
 
-/** Tamaño de página del hub de personajes (el backend admite hasta 50). */
-export const HUB_PAGE_SIZE = 48;
+/** Personajes por página del hub (el backend admite hasta 50). 24 llena filas de 2, 3, 4 y 6. */
+export const HUB_PAGE_SIZE = 24;
 
 /** Un personaje tal y como lo devuelve GlobalHubAvatarSerializer. */
 export interface HubAvatar {
@@ -31,9 +31,17 @@ export type HubSearchField = 'all' | 'name' | 'book' | 'author';
 /** featured = con retrato primero; daily = selección del día para el carrusel. */
 export type HubSort = 'featured' | 'popularity' | 'name' | 'daily';
 
+/** Personajes, autores o ambos. */
+export type HubKind = 'all' | 'character' | 'author';
+
 export interface HubFilters {
   field?: HubSearchField;
   withPhoto?: boolean;
+  kind?: HubKind;
+  /** Slug de una categoría del catálogo. */
+  genre?: string;
+  /** Se salta los primeros N del orden (la grilla empieza después de «Más destacados»). */
+  skip?: number;
 }
 
 /** Envoltorio de DRF PageNumberPagination. */
@@ -131,10 +139,10 @@ export class ChatService {
   /**
    * Una página del catálogo global de personajes.
    *
-   * El backend pagina; el hub encadena páginas con scroll infinito en lugar de
-   * traerse los ~4.500 registros de una sola vez, que era lo que bloqueaba la
-   * página. Se usa HttpClient directo (no ApiService) a propósito: así la URL no
-   * lleva el cache-buster `_t=` y la respuesta sí es cacheable.
+   * El backend pagina; el hub muestra una página a la vez en lugar de traerse los
+   * ~4.500 registros de una sola vez, que era lo que bloqueaba la página. Se usa
+   * HttpClient directo (no ApiService) a propósito: así la URL no lleva el
+   * cache-buster `_t=` y la respuesta sí es cacheable.
    */
   getGlobalAvatars(
     query: string = '',
@@ -144,7 +152,11 @@ export class ChatService {
     filters: HubFilters = {}
   ): Observable<Paginated<HubAvatar>> {
     const field = filters.field && filters.field !== 'all' ? filters.field : '';
-    const cacheKey = `${localStorage.getItem('access_token') || 'guest'}|${todayIsoDate()}|${sort}|${pageSize}|${filters.withPhoto ? 'photo' : ''}`;
+    const kind = filters.kind && filters.kind !== 'all' ? filters.kind : '';
+    const genre = filters.genre || '';
+    const skip = filters.skip || 0;
+    const cacheKey = [localStorage.getItem('access_token') || 'guest', todayIsoDate(), sort, pageSize,
+      filters.withPhoto ? 'photo' : '', kind, genre, skip].join('|');
     const cacheable = !query && page === 1;
     if (cacheable) {
       const hit = this.firstPageCache.get(cacheKey);
@@ -158,6 +170,9 @@ export class ChatService {
     if (sort) params = params.set('sort', sort);
     if (query && field) params = params.set('field', field);
     if (filters.withPhoto) params = params.set('with_photo', 1);
+    if (kind) params = params.set('kind', kind);
+    if (genre) params = params.set('genre', genre);
+    if (skip) params = params.set('skip', skip);
 
     let request$ = this.http.get<Paginated<HubAvatar>>(`${this.API_URL}/hub/avatars/`, { params });
 

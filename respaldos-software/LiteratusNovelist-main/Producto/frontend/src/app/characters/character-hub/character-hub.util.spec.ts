@@ -1,5 +1,5 @@
 import { HubAvatar } from '../../core/services/chat.service';
-import { FALLBACK_AVATAR, portraitThumbnail, uniqueCharacters } from './character-hub.util';
+import { FALLBACK_AVATAR, pageWindow, portraitThumbnail, uniqueCharacters } from './character-hub.util';
 
 describe('Character hub portraits and identities', () => {
   it('keeps both dimensions and contain when requesting a portrait thumbnail', () => {
@@ -21,5 +21,15 @@ describe('Character hub portraits and identities', () => {
     const b = {id: '2', name: 'Alberto', group_key: 'book-b:alberto'} as HubAvatar;
     const overlap = {...a, id: '3'};
     expect(uniqueCharacters([a, b, overlap])).toEqual([overlap, b]);
+  });
+
+  it('shows the first, last and neighbouring pages, with gaps only when pages are skipped', () => {
+    expect(pageWindow(1, 1)).toEqual([1]);
+    expect(pageWindow(1, 34)).toEqual([1, 2, null, 34]);
+    expect(pageWindow(2, 34)).toEqual([1, 2, 3, null, 34]);
+    expect(pageWindow(3, 34)).toEqual([1, 2, 3, 4, null, 34]);
+    expect(pageWindow(17, 34)).toEqual([1, null, 16, 17, 18, null, 34]);
+    expect(pageWindow(34, 34)).toEqual([1, null, 33, 34]);
+    expect(pageWindow(3, 5)).toEqual([1, 2, 3, 4, 5]);
   });
 });

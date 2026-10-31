@@ -284,41 +284,56 @@
   animation: char-shimmer 1.6s ease-in-out infinite;
 }
 
+/* Una sola caja con un solo anillo de foco: el input no dibuja el suyo (ver .search-input). */
 .search-bar-wrapper {
-  background: var(--home-bg-surface);
-  backdrop-filter: blur(15px);
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
   display: flex;
   align-items: center;
-  padding: 5px 25px;
-  max-width: 800px;
+  gap: 12px;
+  max-width: 820px;
+  min-height: 60px;
   margin: 0 auto;
-  box-shadow: none;
-  transition: border-color 0.3s;
+  padding: 6px 8px 6px 20px;
+  border: 1px solid var(--home-glass-border);
+  border-radius: 18px;
+  background: var(--home-bg-surface);
+  backdrop-filter: blur(15px);
   color: var(--home-ink);
-  border-color: var(--home-glass-border);
+  box-shadow: 0 14px 34px -22px rgb(0 0 0 / 0.75);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .search-bar-wrapper:focus-within {
-  border-color: var(--home-sage-ink);
-  box-shadow: 0 0 0 3px var(--color-focus-soft);
+  border-color: var(--home-ink-muted);
+  box-shadow: 0 0 0 3px var(--color-focus-soft), 0 14px 34px -22px rgb(0 0 0 / 0.75);
 }
 
 .search-icon {
-  font-size: 1.2rem;
-  margin-right: 15px;
-  opacity: 1;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
   color: var(--home-ink-muted);
+  transition: color 160ms ease;
 }
+.search-bar-wrapper:focus-within .search-icon { color: var(--home-ink); }
 
 .search-input {
-  background: none;
-  border: none;
-  color: var(--text-main);
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 12px 0;
-  font-size: 1.1rem;
+  border: 0;
+  background: none;
+  color: var(--text-main);
+  font: 500 1.05rem/1.2 var(--font-ui);
+  outline: none;
+}
+.search-input::placeholder {
+  color: var(--home-ink-muted);
+  opacity: 0.8;
+}
+/* La regla global de foco (styles.css) le ganaba al `outline: none` y dibujaba una franja clara
+   dentro de la caja. El foco ya se ve en .search-bar-wrapper:focus-within. */
+.search-input:focus,
+.search-input:focus-visible {
   outline: none;
 }
 
@@ -329,12 +344,68 @@
 }
 
 .clear-btn {
-  background: none;
-  border: none;
-  color: var(--text-main);
-  opacity: 0.5;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--home-sage-surface);
+  color: var(--home-ink);
   cursor: pointer;
-  padding: 5px;
+  transition: background-color 150ms ease, transform 160ms var(--ease-out);
+}
+.clear-btn:active { transform: scale(0.92); }
+.clear-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .clear-btn:hover { background: var(--home-sage-ink); }
+}
+
+/* "en Todo ▾": dónde busca el texto, separado del campo por una línea. */
+.search-scope {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 44px;
+  padding-left: 14px;
+  border-left: 1px solid var(--home-glass-border);
+  color: var(--home-ink-muted);
+  font: 600 0.84rem/1 var(--font-ui);
+}
+.search-scope-prefix { margin-right: 2px; }
+.search-scope select {
+  height: 100%;
+  padding: 0 30px 0 8px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--home-ink);
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  transition: background-color 150ms ease;
+}
+.search-scope select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .search-scope select:hover { background: var(--home-sage-surface); }
+}
+.select-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  translate: 0 -50%;
+  color: var(--home-ink-muted);
+  pointer-events: none;
+}
+.search-scope option,
+.select-pill option {
+  background: var(--home-bg-surface);
+  color: var(--home-ink);
 }
 
 /* ── Filtros ─────────────────────────────────────────────────── */
@@ -343,9 +414,9 @@
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: center;
-  gap: 12px 20px;
-  max-width: 960px;
-  margin: 16px auto 0;
+  gap: 14px 18px;
+  max-width: 1180px;
+  margin: 18px auto 0;
 }
 .filter-group {
   display: flex;
@@ -421,6 +492,37 @@
   color: var(--home-bg-surface);
   pointer-events: none;
   transition: clip-path 200ms var(--ease-in-out);
+}
+
+/* Categoría: un select nativo (en el celular abre la lista del sistema) con forma de píldora. */
+.select-pill {
+  position: relative;
+  min-width: 220px;
+}
+.select-pill select {
+  width: 100%;
+  height: 44px;
+  padding: 0 40px 0 18px;
+  border: 1px solid var(--home-glass-border);
+  border-radius: 999px;
+  background: var(--home-bg-surface);
+  color: var(--home-ink-muted);
+  font: 600 0.84rem/1 var(--font-ui);
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.select-pill.is-set select {
+  border-color: var(--home-ink);
+  color: var(--home-ink);
+}
+.select-pill select:focus-visible {
+  outline: 2px solid var(--color-primary-text);
+  outline-offset: 2px;
+}
+.select-pill .select-chevron { right: 16px; }
+@media (hover: hover) and (pointer: fine) {
+  .select-pill select:hover { color: var(--home-ink); }
 }
 
 /* Interruptor "Solo con retrato": el check aparece con transición (se puede tocar seguido). */
@@ -655,34 +757,151 @@
   contain-intrinsic-size: 200px 360px;
 }
 
-/* Centinela del scroll infinito: invisible, solo sirve para que el
-   IntersectionObserver sepa que se ha llegado al final del grid. */
-.scroll-sentinel {
-  width: 100%;
-  height: 1px;
+/* ── Grilla paginada ──────────────────────────────────────────────
+   Columnas fijas por ancho para que las 24 tarjetas de cada página llenen filas enteras
+   (24 = 6×4 = 4×6 = 3×8 = 2×12). */
+.grid-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.grid-header .section-title:focus { outline: none; }
+.grid-header .section-title:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+.page-status {
+  flex-shrink: 0;
+  margin: 0 0 4px;
+  color: var(--home-ink-muted);
+  font: 500 0.9rem/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+.page-status strong { color: var(--home-ink); }
+
+.results-grid {
+  --cols: 3;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+}
+@media (min-width: 1000px) { .results-grid { --cols: 4; } }
+@media (min-width: 1400px) { .results-grid { --cols: 6; } }
+
+.paged-grid { position: relative; }
+
+/* Flechas a los lados. Son sticky dentro de su columna: mientras se recorre la página
+   quedan a media altura del área visible (bajo el menú fijo de ~180 px). */
+.page-arrow { display: none; }
+@media (min-width: 900px) {
+  .paged-grid.has-pages {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 52px;
+    gap: 0 20px;
+  }
+  .page-arrow {
+    position: sticky;
+    top: calc(50vh + 64px);
+    align-self: start;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin-top: 140px;
+    border: 1px solid var(--home-glass-border);
+    border-radius: 50%;
+    background: var(--home-bg-surface);
+    color: var(--home-ink);
+    box-shadow: 0 14px 30px -16px rgb(0 0 0 / 0.8);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 160ms var(--ease-out), background-color 150ms ease,
+                border-color 150ms ease, opacity 150ms ease;
+  }
+  .page-arrow svg { transition: transform 160ms var(--ease-out); }
+  .page-arrow:active:not(:disabled) { transform: scale(0.94); }
+  .page-arrow:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+  .page-arrow:disabled {
+    opacity: 0.3;
+    box-shadow: none;
+    cursor: default;
+  }
+}
+@media (min-width: 900px) and (hover: hover) and (pointer: fine) {
+  .page-arrow:hover:not(:disabled) {
+    background: var(--home-sage-surface);
+    border-color: var(--home-ink-muted);
+  }
+  .page-arrow--prev:hover:not(:disabled) svg { transform: translateX(-2px); }
+  .page-arrow--next:hover:not(:disabled) svg { transform: translateX(2px); }
 }
 
-.loading-more {
+/* Paginador de abajo: números en escritorio, «3 / 35» con botones grandes en el celular. */
+.pager {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 30px 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+  margin-top: 36px;
 }
-
-.loading-more .spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--glass-border);
-  border-top-color: var(--glass-border);
-  border-radius: 50%;
-  animation: hub-spin 0.8s linear infinite;
+.pager-pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
-
-@keyframes hub-spin {
-  to { transform: rotate(360deg); }
+.pager-page,
+.pager-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 999px;
+  font: 600 0.9rem/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease,
+              transform 160ms var(--ease-out);
+}
+.pager-page {
+  min-width: 42px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--home-ink-muted);
+}
+.pager-page.is-current {
+  background: var(--home-ink);
+  color: var(--home-bg-surface);
+  cursor: default;
+}
+.pager-step {
+  gap: 6px;
+  padding: 0 18px;
+  border: 1px solid var(--home-glass-border);
+  background: var(--home-bg-surface);
+  color: var(--home-ink);
+}
+.pager-step:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.pager-page:active:not(.is-current),
+.pager-step:active:not(:disabled) { transform: scale(0.96); }
+.pager-page:focus-visible,
+.pager-step:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.pager-gap {
+  min-width: 24px;
+  color: var(--home-ink-muted);
+  text-align: center;
+}
+.pager-compact { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .pager-page:not(.is-current):hover { border-color: var(--home-glass-border); color: var(--home-ink); }
+  .pager-step:not(:disabled):hover { border-color: var(--home-ink-muted); }
 }
 
 /* SKELETONS */
@@ -740,17 +959,18 @@
   opacity: 0.55;
 }
 
-/* Las tarjetas nuevas suben un poco, escalonadas 40 ms y solo las 12 primeras de cada página.
+/* Las tarjetas nuevas entran escalonadas 30 ms (solo las 12 primeras esperan). Al cambiar de
+   página llegan desde el lado de la flecha (--dir: -1 o 1); al cambiar un filtro, desde abajo.
    Animación (no transición) con `backwards`: al terminar no retiene el transform y el hover
    de .char-card sigue funcionando. */
 .result-card {
   animation: hub-card-in 300ms var(--ease-out) backwards;
-  animation-delay: calc(min(var(--i, 0), 11) * 40ms);
+  animation-delay: calc(min(var(--i, 0), 11) * 30ms);
 }
 @keyframes hub-card-in {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translate(calc(var(--dir, 0) * 16px), 8px);
   }
 }
 
@@ -840,8 +1060,29 @@
     font-size: 0.8rem;
   }
   .filter-group--actions { justify-content: space-between; }
+  .select-pill { min-width: 0; }
+  .search-bar-wrapper {
+    min-height: 54px;
+    gap: 8px;
+    padding: 4px 6px 4px 14px;
+    border-radius: 16px;
+  }
+  .search-input { font-size: 1rem; }
+  .search-scope { padding-left: 8px; }
+  .search-scope-prefix { display: none; }
   .hub-section { padding-left: 16px; padding-right: 16px; }
   .section-title { font-size: 1.5rem; }
+
+  .grid-header { flex-wrap: wrap; align-items: baseline; }
+  .pager { justify-content: space-between; gap: 8px; margin-top: 24px; }
+  .pager-pages { display: none; }
+  .pager-compact {
+    display: inline;
+    color: var(--home-ink);
+    font: 600 0.95rem/1 var(--font-ui);
+    font-variant-numeric: tabular-nums;
+  }
+  .pager-step { flex: 1; height: 48px; max-width: 160px; }
 
   .character-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -889,7 +1130,12 @@
   .segmented-active { transition: none; }
   .btn-primary:active,
   .photo-toggle:active,
-  .filters-clear:active { transform: none; }
+  .filters-clear:active,
+  .clear-btn:active,
+  .page-arrow:active:not(:disabled),
+  .pager-page:active:not(.is-current),
+  .pager-step:active:not(:disabled) { transform: none; }
+  .page-arrow svg { transition: none; }
   .photo-toggle-check { transform: none; transition: opacity 160ms ease; }
 }
 @keyframes hub-card-fade {

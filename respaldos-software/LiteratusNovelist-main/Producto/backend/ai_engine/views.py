@@ -111,7 +111,7 @@ class AvatarDetailView(APIView):
 
 class GlobalAvatarListView(generics.ListAPIView):
     """
-    GET /api/v1/ai/hub/avatars/?q=&field=&sort=popularity&with_photo=&page=&page_size=
+    GET /api/v1/ai/hub/avatars/?q=&field=&sort=popularity&with_photo=&kind=&genre=&skip=&page=&page_size=
     Hub Global: catálogo de avatares para la página estilo Character.ai.
 
     - field: dónde busca q. all (nombre, descripción, libro y autor), name, book o author.
@@ -119,20 +119,29 @@ class GlobalAvatarListView(generics.ListAPIView):
       para el carrusel: personajes antes que autores).
     - with_photo=1: solo personajes con retrato. Se filtra después de agrupar para que
       la ficha siga listando todas sus obras.
+    - kind: character (solo personajes) o author (solo autores).
+    - genre: slug de una categoría del catálogo; la ficha lista solo sus obras de esa categoría.
+    - skip: se salta los primeros N del orden antes de paginar. La grilla de /characters
+      empieza después de los que ya mostró «Más destacados».
 
-    Pagina con StandardResultsSetPagination (?page_size hasta 50). El catálogo
-    completo sigue siendo alcanzable: el frontend encadena páginas con scroll
-    infinito en lugar de descargar los ~4.500 registros de una sola vez, que era
-    lo que bloqueaba la página.
+    Pagina con StandardResultsSetPagination (?page_size hasta 50). El frontend muestra
+    una página a la vez en lugar de descargar los ~4.500 registros de una sola vez, que
+    era lo que bloqueaba la página.
     """
     permission_classes = [permissions.AllowAny]
     serializer_class = GlobalHubAvatarSerializer
     pagination_class = StandardResultsSetPagination
+    MAX_SKIP = 200
 
     def list(self, request, *args, **kwargs):
         groups = group_hub_avatars(self.get_queryset(), request.query_params.get('sort', 'name'))
         if request.query_params.get('with_photo') in ('1', 'true'):
             groups = [group for group in groups if group['has_image']]
+        try:
+            skip = min(max(int(request.query_params.get('skip', 0)), 0), self.MAX_SKIP)
+        except ValueError:
+            skip = 0
+        groups = groups[skip:]
         page = self.paginate_queryset(groups)
         avatars = hydrate_hub_groups(page if page is not None else groups)
         data = self.get_serializer(avatars, many=True).data
@@ -146,6 +155,13 @@ class GlobalAvatarListView(generics.ListAPIView):
         # select_related evita el N+1 de book_title/book_slug en el serializer.
         avatars = visible_books(AIAvatar.objects.select_related('edition__book'),
                                 self.request.user, 'edition__book__')
+
+        kind = params.get('kind')
+        if kind in ('character', 'author'):
+            avatars = avatars.filter(is_author=kind == 'author')
+        genre = params.get('genre')
+        if genre:
+            avatars = avatars.filter(edition__book__genres__slug=genre)
 
         if query:
             by_name = Q(name__icontains=query)

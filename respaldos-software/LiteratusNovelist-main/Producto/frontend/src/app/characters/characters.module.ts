@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { LucideChevronDown, LucideChevronLeft, LucideChevronRight } from '@lucide/angular';
 
 import { SharedModule } from '../shared/shared.module';
 import { CharacterHubComponent } from './character-hub/character-hub.component';
@@ -9,7 +10,8 @@ import { MessagesComponent } from './messages/messages.component';
 /** Personajes, el chat con cada uno y Mensajes: un solo archivo que se descarga al abrir cualquiera. */
 @NgModule({
   declarations: [CharacterHubComponent, DemoChatPageComponent, MessagesComponent],
-  imports: [SharedModule],
+  // Flechas de las páginas y de los selectores del hub.
+  imports: [SharedModule, LucideChevronLeft, LucideChevronRight, LucideChevronDown],
   exports: [CharacterHubComponent, DemoChatPageComponent, MessagesComponent],
 })
 export class CharactersModule {}

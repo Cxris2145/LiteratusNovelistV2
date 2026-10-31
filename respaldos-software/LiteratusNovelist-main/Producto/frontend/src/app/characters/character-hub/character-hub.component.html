@@ -55,28 +55,47 @@
   <!-- 2. BÚSQUEDA Y FILTROS -->
   <section class="search-section">
     <div class="search-bar-wrapper">
-      <span class="search-icon"><svg lucideSearch [size]="18" class="lucide-icon"></svg></span>
+      <span class="search-icon" aria-hidden="true"><svg lucideSearch [size]="20" class="lucide-icon"></svg></span>
       <input type="search" [(ngModel)]="searchQuery" (input)="onSearchChange()"
-        [placeholder]="placeholder" class="search-input" aria-label="Buscar personajes">
+        [placeholder]="placeholder" class="search-input" aria-label="Buscar personajes" enterkeyhint="search">
       <button type="button" class="clear-btn" *ngIf="searchQuery" (click)="searchQuery=''; onSearchChange()"
         aria-label="Borrar la búsqueda">
-        <svg lucideX [size]="18" class="lucide-icon"></svg>
+        <svg lucideX [size]="16" class="lucide-icon"></svg>
       </button>
+      <!-- Dónde busca el texto: dentro de la barra, junto a lo que se escribe. -->
+      <label class="search-scope">
+        <span class="search-scope-prefix">en</span>
+        <select [ngModel]="searchField" (ngModelChange)="setSearchField($event)" aria-label="Buscar en">
+          <option *ngFor="let option of searchFields" [value]="option.value">{{ option.label }}</option>
+        </select>
+        <svg lucideChevronDown [size]="15" class="lucide-icon select-chevron" aria-hidden="true"></svg>
+      </label>
     </div>
 
     <div class="hub-filters">
-      <div class="filter-group" role="radiogroup" aria-labelledby="hub-filter-field">
-        <span class="filter-label" id="hub-filter-field">Buscar en</span>
+      <div class="filter-group" role="radiogroup" aria-labelledby="hub-filter-kind">
+        <span class="filter-label" id="hub-filter-kind">Mostrar</span>
         <div class="segmented">
-          <label class="segment" *ngFor="let option of searchFields">
-            <input type="radio" name="hub-field" [value]="option.value" [checked]="searchField === option.value"
-              (change)="setSearchField(option.value)">
+          <label class="segment" *ngFor="let option of kindOptions">
+            <input type="radio" name="hub-kind" [value]="option.value" [checked]="kind === option.value"
+              (change)="setKind(option.value)">
             <span>{{ option.label }}</span>
           </label>
           <!-- Copia en estado activo, recortada sobre la opción elegida: texto y fondo cambian juntos. -->
-          <div class="segmented-active" aria-hidden="true" [style.clipPath]="fieldClip">
-            <span *ngFor="let option of searchFields">{{ option.label }}</span>
+          <div class="segmented-active" aria-hidden="true" [style.clipPath]="kindClip">
+            <span *ngFor="let option of kindOptions">{{ option.label }}</span>
           </div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="filter-label" for="hub-filter-genre">Categoría</label>
+        <div class="select-pill" [class.is-set]="genre">
+          <select id="hub-filter-genre" [ngModel]="genre" (ngModelChange)="setGenre($event)">
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let option of genres; trackBy: trackBySlug" [value]="option.slug">{{ option.name }}</option>
+          </select>
+          <svg lucideChevronDown [size]="16" class="lucide-icon select-chevron" aria-hidden="true"></svg>
         </div>
       </div>
 
@@ -109,57 +128,7 @@
     </div>
   </section>
 
-  <!-- 3. RESULTADOS DE BÚSQUEDA Y FILTROS -->
-  <section class="results-section" *ngIf="isSearching" aria-live="polite" [attr.aria-busy]="isLoading">
-    <h2 class="section-title">
-      <ng-container *ngIf="searchQuery.trim(); else allTitle">Resultados de "{{ searchQuery.trim() }}"</ng-container>
-      <ng-template #allTitle>Todos los personajes</ng-template>
-    </h2>
-    <p class="section-subtitle">
-      {{ sortLabel }}<ng-container *ngIf="withPhoto"> · solo con retrato</ng-container><ng-container
-        *ngIf="searchTotal && !isLoading"> · {{ searchTotal }} {{ searchTotal === 1 ? 'personaje' : 'personajes' }}</ng-container>
-    </p>
-    <div class="character-grid results-grid" [class.is-refreshing]="isLoading && filteredCharacters.length > 0">
-      <div class="char-card premium-card result-card" *ngFor="let char of filteredCharacters; let i = index; trackBy: trackByResult"
-        [style.--i]="i % pageSize" (click)="openChat(char)" role="button" tabindex="0"
-          (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
-        <div class="card-img-wrapper">
-          <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
-            loading="lazy" decoding="async" width="300" height="375"
-            (error)="onImgError($event, char.avatar_image_url)">
-          <div class="overlay-gradient"></div>
-          <div class="trend-overlay" *ngIf="sort === 'popularity'">
-            <span class="chat-count"><svg lucideUsers [size]="14" class="lucide-icon inline-icon"></svg> {{ char.chat_count || 0 }}</span>
-          </div>
-        </div>
-        <div class="card-content">
-          <h3 class="char-name">{{ char.name }}</h3>
-          <p class="book-origin">{{ bookLabel(char) }}</p>
-        </div>
-      </div>
-      <ng-container *ngIf="isLoading && filteredCharacters.length === 0">
-        <div class="char-card skeleton-card" *ngFor="let s of skeletonArray; trackBy: trackByIndex" aria-hidden="true">
-          <div class="shimmer-img"></div>
-          <div class="shimmer-content">
-            <div class="shimmer-line title"></div>
-            <div class="shimmer-line subtitle"></div>
-          </div>
-        </div>
-      </ng-container>
-      <div class="no-results" *ngIf="filteredCharacters.length === 0 && !isLoading">
-        <p>No se encontraron personajes con estos filtros.</p>
-        <button type="button" class="filters-clear" (click)="clearFilters()">Limpiar filtros</button>
-      </div>
-    </div>
-
-    <!-- La búsqueda también carga más al bajar (antes se quedaba en los primeros 48). -->
-    <div #scrollSentinel class="scroll-sentinel" *ngIf="!isLoading"></div>
-    <div class="loading-more" *ngIf="isLoadingMore">
-      <span class="spinner"></span> Cargando más resultados...
-    </div>
-  </section>
-
-  <!-- 4. CONTENIDO PRINCIPAL (Solo si no está buscando) -->
+  <!-- 3. SECCIONES DE ARRIBA (solo sin búsqueda ni filtros) -->
   <ng-container *ngIf="!isSearching">
 
     <!-- RECIENTES -->
@@ -184,14 +153,14 @@
       </div>
     </section>
 
-    <!-- DESTACADOS (Por popularidad) -->
+    <!-- DESTACADOS (con retrato primero) -->
     <section class="hub-section reveal-section">
       <div class="section-header">
         <h2 class="section-title"><span class="icon"><svg lucideFlame [size]="20" class="lucide-icon"></svg></span> Más Destacados</h2>
         <p class="section-subtitle">Los personajes que más cautivan a la comunidad.</p>
       </div>
 
-      <div class="horizontal-scroll stagger-group" *ngIf="!isLoading">
+      <div class="horizontal-scroll stagger-group" *ngIf="!isStripLoading">
         <div class="char-card premium-card has-enter-sheen" *ngFor="let char of featuredCharacters; trackBy: trackById"
           (click)="openChat(char)" role="button" tabindex="0"
           (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
@@ -215,7 +184,7 @@
       </div>
 
       <!-- Skeleton Loading -->
-      <div class="horizontal-scroll" *ngIf="isLoading">
+      <div class="horizontal-scroll" *ngIf="isStripLoading">
         <div class="char-card skeleton-card" *ngFor="let s of skeletonArray; trackBy: trackByIndex">
           <div class="shimmer-img"></div>
           <div class="shimmer-content">
@@ -226,40 +195,101 @@
       </div>
     </section>
 
-    <!-- EXPLORAR TODOS -->
-    <section class="hub-section reveal-section">
-      <div class="section-header">
-        <h2 class="section-title"><span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Más personajes</h2>
-        <p class="section-subtitle" *ngIf="totalCount">
-          {{ allCharacters.length }} de {{ totalCount }} personajes únicos cargados.
-        </p>
+  </ng-container>
+
+  <!-- 4. GRILLA PAGINADA: «Más personajes» o los resultados de la búsqueda y los filtros -->
+  <section class="hub-section grid-section" #gridTop aria-labelledby="hub-grid-title" [attr.aria-busy]="gridLoading">
+    <div class="section-header grid-header">
+      <div>
+        <h2 class="section-title" id="hub-grid-title" #gridTitle tabindex="-1">
+          <ng-container *ngIf="isSearching; else browseTitle">
+            <ng-container *ngIf="searchQuery.trim(); else allTitle">Resultados de "{{ searchQuery.trim() }}"</ng-container>
+            <ng-template #allTitle>{{ resultsTitle }}</ng-template>
+          </ng-container>
+          <ng-template #browseTitle>
+            <span class="icon"><svg lucideLibrary [size]="20" class="lucide-icon"></svg></span> Más personajes
+          </ng-template>
+        </h2>
+        <p class="section-subtitle" aria-live="polite">{{ gridSummary }}</p>
       </div>
-      <div class="character-grid stagger-group">
-        <div class="char-card premium-card has-enter-sheen" *ngFor="let char of catalogCharacters; trackBy: trackById"
-          (click)="openChat(char)" role="button" tabindex="0"
+      <p class="page-status" *ngIf="gridPages > 1">Página <strong>{{ gridPage }}</strong> de {{ gridPages }}</p>
+    </div>
+
+    <div class="paged-grid" [class.has-pages]="gridPages > 1">
+      <!-- Flechas a los lados (escritorio): quedan a media pantalla mientras se recorre la página. -->
+      <button type="button" class="page-arrow page-arrow--prev" *ngIf="gridPages > 1"
+        [disabled]="gridPage <= 1" aria-label="Página anterior" aria-controls="hub-grid"
+        (click)="goToPage(gridPage - 1)" (pointerenter)="prefetch(gridPage - 1)" (focus)="prefetch(gridPage - 1)">
+        <svg lucideChevronLeft [size]="26" class="lucide-icon"></svg>
+      </button>
+
+      <div class="character-grid results-grid" id="hub-grid" [style.--dir]="gridDirection"
+        [class.is-refreshing]="gridLoading && gridCharacters.length > 0">
+        <div class="char-card premium-card result-card" *ngFor="let char of gridCharacters; let i = index; trackBy: trackByResult"
+          [style.--i]="i" (click)="openChat(char)" role="button" tabindex="0"
           (keydown.enter)="openChat(char)" (keydown.space)="$event.preventDefault(); openChat(char)">
           <div class="card-img-wrapper">
             <img [src]="thumb(char.avatar_image_url)" [alt]="char.name" class="char-img"
               loading="lazy" decoding="async" width="300" height="375"
               (error)="onImgError($event, char.avatar_image_url)">
             <div class="overlay-gradient"></div>
+            <div class="trend-overlay" *ngIf="sort === 'popularity'">
+              <span class="chat-count"><svg lucideUsers [size]="14" class="lucide-icon inline-icon"></svg> {{ char.chat_count || 0 }}</span>
+            </div>
           </div>
           <div class="card-content">
             <h3 class="char-name">{{ char.name }}</h3>
             <p class="book-origin">{{ bookLabel(char) }}</p>
           </div>
         </div>
+        <ng-container *ngIf="gridLoading && gridCharacters.length === 0">
+          <div class="char-card skeleton-card" *ngFor="let s of gridSkeleton; trackBy: trackByIndex" aria-hidden="true">
+            <div class="shimmer-img"></div>
+            <div class="shimmer-content">
+              <div class="shimmer-line title"></div>
+              <div class="shimmer-line subtitle"></div>
+            </div>
+          </div>
+        </ng-container>
+        <div class="no-results" *ngIf="gridCharacters.length === 0 && !gridLoading">
+          <ng-container *ngIf="gridError; else emptyGrid">
+            <p>No pudimos cargar los personajes.</p>
+            <button type="button" class="filters-clear" (click)="retryGrid()">Reintentar</button>
+          </ng-container>
+          <ng-template #emptyGrid>
+            <p>No se encontraron personajes con estos filtros.</p>
+            <button type="button" class="filters-clear" (click)="clearFilters()">Limpiar filtros</button>
+          </ng-template>
+        </div>
       </div>
 
-      <!-- Centinela del scroll infinito: al asomarse pide la página siguiente. -->
-      <div #scrollSentinel class="scroll-sentinel" *ngIf="!isLoading"></div>
+      <button type="button" class="page-arrow page-arrow--next" *ngIf="gridPages > 1"
+        [disabled]="gridPage >= gridPages" aria-label="Página siguiente" aria-controls="hub-grid"
+        (click)="goToPage(gridPage + 1)" (pointerenter)="prefetch(gridPage + 1)" (focus)="prefetch(gridPage + 1)">
+        <svg lucideChevronRight [size]="26" class="lucide-icon"></svg>
+      </button>
+    </div>
 
-      <div class="loading-more" *ngIf="isLoadingMore">
-        <span class="spinner"></span> Cargando más personajes...
-      </div>
-    </section>
-
-  </ng-container>
+    <nav class="pager" *ngIf="gridPages > 1" aria-label="Páginas de personajes">
+      <button type="button" class="pager-step" [disabled]="gridPage <= 1"
+        (click)="goToPage(gridPage - 1, true)" (pointerenter)="prefetch(gridPage - 1)">
+        <svg lucideChevronLeft [size]="18" class="lucide-icon"></svg><span>Anterior</span>
+      </button>
+      <ol class="pager-pages">
+        <li *ngFor="let item of pageItems; trackBy: trackByIndex">
+          <button type="button" class="pager-page" *ngIf="item !== null; else pageGap"
+            [class.is-current]="item === gridPage" [attr.aria-current]="item === gridPage ? 'page' : null"
+            [attr.aria-label]="'Página ' + item" (click)="goToPage(item, true)" (pointerenter)="prefetch(item)">{{ item }}</button>
+          <ng-template #pageGap><span class="pager-gap" aria-hidden="true">…</span></ng-template>
+        </li>
+      </ol>
+      <span class="pager-compact" aria-hidden="true">{{ gridPage }} / {{ gridPages }}</span>
+      <button type="button" class="pager-step" [disabled]="gridPage >= gridPages"
+        (click)="goToPage(gridPage + 1, true)" (pointerenter)="prefetch(gridPage + 1)">
+        <span>Siguiente</span><svg lucideChevronRight [size]="18" class="lucide-icon"></svg>
+      </button>
+    </nav>
+  </section>
 
 </div>
 
