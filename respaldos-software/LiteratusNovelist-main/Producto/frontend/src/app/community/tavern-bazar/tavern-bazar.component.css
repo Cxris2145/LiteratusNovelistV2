@@ -1092,10 +1092,15 @@
 
 /* ── Taller de Tintes (Personalización de Maguito) ─────────── */
 .bz-dyes-slot {
-  display: block;
-  width: 100%;
-  margin-top: 8px;
-  animation: bz-fade-in .25s ease-out;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.bz-dyes-slot app-maguito-customizer {
+  flex: 1;
 }
 
 @keyframes bz-fade-in {

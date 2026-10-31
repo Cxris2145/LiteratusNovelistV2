@@ -171,8 +171,11 @@
 
 /* ── Números: "2 libros · 0 reseñas · 3 amigos", en una línea ─────── */
 .pc-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   margin: 0;
 }
 .pc-stats > div {

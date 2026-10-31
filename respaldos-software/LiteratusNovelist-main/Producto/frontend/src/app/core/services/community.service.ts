@@ -57,6 +57,9 @@ export interface CommunityProfile {
   stats: ProfileStats;
   member_since: string;
   is_public: boolean;
+  show_friends?: boolean;
+  show_books?: boolean;
+  show_reviews?: boolean;
   relation: Relation;
   request_id: string | null;
   brindis_given?: boolean;

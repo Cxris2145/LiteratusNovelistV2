@@ -168,6 +168,9 @@ def minimal_card(profile, relation='none', request_id=None) -> dict:
         'equipped_frame': profile.equipped_frame,
         'equipped_title': profile.equipped_title,
         'is_public': profile.is_public,
+        'show_friends': getattr(profile, 'show_friends', True),
+        'show_books': getattr(profile, 'show_books', True),
+        'show_reviews': getattr(profile, 'show_reviews', True),
         'relation': relation,
         'request_id': request_id,
     }
@@ -216,6 +219,9 @@ def full_card(profile, relation, request_id=None) -> dict:
         'stats': profile_stats(user),
         'member_since': user.date_joined,
         'is_public': profile.is_public,
+        'show_friends': getattr(profile, 'show_friends', True),
+        'show_books': getattr(profile, 'show_books', True),
+        'show_reviews': getattr(profile, 'show_reviews', True),
         'relation': relation,
         'request_id': request_id,
     }

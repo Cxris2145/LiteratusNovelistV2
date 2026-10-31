@@ -66,7 +66,10 @@ export class ProfileComponent implements OnInit {
       bio: ['', Validators.maxLength(BIO_MAX)],
       country: [''],
       birth_date: [''],
-      is_public: [true]
+      is_public: [true],
+      show_friends: [true],
+      show_books: [true],
+      show_reviews: [true]
     });
     // La paleta muestra el tema activo, también si se cambia desde el menú del avatar
     // (así "Guardar Cambios" no reenvía un tema viejo).
@@ -125,7 +128,10 @@ export class ProfileComponent implements OnInit {
             bio: profile.bio,
             country: profile.country,
             birth_date: profile.birth_date || '',
-            is_public: profile.is_public !== false
+            is_public: profile.is_public !== false,
+            show_friends: profile.show_friends !== false,
+            show_books: profile.show_books !== false,
+            show_reviews: profile.show_reviews !== false
           });
           const current = this.authService.currentUser();
           if (current && profile.username && current.username !== profile.username) {
@@ -241,7 +247,10 @@ export class ProfileComponent implements OnInit {
       avatar: this.avatarUrl || '',
       avatar_color: this.avatarColor,
       theme: this.selectedTheme,
-      is_public: this.profileForm.get('is_public')?.value !== false
+      is_public: this.profileForm.get('is_public')?.value !== false,
+      show_friends: this.profileForm.get('show_friends')?.value !== false,
+      show_books: this.profileForm.get('show_books')?.value !== false,
+      show_reviews: this.profileForm.get('show_reviews')?.value !== false
     };
     const birthDate = this.profileForm.get('birth_date')?.value;
     if (!this.birthDateLocked && birthDate) payload['birth_date'] = birthDate;

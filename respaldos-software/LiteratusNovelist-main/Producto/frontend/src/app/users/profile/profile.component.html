@@ -92,6 +92,31 @@
               ? 'Cualquier lector ve tu tarjeta (libros, reseñas, amigos y "Sobre mí") y puedes salir en sus sugerencias de amigos.'
               : 'Privado: solo tus amigos ven tu tarjeta; los demás te encuentran únicamente con tu código de amigo.' }}
           </p>
+
+          <!-- Opciones granulares de visibilidad pública -->
+          <div class="privacy-suboptions" *ngIf="profileForm.get('is_public')?.value">
+            <span class="privacy-suboptions-title">Elementos visibles en tu perfil público:</span>
+            
+            <div class="privacy-toggles-grid">
+              <label class="visibility-toggle sub-toggle" for="profile-show-books">
+                <input id="profile-show-books" type="checkbox" formControlName="show_books">
+                <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>
+                <span>Libros y lecturas</span>
+              </label>
+
+              <label class="visibility-toggle sub-toggle" for="profile-show-reviews">
+                <input id="profile-show-reviews" type="checkbox" formControlName="show_reviews">
+                <span class="material-symbols-rounded" aria-hidden="true">rate_review</span>
+                <span>Reseñas literarias</span>
+              </label>
+
+              <label class="visibility-toggle sub-toggle" for="profile-show-friends">
+                <input id="profile-show-friends" type="checkbox" formControlName="show_friends">
+                <span class="material-symbols-rounded" aria-hidden="true">group</span>
+                <span>Amigos de taberna</span>
+              </label>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">

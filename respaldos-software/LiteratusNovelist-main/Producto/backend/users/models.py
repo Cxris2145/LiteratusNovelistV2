@@ -185,6 +185,18 @@ class Profile(TimeStampedModel):
         help_text="Perfil público: cualquiera ve la tarjeta completa y aparece en las sugerencias de amigos. "
                   "Privado: solo sus amigos la ven y solo se le encuentra por su código."
     )
+    show_friends = models.BooleanField(
+        default=True, db_default=True,
+        help_text="Visible en el perfil público: lista o contador de amigos."
+    )
+    show_books = models.BooleanField(
+        default=True, db_default=True,
+        help_text="Visible en el perfil público: libros leídos o biblioteca."
+    )
+    show_reviews = models.BooleanField(
+        default=True, db_default=True,
+        help_text="Visible en el perfil público: reseñas y valoraciones del lector."
+    )
 
     class Meta:
         verbose_name = 'Profile'

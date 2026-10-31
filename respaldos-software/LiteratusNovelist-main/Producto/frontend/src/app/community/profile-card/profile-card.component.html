@@ -38,16 +38,16 @@
 
   <span class="pc-rule" aria-hidden="true"></span>
 
-  <dl class="pc-stats">
-    <div>
+  <dl class="pc-stats" *ngIf="mine || card.show_books !== false || card.show_reviews !== false || card.show_friends !== false">
+    <div *ngIf="mine || card.show_books !== false">
       <dt>{{ card.stats.books === 1 ? 'libro' : 'libros' }}</dt>
       <dd>{{ card.stats.books }}</dd>
     </div>
-    <div>
+    <div *ngIf="mine || card.show_reviews !== false">
       <dt>{{ card.stats.reviews === 1 ? 'reseña' : 'reseñas' }}</dt>
       <dd>{{ card.stats.reviews }}</dd>
     </div>
-    <div>
+    <div *ngIf="mine || card.show_friends !== false">
       <dt>{{ card.stats.friends === 1 ? 'amigo' : 'amigos' }}</dt>
       <dd>{{ card.stats.friends }}</dd>
     </div>
