@@ -123,15 +123,16 @@ export class EncounterChatComponent implements OnDestroy {
     return this.pair?.[1].id === id ? 1 : 0;
   }
 
-  /** Foto y nombre solo en el primer mensaje de una racha del mismo personaje. */
+  /** Foto y nombre (o «Tú») solo en el primer mensaje de una racha de quien habla. */
   showHead(index: number): boolean {
     const line = this.lines[index];
     const prev = this.lines[index - 1];
-    return line.role === 'assistant' && (!prev || prev.role !== 'assistant' || prev.speaker_id !== line.speaker_id);
+    if (!prev || prev.role !== line.role) return true;
+    return line.role === 'assistant' && prev.speaker_id !== line.speaker_id;
   }
 
-  thumb(url: string | null | undefined): string {
-    return portraitThumbnail(url, 160);
+  thumb(url: string | null | undefined, width = 160): string {
+    return portraitThumbnail(url, width);
   }
 
   onImgError(event: Event): void {
@@ -386,10 +387,11 @@ export class EncounterChatComponent implements OnDestroy {
     el.style.overflowY = full > 132 ? 'auto' : 'hidden';
   }
 
+  /** Baja al último mensaje; sin mensajes, la escena inicial se ve desde arriba. */
   private afterRender(): void {
     setTimeout(() => {
       const feed = this.feed?.nativeElement;
-      if (feed) feed.scrollTop = feed.scrollHeight;
+      if (feed) feed.scrollTop = this.lines.length || this.typing ? feed.scrollHeight : 0;
       this.autosize();
     });
   }

@@ -38,6 +38,7 @@ describe('encounter-turns · quién responde en un encuentro', () => {
   it('nombre corto para los botones', () => {
     expect(shortName('Don Quijote de la Mancha')).toBe('Quijote');
     expect(shortName('Sherlock Holmes')).toBe('Sherlock');
+    expect(shortName('El Gato con Botas')).toBe('Gato');
     expect(openingIdeas(true)).not.toEqual(openingIdeas(false));
   });
 });

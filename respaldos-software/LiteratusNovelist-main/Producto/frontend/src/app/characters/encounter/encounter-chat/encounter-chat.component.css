@@ -1,4 +1,5 @@
-/* Conversación a tres. Cada personaje tiene su color: el primero el dorado, el segundo un azul. */
+/* Conversación a tres. Cada personaje tiene su color (el primero el dorado, el segundo un celeste)
+   y habla con la letra de los libros; el lector escribe en una burbuja clara a la derecha. */
 :host {
   flex: 1;
   display: flex;
@@ -6,60 +7,160 @@
   min-height: 0;
   color: var(--color-text-primary, #fcfaf2);
   font-family: var(--font-ui, system-ui, sans-serif);
-  --ec-line: var(--color-border, rgba(255, 255, 255, 0.12));
+  --ec-line: color-mix(in srgb, var(--color-text-primary, #fcfaf2) 11%, transparent);
   --ec-muted: var(--color-text-secondary, #bbaea0);
+  --ec-panel: var(--color-surface, #1E3050);
   --ec-a: var(--color-accent, #FFB353);
-  --ec-b: var(--color-300, #9FB6D9);
+  /* El dorado como texto (nombres, enlaces); en los temas claros se oscurece para leerse. */
+  --ec-a-ink: var(--ec-a);
+  /* Celeste: se distingue del dorado y también del azul tinta del fondo. */
+  --ec-b: #8CC2FF;
+  /* El lector: burbuja «de papel», el color del texto invertido (en los temas claros sale oscura). */
+  --ec-me-bg: color-mix(in srgb, var(--color-text-primary, #fcfaf2) 92%, var(--color-bg-primary, #15233B));
+  --ec-me-text: var(--color-bg-primary, #15233B);
+  /* Ancho de lectura de los mensajes y de la caja de escribir. */
+  --ec-col: 940px;
 }
 :host-context([data-theme="light-gallery"]),
 :host-context([data-theme="high-contrast-light"]),
 :host-context([data-theme="sepia"]) {
+  --ec-a-ink: #8A5208;
   --ec-b: var(--color-600, #2f5c93);
 }
 
 .ec {
   flex: 1;
   display: flex;
-  flex-direction: column;
   width: 100%;
-  max-width: 860px;
+  max-width: 1840px;
   min-width: 0;
   min-height: 0;
   margin: 0 auto;
-  border-left: 1px solid var(--ec-line);
-  border-right: 1px solid var(--ec-line);
-  background: color-mix(in srgb, var(--color-surface, #0f1420) 70%, transparent);
+  border: 1px solid var(--ec-line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--ec-panel);
+  box-shadow: 0 18px 48px -24px var(--color-shadow, rgba(0, 0, 0, 0.55));
+}
+.ec-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
-/* Cabecera */
+/* ── Reparto (solo en pantallas anchas) ── */
+.ec-cast {
+  flex: 0 0 272px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  padding: 18px 16px;
+  border-right: 1px solid var(--ec-line);
+  background: color-mix(in srgb, var(--color-bg-primary, #15233B) 55%, var(--ec-panel));
+  overflow: hidden;
+}
+.ec-cast-kicker {
+  margin: 0 0 2px;
+  color: var(--ec-a-ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.ec-cast-card {
+  --ec-c: var(--ec-a);
+  --ec-c-ink: var(--ec-a-ink);
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: 340px;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--ec-c) 38%, transparent);
+  border-radius: 16px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ec-c) 7%, var(--ec-panel));
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+.ec-cast-card.is-b { --ec-c: var(--ec-b); --ec-c-ink: var(--ec-b); }
+.ec-cast-card.is-typing {
+  border-color: var(--ec-c);
+  box-shadow: 0 0 0 1px var(--ec-c), 0 0 26px -6px color-mix(in srgb, var(--ec-c) 60%, transparent);
+}
+.ec-cast-card img {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  background: var(--ec-line);
+}
+.ec-cast-card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px 12px;
+  border-top: 2px solid var(--ec-c);
+}
+.ec-cast-card strong {
+  color: var(--ec-c-ink);
+  font: 700 1.3rem/1.1 var(--font-display, Georgia, serif);
+}
+.ec-cast-book {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--ec-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+.ec-cast-state {
+  margin-top: 2px;
+  color: var(--ec-c-ink);
+  font-size: 0.74rem;
+  font-weight: 700;
+  animation: ec-pulse 1.2s ease-in-out infinite;
+}
+.ec-cast-and {
+  align-self: center;
+  color: var(--ec-muted);
+  font: italic 500 1.15rem/1 var(--font-display, Georgia, serif);
+}
+
+/* ── Cabecera ── */
 .ec-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 12px 10px;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
   border-bottom: 1px solid var(--ec-line);
 }
 .ec-faces { flex: 0 0 auto; display: flex; }
 .ec-face {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--ec-a);
-  background: var(--ec-line);
+  background: var(--ec-panel);
 }
-.ec-face--b { margin-left: -12px; border-color: var(--ec-b); }
+.ec-face--b { margin-left: -14px; border-color: var(--ec-b); }
 .ec-names { flex: 1; min-width: 0; }
 .ec-names h1 {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
+  font: 700 1.5rem/1.15 var(--font-display, Georgia, serif);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.ec-name-a { color: var(--ec-a-ink); }
+.ec-name-b { color: var(--ec-b); }
 .ec-books {
-  margin: 0;
+  margin: 2px 0 0;
   color: var(--ec-muted);
   font-size: 0.8rem;
   overflow: hidden;
@@ -79,6 +180,7 @@
   color: inherit;
   text-decoration: none;
   cursor: pointer;
+  transition: background-color 150ms ease;
 }
 .ec-icon-btn .material-symbols-rounded { font-size: 1.25rem; }
 .ec-icon-btn:disabled { opacity: 0.4; cursor: default; }
@@ -86,21 +188,26 @@
   .ec-icon-btn:not(:disabled):hover { background: var(--ec-line); }
 }
 
-/* Tema */
+/* ── Tema ── */
 .ec-topic {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 4px 16px;
+  gap: 10px;
+  min-height: 42px;
+  padding: 3px 16px 3px 20px;
   border-bottom: 1px solid var(--ec-line);
-  font-size: 0.85rem;
+  background: color-mix(in srgb, var(--color-bg-primary, #15233B) 30%, transparent);
+  font-size: 0.86rem;
 }
 .ec-topic-label {
-  color: var(--ec-muted);
-  font-size: 0.72rem;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--ec-a) 45%, transparent);
+  border-radius: 999px;
+  color: var(--ec-a-ink);
+  font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 .ec-topic-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -108,7 +215,7 @@
 .ec-topic-input {
   flex: 1;
   min-width: 0;
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 12px;
   border: 1px solid var(--ec-a);
   border-radius: 10px;
@@ -121,74 +228,131 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 8px;
   border: none;
   border-radius: 8px;
   background: none;
-  color: var(--ec-a);
+  color: var(--ec-a-ink);
   font: 600 0.82rem var(--font-ui, system-ui, sans-serif);
   cursor: pointer;
   white-space: nowrap;
 }
 .ec-link .material-symbols-rounded { font-size: 1rem; }
 .ec-link:disabled { opacity: 0.5; cursor: default; }
+@media (hover: hover) and (pointer: fine) {
+  .ec-link:not(:disabled):hover { background: color-mix(in srgb, var(--ec-a) 10%, transparent); }
+}
 
-/* Mensajes */
+/* ── Mensajes: solo esta zona se desplaza ── */
 .ec-feed {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Un brillo de cada color en su esquina: el dorado arriba, el celeste abajo. */
+  background:
+    radial-gradient(ellipse 55% 45% at 0% 0%, color-mix(in srgb, var(--ec-a) 7%, transparent), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 100% 100%, color-mix(in srgb, var(--ec-b) 7%, transparent), transparent 70%),
+    color-mix(in srgb, var(--color-bg-primary, #15233B) 35%, var(--ec-panel));
 }
-.ec-line { display: flex; align-items: flex-end; gap: 8px; animation: ec-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-.ec-line--cont { margin-top: -6px; }
+/* Barra delgada, sin flechas; se entona en dorado al pasar el mouse. Chrome y Safari usan los
+   pseudoelementos (con scrollbar-color, Chrome en Windows vuelve a dibujar las flechas). */
+.ec-feed::-webkit-scrollbar { width: 10px; }
+.ec-feed::-webkit-scrollbar-track { background: transparent; }
+.ec-feed::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-text-primary, #fcfaf2) 22%, transparent) padding-box;
+}
+.ec-feed:hover::-webkit-scrollbar-thumb { background-color: color-mix(in srgb, var(--ec-a) 55%, transparent); }
+@supports not selector(::-webkit-scrollbar) {
+  .ec-feed {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-text-primary, #fcfaf2) 22%, transparent) transparent;
+  }
+}
+.ec-feed-inner {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(var(--ec-col) + 56px);
+  margin: 0 auto;
+  padding: 24px 28px 28px;
+}
+
+.ec-line {
+  --ec-c: var(--ec-a);
+  --ec-c-ink: var(--ec-a-ink);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: ec-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ec-line--b { --ec-c: var(--ec-b); --ec-c-ink: var(--ec-b); }
+.ec-line--cont { margin-top: -15px; }
 .ec-line--me { justify-content: flex-end; }
 .ec-line-face {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid var(--ec-a);
-  background: var(--ec-line);
+  border: 2px solid var(--ec-c);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ec-c) 16%, transparent);
+  background: var(--ec-panel);
 }
-.ec-line--b .ec-line-face { border-color: var(--ec-b); }
-.ec-line-face--spacer { border: none; background: none; }
-.ec-line-body { min-width: 0; max-width: 86%; display: flex; flex-direction: column; gap: 3px; }
-.ec-line-name { padding-left: 4px; color: var(--ec-a); font-size: 0.76rem; font-weight: 700; }
-.ec-line--b .ec-line-name { color: var(--ec-b); }
+.ec-line-face--spacer { border: none; box-shadow: none; background: none; height: 0; }
+.ec-line-body {
+  min-width: 0;
+  max-width: min(78%, 720px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+.ec-line--me .ec-line-body { align-items: flex-end; }
+.ec-line-name {
+  padding: 0 4px;
+  color: var(--ec-c-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.ec-line--me .ec-line-name { color: var(--ec-muted); }
+.ec-line-note { color: var(--ec-muted); font-weight: 500; }
+/* Los personajes hablan con la letra de los libros. */
 .ec-bubble {
   margin: 0;
-  padding: 10px 14px;
-  border-radius: 16px 16px 16px 4px;
-  border-left: 2px solid color-mix(in srgb, var(--ec-a) 70%, transparent);
-  background: color-mix(in srgb, var(--ec-a) 8%, transparent);
-  line-height: 1.5;
-  font-size: 0.95rem;
+  padding: 11px 16px 12px;
+  border: 1px solid color-mix(in srgb, var(--ec-c) 32%, transparent);
+  border-radius: 4px 18px 18px 18px;
+  background: color-mix(in srgb, var(--ec-c) 10%, var(--ec-panel));
+  color: var(--color-text-primary, #fcfaf2);
+  font: 1.12rem/1.55 var(--font-literary, Georgia, serif);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.ec-line--b .ec-bubble {
-  border-left-color: color-mix(in srgb, var(--ec-b) 70%, transparent);
-  background: color-mix(in srgb, var(--ec-b) 9%, transparent);
-}
+.ec-line--cont .ec-bubble { border-top-left-radius: 18px; }
 .ec-line--me .ec-bubble {
-  max-width: 86%;
-  border-left: none;
-  border-radius: 16px 16px 4px 16px;
-  background: color-mix(in srgb, var(--color-text-primary, #fcfaf2) 10%, transparent);
+  border-color: transparent;
+  border-radius: 18px 4px 18px 18px;
+  background: var(--ec-me-bg);
+  color: var(--ec-me-text);
+  font: 500 0.95rem/1.55 var(--font-ui, system-ui, sans-serif);
 }
-.ec-typing { display: inline-flex; gap: 4px; padding: 14px; width: fit-content; }
+.ec-line--me.ec-line--cont .ec-bubble { border-top-right-radius: 18px; }
+.ec-typing { display: inline-flex; gap: 5px; padding: 15px 18px; width: fit-content; }
 .ec-typing span {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--ec-muted);
+  background: var(--ec-c);
   animation: ec-dot 1s infinite ease-in-out;
 }
 .ec-typing span:nth-child(2) { animation-delay: 0.15s; }
@@ -209,7 +373,7 @@
 .ec-state .material-symbols-rounded { font-size: 2rem; }
 .ec-spin { animation: ec-spin 1s linear infinite; }
 
-/* Escena inicial */
+/* ── Escena inicial ── */
 .ec-scene {
   margin: auto 0;
   display: flex;
@@ -226,32 +390,47 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  max-width: 150px;
+  max-width: 160px;
   animation: ec-meet-a 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .ec-scene-faces figure.is-b { animation-name: ec-meet-b; }
 .ec-scene-faces img {
-  width: 104px;
-  height: 128px;
+  width: 112px;
+  height: 140px;
   border-radius: 16px;
   object-fit: cover;
   border: 2px solid var(--ec-a);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ec-a) 14%, transparent);
   background: var(--ec-line);
 }
-.ec-scene-faces figure.is-b img { border-color: var(--ec-b); }
-.ec-scene-faces figcaption { display: flex; flex-direction: column; font-weight: 700; font-size: 0.95rem; line-height: 1.25; }
-.ec-scene-faces figcaption span { color: var(--ec-muted); font-weight: 400; font-size: 0.78rem; }
-.ec-scene-text { margin: 0; max-width: 40ch; color: var(--ec-muted); font-size: 0.92rem; line-height: 1.5; text-wrap: balance; }
-.ec-ideas { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 560px; }
+.ec-scene-faces figure.is-b img {
+  border-color: var(--ec-b);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ec-b) 14%, transparent);
+}
+.ec-scene-faces figcaption {
+  display: flex;
+  flex-direction: column;
+  color: var(--ec-a-ink);
+  font: 700 1.2rem/1.15 var(--font-display, Georgia, serif);
+}
+.ec-scene-faces figure.is-b figcaption { color: var(--ec-b); }
+.ec-scene-faces figcaption span {
+  margin-top: 2px;
+  color: var(--ec-muted);
+  font: 400 0.78rem/1.3 var(--font-ui, system-ui, sans-serif);
+}
+.ec-scene-text { margin: 0; max-width: 42ch; color: var(--ec-muted); font-size: 0.92rem; line-height: 1.5; text-wrap: balance; }
+.ec-ideas { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 600px; }
 .ec-idea {
   min-height: 36px;
   padding: 6px 14px;
   border: 1px solid var(--ec-line);
   border-radius: 999px;
-  background: none;
+  background: color-mix(in srgb, var(--ec-panel) 70%, transparent);
   color: var(--color-text-primary, #fcfaf2);
   font: 500 0.84rem var(--font-ui, system-ui, sans-serif);
   cursor: pointer;
+  transition: border-color 150ms ease;
 }
 @media (hover: hover) and (pointer: fine) {
   .ec-idea:hover { border-color: color-mix(in srgb, var(--ec-a) 60%, transparent); }
@@ -274,8 +453,16 @@
 .ec-primary:disabled { opacity: 0.5; cursor: default; }
 .ec-primary:not(:disabled):active { transform: scale(0.97); }
 
-/* Escribir */
-.ec-compose { padding: 8px 12px 12px; border-top: 1px solid var(--ec-line); }
+/* ── Escribir: fija abajo ── */
+.ec-compose {
+  /* Color de quien recibe el mensaje: dorado para los dos o el primero, celeste para el segundo. */
+  --ec-t: var(--ec-a);
+  padding: 12px 28px 16px;
+  border-top: 1px solid var(--ec-line);
+  background: var(--ec-panel);
+}
+.ec-compose.is-to-b { --ec-t: var(--ec-b); }
+.ec-compose-inner { max-width: var(--ec-col); margin: 0 auto; }
 .ec-error {
   display: flex;
   align-items: center;
@@ -283,80 +470,114 @@
   flex-wrap: wrap;
   gap: 4px;
   margin: 0 0 8px;
-  color: #f87171;
+  color: var(--color-error, #f87171);
   font-size: 0.82rem;
   text-align: center;
 }
-.ec-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.ec-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.ec-target-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ec-target-label { flex: 0 0 auto; color: var(--ec-muted); font-size: 0.78rem; font-weight: 600; }
+/* Control segmentado: una sola opción encendida. */
 .ec-target {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   min-width: 0;
+  padding: 3px;
+  border: 1px solid var(--ec-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-bg-primary, #15233B) 45%, transparent);
   overflow-x: auto;
   scrollbar-width: none;
 }
 .ec-target::-webkit-scrollbar { display: none; }
-.ec-target-label { flex: 0 0 auto; color: var(--ec-muted); font-size: 0.78rem; }
 .ec-chip {
+  --ec-c: var(--ec-a);
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--ec-line);
+  padding: 0 14px 0 4px;
+  border: 1px solid transparent;
   border-radius: 999px;
   background: none;
   color: var(--ec-muted);
-  font: 500 0.8rem var(--font-ui, system-ui, sans-serif);
+  font: 600 0.82rem var(--font-ui, system-ui, sans-serif);
   cursor: pointer;
   white-space: nowrap;
   transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
 }
-.ec-chip img { width: 24px; height: 24px; margin-left: -8px; border-radius: 50%; object-fit: cover; }
+.ec-chip--b { --ec-c: var(--ec-b); }
+.ec-chip img {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--ec-c);
+  box-sizing: border-box;
+  background: var(--ec-panel);
+}
 .ec-chip.is-on {
   color: var(--color-text-primary, #fcfaf2);
-  border-color: color-mix(in srgb, var(--ec-a) 65%, transparent);
-  background: color-mix(in srgb, var(--ec-a) 14%, transparent);
+  border-color: color-mix(in srgb, var(--ec-c) 60%, transparent);
+  background: color-mix(in srgb, var(--ec-c) 16%, transparent);
 }
-.ec-chip--b.is-on {
-  border-color: color-mix(in srgb, var(--ec-b) 65%, transparent);
-  background: color-mix(in srgb, var(--ec-b) 14%, transparent);
+.ec-chip--both { --ec-c: var(--color-text-primary, #fcfaf2); }
+.ec-chip--both.is-on {
+  border-color: color-mix(in srgb, var(--ec-a) 45%, var(--ec-b));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ec-a) 16%, transparent), color-mix(in srgb, var(--ec-b) 16%, transparent));
 }
+.ec-chip-faces { display: inline-flex; }
+.ec-chip--both .ec-chip-faces img { border-color: var(--ec-a); }
+.ec-chip--both .ec-chip-faces img.is-b { margin-left: -10px; border-color: var(--ec-b); }
 .ec-auto {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 34px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 14px;
   border: 1px solid color-mix(in srgb, var(--ec-a) 50%, transparent);
   border-radius: 999px;
   background: none;
-  color: var(--ec-a);
-  font: 600 0.8rem var(--font-ui, system-ui, sans-serif);
+  color: var(--ec-a-ink);
+  font: 600 0.82rem var(--font-ui, system-ui, sans-serif);
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color 150ms ease;
 }
 .ec-auto .material-symbols-rounded { font-size: 1.05rem; }
 .ec-auto:disabled { opacity: 0.45; cursor: default; }
 .ec-auto.is-stop { border-color: var(--ec-line); color: var(--color-text-primary, #fcfaf2); }
 @media (hover: hover) and (pointer: fine) {
-  .ec-chip:not(.is-on):hover { color: var(--color-text-primary, #fcfaf2); }
+  .ec-chip:not(.is-on):hover { color: var(--color-text-primary, #fcfaf2); background: var(--ec-line); }
   .ec-auto:not(:disabled):hover { background: color-mix(in srgb, var(--ec-a) 10%, transparent); }
 }
 
-.ec-input-row { display: flex; align-items: flex-end; gap: 8px; }
+/* Campo y botón de enviar en una sola cápsula; el borde toma el color de quien recibe. */
+.ec-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 5px 5px 5px 18px;
+  border: 1px solid color-mix(in srgb, var(--color-text-primary, #fcfaf2) 18%, transparent);
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--color-bg-primary, #15233B) 55%, var(--ec-panel));
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.ec-input-row:focus-within {
+  border-color: var(--ec-t);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ec-t) 18%, transparent);
+}
 .ec-input {
   flex: 1;
   min-width: 0;
-  min-height: 44px;
+  min-height: 40px;
   max-height: 132px;
-  padding: 11px 14px;
-  border: 1px solid color-mix(in srgb, var(--color-text-primary, #fcfaf2) 18%, transparent);
-  border-radius: 22px;
-  background: color-mix(in srgb, var(--color-text-primary, #fcfaf2) 4%, transparent);
+  padding: 9px 0;
+  border: none;
+  background: none;
   color: inherit;
   font: 0.95rem/1.4 var(--font-ui, system-ui, sans-serif);
   box-sizing: border-box;
@@ -364,13 +585,13 @@
   resize: none;
   outline: none;
 }
-.ec-input:focus { border-color: var(--ec-a); }
+.ec-input::placeholder { color: color-mix(in srgb, var(--ec-muted) 85%, transparent); }
 .ec-send {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: none;
   border-radius: 50%;
   background: var(--ec-a);
@@ -378,6 +599,7 @@
   cursor: pointer;
   transition: transform 120ms ease, opacity 120ms ease;
 }
+.ec-send .material-symbols-rounded { font-size: 1.2rem; }
 .ec-send:disabled { opacity: 0.4; cursor: default; }
 .ec-send:not(:disabled):active { transform: scale(0.94); }
 
@@ -396,21 +618,60 @@
 @keyframes ec-meet-a { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
 @keyframes ec-meet-b { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
 @keyframes ec-dot { 0%, 80%, 100% { opacity: 0.3; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+@keyframes ec-pulse { 50% { opacity: 0.45; } }
 @keyframes ec-spin { to { transform: rotate(360deg); } }
 
+/* El reparto necesita ancho: debajo de esto basta con las caras de la cabecera. */
+@media (max-width: 1100px) {
+  .ec-cast { display: none; }
+}
+/* Con el reparto a la vista, la escena inicial no repite los retratos. */
+@media (min-width: 1101px) {
+  .ec-scene-faces { display: none; }
+}
+
+/* Pantallas bajas (p. ej. 1366×768): cabecera y caja de escribir más compactas, más espacio para leer. */
+@media (min-width: 641px) and (max-height: 820px) {
+  .ec-head { padding-top: 8px; padding-bottom: 8px; }
+  .ec-face { width: 40px; height: 40px; }
+  .ec-names h1 { font-size: 1.35rem; }
+  .ec-topic { min-height: 38px; }
+  .ec-feed-inner { padding-top: 18px; padding-bottom: 20px; }
+  .ec-compose { padding-top: 10px; padding-bottom: 12px; }
+  .ec-tools { margin-bottom: 8px; }
+  .ec-cast { padding-top: 14px; padding-bottom: 14px; }
+}
+
 @media (max-width: 640px) {
-  .ec { border: none; }
+  .ec { border: none; border-radius: 0; box-shadow: none; }
   .ec-head { padding: 8px 8px 8px 4px; gap: 8px; }
   .ec-face { width: 38px; height: 38px; }
-  .ec-topic { padding: 4px 12px; }
-  .ec-feed { padding: 12px; }
+  .ec-face--b { margin-left: -12px; }
+  /* El título completo en dos líneas; los libros ya se ven en la escena inicial. */
+  .ec-names h1 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 1.2rem;
+    line-height: 1.1;
+    white-space: normal;
+  }
+  .ec-books { display: none; }
+  .ec-topic { padding: 3px 8px 3px 12px; }
+  .ec-feed-inner { gap: 18px; padding: 14px 12px 16px; }
+  .ec-line { gap: 8px; }
+  .ec-line--cont { margin-top: -12px; }
+  .ec-line-face { width: 34px; height: 34px; box-shadow: none; }
+  .ec-line-body { max-width: 86%; }
+  .ec-bubble { padding: 10px 13px 11px; font-size: 1.06rem; }
   .ec-scene-faces { gap: 16px; }
-  .ec-scene-faces img { width: 88px; height: 108px; }
-  /* «Hablarle a» arriba; «Que sigan conversando» debajo, a todo el ancho. */
-  .ec-tools { flex-direction: column; align-items: stretch; }
+  .ec-scene-faces img { width: 92px; height: 115px; }
+  .ec-compose { padding: 8px 10px 10px; }
+  /* «Hablarle a» arriba (se desliza si no cabe); «Que sigan conversando» debajo, a todo el ancho. */
+  .ec-tools { flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 8px; }
   .ec-target-label { display: none; }
+  .ec-target { align-self: flex-start; max-width: 100%; }
   .ec-auto { justify-content: center; }
-  .ec-compose { padding-bottom: 10px; }
 }
 
 /* iOS agranda la página al enfocar un campo con letra menor a 16 px. */
@@ -419,5 +680,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ec-line, .ec-scene-faces figure, .ec-typing span, .ec-spin { animation: none; }
+  .ec-line, .ec-scene-faces figure, .ec-typing span, .ec-spin, .ec-cast-state { animation: none; }
 }

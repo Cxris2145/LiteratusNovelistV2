@@ -14,7 +14,7 @@ export const AUTO_STEP_PAUSE_MS = 600;
 export const AUTO_RUN_STEPS = 4;
 
 // Palabras de un nombre que no bastan para decir que el lector nombró al personaje.
-const NAME_FILLERS = new Set(['del', 'las', 'los', 'the', 'don', 'dona', 'sir', 'san', 'senor', 'senora', 'van', 'von']);
+const NAME_FILLERS = new Set(['el', 'la', 'lo', 'un', 'una', 'del', 'las', 'los', 'the', 'don', 'dona', 'sir', 'san', 'senor', 'senora', 'van', 'von']);
 
 function fold(text: string): string {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();

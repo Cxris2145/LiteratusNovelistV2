@@ -1,154 +1,191 @@
 <section class="ec" aria-labelledby="ec-title">
-  <header class="ec-head">
-    <a class="ec-icon-btn" routerLink="/characters" aria-label="Volver a Personajes" title="Volver a Personajes">
-      <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
-    </a>
-    <div class="ec-faces" *ngIf="pair as p" aria-hidden="true">
-      <img *ngFor="let person of p; let i = index; trackBy: trackPerson" class="ec-face" [class.ec-face--b]="i === 1"
-           [src]="thumb(person.avatar_image_url)" alt="" (error)="onImgError($event)">
-    </div>
-    <div class="ec-names">
-      <h1 id="ec-title">{{ title }}</h1>
-      <p class="ec-books">{{ books }}</p>
-    </div>
-    <div class="ec-actions" *ngIf="state === 'ready' && !isDemo">
-      <button type="button" class="ec-icon-btn" (click)="changeCharacters()" title="Cambiar personajes" aria-label="Cambiar personajes">
-        <span class="material-symbols-rounded" aria-hidden="true">group</span>
-      </button>
-      <button type="button" class="ec-icon-btn" (click)="restart()" [disabled]="restarting || working"
-              title="Empezar una conversación nueva" aria-label="Empezar una conversación nueva">
-        <span class="material-symbols-rounded" aria-hidden="true">add_comment</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- Tema del encuentro -->
-  <div class="ec-topic" *ngIf="state === 'ready'">
-    <ng-container *ngIf="!editingTopic; else topicForm">
-      <span class="ec-topic-label">Tema</span>
-      <span class="ec-topic-text" [class.is-empty]="!encounter?.topic">{{ encounter?.topic || 'Libre' }}</span>
-      <button *ngIf="!isDemo" type="button" class="ec-link" (click)="editTopic()">
-        <span class="material-symbols-rounded" aria-hidden="true">edit</span>{{ encounter?.topic ? 'Cambiar' : 'Elegir un tema' }}
-      </button>
+  <!-- Reparto (pantallas anchas): los dos personajes a la vista, cada uno con su color -->
+  <aside class="ec-cast" *ngIf="pair as p" aria-label="Personajes del encuentro">
+    <p class="ec-cast-kicker">En escena</p>
+    <ng-container *ngFor="let person of p; let i = index; trackBy: trackPerson">
+      <span class="ec-cast-and" *ngIf="i === 1" aria-hidden="true">y</span>
+      <figure class="ec-cast-card" [class.is-b]="i === 1" [class.is-typing]="typing?.id === person.id">
+        <img [src]="thumb(person.avatar_image_url, 480)" alt="" (error)="onImgError($event)">
+        <figcaption>
+          <strong>{{ person.name }}</strong>
+          <span class="ec-cast-book">{{ person.book_title }}</span>
+          <span class="ec-cast-state" *ngIf="typing?.id === person.id">Escribiendo…</span>
+        </figcaption>
+      </figure>
     </ng-container>
-    <ng-template #topicForm>
-      <input class="ec-topic-input" type="text" maxlength="200" [(ngModel)]="topicDraft" (keydown)="onTopicKeydown($event)"
-             placeholder="¿De qué quieres que hablen?" aria-label="Tema del encuentro" autofocus>
-      <button type="button" class="ec-link" (click)="saveTopic()" [disabled]="savingTopic">
-        <span class="material-symbols-rounded" aria-hidden="true">check</span>Guardar
-      </button>
-    </ng-template>
-  </div>
+  </aside>
 
-  <div class="ec-feed" #feed role="log" aria-live="polite" aria-labelledby="ec-title">
-    <div class="ec-state" *ngIf="state === 'loading'">
-      <span class="material-symbols-rounded ec-spin" aria-hidden="true">progress_activity</span>
-      Reuniendo a los personajes…
-    </div>
-    <div class="ec-state" *ngIf="state === 'error'">
-      <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
-      <strong>{{ error }}</strong>
-      <a class="ec-primary" routerLink="/encuentro">Armar otro encuentro</a>
-    </div>
-
-    <ng-container *ngIf="state === 'ready' && pair as p">
-      <app-ai-usage-meter *ngIf="!isDemo" [sessionId]="currentId"></app-ai-usage-meter>
-
-      <!-- Escena inicial: todavía nadie ha hablado -->
-      <div class="ec-scene" *ngIf="!lines.length && !working">
-        <div class="ec-scene-faces">
-          <figure *ngFor="let person of p; let i = index; trackBy: trackPerson" [class.is-b]="i === 1">
-            <img [src]="thumb(person.avatar_image_url)" [alt]="person.name" (error)="onImgError($event)">
-            <figcaption>{{ person.name }}<span>{{ person.book_title }}</span></figcaption>
-          </figure>
-        </div>
-        <p class="ec-scene-text">
-          {{ sameBook ? 'Se conocen de la misma historia.' : 'Vienen de libros distintos y es la primera vez que se ven.' }}
-          Escríbeles algo o deja que empiecen ellos.
-        </p>
-        <button type="button" class="ec-primary" (click)="startAuto()" [disabled]="isDemo">
-          <span class="material-symbols-rounded" aria-hidden="true">forum</span>Que empiecen ellos
-        </button>
-        <div class="ec-ideas" *ngIf="!isDemo" aria-label="Ideas para empezar">
-          <button *ngFor="let idea of ideas" type="button" class="ec-idea" (click)="useIdea(idea)">{{ idea }}</button>
-        </div>
+  <div class="ec-main">
+    <header class="ec-head">
+      <a class="ec-icon-btn" routerLink="/characters" aria-label="Volver a Personajes" title="Volver a Personajes">
+        <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+      </a>
+      <div class="ec-faces" *ngIf="pair as p" aria-hidden="true">
+        <img *ngFor="let person of p; let i = index; trackBy: trackPerson" class="ec-face" [class.ec-face--b]="i === 1"
+             [src]="thumb(person.avatar_image_url)" alt="" (error)="onImgError($event)">
       </div>
+      <div class="ec-names">
+        <h1 id="ec-title">
+          <ng-container *ngIf="pair as p; else plainTitle"><span class="ec-name-a">{{ p[0].name }}</span> y <span class="ec-name-b">{{ p[1].name }}</span></ng-container>
+          <ng-template #plainTitle>{{ title }}</ng-template>
+        </h1>
+        <p class="ec-books">{{ books }}</p>
+      </div>
+      <div class="ec-actions" *ngIf="state === 'ready' && !isDemo">
+        <button type="button" class="ec-icon-btn" (click)="changeCharacters()" title="Cambiar personajes" aria-label="Cambiar personajes">
+          <span class="material-symbols-rounded" aria-hidden="true">group</span>
+        </button>
+        <button type="button" class="ec-icon-btn" (click)="restart()" [disabled]="restarting || working"
+                title="Empezar una conversación nueva" aria-label="Empezar una conversación nueva">
+          <span class="material-symbols-rounded" aria-hidden="true">add_comment</span>
+        </button>
+      </div>
+    </header>
 
-      <div *ngFor="let line of lines; let i = index; trackBy: trackLine" class="ec-line"
-           [class.ec-line--me]="line.role === 'user'" [class.ec-line--b]="line.role === 'assistant' && speakerIndex(line.speaker_id) === 1"
-           [class.ec-line--cont]="line.role === 'assistant' && !showHead(i)">
-        <ng-container *ngIf="line.role === 'assistant'; else mine">
-          <img *ngIf="showHead(i); else spacer" class="ec-line-face" [src]="thumb(speaker(line)?.avatar_image_url)" alt=""
-               (error)="onImgError($event)">
-          <ng-template #spacer><span class="ec-line-face ec-line-face--spacer" aria-hidden="true"></span></ng-template>
-          <div class="ec-line-body">
-            <span class="ec-line-name" *ngIf="showHead(i)">{{ speaker(line)?.name || 'Personaje' }}</span>
-            <p class="ec-bubble">{{ line.content }}</p>
+    <!-- Tema del encuentro -->
+    <div class="ec-topic" *ngIf="state === 'ready'">
+      <ng-container *ngIf="!editingTopic; else topicForm">
+        <span class="ec-topic-label">Tema</span>
+        <span class="ec-topic-text" [class.is-empty]="!encounter?.topic">{{ encounter?.topic || 'Libre' }}</span>
+        <button *ngIf="!isDemo" type="button" class="ec-link" (click)="editTopic()">
+          <span class="material-symbols-rounded" aria-hidden="true">edit</span>{{ encounter?.topic ? 'Cambiar' : 'Elegir un tema' }}
+        </button>
+      </ng-container>
+      <ng-template #topicForm>
+        <input class="ec-topic-input" type="text" maxlength="200" [(ngModel)]="topicDraft" (keydown)="onTopicKeydown($event)"
+               placeholder="¿De qué quieres que hablen?" aria-label="Tema del encuentro" autofocus>
+        <button type="button" class="ec-link" (click)="saveTopic()" [disabled]="savingTopic">
+          <span class="material-symbols-rounded" aria-hidden="true">check</span>Guardar
+        </button>
+      </ng-template>
+    </div>
+
+    <div class="ec-feed" #feed role="log" aria-live="polite" aria-labelledby="ec-title">
+      <div class="ec-feed-inner">
+        <div class="ec-state" *ngIf="state === 'loading'">
+          <span class="material-symbols-rounded ec-spin" aria-hidden="true">progress_activity</span>
+          Reuniendo a los personajes…
+        </div>
+        <div class="ec-state" *ngIf="state === 'error'">
+          <span class="material-symbols-rounded" aria-hidden="true">cloud_off</span>
+          <strong>{{ error }}</strong>
+          <a class="ec-primary" routerLink="/encuentro">Armar otro encuentro</a>
+        </div>
+
+        <ng-container *ngIf="state === 'ready' && pair as p">
+          <app-ai-usage-meter *ngIf="!isDemo" [sessionId]="currentId"></app-ai-usage-meter>
+
+          <!-- Escena inicial: todavía nadie ha hablado -->
+          <div class="ec-scene" *ngIf="!lines.length && !working">
+            <div class="ec-scene-faces">
+              <figure *ngFor="let person of p; let i = index; trackBy: trackPerson" [class.is-b]="i === 1">
+                <img [src]="thumb(person.avatar_image_url, 320)" [alt]="person.name" (error)="onImgError($event)">
+                <figcaption>{{ person.name }}<span>{{ person.book_title }}</span></figcaption>
+              </figure>
+            </div>
+            <p class="ec-scene-text">
+              {{ sameBook ? 'Se conocen de la misma historia.' : 'Vienen de libros distintos y es la primera vez que se ven.' }}
+              Escríbeles algo o deja que empiecen ellos.
+            </p>
+            <button type="button" class="ec-primary" (click)="startAuto()" [disabled]="isDemo">
+              <span class="material-symbols-rounded" aria-hidden="true">forum</span>Que empiecen ellos
+            </button>
+            <div class="ec-ideas" *ngIf="!isDemo" aria-label="Ideas para empezar">
+              <button *ngFor="let idea of ideas" type="button" class="ec-idea" (click)="useIdea(idea)">{{ idea }}</button>
+            </div>
+          </div>
+
+          <div *ngFor="let line of lines; let i = index; trackBy: trackLine" class="ec-line"
+               [class.ec-line--me]="line.role === 'user'" [class.ec-line--b]="line.role === 'assistant' && speakerIndex(line.speaker_id) === 1"
+               [class.ec-line--cont]="!showHead(i)">
+            <ng-container *ngIf="line.role === 'assistant'; else mine">
+              <img *ngIf="showHead(i); else spacer" class="ec-line-face" [src]="thumb(speaker(line)?.avatar_image_url)" alt=""
+                   (error)="onImgError($event)">
+              <ng-template #spacer><span class="ec-line-face ec-line-face--spacer" aria-hidden="true"></span></ng-template>
+              <div class="ec-line-body">
+                <span class="ec-line-name" *ngIf="showHead(i)">{{ speaker(line)?.name || 'Personaje' }}</span>
+                <p class="ec-bubble">{{ line.content }}</p>
+              </div>
+            </ng-container>
+            <ng-template #mine>
+              <div class="ec-line-body">
+                <span class="ec-line-name" *ngIf="showHead(i)">Tú</span>
+                <p class="ec-bubble">{{ line.content }}</p>
+              </div>
+            </ng-template>
+          </div>
+
+          <app-ink-day-pass *ngIf="offerPass" [usage]="offerPass" (activated)="onPassActivated()"></app-ink-day-pass>
+
+          <div class="ec-line" *ngIf="typing" [class.ec-line--b]="speakerIndex(typing.id) === 1">
+            <img class="ec-line-face" [src]="thumb(typing.avatar_image_url)" alt="" (error)="onImgError($event)">
+            <div class="ec-line-body">
+              <span class="ec-line-name">{{ typing.name }} <span class="ec-line-note">está escribiendo…</span></span>
+              <p class="ec-bubble ec-typing" aria-hidden="true"><span></span><span></span><span></span></p>
+            </div>
           </div>
         </ng-container>
-        <ng-template #mine><p class="ec-bubble">{{ line.content }}</p></ng-template>
-      </div>
-
-      <app-ink-day-pass *ngIf="offerPass" [usage]="offerPass" (activated)="onPassActivated()"></app-ink-day-pass>
-
-      <div class="ec-line" *ngIf="typing" [class.ec-line--b]="speakerIndex(typing.id) === 1">
-        <img class="ec-line-face" [src]="thumb(typing.avatar_image_url)" alt="" (error)="onImgError($event)">
-        <div class="ec-line-body">
-          <span class="ec-line-name">{{ typing.name }} está escribiendo…</span>
-          <p class="ec-bubble ec-typing" aria-hidden="true"><span></span><span></span><span></span></p>
-        </div>
-      </div>
-    </ng-container>
-  </div>
-
-  <footer class="ec-compose" *ngIf="state === 'ready' && pair as p">
-    <p class="ec-error" *ngIf="error" role="alert">
-      {{ error }}
-      <button *ngIf="canRetry" type="button" class="ec-link" (click)="retry()">
-        <span class="material-symbols-rounded" aria-hidden="true">refresh</span>Reintentar
-      </button>
-    </p>
-
-    <div class="ec-locked" *ngIf="isDemo">
-      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
-      <p>Para conversar con <strong>{{ title }}</strong> inicia sesión o crea tu cuenta gratis.</p>
-      <div class="ec-locked-actions">
-        <a class="ec-primary" [routerLink]="['/login']" [queryParams]="{ returnUrl: '/encuentro/' + currentId }">Iniciar sesión</a>
-        <a class="ec-secondary" [routerLink]="['/register']" [queryParams]="{ returnUrl: '/encuentro/' + currentId }">Crear cuenta</a>
       </div>
     </div>
 
-    <ng-container *ngIf="!isDemo">
-      <div class="ec-tools">
-        <div class="ec-target" role="radiogroup" aria-label="A quién le hablas">
-          <span class="ec-target-label">Hablarle a</span>
-          <button type="button" role="radio" class="ec-chip" [class.is-on]="target === 'both'" [attr.aria-checked]="target === 'both'"
-                  (click)="setTarget('both')">Los dos</button>
-          <button *ngFor="let person of p; let i = index; trackBy: trackPerson" type="button" role="radio" class="ec-chip"
-                  [class.ec-chip--b]="i === 1" [class.is-on]="target === person.id" [attr.aria-checked]="target === person.id"
-                  (click)="setTarget(person.id)">
-            <img [src]="thumb(person.avatar_image_url)" alt="" (error)="onImgError($event)">{{ short(person.name) }}
+    <footer class="ec-compose" *ngIf="state === 'ready' && pair as p" [class.is-to-b]="target === p[1].id">
+      <div class="ec-compose-inner">
+        <p class="ec-error" *ngIf="error" role="alert">
+          {{ error }}
+          <button *ngIf="canRetry" type="button" class="ec-link" (click)="retry()">
+            <span class="material-symbols-rounded" aria-hidden="true">refresh</span>Reintentar
           </button>
-        </div>
-        <button *ngIf="!autoRunning; else stopBtn" type="button" class="ec-auto" (click)="startAuto()"
-                [disabled]="working || !!offerPass" title="Intercambian unos mensajes solos; puedes meterte cuando quieras">
-          <span class="material-symbols-rounded" aria-hidden="true">forum</span>Que sigan conversando
-        </button>
-        <ng-template #stopBtn>
-          <button type="button" class="ec-auto is-stop" (click)="stopAuto()">
-            <span class="material-symbols-rounded" aria-hidden="true">stop_circle</span>Detener
-          </button>
-        </ng-template>
-      </div>
+        </p>
 
-      <div class="ec-input-row">
-        <textarea #input class="ec-input" rows="1" maxlength="1000" enterkeyhint="send"
-                  [placeholder]="'Escríbeles a ' + targetName + '…'" [attr.aria-label]="'Mensaje para ' + targetName"
-                  [(ngModel)]="draft" (input)="autosize()" (keydown)="onKeydown($event)"></textarea>
-        <button type="button" class="ec-send" (click)="send()" [disabled]="!draft.trim()" aria-label="Enviar">
-          <span class="material-symbols-rounded" aria-hidden="true">send</span>
-        </button>
+        <div class="ec-locked" *ngIf="isDemo">
+          <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+          <p>Para conversar con <strong>{{ title }}</strong> inicia sesión o crea tu cuenta gratis.</p>
+          <div class="ec-locked-actions">
+            <a class="ec-primary" [routerLink]="['/login']" [queryParams]="{ returnUrl: '/encuentro/' + currentId }">Iniciar sesión</a>
+            <a class="ec-secondary" [routerLink]="['/register']" [queryParams]="{ returnUrl: '/encuentro/' + currentId }">Crear cuenta</a>
+          </div>
+        </div>
+
+        <ng-container *ngIf="!isDemo">
+          <div class="ec-tools">
+            <div class="ec-target-wrap">
+              <span class="ec-target-label" id="ec-target-label">Hablarle a</span>
+              <div class="ec-target" role="radiogroup" aria-labelledby="ec-target-label">
+                <button type="button" role="radio" class="ec-chip ec-chip--both" [class.is-on]="target === 'both'"
+                        [attr.aria-checked]="target === 'both'" (click)="setTarget('both')">
+                  <span class="ec-chip-faces" aria-hidden="true">
+                    <img *ngFor="let person of p; let i = index; trackBy: trackPerson" [class.is-b]="i === 1"
+                         [src]="thumb(person.avatar_image_url)" alt="" (error)="onImgError($event)">
+                  </span>Los dos
+                </button>
+                <button *ngFor="let person of p; let i = index; trackBy: trackPerson" type="button" role="radio" class="ec-chip"
+                        [class.ec-chip--b]="i === 1" [class.is-on]="target === person.id" [attr.aria-checked]="target === person.id"
+                        [attr.aria-label]="person.name" (click)="setTarget(person.id)">
+                  <img [src]="thumb(person.avatar_image_url)" alt="" (error)="onImgError($event)">{{ short(person.name) }}
+                </button>
+              </div>
+            </div>
+            <button *ngIf="!autoRunning; else stopBtn" type="button" class="ec-auto" (click)="startAuto()"
+                    [disabled]="working || !!offerPass" title="Intercambian unos mensajes solos; puedes meterte cuando quieras">
+              <span class="material-symbols-rounded" aria-hidden="true">forum</span>Que sigan conversando
+            </button>
+            <ng-template #stopBtn>
+              <button type="button" class="ec-auto is-stop" (click)="stopAuto()">
+                <span class="material-symbols-rounded" aria-hidden="true">stop_circle</span>Detener
+              </button>
+            </ng-template>
+          </div>
+
+          <div class="ec-input-row">
+            <textarea #input class="ec-input" rows="1" maxlength="1000" enterkeyhint="send"
+                      [placeholder]="'Escríbeles a ' + targetName + '…'" [attr.aria-label]="'Mensaje para ' + targetName"
+                      [(ngModel)]="draft" (input)="autosize()" (keydown)="onKeydown($event)"></textarea>
+            <button type="button" class="ec-send" (click)="send()" [disabled]="!draft.trim()" aria-label="Enviar">
+              <span class="material-symbols-rounded" aria-hidden="true">send</span>
+            </button>
+          </div>
+        </ng-container>
       </div>
-    </ng-container>
-  </footer>
+    </footer>
+  </div>
 </section>

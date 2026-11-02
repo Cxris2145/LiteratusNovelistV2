@@ -22,12 +22,21 @@ import { EncounterPickerComponent } from './encounter-picker/encounter-picker.co
     :host { display: block; }
     /* --navbar-h: alto real del encabezado (lo mide AppComponent). */
     .enc-page { min-height: calc(100dvh - var(--navbar-h, 64px) - var(--bottom-nav-h, 0px)); }
-    /* La conversación ocupa el alto disponible y solo se desplaza el feed. --kb-inset: en iOS el
-       teclado no achica la página (keyboard-inset.util.ts); en Android vale 0. */
+    /* La conversación ocupa el alto disponible y solo se desplaza el feed (sin pie de página: ver
+       AppComponent.isEncounterChat). --kb-inset: en iOS el teclado no achica la página
+       (keyboard-inset.util.ts); en Android vale 0. Los márgenes laterales siguen al header. */
     .enc-page--chat {
       display: flex;
+      box-sizing: border-box;
       height: calc(100dvh - var(--navbar-h, 64px) - var(--bottom-nav-h, 0px) - var(--kb-inset, 0px));
       min-height: 360px;
+      padding: 14px var(--home-gutter, 24px) 16px;
+    }
+    @media (max-height: 820px) {
+      .enc-page--chat { padding-top: 10px; padding-bottom: 12px; }
+    }
+    @media (max-width: 640px) {
+      .enc-page--chat { padding: 0; }
     }
   `],
 })
