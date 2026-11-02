@@ -85,7 +85,10 @@
              [alt]="conv.name"
              class="conv-avatar-img"
              onerror="this.onerror=null; this.src='assets/default_avatar.png'">
-        <span class="online-indicator"></span>
+        <!-- Encuentro de personajes: el segundo personaje, superpuesto -->
+        <img *ngIf="conv.partnerUrl" [src]="conv.partnerUrl" alt="" class="conv-avatar-img conv-avatar-img--partner"
+             onerror="this.onerror=null; this.src='assets/default_avatar.png'">
+        <span class="online-indicator" *ngIf="!conv.partnerUrl"></span>
         <span class="unread-dot-badge" *ngIf="conv.unread"></span>
       </div>
 

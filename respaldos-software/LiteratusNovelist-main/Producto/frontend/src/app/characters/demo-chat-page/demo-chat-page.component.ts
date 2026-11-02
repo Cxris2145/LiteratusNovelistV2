@@ -192,6 +192,8 @@ export class DemoChatPageComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void { this.router.navigate(['/characters']); }
+  /** Encuentro de personajes con este personaje ya elegido. */
+  inviteAnother(): void { this.router.navigate(['/encuentro'], { queryParams: { a: this.avatarId } }); }
   goToLogin(): void {
     const returnUrl = this.avatarId ? `/chat/${this.avatarId}` : '/chat';
     this.router.navigate(['/login'], { queryParams: { returnUrl } });

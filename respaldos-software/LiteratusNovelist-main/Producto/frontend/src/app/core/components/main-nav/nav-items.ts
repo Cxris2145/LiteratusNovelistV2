@@ -14,7 +14,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Explorar', icon: 'explore', link: '/catalog', match: ['/catalog', '/book/'] },
   { label: 'Categorías', icon: 'grid_view', link: '/categories', match: ['/categories'], panel: 'categories' },
   { label: 'Autores', icon: 'history_edu', link: '/authors', match: ['/authors', '/author/'], panel: 'authors' },
-  { label: 'Personajes', icon: 'groups', link: '/characters', match: ['/characters', '/demo-chat', '/chat/'] },
+  { label: 'Personajes', icon: 'groups', link: '/characters', match: ['/characters', '/demo-chat', '/chat/', '/encuentro'] },
   { label: 'La Taberna', icon: 'local_cafe', link: '/tavern', match: ['/tavern'] },
   { label: 'Mi Biblioteca', icon: 'menu_book', link: '/library', match: ['/library', '/favorites', '/flashcards'], panel: 'library' },
   {

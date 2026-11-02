@@ -7,6 +7,11 @@ import { AuthService, userStorageKey } from '../../core/services/auth.service';
 export interface CharacterConversation {
   sessionId?: string;
   avatarId: string;
+  /** Clave de leído: el personaje, o `enc:<sesión>` en un encuentro de dos personajes. */
+  readKey: string;
+  kind?: 'single' | 'encounter';
+  /** Foto del segundo personaje de un encuentro. */
+  partnerUrl?: string;
   name: string;
   bookTitle: string;
   bookSlug?: string;
@@ -101,8 +106,10 @@ export class MessagesComponent implements OnInit {
 
     this.conversations = rawList.map(item => {
       const avatarId = item.avatar_id;
+      const isEncounter = item.kind === 'encounter';
+      const readKey = isEncounter ? 'enc:' + item.session_id : avatarId;
       const rawTime = item.timestamp;
-      const lastRead = readConvMap[avatarId];
+      const lastRead = readConvMap[readKey];
 
       let isUnread = false;
       if (!lastRead) {
@@ -118,11 +125,14 @@ export class MessagesComponent implements OnInit {
       return {
         sessionId: item.session_id,
         avatarId: avatarId,
+        readKey,
+        kind: isEncounter ? 'encounter' : 'single',
+        partnerUrl: isEncounter ? item.partner?.avatar_url || 'assets/default_avatar.png' : undefined,
         name: item.name,
         bookTitle: item.book_title || 'Literatura Universal',
         bookSlug: item.book_slug,
         avatarUrl: item.avatar_url || 'assets/default_avatar.png',
-        lastMessage: item.last_message || 'Diálogo iniciado.',
+        lastMessage: (item.last_speaker ? item.last_speaker + ': ' : '') + (item.last_message || 'Diálogo iniciado.'),
         lastMessageRole: item.last_message_role || 'assistant',
         rawTimestamp: rawTime,
         timestamp: this.formatRelativeTime(rawTime),
@@ -256,11 +266,12 @@ export class MessagesComponent implements OnInit {
     if (conv.unread) {
       conv.unread = false;
       const readMap = this.getReadConversationsMap();
-      readMap[conv.avatarId] = new Date().toISOString();
+      readMap[conv.readKey] = new Date().toISOString();
       localStorage.setItem(userStorageKey('literatus_read_conversations'), JSON.stringify(readMap));
       this.syncUnreadCount();
     }
-    this.characterChat.open(conv.avatarId);
+    if (conv.kind === 'encounter' && conv.sessionId) this.router.navigate(['/encuentro', conv.sessionId]);
+    else this.characterChat.open(conv.avatarId);
   }
 
   markNoticeAsRead(notice: SystemNotice): void {
@@ -279,7 +290,7 @@ export class MessagesComponent implements OnInit {
     this.conversations.forEach(c => c.unread = false);
     const readMap = this.getReadConversationsMap();
     this.conversations.forEach(c => {
-      readMap[c.avatarId] = new Date().toISOString();
+      readMap[c.readKey] = new Date().toISOString();
     });
     localStorage.setItem(userStorageKey('literatus_read_conversations'), JSON.stringify(readMap));
 

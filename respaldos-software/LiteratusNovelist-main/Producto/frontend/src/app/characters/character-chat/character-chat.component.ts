@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subscription, catchError, forkJoin, of, switchMap } from 'rxjs';
 
 import { ApiService } from '../../core/services/api.service';
@@ -55,6 +55,7 @@ export class CharacterChatComponent implements OnDestroy {
   private readonly api = inject(ApiService);
   readonly auth = inject(AuthService);
   private readonly subscriptions = inject(SubscriptionService);
+  private readonly router = inject(Router);
 
   /** Mostrar el botón de ampliar a la página completa del chat. */
   @Input() canExpand = true;
@@ -252,6 +253,11 @@ export class CharacterChatComponent implements OnDestroy {
         this.error = err?.error?.message || 'No llegó la respuesta. Intenta de nuevo; no se duplicará el cobro.';
       },
     });
+  }
+
+  /** Encuentro de personajes: este personaje queda elegido y se busca al segundo (la ventana se cierra al navegar). */
+  invite(): void {
+    this.router.navigate(['/encuentro'], { queryParams: { a: this.currentId } });
   }
 
   /** Pase activado: el mensaje que esperaba en el campo se envía solo. */

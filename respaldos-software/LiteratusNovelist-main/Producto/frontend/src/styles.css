@@ -1469,14 +1469,15 @@ body:has(.th-hall.is-cinema) .site-body.with-bottom-nav {
 /* La burbuja del Asistente y el botón del cuaderno flotan en la esquina inferior derecha, justo
    donde los chats tienen la caja de escribir y el botón de enviar. Mientras hay un chat a la vista
    se esconden (como ya hacen con el teclado abierto) y vuelven al cerrarlo: Charlas, Lecturas
-   conjuntas, la página de un personaje y el Interrogatorio. Cada botón lee la variable en su CSS.
-   El chat rápido con personajes no necesita esto: va por encima de ellos (z-index 3100). */
-body:has(.fc-drawer.is-open, .rc-drawer.is-open, app-demo-chat-page, .interrogation-input-bar) {
+   conjuntas, la página de un personaje, el Encuentro de personajes y el Interrogatorio. Cada botón
+   lee la variable en su CSS. El chat rápido con personajes no necesita esto: va por encima de ellos (z-index 3100). */
+body:has(.fc-drawer.is-open, .rc-drawer.is-open, app-demo-chat-page, app-encounter-chat, .interrogation-input-bar) {
   --floating-btn-display: none;
 }
-/* En el celular la caja de la mesa de la Taberna ocupa todo el ancho de abajo. */
+/* En el celular la caja de la mesa de la Taberna ocupa todo el ancho de abajo, igual que el botón
+   «Comenzar encuentro» al armar un Encuentro de personajes. */
 @media (max-width: 700px) {
-  body:has(app-tavern-hall) {
+  body:has(app-tavern-hall, app-encounter-picker) {
     --floating-btn-display: none;
   }
 }

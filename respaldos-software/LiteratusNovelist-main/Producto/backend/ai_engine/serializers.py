@@ -87,7 +87,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     """Serializer para los mensajes individuales de una sesión."""
     class Meta:
         model = ChatMessage
-        fields = ['id', 'role', 'content', 'created_at']
+        fields = ['id', 'role', 'speaker_id', 'content', 'created_at']
 
 
 class ChatInteractionSerializer(serializers.Serializer):

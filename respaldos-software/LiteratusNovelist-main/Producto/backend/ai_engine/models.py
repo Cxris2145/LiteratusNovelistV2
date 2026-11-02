@@ -170,6 +170,16 @@ class ChatSession(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_sessions') # Referencia al usuario dueño del chat.
     avatar = models.ForeignKey(AIAvatar, on_delete=models.CASCADE, related_name='sessions') # Referencia al Avatar de IA con el que se chatea.
     title = models.CharField(max_length=255, blank=True, default='Nueva Conversación') # Título automático o personalizado para el historial.
+    # Encuentro de personajes: el lector conversa con `avatar` y `partner` a la vez. Sigue siendo
+    # una sesión normal para el cobro y el historial; `db_default` deja que el código anterior
+    # (sin estos campos) siga creando sesiones mientras se despliega.
+    class Kind(models.TextChoices):
+        SINGLE = 'single', 'Personaje'
+        ENCOUNTER = 'encounter', 'Encuentro'
+
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.SINGLE, db_default=Kind.SINGLE, db_index=True)
+    partner = models.ForeignKey(AIAvatar, on_delete=models.CASCADE, null=True, blank=True, related_name='encounter_sessions')
+    topic = models.CharField(max_length=200, blank=True, default='', db_default='')
 
     class Meta:
         verbose_name = 'Chat Session'
@@ -263,6 +273,8 @@ class ChatMessage(TimeStampedModel):
     # role sigue el estándar de la API de OpenAI/Gemini para compatibilidad directa.
     role = models.CharField(max_length=20, choices=RoleChoices.choices) # Indica si el mensaje es del usuario o del asistente (IA).
     content = models.TextField() # El contenido del texto real intercambiado.
+    # En un encuentro, qué personaje dijo el mensaje (null en los chats de un solo personaje).
+    speaker = models.ForeignKey(AIAvatar, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
 
     class Meta:
         verbose_name = 'Chat Message'

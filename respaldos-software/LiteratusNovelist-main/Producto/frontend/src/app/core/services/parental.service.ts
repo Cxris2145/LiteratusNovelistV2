@@ -131,7 +131,8 @@ export interface ChildChatDetail {
   character: string;
   book_title: string;
   title: string;
-  messages: { role: 'user' | 'assistant'; content: string; at: string }[];
+  /** speaker: en un encuentro de personajes, cuál de los dos habló. */
+  messages: { role: 'user' | 'assistant'; content: string; at: string; speaker?: string | null }[];
 }
 
 export interface ActivityEvent { kind: string; at: string; title: string; detail: string; icon: string; }

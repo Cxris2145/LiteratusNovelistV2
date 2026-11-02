@@ -18,6 +18,11 @@ export interface AIUsage {
 }
 /** Error de sendChat cuando no hay plan ni pase: el chat muestra la oferta del pase. */
 export interface NeedsDayPass { needsPass: true; usage: AIUsage; }
+/**
+ * Turno de un encuentro de personajes: quién habla y el id del último mensaje a la vista (así dos
+ * turnos sin texto no comparten request_id; el reintento de un mismo turno sí lo reusa).
+ */
+export interface ChatTurn { speakerId: string; after?: string | null; }
 export interface SubscriptionAccount {
   subscription: null | { plan: SubscriptionPlan; status: string; active: boolean;
     paid_until: string | null; renews_at: string | null; cancel_at_period_end: boolean; pending_plan: string | null };
@@ -55,10 +60,12 @@ export class SubscriptionService {
    * Envía un mensaje a un personaje. Usa el plan si tiene cupo; si no (o se agota), el pase del
    * día. Sin ninguno de los dos falla con { needsPass, usage } y el chat ofrece el pase ahí mismo:
    * ya no hay cotización ni ventana de confirmación por cada mensaje.
+   * En un encuentro, `turn` dice qué personaje responde y `message` puede ir vacío.
    */
-  sendChat(session_id: string, message: string): Observable<any> {
-    const key = session_id + '\n' + message;
-    const post = (attempt: PendingChat) => this.api.post<any>('ai/chat/', { session_id, message, ...attempt }).pipe(
+  sendChat(session_id: string, message: string, turn?: ChatTurn): Observable<any> {
+    const key = turn ? [session_id, turn.speakerId, turn.after || '', message].join('\n') : session_id + '\n' + message;
+    const speaker = turn ? { speaker_id: turn.speakerId } : {};
+    const post = (attempt: PendingChat) => this.api.post<any>('ai/chat/', { session_id, message, ...speaker, ...attempt }).pipe(
       tap(res => { this.updateUsage(res.usage); this.pending.delete(key); }));
     const withPass = (usage: AIUsage): Observable<any> => {
       if (!usage.ink_pass_active) return throwError((): NeedsDayPass => ({ needsPass: true, usage }));

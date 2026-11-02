@@ -3,6 +3,7 @@ ai_engine/urls.py — Enrutador de IA
 """
 from django.urls import path
 from . import usage_views
+from .encounter_views import EncounterListView, EncounterDetailView
 from .views import (
     AvatarListView,
     AvatarDetailView,
@@ -62,6 +63,11 @@ urlpatterns = [
     path('chat/day-pass/', usage_views.day_pass, name='ai-chat-day-pass'),
     path('usage/', usage_views.daily_usage, name='ai-usage'),
     path('usage/heartbeat/', usage_views.activity, name='ai-usage-heartbeat'),
+
+    # Encuentro de personajes: el lector conversa con dos personajes a la vez.
+    # POST /api/v1/ai/encounters/ · GET/PATCH /api/v1/ai/encounters/<uuid>/
+    path('encounters/', EncounterListView.as_view(), name='ai-encounters'),
+    path('encounters/<uuid:pk>/', EncounterDetailView.as_view(), name='ai-encounter-detail'),
 
     # Chat de demostración público (sin auth, rate limiting por IP)
     # POST /api/v1/ai/demo-chat/

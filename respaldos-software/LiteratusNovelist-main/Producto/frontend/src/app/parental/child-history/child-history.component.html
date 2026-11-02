@@ -312,7 +312,7 @@
             <p class="pc-muted" *ngIf="chatDetails[c.id] === 'error'">No pudimos cargarla. Ciérrala y vuelve a abrirla.</p>
             <ol class="ch-dialogue" *ngIf="chatDetail(c.id) as d">
               <li *ngFor="let m of d.messages" [class.is-child]="m.role === 'user'">
-                <span class="ch-who">{{ m.role === 'user' ? childName : d.character }} · {{ formatTime(m.at) }}</span>
+                <span class="ch-who">{{ m.role === 'user' ? childName : (m.speaker || d.character) }} · {{ formatTime(m.at) }}</span>
                 <p>{{ m.content }}</p>
               </li>
               <li *ngIf="!d.messages.length" class="pc-muted">La conversación está vacía.</li>

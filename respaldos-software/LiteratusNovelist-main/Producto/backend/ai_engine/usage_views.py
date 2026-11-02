@@ -6,8 +6,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from .metered_service import MeteredAIService
+from .encounter_service import EncounterAIService
 from .models import ChatSession
 from . import usage
 
@@ -59,9 +60,24 @@ def ink_quote(request):
 
 
 class ChatInput(QuoteInput):
+    # En un encuentro el mensaje puede venir vacío: los personajes siguen conversando solos.
+    message = serializers.CharField(max_length=2000, allow_blank=True)
     request_id = serializers.UUIDField()
     payment_mode = serializers.ChoiceField(choices=['plan', 'ink', 'pass'], default='plan')
     quote_id = serializers.UUIDField(required=False, allow_null=True)
+    speaker_id = serializers.UUIDField(required=False, allow_null=True)
+
+
+def encounter_speakers(session, fields):
+    """Quién habla en este turno del encuentro y con quién conversa."""
+    if fields['payment_mode'] == 'ink':
+        raise ValidationError({'error': 'ENCOUNTER_NO_INK', 'message': 'En un encuentro se conversa con el plan o con el pase del día.'})
+    speaker_id = fields.get('speaker_id')
+    if session.partner is not None and speaker_id == session.avatar_id:
+        return session.avatar, session.partner
+    if session.partner is not None and speaker_id == session.partner_id:
+        return session.partner, session.avatar
+    raise ValidationError({'error': 'INVALID_SPEAKER', 'message': 'Ese personaje no está en este encuentro.'})
 
 
 class MeteredChatView(APIView):
@@ -71,18 +87,30 @@ class MeteredChatView(APIView):
         data = ChatInput(data=request.data)
         data.is_valid(raise_exception=True)
         fields = data.validated_data
-        session = get_object_or_404(ChatSession.objects.select_related('avatar'),
+        session = get_object_or_404(ChatSession.objects.select_related('avatar', 'partner'),
             pk=fields['session_id'], user=request.user)
-        usage.check_avatar(request.user, session.avatar)
-        service = MeteredAIService(session.avatar, session)
+        message, speaker = fields['message'], None
+        if session.kind == ChatSession.Kind.ENCOUNTER:
+            speaker, other = encounter_speakers(session, fields)
+            usage.check_avatar(request.user, speaker)
+            usage.check_avatar(request.user, other)
+            service = EncounterAIService(speaker, other, session)
+            # La huella incluye a quien habla: el mismo texto para uno y otro son pedidos distintos.
+            fingerprint = f'{speaker.pk}\n{message}'
+        else:
+            if not message.strip() or fields.get('speaker_id'):
+                raise ValidationError({'message': ['Escribe un mensaje para el personaje.']})
+            usage.check_avatar(request.user, session.avatar)
+            service = MeteredAIService(session.avatar, session)
+            fingerprint = message
         event = None
         try:
             with transaction.atomic():
                 Profile.objects.select_for_update().get(user=request.user)
-                ceiling = service.prepare(fields['message'])
-                event, replay = usage.reserve(request.user, session, fields['message'], fields['request_id'],
+                ceiling = service.prepare(message)
+                event, replay = usage.reserve(request.user, session, fingerprint, fields['request_id'],
                     fields['payment_mode'], fields.get('quote_id'), ceiling)
-            result = event.result if replay else usage.finish(event, fields['message'], service.generate_metered())
+            result = event.result if replay else usage.finish(event, message, service.generate_metered(), speaker)
             current = usage.snapshot(request.user)
             return Response({**result, 'usage': current, 'ink_balance': current['ink_balance']})
         except Exception as exc:

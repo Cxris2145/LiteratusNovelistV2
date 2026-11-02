@@ -13,7 +13,8 @@ class AIAvatarAdmin(admin.ModelAdmin):
 
 @admin.register(ChatSession)
 class ChatSessionAdmin(admin.ModelAdmin):
-    list_display = ['title', 'user', 'avatar', 'created_at']
+    list_display = ['title', 'user', 'avatar', 'kind', 'created_at']
+    list_filter = ['kind']
     search_fields = ['user__email', 'title']
     inlines = [ChatMessageInline]
 

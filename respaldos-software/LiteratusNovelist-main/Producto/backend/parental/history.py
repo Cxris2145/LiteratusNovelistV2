@@ -417,7 +417,7 @@ def chats(child):
     from ai_engine.models import BlindInterrogationSession, ChatMessage, ChatSession
 
     sessions = (ChatSession.objects.filter(user=child)
-                .select_related('avatar__edition__book')
+                .select_related('avatar__edition__book', 'partner__edition__book')
                 .annotate(message_count=Count('messages', filter=Q(messages__is_active=True)
                                               & ~Q(messages__role=ChatMessage.RoleChoices.SYSTEM)),
                           questions=Count('messages', filter=Q(messages__role='user', messages__is_active=True)),
@@ -425,8 +425,8 @@ def chats(child):
                 .order_by('-created_at'))
     characters = [{
         'id': str(session.pk),
-        'character': session.avatar.name,
-        'book_title': session.avatar.edition.book.title,
+        'character': _chat_characters(session),
+        'book_title': _chat_books(session),
         'title': session.title,
         'message_count': session.message_count,
         'questions': session.questions,
@@ -454,20 +454,34 @@ def chats(child):
     return {'characters': characters, 'interrogations': interrogations}
 
 
+def _chat_characters(session):
+    """«A» en un chat; «A y B» en un encuentro de personajes."""
+    return f'{session.avatar.name} y {session.partner.name}' if session.partner_id else session.avatar.name
+
+
+def _chat_books(session):
+    titles = [session.avatar.edition.book.title]
+    if session.partner_id:
+        titles.append(session.partner.edition.book.title)
+    return ' · '.join(dict.fromkeys(titles))
+
+
 def chat_detail(child, session_id):
     from ai_engine.models import ChatMessage, ChatSession
 
     session = (ChatSession.objects.filter(user=child, pk=session_id)
-               .select_related('avatar__edition__book').first())
+               .select_related('avatar__edition__book', 'partner__edition__book').first())
     if session is None:
         raise Http404('Esa conversación no existe.')
-    messages = [{'role': m.role, 'content': m.content, 'at': m.created_at}
-                for m in ChatMessage.objects.filter(session=session)
+    # En un encuentro, `speaker` dice cuál de los dos personajes habló.
+    messages = [{'role': m.role, 'content': m.content, 'at': m.created_at,
+                 'speaker': m.speaker.name if m.speaker_id and m.speaker else None}
+                for m in ChatMessage.objects.filter(session=session).select_related('speaker')
                 .exclude(role=ChatMessage.RoleChoices.SYSTEM).order_by('created_at')]
     return {
         'id': str(session.pk),
-        'character': session.avatar.name,
-        'book_title': session.avatar.edition.book.title,
+        'character': _chat_characters(session),
+        'book_title': _chat_books(session),
         'title': session.title,
         'messages': messages,
     }

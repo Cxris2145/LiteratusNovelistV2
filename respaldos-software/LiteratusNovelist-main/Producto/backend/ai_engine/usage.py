@@ -9,7 +9,7 @@ from rest_framework.exceptions import APIException, PermissionDenied
 from finance.subscriptions import subscription_for, has_paid_access
 from library.models import UserInventory, ReadingProgress, InkTransaction
 from users.models import Profile
-from .models import DailyAIUsage, AIActivityLease, AIUsageEvent, InkChatQuote, ChatMessage
+from .models import DailyAIUsage, AIActivityLease, AIUsageEvent, InkChatQuote, ChatMessage, ChatSession
 
 
 class UsageDenied(APIException):
@@ -157,6 +157,8 @@ def heartbeat(user, session, client_id, active):
 
 
 def quote(user, session, message):
+    if session.kind == session.Kind.ENCOUNTER:
+        raise UsageDenied('ENCOUNTER_NO_INK', 'En un encuentro se conversa con el plan o con el pase del día.')
     check_avatar(user, session.avatar)
     # The accepted price is binding even if a cheaper backup answers.
     ink_cost = 2 if settings.GOOGLE_API_KEY or settings.GOOGLE_API_KEY_2 else 1
@@ -219,7 +221,11 @@ def reserve(user, session, message, request_id, mode, quote_id, token_ceiling):
             ink_cost=ink_cost, expires_at=now + timedelta(minutes=3)), False
 
 
-def finish(event, message, result):
+def finish(event, message, result, speaker=None):
+    """
+    Cobra y guarda la respuesta. En un encuentro `speaker` es el personaje que habló y `message`
+    puede venir vacío (los personajes siguen conversando solos): entonces solo se guarda su línea.
+    """
     with transaction.atomic():
         profile = Profile.objects.select_for_update().get(user_id=event.user_id)
         event = AIUsageEvent.objects.select_for_update().get(pk=event.pk)
@@ -238,20 +244,26 @@ def finish(event, message, result):
         else:
             InkTransaction.objects.create(user=event.user, amount=-event.ink_cost, concept='ai_chat',
                 reference_id=str(event.pk), balance_after=profile.ink_balance)
-        ChatMessage.objects.create(session=event.session, role='user', content=message)
-        reply = ChatMessage.objects.create(session=event.session, role='assistant', content=result['text'])
+        if message:
+            ChatMessage.objects.create(session=event.session, role='user', content=message)
+        reply = ChatMessage.objects.create(session=event.session, role='assistant', content=result['text'], speaker=speaker)
+        # Mensajes y "Continuar conversación" ordenan por la última actividad.
+        ChatSession.objects.filter(pk=event.session_id).update(updated_at=reply.created_at)
         # Preserve XP, missions and achievements without minting spendable currency
         # for each paid response (the previous +5 reward exceeded the chat price).
-        from library.achievement_engine import reward_activity, evaluate_for_user
-        reward_activity(event.user, 'ai_interaction', reference_id=str(event.pk), custom_ink=0)
-        evaluate_for_user(event.user, trigger='chat', chat_session_id=event.session_id)
+        # Solo cuando escribió el lector: los turnos automáticos de un encuentro no dan experiencia.
+        if message:
+            from library.achievement_engine import reward_activity, evaluate_for_user
+            reward_activity(event.user, 'ai_interaction', reference_id=str(event.pk), custom_ink=0)
+            evaluate_for_user(event.user, trigger='chat', chat_session_id=event.session_id)
         event.status = 'succeeded'
         for field in ('provider', 'model', 'input_tokens', 'output_tokens', 'reasoning_tokens', 'total_tokens', 'attempts'):
             setattr(event, field, result[field])
         event.estimated_cost = sum((Decimal(a.get('estimated_cost', '0')) for a in result['attempts']), Decimal(0))
         event.result = {'reply': reply.content, 'timestamp': reply.created_at.isoformat(),
             'ai_provider': result['provider'], 'ai_status': 'ok', 'cost': event.ink_cost,
-            'request_id': str(event.pk)}
+            'request_id': str(event.pk), 'message_id': str(reply.pk),
+            'speaker_id': str(speaker.pk) if speaker else None}
         event.save()
     return event.result
 

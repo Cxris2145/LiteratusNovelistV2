@@ -199,7 +199,7 @@ class RecentChatsView(APIView):
         # Obtener las sesiones más recientes (updated_at se actualiza con nuevos mensajes)
         # Usamos updated_at de la sesión o created_at. TimeStampedModel tiene ambos.
         sessions = visible_books(ChatSession.objects.filter(
-            user=request.user
+            user=request.user, kind=ChatSession.Kind.SINGLE
         ), request.user, 'avatar__edition__book__').order_by('-updated_at', '-id')
         recent_ids = list(dict.fromkeys(sessions.values_list('avatar_id', flat=True)))
         groups = group_hub_avatars(AIAvatar.objects.filter(pk__in=recent_ids), recent_ids=recent_ids)
@@ -223,13 +223,16 @@ class UserConversationsView(APIView):
 
     def get(self, request):
         qs = ChatSession.objects.filter(user=request.user).select_related(
-            'avatar__edition__book'
+            'avatar__edition__book', 'partner__edition__book'
         ).order_by('-updated_at')
-        sessions = visible_books(qs, request.user, 'avatar__edition__book__')[:40]
+        qs = visible_books(qs, request.user, 'avatar__edition__book__')
+        # Un encuentro se ve solo si los dos libros son aptos para la edad del lector.
+        qs = qs.filter(Q(partner__isnull=True) | Q(pk__in=visible_books(qs, request.user, 'partner__edition__book__').values('pk')))
+        sessions = qs[:40]
 
         results = []
         for s in sessions:
-            last_msg = s.messages.order_by('-created_at').first()
+            last_msg = s.messages.select_related('speaker').order_by('-created_at').first()
             avatar = s.avatar
             avatar_url = request.build_absolute_uri(avatar.avatar_image.url) if avatar.avatar_image else None
 
@@ -245,8 +248,9 @@ class UserConversationsView(APIView):
             elif avatar.is_author:
                 tag = 'Autor'
 
-            results.append({
+            item = {
                 'session_id': str(s.id),
+                'kind': s.kind,
                 'avatar_id': str(avatar.id),
                 'name': avatar.name,
                 'book_title': avatar.edition.book.title if avatar.edition and avatar.edition.book else 'Literatura Universal',
@@ -256,7 +260,21 @@ class UserConversationsView(APIView):
                 'last_message_role': msg_role,
                 'timestamp': msg_time,
                 'tag': tag,
-            })
+            }
+            if s.kind == ChatSession.Kind.ENCOUNTER and s.partner:
+                partner = s.partner
+                books = list(dict.fromkeys([avatar.edition.book.title, partner.edition.book.title]))
+                item.update({
+                    'name': f'{avatar.name} y {partner.name}',
+                    'book_title': ' · '.join(books),
+                    'tag': 'Encuentro',
+                    'partner': {'id': str(partner.id), 'name': partner.name,
+                                'avatar_url': request.build_absolute_uri(partner.avatar_image.url) if partner.avatar_image else None},
+                    'last_speaker': last_msg.speaker.name if last_msg and last_msg.speaker else None,
+                })
+                if not last_msg:
+                    item['last_message'] = 'Encuentro listo para comenzar.'
+            results.append(item)
 
         return Response(results)
 
@@ -295,9 +313,11 @@ class ChatSessionView(APIView):
             )
 
         # Obtener o crear la sesión (una por usuario+avatar)
+        # Los encuentros también tienen `avatar`: aquí solo cuenta el chat de un personaje.
         session, created = ChatSession.objects.get_or_create(
             user=request.user,
             avatar=avatar,
+            kind=ChatSession.Kind.SINGLE,
             defaults={'title': f'Chat con {avatar.name}'}
         )
 

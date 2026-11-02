@@ -1,0 +1,106 @@
+<section class="ep">
+  <header class="ep-intro">
+    <a class="ep-back" routerLink="/characters">
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Personajes
+    </a>
+    <p class="ep-kicker">Encuentro de personajes</p>
+    <h1 class="ep-title">Junta a dos personajes y escucha lo que se dicen</h1>
+    <p class="ep-lede">Del mismo libro o de libros distintos. Tú conversas con los dos, y ellos también entre sí.</p>
+  </header>
+
+  <!-- Las dos casillas, frente a frente -->
+  <div class="ep-stage" role="group" aria-label="Personajes del encuentro">
+    <ng-container *ngFor="let slot of slots; let i = index">
+      <span class="ep-and" *ngIf="i === 1" aria-hidden="true">y</span>
+      <div class="ep-slot" [class.is-filled]="!!slot" [class.is-next]="!slot && i === nextSlot">
+        <ng-container *ngIf="slot; else emptySlot">
+          <img class="ep-slot-photo" [src]="thumb(slot.avatar_image_url, 320)" [alt]="slot.name" (error)="onImgError($event)">
+          <div class="ep-slot-text">
+            <strong>{{ slot.name }}</strong>
+            <span *ngIf="slot.book_title">{{ slot.book_title }}</span>
+          </div>
+          <button type="button" class="ep-slot-remove" (click)="remove(i)" [attr.aria-label]="'Quitar a ' + slot.name">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+        </ng-container>
+        <ng-template #emptySlot>
+          <span class="ep-slot-empty">
+            <span class="material-symbols-rounded" aria-hidden="true">person_add</span>
+            <span>{{ i === nextSlot ? 'Elige al personaje ' + (i + 1) : 'Personaje ' + (i + 1) }}</span>
+          </span>
+        </ng-template>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="ep-topic">
+    <label class="ep-label" for="ep-topic-input">Tema <span>(opcional)</span></label>
+    <input id="ep-topic-input" class="ep-topic-input" type="text" maxlength="200" [(ngModel)]="topic"
+           placeholder="¿De qué quieres que hablen?">
+    <div class="ep-ideas" aria-label="Temas sugeridos">
+      <button *ngFor="let idea of topicIdeas" type="button" class="ep-idea" [class.is-on]="topic === idea"
+              [attr.aria-pressed]="topic === idea" (click)="useTopic(idea)">{{ idea }}</button>
+    </div>
+  </div>
+
+  <div class="ep-start">
+    <p class="ep-error" *ngIf="error" role="alert">
+      {{ error }}
+      <a *ngIf="errorBook" [routerLink]="['/book', errorBook]">Ver el libro</a>
+    </p>
+    <div class="ep-login" *ngIf="showLogin">
+      <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+      <p>Para armar un encuentro inicia sesión o crea tu cuenta gratis.</p>
+      <div class="ep-login-actions">
+        <a class="ep-primary" [routerLink]="['/login']" [queryParams]="{ returnUrl: returnUrl }">Iniciar sesión</a>
+        <a class="ep-secondary" [routerLink]="['/register']" [queryParams]="{ returnUrl: returnUrl }">Crear cuenta</a>
+      </div>
+    </div>
+    <button type="button" class="ep-primary ep-go" [disabled]="!ready || starting" (click)="start()">
+      <span class="material-symbols-rounded" aria-hidden="true">forum</span>
+      {{ starting ? 'Preparando el encuentro…' : ready ? 'Comenzar encuentro' : 'Elige a dos personajes' }}
+    </button>
+  </div>
+
+  <!-- Buscador: el mismo catálogo de /characters -->
+  <div class="ep-search">
+    <div class="ep-search-bar">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <input type="search" class="ep-search-input" [(ngModel)]="query" (ngModelChange)="onQuery()"
+             placeholder="Busca por personaje, libro o autor" aria-label="Buscar personajes">
+    </div>
+    <p class="ep-notice" *ngIf="notice" role="status">{{ notice }}</p>
+
+    <p class="ep-muted" *ngIf="searchError">No pudimos cargar los personajes. Revisa tu conexión.</p>
+    <p class="ep-muted" *ngIf="!loading && !searchError && !results.length">No encontramos personajes con «{{ query }}».</p>
+
+    <div class="ep-grid" [class.is-loading]="loading" [attr.aria-busy]="loading">
+      <div *ngFor="let avatar of results; trackBy: trackAvatar" class="ep-card-wrap">
+        <button type="button" class="ep-card" [class.is-picked]="isPicked(avatar)" [attr.aria-pressed]="isPicked(avatar)"
+                (click)="choose(avatar)">
+          <img [src]="thumb(avatar.avatar_image_url)" [alt]="" loading="lazy" (error)="onImgError($event)">
+          <span class="ep-card-text">
+            <strong>{{ avatar.name }}</strong>
+            <span>{{ (avatar.works?.length || 0) > 1 ? avatar.works!.length + ' libros' : avatar.book_title }}</span>
+          </span>
+          <span class="ep-card-check material-symbols-rounded" *ngIf="isPicked(avatar)" aria-hidden="true">check</span>
+        </button>
+        <div class="ep-works" *ngIf="choosingWorks?.id === avatar.id" role="group" [attr.aria-label]="'¿De qué libro viene ' + avatar.name + '?'">
+          <p>¿De qué libro?</p>
+          <button *ngFor="let work of avatar.works" type="button" (click)="chooseWork(avatar, work)">{{ work.book_title }}</button>
+          <button type="button" class="ep-works-cancel" (click)="choosingWorks = null">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="ep-pager" *ngIf="pages > 1" aria-label="Páginas de personajes">
+      <button type="button" (click)="goTo(page - 1)" [disabled]="page <= 1 || loading">
+        <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span> Anterior
+      </button>
+      <span>{{ page }} / {{ pages }}</span>
+      <button type="button" (click)="goTo(page + 1)" [disabled]="page >= pages || loading">
+        Siguiente <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+      </button>
+    </nav>
+  </div>
+</section>

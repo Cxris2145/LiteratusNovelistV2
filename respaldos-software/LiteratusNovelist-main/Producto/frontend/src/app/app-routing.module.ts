@@ -43,6 +43,8 @@ const routes: Routes = [
   { path: 'authors/publish', redirectTo: 'publish-book', pathMatch: 'full' },
   { path: 'characters', loadChildren: () => import('./characters/characters.module').then(m => m.CharacterHubRouteModule) },
   { path: 'chat', loadChildren: () => import('./characters/characters.module').then(m => m.DemoChatRouteModule) },
+  // Encuentro de personajes: el lector conversa con dos personajes a la vez.
+  { path: 'encuentro', loadChildren: () => import('./characters/encounter/encounter.routes').then(m => m.ENCOUNTER_ROUTES) },
   { path: 'demo-chat', redirectTo: 'chat', pathMatch: 'full' },
   { path: 'demo-chat/:avatarId', redirectTo: 'chat/:avatarId' },
   { path: 'book/:slug', data: preload, loadChildren: () => import('./catalog/book-detail-page/book-detail-page.module').then(m => m.BookDetailRouteModule) },

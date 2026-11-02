@@ -286,6 +286,16 @@
   background: var(--color-bg-secondary);
 }
 
+/* Encuentro de personajes: dos retratos, el segundo más chico abajo a la derecha. */
+.conv-avatar-img--partner {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 58%;
+  height: 58%;
+  border-color: var(--color-surface-elevated, #16223a);
+}
+
 .online-indicator {
   position: absolute;
   bottom: 2px;

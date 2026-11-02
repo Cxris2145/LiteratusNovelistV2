@@ -131,6 +131,18 @@
   <!-- 3. SECCIONES DE ARRIBA (solo sin búsqueda ni filtros) -->
   <ng-container *ngIf="!isSearching">
 
+    <!-- ENCUENTRO DE PERSONAJES: conversar con dos a la vez -->
+    <section class="hub-section encounter-cta-section">
+      <a class="encounter-cta" routerLink="/encuentro">
+        <span class="encounter-cta-icon" aria-hidden="true"><svg lucideUsers [size]="24" class="lucide-icon"></svg></span>
+        <span class="encounter-cta-text">
+          <strong>Encuentro de personajes</strong>
+          <span>Junta a dos personajes, del mismo libro o de libros distintos, y conversa con los dos.</span>
+        </span>
+        <span class="encounter-cta-go">Juntar dos personajes <svg lucideChevronRight [size]="18" class="lucide-icon"></svg></span>
+      </a>
+    </section>
+
     <!-- RECIENTES -->
     <section class="hub-section reveal-section" *ngIf="recentCharacters.length > 0">
       <div class="section-header">

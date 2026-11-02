@@ -74,6 +74,10 @@
         </div>
         
         <div class="dchat-header-actions">
+          <button class="dchat-icon-btn" *ngIf="isRealUser && avatarId" (click)="inviteAnother()" title="Invitar a otro personaje"
+                  aria-label="Invitar a otro personaje a la conversación">
+            <span class="material-symbols-rounded">group_add</span>
+          </button>
           <button class="dchat-icon-btn" (click)="toggleCallMode()" [class.active]="isCallMode" title="Modo Llamada">
             <span class="material-symbols-rounded">call</span>
           </button>

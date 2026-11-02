@@ -73,4 +73,32 @@ describe('SubscriptionService · plan, pase del día e idempotencia', () => {
     expect(retry.request.body.request_id).toBe(id);
     retry.flush({ reply: 'Respuesta recuperada', usage });
   });
+
+  it('en un encuentro manda quién habla y acepta un turno sin texto', () => {
+    service.sendChat('encuentro', '', { speakerId: 'b', after: 'm1' }).subscribe();
+    endpoint('/ai/usage/').flush(usage);
+    const chat = endpoint('/ai/chat/');
+    expect(chat.request.body.speaker_id).toBe('b');
+    expect(chat.request.body.message).toBe('');
+    chat.flush({ reply: 'Hola', speaker_id: 'b', usage });
+  });
+
+  it('dos turnos sin texto no comparten identificador; el reintento del mismo turno sí', () => {
+    service.sendChat('encuentro', '', { speakerId: 'a', after: 'm1' }).subscribe({ error: () => {} });
+    endpoint('/ai/usage/').flush(usage);
+    const first = endpoint('/ai/chat/');
+    const id = first.request.body.request_id;
+    first.error(new ProgressEvent('offline'), { status: 0 });
+
+    service.sendChat('encuentro', '', { speakerId: 'a', after: 'm2' }).subscribe();
+    endpoint('/ai/usage/').flush(usage);
+    const other = endpoint('/ai/chat/');
+    expect(other.request.body.request_id).not.toBe(id);
+    other.flush({ reply: 'Otro turno', usage });
+
+    service.sendChat('encuentro', '', { speakerId: 'a', after: 'm1' }).subscribe();
+    const retry = endpoint('/ai/chat/');
+    expect(retry.request.body.request_id).toBe(id);
+    retry.flush({ reply: 'Recuperada', usage });
+  });
 });
