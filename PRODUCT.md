@@ -45,7 +45,6 @@ Clásicos íntegros en español que se pueden leer, escuchar con narración por 
 ## Evidence on Hand
 
 - Catálogo real: el contador de la portada muestra 1.046 obras (dato vivo de la API).
-- Listado de libros y personajes con su psicología: `respaldos-software/LiteratusNovelist-main/Producto/listado_completo_libros_y_personajes.md`.
 - Portadas reales en Supabase Storage.
 - Demo pública: https://www.novelatus.tech/
 - No hay testimonios, reseñas de prensa, cifras de usuarios ni alianzas con colegios: no inventarlas.
