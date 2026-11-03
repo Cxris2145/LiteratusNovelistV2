@@ -307,7 +307,7 @@ class SpendInkView(APIView):
 
         profile = Profile.objects.select_for_update().get(user=request.user)
 
-        if profile.ink_balance < amount:
+        if not profile.can_spend_ink(amount):
             return Response(
                 {
                     'error': 'INK_INSUFFICIENT',
@@ -316,10 +316,10 @@ class SpendInkView(APIView):
                 status=status.HTTP_402_PAYMENT_REQUIRED
             )
 
-        profile.ink_balance -= amount
+        charged = profile.spend_ink(amount)
         profile.save(update_fields=['ink_balance'])
         from library.models import InkTransaction
-        InkTransaction.objects.create(user=request.user, amount=-amount, concept='legacy_spend',
+        InkTransaction.objects.create(user=request.user, amount=-charged, concept='legacy_spend',
             reference_id=str(concept)[:100], balance_after=profile.ink_balance)
 
         return Response({

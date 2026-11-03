@@ -437,7 +437,7 @@ class TTSGenerateView(APIView):
         # Validación de Tinta (Costo: 2 créditos por frase — más justo que ElevenLabs)
         COST = 2
         profile = getattr(request.user, "profile", None)
-        if not profile or profile.ink_balance < COST:
+        if not profile or not profile.can_spend_ink(COST):
             return Response({
                 "error": "INSUFFICIENT_INK",
                 "message": f"Necesitas {COST} créditos de tinta para la narración."
@@ -483,12 +483,12 @@ class TTSGenerateView(APIView):
         # Descontar tinta
         with transaction.atomic():
             profile = Profile.objects.select_for_update().get(user=request.user)
-            if profile.ink_balance < COST:
+            if not profile.can_spend_ink(COST):
                 return Response({'error': 'INSUFFICIENT_INK', 'message': 'Tu saldo cambió durante la generación. No se realizó el cargo de audio.'}, status=402)
-            profile.ink_balance -= COST
+            charged = profile.spend_ink(COST)
             profile.save(update_fields=['ink_balance'])
             from library.models import InkTransaction
-            InkTransaction.objects.create(user=request.user, amount=-COST, concept='ai_audio',
+            InkTransaction.objects.create(user=request.user, amount=-charged, concept='ai_audio',
                 reference_id=str(avatar.pk) if avatar else '', balance_after=profile.ink_balance)
 
         return Response({
@@ -962,7 +962,7 @@ class InterrogationBuyPerkView(APIView):
 
         with transaction.atomic():
             profile = Profile.objects.select_for_update().get(user=request.user)
-            if profile.ink_balance < cost:
+            if not profile.can_spend_ink(cost):
                 return Response({
                     "error": "INSUFFICIENT_INK",
                     "message": f"Necesitas {cost} Gotas de Tinta. Tu saldo actual es de {profile.ink_balance}."
@@ -994,12 +994,12 @@ class InterrogationBuyPerkView(APIView):
                 session.discarded_avatar_ids = to_discard
 
             # Descontar tinta
-            profile.ink_balance -= cost
+            charged = profile.spend_ink(cost)
             profile.save(update_fields=['ink_balance'])
 
             InkTransaction.objects.create(
                 user=request.user,
-                amount=-cost,
+                amount=-charged,
                 concept='interrogation_perk',
                 reference_id=str(session.id),
                 balance_after=profile.ink_balance

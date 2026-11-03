@@ -17,7 +17,7 @@ def consume_ink(cost=1):
                 return Response({"error": "No autenticado."}, status=status.HTTP_401_UNAUTHORIZED)
             
             profile, _ = Profile.objects.get_or_create(user=user)
-            if profile.ink_balance < cost:
+            if not profile.can_spend_ink(cost):
                 return Response(
                     {
                         "error": "INSUFFICIENT_INK",
@@ -34,7 +34,7 @@ def consume_ink(cost=1):
             if 200 <= response.status_code < 300:
                 # Recargar el perfil por si la vista lo modificó
                 profile.refresh_from_db()
-                profile.ink_balance = max(0, profile.ink_balance - cost)
+                profile.spend_ink(min(cost, profile.ink_balance))
                 profile.save(update_fields=['ink_balance'])
                 
                 # Inyectar el saldo actualizado en la respuesta si es JSON

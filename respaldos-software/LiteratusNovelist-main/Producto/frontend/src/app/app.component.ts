@@ -143,6 +143,7 @@ export class AppComponent implements OnInit {
   // Animación Tinta
   shakeState = 'default';
   inkBalance$ = this.chatService.inkBalance$;
+  infiniteInk$ = this.chatService.infiniteInk$;
 
   // Recompensa Diaria indicador
   dailyRewardClaimable$ = this.gamificationService.dailyRewardClaimable$;

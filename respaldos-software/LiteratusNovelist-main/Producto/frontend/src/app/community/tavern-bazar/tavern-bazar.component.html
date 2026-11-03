@@ -18,7 +18,8 @@
   <div class="bz-purse">
     <span class="material-symbols-rounded bz-purse-icon" aria-hidden="true">ink_pen</span>
     <p class="bz-balance">
-      <strong><span aria-hidden="true" [appCountUp]="balance" [countUpDelta]="loaded"></span><span class="sr-only">{{ format(balance) }}</span></strong>
+      <strong *ngIf="!infiniteInk"><span aria-hidden="true" [appCountUp]="balance" [countUpDelta]="loaded"></span><span class="sr-only">{{ format(balance) }}</span></strong>
+      <strong *ngIf="infiniteInk" title="Tinta infinita">∞</strong>
       <span>Tinta en tu bolsa</span>
     </p>
     <button *ngIf="dailyReward?.can_claim; else topUp" type="button" class="bz-claim" (click)="claimReward()" [disabled]="!!busy">

@@ -14,7 +14,7 @@
         <a class="button secondary" href="#tinta" (click)="jump($event, 'tinta')">Recargar Tinta</a>
       </div>
     </div>
-    <app-inkwell #inkwell class="hero-art" [balance]="inkBalance" [anonymous]="!isLoggedIn()" [showDelta]="balanceReady"></app-inkwell>
+    <app-inkwell #inkwell class="hero-art" [balance]="inkBalance" [infinite]="infiniteInk" [anonymous]="!isLoggedIn()" [showDelta]="balanceReady"></app-inkwell>
   </header>
 
   <p class="notice" role="alert" *ngIf="error">{{ error }}</p>
@@ -103,7 +103,7 @@
         <h3>Tu reserva de Tinta</h3>
         <p class="ink-balance">
           <span class="tv-quill-icon material-symbols-rounded" aria-hidden="true">ink_pen</span>
-          <strong class="tv-balance" #balanceEl><span aria-hidden="true" [appCountUp]="inkBalance" [countUpDelta]="balanceReady"></span><span class="sr-only">{{ formatAmount(inkBalance) }}</span></strong>
+          <strong class="tv-balance" #balanceEl><span *ngIf="!infiniteInk" aria-hidden="true" [appCountUp]="inkBalance" [countUpDelta]="balanceReady"></span><span class="sr-only">{{ formatAmount(inkBalance) | ownInk }}</span><span *ngIf="infiniteInk" aria-hidden="true" title="Tinta infinita">∞</span></strong>
           <span class="tv-unit-label">Tinta</span>
         </p>
         <p>Tu saldo se acumula. Úsalo en El Bazar de la Taberna, en extras o en conversaciones cuyo precio aceptes.</p>

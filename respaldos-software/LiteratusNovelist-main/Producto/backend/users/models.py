@@ -100,7 +100,12 @@ class Profile(TimeStampedModel):
         default=50,
         help_text="Tokens de energía (Tinta) disponibles para chatear con personajes de IA o adquirir contenido."
     ) # Saldo actual de "Tinta" del usuario. Funciona como moneda virtual para interactuar con la IA o adquirir contenido.
-    
+    # Va con la cuenta y no con el nombre: cambiar de username no da ni quita la Tinta infinita.
+    infinite_ink = models.BooleanField(
+        default=False, db_default=False,
+        help_text="Tinta infinita: ningún cobro le descuenta Tinta ni le falla por saldo, y el sitio le muestra ∞."
+    )
+
     xp = models.PositiveIntegerField(
         default=0,
         help_text="Puntos de experiencia acumulados."
@@ -204,6 +209,20 @@ class Profile(TimeStampedModel):
 
     def __str__(self):
         return f"Profile de {self.user.username}"
+
+    def can_spend_ink(self, amount):
+        """¿Alcanza el saldo para este cobro? Con Tinta infinita siempre alcanza."""
+        return self.infinite_ink or self.ink_balance >= amount
+
+    def spend_ink(self, amount):
+        """
+        Descuenta `amount` del saldo (sin guardar) y devuelve lo cobrado de verdad, para el movimiento
+        de Tinta: con Tinta infinita no se descuenta nada y devuelve 0.
+        """
+        if self.infinite_ink:
+            return 0
+        self.ink_balance -= amount
+        return amount
 
     def save(self, *args, **kwargs):
         if not self.friend_code:

@@ -158,7 +158,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             'id', 'username', 'avatar', 'avatar_color', 'bio', 'country', 'preferred_language', 
-            'ink_balance', 'theme', 'xp', 'level', 'level_name', 
+            'ink_balance', 'infinite_ink', 'theme', 'xp', 'level', 'level_name',
             'xp_to_next_level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',
             'equipped_frame', 'equipped_title', 'discount_percent', 
@@ -167,7 +167,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'friend_code', 'tagline', 'outfit', 'birth_date', 'is_public', 'show_friends', 'show_books', 'show_reviews'
         ]
         # outfit solo cambia al equipar en El Bazar; friend_code es inmutable.
-        read_only_fields = ['ink_balance', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
+        read_only_fields = ['ink_balance', 'infinite_ink', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title', 'has_completed_onboarding',
             'friend_code', 'outfit']
 

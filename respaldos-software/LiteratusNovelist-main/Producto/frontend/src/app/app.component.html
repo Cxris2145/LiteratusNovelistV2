@@ -71,7 +71,7 @@
         <div *ngIf="isLoggedIn" class="ink-widget" role="button" tabindex="0" (click)="openInkTopUp()" (keydown.enter)="openInkTopUp()"
              [@shake]="shakeState" [title]="(dailyRewardClaimable$ | async) ? '¡Recompensa diaria lista en Logros! - Haz clic para la Tienda' : 'Tienda de la Taberna - Recarga Tinta'">
           <span class="ink-icon material-symbols-rounded">ink_pen</span>
-          <span class="ink-balance">{{ inkBalance$ | async }}</span>
+          <span class="ink-balance">{{ inkBalance$ | async | ownInk }}</span>
           <span class="ink-reward-dot" *ngIf="dailyRewardClaimable$ | async" title="¡Recompensa diaria disponible!"></span>
         </div>
 
@@ -125,6 +125,11 @@
                           [title]="'Racha de ' + stats.streak_current + (stats.streak_current === 1 ? ' día' : ' días') + ' leyendo'">
                       <span class="mat-symbol pm-flame" aria-hidden="true">local_fire_department</span>
                       {{ stats.streak_current }} {{ stats.streak_current === 1 ? 'día' : 'días' }}
+                    </span>
+                    <!-- El menú no repite el saldo del header; solo avisa de la Tinta infinita -->
+                    <span class="pm-chip pm-chip--ink" *ngIf="infiniteInk$ | async" title="Tinta infinita">
+                      <span class="mat-symbol" aria-hidden="true">ink_pen</span>
+                      ∞ Tinta
                     </span>
                   </div>
                   <div class="pm-xp" role="progressbar" aria-label="Experiencia hacia el siguiente nivel"

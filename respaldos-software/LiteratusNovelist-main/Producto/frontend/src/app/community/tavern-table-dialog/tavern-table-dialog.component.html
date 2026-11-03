@@ -140,7 +140,7 @@
     <section class="td-section td-stats" style="--d: 0" *ngIf="profile">
       <div class="td-stat">
         <span class="material-symbols-rounded" aria-hidden="true">water_drop</span>
-        <strong>{{ profile.ink_balance | number }}</strong><span>Tinta</span>
+        <strong>{{ profile.ink_balance | number | ownInk }}</strong><span>Tinta</span>
       </div>
       <div class="td-stat td-stat--level">
         <span class="material-symbols-rounded" aria-hidden="true">military_tech</span>

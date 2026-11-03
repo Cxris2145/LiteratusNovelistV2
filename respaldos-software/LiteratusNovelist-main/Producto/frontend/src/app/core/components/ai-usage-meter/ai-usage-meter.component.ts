@@ -2,6 +2,7 @@ import { Component, Input, OnInit, OnDestroy, HostListener, ElementRef, inject }
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SubscriptionService, AIUsage } from '../../services/subscription.service';
+import { ChatService } from '../../services/chat.service';
 import { Subscription } from 'rxjs';
 
 @Component({ selector: 'app-ai-usage-meter', standalone: true, imports: [CommonModule, RouterModule],
@@ -13,13 +14,14 @@ import { Subscription } from 'rxjs';
     <p *ngIf="usage.ink_pass_active && !usage.plan_available">Conversa sin límite con todos los personajes hasta medianoche (quedan {{ countdown }}).</p>
     <div class="meter-row" *ngIf="!usage.plan_available && !usage.ink_pass_active">
       <span>Pase del día: conversa sin límite hasta medianoche por {{ usage.ink_pass_price ?? 20 }} Tinta.</span>
-      <button type="button" (click)="activatePass()" [disabled]="busy || usage.ink_balance < (usage.ink_pass_price ?? 20)">{{ busy ? 'Activando…' : 'Activar' }}</button></div>
+      <button type="button" (click)="activatePass()" [disabled]="busy || !chat.canSpendInk(usage.ink_balance, usage.ink_pass_price ?? 20)">{{ busy ? 'Activando…' : 'Activar' }}</button></div>
     <small>{{ passError || 'El asistente general sigue gratis.' }}</small></section>`,
   styles: [`.usage-meter{padding:.7rem 1rem;background:var(--home-bg-surface);color:var(--home-ink);border:1px solid var(--home-glass-border);border-radius:.75rem;font:.8rem var(--font-ui)}.meter-row{display:flex;justify-content:space-between;gap:.7rem;flex-wrap:wrap}a{color:var(--color-warning)}small{display:block;margin-top:.4rem;color:var(--home-ink-muted)}progress{width:100%;height:.5rem;accent-color:var(--color-warning);margin:.45rem 0}p{margin:.5rem 0}button{background:transparent;color:var(--color-warning);border:1px solid currentColor;border-radius:.5rem;padding:.4rem .6rem;min-height:44px;cursor:pointer}button:focus-visible{outline:3px solid var(--color-warning);outline-offset:3px}a:focus-visible{outline:2px solid currentColor;outline-offset:3px}`]
 })
 export class AIUsageMeterComponent implements OnInit, OnDestroy {
   @Input() sessionId: string | null = null;
   private service = inject(SubscriptionService);
+  readonly chat = inject(ChatService);
   private element = inject(ElementRef);
   private clientId = crypto.randomUUID();
   private lastActivity = Date.now();

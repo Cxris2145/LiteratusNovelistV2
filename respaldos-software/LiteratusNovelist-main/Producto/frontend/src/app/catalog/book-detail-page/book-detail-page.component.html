@@ -317,7 +317,7 @@
     </p>
     
     <div class="purchase-modal-balance" *ngIf="book.price && book.price > 0">
-      Tu balance actual: <span>{{ userInkBalance }} Tinta</span>
+      Tu balance actual: <span>{{ userInkBalance | ownInk }} Tinta</span>
     </div>
     
     <div class="modal-actions">

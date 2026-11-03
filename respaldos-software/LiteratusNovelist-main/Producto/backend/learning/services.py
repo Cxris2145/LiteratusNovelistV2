@@ -691,7 +691,7 @@ def purchase_shop_item(user, item_code: str) -> dict:
         return {'success': False, 'error': 'NOT_FOR_SALE',
                 'message': 'Este artículo no se vende: se gana como recompensa en Literatus.'}
 
-    if profile.ink_balance < item.cost_ink:
+    if not profile.can_spend_ink(item.cost_ink):
         return {
             'success': False,
             'error': 'INSUFFICIENT_INK',
@@ -729,13 +729,13 @@ def purchase_shop_item(user, item_code: str) -> dict:
             return {'success': False, 'error': 'ITEM_NOT_FOUND', 'message': 'Artículo no disponible en El Bazar.'}
 
     # Descontar Tinta
-    profile.ink_balance -= item.cost_ink
+    charged = profile.spend_ink(item.cost_ink)
     profile.save(update_fields=['ink_balance'])
 
     # Registrar en el ledger inmutable de Tinta
     InkTransaction.objects.create(
         user=user,
-        amount=-item.cost_ink,
+        amount=-charged,
         concept=f"shop_purchase_{item.item_type}",
         reference_id=str(item.id),
         balance_after=profile.ink_balance

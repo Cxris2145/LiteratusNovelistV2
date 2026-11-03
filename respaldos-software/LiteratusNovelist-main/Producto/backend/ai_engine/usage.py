@@ -130,12 +130,12 @@ def buy_day_pass(user):
         profile = Profile.objects.select_for_update().get(user=user)
         date = day_bounds(now)[0]
         if not day_pass_active(user, date):
-            if profile.ink_balance < price:
+            if not profile.can_spend_ink(price):
                 raise UsageDenied('INSUFFICIENT_INK',
                     f'Necesitas {price} de Tinta para el pase del día; tienes {profile.ink_balance}.')
-            profile.ink_balance -= price
+            charged = profile.spend_ink(price)
             profile.save(update_fields=['ink_balance'])
-            InkTransaction.objects.create(user=user, amount=-price, concept=DAY_PASS_CONCEPT,
+            InkTransaction.objects.create(user=user, amount=-charged, concept=DAY_PASS_CONCEPT,
                 reference_id=str(date), balance_after=profile.ink_balance)
     return snapshot(user)
 
@@ -208,12 +208,12 @@ def reserve(user, session, message, request_id, mode, quote_id, token_ceiling):
                 message_hash=digest(message), used=False, expires_at__gt=now).first()
             if not accepted:
                 raise UsageDenied('QUOTE_REQUIRED', 'Acepta una cotización vigente antes de usar Tinta.')
-            ink_cost = accepted.ink_cost
-            if profile.ink_balance < ink_cost:
+            if not profile.can_spend_ink(accepted.ink_cost):
                 raise UsageDenied('INSUFFICIENT_INK', 'No tienes Tinta suficiente para esta respuesta.')
             accepted.used = True
             accepted.save(update_fields=['used'])
-            profile.ink_balance -= ink_cost
+            # Lo cobrado de verdad (0 con Tinta infinita): es lo que se devuelve si la respuesta falla.
+            ink_cost = profile.spend_ink(accepted.ink_cost)
             profile.save(update_fields=['ink_balance'])
         return AIUsageEvent.objects.create(request_id=request_id, user=user, session=session, usage=usage,
             message_hash=digest(message), mode=mode, reserved_tokens=token_ceiling if mode in ('plan', 'pass') else 0,

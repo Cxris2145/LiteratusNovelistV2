@@ -23,7 +23,7 @@
           <span class="material-symbols-rounded pill-icon" aria-hidden="true">ink_pen</span>
           <div class="pill-info">
             <span class="pill-label">Tu Reserva</span>
-            <strong class="pill-value">{{ userInkBalance | number }} Tinta</strong>
+            <strong class="pill-value">{{ userInkBalance | number | ownInk }} Tinta</strong>
           </div>
         </div>
         <a routerLink="/achievements" class="oraculo-achievements-link">

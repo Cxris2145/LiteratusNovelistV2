@@ -11,6 +11,8 @@ import { prefersReducedMotion } from '../../core/utils/motion.util';
 export class InkwellComponent implements OnChanges, AfterViewInit {
   @Input() balance = 0;
   @Input() anonymous = false;
+  /** Tinta infinita: tintero lleno y ∞ en vez de la cifra. */
+  @Input() infinite = false;
   /** Enciende el "+N" flotante; el padre lo activa después de la primera carga del saldo. */
   @Input() showDelta = false;
 
@@ -25,6 +27,7 @@ export class InkwellComponent implements OnChanges, AfterViewInit {
   /** Escala logarítmica: 20 Tinta ya se notan y 5.000 llenan el tintero. */
   get level(): number {
     if (this.anonymous) return 0.5;
+    if (this.infinite) return 1;
     const balance = Math.max(0, Number(this.balance) || 0);
     if (!balance) return 0.04;
     return Math.min(1, Math.max(0.1, Math.log10(balance + 1) / Math.log10(5001)));

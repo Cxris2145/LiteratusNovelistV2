@@ -372,7 +372,8 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   isConsumable(item: ShopItem): boolean { return CONSUMABLES.includes(item.item_type); }
   wearSlot(item: ShopItem): WearSlot { return parseWear(item.value)?.slot ?? 'head'; }
   slotLabel(item: ShopItem): string { return SLOT_LABELS[this.wearSlot(item)]; }
-  missingInk(item: ShopItem): number { return Math.max(0, item.cost_ink - this.balance); }
+  get infiniteInk(): boolean { return this.chat.hasInfiniteInk; }
+  missingInk(item: ShopItem): number { return this.infiniteInk ? 0 : Math.max(0, item.cost_ink - this.balance); }
   /** Cuánto del precio ya tienes, de 0 a 1 (para la barra de "te faltan"). */
   progressTo(item: ShopItem): number { return item.cost_ink ? Math.min(1, this.balance / item.cost_ink) : 1; }
   format(value: number): string { return Number(value || 0).toLocaleString('es-CL'); }

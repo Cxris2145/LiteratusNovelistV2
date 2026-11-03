@@ -55,7 +55,7 @@
           <span class="material-symbols-rounded pill-icon pill-icon--gold">ink_pen</span>
           <div class="pill-data">
             <span class="pill-label">Tu Tinta</span>
-            <span class="pill-value">{{ userInkBalance | number }}</span>
+            <span class="pill-value">{{ userInkBalance | number | ownInk }}</span>
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@
         <div class="perks-group">
           <!-- +1 Pregunta (3 Tinta) -->
           <button type="button" class="perk-btn" (click)="buyExtraQuestion()"
-                  [disabled]="isBuyingPerk || userInkBalance < 3 || session.extra_questions_bought >= 2"
+                  [disabled]="isBuyingPerk || !canSpend(3) || session.extra_questions_bought >= 2"
                   [title]="session.extra_questions_bought >= 2 ? 'Límite alcanzado' : 'Añadir 1 pregunta por 3 Gotas de Tinta'">
             <span class="material-symbols-rounded">add_circle</span>
             <span>+1 Pregunta</span>
@@ -133,7 +133,7 @@
 
           <!-- Pista Reveladora (5 Tinta) -->
           <button type="button" class="perk-btn" (click)="buyClue()"
-                  [disabled]="isBuyingPerk || userInkBalance < 5 || session.clues_bought >= 1"
+                  [disabled]="isBuyingPerk || !canSpend(5) || session.clues_bought >= 1"
                   [title]="session.clues_bought >= 1 ? 'Pista ya obtenida' : 'Pedir una confidencia íntima por 5 Gotas de Tinta'">
             <span class="material-symbols-rounded">lightbulb</span>
             <span>Pista Reveladora</span>
@@ -142,7 +142,7 @@
 
           <!-- Descarte 50/50 (4 Tinta) -->
           <button type="button" class="perk-btn" (click)="buyDiscardTwo()"
-                  [disabled]="isBuyingPerk || userInkBalance < 4 || (session.discarded_avatar_ids && session.discarded_avatar_ids.length > 0)"
+                  [disabled]="isBuyingPerk || !canSpend(4) || (session.discarded_avatar_ids && session.discarded_avatar_ids.length > 0)"
                   [title]="session.discarded_avatar_ids && session.discarded_avatar_ids.length > 0 ? 'Descarte ya usado' : 'Eliminar 2 sospechosos por 4 Gotas de Tinta'">
             <span class="material-symbols-rounded">flaky</span>
             <span>Descarte 50/50</span>

@@ -20,7 +20,8 @@
   </div>
 </div>
 <p class="iw-caption" *ngIf="!anonymous; else guest">
-  <strong class="iw-amount"><span aria-hidden="true" [appCountUp]="balance" [countUpDelta]="showDelta"></span><span class="sr-only">{{ format(balance) }}</span></strong>
+  <strong class="iw-amount" *ngIf="!infinite"><span aria-hidden="true" [appCountUp]="balance" [countUpDelta]="showDelta"></span><span class="sr-only">{{ format(balance) }}</span></strong>
+  <strong class="iw-amount" *ngIf="infinite" title="Tinta infinita">∞</strong>
   <span>Tinta en tu tintero</span>
 </p>
 <ng-template #guest>

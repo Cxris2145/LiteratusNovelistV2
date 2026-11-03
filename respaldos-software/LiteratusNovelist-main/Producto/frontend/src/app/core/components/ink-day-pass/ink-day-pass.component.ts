@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import { AIUsage, SubscriptionService } from '../../services/subscription.service';
+import { ChatService } from '../../services/chat.service';
+import { OwnInkPipe } from '../../pipes/own-ink.pipe';
 
 /**
  * Oferta del pase del día dentro del chat (sin ventanas aparte): un pago de Tinta y se conversa
@@ -12,7 +14,7 @@ import { AIUsage, SubscriptionService } from '../../services/subscription.servic
 @Component({
   selector: 'app-ink-day-pass',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, OwnInkPipe],
   template: `
     <section class="idp" aria-labelledby="idp-title" role="region">
       <span class="material-symbols-rounded idp-icon" aria-hidden="true">all_inclusive</span>
@@ -20,7 +22,7 @@ import { AIUsage, SubscriptionService } from '../../services/subscription.servic
         <h3 id="idp-title">Conversa sin límite hoy</h3>
         <p>
           Con el <strong>pase del día</strong> hablas con todos los personajes hasta la medianoche
-          por <strong>{{ price }} Tinta</strong>. Tienes {{ balance }}.
+          por <strong>{{ price }} Tinta</strong>. Tienes {{ balance | ownInk }}.
         </p>
         <div class="idp-actions">
           <button *ngIf="!missing" type="button" class="idp-primary" (click)="activate()" [disabled]="busy">
@@ -71,6 +73,7 @@ import { AIUsage, SubscriptionService } from '../../services/subscription.servic
 })
 export class InkDayPassComponent {
   private readonly subscriptions = inject(SubscriptionService);
+  private readonly chat = inject(ChatService);
 
   @Input() usage: AIUsage | null = null;
   @Output() activated = new EventEmitter<void>();
@@ -87,7 +90,7 @@ export class InkDayPassComponent {
   }
 
   get missing(): number {
-    return Math.max(0, this.price - this.balance);
+    return this.chat.canSpendInk(this.balance, this.price) ? 0 : this.price - this.balance;
   }
 
   activate(): void {

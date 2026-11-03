@@ -472,7 +472,7 @@
           <h3>Logros y racha</h3>
           <p>
             Lee un poco cada día para mantener tu racha, subir de nivel y completar misiones.
-            <ng-container *ngIf="profileLoaded">Hoy tienes {{ userInk.toLocaleString('es-CL') }} de Tinta.</ng-container>
+            <ng-container *ngIf="profileLoaded">Hoy tienes {{ userInk.toLocaleString('es-CL') | ownInk }} de Tinta.</ng-container>
           </p>
           <span class="play-link">{{ isLoggedIn ? 'Ver mis logros' : 'Crear cuenta para empezar' }}</span>
         </div>

@@ -213,9 +213,11 @@ export class BlindInterrogationComponent implements OnInit, OnDestroy, CanCompon
 
   // --- PERKS DE TINTA ---
 
+  canSpend(cost: number): boolean { return this.chatService.canSpendInk(this.userInkBalance, cost); }
+
   buyExtraQuestion(): void {
     if (!this.session || this.session.status !== 'playing' || this.isBuyingPerk) return;
-    if (this.userInkBalance < 3) {
+    if (!this.canSpend(3)) {
       this.notificationService.warning('Necesitas 3 Gotas de Tinta para obtener una pregunta extra.', 'Tinta insuficiente');
       return;
     }
@@ -247,7 +249,7 @@ export class BlindInterrogationComponent implements OnInit, OnDestroy, CanCompon
 
   buyClue(): void {
     if (!this.session || this.session.status !== 'playing' || this.isBuyingPerk) return;
-    if (this.userInkBalance < 5) {
+    if (!this.canSpend(5)) {
       this.notificationService.warning('Necesitas 5 Gotas de Tinta para solicitar una confidencia del tintero.', 'Tinta insuficiente');
       return;
     }
@@ -280,7 +282,7 @@ export class BlindInterrogationComponent implements OnInit, OnDestroy, CanCompon
 
   buyDiscardTwo(): void {
     if (!this.session || this.session.status !== 'playing' || this.isBuyingPerk) return;
-    if (this.userInkBalance < 4) {
+    if (!this.canSpend(4)) {
       this.notificationService.warning('Necesitas 4 Gotas de Tinta para descartar 2 sospechosos.', 'Tinta insuficiente');
       return;
     }

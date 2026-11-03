@@ -778,7 +778,8 @@
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20 !important;
 }
 
-::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chip--level {
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chip--level,
+::ng-deep .mat-mdc-menu-panel.profile-menu .pm-chip--ink {
   background: var(--color-accent-soft);
   color: var(--pm-gold-ink);
 }

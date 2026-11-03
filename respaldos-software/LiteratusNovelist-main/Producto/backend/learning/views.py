@@ -344,7 +344,7 @@ class StreakRepairView(APIView):
                 'message': 'Tu racha no está perdida. Solo puedes recuperarla si se ha roto.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        if profile.ink_balance < 60:
+        if not profile.can_spend_ink(60):
             return Response({
                 'success': False,
                 'error': 'INSUFFICIENT_INK',
@@ -352,7 +352,7 @@ class StreakRepairView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Restaurar racha y descontar tinta
-        profile.ink_balance -= 60
+        charged = profile.spend_ink(60)
         profile.streak_current = profile.streak_max
         # streak_last_date se fija en hoy para que al continuar leyendo ese mismo día no se reinicie
         profile.streak_last_date = today
@@ -361,7 +361,7 @@ class StreakRepairView(APIView):
         # Registrar en el libro de transacciones de tinta
         InkTransaction.objects.create(
             user=request.user,
-            amount=-60,
+            amount=-charged,
             concept="streak_repair",
             reference_id=f"streak:{profile.streak_current}",
             balance_after=profile.ink_balance
@@ -414,14 +414,14 @@ class HeartsRefillView(APIView):
         if current >= 5:
             return Response({'success': False, 'message': 'Ya tienes tus 5 corazones llenos.'})
 
-        if profile.ink_balance < 25:
+        if not profile.can_spend_ink(25):
             return Response({
                 'success': False,
                 'error': 'INSUFFICIENT_INK',
                 'message': 'Necesitas 25 de Tinta para recargar tus corazones.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        profile.ink_balance -= 25
+        profile.spend_ink(25)
         profile.hearts = 5
         from django.utils import timezone
         profile.hearts_last_updated = timezone.now()

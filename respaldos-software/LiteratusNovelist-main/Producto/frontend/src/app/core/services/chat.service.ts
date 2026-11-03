@@ -70,6 +70,10 @@ export class ChatService {
   private inkBalanceSubject = new BehaviorSubject<number>(0);
   public inkBalance$ = this.inkBalanceSubject.asObservable();
 
+  // Tinta infinita (la decide el backend en el perfil): se muestra ∞ y ningún cobro se frena por saldo.
+  private infiniteInkSubject = new BehaviorSubject<boolean>(false);
+  public infiniteInk$ = this.infiniteInkSubject.asObservable();
+
   private profileUpdatedSubject = new Subject<void>();
   public profileUpdated$ = this.profileUpdatedSubject.asObservable();
 
@@ -104,6 +108,7 @@ export class ChatService {
         if (profile && profile.ink_balance !== undefined) {
           this.inkBalanceSubject.next(profile.ink_balance);
         }
+        this.infiniteInkSubject.next(profile?.infinite_ink === true);
       },
       error: (err) => {
         console.error("Error cargando balance inicial", err);
@@ -113,6 +118,15 @@ export class ChatService {
 
   updateInkBalance(balance: number) {
     this.inkBalanceSubject.next(balance);
+  }
+
+  get hasInfiniteInk(): boolean {
+    return this.infiniteInkSubject.value;
+  }
+
+  /** ¿Alcanza la Tinta para un cobro? Con Tinta infinita siempre. */
+  canSpendInk(balance: number, cost: number): boolean {
+    return this.hasInfiniteInk || balance >= cost;
   }
 
   // Desencadena una animación en el navbar

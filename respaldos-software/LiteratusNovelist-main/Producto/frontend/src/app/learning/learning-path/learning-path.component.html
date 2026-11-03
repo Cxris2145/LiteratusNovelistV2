@@ -71,7 +71,7 @@
         </button>
         <button type="button" class="stat-pill ink-pill" (click)="goToTavern()" aria-label="Tinta disponible. Ir al Bazar">
           <span class="material-symbols-rounded ink-icon" aria-hidden="true">ink_pen</span>
-          {{ userStatus.ink_balance }}
+          {{ userStatus.ink_balance | ownInk }}
         </button>
         <span class="stat-pill level-pill">
           <span class="material-symbols-rounded crown-icon" aria-hidden="true">military_tech</span>

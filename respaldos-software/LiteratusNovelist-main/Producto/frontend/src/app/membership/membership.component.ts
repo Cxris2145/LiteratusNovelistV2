@@ -29,6 +29,7 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
   account: SubscriptionAccount | null = null;
   usage: AIUsage | null = null;
   inkBalance = 0;
+  get infiniteInk(): boolean { return this.chat.hasInfiniteInk; }
   /** Se enciende después de la primera carga del saldo: desde ahí los cambios muestran "+N". */
   balanceReady = false;
   packages: { amount: number; price: string; currency: string }[] = [];

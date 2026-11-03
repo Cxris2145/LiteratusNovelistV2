@@ -369,7 +369,7 @@
   <!-- Tinta (siempre visible al pie) -->
   <a class="sheet-ink" routerLink="/planes" fragment="tinta">
     <span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>
-    <span class="sheet-ink-count">Tinta: {{ reader.inkBalance }}</span>
+    <span class="sheet-ink-count">Tinta: {{ reader.inkBalance | ownInk }}</span>
     <span class="sheet-ink-cta">Recargar</span>
   </a>
 </section>

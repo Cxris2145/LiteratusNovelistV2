@@ -374,7 +374,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             from users.models import Profile
             profile = Profile.objects.select_for_update().get(user=request.user)
             
-            if profile.ink_balance < cost:
+            if not profile.can_spend_ink(cost):
                 return Response({
                     'error': 'INSUFFICIENT_INK',
                     'message': f'No tienes tinta suficiente. Necesitas {cost} de Tinta, tienes {profile.ink_balance}.'
@@ -385,14 +385,14 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
                 return Response({'error': 'Ya posees este libro.'}, status=status.HTTP_400_BAD_REQUEST)
                 
             # Restar tinta
-            profile.ink_balance -= cost
+            charged = profile.spend_ink(cost)
             profile.save()
             
             # Registrar transacción de Tinta
             from library.models import InkTransaction
             InkTransaction.objects.create(
                 user=request.user,
-                amount=-cost,
+                amount=-charged,
                 concept='book_purchase',
                 reference_id=str(book.id),
                 balance_after=profile.ink_balance
@@ -437,19 +437,19 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             if inventory.has_premium_narration:
                 return Response({'error': 'Ya posees la narración premium.'}, status=status.HTTP_400_BAD_REQUEST)
                 
-            if profile.ink_balance < cost:
+            if not profile.can_spend_ink(cost):
                 return Response({
                     'error': 'INSUFFICIENT_INK',
                     'message': f'Necesitas {cost} de Tinta, tienes {profile.ink_balance}.'
                 }, status=status.HTTP_400_BAD_REQUEST)
                 
-            profile.ink_balance -= cost
+            charged = profile.spend_ink(cost)
             profile.save()
             
             from library.models import InkTransaction
             InkTransaction.objects.create(
                 user=request.user,
-                amount=-cost,
+                amount=-charged,
                 concept='narration_purchase',
                 reference_id=str(book.id),
                 balance_after=profile.ink_balance
