@@ -1,0 +1,1508 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-11-03T00:23:40.281132+00:00",
+  "database_fingerprint": "8f2ae7a675660d2fc1098781bc3fdfc1c03336d80ae45c7a07595ef5368e22fc",
+  "style": "semirealistic-navy-bronze-v1",
+  "avatars": [
+    {
+      "avatar_id": "c9b1bc01-4f1f-4493-8fca-6fdf21aa4e26",
+      "name": "Charles Bovary",
+      "edition_id": "c2db59f0-104c-4669-b20e-ada1cad807d5",
+      "book_id": "7dde4b54-d3fb-413f-97b4-66b92ee1dadf",
+      "book_title": "Madame Bovary",
+      "is_author": false,
+      "identity_key": "character:7dde4b54-d3fb-413f-97b4-66b92ee1dadf:charles bovary",
+      "output_image": "images/c9b1bc01-4f1f-4493-8fca-6fdf21aa4e26.webp"
+    },
+    {
+      "avatar_id": "3de734c1-42f2-4d5e-80a5-1aacd78ddd0c",
+      "name": "Rodolphe Boulanger",
+      "edition_id": "c2db59f0-104c-4669-b20e-ada1cad807d5",
+      "book_id": "7dde4b54-d3fb-413f-97b4-66b92ee1dadf",
+      "book_title": "Madame Bovary",
+      "is_author": false,
+      "identity_key": "character:7dde4b54-d3fb-413f-97b4-66b92ee1dadf:rodolphe boulanger",
+      "output_image": "images/3de734c1-42f2-4d5e-80a5-1aacd78ddd0c.webp"
+    },
+    {
+      "avatar_id": "9090660e-60d2-48e0-aa8a-3e285e1c15ba",
+      "name": "Iván Ilich",
+      "edition_id": "e33da300-02c1-4d09-825e-26bcdfb6579b",
+      "book_id": "faf873c9-ddf0-47b1-84eb-d91d120389b5",
+      "book_title": "La muerte de Iván Ilich",
+      "is_author": false,
+      "identity_key": "character:faf873c9-ddf0-47b1-84eb-d91d120389b5:iván ilich",
+      "output_image": "images/9090660e-60d2-48e0-aa8a-3e285e1c15ba.webp"
+    },
+    {
+      "avatar_id": "20d5bc1e-aef8-4123-9559-f6927add84e4",
+      "name": "Praskovya Fyodorovna",
+      "edition_id": "e33da300-02c1-4d09-825e-26bcdfb6579b",
+      "book_id": "faf873c9-ddf0-47b1-84eb-d91d120389b5",
+      "book_title": "La muerte de Iván Ilich",
+      "is_author": false,
+      "identity_key": "character:faf873c9-ddf0-47b1-84eb-d91d120389b5:praskovya fyodorovna",
+      "output_image": "images/20d5bc1e-aef8-4123-9559-f6927add84e4.webp"
+    },
+    {
+      "avatar_id": "b7a3fe71-6932-4dec-a175-adcd6e4267c1",
+      "name": "Gerasim",
+      "edition_id": "e33da300-02c1-4d09-825e-26bcdfb6579b",
+      "book_id": "faf873c9-ddf0-47b1-84eb-d91d120389b5",
+      "book_title": "La muerte de Iván Ilich",
+      "is_author": false,
+      "identity_key": "character:faf873c9-ddf0-47b1-84eb-d91d120389b5:gerasim",
+      "output_image": "images/b7a3fe71-6932-4dec-a175-adcd6e4267c1.webp"
+    },
+    {
+      "avatar_id": "c7856db9-3d68-43ff-87d3-942b17de7d70",
+      "name": "Peter Ivanovich",
+      "edition_id": "e33da300-02c1-4d09-825e-26bcdfb6579b",
+      "book_id": "faf873c9-ddf0-47b1-84eb-d91d120389b5",
+      "book_title": "La muerte de Iván Ilich",
+      "is_author": false,
+      "identity_key": "character:faf873c9-ddf0-47b1-84eb-d91d120389b5:peter ivanovich",
+      "output_image": "images/c7856db9-3d68-43ff-87d3-942b17de7d70.webp"
+    },
+    {
+      "avatar_id": "a90f7f8d-3a55-4ba6-a3bc-4d9266368d13",
+      "name": "Iván Gromov",
+      "edition_id": "a714a8e0-f83e-4584-a1c9-864b57eab7d2",
+      "book_id": "9717674f-090d-4638-8e75-ac4e72be2719",
+      "book_title": "La sala número seis",
+      "is_author": false,
+      "identity_key": "character:9717674f-090d-4638-8e75-ac4e72be2719:iván gromov",
+      "output_image": "images/a90f7f8d-3a55-4ba6-a3bc-4d9266368d13.webp"
+    },
+    {
+      "avatar_id": "ab9e2f4d-21c2-4c5d-bd0d-a2bd91eb7b6a",
+      "name": "Andréi Yefímych Raguin",
+      "edition_id": "a714a8e0-f83e-4584-a1c9-864b57eab7d2",
+      "book_id": "9717674f-090d-4638-8e75-ac4e72be2719",
+      "book_title": "La sala número seis",
+      "is_author": false,
+      "identity_key": "character:9717674f-090d-4638-8e75-ac4e72be2719:andréi yefímych raguin",
+      "output_image": "images/ab9e2f4d-21c2-4c5d-bd0d-a2bd91eb7b6a.webp"
+    },
+    {
+      "avatar_id": "51a63189-5bc9-4ee0-b422-e187a0334acb",
+      "name": "Nikita",
+      "edition_id": "a714a8e0-f83e-4584-a1c9-864b57eab7d2",
+      "book_id": "9717674f-090d-4638-8e75-ac4e72be2719",
+      "book_title": "La sala número seis",
+      "is_author": false,
+      "identity_key": "character:9717674f-090d-4638-8e75-ac4e72be2719:nikita",
+      "output_image": "images/51a63189-5bc9-4ee0-b422-e187a0334acb.webp"
+    },
+    {
+      "avatar_id": "9ea20d6f-a78b-4248-869a-026be6764042",
+      "name": "Víctor Quintanar",
+      "edition_id": "1b6cfaf4-f64a-4c21-aab0-79a9f7454871",
+      "book_id": "6c09f67a-1c2a-4cce-ac01-9de18d0a5834",
+      "book_title": "La Regenta",
+      "is_author": false,
+      "identity_key": "character:6c09f67a-1c2a-4cce-ac01-9de18d0a5834:víctor quintanar",
+      "output_image": "images/9ea20d6f-a78b-4248-869a-026be6764042.webp"
+    },
+    {
+      "avatar_id": "b9d89117-d19d-4e30-9928-e52da4131403",
+      "name": "Fermín de Pas",
+      "edition_id": "1b6cfaf4-f64a-4c21-aab0-79a9f7454871",
+      "book_id": "6c09f67a-1c2a-4cce-ac01-9de18d0a5834",
+      "book_title": "La Regenta",
+      "is_author": false,
+      "identity_key": "character:6c09f67a-1c2a-4cce-ac01-9de18d0a5834:fermín de pas",
+      "output_image": "images/b9d89117-d19d-4e30-9928-e52da4131403.webp"
+    },
+    {
+      "avatar_id": "2bc1f102-4b97-42cf-84b8-0ac70ddc5209",
+      "name": "Doña Lupe",
+      "edition_id": "d18a4614-baa0-40c9-bdc5-e7dbe6fbc67a",
+      "book_id": "cf442e12-002e-4da6-b10b-3945d40b5b5b",
+      "book_title": "Fortunata y Jacinta",
+      "is_author": false,
+      "identity_key": "character:cf442e12-002e-4da6-b10b-3945d40b5b5b:doña lupe",
+      "output_image": "images/2bc1f102-4b97-42cf-84b8-0ac70ddc5209.webp"
+    },
+    {
+      "avatar_id": "6941a53d-4232-442a-b333-cb806ac47234",
+      "name": "Juanito Santa Cruz",
+      "edition_id": "d18a4614-baa0-40c9-bdc5-e7dbe6fbc67a",
+      "book_id": "cf442e12-002e-4da6-b10b-3945d40b5b5b",
+      "book_title": "Fortunata y Jacinta",
+      "is_author": false,
+      "identity_key": "character:cf442e12-002e-4da6-b10b-3945d40b5b5b:juanito santa cruz",
+      "output_image": "images/6941a53d-4232-442a-b333-cb806ac47234.webp"
+    },
+    {
+      "avatar_id": "709bc896-a488-41cb-8db2-9a18834da3bd",
+      "name": "Maximino Rubín",
+      "edition_id": "d18a4614-baa0-40c9-bdc5-e7dbe6fbc67a",
+      "book_id": "cf442e12-002e-4da6-b10b-3945d40b5b5b",
+      "book_title": "Fortunata y Jacinta",
+      "is_author": false,
+      "identity_key": "character:cf442e12-002e-4da6-b10b-3945d40b5b5b:maximino rubín",
+      "output_image": "images/709bc896-a488-41cb-8db2-9a18834da3bd.webp"
+    },
+    {
+      "avatar_id": "1dcb2acd-bf34-43e8-9a99-4c275a51c2c5",
+      "name": "Nucha (Marcelina)",
+      "edition_id": "c1a9ef16-1921-433a-bbe6-7764b8c7f4c9",
+      "book_id": "a9a20a79-45bd-4d20-969f-5ea3bb3d8cf4",
+      "book_title": "Los pazos de Ulloa",
+      "is_author": false,
+      "identity_key": "character:a9a20a79-45bd-4d20-969f-5ea3bb3d8cf4:nucha (marcelina)",
+      "output_image": "images/1dcb2acd-bf34-43e8-9a99-4c275a51c2c5.webp"
+    },
+    {
+      "avatar_id": "24734676-ff51-4378-b53e-e90868ebce46",
+      "name": "Julián Álvarez",
+      "edition_id": "c1a9ef16-1921-433a-bbe6-7764b8c7f4c9",
+      "book_id": "a9a20a79-45bd-4d20-969f-5ea3bb3d8cf4",
+      "book_title": "Los pazos de Ulloa",
+      "is_author": false,
+      "identity_key": "character:a9a20a79-45bd-4d20-969f-5ea3bb3d8cf4:julián álvarez",
+      "output_image": "images/24734676-ff51-4378-b53e-e90868ebce46.webp"
+    },
+    {
+      "avatar_id": "b14d197d-5ece-4c3f-bcd6-f9e0a9c66e80",
+      "name": "Pedro Moscoso",
+      "edition_id": "c1a9ef16-1921-433a-bbe6-7764b8c7f4c9",
+      "book_id": "a9a20a79-45bd-4d20-969f-5ea3bb3d8cf4",
+      "book_title": "Los pazos de Ulloa",
+      "is_author": false,
+      "identity_key": "character:a9a20a79-45bd-4d20-969f-5ea3bb3d8cf4:pedro moscoso",
+      "output_image": "images/b14d197d-5ece-4c3f-bcd6-f9e0a9c66e80.webp"
+    },
+    {
+      "avatar_id": "15e7026c-5ca2-4aed-925f-ebe03e00a2b9",
+      "name": "Don Luis de Vargas",
+      "edition_id": "8d412639-78b1-4ca7-b9bb-064a93c6f625",
+      "book_id": "bcf19eb0-6304-4835-a8c5-1269ce92cfc4",
+      "book_title": "Pepita Jiménez",
+      "is_author": false,
+      "identity_key": "character:bcf19eb0-6304-4835-a8c5-1269ce92cfc4:don luis de vargas",
+      "output_image": "images/15e7026c-5ca2-4aed-925f-ebe03e00a2b9.webp"
+    },
+    {
+      "avatar_id": "be6586f9-61a5-4d07-8e36-06e269d760bc",
+      "name": "Don Pedro de Vargas",
+      "edition_id": "8d412639-78b1-4ca7-b9bb-064a93c6f625",
+      "book_id": "bcf19eb0-6304-4835-a8c5-1269ce92cfc4",
+      "book_title": "Pepita Jiménez",
+      "is_author": false,
+      "identity_key": "character:bcf19eb0-6304-4835-a8c5-1269ce92cfc4:don pedro de vargas",
+      "output_image": "images/be6586f9-61a5-4d07-8e36-06e269d760bc.webp"
+    },
+    {
+      "avatar_id": "7f643e5c-d572-4595-9131-c9d038c101d5",
+      "name": "Eugenia Domingo del Arco",
+      "edition_id": "e32d2c4c-8d31-4fee-9f5b-5f25e4cc03fc",
+      "book_id": "a6f300b1-d765-4527-954e-3c53e39c4219",
+      "book_title": "Niebla (Nivola)",
+      "is_author": false,
+      "identity_key": "character:a6f300b1-d765-4527-954e-3c53e39c4219:eugenia domingo del arco",
+      "output_image": "images/7f643e5c-d572-4595-9131-c9d038c101d5.webp"
+    },
+    {
+      "avatar_id": "8bd7261d-6ed4-4494-8e7f-67241cca5835",
+      "name": "Augusto Pérez",
+      "edition_id": "e32d2c4c-8d31-4fee-9f5b-5f25e4cc03fc",
+      "book_id": "a6f300b1-d765-4527-954e-3c53e39c4219",
+      "book_title": "Niebla (Nivola)",
+      "is_author": false,
+      "identity_key": "character:a6f300b1-d765-4527-954e-3c53e39c4219:augusto pérez",
+      "output_image": "images/8bd7261d-6ed4-4494-8e7f-67241cca5835.webp"
+    },
+    {
+      "avatar_id": "9905e9c1-659d-441b-8869-8b4ca85f94c1",
+      "name": "Víctor Goti",
+      "edition_id": "e32d2c4c-8d31-4fee-9f5b-5f25e4cc03fc",
+      "book_id": "a6f300b1-d765-4527-954e-3c53e39c4219",
+      "book_title": "Niebla (Nivola)",
+      "is_author": false,
+      "identity_key": "character:a6f300b1-d765-4527-954e-3c53e39c4219:víctor goti",
+      "output_image": "images/9905e9c1-659d-441b-8869-8b4ca85f94c1.webp"
+    },
+    {
+      "avatar_id": "08ce5176-f890-472d-8d43-1dfe48f93cef",
+      "name": "Diego Pacheco",
+      "edition_id": "d8f2c83c-7078-49ca-b5f2-d7a87c9bb66d",
+      "book_id": "0b1ffef0-8399-421c-afff-c908432e9644",
+      "book_title": "Insolación",
+      "is_author": false,
+      "identity_key": "character:0b1ffef0-8399-421c-afff-c908432e9644:diego pacheco",
+      "output_image": "images/08ce5176-f890-472d-8d43-1dfe48f93cef.webp"
+    },
+    {
+      "avatar_id": "1d2ef87f-1904-4064-9a60-00e284dcd1e0",
+      "name": "Gabriel Pardo de la Lage",
+      "edition_id": "d8f2c83c-7078-49ca-b5f2-d7a87c9bb66d",
+      "book_id": "0b1ffef0-8399-421c-afff-c908432e9644",
+      "book_title": "Insolación",
+      "is_author": false,
+      "identity_key": "character:0b1ffef0-8399-421c-afff-c908432e9644:gabriel pardo de la lage",
+      "output_image": "images/1d2ef87f-1904-4064-9a60-00e284dcd1e0.webp"
+    },
+    {
+      "avatar_id": "6d67bf8c-8c3e-43e3-8e08-560354da54c3",
+      "name": "Francisca \"Asís\" Taboada",
+      "edition_id": "d8f2c83c-7078-49ca-b5f2-d7a87c9bb66d",
+      "book_id": "0b1ffef0-8399-421c-afff-c908432e9644",
+      "book_title": "Insolación",
+      "is_author": false,
+      "identity_key": "character:0b1ffef0-8399-421c-afff-c908432e9644:francisca \"asís\" taboada",
+      "output_image": "images/6d67bf8c-8c3e-43e3-8e08-560354da54c3.webp"
+    },
+    {
+      "avatar_id": "0aa725c6-184f-4b2c-911c-70b124139a80",
+      "name": "Juanita",
+      "edition_id": "5f993793-884b-46c0-8868-44afa621ebbd",
+      "book_id": "788c9fcb-2e24-4b65-b190-92ac00ebec5e",
+      "book_title": "Juanita la Larga",
+      "is_author": false,
+      "identity_key": "character:788c9fcb-2e24-4b65-b190-92ac00ebec5e:juanita",
+      "output_image": "images/0aa725c6-184f-4b2c-911c-70b124139a80.webp"
+    },
+    {
+      "avatar_id": "82ca1a82-7dc2-4f07-beee-13b2f81b1383",
+      "name": "Don Paco",
+      "edition_id": "5f993793-884b-46c0-8868-44afa621ebbd",
+      "book_id": "788c9fcb-2e24-4b65-b190-92ac00ebec5e",
+      "book_title": "Juanita la Larga",
+      "is_author": false,
+      "identity_key": "character:788c9fcb-2e24-4b65-b190-92ac00ebec5e:don paco",
+      "output_image": "images/82ca1a82-7dc2-4f07-beee-13b2f81b1383.webp"
+    },
+    {
+      "avatar_id": "b2e70075-3539-4b46-ab1c-0ed8a5e59b8a",
+      "name": "Doña Inés",
+      "edition_id": "5f993793-884b-46c0-8868-44afa621ebbd",
+      "book_id": "788c9fcb-2e24-4b65-b190-92ac00ebec5e",
+      "book_title": "Juanita la Larga",
+      "is_author": false,
+      "identity_key": "character:788c9fcb-2e24-4b65-b190-92ac00ebec5e:doña inés",
+      "output_image": "images/b2e70075-3539-4b46-ab1c-0ed8a5e59b8a.webp"
+    },
+    {
+      "avatar_id": "b70af2cd-f6bd-4345-8adf-94fdee5f3251",
+      "name": "Juana la Larga",
+      "edition_id": "5f993793-884b-46c0-8868-44afa621ebbd",
+      "book_id": "788c9fcb-2e24-4b65-b190-92ac00ebec5e",
+      "book_title": "Juanita la Larga",
+      "is_author": false,
+      "identity_key": "character:788c9fcb-2e24-4b65-b190-92ac00ebec5e:juana la larga",
+      "output_image": "images/b70af2cd-f6bd-4345-8adf-94fdee5f3251.webp"
+    },
+    {
+      "avatar_id": "12282d2f-e29f-4e72-a0cb-f88f47935c33",
+      "name": "Don Elías",
+      "edition_id": "f2b75ea7-9d45-43fe-9e64-5037fcb451ad",
+      "book_id": "bbfec310-e2b2-4f9a-aed5-ba80b5df7d08",
+      "book_title": "La Hermana San Sulpicio",
+      "is_author": false,
+      "identity_key": "character:bbfec310-e2b2-4f9a-aed5-ba80b5df7d08:don elías",
+      "output_image": "images/12282d2f-e29f-4e72-a0cb-f88f47935c33.webp"
+    },
+    {
+      "avatar_id": "bca6f5c6-2db4-492b-af87-7aa1c890e883",
+      "name": "Hermana San Sulpicio",
+      "edition_id": "f2b75ea7-9d45-43fe-9e64-5037fcb451ad",
+      "book_id": "bbfec310-e2b2-4f9a-aed5-ba80b5df7d08",
+      "book_title": "La Hermana San Sulpicio",
+      "is_author": false,
+      "identity_key": "character:bbfec310-e2b2-4f9a-aed5-ba80b5df7d08:hermana san sulpicio",
+      "output_image": "images/bca6f5c6-2db4-492b-af87-7aa1c890e883.webp"
+    },
+    {
+      "avatar_id": "c8c39873-2afe-4945-a429-e3a55dda324e",
+      "name": "Ceferino Sanz",
+      "edition_id": "f2b75ea7-9d45-43fe-9e64-5037fcb451ad",
+      "book_id": "bbfec310-e2b2-4f9a-aed5-ba80b5df7d08",
+      "book_title": "La Hermana San Sulpicio",
+      "is_author": false,
+      "identity_key": "character:bbfec310-e2b2-4f9a-aed5-ba80b5df7d08:ceferino sanz",
+      "output_image": "images/c8c39873-2afe-4945-a429-e3a55dda324e.webp"
+    },
+    {
+      "avatar_id": "f895e307-6ebb-4292-ad2e-f540ae6b5549",
+      "name": "Chulita Ferna",
+      "edition_id": "510bfda2-f2a8-4fc9-aad6-87d0d172f392",
+      "book_id": "307e52ac-5dbc-4b48-a103-2994e124ac67",
+      "book_title": "La gota de sangre",
+      "is_author": false,
+      "identity_key": "character:307e52ac-5dbc-4b48-a103-2994e124ac67:chulita ferna",
+      "output_image": "images/f895e307-6ebb-4292-ad2e-f540ae6b5549.webp"
+    },
+    {
+      "avatar_id": "fd035955-642a-42c8-bbd3-4e489af387ec",
+      "name": "Andrés Ariza",
+      "edition_id": "510bfda2-f2a8-4fc9-aad6-87d0d172f392",
+      "book_id": "307e52ac-5dbc-4b48-a103-2994e124ac67",
+      "book_title": "La gota de sangre",
+      "is_author": false,
+      "identity_key": "character:307e52ac-5dbc-4b48-a103-2994e124ac67:andrés ariza",
+      "output_image": "images/fd035955-642a-42c8-bbd3-4e489af387ec.webp"
+    },
+    {
+      "avatar_id": "fd6078c0-0cc2-43bc-ba1d-8e966e0e08cd",
+      "name": "Selva",
+      "edition_id": "510bfda2-f2a8-4fc9-aad6-87d0d172f392",
+      "book_id": "307e52ac-5dbc-4b48-a103-2994e124ac67",
+      "book_title": "La gota de sangre",
+      "is_author": false,
+      "identity_key": "character:307e52ac-5dbc-4b48-a103-2994e124ac67:selva",
+      "output_image": "images/fd6078c0-0cc2-43bc-ba1d-8e966e0e08cd.webp"
+    },
+    {
+      "avatar_id": "36cf62a9-0c13-4093-a371-55d208476763",
+      "name": "Doctor Pineal",
+      "edition_id": "84b2d288-e931-4408-8e8c-25943c4296ea",
+      "book_id": "f844e13c-e271-4785-af6d-2b52603c467f",
+      "book_title": "La bolsa de huesos",
+      "is_author": false,
+      "identity_key": "character:f844e13c-e271-4785-af6d-2b52603c467f:doctor pineal",
+      "output_image": "images/36cf62a9-0c13-4093-a371-55d208476763.webp"
+    },
+    {
+      "avatar_id": "7300748b-dde7-4384-838a-16700e24f8a4",
+      "name": "Clara",
+      "edition_id": "84b2d288-e931-4408-8e8c-25943c4296ea",
+      "book_id": "f844e13c-e271-4785-af6d-2b52603c467f",
+      "book_title": "La bolsa de huesos",
+      "is_author": false,
+      "identity_key": "character:f844e13c-e271-4785-af6d-2b52603c467f:clara",
+      "output_image": "images/7300748b-dde7-4384-838a-16700e24f8a4.webp"
+    },
+    {
+      "avatar_id": "010b3f2c-8236-4283-bba8-ed6c56592aef",
+      "name": "Sra. Witham",
+      "edition_id": "88ece625-005c-4e48-a275-9bae67a4143a",
+      "book_id": "9180d26a-f8a9-4112-a944-0bfb243f078c",
+      "book_title": "La casa del Juez",
+      "is_author": false,
+      "identity_key": "character:9180d26a-f8a9-4112-a944-0bfb243f078c:sra. witham",
+      "output_image": "images/010b3f2c-8236-4283-bba8-ed6c56592aef.webp"
+    },
+    {
+      "avatar_id": "46c48d8b-cf10-4838-bbb5-d6dad58c8707",
+      "name": "Malcolm Malcolmson",
+      "edition_id": "88ece625-005c-4e48-a275-9bae67a4143a",
+      "book_id": "9180d26a-f8a9-4112-a944-0bfb243f078c",
+      "book_title": "La casa del Juez",
+      "is_author": false,
+      "identity_key": "character:9180d26a-f8a9-4112-a944-0bfb243f078c:malcolm malcolmson",
+      "output_image": "images/46c48d8b-cf10-4838-bbb5-d6dad58c8707.webp"
+    },
+    {
+      "avatar_id": "f2e0c74c-547c-4e50-b338-0419e4d92d4d",
+      "name": "Sra. Dempster",
+      "edition_id": "88ece625-005c-4e48-a275-9bae67a4143a",
+      "book_id": "9180d26a-f8a9-4112-a944-0bfb243f078c",
+      "book_title": "La casa del Juez",
+      "is_author": false,
+      "identity_key": "character:9180d26a-f8a9-4112-a944-0bfb243f078c:sra. dempster",
+      "output_image": "images/f2e0c74c-547c-4e50-b338-0419e4d92d4d.webp"
+    },
+    {
+      "avatar_id": "2a875d2e-6a04-4526-bf9c-5982fabadb87",
+      "name": "Herbert White",
+      "edition_id": "a35464b9-8253-416d-82b1-a33e966033d2",
+      "book_id": "970dc20d-6175-4514-bbf7-1ccb3eb8e47c",
+      "book_title": "La pata de mono",
+      "is_author": false,
+      "identity_key": "character:970dc20d-6175-4514-bbf7-1ccb3eb8e47c:herbert white",
+      "output_image": "images/2a875d2e-6a04-4526-bf9c-5982fabadb87.webp"
+    },
+    {
+      "avatar_id": "3c4b9428-b97d-487f-98d5-59dd88a382d9",
+      "name": "Señora White",
+      "edition_id": "a35464b9-8253-416d-82b1-a33e966033d2",
+      "book_id": "970dc20d-6175-4514-bbf7-1ccb3eb8e47c",
+      "book_title": "La pata de mono",
+      "is_author": false,
+      "identity_key": "character:970dc20d-6175-4514-bbf7-1ccb3eb8e47c:señora white",
+      "output_image": "images/3c4b9428-b97d-487f-98d5-59dd88a382d9.webp"
+    },
+    {
+      "avatar_id": "5b874329-7a18-4754-825e-fc4fa4da8844",
+      "name": "Señor White",
+      "edition_id": "a35464b9-8253-416d-82b1-a33e966033d2",
+      "book_id": "970dc20d-6175-4514-bbf7-1ccb3eb8e47c",
+      "book_title": "La pata de mono",
+      "is_author": false,
+      "identity_key": "character:970dc20d-6175-4514-bbf7-1ccb3eb8e47c:señor white",
+      "output_image": "images/5b874329-7a18-4754-825e-fc4fa4da8844.webp"
+    },
+    {
+      "avatar_id": "fdeced61-dc1e-4392-b6c2-2adca59b523d",
+      "name": "Sargento Mayor Morris",
+      "edition_id": "a35464b9-8253-416d-82b1-a33e966033d2",
+      "book_id": "970dc20d-6175-4514-bbf7-1ccb3eb8e47c",
+      "book_title": "La pata de mono",
+      "is_author": false,
+      "identity_key": "character:970dc20d-6175-4514-bbf7-1ccb3eb8e47c:sargento mayor morris",
+      "output_image": "images/fdeced61-dc1e-4392-b6c2-2adca59b523d.webp"
+    },
+    {
+      "avatar_id": "3d77c6e5-63b5-4b91-9492-9ee2fb56f3c1",
+      "name": "Herbert West",
+      "edition_id": "56af3770-d654-4cd4-b21e-359637658f08",
+      "book_id": "3eb1be5f-39c2-46cb-bc9d-edb8ce0bad47",
+      "book_title": "Herbert West reanimador",
+      "is_author": false,
+      "identity_key": "character:3eb1be5f-39c2-46cb-bc9d-edb8ce0bad47:herbert west",
+      "output_image": "images/3d77c6e5-63b5-4b91-9492-9ee2fb56f3c1.webp"
+    },
+    {
+      "avatar_id": "af0e4ab9-be96-4a84-8a40-ab3158c42b58",
+      "name": "Dr. Allan Halsey",
+      "edition_id": "56af3770-d654-4cd4-b21e-359637658f08",
+      "book_id": "3eb1be5f-39c2-46cb-bc9d-edb8ce0bad47",
+      "book_title": "Herbert West reanimador",
+      "is_author": false,
+      "identity_key": "character:3eb1be5f-39c2-46cb-bc9d-edb8ce0bad47:dr. allan halsey",
+      "output_image": "images/af0e4ab9-be96-4a84-8a40-ab3158c42b58.webp"
+    },
+    {
+      "avatar_id": "a2168255-e347-4c10-b8f6-da62bf78c796",
+      "name": "Francis Wayland Thurston",
+      "edition_id": "77779dd1-bb92-446d-947b-62be40182797",
+      "book_id": "00f002f7-7d41-4807-b02e-b8b8046bd4db",
+      "book_title": "La llamada de Cthulhu",
+      "is_author": false,
+      "identity_key": "character:00f002f7-7d41-4807-b02e-b8b8046bd4db:francis wayland thurston",
+      "output_image": "images/a2168255-e347-4c10-b8f6-da62bf78c796.webp"
+    },
+    {
+      "avatar_id": "fc6c31ff-9d6e-4ec5-9d5e-67757ade7397",
+      "name": "John Raymond Legrasse",
+      "edition_id": "77779dd1-bb92-446d-947b-62be40182797",
+      "book_id": "00f002f7-7d41-4807-b02e-b8b8046bd4db",
+      "book_title": "La llamada de Cthulhu",
+      "is_author": false,
+      "identity_key": "character:00f002f7-7d41-4807-b02e-b8b8046bd4db:john raymond legrasse",
+      "output_image": "images/fc6c31ff-9d6e-4ec5-9d5e-67757ade7397.webp"
+    },
+    {
+      "avatar_id": "45016606-ac25-4f23-af32-09b839a83310",
+      "name": "Delapore",
+      "edition_id": "de599c85-f664-46c9-a0bd-c8857458daf0",
+      "book_id": "745e0b41-ddb3-45fa-8208-88cb5d92ecf5",
+      "book_title": "Las ratas de las paredes",
+      "is_author": false,
+      "identity_key": "character:745e0b41-ddb3-45fa-8208-88cb5d92ecf5:delapore",
+      "output_image": "images/45016606-ac25-4f23-af32-09b839a83310.webp"
+    },
+    {
+      "avatar_id": "624ea619-48b5-4950-a3e0-b4a4e310d39c",
+      "name": "Capitán Edward Norrys",
+      "edition_id": "de599c85-f664-46c9-a0bd-c8857458daf0",
+      "book_id": "745e0b41-ddb3-45fa-8208-88cb5d92ecf5",
+      "book_title": "Las ratas de las paredes",
+      "is_author": false,
+      "identity_key": "character:745e0b41-ddb3-45fa-8208-88cb5d92ecf5:capitán edward norrys",
+      "output_image": "images/624ea619-48b5-4950-a3e0-b4a4e310d39c.webp"
+    },
+    {
+      "avatar_id": "d792d3fc-23f0-44bc-80f9-2587ad38fef9",
+      "name": "Walter de la Poer",
+      "edition_id": "de599c85-f664-46c9-a0bd-c8857458daf0",
+      "book_id": "745e0b41-ddb3-45fa-8208-88cb5d92ecf5",
+      "book_title": "Las ratas de las paredes",
+      "is_author": false,
+      "identity_key": "character:745e0b41-ddb3-45fa-8208-88cb5d92ecf5:walter de la poer",
+      "output_image": "images/d792d3fc-23f0-44bc-80f9-2587ad38fef9.webp"
+    },
+    {
+      "avatar_id": "0c7bd7ed-91c7-423d-b5a9-e246ac669809",
+      "name": "Bellingham",
+      "edition_id": "c4bea4ae-25ca-44ff-96bb-ed226a20bfff",
+      "book_id": "b09c5eca-13c6-4aa5-a516-659ebd878b34",
+      "book_title": "Lote Número 249",
+      "is_author": false,
+      "identity_key": "character:b09c5eca-13c6-4aa5-a516-659ebd878b34:bellingham",
+      "output_image": "images/0c7bd7ed-91c7-423d-b5a9-e246ac669809.webp"
+    },
+    {
+      "avatar_id": "2e45efc7-c47c-4ef6-8432-c3977df4368c",
+      "name": "Abercrombie Smith",
+      "edition_id": "c4bea4ae-25ca-44ff-96bb-ed226a20bfff",
+      "book_id": "b09c5eca-13c6-4aa5-a516-659ebd878b34",
+      "book_title": "Lote Número 249",
+      "is_author": false,
+      "identity_key": "character:b09c5eca-13c6-4aa5-a516-659ebd878b34:abercrombie smith",
+      "output_image": "images/2e45efc7-c47c-4ef6-8432-c3977df4368c.webp"
+    },
+    {
+      "avatar_id": "f78a5ef1-0d28-48c9-ac82-ab721ad8dbe9",
+      "name": "Monkhouse Lee",
+      "edition_id": "c4bea4ae-25ca-44ff-96bb-ed226a20bfff",
+      "book_id": "b09c5eca-13c6-4aa5-a516-659ebd878b34",
+      "book_title": "Lote Número 249",
+      "is_author": false,
+      "identity_key": "character:b09c5eca-13c6-4aa5-a516-659ebd878b34:monkhouse lee",
+      "output_image": "images/f78a5ef1-0d28-48c9-ac82-ab721ad8dbe9.webp"
+    },
+    {
+      "avatar_id": "4567aa14-338d-404e-93f0-081c49baf012",
+      "name": "William Wilson",
+      "edition_id": "ae2ad97d-0c43-405c-916b-010df0814d1a",
+      "book_id": "b5fe9056-0147-46f5-8cc5-0781ab5d3158",
+      "book_title": "William Wilson",
+      "is_author": false,
+      "identity_key": "character:b5fe9056-0147-46f5-8cc5-0781ab5d3158:william wilson",
+      "output_image": "images/4567aa14-338d-404e-93f0-081c49baf012.webp"
+    },
+    {
+      "avatar_id": "30894941-9d39-418e-a757-fd39c88b74e9",
+      "name": "Augustus Barnard",
+      "edition_id": "59957c11-bb03-4fd9-a3d9-fb2fa13724bd",
+      "book_id": "d55f0e3c-5e86-4540-bb6f-b929170231ee",
+      "book_title": "Aventuras de Arthur Gordon Pym",
+      "is_author": false,
+      "identity_key": "character:d55f0e3c-5e86-4540-bb6f-b929170231ee:augustus barnard",
+      "output_image": "images/30894941-9d39-418e-a757-fd39c88b74e9.webp"
+    },
+    {
+      "avatar_id": "5070ed3d-695d-4e3d-849d-d4791502d377",
+      "name": "Arthur Gordon Pym",
+      "edition_id": "59957c11-bb03-4fd9-a3d9-fb2fa13724bd",
+      "book_id": "d55f0e3c-5e86-4540-bb6f-b929170231ee",
+      "book_title": "Aventuras de Arthur Gordon Pym",
+      "is_author": false,
+      "identity_key": "character:d55f0e3c-5e86-4540-bb6f-b929170231ee:arthur gordon pym",
+      "output_image": "images/5070ed3d-695d-4e3d-849d-d4791502d377.webp"
+    },
+    {
+      "avatar_id": "a661437a-5040-4c06-9fbb-9fb402c03e52",
+      "name": "Dirk Peters",
+      "edition_id": "59957c11-bb03-4fd9-a3d9-fb2fa13724bd",
+      "book_id": "d55f0e3c-5e86-4540-bb6f-b929170231ee",
+      "book_title": "Aventuras de Arthur Gordon Pym",
+      "is_author": false,
+      "identity_key": "character:d55f0e3c-5e86-4540-bb6f-b929170231ee:dirk peters",
+      "output_image": "images/a661437a-5040-4c06-9fbb-9fb402c03e52.webp"
+    },
+    {
+      "avatar_id": "06d557f3-bd0f-4028-8ffc-edfd6d79b3f1",
+      "name": "Jukes",
+      "edition_id": "41db9b13-30f5-4cc9-884a-fccbc3b5421c",
+      "book_id": "37737d3a-9185-4004-9e24-e8ee7100a63c",
+      "book_title": "Tifón",
+      "is_author": false,
+      "identity_key": "character:37737d3a-9185-4004-9e24-e8ee7100a63c:jukes",
+      "output_image": "images/06d557f3-bd0f-4028-8ffc-edfd6d79b3f1.webp"
+    },
+    {
+      "avatar_id": "1266b50b-efb3-475b-b8f8-3721b2ad3b83",
+      "name": "Capitán MacWhirr",
+      "edition_id": "41db9b13-30f5-4cc9-884a-fccbc3b5421c",
+      "book_id": "37737d3a-9185-4004-9e24-e8ee7100a63c",
+      "book_title": "Tifón",
+      "is_author": false,
+      "identity_key": "character:37737d3a-9185-4004-9e24-e8ee7100a63c:capitán macwhirr",
+      "output_image": "images/1266b50b-efb3-475b-b8f8-3721b2ad3b83.webp"
+    },
+    {
+      "avatar_id": "5dfac018-1657-47e3-b0fe-1c57ed6947de",
+      "name": "Solomon Rout",
+      "edition_id": "41db9b13-30f5-4cc9-884a-fccbc3b5421c",
+      "book_id": "37737d3a-9185-4004-9e24-e8ee7100a63c",
+      "book_title": "Tifón",
+      "is_author": false,
+      "identity_key": "character:37737d3a-9185-4004-9e24-e8ee7100a63c:solomon rout",
+      "output_image": "images/5dfac018-1657-47e3-b0fe-1c57ed6947de.webp"
+    },
+    {
+      "avatar_id": "0257abae-483a-4e77-8d54-d408eccb5dab",
+      "name": "Silfax",
+      "edition_id": "57bd641b-bd67-413f-bf9f-5e34f771606b",
+      "book_id": "c24276e9-d548-4f77-a4fd-56e4a8851a07",
+      "book_title": "Las indias negras",
+      "is_author": false,
+      "identity_key": "character:c24276e9-d548-4f77-a4fd-56e4a8851a07:silfax",
+      "output_image": "images/0257abae-483a-4e77-8d54-d408eccb5dab.webp"
+    },
+    {
+      "avatar_id": "11ce89a7-21ab-47ee-9801-30e8c2770e29",
+      "name": "James Starr",
+      "edition_id": "57bd641b-bd67-413f-bf9f-5e34f771606b",
+      "book_id": "c24276e9-d548-4f77-a4fd-56e4a8851a07",
+      "book_title": "Las indias negras",
+      "is_author": false,
+      "identity_key": "character:c24276e9-d548-4f77-a4fd-56e4a8851a07:james starr",
+      "output_image": "images/11ce89a7-21ab-47ee-9801-30e8c2770e29.webp"
+    },
+    {
+      "avatar_id": "6b56b35d-5f34-45c3-bf4d-a888f0ec2f10",
+      "name": "Simon Ford",
+      "edition_id": "57bd641b-bd67-413f-bf9f-5e34f771606b",
+      "book_id": "c24276e9-d548-4f77-a4fd-56e4a8851a07",
+      "book_title": "Las indias negras",
+      "is_author": false,
+      "identity_key": "character:c24276e9-d548-4f77-a4fd-56e4a8851a07:simon ford",
+      "output_image": "images/6b56b35d-5f34-45c3-bf4d-a888f0ec2f10.webp"
+    },
+    {
+      "avatar_id": "7d44fe2c-4f4d-4d04-9d67-e3350f7be435",
+      "name": "Nell",
+      "edition_id": "57bd641b-bd67-413f-bf9f-5e34f771606b",
+      "book_id": "c24276e9-d548-4f77-a4fd-56e4a8851a07",
+      "book_title": "Las indias negras",
+      "is_author": false,
+      "identity_key": "character:c24276e9-d548-4f77-a4fd-56e4a8851a07:nell",
+      "output_image": "images/7d44fe2c-4f4d-4d04-9d67-e3350f7be435.webp"
+    },
+    {
+      "avatar_id": "d96c0d46-bd47-41b7-a4da-71f202d295b5",
+      "name": "Harry Ford",
+      "edition_id": "57bd641b-bd67-413f-bf9f-5e34f771606b",
+      "book_id": "c24276e9-d548-4f77-a4fd-56e4a8851a07",
+      "book_title": "Las indias negras",
+      "is_author": false,
+      "identity_key": "character:c24276e9-d548-4f77-a4fd-56e4a8851a07:harry ford",
+      "output_image": "images/d96c0d46-bd47-41b7-a4da-71f202d295b5.webp"
+    },
+    {
+      "avatar_id": "3fa86a42-f234-4a48-8555-c3239131a72e",
+      "name": "Nicholl",
+      "edition_id": "469fd6a9-d1c3-4b9a-b30a-b3014ac8ff21",
+      "book_id": "22a4f74f-05a0-4e3a-86f8-78f0c6c55b5d",
+      "book_title": "Viaje alrededor de la luna",
+      "is_author": false,
+      "identity_key": "character:22a4f74f-05a0-4e3a-86f8-78f0c6c55b5d:nicholl",
+      "output_image": "images/3fa86a42-f234-4a48-8555-c3239131a72e.webp"
+    },
+    {
+      "avatar_id": "ad727895-3c06-41ef-8fa2-cdbbd8e33fa9",
+      "name": "Michel Ardan",
+      "edition_id": "469fd6a9-d1c3-4b9a-b30a-b3014ac8ff21",
+      "book_id": "22a4f74f-05a0-4e3a-86f8-78f0c6c55b5d",
+      "book_title": "Viaje alrededor de la luna",
+      "is_author": false,
+      "identity_key": "character:22a4f74f-05a0-4e3a-86f8-78f0c6c55b5d:michel ardan",
+      "output_image": "images/ad727895-3c06-41ef-8fa2-cdbbd8e33fa9.webp"
+    },
+    {
+      "avatar_id": "37109604-feb1-469f-aa69-3216dc02c719",
+      "name": "Hans Pfaall",
+      "edition_id": "98101ea0-34d7-4eac-88c9-1775214fb4a0",
+      "book_id": "19a182c2-38a9-4330-b6bc-0106d4316cd1",
+      "book_title": "Hans Pfaall",
+      "is_author": false,
+      "identity_key": "character:19a182c2-38a9-4330-b6bc-0106d4316cd1:hans pfaall",
+      "output_image": "images/37109604-feb1-469f-aa69-3216dc02c719.webp"
+    },
+    {
+      "avatar_id": "839b23b7-faea-4c94-933c-931657461318",
+      "name": "Burgomaestre Superbus Von Underduk",
+      "edition_id": "98101ea0-34d7-4eac-88c9-1775214fb4a0",
+      "book_id": "19a182c2-38a9-4330-b6bc-0106d4316cd1",
+      "book_title": "Hans Pfaall",
+      "is_author": false,
+      "identity_key": "character:19a182c2-38a9-4330-b6bc-0106d4316cd1:burgomaestre superbus von underduk",
+      "output_image": "images/839b23b7-faea-4c94-933c-931657461318.webp"
+    },
+    {
+      "avatar_id": "b7b74656-7400-4e27-ad2a-d931990056b3",
+      "name": "Mynheer Von Muffle",
+      "edition_id": "98101ea0-34d7-4eac-88c9-1775214fb4a0",
+      "book_id": "19a182c2-38a9-4330-b6bc-0106d4316cd1",
+      "book_title": "Hans Pfaall",
+      "is_author": false,
+      "identity_key": "character:19a182c2-38a9-4330-b6bc-0106d4316cd1:mynheer von muffle",
+      "output_image": "images/b7b74656-7400-4e27-ad2a-d931990056b3.webp"
+    },
+    {
+      "avatar_id": "74a12cc3-e05e-4557-ad53-000f0f28d791",
+      "name": "Lucía",
+      "edition_id": "a03965ee-d52b-49ae-8f30-d3faed853f88",
+      "book_id": "7dcf5aff-b011-4a31-9b44-290f3e316f87",
+      "book_title": "París en el siglo XX",
+      "is_author": false,
+      "identity_key": "character:7dcf5aff-b011-4a31-9b44-290f3e316f87:lucía",
+      "output_image": "images/74a12cc3-e05e-4557-ad53-000f0f28d791.webp"
+    },
+    {
+      "avatar_id": "7b0d7f54-9d25-492b-ae2d-5c23f7893ca0",
+      "name": "Quinsonnas",
+      "edition_id": "a03965ee-d52b-49ae-8f30-d3faed853f88",
+      "book_id": "7dcf5aff-b011-4a31-9b44-290f3e316f87",
+      "book_title": "París en el siglo XX",
+      "is_author": false,
+      "identity_key": "character:7dcf5aff-b011-4a31-9b44-290f3e316f87:quinsonnas",
+      "output_image": "images/7b0d7f54-9d25-492b-ae2d-5c23f7893ca0.webp"
+    },
+    {
+      "avatar_id": "e2ea374f-0d15-4137-b129-7ddcaaf5a211",
+      "name": "Michel Dufrénoy",
+      "edition_id": "a03965ee-d52b-49ae-8f30-d3faed853f88",
+      "book_id": "7dcf5aff-b011-4a31-9b44-290f3e316f87",
+      "book_title": "París en el siglo XX",
+      "is_author": false,
+      "identity_key": "character:7dcf5aff-b011-4a31-9b44-290f3e316f87:michel dufrénoy",
+      "output_image": "images/e2ea374f-0d15-4137-b129-7ddcaaf5a211.webp"
+    },
+    {
+      "avatar_id": "07966394-f02e-4bcb-af03-bbdddba3415d",
+      "name": "Ilka",
+      "edition_id": "cb1e70fc-2d4e-4597-a4bb-7b1cd989b29c",
+      "book_id": "ee02a454-bd1a-4563-bd93-48d3504b3dfa",
+      "book_title": "Un drama en Livonia",
+      "is_author": false,
+      "identity_key": "character:ee02a454-bd1a-4563-bd93-48d3504b3dfa:ilka",
+      "output_image": "images/07966394-f02e-4bcb-af03-bbdddba3415d.webp"
+    },
+    {
+      "avatar_id": "7827f499-dc47-474d-83aa-6110cc318311",
+      "name": "Vladimir Yanof",
+      "edition_id": "cb1e70fc-2d4e-4597-a4bb-7b1cd989b29c",
+      "book_id": "ee02a454-bd1a-4563-bd93-48d3504b3dfa",
+      "book_title": "Un drama en Livonia",
+      "is_author": false,
+      "identity_key": "character:ee02a454-bd1a-4563-bd93-48d3504b3dfa:vladimir yanof",
+      "output_image": "images/7827f499-dc47-474d-83aa-6110cc318311.webp"
+    },
+    {
+      "avatar_id": "d78ecc44-1fed-4f2c-a0ce-40d73d011172",
+      "name": "Dimitri Nicolef",
+      "edition_id": "cb1e70fc-2d4e-4597-a4bb-7b1cd989b29c",
+      "book_id": "ee02a454-bd1a-4563-bd93-48d3504b3dfa",
+      "book_title": "Un drama en Livonia",
+      "is_author": false,
+      "identity_key": "character:ee02a454-bd1a-4563-bd93-48d3504b3dfa:dimitri nicolef",
+      "output_image": "images/d78ecc44-1fed-4f2c-a0ce-40d73d011172.webp"
+    },
+    {
+      "avatar_id": "dedecc17-c8c3-417e-8172-bbf2e912fc1b",
+      "name": "Rivière",
+      "edition_id": "084b24e6-b3d0-4a48-82cd-25a4ba03984c",
+      "book_id": "a6b26955-bd07-404a-bc14-5da32c296f0a",
+      "book_title": "Vuelo nocturno",
+      "is_author": false,
+      "identity_key": "character:a6b26955-bd07-404a-bc14-5da32c296f0a:rivière",
+      "output_image": "images/dedecc17-c8c3-417e-8172-bbf2e912fc1b.webp"
+    },
+    {
+      "avatar_id": "f8b54c74-8874-4b5e-9f88-e707a2f6ddaf",
+      "name": "Fabien",
+      "edition_id": "084b24e6-b3d0-4a48-82cd-25a4ba03984c",
+      "book_id": "a6b26955-bd07-404a-bc14-5da32c296f0a",
+      "book_title": "Vuelo nocturno",
+      "is_author": false,
+      "identity_key": "character:a6b26955-bd07-404a-bc14-5da32c296f0a:fabien",
+      "output_image": "images/f8b54c74-8874-4b5e-9f88-e707a2f6ddaf.webp"
+    },
+    {
+      "avatar_id": "086e5664-8ff9-45fd-a1bf-54702f29583a",
+      "name": "Hernán Cortés",
+      "edition_id": "0bbfd953-7b5d-48dd-843a-f69f60e4ce69",
+      "book_id": "84425064-5bfb-49ef-a59d-8f95cb9cce24",
+      "book_title": "Guatimozin ultimo emperador de Mejico",
+      "is_author": false,
+      "identity_key": "character:84425064-5bfb-49ef-a59d-8f95cb9cce24:hernán cortés",
+      "output_image": "images/086e5664-8ff9-45fd-a1bf-54702f29583a.webp"
+    },
+    {
+      "avatar_id": "6447dc1f-1bc9-4a04-97a0-6097015edceb",
+      "name": "Tecuichpo",
+      "edition_id": "0bbfd953-7b5d-48dd-843a-f69f60e4ce69",
+      "book_id": "84425064-5bfb-49ef-a59d-8f95cb9cce24",
+      "book_title": "Guatimozin ultimo emperador de Mejico",
+      "is_author": false,
+      "identity_key": "character:84425064-5bfb-49ef-a59d-8f95cb9cce24:tecuichpo",
+      "output_image": "images/6447dc1f-1bc9-4a04-97a0-6097015edceb.webp"
+    },
+    {
+      "avatar_id": "a3fd387e-674e-4c2c-a6e8-72205a9bbd15",
+      "name": "Guatimozín (Cuauhtémoc)",
+      "edition_id": "0bbfd953-7b5d-48dd-843a-f69f60e4ce69",
+      "book_id": "84425064-5bfb-49ef-a59d-8f95cb9cce24",
+      "book_title": "Guatimozin ultimo emperador de Mejico",
+      "is_author": false,
+      "identity_key": "character:84425064-5bfb-49ef-a59d-8f95cb9cce24:guatimozín (cuauhtémoc)",
+      "output_image": "images/a3fd387e-674e-4c2c-a6e8-72205a9bbd15.webp"
+    },
+    {
+      "avatar_id": "39365b29-5b76-4b32-9952-2626e66d5a57",
+      "name": "Lautaro",
+      "edition_id": "f2aa5c74-28ee-4520-8641-a7df86f9e419",
+      "book_id": "a01f916f-e2b0-44b3-8b37-b108f7e2eb14",
+      "book_title": "La Araucana",
+      "is_author": false,
+      "identity_key": "character:a01f916f-e2b0-44b3-8b37-b108f7e2eb14:lautaro",
+      "output_image": "images/39365b29-5b76-4b32-9952-2626e66d5a57.webp"
+    },
+    {
+      "avatar_id": "95bd445a-af4e-421c-bb80-8fa3fe050d74",
+      "name": "Caupolicán",
+      "edition_id": "f2aa5c74-28ee-4520-8641-a7df86f9e419",
+      "book_id": "a01f916f-e2b0-44b3-8b37-b108f7e2eb14",
+      "book_title": "La Araucana",
+      "is_author": false,
+      "identity_key": "character:a01f916f-e2b0-44b3-8b37-b108f7e2eb14:caupolicán",
+      "output_image": "images/95bd445a-af4e-421c-bb80-8fa3fe050d74.webp"
+    },
+    {
+      "avatar_id": "9d41d458-4965-480b-bc31-4acf75e37dab",
+      "name": "Colocolo",
+      "edition_id": "f2aa5c74-28ee-4520-8641-a7df86f9e419",
+      "book_id": "a01f916f-e2b0-44b3-8b37-b108f7e2eb14",
+      "book_title": "La Araucana",
+      "is_author": false,
+      "identity_key": "character:a01f916f-e2b0-44b3-8b37-b108f7e2eb14:colocolo",
+      "output_image": "images/9d41d458-4965-480b-bc31-4acf75e37dab.webp"
+    },
+    {
+      "avatar_id": "6da8a2e1-abb5-4307-808f-307cbbdb8304",
+      "name": "El virrey Amat",
+      "edition_id": "882ddfcf-5a07-4bb4-9340-fa5bfde42bfd",
+      "book_id": "b31f1329-6758-4284-b8f0-182cd550a3e5",
+      "book_title": "Las mejores tradiciones peruanas",
+      "is_author": false,
+      "identity_key": "character:b31f1329-6758-4284-b8f0-182cd550a3e5:el virrey amat",
+      "output_image": "images/6da8a2e1-abb5-4307-808f-307cbbdb8304.webp"
+    },
+    {
+      "avatar_id": "8060aa9b-f434-4b92-abe9-9683cf036a16",
+      "name": "Margarita Pareja",
+      "edition_id": "882ddfcf-5a07-4bb4-9340-fa5bfde42bfd",
+      "book_id": "b31f1329-6758-4284-b8f0-182cd550a3e5",
+      "book_title": "Las mejores tradiciones peruanas",
+      "is_author": false,
+      "identity_key": "character:b31f1329-6758-4284-b8f0-182cd550a3e5:margarita pareja",
+      "output_image": "images/8060aa9b-f434-4b92-abe9-9683cf036a16.webp"
+    },
+    {
+      "avatar_id": "f9396ddb-6731-4fcc-8630-c9ce08ec53f2",
+      "name": "La Perricholi",
+      "edition_id": "882ddfcf-5a07-4bb4-9340-fa5bfde42bfd",
+      "book_id": "b31f1329-6758-4284-b8f0-182cd550a3e5",
+      "book_title": "Las mejores tradiciones peruanas",
+      "is_author": false,
+      "identity_key": "character:b31f1329-6758-4284-b8f0-182cd550a3e5:la perricholi",
+      "output_image": "images/f9396ddb-6731-4fcc-8630-c9ce08ec53f2.webp"
+    },
+    {
+      "avatar_id": "89641b32-495a-437c-8c34-0c64c7cb5a60",
+      "name": "Estebanico",
+      "edition_id": "cedd9f26-01ed-4a4f-9cf0-8221199c6aa9",
+      "book_id": "5cd57511-5854-4dfb-a1ad-211d2501d9a2",
+      "book_title": "Naufragios",
+      "is_author": false,
+      "identity_key": "character:5cd57511-5854-4dfb-a1ad-211d2501d9a2:estebanico",
+      "output_image": "images/89641b32-495a-437c-8c34-0c64c7cb5a60.webp"
+    },
+    {
+      "avatar_id": "afd0c878-139c-400d-a6fa-e87e6593bc5f",
+      "name": "Pánfilo de Narváez",
+      "edition_id": "cedd9f26-01ed-4a4f-9cf0-8221199c6aa9",
+      "book_id": "5cd57511-5854-4dfb-a1ad-211d2501d9a2",
+      "book_title": "Naufragios",
+      "is_author": false,
+      "identity_key": "character:5cd57511-5854-4dfb-a1ad-211d2501d9a2:pánfilo de narváez",
+      "output_image": "images/afd0c878-139c-400d-a6fa-e87e6593bc5f.webp"
+    },
+    {
+      "avatar_id": "bcc0ed49-ac6c-4764-b238-26d00a9c11c6",
+      "name": "Andrés Dorantes",
+      "edition_id": "cedd9f26-01ed-4a4f-9cf0-8221199c6aa9",
+      "book_id": "5cd57511-5854-4dfb-a1ad-211d2501d9a2",
+      "book_title": "Naufragios",
+      "is_author": false,
+      "identity_key": "character:5cd57511-5854-4dfb-a1ad-211d2501d9a2:andrés dorantes",
+      "output_image": "images/bcc0ed49-ac6c-4764-b238-26d00a9c11c6.webp"
+    },
+    {
+      "avatar_id": "262295d0-5edd-47ad-96e8-d26f0225bbeb",
+      "name": "Doña Flora",
+      "edition_id": "1a2f4e92-f789-4675-8fc5-fb3da0f6a27f",
+      "book_id": "8bfcf2a8-dd0b-4d9d-9b52-9329dfc34748",
+      "book_title": "Trafalgar",
+      "is_author": false,
+      "identity_key": "character:8bfcf2a8-dd0b-4d9d-9b52-9329dfc34748:doña flora",
+      "output_image": "images/262295d0-5edd-47ad-96e8-d26f0225bbeb.webp"
+    },
+    {
+      "avatar_id": "a66b524b-9e08-4f99-9552-9fad0c38caee",
+      "name": "Don Alonso",
+      "edition_id": "1a2f4e92-f789-4675-8fc5-fb3da0f6a27f",
+      "book_id": "8bfcf2a8-dd0b-4d9d-9b52-9329dfc34748",
+      "book_title": "Trafalgar",
+      "is_author": false,
+      "identity_key": "character:8bfcf2a8-dd0b-4d9d-9b52-9329dfc34748:don alonso",
+      "output_image": "images/a66b524b-9e08-4f99-9552-9fad0c38caee.webp"
+    },
+    {
+      "avatar_id": "dd5e2ff8-ab6c-4e8e-a972-d98185e57147",
+      "name": "Gabriel Araceli",
+      "edition_id": "1a2f4e92-f789-4675-8fc5-fb3da0f6a27f",
+      "book_id": "8bfcf2a8-dd0b-4d9d-9b52-9329dfc34748",
+      "book_title": "Trafalgar",
+      "is_author": false,
+      "identity_key": "character:8bfcf2a8-dd0b-4d9d-9b52-9329dfc34748:gabriel araceli",
+      "output_image": "images/dd5e2ff8-ab6c-4e8e-a972-d98185e57147.webp"
+    },
+    {
+      "avatar_id": "73838bb8-2c33-4177-8321-18b3b7314b64",
+      "name": "Inés de Santorcaz",
+      "edition_id": "e8b134d6-4ad6-4156-8ba3-cd2410e0015d",
+      "book_id": "6f6e433a-b082-4bf0-834b-4eedd3bf476e",
+      "book_title": "La corte de Carlos IV",
+      "is_author": false,
+      "identity_key": "character:6f6e433a-b082-4bf0-834b-4eedd3bf476e:inés de santorcaz",
+      "output_image": "images/73838bb8-2c33-4177-8321-18b3b7314b64.webp"
+    },
+    {
+      "avatar_id": "e68128b0-2203-43f6-bfae-7fd3c64dd9c4",
+      "name": "Manuel Godoy",
+      "edition_id": "e8b134d6-4ad6-4156-8ba3-cd2410e0015d",
+      "book_id": "6f6e433a-b082-4bf0-834b-4eedd3bf476e",
+      "book_title": "La corte de Carlos IV",
+      "is_author": false,
+      "identity_key": "character:6f6e433a-b082-4bf0-834b-4eedd3bf476e:manuel godoy",
+      "output_image": "images/e68128b0-2203-43f6-bfae-7fd3c64dd9c4.webp"
+    },
+    {
+      "avatar_id": "4d3d4588-479b-41a1-bdfb-ac0713e82bf1",
+      "name": "Carlos IV",
+      "edition_id": "e8b134d6-4ad6-4156-8ba3-cd2410e0015d",
+      "book_id": "6f6e433a-b082-4bf0-834b-4eedd3bf476e",
+      "book_title": "La corte de Carlos IV",
+      "is_author": false,
+      "identity_key": "character:6f6e433a-b082-4bf0-834b-4eedd3bf476e:carlos iv",
+      "output_image": "images/4d3d4588-479b-41a1-bdfb-ac0713e82bf1.webp"
+    },
+    {
+      "avatar_id": "eb028d81-1f5f-42db-b5a8-33441ac578f6",
+      "name": "Agustina de Aragón",
+      "edition_id": "ec16123a-6fd1-4260-898a-bb3cff164d00",
+      "book_id": "82404bec-88f5-4def-830a-a7d15404dc0f",
+      "book_title": "Zaragoza",
+      "is_author": false,
+      "identity_key": "character:82404bec-88f5-4def-830a-a7d15404dc0f:agustina de aragón",
+      "output_image": "images/eb028d81-1f5f-42db-b5a8-33441ac578f6.webp"
+    },
+    {
+      "avatar_id": "f53e86ad-3800-47f7-a38c-fec605ac1238",
+      "name": "El general Palafox",
+      "edition_id": "ec16123a-6fd1-4260-898a-bb3cff164d00",
+      "book_id": "82404bec-88f5-4def-830a-a7d15404dc0f",
+      "book_title": "Zaragoza",
+      "is_author": false,
+      "identity_key": "character:82404bec-88f5-4def-830a-a7d15404dc0f:el general palafox",
+      "output_image": "images/f53e86ad-3800-47f7-a38c-fec605ac1238.webp"
+    },
+    {
+      "avatar_id": "73d66896-f6d2-4cab-8ac0-db35e0f02f98",
+      "name": "Padre Dámaso",
+      "edition_id": "f254bafa-7df9-4c86-a1d7-9235165927e9",
+      "book_id": "a520213e-f58f-48b6-ab28-bcd2951f167b",
+      "book_title": "Noli me tangere",
+      "is_author": false,
+      "identity_key": "character:a520213e-f58f-48b6-ab28-bcd2951f167b:padre dámaso",
+      "output_image": "images/73d66896-f6d2-4cab-8ac0-db35e0f02f98.webp"
+    },
+    {
+      "avatar_id": "30a3d0b4-936c-4949-9ee1-958a84472f87",
+      "name": "Francis Osbaldistone",
+      "edition_id": "9909a64e-1116-4e6d-a6ba-cdc4b03d2acb",
+      "book_id": "765a0e38-59ec-4fed-bff3-ac31382e01b1",
+      "book_title": "Rob Roy",
+      "is_author": false,
+      "identity_key": "character:765a0e38-59ec-4fed-bff3-ac31382e01b1:francis osbaldistone",
+      "output_image": "images/30a3d0b4-936c-4949-9ee1-958a84472f87.webp"
+    },
+    {
+      "avatar_id": "199879d6-f700-40a5-a56d-2ba7a33d27da",
+      "name": "Espendio",
+      "edition_id": "cfb76246-18f3-48a0-bc2c-9f93df829ea5",
+      "book_id": "af91cb3a-e91d-4cd2-a15a-777c6a591e59",
+      "book_title": "Salambó",
+      "is_author": false,
+      "identity_key": "character:af91cb3a-e91d-4cd2-a15a-777c6a591e59:espendio",
+      "output_image": "images/199879d6-f700-40a5-a56d-2ba7a33d27da.webp"
+    },
+    {
+      "avatar_id": "6d47ea41-7e72-42a3-9dfc-1523bd0870d7",
+      "name": "Salambó",
+      "edition_id": "cfb76246-18f3-48a0-bc2c-9f93df829ea5",
+      "book_id": "af91cb3a-e91d-4cd2-a15a-777c6a591e59",
+      "book_title": "Salambó",
+      "is_author": false,
+      "identity_key": "character:af91cb3a-e91d-4cd2-a15a-777c6a591e59:salambó",
+      "output_image": "images/6d47ea41-7e72-42a3-9dfc-1523bd0870d7.webp"
+    },
+    {
+      "avatar_id": "70df8480-6c15-4a2a-beb4-de4aff10eafe",
+      "name": "Amílcar Barca",
+      "edition_id": "cfb76246-18f3-48a0-bc2c-9f93df829ea5",
+      "book_id": "af91cb3a-e91d-4cd2-a15a-777c6a591e59",
+      "book_title": "Salambó",
+      "is_author": false,
+      "identity_key": "character:af91cb3a-e91d-4cd2-a15a-777c6a591e59:amílcar barca",
+      "output_image": "images/70df8480-6c15-4a2a-beb4-de4aff10eafe.webp"
+    },
+    {
+      "avatar_id": "71f7dbc8-0d52-4f42-907b-a86b802a23c9",
+      "name": "Mâtho",
+      "edition_id": "cfb76246-18f3-48a0-bc2c-9f93df829ea5",
+      "book_id": "af91cb3a-e91d-4cd2-a15a-777c6a591e59",
+      "book_title": "Salambó",
+      "is_author": false,
+      "identity_key": "character:af91cb3a-e91d-4cd2-a15a-777c6a591e59:mâtho",
+      "output_image": "images/71f7dbc8-0d52-4f42-907b-a86b802a23c9.webp"
+    },
+    {
+      "avatar_id": "a236df81-1463-4967-90f8-5d14eeba4a60",
+      "name": "Acteón",
+      "edition_id": "13973166-7093-4a8a-8460-5f0ba02f1b3b",
+      "book_id": "4caf17d3-cab3-4ef5-aba0-ee61256b53ea",
+      "book_title": "Sónnica la cortesana",
+      "is_author": false,
+      "identity_key": "character:4caf17d3-cab3-4ef5-aba0-ee61256b53ea:acteón",
+      "output_image": "images/a236df81-1463-4967-90f8-5d14eeba4a60.webp"
+    },
+    {
+      "avatar_id": "abbc0e24-2f2e-4923-9d20-7e30f07fcb3c",
+      "name": "Sónnica",
+      "edition_id": "13973166-7093-4a8a-8460-5f0ba02f1b3b",
+      "book_id": "4caf17d3-cab3-4ef5-aba0-ee61256b53ea",
+      "book_title": "Sónnica la cortesana",
+      "is_author": false,
+      "identity_key": "character:4caf17d3-cab3-4ef5-aba0-ee61256b53ea:sónnica",
+      "output_image": "images/abbc0e24-2f2e-4923-9d20-7e30f07fcb3c.webp"
+    },
+    {
+      "avatar_id": "ef783bc3-c271-4e21-8219-2045fef1b614",
+      "name": "Aníbal",
+      "edition_id": "13973166-7093-4a8a-8460-5f0ba02f1b3b",
+      "book_id": "4caf17d3-cab3-4ef5-aba0-ee61256b53ea",
+      "book_title": "Sónnica la cortesana",
+      "is_author": false,
+      "identity_key": "character:4caf17d3-cab3-4ef5-aba0-ee61256b53ea:aníbal",
+      "output_image": "images/ef783bc3-c271-4e21-8219-2045fef1b614.webp"
+    },
+    {
+      "avatar_id": "30fdcf0e-50cb-48f1-86e8-75b8b4368814",
+      "name": "Hallgerda",
+      "edition_id": "3350126a-d0fc-4a8c-8993-7e07763203d8",
+      "book_id": "e3f0f133-5fa4-473c-a635-f4180858ea44",
+      "book_title": "Saga de Njál",
+      "is_author": false,
+      "identity_key": "character:e3f0f133-5fa4-473c-a635-f4180858ea44:hallgerda",
+      "output_image": "images/30fdcf0e-50cb-48f1-86e8-75b8b4368814.webp"
+    },
+    {
+      "avatar_id": "85f98d1f-568e-4fa7-a511-9b2a1cac871c",
+      "name": "Njal",
+      "edition_id": "3350126a-d0fc-4a8c-8993-7e07763203d8",
+      "book_id": "e3f0f133-5fa4-473c-a635-f4180858ea44",
+      "book_title": "Saga de Njál",
+      "is_author": false,
+      "identity_key": "character:e3f0f133-5fa4-473c-a635-f4180858ea44:njal",
+      "output_image": "images/85f98d1f-568e-4fa7-a511-9b2a1cac871c.webp"
+    },
+    {
+      "avatar_id": "86a2e432-aa98-4d2b-9fb0-f68418b9e01e",
+      "name": "Gunnar",
+      "edition_id": "3350126a-d0fc-4a8c-8993-7e07763203d8",
+      "book_id": "e3f0f133-5fa4-473c-a635-f4180858ea44",
+      "book_title": "Saga de Njál",
+      "is_author": false,
+      "identity_key": "character:e3f0f133-5fa4-473c-a635-f4180858ea44:gunnar",
+      "output_image": "images/86a2e432-aa98-4d2b-9fb0-f68418b9e01e.webp"
+    },
+    {
+      "avatar_id": "c9202606-1df5-4f2d-94bf-8567fee60bf2",
+      "name": "Skarphedinn",
+      "edition_id": "3350126a-d0fc-4a8c-8993-7e07763203d8",
+      "book_id": "e3f0f133-5fa4-473c-a635-f4180858ea44",
+      "book_title": "Saga de Njál",
+      "is_author": false,
+      "identity_key": "character:e3f0f133-5fa4-473c-a635-f4180858ea44:skarphedinn",
+      "output_image": "images/c9202606-1df5-4f2d-94bf-8567fee60bf2.webp"
+    },
+    {
+      "avatar_id": "470a5256-6a1c-4486-8d2d-bbc1897ecac3",
+      "name": "N'Longa",
+      "edition_id": "c766ffd0-a174-47a1-8c11-d0b52f3d7ed4",
+      "book_id": "4b7b94da-a204-4206-9e66-5cc4d45a0359",
+      "book_title": "Solomon Kane",
+      "is_author": false,
+      "identity_key": "character:4b7b94da-a204-4206-9e66-5cc4d45a0359:n'longa",
+      "output_image": "images/470a5256-6a1c-4486-8d2d-bbc1897ecac3.webp"
+    },
+    {
+      "avatar_id": "607b1984-1ee5-4fd0-87c2-b9e1694d5ec3",
+      "name": "Solomon Kane",
+      "edition_id": "c766ffd0-a174-47a1-8c11-d0b52f3d7ed4",
+      "book_id": "4b7b94da-a204-4206-9e66-5cc4d45a0359",
+      "book_title": "Solomon Kane",
+      "is_author": false,
+      "identity_key": "character:4b7b94da-a204-4206-9e66-5cc4d45a0359:solomon kane",
+      "output_image": "images/607b1984-1ee5-4fd0-87c2-b9e1694d5ec3.webp"
+    },
+    {
+      "avatar_id": "b72e3d47-b318-4028-b6e7-046d6534f6df",
+      "name": "Le Loup",
+      "edition_id": "c766ffd0-a174-47a1-8c11-d0b52f3d7ed4",
+      "book_id": "4b7b94da-a204-4206-9e66-5cc4d45a0359",
+      "book_title": "Solomon Kane",
+      "is_author": false,
+      "identity_key": "character:4b7b94da-a204-4206-9e66-5cc4d45a0359:le loup",
+      "output_image": "images/b72e3d47-b318-4028-b6e7-046d6534f6df.webp"
+    },
+    {
+      "avatar_id": "734f5afc-c75e-4a3d-a718-bd4df2b92b3c",
+      "name": "Simón Aluardo",
+      "edition_id": "a8e1944a-c719-42de-9899-eaa7fba29ddb",
+      "book_id": "c725d0f1-3ce5-4995-b8c5-4e61d9aef485",
+      "book_title": "La guardia blanca",
+      "is_author": false,
+      "identity_key": "character:c725d0f1-3ce5-4995-b8c5-4e61d9aef485:simón aluardo",
+      "output_image": "images/734f5afc-c75e-4a3d-a718-bd4df2b92b3c.webp"
+    },
+    {
+      "avatar_id": "a766462c-e24c-47fe-abf2-b9123b3c4b94",
+      "name": "Roger de Clinton",
+      "edition_id": "a8e1944a-c719-42de-9899-eaa7fba29ddb",
+      "book_id": "c725d0f1-3ce5-4995-b8c5-4e61d9aef485",
+      "book_title": "La guardia blanca",
+      "is_author": false,
+      "identity_key": "character:c725d0f1-3ce5-4995-b8c5-4e61d9aef485:roger de clinton",
+      "output_image": "images/a766462c-e24c-47fe-abf2-b9123b3c4b94.webp"
+    },
+    {
+      "avatar_id": "d178ee85-750b-42a1-9875-c15bdd7f31f8",
+      "name": "Tristán de Horla",
+      "edition_id": "a8e1944a-c719-42de-9899-eaa7fba29ddb",
+      "book_id": "c725d0f1-3ce5-4995-b8c5-4e61d9aef485",
+      "book_title": "La guardia blanca",
+      "is_author": false,
+      "identity_key": "character:c725d0f1-3ce5-4995-b8c5-4e61d9aef485:tristán de horla",
+      "output_image": "images/d178ee85-750b-42a1-9875-c15bdd7f31f8.webp"
+    },
+    {
+      "avatar_id": "f3a89a51-3f66-4658-b409-573cf8c2b3ea",
+      "name": "Sir León de Morel",
+      "edition_id": "a8e1944a-c719-42de-9899-eaa7fba29ddb",
+      "book_id": "c725d0f1-3ce5-4995-b8c5-4e61d9aef485",
+      "book_title": "La guardia blanca",
+      "is_author": false,
+      "identity_key": "character:c725d0f1-3ce5-4995-b8c5-4e61d9aef485:sir león de morel",
+      "output_image": "images/f3a89a51-3f66-4658-b409-573cf8c2b3ea.webp"
+    },
+    {
+      "avatar_id": "08003894-81b5-42ea-8974-8db1eb587fdc",
+      "name": "Lady Bracknell",
+      "edition_id": "9dd9df50-d9f9-4d56-a870-3b6c2c7c1f4b",
+      "book_id": "064dac83-a106-4ff4-ba77-2d9e77722aff",
+      "book_title": "La importancia de llamarse Ernesto",
+      "is_author": false,
+      "identity_key": "character:064dac83-a106-4ff4-ba77-2d9e77722aff:lady bracknell",
+      "output_image": "images/08003894-81b5-42ea-8974-8db1eb587fdc.webp"
+    },
+    {
+      "avatar_id": "1a7b8e27-2f2d-4ae0-bf0b-9600af5edf12",
+      "name": "Jack Worthing",
+      "edition_id": "9dd9df50-d9f9-4d56-a870-3b6c2c7c1f4b",
+      "book_id": "064dac83-a106-4ff4-ba77-2d9e77722aff",
+      "book_title": "La importancia de llamarse Ernesto",
+      "is_author": false,
+      "identity_key": "character:064dac83-a106-4ff4-ba77-2d9e77722aff:jack worthing",
+      "output_image": "images/1a7b8e27-2f2d-4ae0-bf0b-9600af5edf12.webp"
+    },
+    {
+      "avatar_id": "e36f4c56-3f54-49f3-ba5a-894b99fdfd96",
+      "name": "Algernon Moncrieff",
+      "edition_id": "9dd9df50-d9f9-4d56-a870-3b6c2c7c1f4b",
+      "book_id": "064dac83-a106-4ff4-ba77-2d9e77722aff",
+      "book_title": "La importancia de llamarse Ernesto",
+      "is_author": false,
+      "identity_key": "character:064dac83-a106-4ff4-ba77-2d9e77722aff:algernon moncrieff",
+      "output_image": "images/e36f4c56-3f54-49f3-ba5a-894b99fdfd96.webp"
+    },
+    {
+      "avatar_id": "18efa4ab-0d1c-49df-862b-756150b15468",
+      "name": "Don Mendo",
+      "edition_id": "f9ec0915-846e-4c6b-91fd-58e15e94c1be",
+      "book_id": "8ee070f6-0739-452d-aa05-c567728803f5",
+      "book_title": "La venganza de Don Mendo",
+      "is_author": false,
+      "identity_key": "character:8ee070f6-0739-452d-aa05-c567728803f5:don mendo",
+      "output_image": "images/18efa4ab-0d1c-49df-862b-756150b15468.webp"
+    },
+    {
+      "avatar_id": "282db673-a686-43a7-8f90-346b165ba24f",
+      "name": "Magdalena",
+      "edition_id": "f9ec0915-846e-4c6b-91fd-58e15e94c1be",
+      "book_id": "8ee070f6-0739-452d-aa05-c567728803f5",
+      "book_title": "La venganza de Don Mendo",
+      "is_author": false,
+      "identity_key": "character:8ee070f6-0739-452d-aa05-c567728803f5:magdalena",
+      "output_image": "images/282db673-a686-43a7-8f90-346b165ba24f.webp"
+    },
+    {
+      "avatar_id": "33978efb-921a-415e-b374-e6c6c8bd0266",
+      "name": "Don Nuño",
+      "edition_id": "f9ec0915-846e-4c6b-91fd-58e15e94c1be",
+      "book_id": "8ee070f6-0739-452d-aa05-c567728803f5",
+      "book_title": "La venganza de Don Mendo",
+      "is_author": false,
+      "identity_key": "character:8ee070f6-0739-452d-aa05-c567728803f5:don nuño",
+      "output_image": "images/33978efb-921a-415e-b374-e6c6c8bd0266.webp"
+    },
+    {
+      "avatar_id": "15c36447-1607-4d1f-9b5e-3bc3557b771f",
+      "name": "Magdelon",
+      "edition_id": "59c907dc-319b-45fc-99c2-6cbc5b93ff2a",
+      "book_id": "223c5410-0794-42e1-a4be-7c254b69331c",
+      "book_title": "Las Preciosas Ridículas",
+      "is_author": false,
+      "identity_key": "character:223c5410-0794-42e1-a4be-7c254b69331c:magdelon",
+      "output_image": "images/15c36447-1607-4d1f-9b5e-3bc3557b771f.webp"
+    },
+    {
+      "avatar_id": "cd10fb73-c248-48b1-b0aa-c84b348b0a19",
+      "name": "Cathos",
+      "edition_id": "59c907dc-319b-45fc-99c2-6cbc5b93ff2a",
+      "book_id": "223c5410-0794-42e1-a4be-7c254b69331c",
+      "book_title": "Las Preciosas Ridículas",
+      "is_author": false,
+      "identity_key": "character:223c5410-0794-42e1-a4be-7c254b69331c:cathos",
+      "output_image": "images/cd10fb73-c248-48b1-b0aa-c84b348b0a19.webp"
+    },
+    {
+      "avatar_id": "df774838-6dfc-4f0c-b838-8192675fb80a",
+      "name": "Mascarille",
+      "edition_id": "59c907dc-319b-45fc-99c2-6cbc5b93ff2a",
+      "book_id": "223c5410-0794-42e1-a4be-7c254b69331c",
+      "book_title": "Las Preciosas Ridículas",
+      "is_author": false,
+      "identity_key": "character:223c5410-0794-42e1-a4be-7c254b69331c:mascarille",
+      "output_image": "images/df774838-6dfc-4f0c-b838-8192675fb80a.webp"
+    },
+    {
+      "avatar_id": "97c2a447-13b0-483c-9d90-11e15631a6ce",
+      "name": "Pedra",
+      "edition_id": "b6d2b414-8ab8-45ff-b0d1-80ff70b6ada2",
+      "book_id": "c7326d4a-b78e-4f87-b51e-82b98577ebf7",
+      "book_title": "La dama boba",
+      "is_author": false,
+      "identity_key": "character:c7326d4a-b78e-4f87-b51e-82b98577ebf7:pedra",
+      "output_image": "images/97c2a447-13b0-483c-9d90-11e15631a6ce.webp"
+    },
+    {
+      "avatar_id": "e62abd21-4915-4709-886f-06d35bf5e25f",
+      "name": "Miseno",
+      "edition_id": "b6d2b414-8ab8-45ff-b0d1-80ff70b6ada2",
+      "book_id": "c7326d4a-b78e-4f87-b51e-82b98577ebf7",
+      "book_title": "La dama boba",
+      "is_author": false,
+      "identity_key": "character:c7326d4a-b78e-4f87-b51e-82b98577ebf7:miseno",
+      "output_image": "images/e62abd21-4915-4709-886f-06d35bf5e25f.webp"
+    },
+    {
+      "avatar_id": "0d3afcdf-e1d8-4fa9-9f7b-5fe0babecd2b",
+      "name": "Clotaldo",
+      "edition_id": "f15319fe-a634-45c0-afbc-0217af8c934c",
+      "book_id": "517209e0-0197-4971-814c-4ef2ca9ce6b4",
+      "book_title": "La vida es sueño",
+      "is_author": false,
+      "identity_key": "character:517209e0-0197-4971-814c-4ef2ca9ce6b4:clotaldo",
+      "output_image": "images/0d3afcdf-e1d8-4fa9-9f7b-5fe0babecd2b.webp"
+    },
+    {
+      "avatar_id": "1bee994a-932c-408b-b988-c3855b6b1738",
+      "name": "Don Melón de la Huerta",
+      "edition_id": "f1e3b8a8-7ef3-442d-a601-90b4d6673674",
+      "book_id": "ca0dfea3-2055-4c26-9a18-113e479a2337",
+      "book_title": "Libro de Buen Amor",
+      "is_author": false,
+      "identity_key": "character:ca0dfea3-2055-4c26-9a18-113e479a2337:don melón de la huerta",
+      "output_image": "images/1bee994a-932c-408b-b988-c3855b6b1738.webp"
+    },
+    {
+      "avatar_id": "2cb0f23f-4241-4878-bdf2-7be8a5504b11",
+      "name": "Doña Endrina",
+      "edition_id": "f1e3b8a8-7ef3-442d-a601-90b4d6673674",
+      "book_id": "ca0dfea3-2055-4c26-9a18-113e479a2337",
+      "book_title": "Libro de Buen Amor",
+      "is_author": false,
+      "identity_key": "character:ca0dfea3-2055-4c26-9a18-113e479a2337:doña endrina",
+      "output_image": "images/2cb0f23f-4241-4878-bdf2-7be8a5504b11.webp"
+    },
+    {
+      "avatar_id": "c8909380-0f3e-45df-a62c-13d0dce55e35",
+      "name": "Trotaconventos",
+      "edition_id": "f1e3b8a8-7ef3-442d-a601-90b4d6673674",
+      "book_id": "ca0dfea3-2055-4c26-9a18-113e479a2337",
+      "book_title": "Libro de Buen Amor",
+      "is_author": false,
+      "identity_key": "character:ca0dfea3-2055-4c26-9a18-113e479a2337:trotaconventos",
+      "output_image": "images/c8909380-0f3e-45df-a62c-13d0dce55e35.webp"
+    },
+    {
+      "avatar_id": "2de121cb-2200-4017-9f0f-97c4104b6c8b",
+      "name": "Kostaki",
+      "edition_id": "e7a4bc50-af8f-4e5e-bdfd-a882282d202f",
+      "book_id": "46a4594c-9087-4e80-b729-1b7c8cae4786",
+      "book_title": "La dama pálida",
+      "is_author": false,
+      "identity_key": "character:46a4594c-9087-4e80-b729-1b7c8cae4786:kostaki",
+      "output_image": "images/2de121cb-2200-4017-9f0f-97c4104b6c8b.webp"
+    },
+    {
+      "avatar_id": "5287e694-bff2-4b40-b2f0-aa0ce44cf59f",
+      "name": "Gregoriska",
+      "edition_id": "e7a4bc50-af8f-4e5e-bdfd-a882282d202f",
+      "book_id": "46a4594c-9087-4e80-b729-1b7c8cae4786",
+      "book_title": "La dama pálida",
+      "is_author": false,
+      "identity_key": "character:46a4594c-9087-4e80-b729-1b7c8cae4786:gregoriska",
+      "output_image": "images/5287e694-bff2-4b40-b2f0-aa0ce44cf59f.webp"
+    },
+    {
+      "avatar_id": "72165991-8ceb-4ea8-9c6a-e2e1b357bd6f",
+      "name": "Edvige",
+      "edition_id": "e7a4bc50-af8f-4e5e-bdfd-a882282d202f",
+      "book_id": "46a4594c-9087-4e80-b729-1b7c8cae4786",
+      "book_title": "La dama pálida",
+      "is_author": false,
+      "identity_key": "character:46a4594c-9087-4e80-b729-1b7c8cae4786:edvige",
+      "output_image": "images/72165991-8ceb-4ea8-9c6a-e2e1b357bd6f.webp"
+    },
+    {
+      "avatar_id": "b7220a51-3272-454b-b699-136c5a45890b",
+      "name": "Smeranda",
+      "edition_id": "e7a4bc50-af8f-4e5e-bdfd-a882282d202f",
+      "book_id": "46a4594c-9087-4e80-b729-1b7c8cae4786",
+      "book_title": "La dama pálida",
+      "is_author": false,
+      "identity_key": "character:46a4594c-9087-4e80-b729-1b7c8cae4786:smeranda",
+      "output_image": "images/b7220a51-3272-454b-b699-136c5a45890b.webp"
+    },
+    {
+      "avatar_id": "67ec53e5-27ad-4e26-9238-6e35bebee3a4",
+      "name": "Van Jennings",
+      "edition_id": "761e393a-d70c-4879-87ea-d6dea212185c",
+      "book_id": "261dd5e9-5054-4e37-984f-4ae234b791d9",
+      "book_title": "Herland",
+      "is_author": false,
+      "identity_key": "character:261dd5e9-5054-4e37-984f-4ae234b791d9:van jennings",
+      "output_image": "images/67ec53e5-27ad-4e26-9238-6e35bebee3a4.webp"
+    },
+    {
+      "avatar_id": "a3b0e7ec-e3b5-4fff-909c-d34a138180a2",
+      "name": "Terry O'Nicholson",
+      "edition_id": "761e393a-d70c-4879-87ea-d6dea212185c",
+      "book_id": "261dd5e9-5054-4e37-984f-4ae234b791d9",
+      "book_title": "Herland",
+      "is_author": false,
+      "identity_key": "character:261dd5e9-5054-4e37-984f-4ae234b791d9:terry o'nicholson",
+      "output_image": "images/a3b0e7ec-e3b5-4fff-909c-d34a138180a2.webp"
+    },
+    {
+      "avatar_id": "bf52ecfd-8b9a-4202-90d6-9db77343cfaa",
+      "name": "Jeff Margrave",
+      "edition_id": "761e393a-d70c-4879-87ea-d6dea212185c",
+      "book_id": "261dd5e9-5054-4e37-984f-4ae234b791d9",
+      "book_title": "Herland",
+      "is_author": false,
+      "identity_key": "character:261dd5e9-5054-4e37-984f-4ae234b791d9:jeff margrave",
+      "output_image": "images/bf52ecfd-8b9a-4202-90d6-9db77343cfaa.webp"
+    },
+    {
+      "avatar_id": "ece9e036-ad52-4849-afd8-fb7f5ac4d350",
+      "name": "Ellador",
+      "edition_id": "761e393a-d70c-4879-87ea-d6dea212185c",
+      "book_id": "261dd5e9-5054-4e37-984f-4ae234b791d9",
+      "book_title": "Herland",
+      "is_author": false,
+      "identity_key": "character:261dd5e9-5054-4e37-984f-4ae234b791d9:ellador",
+      "output_image": "images/ece9e036-ad52-4849-afd8-fb7f5ac4d350.webp"
+    },
+    {
+      "avatar_id": "34094c1f-a5dd-4c28-8a77-92801fdd6072",
+      "name": "Alima",
+      "edition_id": "761e393a-d70c-4879-87ea-d6dea212185c",
+      "book_id": "261dd5e9-5054-4e37-984f-4ae234b791d9",
+      "book_title": "Herland",
+      "is_author": false,
+      "identity_key": "character:261dd5e9-5054-4e37-984f-4ae234b791d9:alima",
+      "output_image": "images/34094c1f-a5dd-4c28-8a77-92801fdd6072.webp"
+    },
+    {
+      "avatar_id": "2261e027-aab6-427a-944a-70820c5b102f",
+      "name": "Juan Brown",
+      "edition_id": "e7ad9a89-616f-4ab3-9055-1a18c584f975",
+      "book_id": "980c4f86-f983-469d-8668-37240975e6e9",
+      "book_title": "Los desterrados",
+      "is_author": false,
+      "identity_key": "character:980c4f86-f983-469d-8668-37240975e6e9:juan brown",
+      "output_image": "images/2261e027-aab6-427a-944a-70820c5b102f.webp"
+    },
+    {
+      "avatar_id": "d7754aa3-40c5-42fb-9266-ebba89f6a7c2",
+      "name": "Tirafogo",
+      "edition_id": "e7ad9a89-616f-4ab3-9055-1a18c584f975",
+      "book_id": "980c4f86-f983-469d-8668-37240975e6e9",
+      "book_title": "Los desterrados",
+      "is_author": false,
+      "identity_key": "character:980c4f86-f983-469d-8668-37240975e6e9:tirafogo",
+      "output_image": "images/d7754aa3-40c5-42fb-9266-ebba89f6a7c2.webp"
+    },
+    {
+      "avatar_id": "db1f12d2-a63b-48aa-8d8f-e80f3f0981a6",
+      "name": "Joao Pedro",
+      "edition_id": "e7ad9a89-616f-4ab3-9055-1a18c584f975",
+      "book_id": "980c4f86-f983-469d-8668-37240975e6e9",
+      "book_title": "Los desterrados",
+      "is_author": false,
+      "identity_key": "character:980c4f86-f983-469d-8668-37240975e6e9:joao pedro",
+      "output_image": "images/db1f12d2-a63b-48aa-8d8f-e80f3f0981a6.webp"
+    },
+    {
+      "avatar_id": "15222c0c-b55f-4643-84ca-8e9e66ae67b8",
+      "name": "Pachico Zabalbide",
+      "edition_id": "9dbd20d9-2901-4976-b1d0-a6dad6e613cf",
+      "book_id": "4b9e5afa-7c2d-44d6-a326-3b4b222bf347",
+      "book_title": "Paz en la guerra",
+      "is_author": false,
+      "identity_key": "character:4b9e5afa-7c2d-44d6-a326-3b4b222bf347:pachico zabalbide",
+      "output_image": "images/15222c0c-b55f-4643-84ca-8e9e66ae67b8.webp"
+    },
+    {
+      "avatar_id": "44141990-6dfe-46ed-a6a5-3f9756482bdc",
+      "name": "Ignacio",
+      "edition_id": "9dbd20d9-2901-4976-b1d0-a6dad6e613cf",
+      "book_id": "4b9e5afa-7c2d-44d6-a326-3b4b222bf347",
+      "book_title": "Paz en la guerra",
+      "is_author": false,
+      "identity_key": "character:4b9e5afa-7c2d-44d6-a326-3b4b222bf347:ignacio",
+      "output_image": "images/44141990-6dfe-46ed-a6a5-3f9756482bdc.webp"
+    },
+    {
+      "avatar_id": "b3b74ea5-b295-4324-9e5b-1fcbe4659dab",
+      "name": "Doña Micaela",
+      "edition_id": "9dbd20d9-2901-4976-b1d0-a6dad6e613cf",
+      "book_id": "4b9e5afa-7c2d-44d6-a326-3b4b222bf347",
+      "book_title": "Paz en la guerra",
+      "is_author": false,
+      "identity_key": "character:4b9e5afa-7c2d-44d6-a326-3b4b222bf347:doña micaela",
+      "output_image": "images/b3b74ea5-b295-4324-9e5b-1fcbe4659dab.webp"
+    },
+    {
+      "avatar_id": "8f46c208-f51e-4250-9e6b-3321482c9bc7",
+      "name": "Juez Brack",
+      "edition_id": "5b7e12a8-db0d-4613-925d-6a8cc3f0ca31",
+      "book_id": "ce6d021b-be4d-4cc2-9263-48a5127167f6",
+      "book_title": "Hedda Gabler",
+      "is_author": false,
+      "identity_key": "character:ce6d021b-be4d-4cc2-9263-48a5127167f6:juez brack",
+      "output_image": "images/8f46c208-f51e-4250-9e6b-3321482c9bc7.webp"
+    }
+  ]
+}

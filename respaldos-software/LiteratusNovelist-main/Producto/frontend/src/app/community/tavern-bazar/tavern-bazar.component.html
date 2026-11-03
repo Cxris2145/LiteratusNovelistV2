@@ -30,7 +30,7 @@
     </ng-template>
   </div>
 
-  <div class="bz-tabs" role="group" aria-label="Mostradores del Bazar" *ngIf="tabs.length > 1"
+  <div class="bz-tabs" role="group" aria-label="Mostradores del Bazar" *ngIf="tabs.length > 1" [class.is-crowded]="tabs.length > 4"
        [style.--tab-count]="tabs.length" [style.--tab-index]="tabs.indexOf(tab)">
     <span class="bz-tab-pill" aria-hidden="true"></span>
     <button type="button" *ngFor="let id of tabs" [attr.aria-pressed]="tab === id" (click)="selectTab(id)">
@@ -87,6 +87,20 @@
       <button type="button" *ngFor="let filter of wearFilters" [attr.aria-pressed]="wearFilter === filter.id" (click)="setWearFilter(filter.id)">{{ filter.label }}</button>
     </div>
 
+    <!-- Marcos: por colección y por rareza; cada rareza tiene su precio. -->
+    <ng-container *ngIf="loaded && tab === 'marcos'">
+      <div class="bz-slots" role="group" aria-label="Colección de marcos" *ngIf="frameFilters.length > 1">
+        <button type="button" [attr.aria-pressed]="frameFilter === 'all'" (click)="setFrameFilter('all')">Todos</button>
+        <button type="button" *ngFor="let filter of frameFilters" [attr.aria-pressed]="frameFilter === filter.id" (click)="setFrameFilter(filter.id)">{{ filter.label }}</button>
+      </div>
+      <div class="bz-tiers" role="group" aria-label="Precio de cada rareza" *ngIf="tierLadder.length">
+        <button type="button" *ngFor="let tier of tierLadder" [attr.data-tier]="tier.id" [attr.aria-pressed]="tierFilter === tier.id" (click)="toggleTier(tier.id)">
+          <span class="bz-tier-name">{{ tier.label }}</span>
+          <span class="bz-tier-price"><span class="material-symbols-rounded" aria-hidden="true">ink_pen</span>{{ tier.exact ? '' : 'desde ' }}{{ format(tier.price) }}<span class="sr-only"> Tinta</span></span>
+        </button>
+      </div>
+    </ng-container>
+
     <p class="sr-only" role="status">{{ loading ? 'Abriendo el Bazar…' : loaded ? visibleItems.length + (visibleItems.length === 1 ? ' artículo' : ' artículos') : '' }}</p>
 
     <div class="bz-grid is-skeleton" *ngIf="loading" aria-hidden="true">
@@ -111,20 +125,22 @@
           <span class="bz-thumb-hint" aria-hidden="true">{{ isTrying(item) ? 'Probando' : 'Probar' }}</span>
         </button>
         <ng-template #objectArt>
-          <span class="bz-thumb is-object" *ngIf="item.item_type === 'profile_frame' || item.item_type === 'title'; else plainObject">
+          <span class="bz-thumb is-object" [class.is-frame]="item.item_type === 'profile_frame'"
+                *ngIf="item.item_type === 'profile_frame' || item.item_type === 'title'; else plainObject">
             <app-cosmetic-preview [item]="item" [avatar]="profile?.avatar" [avatarColor]="profile?.avatar_color || '#655099'"
-              [initial]="profile?.username?.charAt(0) || 'L'"></app-cosmetic-preview>
+              [initial]="profile?.username?.charAt(0) || 'L'" [size]="item.item_type === 'profile_frame' ? 'lg' : 'md'"></app-cosmetic-preview>
           </span>
           <ng-template #plainObject><span class="bz-thumb is-object" aria-hidden="true"><span class="material-symbols-rounded">{{ item.icon || 'shopping_bag' }}</span></span></ng-template>
         </ng-template>
 
         <span class="bz-state" *ngIf="item.is_owned">
           <span class="material-symbols-rounded" aria-hidden="true">{{ item.is_equipped ? 'check_circle' : 'inventory_2' }}</span>
-          {{ item.is_equipped ? (isWear(item) ? 'Puesto' : 'Equipado') : (isWear(item) ? 'En tu baúl' : 'Tienes ' + item.quantity) }}
+          {{ item.is_equipped ? (isWear(item) ? 'Puesto' : 'Equipado') : (isConsumable(item) ? 'Tienes ' + item.quantity : 'En tu baúl') }}
         </span>
 
         <div class="bz-copy">
           <span class="bz-slot" *ngIf="isWear(item)">{{ slotLabel(item) }}</span>
+          <span class="bz-tier" *ngIf="tierOf(item) as tier" [attr.data-tier]="tier">{{ tierLabel(tier) }}</span>
           <h3>{{ item.name }}</h3>
           <p [attr.title]="item.description">{{ item.description }}</p>
           <a *ngIf="item.earned_from as source" class="bz-path-origin" routerLink="/learn" [queryParams]="{ chest: source.code }">

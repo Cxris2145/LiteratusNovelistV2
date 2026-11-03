@@ -1,8 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════════════
    MARCOS DE AVATAR
    El anillo es el ::before del host, pintado con --af-paint y recortado con una
-   máscara (content-box XOR border-box). .af-ornament queda detrás: lleva el
-   resplandor y, en tamaño lg, los adornos de cada marco (moño, lazo, picos...).
+   máscara (content-box XOR border-box). El ::after es una segunda capa del anillo,
+   con el mismo recorte y por encima (luces, destellos, burbujas); cada marco la
+   enciende con content: ''. .af-ornament queda detrás: lleva el resplandor y, en
+   tamaño lg, los adornos que asoman por detrás (moño, alas, tentáculos...).
+   .af-fx va por delante de todo, solo en lg (gorros, cabezas, estrellas).
    ═══════════════════════════════════════════════════════════════════════ */
 :host {
   --af-w: 4px;           /* grosor del anillo */
@@ -19,20 +22,29 @@
 :host([data-size="lg"]) { --af-w: 6px; --af-gap: 4px; }
 
 :host([data-frame])::before,
-.af-ornament {
-  content: '';
+:host([data-frame])::after,
+.af-ornament,
+.af-fx {
   position: absolute;
   inset: calc((var(--af-w) + var(--af-gap)) * -1);
   border-radius: 50%;
   pointer-events: none;
 }
-:host([data-frame])::before {
-  z-index: 2;
+:host([data-frame])::before,
+:host([data-frame])::after {
   padding: var(--af-w);
-  background: var(--af-paint);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
+}
+:host([data-frame])::before {
+  content: '';
+  z-index: 2;
+  background: var(--af-paint);
+}
+:host([data-frame])::after {
+  content: none;
+  z-index: 3;
 }
 .af-ornament {
   display: none;
@@ -40,8 +52,16 @@
   box-shadow: 0 0 calc(var(--af-w) * 2.5) var(--af-glow);
 }
 :host([data-frame]) .af-ornament { display: block; }
+.af-fx {
+  display: none;
+  z-index: 4;
+  border-radius: 0;
+}
+:host([data-size="lg"][data-frame]) .af-fx { display: block; }
 .af-ornament::before,
-.af-ornament::after {
+.af-ornament::after,
+.af-fx::before,
+.af-fx::after {
   content: none;
   position: absolute;
 }
@@ -215,10 +235,23 @@
   outline-offset: 1px;
 }
 
-/* En el menú (sm) solo el anillo: sin adornos ni movimiento, para que se lea a 40 px. */
-:host([data-size="sm"]) .af-ornament::before,
-:host([data-size="sm"]) .af-ornament::after { content: none; }
+/* Fuera de lg solo el anillo, quieto: en listas y en el menú (40 px) los adornos y el movimiento no se leen.
+   Va con !important porque las reglas de cada marco (aquí y en avatar-frame.bazar.css) pesan lo mismo. */
+:host(:not([data-size="lg"])) .af-ornament::before,
+:host(:not([data-size="lg"])) .af-ornament::after { content: none !important; }
+:host(:not([data-size="lg"]))::before,
+:host(:not([data-size="lg"]))::after,
+:host(:not([data-size="lg"])) .af-ornament { animation: none !important; }
 :host([data-size="sm"]) .af-ornament { outline: none; box-shadow: 0 0 4px var(--af-glow); }
+
+/* Quien muestra el marco puede detenerlo con --af-play: paused (p. ej. el Bazar cerrado). */
+:host([data-frame])::before,
+:host([data-frame])::after,
+.af-ornament,
+.af-ornament::before,
+.af-ornament::after,
+.af-fx::before,
+.af-fx::after { animation-play-state: var(--af-play, running) !important; }
 
 @keyframes af-spin { to { transform: rotate(1turn); } }
 @keyframes af-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
@@ -233,7 +266,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   :host::before,
+  :host::after,
   .af-ornament,
   .af-ornament::before,
-  .af-ornament::after { animation: none !important; }
+  .af-ornament::after,
+  .af-fx::before,
+  .af-fx::after { animation: none !important; }
 }

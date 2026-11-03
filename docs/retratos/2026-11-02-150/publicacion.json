@@ -1,0 +1,1355 @@
+{
+  "portrait_count": 150,
+  "results": [
+    {
+      "avatar_id": "c9b1bc01-4f1f-4493-8fca-6fdf21aa4e26",
+      "name": "Charles Bovary",
+      "book_title": "Madame Bovary",
+      "media_path": "ai_avatars/portraits/5d4631eedbbb-1d8a99dd31a9d1b2.webp",
+      "sha256": "1d8a99dd31a9d1b24dbd8837594ee0ec4e311701d03bd19780324562c1dfd04d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "3de734c1-42f2-4d5e-80a5-1aacd78ddd0c",
+      "name": "Rodolphe Boulanger",
+      "book_title": "Madame Bovary",
+      "media_path": "ai_avatars/portraits/c15bdcfc677a-195539dd4b16cbe7.webp",
+      "sha256": "195539dd4b16cbe7c852388d5eb1b1e980d52740731a76cf566880cf1cde092d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "9090660e-60d2-48e0-aa8a-3e285e1c15ba",
+      "name": "Iván Ilich",
+      "book_title": "La muerte de Iván Ilich",
+      "media_path": "ai_avatars/portraits/fd1ae9e39218-1372167a70b943f1.webp",
+      "sha256": "1372167a70b943f1cfc79fdaa450048186e2999bc922e34e5402bebf191c21d3",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "20d5bc1e-aef8-4123-9559-f6927add84e4",
+      "name": "Praskovya Fyodorovna",
+      "book_title": "La muerte de Iván Ilich",
+      "media_path": "ai_avatars/portraits/58e8f1e3bea2-16c414b1adada6c3.webp",
+      "sha256": "16c414b1adada6c30d7d1a54676e859c34fbfe3bad97958d849246b1c26a9376",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b7a3fe71-6932-4dec-a175-adcd6e4267c1",
+      "name": "Gerasim",
+      "book_title": "La muerte de Iván Ilich",
+      "media_path": "ai_avatars/portraits/820c9b2399fa-1ebf7c119531071b.webp",
+      "sha256": "1ebf7c119531071b3224217785c0cfa1061adbc4c0bb0dd567e5ee9647859797",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "c7856db9-3d68-43ff-87d3-942b17de7d70",
+      "name": "Peter Ivanovich",
+      "book_title": "La muerte de Iván Ilich",
+      "media_path": "ai_avatars/portraits/e5a6f9789dae-2b447148783fc683.webp",
+      "sha256": "2b447148783fc683b9784dc431c881a5a319760ef8066d3544fc7b18d67c30d1",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a90f7f8d-3a55-4ba6-a3bc-4d9266368d13",
+      "name": "Iván Gromov",
+      "book_title": "La sala número seis",
+      "media_path": "ai_avatars/portraits/ce86858c0a42-9ad21e46eeba079b.webp",
+      "sha256": "9ad21e46eeba079bdc2e225a4d6a316d62858556c5f7a2faf22567f3df4f7e72",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "ab9e2f4d-21c2-4c5d-bd0d-a2bd91eb7b6a",
+      "name": "Andréi Yefímych Raguin",
+      "book_title": "La sala número seis",
+      "media_path": "ai_avatars/portraits/7c477df6aec5-7c5f1265e2198612.webp",
+      "sha256": "7c5f1265e219861291f991f47204d014ad0986d057bd10c97f32204ffd7d1630",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "51a63189-5bc9-4ee0-b422-e187a0334acb",
+      "name": "Nikita",
+      "book_title": "La sala número seis",
+      "media_path": "ai_avatars/portraits/a566aececdfa-7d6da632b18ae650.webp",
+      "sha256": "7d6da632b18ae650c539e8fe950b7442dc80bf4437da3d56358ce3eea3689fb7",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "9ea20d6f-a78b-4248-869a-026be6764042",
+      "name": "Víctor Quintanar",
+      "book_title": "La Regenta",
+      "media_path": "ai_avatars/portraits/22dd4ed271ed-1ee6ea214b19c88b.webp",
+      "sha256": "1ee6ea214b19c88bde3e40bd4a62515c6a4c629910e8e0ef227f6047b8892e96",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b9d89117-d19d-4e30-9928-e52da4131403",
+      "name": "Fermín de Pas",
+      "book_title": "La Regenta",
+      "media_path": "ai_avatars/portraits/c7fea87f3bb8-5eec59cacb4568dc.webp",
+      "sha256": "5eec59cacb4568dce95b54147a4d6f5fb1c352179788138d064911d74b508383",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "2bc1f102-4b97-42cf-84b8-0ac70ddc5209",
+      "name": "Doña Lupe",
+      "book_title": "Fortunata y Jacinta",
+      "media_path": "ai_avatars/portraits/22b8845a4b7c-7d7f8dd0691525cf.webp",
+      "sha256": "7d7f8dd0691525cfc100600fa4a44f20dbb980a83f42e1a268ad683c6bee1bc3",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "6941a53d-4232-442a-b333-cb806ac47234",
+      "name": "Juanito Santa Cruz",
+      "book_title": "Fortunata y Jacinta",
+      "media_path": "ai_avatars/portraits/92b9dba4c1a3-941df1737a6cabea.webp",
+      "sha256": "941df1737a6cabeae4268f610c47ae3a16aeca296e2275b628244849ad5144a6",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "709bc896-a488-41cb-8db2-9a18834da3bd",
+      "name": "Maximino Rubín",
+      "book_title": "Fortunata y Jacinta",
+      "media_path": "ai_avatars/portraits/656e2f75efd0-b72accbd7666f1c9.webp",
+      "sha256": "b72accbd7666f1c984fd2f2eb05bc1f94b4a1d1f139a884afd882e271d44a8c2",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "1dcb2acd-bf34-43e8-9a99-4c275a51c2c5",
+      "name": "Nucha (Marcelina)",
+      "book_title": "Los pazos de Ulloa",
+      "media_path": "ai_avatars/portraits/4ecd424887e1-5a280d8dd5e32268.webp",
+      "sha256": "5a280d8dd5e32268ef014ca87e2765f8b80c7032870446a390c5dc3153425679",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "24734676-ff51-4378-b53e-e90868ebce46",
+      "name": "Julián Álvarez",
+      "book_title": "Los pazos de Ulloa",
+      "media_path": "ai_avatars/portraits/437ae7a5dee5-e6e1359815f09630.webp",
+      "sha256": "e6e1359815f09630c3e6933b1362bda13ff158f83885c5d441c634d52c12a30d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b14d197d-5ece-4c3f-bcd6-f9e0a9c66e80",
+      "name": "Pedro Moscoso",
+      "book_title": "Los pazos de Ulloa",
+      "media_path": "ai_avatars/portraits/0b1b00259bbd-f2ff4c768c4d194f.webp",
+      "sha256": "f2ff4c768c4d194f683da4d759fe07390a237fcd9dda73b2d903ef11d339677c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "15e7026c-5ca2-4aed-925f-ebe03e00a2b9",
+      "name": "Don Luis de Vargas",
+      "book_title": "Pepita Jiménez",
+      "media_path": "ai_avatars/portraits/683f5557f490-9db388217f0c7dcc.webp",
+      "sha256": "9db388217f0c7dcc515c994791044fcfe9b86e04fbf92e1083ea202db8058904",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "be6586f9-61a5-4d07-8e36-06e269d760bc",
+      "name": "Don Pedro de Vargas",
+      "book_title": "Pepita Jiménez",
+      "media_path": "ai_avatars/portraits/4449cc933df4-a9e63ab965c8cc23.webp",
+      "sha256": "a9e63ab965c8cc2349885cd88b4905a0249917b0bd1dcd68cec4919b9563861b",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "7f643e5c-d572-4595-9131-c9d038c101d5",
+      "name": "Eugenia Domingo del Arco",
+      "book_title": "Niebla (Nivola)",
+      "media_path": "ai_avatars/portraits/e422d430b4ca-be6fa68e52dfe84c.webp",
+      "sha256": "be6fa68e52dfe84c7e349c7a4f2b68e1ecc904beb2c05dea4914a7a479596f8d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "8bd7261d-6ed4-4494-8e7f-67241cca5835",
+      "name": "Augusto Pérez",
+      "book_title": "Niebla (Nivola)",
+      "media_path": "ai_avatars/portraits/972496a62ab4-afa175dd5c31f6d5.webp",
+      "sha256": "afa175dd5c31f6d51fd7eba8034985872dda039d352dc8d6acf31aca8c158e87",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "9905e9c1-659d-441b-8869-8b4ca85f94c1",
+      "name": "Víctor Goti",
+      "book_title": "Niebla (Nivola)",
+      "media_path": "ai_avatars/portraits/17cbab6a993c-10927062d45865cb.webp",
+      "sha256": "10927062d45865cb7b68944aac795c3a81040fb20abe3e90a288107c9220a11e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "08ce5176-f890-472d-8d43-1dfe48f93cef",
+      "name": "Diego Pacheco",
+      "book_title": "Insolación",
+      "media_path": "ai_avatars/portraits/d4db2fa1c25d-88c39a65616756d8.webp",
+      "sha256": "88c39a65616756d860e27f6979cdaa370ba0f128133bc4a11af9e5971b477b40",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "1d2ef87f-1904-4064-9a60-00e284dcd1e0",
+      "name": "Gabriel Pardo de la Lage",
+      "book_title": "Insolación",
+      "media_path": "ai_avatars/portraits/ef1eef343904-2205e02265e71143.webp",
+      "sha256": "2205e02265e71143e9a495ca57805c87be67c5398ee23f16e445a55ef144c5ab",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "6d67bf8c-8c3e-43e3-8e08-560354da54c3",
+      "name": "Francisca \"Asís\" Taboada",
+      "book_title": "Insolación",
+      "media_path": "ai_avatars/portraits/bb72476f6ecc-45e5bc96eb8204cb.webp",
+      "sha256": "45e5bc96eb8204cb6c9eda335fc254a5e3292f83e82889eda21c72bf1a822fa0",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "0aa725c6-184f-4b2c-911c-70b124139a80",
+      "name": "Juanita",
+      "book_title": "Juanita la Larga",
+      "media_path": "ai_avatars/portraits/028a22b2c08b-119018492694a11f.webp",
+      "sha256": "119018492694a11fe9e1118004ab1083bf5dbfa384facb6580fc507ba98d8c0d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "82ca1a82-7dc2-4f07-beee-13b2f81b1383",
+      "name": "Don Paco",
+      "book_title": "Juanita la Larga",
+      "media_path": "ai_avatars/portraits/91705e9db165-41156352b2057a66.webp",
+      "sha256": "41156352b2057a666a7477ac694b648c5a79065c663fbab6e0c6468495b2a165",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b2e70075-3539-4b46-ab1c-0ed8a5e59b8a",
+      "name": "Doña Inés",
+      "book_title": "Juanita la Larga",
+      "media_path": "ai_avatars/portraits/1589f12f82d9-9fd9a0eee02f2b9a.webp",
+      "sha256": "9fd9a0eee02f2b9a77349d02b90bd6705319e1035fbb52ace300c991bb9d11a4",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b70af2cd-f6bd-4345-8adf-94fdee5f3251",
+      "name": "Juana la Larga",
+      "book_title": "Juanita la Larga",
+      "media_path": "ai_avatars/portraits/952240a111c9-72edc0746a1b5bb9.webp",
+      "sha256": "72edc0746a1b5bb9e4a511238442928370d1c58530cc055230b95d2fa7aed28a",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "12282d2f-e29f-4e72-a0cb-f88f47935c33",
+      "name": "Don Elías",
+      "book_title": "La Hermana San Sulpicio",
+      "media_path": "ai_avatars/portraits/d17d4ba81705-a59f9a7b7d3ae7c0.webp",
+      "sha256": "a59f9a7b7d3ae7c0755fdec951fea71bdd93fc24212a94e1a67917de635a3547",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "bca6f5c6-2db4-492b-af87-7aa1c890e883",
+      "name": "Hermana San Sulpicio",
+      "book_title": "La Hermana San Sulpicio",
+      "media_path": "ai_avatars/portraits/8eb0453873bf-9e33f9c46f8ba426.webp",
+      "sha256": "9e33f9c46f8ba42634938cb38f3c0325f7eca44c06e2121c84ff4519ec3a425e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "c8c39873-2afe-4945-a429-e3a55dda324e",
+      "name": "Ceferino Sanz",
+      "book_title": "La Hermana San Sulpicio",
+      "media_path": "ai_avatars/portraits/a6bcd6551b33-147f7d4c93463289.webp",
+      "sha256": "147f7d4c9346328970a0c03f450ff81f3531d9cd5e10bc2a2a0f54c09e94a043",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "f895e307-6ebb-4292-ad2e-f540ae6b5549",
+      "name": "Chulita Ferna",
+      "book_title": "La gota de sangre",
+      "media_path": "ai_avatars/portraits/ae3b36f48afa-91ec1dec5059b29c.webp",
+      "sha256": "91ec1dec5059b29c3ccb50394953cd52b648c52a1ad56fee864590a5f3ea108f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "fd035955-642a-42c8-bbd3-4e489af387ec",
+      "name": "Andrés Ariza",
+      "book_title": "La gota de sangre",
+      "media_path": "ai_avatars/portraits/0b152ed86d40-099b1f5e3115801c.webp",
+      "sha256": "099b1f5e3115801cb540010e5d05be977589cb1c93dd4977524cee6679adc29c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "fd6078c0-0cc2-43bc-ba1d-8e966e0e08cd",
+      "name": "Selva",
+      "book_title": "La gota de sangre",
+      "media_path": "ai_avatars/portraits/386da590bea6-827a7a1a352eb7c2.webp",
+      "sha256": "827a7a1a352eb7c22e433473c214e1d75e7d4a57c32970435766648e1563e690",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "36cf62a9-0c13-4093-a371-55d208476763",
+      "name": "Doctor Pineal",
+      "book_title": "La bolsa de huesos",
+      "media_path": "ai_avatars/portraits/ccfbebcecf82-e6e487b5c1a0c50e.webp",
+      "sha256": "e6e487b5c1a0c50e5491ec57ca6e4de9c534ca1dcc3e4f0590fb63b8b775f5b6",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "7300748b-dde7-4384-838a-16700e24f8a4",
+      "name": "Clara",
+      "book_title": "La bolsa de huesos",
+      "media_path": "ai_avatars/portraits/095a3e97f63f-723f687c45d62652.webp",
+      "sha256": "723f687c45d62652613aec88c79384ce71f3f0c1193a31f9c0006bcb86860c5c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "010b3f2c-8236-4283-bba8-ed6c56592aef",
+      "name": "Sra. Witham",
+      "book_title": "La casa del Juez",
+      "media_path": "ai_avatars/portraits/ab1cf92a7aae-f79169db0c850736.webp",
+      "sha256": "f79169db0c850736e54bc101d1e494e91d25d80fe322bf62aef563df74e2d8c9",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "46c48d8b-cf10-4838-bbb5-d6dad58c8707",
+      "name": "Malcolm Malcolmson",
+      "book_title": "La casa del Juez",
+      "media_path": "ai_avatars/portraits/eef9ec62b6b8-d4cf7d13ad2248b4.webp",
+      "sha256": "d4cf7d13ad2248b425e5f156e9cf29e7542e36ef7dc65b141f9cc80cedec37fc",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "f2e0c74c-547c-4e50-b338-0419e4d92d4d",
+      "name": "Sra. Dempster",
+      "book_title": "La casa del Juez",
+      "media_path": "ai_avatars/portraits/2203d9345fc5-5450826d4571b323.webp",
+      "sha256": "5450826d4571b323b32000ffbcb656db9785152e351448a77ffcf47265b96fdb",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "2a875d2e-6a04-4526-bf9c-5982fabadb87",
+      "name": "Herbert White",
+      "book_title": "La pata de mono",
+      "media_path": "ai_avatars/portraits/e7c381e1dd76-ddce5858eb74af49.webp",
+      "sha256": "ddce5858eb74af49270b99269d2753390fec7856256e1a2ff1936a46e61610d1",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "3c4b9428-b97d-487f-98d5-59dd88a382d9",
+      "name": "Señora White",
+      "book_title": "La pata de mono",
+      "media_path": "ai_avatars/portraits/91d1ff7034c6-b570923b9e711bb1.webp",
+      "sha256": "b570923b9e711bb17ced8c6bf301c61d9f8ea7d35f5b95845273313e83d95288",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "5b874329-7a18-4754-825e-fc4fa4da8844",
+      "name": "Señor White",
+      "book_title": "La pata de mono",
+      "media_path": "ai_avatars/portraits/9e1c7a21b267-8126f8366bb385ff.webp",
+      "sha256": "8126f8366bb385ffa2ae7d798c4c1f1b1a7f05a377883f080b30e4c327f0e3b0",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "fdeced61-dc1e-4392-b6c2-2adca59b523d",
+      "name": "Sargento Mayor Morris",
+      "book_title": "La pata de mono",
+      "media_path": "ai_avatars/portraits/3675eba9392a-222f162f13758b8e.webp",
+      "sha256": "222f162f13758b8edacbe4d745dd590e2d601ed9f36f5bbeaec4d5b6a8c42657",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "3d77c6e5-63b5-4b91-9492-9ee2fb56f3c1",
+      "name": "Herbert West",
+      "book_title": "Herbert West reanimador",
+      "media_path": "ai_avatars/portraits/b5a883657b9d-0d366859750626a9.webp",
+      "sha256": "0d366859750626a9196066447b1dc2cd9d77ecff8e84af8333eea26ad6c8e66c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "af0e4ab9-be96-4a84-8a40-ab3158c42b58",
+      "name": "Dr. Allan Halsey",
+      "book_title": "Herbert West reanimador",
+      "media_path": "ai_avatars/portraits/a196ba34f72e-6f9f09ae943e0428.webp",
+      "sha256": "6f9f09ae943e0428667f65a1339bb0ec77e9b8b0d565533ae232b57df0150e94",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a2168255-e347-4c10-b8f6-da62bf78c796",
+      "name": "Francis Wayland Thurston",
+      "book_title": "La llamada de Cthulhu",
+      "media_path": "ai_avatars/portraits/59d2cb70c18d-d8dd64766d407fb9.webp",
+      "sha256": "d8dd64766d407fb9dd2c42ddef8ad7ce15abe12ce5349a9ca3a0b2d8044afef6",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "fc6c31ff-9d6e-4ec5-9d5e-67757ade7397",
+      "name": "John Raymond Legrasse",
+      "book_title": "La llamada de Cthulhu",
+      "media_path": "ai_avatars/portraits/34fc66cfda71-45b8ebe838c3c329.webp",
+      "sha256": "45b8ebe838c3c329a2be53a05196828b3d297a4ec6f37bb819d86e2695964b86",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "45016606-ac25-4f23-af32-09b839a83310",
+      "name": "Delapore",
+      "book_title": "Las ratas de las paredes",
+      "media_path": "ai_avatars/portraits/7a1b05123e25-e15b995e3cf3ecf6.webp",
+      "sha256": "e15b995e3cf3ecf6fc26f7ee4f8af928412d2ee500d7780695d83909b44c4b8f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "624ea619-48b5-4950-a3e0-b4a4e310d39c",
+      "name": "Capitán Edward Norrys",
+      "book_title": "Las ratas de las paredes",
+      "media_path": "ai_avatars/portraits/443baf63a6c3-8fe683d80aa322d6.webp",
+      "sha256": "8fe683d80aa322d6169e074e412177321e8d363960c53bf80dfb0077bc343e91",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "d792d3fc-23f0-44bc-80f9-2587ad38fef9",
+      "name": "Walter de la Poer",
+      "book_title": "Las ratas de las paredes",
+      "media_path": "ai_avatars/portraits/338f7d367454-527cfd5194c42f61.webp",
+      "sha256": "527cfd5194c42f61711f2b5c73dd558824bc261a9fc1ce5bc973b8ae50f3ff2e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "0c7bd7ed-91c7-423d-b5a9-e246ac669809",
+      "name": "Bellingham",
+      "book_title": "Lote Número 249",
+      "media_path": "ai_avatars/portraits/19cdf976b3cf-9b66710874469dfd.webp",
+      "sha256": "9b66710874469dfd6dcf130193469786a51e0d140bd9a5837998d24285105117",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "2e45efc7-c47c-4ef6-8432-c3977df4368c",
+      "name": "Abercrombie Smith",
+      "book_title": "Lote Número 249",
+      "media_path": "ai_avatars/portraits/ccbf57ad4ac1-d16e5fbd288d9355.webp",
+      "sha256": "d16e5fbd288d935592add8c47cd540ec046f91cd384998a11d3bf551b0fb4d6d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "f78a5ef1-0d28-48c9-ac82-ab721ad8dbe9",
+      "name": "Monkhouse Lee",
+      "book_title": "Lote Número 249",
+      "media_path": "ai_avatars/portraits/46146db4b9a9-d5a89624ef500f8c.webp",
+      "sha256": "d5a89624ef500f8c593187741be6c18037cf14eeb5b053b00c043a0fb26bb654",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "4567aa14-338d-404e-93f0-081c49baf012",
+      "name": "William Wilson",
+      "book_title": "William Wilson",
+      "media_path": "ai_avatars/portraits/4da41731e613-23218cc80ccbcd2a.webp",
+      "sha256": "23218cc80ccbcd2afa3dfd992ccbfe4133f2ae6fa254b3e3802c0813c7ed7c44",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "30894941-9d39-418e-a757-fd39c88b74e9",
+      "name": "Augustus Barnard",
+      "book_title": "Aventuras de Arthur Gordon Pym",
+      "media_path": "ai_avatars/portraits/ea107bef6977-bd8981ff789c931d.webp",
+      "sha256": "bd8981ff789c931d6c9084c50fa59adb0ad0118acfa19da2308bbc1af6353407",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "5070ed3d-695d-4e3d-849d-d4791502d377",
+      "name": "Arthur Gordon Pym",
+      "book_title": "Aventuras de Arthur Gordon Pym",
+      "media_path": "ai_avatars/portraits/f23ebe2a87bd-441052192acfdb8c.webp",
+      "sha256": "441052192acfdb8c1affd24f694bd32b78a9cdc6ee33546df7cf956afb13d097",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a661437a-5040-4c06-9fbb-9fb402c03e52",
+      "name": "Dirk Peters",
+      "book_title": "Aventuras de Arthur Gordon Pym",
+      "media_path": "ai_avatars/portraits/e326949354c2-f2e81a26f9bc5299.webp",
+      "sha256": "f2e81a26f9bc5299414a71d36185748a66714ccb0f459a42455f5cd9c1f4c5a9",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "06d557f3-bd0f-4028-8ffc-edfd6d79b3f1",
+      "name": "Jukes",
+      "book_title": "Tifón",
+      "media_path": "ai_avatars/portraits/977a0d2f5806-211f88daaecf19e9.webp",
+      "sha256": "211f88daaecf19e9f2ad990e5148073ffc01e9dad49a3ef74861cada35a5ae9a",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "1266b50b-efb3-475b-b8f8-3721b2ad3b83",
+      "name": "Capitán MacWhirr",
+      "book_title": "Tifón",
+      "media_path": "ai_avatars/portraits/cd9f391af3b9-0b7a125f03d06075.webp",
+      "sha256": "0b7a125f03d06075cf649078ec5ecfdd0a81547f06e24eac9786cffeae00ece7",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "5dfac018-1657-47e3-b0fe-1c57ed6947de",
+      "name": "Solomon Rout",
+      "book_title": "Tifón",
+      "media_path": "ai_avatars/portraits/c532df28fa93-01f7e7ab2303bd54.webp",
+      "sha256": "01f7e7ab2303bd5425da5c827c74c780ab1173d9673d627b3c215af46ebd1768",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "0257abae-483a-4e77-8d54-d408eccb5dab",
+      "name": "Silfax",
+      "book_title": "Las indias negras",
+      "media_path": "ai_avatars/portraits/8421227e72d3-33f77ab6d3f17a66.webp",
+      "sha256": "33f77ab6d3f17a664156e8efa553e661f2bb93f8bc48d1987f0ce018a27108bc",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "11ce89a7-21ab-47ee-9801-30e8c2770e29",
+      "name": "James Starr",
+      "book_title": "Las indias negras",
+      "media_path": "ai_avatars/portraits/16e94ba3ac1f-bb4420a37a065667.webp",
+      "sha256": "bb4420a37a0656674ded1eb1b5a552588882d8ab23c83842ef5e10ece6d8dbf4",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "6b56b35d-5f34-45c3-bf4d-a888f0ec2f10",
+      "name": "Simon Ford",
+      "book_title": "Las indias negras",
+      "media_path": "ai_avatars/portraits/f8dc5328655c-bc9d83fa75111e55.webp",
+      "sha256": "bc9d83fa75111e5587b6e571e9bd93727d0b0bea87b1ef5401a3b50bc925b370",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "7d44fe2c-4f4d-4d04-9d67-e3350f7be435",
+      "name": "Nell",
+      "book_title": "Las indias negras",
+      "media_path": "ai_avatars/portraits/91a3969d318f-2d475cdecb0d5aa3.webp",
+      "sha256": "2d475cdecb0d5aa36ffb4eac9389d0d03407efc0d91ff5efae5b35f1e225e0ef",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "d96c0d46-bd47-41b7-a4da-71f202d295b5",
+      "name": "Harry Ford",
+      "book_title": "Las indias negras",
+      "media_path": "ai_avatars/portraits/e63dc9115aed-1bf36a96a3d4aeb5.webp",
+      "sha256": "1bf36a96a3d4aeb5390e51d1b7ddd0f4b6362972ea4a8c7b75b654626f0b7599",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "3fa86a42-f234-4a48-8555-c3239131a72e",
+      "name": "Nicholl",
+      "book_title": "Viaje alrededor de la luna",
+      "media_path": "ai_avatars/portraits/72516cc2a035-74f0b8ebe0bb12a5.webp",
+      "sha256": "74f0b8ebe0bb12a53e62d9e644bf86c2cb532c3f491be69a5bb3fa7f39eec937",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "ad727895-3c06-41ef-8fa2-cdbbd8e33fa9",
+      "name": "Michel Ardan",
+      "book_title": "Viaje alrededor de la luna",
+      "media_path": "ai_avatars/portraits/b9a1ba6aaf1e-ec5f3b6f7fbc098d.webp",
+      "sha256": "ec5f3b6f7fbc098d01df691788a9ecebcd77d1da700d8c1338f8076c7f1698b0",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "37109604-feb1-469f-aa69-3216dc02c719",
+      "name": "Hans Pfaall",
+      "book_title": "Hans Pfaall",
+      "media_path": "ai_avatars/portraits/f9a04220a250-24ec466d620c0563.webp",
+      "sha256": "24ec466d620c0563bef3a276e0236b4d4f1712734a314d21d4e49137ff99854f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "839b23b7-faea-4c94-933c-931657461318",
+      "name": "Burgomaestre Superbus Von Underduk",
+      "book_title": "Hans Pfaall",
+      "media_path": "ai_avatars/portraits/f09dbae20f4b-a42df16ee8259ce1.webp",
+      "sha256": "a42df16ee8259ce1d1e685b50d74fe521335bf7f7950c0cd363bcf20b43b56bc",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b7b74656-7400-4e27-ad2a-d931990056b3",
+      "name": "Mynheer Von Muffle",
+      "book_title": "Hans Pfaall",
+      "media_path": "ai_avatars/portraits/2eb598fa75d5-e48b4e8f8938e391.webp",
+      "sha256": "e48b4e8f8938e391376ee8788775f821dfea4c6a82a8990759d39b02de5c4997",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "74a12cc3-e05e-4557-ad53-000f0f28d791",
+      "name": "Lucía",
+      "book_title": "París en el siglo XX",
+      "media_path": "ai_avatars/portraits/5736f27fc48f-40d79abe3397b147.webp",
+      "sha256": "40d79abe3397b147020782c54525c9a6ea777bf692461fecd579d46b8205599d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "7b0d7f54-9d25-492b-ae2d-5c23f7893ca0",
+      "name": "Quinsonnas",
+      "book_title": "París en el siglo XX",
+      "media_path": "ai_avatars/portraits/5fd724075ce6-489d40a1f18b5d1b.webp",
+      "sha256": "489d40a1f18b5d1bc196250a0edf84d84f4a3acaae4bc3a4b984a446fd93d256",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "e2ea374f-0d15-4137-b129-7ddcaaf5a211",
+      "name": "Michel Dufrénoy",
+      "book_title": "París en el siglo XX",
+      "media_path": "ai_avatars/portraits/bc5a04659bbf-f19430e7ce61c4b2.webp",
+      "sha256": "f19430e7ce61c4b2bbd6757ccf60e8b20aa745281f4294a9c0c0e733c987235f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "07966394-f02e-4bcb-af03-bbdddba3415d",
+      "name": "Ilka",
+      "book_title": "Un drama en Livonia",
+      "media_path": "ai_avatars/portraits/1d5afe84fc7f-dcbf815f84192b90.webp",
+      "sha256": "dcbf815f84192b900f773fb270e7edea35fc235f3632c0526359ec27c1df380b",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "7827f499-dc47-474d-83aa-6110cc318311",
+      "name": "Vladimir Yanof",
+      "book_title": "Un drama en Livonia",
+      "media_path": "ai_avatars/portraits/a7c98d97543b-f7e3c33d53fa7d1b.webp",
+      "sha256": "f7e3c33d53fa7d1b87c951bb5c584c61faa8c485e27fa51b5e39aa7fc52a54a6",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "d78ecc44-1fed-4f2c-a0ce-40d73d011172",
+      "name": "Dimitri Nicolef",
+      "book_title": "Un drama en Livonia",
+      "media_path": "ai_avatars/portraits/fcf6781a131a-312bceb2b2bf7e7f.webp",
+      "sha256": "312bceb2b2bf7e7f74bb2034fe87214b956150af132f1baddda72faa929d8965",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "dedecc17-c8c3-417e-8172-bbf2e912fc1b",
+      "name": "Rivière",
+      "book_title": "Vuelo nocturno",
+      "media_path": "ai_avatars/portraits/3196fa8c2bb3-d451ddd414dd931d.webp",
+      "sha256": "d451ddd414dd931d0873368a93e6010cf2ecd73d5709210ff9755bf079283610",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "f8b54c74-8874-4b5e-9f88-e707a2f6ddaf",
+      "name": "Fabien",
+      "book_title": "Vuelo nocturno",
+      "media_path": "ai_avatars/portraits/6e845527789d-1243744188dbc76f.webp",
+      "sha256": "1243744188dbc76f58c7df8fc9cf3d5b45b1a17815af7768c9e1434d6aec68c2",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "086e5664-8ff9-45fd-a1bf-54702f29583a",
+      "name": "Hernán Cortés",
+      "book_title": "Guatimozin ultimo emperador de Mejico",
+      "media_path": "ai_avatars/portraits/c0d934e4101b-00a8f0453645cd41.webp",
+      "sha256": "00a8f0453645cd416453cb241b18d187098c0cf2f08585cb187700068c8cb2a9",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "6447dc1f-1bc9-4a04-97a0-6097015edceb",
+      "name": "Tecuichpo",
+      "book_title": "Guatimozin ultimo emperador de Mejico",
+      "media_path": "ai_avatars/portraits/892816fbef9f-147b7aea1be0e399.webp",
+      "sha256": "147b7aea1be0e399db83761317ace09814a0ff9ce651e7900463472777c546b5",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a3fd387e-674e-4c2c-a6e8-72205a9bbd15",
+      "name": "Guatimozín (Cuauhtémoc)",
+      "book_title": "Guatimozin ultimo emperador de Mejico",
+      "media_path": "ai_avatars/portraits/99d135f14f45-259d1d29fae2547e.webp",
+      "sha256": "259d1d29fae2547e81b4d31dedf6609bed4ec3ccc76559eb8aca1a6e9ebf9084",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "39365b29-5b76-4b32-9952-2626e66d5a57",
+      "name": "Lautaro",
+      "book_title": "La Araucana",
+      "media_path": "ai_avatars/portraits/64d3e284a896-bbcb12d09e663806.webp",
+      "sha256": "bbcb12d09e66380697984e0d7bbd1595a57eeec1a4c56bb4378e4c94bcc55127",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "95bd445a-af4e-421c-bb80-8fa3fe050d74",
+      "name": "Caupolicán",
+      "book_title": "La Araucana",
+      "media_path": "ai_avatars/portraits/a3cfcfcebe30-84149d8c4ace8aa6.webp",
+      "sha256": "84149d8c4ace8aa6df11fc660dc13472bf5ccc323cd3da9e04f7bf19b04529a5",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "9d41d458-4965-480b-bc31-4acf75e37dab",
+      "name": "Colocolo",
+      "book_title": "La Araucana",
+      "media_path": "ai_avatars/portraits/c8826830712f-8535f1557a048f27.webp",
+      "sha256": "8535f1557a048f271b9d2c9296b1a984337d4a1d05748380d24dd5acce2ac9ff",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "6da8a2e1-abb5-4307-808f-307cbbdb8304",
+      "name": "El virrey Amat",
+      "book_title": "Las mejores tradiciones peruanas",
+      "media_path": "ai_avatars/portraits/d7671e580d01-80b2647db2da833c.webp",
+      "sha256": "80b2647db2da833c91ea4f53b2d05f5d20698b72cf2ae1fa227d230728f76313",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "8060aa9b-f434-4b92-abe9-9683cf036a16",
+      "name": "Margarita Pareja",
+      "book_title": "Las mejores tradiciones peruanas",
+      "media_path": "ai_avatars/portraits/640aee98956b-4be41330abfb3f96.webp",
+      "sha256": "4be41330abfb3f964583967c8db1c3bfc2fc3006403366f4711a88a4e96ed8cd",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "f9396ddb-6731-4fcc-8630-c9ce08ec53f2",
+      "name": "La Perricholi",
+      "book_title": "Las mejores tradiciones peruanas",
+      "media_path": "ai_avatars/portraits/71e4b4e495fd-3cb1c4e5cb71f291.webp",
+      "sha256": "3cb1c4e5cb71f29105806fc1c91fb89aee3d76cea8f12cbd9f33f0bf74bc880f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "89641b32-495a-437c-8c34-0c64c7cb5a60",
+      "name": "Estebanico",
+      "book_title": "Naufragios",
+      "media_path": "ai_avatars/portraits/a3a8ee6a84ab-d927a50d2e2477c3.webp",
+      "sha256": "d927a50d2e2477c3ee88a913c529bd9deb8b6418435b34545e628aed57d48789",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "afd0c878-139c-400d-a6fa-e87e6593bc5f",
+      "name": "Pánfilo de Narváez",
+      "book_title": "Naufragios",
+      "media_path": "ai_avatars/portraits/28098c569012-6dc427f6beac7475.webp",
+      "sha256": "6dc427f6beac74753d08eee5ffcf6480a3f80d4d4f6fce6106830e0140dbb120",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "bcc0ed49-ac6c-4764-b238-26d00a9c11c6",
+      "name": "Andrés Dorantes",
+      "book_title": "Naufragios",
+      "media_path": "ai_avatars/portraits/dc530b13379c-64263dde41da4080.webp",
+      "sha256": "64263dde41da40804b10af83034379d417b2d6ccd4eb79669903346877f271f8",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "262295d0-5edd-47ad-96e8-d26f0225bbeb",
+      "name": "Doña Flora",
+      "book_title": "Trafalgar",
+      "media_path": "ai_avatars/portraits/2f2c15da5a01-f11a70ddd9657edc.webp",
+      "sha256": "f11a70ddd9657edcad0004977cf6c4f281b621341635ede928aabe25836339c1",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a66b524b-9e08-4f99-9552-9fad0c38caee",
+      "name": "Don Alonso",
+      "book_title": "Trafalgar",
+      "media_path": "ai_avatars/portraits/7e715443f99f-73df2362c587959f.webp",
+      "sha256": "73df2362c587959f12fd636eba594902bf7d083fcad54b36e2daaadfc97d25ab",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "dd5e2ff8-ab6c-4e8e-a972-d98185e57147",
+      "name": "Gabriel Araceli",
+      "book_title": "Trafalgar",
+      "media_path": "ai_avatars/portraits/e42a6c1802a2-5e2471be05ff65ba.webp",
+      "sha256": "5e2471be05ff65ba613ccf71bc5a7c97ba141f55732d88e216d212ec72796191",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "73838bb8-2c33-4177-8321-18b3b7314b64",
+      "name": "Inés de Santorcaz",
+      "book_title": "La corte de Carlos IV",
+      "media_path": "ai_avatars/portraits/7be5eaf62f53-25ba5e79d1ef6ac2.webp",
+      "sha256": "25ba5e79d1ef6ac2aec5c65539f638cb4a9183c0c907a3b2326aab49e434a92d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "e68128b0-2203-43f6-bfae-7fd3c64dd9c4",
+      "name": "Manuel Godoy",
+      "book_title": "La corte de Carlos IV",
+      "media_path": "ai_avatars/portraits/cfc0d6f4a4e0-e6e406573f948ae5.webp",
+      "sha256": "e6e406573f948ae51c9fb1105efce7fb287cf0c8bb000a9247c47a2dc7cb0a78",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "4d3d4588-479b-41a1-bdfb-ac0713e82bf1",
+      "name": "Carlos IV",
+      "book_title": "La corte de Carlos IV",
+      "media_path": "ai_avatars/portraits/dea94ca225c2-6176af21cd8c750b.webp",
+      "sha256": "6176af21cd8c750b12d78f4de9cb05e25af32cbeacf4222b32ee58b1e4d4de7f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "eb028d81-1f5f-42db-b5a8-33441ac578f6",
+      "name": "Agustina de Aragón",
+      "book_title": "Zaragoza",
+      "media_path": "ai_avatars/portraits/7f1e564cff6f-7f4489070af87cae.webp",
+      "sha256": "7f4489070af87cae9815ccd9666ef52e8ed408d016dbe99888e0b42949657cab",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "f53e86ad-3800-47f7-a38c-fec605ac1238",
+      "name": "El general Palafox",
+      "book_title": "Zaragoza",
+      "media_path": "ai_avatars/portraits/fa7716a65f33-f359c83fa8ecd44a.webp",
+      "sha256": "f359c83fa8ecd44aaa4fa6ac4f6f5c88daf7b26d1b4b47bd47dae9c3d740e362",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "73d66896-f6d2-4cab-8ac0-db35e0f02f98",
+      "name": "Padre Dámaso",
+      "book_title": "Noli me tangere",
+      "media_path": "ai_avatars/portraits/121da41cd114-5866b7f029e4f62b.webp",
+      "sha256": "5866b7f029e4f62b4dfd64b56567a6e21ede087d937b5904af21de4c7cebe8f7",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "30a3d0b4-936c-4949-9ee1-958a84472f87",
+      "name": "Francis Osbaldistone",
+      "book_title": "Rob Roy",
+      "media_path": "ai_avatars/portraits/4184fe52569a-0ff4881c305d42eb.webp",
+      "sha256": "0ff4881c305d42eb8cd8a1fc894ed66b330615a1121aa9650678b4999a99638f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "199879d6-f700-40a5-a56d-2ba7a33d27da",
+      "name": "Espendio",
+      "book_title": "Salambó",
+      "media_path": "ai_avatars/portraits/72918f4485f0-5bb213b38f46ecca.webp",
+      "sha256": "5bb213b38f46eccaaff5c4f9f4ad8e2e3dd0c4a88e85ce40997bec518208b476",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "6d47ea41-7e72-42a3-9dfc-1523bd0870d7",
+      "name": "Salambó",
+      "book_title": "Salambó",
+      "media_path": "ai_avatars/portraits/9d6198b3c4ee-f23e2bca30bde590.webp",
+      "sha256": "f23e2bca30bde5901ddc397b3dd47a77a77301734c5c12474aafde836740f31e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "70df8480-6c15-4a2a-beb4-de4aff10eafe",
+      "name": "Amílcar Barca",
+      "book_title": "Salambó",
+      "media_path": "ai_avatars/portraits/11112faafa7c-ef6de504bf68c17a.webp",
+      "sha256": "ef6de504bf68c17a5ba56616261fcf99d78e25c9c2f3834c43204775d9d7af0d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "71f7dbc8-0d52-4f42-907b-a86b802a23c9",
+      "name": "Mâtho",
+      "book_title": "Salambó",
+      "media_path": "ai_avatars/portraits/211d18414209-fcb435c0d6dfa621.webp",
+      "sha256": "fcb435c0d6dfa621f9d3a82261b1d133af2ded60b7567abc2b3c5aed41984cf4",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a236df81-1463-4967-90f8-5d14eeba4a60",
+      "name": "Acteón",
+      "book_title": "Sónnica la cortesana",
+      "media_path": "ai_avatars/portraits/84c53ccd5877-7371daffe9972b43.webp",
+      "sha256": "7371daffe9972b437a153384a717df6aec3805d70c060a5e61165e7b382a9109",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "abbc0e24-2f2e-4923-9d20-7e30f07fcb3c",
+      "name": "Sónnica",
+      "book_title": "Sónnica la cortesana",
+      "media_path": "ai_avatars/portraits/6da2767690a5-45d74ab355755f85.webp",
+      "sha256": "45d74ab355755f851522a67908f768e800bb896cd62b25ec4177b68b0864df2c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "ef783bc3-c271-4e21-8219-2045fef1b614",
+      "name": "Aníbal",
+      "book_title": "Sónnica la cortesana",
+      "media_path": "ai_avatars/portraits/17e0605167d1-b26d1ca019470c9e.webp",
+      "sha256": "b26d1ca019470c9ee24878c371bbba8c897c096ef7dbb3ac279d34cbf8b0bd3e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "30fdcf0e-50cb-48f1-86e8-75b8b4368814",
+      "name": "Hallgerda",
+      "book_title": "Saga de Njál",
+      "media_path": "ai_avatars/portraits/238adaea141e-8b1771f6bd5026e1.webp",
+      "sha256": "8b1771f6bd5026e17078ffbf15a4fc86ee9ca5417b85b4b381e7a684792fbbca",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "85f98d1f-568e-4fa7-a511-9b2a1cac871c",
+      "name": "Njal",
+      "book_title": "Saga de Njál",
+      "media_path": "ai_avatars/portraits/590eece8deae-6620bac33b1bc24f.webp",
+      "sha256": "6620bac33b1bc24fddb9450e744ed899e8b3c9b61b4e144550214fb66888ff83",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "86a2e432-aa98-4d2b-9fb0-f68418b9e01e",
+      "name": "Gunnar",
+      "book_title": "Saga de Njál",
+      "media_path": "ai_avatars/portraits/650bf4393527-618fed8b417dfb43.webp",
+      "sha256": "618fed8b417dfb43cf5ce7cf45b76f6162865884d59ed5d1aea979a56219a80a",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "c9202606-1df5-4f2d-94bf-8567fee60bf2",
+      "name": "Skarphedinn",
+      "book_title": "Saga de Njál",
+      "media_path": "ai_avatars/portraits/e26a27ba15ea-6f51a53b03181dd6.webp",
+      "sha256": "6f51a53b03181dd62ed567166093fabd030578b96cf4de05d65de5f1de9d9a8b",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "470a5256-6a1c-4486-8d2d-bbc1897ecac3",
+      "name": "N'Longa",
+      "book_title": "Solomon Kane",
+      "media_path": "ai_avatars/portraits/4768cb9ff796-e954485f82693ef3.webp",
+      "sha256": "e954485f82693ef375274c0be92cdf864bed1795d9f1fe7853164486cad68eed",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "607b1984-1ee5-4fd0-87c2-b9e1694d5ec3",
+      "name": "Solomon Kane",
+      "book_title": "Solomon Kane",
+      "media_path": "ai_avatars/portraits/c4aa8289067f-51aa1c70b89dd94a.webp",
+      "sha256": "51aa1c70b89dd94a295d62737505c364b9ea83ec827900e843e5fc74f6554016",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b72e3d47-b318-4028-b6e7-046d6534f6df",
+      "name": "Le Loup",
+      "book_title": "Solomon Kane",
+      "media_path": "ai_avatars/portraits/7f79503dd0c7-8cf15ab3e5c3488b.webp",
+      "sha256": "8cf15ab3e5c3488b8a45307b53ffe451ed6d18a682e7fdf2389bf26a42270963",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "734f5afc-c75e-4a3d-a718-bd4df2b92b3c",
+      "name": "Simón Aluardo",
+      "book_title": "La guardia blanca",
+      "media_path": "ai_avatars/portraits/131534e7c0b3-3af50acbc27d0816.webp",
+      "sha256": "3af50acbc27d0816b18fbeb2296f06a57315e2c79f5458f8997ad86af73c4354",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a766462c-e24c-47fe-abf2-b9123b3c4b94",
+      "name": "Roger de Clinton",
+      "book_title": "La guardia blanca",
+      "media_path": "ai_avatars/portraits/94d076171105-abbbdf5c913d0e41.webp",
+      "sha256": "abbbdf5c913d0e41a24aaa022d9335664afa80d58608378674d59e98e341668c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "d178ee85-750b-42a1-9875-c15bdd7f31f8",
+      "name": "Tristán de Horla",
+      "book_title": "La guardia blanca",
+      "media_path": "ai_avatars/portraits/b66567a940b2-357c15c9c95b370e.webp",
+      "sha256": "357c15c9c95b370e7da4825d328b08aea83cbe8519482f14e5c860fe6274c09e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "f3a89a51-3f66-4658-b409-573cf8c2b3ea",
+      "name": "Sir León de Morel",
+      "book_title": "La guardia blanca",
+      "media_path": "ai_avatars/portraits/ec12b089333b-8cc22a80b2a4f66e.webp",
+      "sha256": "8cc22a80b2a4f66ee591dcf21798013a4df776bb5c76fff3e65e5a2db4bdd0ac",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "08003894-81b5-42ea-8974-8db1eb587fdc",
+      "name": "Lady Bracknell",
+      "book_title": "La importancia de llamarse Ernesto",
+      "media_path": "ai_avatars/portraits/10d9238bdd46-8ae8cb35e5225393.webp",
+      "sha256": "8ae8cb35e52253931460905edd72865bbdbab062be0a10e61f8d16f789d4193c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "1a7b8e27-2f2d-4ae0-bf0b-9600af5edf12",
+      "name": "Jack Worthing",
+      "book_title": "La importancia de llamarse Ernesto",
+      "media_path": "ai_avatars/portraits/e39145c1a195-1f739d2ea44c15aa.webp",
+      "sha256": "1f739d2ea44c15aa85ddd1771d3047df0ac4f7c8033061571a61a0eff2fd0229",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "e36f4c56-3f54-49f3-ba5a-894b99fdfd96",
+      "name": "Algernon Moncrieff",
+      "book_title": "La importancia de llamarse Ernesto",
+      "media_path": "ai_avatars/portraits/35f99f8c5262-23c1a641625a1976.webp",
+      "sha256": "23c1a641625a1976e00774576dad5a6ce610b4daa9cd5f8f6df9b9bfd4183ac6",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "18efa4ab-0d1c-49df-862b-756150b15468",
+      "name": "Don Mendo",
+      "book_title": "La venganza de Don Mendo",
+      "media_path": "ai_avatars/portraits/9ffc11dd52d4-871e2b16b08fe828.webp",
+      "sha256": "871e2b16b08fe828e031d185a2e34b5c3da9777e5870bd2cc28c5e058faa2fb9",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "282db673-a686-43a7-8f90-346b165ba24f",
+      "name": "Magdalena",
+      "book_title": "La venganza de Don Mendo",
+      "media_path": "ai_avatars/portraits/abf3de0306c4-913a2c1a34395008.webp",
+      "sha256": "913a2c1a343950083d7da7a3954a0b0871525d88be3b9b3b702ea47c4b0e5aef",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "33978efb-921a-415e-b374-e6c6c8bd0266",
+      "name": "Don Nuño",
+      "book_title": "La venganza de Don Mendo",
+      "media_path": "ai_avatars/portraits/434f928a4064-e696477c9fbddc20.webp",
+      "sha256": "e696477c9fbddc202881f3603790930f2036050713784149e14828e19c3d3873",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "15c36447-1607-4d1f-9b5e-3bc3557b771f",
+      "name": "Magdelon",
+      "book_title": "Las Preciosas Ridículas",
+      "media_path": "ai_avatars/portraits/6937e5bf07e1-44837a0b813e4bb8.webp",
+      "sha256": "44837a0b813e4bb8a5ffb4ff1808b989d1601abd056129d7905503b9d90dd4ee",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "cd10fb73-c248-48b1-b0aa-c84b348b0a19",
+      "name": "Cathos",
+      "book_title": "Las Preciosas Ridículas",
+      "media_path": "ai_avatars/portraits/0cce0cf8e9c7-e5150d17327bd467.webp",
+      "sha256": "e5150d17327bd46754401bdb0482c611a335d61026ea7fbfda3003ebbe7b42cb",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "df774838-6dfc-4f0c-b838-8192675fb80a",
+      "name": "Mascarille",
+      "book_title": "Las Preciosas Ridículas",
+      "media_path": "ai_avatars/portraits/7590e4ac16c0-d5f4f33b853890ba.webp",
+      "sha256": "d5f4f33b853890ba7cc16ce840084a817dfdf52010d38a903fcce4d0b54980e1",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "97c2a447-13b0-483c-9d90-11e15631a6ce",
+      "name": "Pedra",
+      "book_title": "La dama boba",
+      "media_path": "ai_avatars/portraits/edf3ee886d59-4736147027409149.webp",
+      "sha256": "4736147027409149536e5b7772f66d1fbe85ba9f461aed1a37bd1cbd28146dab",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "e62abd21-4915-4709-886f-06d35bf5e25f",
+      "name": "Miseno",
+      "book_title": "La dama boba",
+      "media_path": "ai_avatars/portraits/035aeb6fa7f1-9c3e841096681e3e.webp",
+      "sha256": "9c3e841096681e3e324e45f656fbf645ead8d4458e1136d4c91036d752a39c5e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "0d3afcdf-e1d8-4fa9-9f7b-5fe0babecd2b",
+      "name": "Clotaldo",
+      "book_title": "La vida es sueño",
+      "media_path": "ai_avatars/portraits/cfbd27a27194-85e13f50b26c910c.webp",
+      "sha256": "85e13f50b26c910cabb9fa2db2027a57c36fd20a0c8fa7a3b17db644f0dd7ffc",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "1bee994a-932c-408b-b988-c3855b6b1738",
+      "name": "Don Melón de la Huerta",
+      "book_title": "Libro de Buen Amor",
+      "media_path": "ai_avatars/portraits/2c7eb7b4c82a-55266d2ceeacaa53.webp",
+      "sha256": "55266d2ceeacaa5343247ded0121091f3b8bd6bf1361f8645e49673b2899f68c",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "2cb0f23f-4241-4878-bdf2-7be8a5504b11",
+      "name": "Doña Endrina",
+      "book_title": "Libro de Buen Amor",
+      "media_path": "ai_avatars/portraits/f503ade456f3-f5e18d7677fc9254.webp",
+      "sha256": "f5e18d7677fc9254c534bce4b68ad73d458c30ec5a6c89e21cfeb53afe54d35d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "c8909380-0f3e-45df-a62c-13d0dce55e35",
+      "name": "Trotaconventos",
+      "book_title": "Libro de Buen Amor",
+      "media_path": "ai_avatars/portraits/d509a68a1af2-0d95c7f04afb8f75.webp",
+      "sha256": "0d95c7f04afb8f75f76e556a6294491b43316759b13a35bd43a2f37fd5bd2204",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "2de121cb-2200-4017-9f0f-97c4104b6c8b",
+      "name": "Kostaki",
+      "book_title": "La dama pálida",
+      "media_path": "ai_avatars/portraits/211816360eb3-bce6e9cc6770a602.webp",
+      "sha256": "bce6e9cc6770a602ee53906cd8cd9598448cf7a4ce616cb1dcca47410d902011",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "5287e694-bff2-4b40-b2f0-aa0ce44cf59f",
+      "name": "Gregoriska",
+      "book_title": "La dama pálida",
+      "media_path": "ai_avatars/portraits/5879cae45daa-207b23bec2a06955.webp",
+      "sha256": "207b23bec2a06955b68eae318b9b2ad785e09a3963554e368f9c7cd9c9e58b9a",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "72165991-8ceb-4ea8-9c6a-e2e1b357bd6f",
+      "name": "Edvige",
+      "book_title": "La dama pálida",
+      "media_path": "ai_avatars/portraits/badd391b4dff-0c5350db78d6a26b.webp",
+      "sha256": "0c5350db78d6a26bced8daf372ec528af1e6fdaa3ae60ee09272b40602f74999",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b7220a51-3272-454b-b699-136c5a45890b",
+      "name": "Smeranda",
+      "book_title": "La dama pálida",
+      "media_path": "ai_avatars/portraits/ae8ef5103ad8-b0cde3fc12f9fbf6.webp",
+      "sha256": "b0cde3fc12f9fbf68a91b225cae27227b8bab99b816176457a412d16482d5c9d",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "67ec53e5-27ad-4e26-9238-6e35bebee3a4",
+      "name": "Van Jennings",
+      "book_title": "Herland",
+      "media_path": "ai_avatars/portraits/456a26b6f4be-2b94e6638337e929.webp",
+      "sha256": "2b94e6638337e92979db706233d63d9b7884737606fb36015871e00c1aceb89f",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "a3b0e7ec-e3b5-4fff-909c-d34a138180a2",
+      "name": "Terry O'Nicholson",
+      "book_title": "Herland",
+      "media_path": "ai_avatars/portraits/3ab859fccddd-89dc96a0b0bd404e.webp",
+      "sha256": "89dc96a0b0bd404edea0625c54e575dd8b9452a82abfd5091851a0402818fd3b",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "bf52ecfd-8b9a-4202-90d6-9db77343cfaa",
+      "name": "Jeff Margrave",
+      "book_title": "Herland",
+      "media_path": "ai_avatars/portraits/79ace32c8555-2e817cac25a2ca48.webp",
+      "sha256": "2e817cac25a2ca48b0c701c21c06c07e2ee256bce25c24bfd6ddbbf2e4507cd7",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "ece9e036-ad52-4849-afd8-fb7f5ac4d350",
+      "name": "Ellador",
+      "book_title": "Herland",
+      "media_path": "ai_avatars/portraits/57c534e6e21a-2f788781c933392b.webp",
+      "sha256": "2f788781c933392bfb8c043e9681e72aef260fdd2ae63a3be91fb38cc32e1844",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "34094c1f-a5dd-4c28-8a77-92801fdd6072",
+      "name": "Alima",
+      "book_title": "Herland",
+      "media_path": "ai_avatars/portraits/8b7de71eb0ee-53f72ada7661e2fc.webp",
+      "sha256": "53f72ada7661e2fc4c3c7bf4cf4f0aae682291182590596cbd7dab5e6021043b",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "2261e027-aab6-427a-944a-70820c5b102f",
+      "name": "Juan Brown",
+      "book_title": "Los desterrados",
+      "media_path": "ai_avatars/portraits/a5e81fc5e808-6670874eac3f19fd.webp",
+      "sha256": "6670874eac3f19fd2f3c801124a307ec62ba23e13d27809f2c215a201f41515e",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "d7754aa3-40c5-42fb-9266-ebba89f6a7c2",
+      "name": "Tirafogo",
+      "book_title": "Los desterrados",
+      "media_path": "ai_avatars/portraits/da36e3d97029-f1316dbe262d6c08.webp",
+      "sha256": "f1316dbe262d6c084ddf9c2ac147f2a1556b3fabc27b00044d8092c2db5c7cae",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "db1f12d2-a63b-48aa-8d8f-e80f3f0981a6",
+      "name": "Joao Pedro",
+      "book_title": "Los desterrados",
+      "media_path": "ai_avatars/portraits/2455e23f146b-5581b41365fe87e9.webp",
+      "sha256": "5581b41365fe87e9057c316ddad1f0da675f51302449b1aff05e3ff33e35a995",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "15222c0c-b55f-4643-84ca-8e9e66ae67b8",
+      "name": "Pachico Zabalbide",
+      "book_title": "Paz en la guerra",
+      "media_path": "ai_avatars/portraits/ec2d58c1a099-0236c61f338db9be.webp",
+      "sha256": "0236c61f338db9be10794a8bc80e42a037356424153e5509a4b14fff3a3ce155",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "44141990-6dfe-46ed-a6a5-3f9756482bdc",
+      "name": "Ignacio",
+      "book_title": "Paz en la guerra",
+      "media_path": "ai_avatars/portraits/2c88ac381cfb-18c3e8175799499d.webp",
+      "sha256": "18c3e8175799499dd1e262056d41597427432e8e87ede16ccef783f33485eaf0",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "b3b74ea5-b295-4324-9e5b-1fcbe4659dab",
+      "name": "Doña Micaela",
+      "book_title": "Paz en la guerra",
+      "media_path": "ai_avatars/portraits/386a9d64d86d-c1fe7bc35b47861e.webp",
+      "sha256": "c1fe7bc35b47861e18e4b45c1dedc5778c2a69b3055a01ce0dc76ffedb689459",
+      "status": "linked",
+      "upload": "uploaded"
+    },
+    {
+      "avatar_id": "8f46c208-f51e-4250-9e6b-3321482c9bc7",
+      "name": "Juez Brack",
+      "book_title": "Hedda Gabler",
+      "media_path": "ai_avatars/portraits/c8ad960324c3-112473b495190431.webp",
+      "sha256": "112473b4951904313b4462fe0ad5c641d53598cee01c94c573676e8753b5ca68",
+      "status": "linked",
+      "upload": "uploaded"
+    }
+  ]
+}

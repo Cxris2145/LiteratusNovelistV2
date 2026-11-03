@@ -1,0 +1,1300 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   MARCOS DE TEMPORADA Y DE COLECCIÓN (El Bazar)
+   Las mismas capas que avatar-frame.component.css: ::before es el anillo, ::after
+   su segunda capa (content: '' la enciende), .af-ornament asoma por detrás y
+   .af-fx va por delante (solo en lg). Fuera de lg el archivo base deja solo el
+   anillo, sin adornos ni movimiento.
+   Angular encapsula los @keyframes de cada archivo: los de aquí (afc-*) son propios.
+   Los dibujos son SVG de src/assets/frames: se descargan solo cuando alguien lleva el marco.
+   Colección de cada marco: frame-catalog.ts.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Navidad ─────────────────────────────────────────────────────────── */
+
+/* Galleta de jengibre: glaseado y gomitas que dan la vuelta */
+:host([data-frame="frame-xmas-gingerbread"]) {
+  --af-paint: conic-gradient(from 20deg, #a0612b, #c98146 18%, #8a4f22 36%, #b86d32 54%, #93562a 72%, #c47a3a 88%, #a0612b);
+  --af-glow: rgba(201, 129, 70, .35);
+}
+:host([data-size="lg"][data-frame="frame-xmas-gingerbread"]) { --af-w: 7px; }
+:host([data-frame="frame-xmas-gingerbread"])::after {
+  content: '';
+  inset: calc((var(--af-w) * .74 + var(--af-gap)) * -1);
+  padding: calc(var(--af-w) * .48);
+  background: repeating-conic-gradient(#fffaf2 0 4deg, transparent 4deg 9deg, #fffaf2 9deg 13deg, transparent 13deg 18deg,
+    #ef4444 18deg 23deg, transparent 23deg 27deg, #fffaf2 27deg 31deg, transparent 31deg 36deg, #22c55e 36deg 41deg, transparent 41deg 45deg);
+  animation: afc-spin 24s linear infinite;
+}
+
+/* Bastón de caramelo: franjas que giran bajo un brillo de azúcar */
+:host([data-frame="frame-xmas-candy"]) {
+  --af-paint: repeating-conic-gradient(#d7192b 0 9deg, #fff 9deg 12deg, #2e9e4f 12deg 14.5deg, #fff 14.5deg 22.5deg);
+  --af-glow: rgba(239, 68, 68, .35);
+}
+:host([data-size="lg"][data-frame="frame-xmas-candy"]) { --af-w: 7px; }
+:host([data-frame="frame-xmas-candy"])::before { animation: afc-spin 12s linear infinite; }
+:host([data-frame="frame-xmas-candy"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .8), transparent 40%),
+    radial-gradient(circle at 76% 84%, rgba(0, 0, 0, .22), transparent 48%);
+}
+
+/* Copo de nieve: nieve que da vueltas y un copo que gira en lo alto */
+:host([data-frame="frame-xmas-snow"]) {
+  --af-paint: conic-gradient(from 45deg, #e0f2fe, #7dd3fc 20%, #f0f9ff 38%, #38bdf8 58%, #e0f2fe 76%, #bae6fd 90%, #e0f2fe);
+  --af-glow: rgba(125, 211, 252, .5);
+}
+:host([data-size="lg"][data-frame="frame-xmas-snow"]) { --af-w: 7px; }
+:host([data-frame="frame-xmas-snow"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 56.7% 5.4%, #fff 0 1.9px, rgba(3, 105, 161, .55) 2.3px 2.9px, transparent 3.5px),
+    radial-gradient(circle at 66.9% 7.9%, #fff 0 1.3px, rgba(3, 105, 161, .55) 1.7px 2.3px, transparent 2.9px),
+    radial-gradient(circle at 84.9% 18.5%, #fff 0 1.3px, rgba(3, 105, 161, .55) 1.7px 2.3px, transparent 2.9px),
+    radial-gradient(circle at 95.7% 40.8%, #fff 0 1.5px, rgba(3, 105, 161, .55) 1.9px 2.5px, transparent 3.1px),
+    radial-gradient(circle at 93.9% 60.7%, #fff 0 1.2px, rgba(3, 105, 161, .55) 1.6px 2.2px, transparent 2.8px),
+    radial-gradient(circle at 89% 75.6%, #fff 0 1.5px, rgba(3, 105, 161, .55) 1.9px 2.5px, transparent 3.1px),
+    radial-gradient(circle at 72.6% 90.6%, #fff 0 1.6px, rgba(3, 105, 161, .55) 2px 2.6px, transparent 3.2px),
+    radial-gradient(circle at 53% 96.9%, #fff 0 1.8px, rgba(3, 105, 161, .55) 2.2px 2.8px, transparent 3.4px),
+    radial-gradient(circle at 33.3% 93.3%, #fff 0 1.6px, rgba(3, 105, 161, .55) 2px 2.6px, transparent 3.2px),
+    radial-gradient(circle at 10.2% 74.7%, #fff 0 1.4px, rgba(3, 105, 161, .55) 1.8px 2.4px, transparent 3px),
+    radial-gradient(circle at 4.8% 53.3%, #fff 0 1.5px, rgba(3, 105, 161, .55) 1.9px 2.5px, transparent 3.1px),
+    radial-gradient(circle at 6.7% 36.4%, #fff 0 1.6px, rgba(3, 105, 161, .55) 2px 2.6px, transparent 3.2px),
+    radial-gradient(circle at 9.7% 26.5%, #fff 0 1.8px, rgba(3, 105, 161, .55) 2.2px 2.8px, transparent 3.4px),
+    radial-gradient(circle at 30.5% 7%, #fff 0 1.5px, rgba(3, 105, 161, .55) 1.9px 2.5px, transparent 3.1px);
+  animation: afc-spin 30s linear infinite;
+}
+:host([data-frame="frame-xmas-snow"]) .af-fx::before {
+  content: '';
+  width: 30%;
+  aspect-ratio: 1;
+  top: -9%;
+  right: -7%;
+  background: url('/assets/frames/snowflake.svg') center / contain no-repeat;
+  animation: afc-spin 14s linear infinite, afc-pulse 3s ease-in-out infinite;
+}
+
+/* Corona de adviento: pino, bayas que titilan y un moño que se mece */
+:host([data-frame="frame-xmas-wreath"]) {
+  --af-paint: repeating-conic-gradient(from 3deg, #14532d 0 5deg, #1f7a3f 5deg 8deg, #166534 8deg 12deg, #0d3b21 12deg 14deg);
+  --af-glow: rgba(34, 197, 94, .32);
+}
+:host([data-size="lg"][data-frame="frame-xmas-wreath"]) { --af-w: 8px; }
+:host([data-frame="frame-xmas-wreath"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 61.5% 6.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 66.3% 8%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 64.7% 4.7%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 84.9% 21.6%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 87.8% 25.6%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 88.5% 22%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 94.9% 47.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 94.9% 52.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 97.6% 50%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 87.8% 74.4%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 84.9% 78.4%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 88.5% 78%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 66.3% 92%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 61.5% 93.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 64.7% 95.3%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 38.5% 93.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 33.7% 92%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 35.3% 95.3%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 15.1% 78.4%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 12.2% 74.4%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 11.5% 78%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 5.1% 52.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 5.1% 47.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 2.4% 50%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 12.2% 25.6%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 15.1% 21.6%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 11.5% 22%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 33.7% 8%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 38.5% 6.5%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px),
+    radial-gradient(circle at 35.3% 4.7%, #fecaca 0 .5px, #dc2626 .9px 2px, #7f1d1d 2.4px, transparent 2.9px);
+  animation: afc-glow-soft 2.4s ease-in-out infinite;
+}
+:host([data-frame="frame-xmas-wreath"]) .af-fx::after {
+  content: '';
+  width: 44%;
+  aspect-ratio: 1.6;
+  left: 28%;
+  bottom: -16%;
+  background: url('/assets/frames/bow.svg') center / contain no-repeat;
+  transform-origin: 50% 40%;
+  animation: afc-sway 3.2s ease-in-out infinite;
+}
+
+/* Luces del árbol: ampolletas que cambian de color por turnos */
+:host([data-frame="frame-xmas-lights"]) {
+  --af-paint: repeating-conic-gradient(#0b3d2e 0 11.25deg, #14532d 11.25deg 22.5deg);
+  --af-glow: rgba(250, 204, 21, .4);
+}
+:host([data-size="lg"][data-frame="frame-xmas-lights"]) { --af-w: 7px; }
+:host([data-frame="frame-xmas-lights"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 50% 4%, #fff 0 .7px, #ef4444 1.1px 2.5px, rgba(239, 68, 68, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 67.6% 7.5%, #fff 0 .7px, #facc15 1.1px 2.5px, rgba(250, 204, 21, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 82.5% 17.5%, #fff 0 .7px, #22c55e 1.1px 2.5px, rgba(34, 197, 94, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 92.5% 32.4%, #fff 0 .7px, #3b82f6 1.1px 2.5px, rgba(59, 130, 246, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 96% 50%, #fff 0 .7px, #ef4444 1.1px 2.5px, rgba(239, 68, 68, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 92.5% 67.6%, #fff 0 .7px, #facc15 1.1px 2.5px, rgba(250, 204, 21, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 82.5% 82.5%, #fff 0 .7px, #22c55e 1.1px 2.5px, rgba(34, 197, 94, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 67.6% 92.5%, #fff 0 .7px, #3b82f6 1.1px 2.5px, rgba(59, 130, 246, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 50% 96%, #fff 0 .7px, #ef4444 1.1px 2.5px, rgba(239, 68, 68, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 32.4% 92.5%, #fff 0 .7px, #facc15 1.1px 2.5px, rgba(250, 204, 21, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 17.5% 82.5%, #fff 0 .7px, #22c55e 1.1px 2.5px, rgba(34, 197, 94, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 7.5% 67.6%, #fff 0 .7px, #3b82f6 1.1px 2.5px, rgba(59, 130, 246, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 4% 50%, #fff 0 .7px, #ef4444 1.1px 2.5px, rgba(239, 68, 68, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 7.5% 32.4%, #fff 0 .7px, #facc15 1.1px 2.5px, rgba(250, 204, 21, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 17.5% 17.5%, #fff 0 .7px, #22c55e 1.1px 2.5px, rgba(34, 197, 94, .45) 3px, transparent 4.4px),
+    radial-gradient(circle at 32.4% 7.5%, #fff 0 .7px, #3b82f6 1.1px 2.5px, rgba(59, 130, 246, .45) 3px, transparent 4.4px);
+  animation: afc-chase 2.4s steps(4) infinite;
+}
+:host([data-frame="frame-xmas-lights"]) .af-ornament { animation: afc-breathe 1.2s ease-in-out infinite; }
+
+/* Estrella de Belén: cielo de Nochebuena, un brillo que da la vuelta y la estrella que late */
+:host([data-frame="frame-xmas-star"]) {
+  --af-paint: conic-gradient(from 0deg, #0c1445, #1e2a78 25%, #0c1445 50%, #1e2a78 75%, #0c1445);
+  --af-glow: rgba(250, 204, 21, .45);
+}
+:host([data-size="lg"][data-frame="frame-xmas-star"]) { --af-w: 7px; }
+:host([data-frame="frame-xmas-star"])::after {
+  content: '';
+  background:
+    conic-gradient(from 0deg, transparent 0 250deg, rgba(253, 230, 138, .25) 290deg, #fde68a 335deg, #fff7d6 345deg, transparent 352deg),
+    radial-gradient(circle at 52.9% 3.6%, #fff 0 0.9px, transparent 1.6px),
+    radial-gradient(circle at 77.2% 11.5%, #fef3c7 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 94.3% 35.2%, #fff 0 0.6px, transparent 1.3px),
+    radial-gradient(circle at 93.3% 67.2%, #fef3c7 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 73% 89.5%, #fff 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 47.6% 95%, #fef3c7 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 27.3% 89.2%, #fff 0 0.6px, transparent 1.3px),
+    radial-gradient(circle at 5.9% 60.3%, #fef3c7 0 0.7px, transparent 1.4px),
+    radial-gradient(circle at 4.7% 37%, #fff 0 0.6px, transparent 1.3px),
+    radial-gradient(circle at 22.1% 12.9%, #fef3c7 0 1px, transparent 1.7px);
+  animation: afc-spin 6s linear infinite;
+}
+:host([data-frame="frame-xmas-star"]) .af-ornament { animation: afc-breathe 3s ease-in-out infinite; }
+:host([data-frame="frame-xmas-star"]) .af-ornament::before {
+  content: '';
+  width: 60%;
+  aspect-ratio: 1;
+  left: 20%;
+  top: -38%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253, 224, 71, .6), transparent 65%);
+  animation: afc-pulse 3s ease-in-out infinite;
+}
+:host([data-frame="frame-xmas-star"]) .af-fx::before {
+  content: '';
+  width: 36%;
+  aspect-ratio: 1;
+  left: 32%;
+  top: -24%;
+  background: url('/assets/frames/big-star.svg') center / contain no-repeat;
+  filter: drop-shadow(0 0 4px rgba(253, 224, 71, .8));
+  animation: afc-shine 3s ease-in-out infinite;
+}
+:host([data-frame="frame-xmas-star"]) .af-fx::after {
+  content: '';
+  width: 15%;
+  aspect-ratio: 1;
+  left: 0;
+  bottom: 8%;
+  background: url('/assets/frames/sparkle-gold.svg') center / contain no-repeat;
+  animation: afc-twinkle 2.6s ease-in-out -1.3s infinite;
+}
+
+/* Gorro de Papá Noel: terciopelo, nieve que gira y el gorro que se mece */
+:host([data-frame="frame-xmas-santa"]) {
+  --af-paint: conic-gradient(from 0deg, #b91c1c, #ef4444 25%, #991b1b 50%, #dc2626 75%, #b91c1c);
+  --af-glow: rgba(239, 68, 68, .42);
+}
+:host([data-size="lg"][data-frame="frame-xmas-santa"]) { --af-w: 7px; }
+:host([data-frame="frame-xmas-santa"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 54.7% 3.1%, #fff 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 64.5% 6.5%, #fff1f2 0 1.6px, transparent 2.3px),
+    radial-gradient(circle at 83.8% 19.8%, #fff 0 1px, transparent 1.7px),
+    radial-gradient(circle at 87.4% 24%, #fff1f2 0 1.3px, transparent 2px),
+    radial-gradient(circle at 95.2% 43.3%, #fff 0 0.9px, transparent 1.6px),
+    radial-gradient(circle at 95.4% 56.8%, #fff1f2 0 1.4px, transparent 2.1px),
+    radial-gradient(circle at 86.7% 78.9%, #fff 0 1.3px, transparent 2px),
+    radial-gradient(circle at 78.7% 86.9%, #fff1f2 0 0.9px, transparent 1.6px),
+    radial-gradient(circle at 60.4% 95.8%, #fff 0 1.6px, transparent 2.3px),
+    radial-gradient(circle at 45.7% 95.8%, #fff1f2 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 39.6% 95.4%, #fff 0 0.9px, transparent 1.6px),
+    radial-gradient(circle at 25.7% 88.5%, #fff1f2 0 1px, transparent 1.7px),
+    radial-gradient(circle at 12.1% 74.5%, #fff 0 0.9px, transparent 1.6px),
+    radial-gradient(circle at 6.6% 62.7%, #fff1f2 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 2.8% 48.8%, #fff 0 1.4px, transparent 2.1px),
+    radial-gradient(circle at 8.2% 31.7%, #fff1f2 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 19.4% 16.6%, #fff 0 1.6px, transparent 2.3px),
+    radial-gradient(circle at 41.1% 4.7%, #fff1f2 0 1.3px, transparent 2px);
+  animation: afc-spin 36s linear infinite;
+}
+:host([data-frame="frame-xmas-santa"]) .af-ornament { animation: afc-breathe 3.2s ease-in-out infinite; }
+:host([data-frame="frame-xmas-santa"]) .af-fx::before {
+  content: '';
+  width: 68%;
+  aspect-ratio: 1.24;
+  left: 22%;
+  top: -36%;
+  background: url('/assets/frames/santa-hat.svg') center / contain no-repeat;
+  rotate: 14deg;
+  transform-origin: 30% 85%;
+  animation: afc-sway 3.6s ease-in-out infinite;
+}
+:host([data-frame="frame-xmas-santa"]) .af-fx::after {
+  content: '';
+  width: 14%;
+  aspect-ratio: 1;
+  right: 2%;
+  bottom: 6%;
+  background: url('/assets/frames/sparkle-white.svg') center / contain no-repeat;
+  animation: afc-twinkle 2.2s ease-in-out infinite;
+}
+
+/* ── Año Nuevo ───────────────────────────────────────────────────────── */
+
+/* Primer amanecer */
+:host([data-frame="frame-ny-sunrise"]) {
+  --af-paint: conic-gradient(from 0deg, #fde68a, #fdba74 18%, #fb7185 36%, #c084fc 54%, #f9a8d4 72%, #fcd34d 88%, #fde68a);
+  --af-glow: rgba(251, 146, 60, .4);
+}
+:host([data-frame="frame-ny-sunrise"])::before { animation: afc-spin 16s linear infinite; }
+
+/* Lluvia de confeti: papelitos que giran y otros que caen desde arriba */
+:host([data-frame="frame-ny-confetti"]) {
+  --af-paint: conic-gradient(#1e1b4b, #312e81 50%, #1e1b4b);
+  --af-glow: rgba(244, 114, 182, .32);
+}
+:host([data-size="lg"][data-frame="frame-ny-confetti"]) { --af-w: 7px; }
+:host([data-frame="frame-ny-confetti"])::after {
+  content: '';
+  inset: calc((var(--af-w) * .84 + var(--af-gap)) * -1);
+  padding: calc(var(--af-w) * .68);
+  background: repeating-conic-gradient(#f43f5e 0 5deg, transparent 5deg 13deg, #facc15 13deg 17deg, transparent 17deg 26deg,
+    #22d3ee 26deg 31deg, transparent 31deg 37deg, #a3e635 37deg 41deg, transparent 41deg 52deg, #c084fc 52deg 57deg, transparent 57deg 60deg);
+  animation: afc-spin 9s linear infinite;
+}
+:host([data-frame="frame-ny-confetti"]) .af-fx::before {
+  content: '';
+  width: 112%;
+  aspect-ratio: 2.5;
+  left: -6%;
+  top: -24%;
+  background: url('/assets/frames/confetti.svg') center / contain no-repeat;
+  animation: afc-fall 3s linear infinite;
+}
+
+/* Brindis de medianoche: oro con burbujas que suben y destellos */
+:host([data-frame="frame-ny-champagne"]) {
+  --af-paint: conic-gradient(from 30deg, #f7e7b4, #d4af37 20%, #fff7d6 40%, #b8902a 60%, #f3dc9a 80%, #f7e7b4);
+  --af-glow: rgba(212, 175, 55, .45);
+}
+:host([data-size="lg"][data-frame="frame-ny-champagne"]) { --af-w: 7px; }
+:host([data-frame="frame-ny-champagne"])::before { animation: afc-spin 20s linear infinite; }
+:host([data-frame="frame-ny-champagne"])::after {
+  content: '';
+  background: radial-gradient(circle at 12% 20%, rgba(255, 255, 255, .95) 0 1.3px, rgba(146, 64, 14, .5) 1.6px 2.1px, transparent 2.5px), radial-gradient(circle at 30% 70%, rgba(255, 255, 255, .95) 0 1.8px, rgba(146, 64, 14, .5) 2.1px 2.6px, transparent 3px), radial-gradient(circle at 48% 35%, rgba(255, 255, 255, .95) 0 1.1px, rgba(146, 64, 14, .5) 1.5px 1.9px, transparent 2.3px), radial-gradient(circle at 66% 85%, rgba(255, 255, 255, .95) 0 1.6px, rgba(146, 64, 14, .5) 2px 2.4px, transparent 2.8px), radial-gradient(circle at 84% 50%, rgba(255, 255, 255, .95) 0 1.2px, rgba(146, 64, 14, .5) 1.5px 2px, transparent 2.4px), radial-gradient(circle at 92% 12%, rgba(255, 255, 255, .95) 0 1.5px, rgba(146, 64, 14, .5) 1.9px 2.3px, transparent 2.7px), radial-gradient(circle at 22% 92%, rgba(255, 255, 255, .95) 0 1.0px, rgba(146, 64, 14, .5) 1.4px 1.8px, transparent 2.2px), radial-gradient(circle at 58% 5%, rgba(255, 255, 255, .95) 0 1.4px, rgba(146, 64, 14, .5) 1.8px 2.2px, transparent 2.6px), radial-gradient(circle at 76% 28%, rgba(255, 255, 255, .95) 0 1.0px, rgba(146, 64, 14, .5) 1.4px 1.8px, transparent 2.2px), radial-gradient(circle at 40% 55%, rgba(255, 255, 255, .95) 0 1.5px, rgba(146, 64, 14, .5) 1.9px 2.3px, transparent 2.7px), radial-gradient(circle at 6% 48%, rgba(255, 255, 255, .95) 0 1.2px, rgba(146, 64, 14, .5) 1.5px 2px, transparent 2.4px), radial-gradient(circle at 96% 78%, rgba(255, 255, 255, .95) 0 1.1px, rgba(146, 64, 14, .5) 1.5px 1.9px, transparent 2.3px);
+  background-size: 100% 50%;
+  animation: afc-rise 3.2s linear infinite;
+}
+:host([data-frame="frame-ny-champagne"]) .af-ornament { animation: afc-breathe 3.2s ease-in-out infinite; }
+:host([data-frame="frame-ny-champagne"]) .af-fx::before,
+:host([data-frame="frame-ny-champagne"]) .af-fx::after {
+  content: '';
+  aspect-ratio: 1;
+  animation: afc-twinkle 2.4s ease-in-out infinite;
+}
+:host([data-frame="frame-ny-champagne"]) .af-fx::before {
+  width: 18%;
+  right: -2%;
+  top: -4%;
+  background: url('/assets/frames/sparkle-gold.svg') center / contain no-repeat;
+}
+:host([data-frame="frame-ny-champagne"]) .af-fx::after {
+  width: 12%;
+  left: 2%;
+  top: 4%;
+  background: url('/assets/frames/sparkle-white.svg') center / contain no-repeat;
+  animation-delay: -1.2s;
+}
+
+/* Doce campanadas: esmalte negro, horas de oro y una aguja que avanza cada segundo */
+:host([data-frame="frame-ny-clock"]) {
+  --af-paint: conic-gradient(#111113, #2a2a2e 25%, #111113 50%, #2a2a2e 75%, #111113);
+  --af-glow: rgba(251, 191, 36, .35);
+}
+:host([data-size="lg"][data-frame="frame-ny-clock"]) { --af-w: 7px; }
+:host([data-frame="frame-ny-clock"])::after {
+  content: '';
+  background:
+    repeating-conic-gradient(from -1.5deg, #fbbf24 0 3deg, transparent 3deg 30deg),
+    repeating-conic-gradient(from -.5deg, rgba(251, 191, 36, .45) 0 1deg, transparent 1deg 6deg);
+}
+:host([data-frame="frame-ny-clock"]) .af-ornament { animation: afc-breathe 2s ease-in-out infinite; }
+:host([data-frame="frame-ny-clock"]) .af-fx::before {
+  content: '';
+  inset: 0;
+  background: linear-gradient(#fef3c7, #f59e0b);
+  clip-path: polygon(46% 0, 54% 0, 50% 10%);
+  animation: afc-spin 60s steps(60) infinite;
+}
+:host([data-frame="frame-ny-clock"]) .af-fx::after {
+  content: '';
+  width: 32%;
+  aspect-ratio: 60 / 32;
+  left: 34%;
+  top: -20%;
+  background: url('/assets/frames/clock-plaque.svg') center / contain no-repeat;
+}
+
+/* Fuegos artificiales: cuatro fuegos que estallan por turnos */
+:host([data-frame="frame-ny-fireworks"]) {
+  --af-paint: conic-gradient(from 0deg, #0b1026, #1e1b4b 30%, #0b1026 55%, #172554 80%, #0b1026);
+  --af-glow: rgba(244, 114, 182, .38);
+}
+:host([data-size="lg"][data-frame="frame-ny-fireworks"]) { --af-w: 7px; }
+:host([data-frame="frame-ny-fireworks"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 44.1% 5.1%, #fff 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 64.8% 5.3%, #fde68a 0 0.7px, transparent 1.4px),
+    radial-gradient(circle at 78.1% 11.9%, #f9a8d4 0 0.9px, transparent 1.6px),
+    radial-gradient(circle at 90.6% 27.6%, #a5f3fc 0 0.6px, transparent 1.3px),
+    radial-gradient(circle at 97.4% 50.4%, #fff 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 91% 70%, #fde68a 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 86.5% 79.5%, #f9a8d4 0 0.9px, transparent 1.6px),
+    radial-gradient(circle at 63.8% 93.7%, #a5f3fc 0 0.7px, transparent 1.4px),
+    radial-gradient(circle at 45.4% 97.2%, #fff 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 27.9% 91.5%, #fde68a 0 1px, transparent 1.7px),
+    radial-gradient(circle at 20.2% 85.4%, #f9a8d4 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 11.4% 73.2%, #a5f3fc 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 3.4% 53.5%, #fff 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 6% 32.6%, #fde68a 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 22.5% 13.2%, #f9a8d4 0 0.7px, transparent 1.4px),
+    radial-gradient(circle at 29.1% 9.6%, #a5f3fc 0 0.7px, transparent 1.4px);
+  animation: afc-pulse 1.6s ease-in-out infinite;
+}
+:host([data-frame="frame-ny-fireworks"]) .af-ornament { animation: afc-breathe 1.2s ease-in-out infinite; }
+:host([data-frame="frame-ny-fireworks"]) .af-fx::before,
+:host([data-frame="frame-ny-fireworks"]) .af-fx::after,
+:host([data-frame="frame-ny-fireworks"]) .af-ornament::before,
+:host([data-frame="frame-ny-fireworks"]) .af-ornament::after {
+  content: '';
+  aspect-ratio: 1;
+  animation: afc-burst 2.4s ease-out infinite;
+}
+:host([data-frame="frame-ny-fireworks"]) .af-fx::before {
+  width: 44%;
+  left: -18%;
+  top: -20%;
+  background: url('/assets/frames/burst-pink.svg') center / contain no-repeat;
+}
+:host([data-frame="frame-ny-fireworks"]) .af-fx::after {
+  width: 36%;
+  right: -14%;
+  top: -10%;
+  background: url('/assets/frames/burst-gold.svg') center / contain no-repeat;
+  animation-delay: -1.2s;
+}
+:host([data-frame="frame-ny-fireworks"]) .af-ornament::before {
+  width: 36%;
+  left: -14%;
+  bottom: -14%;
+  background: url('/assets/frames/burst-cyan.svg') center / contain no-repeat;
+  animation-delay: -.6s;
+}
+:host([data-frame="frame-ny-fireworks"]) .af-ornament::after {
+  width: 32%;
+  right: -12%;
+  bottom: -8%;
+  background: url('/assets/frames/burst-green.svg') center / contain no-repeat;
+  animation-delay: -1.8s;
+}
+
+/* ── Halloween ───────────────────────────────────────────────────────── */
+
+/* Caldero de bruja: pócima que gira y burbujea */
+:host([data-frame="frame-hw-potion"]) {
+  --af-paint: conic-gradient(from 0deg, #14532d, #4ade80 20%, #166534 40%, #a3e635 60%, #15803d 80%, #14532d);
+  --af-glow: rgba(132, 204, 22, .45);
+}
+:host([data-size="lg"][data-frame="frame-hw-potion"]) { --af-w: 7px; }
+:host([data-frame="frame-hw-potion"])::before { animation: afc-spin 10s linear infinite; }
+:host([data-frame="frame-hw-potion"])::after {
+  content: '';
+  background: radial-gradient(circle at 12% 20%, rgba(236, 252, 203, .95) 0 1.3px, rgba(20, 83, 45, .6) 1.6px 2.1px, transparent 2.5px), radial-gradient(circle at 30% 70%, rgba(236, 252, 203, .95) 0 1.8px, rgba(20, 83, 45, .6) 2.1px 2.6px, transparent 3px), radial-gradient(circle at 48% 35%, rgba(236, 252, 203, .95) 0 1.1px, rgba(20, 83, 45, .6) 1.5px 1.9px, transparent 2.3px), radial-gradient(circle at 66% 85%, rgba(236, 252, 203, .95) 0 1.6px, rgba(20, 83, 45, .6) 2px 2.4px, transparent 2.8px), radial-gradient(circle at 84% 50%, rgba(236, 252, 203, .95) 0 1.2px, rgba(20, 83, 45, .6) 1.5px 2px, transparent 2.4px), radial-gradient(circle at 92% 12%, rgba(236, 252, 203, .95) 0 1.5px, rgba(20, 83, 45, .6) 1.9px 2.3px, transparent 2.7px), radial-gradient(circle at 22% 92%, rgba(236, 252, 203, .95) 0 1.0px, rgba(20, 83, 45, .6) 1.4px 1.8px, transparent 2.2px), radial-gradient(circle at 58% 5%, rgba(236, 252, 203, .95) 0 1.4px, rgba(20, 83, 45, .6) 1.8px 2.2px, transparent 2.6px), radial-gradient(circle at 76% 28%, rgba(236, 252, 203, .95) 0 1.0px, rgba(20, 83, 45, .6) 1.4px 1.8px, transparent 2.2px), radial-gradient(circle at 40% 55%, rgba(236, 252, 203, .95) 0 1.5px, rgba(20, 83, 45, .6) 1.9px 2.3px, transparent 2.7px), radial-gradient(circle at 6% 48%, rgba(236, 252, 203, .95) 0 1.2px, rgba(20, 83, 45, .6) 1.5px 2px, transparent 2.4px), radial-gradient(circle at 96% 78%, rgba(236, 252, 203, .95) 0 1.1px, rgba(20, 83, 45, .6) 1.5px 1.9px, transparent 2.3px);
+  background-size: 100% 50%;
+  animation: afc-rise 2.6s linear infinite;
+}
+:host([data-frame="frame-hw-potion"]) .af-ornament { animation: afc-breathe 2.6s ease-in-out infinite; }
+
+/* Vuelo de murciélagos: anochecer y murciélagos en órbita */
+:host([data-frame="frame-hw-bats"]) {
+  --af-paint: conic-gradient(from 200deg, #1e1033, #4c1d95 30%, #7c2d12 52%, #ea580c 62%, #4c1d95 80%, #1e1033);
+  --af-glow: rgba(234, 88, 12, .35);
+}
+:host([data-frame="frame-hw-bats"])::before { animation: afc-spin 30s linear infinite; }
+:host([data-frame="frame-hw-bats"]) .af-fx::before {
+  content: '';
+  inset: -16%;
+  background: url('/assets/frames/bats-orbit.svg') center / contain no-repeat;
+  animation: afc-spin 12s linear infinite;
+}
+
+/* Calabaza encendida: gajos, tallo con hoja y una calabacita con su vela */
+:host([data-frame="frame-hw-pumpkin"]) {
+  --af-paint: repeating-conic-gradient(#f97316 0 9deg, #c2410c 9deg 11deg, #fb923c 11deg 20deg, #9a3412 20deg 22.5deg);
+  --af-glow: rgba(249, 115, 22, .5);
+}
+:host([data-size="lg"][data-frame="frame-hw-pumpkin"]) { --af-w: 8px; }
+:host([data-frame="frame-hw-pumpkin"]) .af-ornament { animation: afc-flicker 1.6s ease-in-out infinite alternate; }
+:host([data-frame="frame-hw-pumpkin"]) .af-fx::before {
+  content: '';
+  width: 32%;
+  aspect-ratio: 1;
+  left: 34%;
+  top: -22%;
+  background: url('/assets/frames/pumpkin-stem.svg') center / contain no-repeat;
+  transform-origin: 50% 100%;
+  animation: afc-sway 4s ease-in-out infinite;
+}
+:host([data-frame="frame-hw-pumpkin"]) .af-fx::after {
+  content: '';
+  width: 34%;
+  aspect-ratio: 100 / 92;
+  right: -12%;
+  bottom: -10%;
+  background: url('/assets/frames/jack.svg') center / contain no-repeat;
+  animation: afc-bob 3s ease-in-out infinite;
+}
+
+/* Telaraña: hilos en la penumbra y una araña que sube y baja (la anima su SVG) */
+:host([data-frame="frame-hw-web"]) {
+  --af-paint: conic-gradient(#18181b, #3f3f46 25%, #18181b 50%, #27272a 75%, #18181b);
+  --af-glow: rgba(161, 161, 170, .32);
+}
+:host([data-size="lg"][data-frame="frame-hw-web"]) { --af-w: 7px; }
+:host([data-frame="frame-hw-web"])::after {
+  content: '';
+  background:
+    radial-gradient(closest-side, transparent calc(100% - var(--af-w) * .5 - .6px), rgba(244, 244, 245, .7) calc(100% - var(--af-w) * .5 - .6px) calc(100% - var(--af-w) * .5 + .6px), transparent calc(100% - var(--af-w) * .5 + .6px)),
+    repeating-conic-gradient(rgba(244, 244, 245, .75) 0 1.2deg, transparent 1.2deg 18deg);
+  animation: afc-glow-soft 3s ease-in-out infinite;
+}
+:host([data-frame="frame-hw-web"]) .af-fx::before {
+  content: '';
+  width: 52%;
+  aspect-ratio: 1;
+  left: -15%;
+  top: -15%;
+  background: url('/assets/frames/corner-web.svg') center / contain no-repeat;
+}
+:host([data-frame="frame-hw-web"]) .af-fx::after {
+  content: '';
+  width: 16%;
+  aspect-ratio: 40 / 104;
+  right: 6%;
+  top: -16%;
+  background: url('/assets/frames/spider.svg') center / contain no-repeat;
+}
+
+/* Fantasma de la biblioteca: neblina que gira y dos fantasmas que flotan */
+:host([data-frame="frame-hw-ghost"]) {
+  --af-paint: conic-gradient(from 0deg, #f5f3ff, #c4b5fd 25%, #ede9fe 50%, #a78bfa 75%, #f5f3ff);
+  --af-glow: rgba(196, 181, 253, .55);
+}
+:host([data-size="lg"][data-frame="frame-hw-ghost"]) { --af-w: 7px; }
+:host([data-frame="frame-hw-ghost"])::before { animation: afc-spin 18s linear infinite; }
+:host([data-frame="frame-hw-ghost"])::after {
+  content: '';
+  background: conic-gradient(from 0deg, rgba(255, 255, 255, .75), transparent 25%, rgba(255, 255, 255, .55) 50%, transparent 75%, rgba(255, 255, 255, .75));
+  animation: afc-spin-rev 9s linear infinite;
+}
+:host([data-frame="frame-hw-ghost"]) .af-fx::before,
+:host([data-frame="frame-hw-ghost"]) .af-fx::after {
+  content: '';
+  aspect-ratio: 1;
+  background: url('/assets/frames/ghost.svg') center / contain no-repeat;
+  animation: afc-float 3.4s ease-in-out infinite;
+}
+:host([data-frame="frame-hw-ghost"]) .af-fx::before { width: 34%; right: -14%; top: -14%; }
+:host([data-frame="frame-hw-ghost"]) .af-fx::after { width: 22%; left: -10%; bottom: -4%; opacity: .85; animation-delay: -1.7s; }
+
+/* Luna de sangre: luna roja detrás, murciélagos cruzándola y ojos en la rama */
+:host([data-frame="frame-hw-bloodmoon"]) {
+  --af-paint: conic-gradient(from 0deg, #0a0a0a, #7f1d1d 20%, #1c0606 40%, #b91c1c 60%, #0a0a0a 80%, #450a0a 90%, #0a0a0a);
+  --af-glow: rgba(220, 38, 38, .5);
+}
+:host([data-size="lg"][data-frame="frame-hw-bloodmoon"]) { --af-w: 7px; }
+:host([data-frame="frame-hw-bloodmoon"])::before { animation: afc-spin 24s linear infinite; }
+:host([data-frame="frame-hw-bloodmoon"]) .af-ornament { animation: afc-breathe 3s ease-in-out infinite; }
+:host([data-frame="frame-hw-bloodmoon"]) .af-ornament::before {
+  content: '';
+  width: 46%;
+  aspect-ratio: 1;
+  right: -20%;
+  top: -20%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 40%, rgba(69, 10, 10, .45) 0 9%, transparent 10%),
+    radial-gradient(circle at 62% 62%, rgba(69, 10, 10, .4) 0 12%, transparent 13%),
+    radial-gradient(circle at 60% 28%, rgba(69, 10, 10, .35) 0 6%, transparent 7%),
+    radial-gradient(circle at 40% 35%, #fca5a5, #dc2626 45%, #7f1d1d);
+  box-shadow: 0 0 14px rgba(239, 68, 68, .7);
+}
+:host([data-frame="frame-hw-bloodmoon"]) .af-ornament::after {
+  content: '';
+  width: 48%;
+  aspect-ratio: 1;
+  left: -22%;
+  bottom: -18%;
+  background: url('/assets/frames/dead-branch.svg') center / contain no-repeat;
+}
+:host([data-frame="frame-hw-bloodmoon"]) .af-fx::before {
+  content: '';
+  width: 38%;
+  aspect-ratio: 100 / 60;
+  right: -16%;
+  top: -16%;
+  background: url('/assets/frames/bats-pair.svg') center / contain no-repeat;
+  animation: afc-float 2.6s ease-in-out infinite;
+}
+:host([data-frame="frame-hw-bloodmoon"]) .af-fx::after {
+  content: '';
+  width: 18%;
+  aspect-ratio: 40 / 16;
+  left: -20%;
+  bottom: 12%;
+  background: url('/assets/frames/red-eyes.svg') center / contain no-repeat;
+  animation: afc-blink 4s ease-in-out infinite;
+}
+
+/* ── Bestiario ───────────────────────────────────────────────────────── */
+
+/* Lobo de luna: pelaje con brillo plateado, orejas que se mueven y la luna detrás */
+:host([data-frame="frame-wolf"]) {
+  --af-paint: repeating-conic-gradient(#6b7280 0 5deg, #9ca3af 5deg 8deg, #4b5563 8deg 11deg, #d1d5db 11deg 13deg);
+  --af-glow: rgba(203, 213, 225, .45);
+}
+:host([data-size="lg"][data-frame="frame-wolf"]) { --af-w: 7px; }
+:host([data-frame="frame-wolf"])::after {
+  content: '';
+  background: conic-gradient(from 0deg, transparent 0 290deg, rgba(248, 250, 252, .75) 325deg, transparent 345deg);
+  animation: afc-spin 6s linear infinite;
+}
+:host([data-frame="frame-wolf"]) .af-ornament::before {
+  content: '';
+  width: 36%;
+  aspect-ratio: 1;
+  right: -16%;
+  top: -18%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 68% 34%, transparent 0 40%, #fef9c3 41%);
+  filter: drop-shadow(0 0 6px rgba(254, 249, 195, .8));
+  animation: afc-glow-soft 4s ease-in-out infinite;
+}
+:host([data-frame="frame-wolf"]) .af-fx::before,
+:host([data-frame="frame-wolf"]) .af-fx::after {
+  content: '';
+  width: 25%;
+  aspect-ratio: 60 / 72;
+  top: -17%;
+  background: url('/assets/frames/wolf-ear.svg') center / contain no-repeat;
+  transform-origin: 50% 100%;
+  animation: afc-twitch 5s ease-in-out infinite;
+}
+:host([data-frame="frame-wolf"]) .af-fx::before { left: 11%; rotate: -22deg; }
+:host([data-frame="frame-wolf"]) .af-fx::after { right: 11%; rotate: 22deg; animation-delay: -2.5s; }
+
+/* Uróboros: la serpiente da la vuelta entera, con la cabeza mordiéndose la cola */
+:host([data-frame="frame-ouroboros"]) {
+  --af-paint:
+    radial-gradient(closest-side, transparent calc(100% - var(--af-w)), #eab308 calc(100% - var(--af-w)) calc(100% - var(--af-w) * .62), transparent calc(100% - var(--af-w) * .62)),
+    repeating-conic-gradient(#3f6212 0 4deg, #65a30d 4deg 7deg, #a3e635 7deg 8deg, #365314 8deg 10deg);
+  --af-glow: rgba(132, 204, 22, .38);
+}
+:host([data-size="lg"][data-frame="frame-ouroboros"]) { --af-w: 8px; }
+:host([data-frame="frame-ouroboros"])::before { animation: afc-spin 12s linear infinite; }
+:host([data-frame="frame-ouroboros"]) .af-fx::before {
+  content: '';
+  inset: -14%;
+  background: url('/assets/frames/ouroboros-head.svg') center / contain no-repeat;
+  animation: afc-spin 12s linear infinite;
+}
+
+/* Kraken: aguas profundas, burbujas y tentáculos detrás */
+:host([data-frame="frame-kraken"]) {
+  --af-paint: conic-gradient(from 0deg, #082f49, #0e7490 25%, #164e63 50%, #155e75 75%, #082f49);
+  --af-glow: rgba(34, 211, 238, .38);
+}
+:host([data-size="lg"][data-frame="frame-kraken"]) { --af-w: 7px; }
+:host([data-frame="frame-kraken"])::after {
+  content: '';
+  background: radial-gradient(circle at 12% 20%, rgba(207, 250, 254, .9) 0 1.3px, rgba(8, 47, 73, .55) 1.6px 2.1px, transparent 2.5px), radial-gradient(circle at 30% 70%, rgba(207, 250, 254, .9) 0 1.8px, rgba(8, 47, 73, .55) 2.1px 2.6px, transparent 3px), radial-gradient(circle at 48% 35%, rgba(207, 250, 254, .9) 0 1.1px, rgba(8, 47, 73, .55) 1.5px 1.9px, transparent 2.3px), radial-gradient(circle at 66% 85%, rgba(207, 250, 254, .9) 0 1.6px, rgba(8, 47, 73, .55) 2px 2.4px, transparent 2.8px), radial-gradient(circle at 84% 50%, rgba(207, 250, 254, .9) 0 1.2px, rgba(8, 47, 73, .55) 1.5px 2px, transparent 2.4px), radial-gradient(circle at 92% 12%, rgba(207, 250, 254, .9) 0 1.5px, rgba(8, 47, 73, .55) 1.9px 2.3px, transparent 2.7px), radial-gradient(circle at 22% 92%, rgba(207, 250, 254, .9) 0 1.0px, rgba(8, 47, 73, .55) 1.4px 1.8px, transparent 2.2px), radial-gradient(circle at 58% 5%, rgba(207, 250, 254, .9) 0 1.4px, rgba(8, 47, 73, .55) 1.8px 2.2px, transparent 2.6px), radial-gradient(circle at 76% 28%, rgba(207, 250, 254, .9) 0 1.0px, rgba(8, 47, 73, .55) 1.4px 1.8px, transparent 2.2px), radial-gradient(circle at 40% 55%, rgba(207, 250, 254, .9) 0 1.5px, rgba(8, 47, 73, .55) 1.9px 2.3px, transparent 2.7px), radial-gradient(circle at 6% 48%, rgba(207, 250, 254, .9) 0 1.2px, rgba(8, 47, 73, .55) 1.5px 2px, transparent 2.4px), radial-gradient(circle at 96% 78%, rgba(207, 250, 254, .9) 0 1.1px, rgba(8, 47, 73, .55) 1.5px 1.9px, transparent 2.3px);
+  background-size: 100% 50%;
+  animation: afc-rise 3.6s linear infinite;
+}
+:host([data-frame="frame-kraken"]) .af-ornament::before,
+:host([data-frame="frame-kraken"]) .af-ornament::after {
+  content: '';
+  width: 62%;
+  aspect-ratio: 1;
+  bottom: -6%;
+  animation: afc-sway 3.6s ease-in-out infinite;
+}
+:host([data-frame="frame-kraken"]) .af-ornament::before {
+  left: -32%;
+  background: url('/assets/frames/tentacle.svg') center / contain no-repeat;
+  transform-origin: 70% 100%;
+}
+:host([data-frame="frame-kraken"]) .af-ornament::after {
+  right: -32%;
+  background: url('/assets/frames/tentacle-m.svg') center / contain no-repeat;
+  transform-origin: 30% 100%;
+  animation-delay: -1.8s;
+}
+
+/* Unicornio: arcoíris pastel, cuerno dorado y chispas */
+:host([data-frame="frame-unicorn"]) {
+  --af-paint: conic-gradient(#f9a8d4, #fde68a, #86efac, #7dd3fc, #c4b5fd, #f9a8d4);
+  --af-glow: rgba(244, 114, 182, .45);
+}
+:host([data-size="lg"][data-frame="frame-unicorn"]) { --af-w: 7px; }
+:host([data-frame="frame-unicorn"])::before { animation: afc-spin 9s linear infinite; }
+:host([data-frame="frame-unicorn"]) .af-ornament { animation: afc-breathe 3s ease-in-out infinite; }
+:host([data-frame="frame-unicorn"]) .af-fx::before {
+  content: '';
+  width: 18%;
+  aspect-ratio: 40 / 84;
+  left: 41%;
+  top: -30%;
+  background: url('/assets/frames/unicorn-horn.svg') center / contain no-repeat;
+  transform-origin: 50% 100%;
+  animation: afc-shine 3s ease-in-out infinite;
+}
+:host([data-frame="frame-unicorn"]) .af-fx::after {
+  content: '';
+  width: 76%;
+  aspect-ratio: 2;
+  left: 12%;
+  top: -24%;
+  background: url('/assets/frames/unicorn-sparkles.svg') center / contain no-repeat;
+  animation: afc-pulse 1.8s ease-in-out infinite;
+}
+
+/* Fénix: plumas de fuego, alas que baten, cresta y brasas que suben */
+:host([data-frame="frame-phoenix"]) {
+  --af-paint: conic-gradient(from 0deg, #7f1d1d, #ea580c 15%, #facc15 30%, #f97316 45%, #dc2626 60%, #fbbf24 75%, #b91c1c 90%, #7f1d1d);
+  --af-glow: rgba(249, 115, 22, .55);
+}
+:host([data-size="lg"][data-frame="frame-phoenix"]) { --af-w: 7px; }
+:host([data-frame="frame-phoenix"])::before { animation: afc-spin 8s linear infinite; }
+:host([data-frame="frame-phoenix"]) .af-ornament { animation: afc-flicker 1.6s ease-in-out infinite alternate; }
+:host([data-frame="frame-phoenix"]) .af-ornament::before,
+:host([data-frame="frame-phoenix"]) .af-ornament::after {
+  content: '';
+  width: 56%;
+  aspect-ratio: 1;
+  top: -14%;
+  animation: afc-flap 2.4s ease-in-out infinite;
+}
+:host([data-frame="frame-phoenix"]) .af-ornament::before {
+  left: -40%;
+  background: url('/assets/frames/phoenix-wing.svg') center / contain no-repeat;
+  transform-origin: 96% 50%;
+}
+:host([data-frame="frame-phoenix"]) .af-ornament::after {
+  right: -40%;
+  background: url('/assets/frames/phoenix-wing-m.svg') center / contain no-repeat;
+  transform-origin: 4% 50%;
+}
+:host([data-frame="frame-phoenix"]) .af-fx::before {
+  content: '';
+  width: 84%;
+  aspect-ratio: 2.5;
+  left: 8%;
+  top: -40%;
+  background: url('/assets/frames/embers.svg') center / contain no-repeat;
+  animation: afc-embers 2.2s linear infinite;
+}
+:host([data-frame="frame-phoenix"]) .af-fx::after {
+  content: '';
+  width: 15%;
+  height: 22%;
+  left: 42.5%;
+  top: -15%;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 75%, #fef08a, #f97316 55%, #dc2626);
+  transform-origin: 50% 100%;
+  animation: afc-flame 1.3s ease-in-out infinite alternate;
+}
+
+/* Dragón esmeralda: escamas con destello, alas que baten, cabeza que vigila y cola */
+:host([data-frame="frame-dragon-emerald"]) {
+  --af-paint: repeating-conic-gradient(#064e3b 0 4deg, #059669 4deg 7deg, #34d399 7deg 8deg, #065f46 8deg 10deg);
+  --af-glow: rgba(16, 185, 129, .45);
+}
+:host([data-size="lg"][data-frame="frame-dragon-emerald"]) { --af-w: 8px; }
+:host([data-frame="frame-dragon-emerald"])::after {
+  content: '';
+  background: conic-gradient(from 0deg, transparent 0 300deg, rgba(209, 250, 229, .8) 330deg, transparent 345deg);
+  animation: afc-spin 5s linear infinite;
+}
+:host([data-frame="frame-dragon-emerald"]) .af-ornament { animation: afc-breathe 3.5s ease-in-out infinite; }
+:host([data-frame="frame-dragon-emerald"]) .af-ornament::before,
+:host([data-frame="frame-dragon-emerald"]) .af-ornament::after {
+  content: '';
+  width: 60%;
+  aspect-ratio: 1;
+  top: -16%;
+  animation: afc-flap 3s ease-in-out infinite;
+}
+:host([data-frame="frame-dragon-emerald"]) .af-ornament::before {
+  left: -44%;
+  background: url('/assets/frames/emerald-wing.svg') center / contain no-repeat;
+  transform-origin: 97% 42%;
+}
+:host([data-frame="frame-dragon-emerald"]) .af-ornament::after {
+  right: -44%;
+  background: url('/assets/frames/emerald-wing-m.svg') center / contain no-repeat;
+  transform-origin: 3% 42%;
+}
+:host([data-frame="frame-dragon-emerald"]) .af-fx::before {
+  content: '';
+  width: 46%;
+  aspect-ratio: 100 / 82;
+  left: 27%;
+  top: -32%;
+  background: url('/assets/frames/emerald-head.svg') center / contain no-repeat;
+  animation: afc-bob 4s ease-in-out infinite;
+}
+:host([data-frame="frame-dragon-emerald"]) .af-fx::after {
+  content: '';
+  width: 36%;
+  aspect-ratio: 100 / 60;
+  right: -18%;
+  bottom: -8%;
+  background: url('/assets/frames/emerald-tail.svg') center / contain no-repeat;
+  transform-origin: 0 55%;
+  animation: afc-sway 3s ease-in-out infinite;
+}
+
+/* Dragón de fuego (mítico): obsidiana con lava, alas encendidas, ojos que arden y brasas */
+:host([data-frame="frame-dragon-fire"]) {
+  --af-paint: repeating-conic-gradient(#1c1917 0 4deg, #292524 4deg 7deg, #b91c1c 7deg 8deg, #0c0a09 8deg 10deg);
+  --af-glow: rgba(249, 115, 22, .6);
+}
+:host([data-size="lg"][data-frame="frame-dragon-fire"]) { --af-w: 8px; }
+:host([data-frame="frame-dragon-fire"])::before { animation: afc-spin 16s linear infinite; }
+:host([data-frame="frame-dragon-fire"])::after {
+  content: '';
+  background: conic-gradient(from 0deg, transparent 0 20deg, #f97316 30deg, #fde047 34deg, transparent 44deg 110deg, #ef4444 125deg,
+    #fb923c 130deg, transparent 140deg 220deg, #f97316 232deg, #facc15 236deg, transparent 246deg 300deg, #dc2626 312deg, transparent 322deg);
+  animation: afc-spin-rev 6s linear infinite;
+}
+:host([data-frame="frame-dragon-fire"]) .af-ornament { animation: afc-flicker 1.4s ease-in-out infinite alternate; }
+:host([data-frame="frame-dragon-fire"]) .af-ornament::before,
+:host([data-frame="frame-dragon-fire"]) .af-ornament::after {
+  content: '';
+  width: 64%;
+  aspect-ratio: 1;
+  top: -18%;
+  animation: afc-flap 2.2s ease-in-out infinite;
+}
+:host([data-frame="frame-dragon-fire"]) .af-ornament::before {
+  left: -48%;
+  background: url('/assets/frames/fire-wing.svg') center / contain no-repeat;
+  transform-origin: 97% 42%;
+}
+:host([data-frame="frame-dragon-fire"]) .af-ornament::after {
+  right: -48%;
+  background: url('/assets/frames/fire-wing-m.svg') center / contain no-repeat;
+  transform-origin: 3% 42%;
+}
+:host([data-frame="frame-dragon-fire"]) .af-fx::before {
+  content: '';
+  width: 48%;
+  aspect-ratio: 100 / 82;
+  left: 26%;
+  top: -34%;
+  background: url('/assets/frames/fire-head.svg') center / contain no-repeat;
+  filter: drop-shadow(0 0 4px rgba(249, 115, 22, .6));
+  animation: afc-bob 3s ease-in-out infinite;
+}
+:host([data-frame="frame-dragon-fire"]) .af-fx::after {
+  content: '';
+  width: 124%;
+  aspect-ratio: 2.5;
+  left: -12%;
+  top: -52%;
+  background: url('/assets/frames/embers.svg') center / contain no-repeat;
+  animation: afc-embers 2s linear infinite;
+}
+
+/* ── Elementos ───────────────────────────────────────────────────────── */
+
+/* Magma: dos corrientes de roca fundida */
+:host([data-frame="frame-lava"]) {
+  --af-paint: conic-gradient(from 0deg, #450a0a, #b91c1c 18%, #f97316 26%, #7c2d12 40%, #dc2626 58%, #fbbf24 64%, #991b1b 78%, #450a0a);
+  --af-glow: rgba(249, 115, 22, .5);
+}
+:host([data-size="lg"][data-frame="frame-lava"]) { --af-w: 7px; }
+:host([data-frame="frame-lava"])::before { animation: afc-spin 10s linear infinite; }
+:host([data-frame="frame-lava"])::after {
+  content: '';
+  background: conic-gradient(from 90deg, transparent 0 40deg, rgba(254, 240, 138, .8) 55deg, transparent 70deg 200deg, rgba(251, 146, 60, .85) 215deg, transparent 230deg);
+  animation: afc-spin-rev 5s linear infinite;
+}
+:host([data-frame="frame-lava"]) .af-ornament { animation: afc-flicker 2s ease-in-out infinite alternate; }
+
+/* Bosque encantado: hojas y luciérnagas */
+:host([data-frame="frame-forest"]) {
+  --af-paint: repeating-conic-gradient(#14532d 0 6deg, #15803d 6deg 10deg, #4d7c0f 10deg 14deg, #166534 14deg 18deg);
+  --af-glow: rgba(190, 242, 100, .38);
+}
+:host([data-size="lg"][data-frame="frame-forest"]) { --af-w: 7px; }
+:host([data-frame="frame-forest"])::before { animation: afc-spin 40s linear infinite; }
+:host([data-frame="frame-forest"]) .af-fx::before,
+:host([data-frame="frame-forest"]) .af-fx::after {
+  content: '';
+  inset: -18%;
+}
+:host([data-frame="frame-forest"]) .af-fx::before {
+  background: url('/assets/frames/fireflies-a.svg') center / contain no-repeat;
+  animation: afc-pulse 2.2s ease-in-out infinite;
+}
+:host([data-frame="frame-forest"]) .af-fx::after {
+  background: url('/assets/frames/fireflies-b.svg') center / contain no-repeat;
+  animation: afc-pulse 2.2s ease-in-out -1.1s infinite, afc-bob 5s ease-in-out infinite;
+}
+
+/* Hielo eterno: facetas con destello, carámbanos y un copo */
+:host([data-frame="frame-ice"]) {
+  --af-paint: repeating-conic-gradient(#e0f2fe 0 10deg, #7dd3fc 10deg 18deg, #f0f9ff 18deg 21deg, #38bdf8 21deg 30deg);
+  --af-glow: rgba(186, 230, 253, .6);
+}
+:host([data-size="lg"][data-frame="frame-ice"]) { --af-w: 7px; }
+:host([data-frame="frame-ice"])::after {
+  content: '';
+  background: conic-gradient(from 0deg, transparent 0 300deg, rgba(255, 255, 255, .95) 330deg, transparent 345deg);
+  animation: afc-spin 4s linear infinite;
+}
+:host([data-frame="frame-ice"]) .af-ornament { animation: afc-breathe 3s ease-in-out infinite; }
+:host([data-frame="frame-ice"]) .af-fx::before {
+  content: '';
+  width: 60%;
+  aspect-ratio: 100 / 52;
+  left: 20%;
+  top: -26%;
+  background: url('/assets/frames/icicles.svg') center / contain no-repeat;
+  filter: drop-shadow(0 0 3px rgba(186, 230, 253, .9));
+}
+:host([data-frame="frame-ice"]) .af-fx::after {
+  content: '';
+  width: 22%;
+  aspect-ratio: 1;
+  right: -8%;
+  bottom: -2%;
+  background: url('/assets/frames/snowflake.svg') center / contain no-repeat;
+  animation: afc-spin 10s linear infinite, afc-pulse 2.6s ease-in-out infinite;
+}
+
+/* Tormenta eléctrica: nubes que giran, lluvia y un rayo que cae de su nube */
+:host([data-frame="frame-tempest"]) {
+  --af-paint: conic-gradient(from 0deg, #334155, #94a3b8 18%, #1e293b 36%, #cbd5e1 52%, #475569 68%, #94a3b8 84%, #334155);
+  --af-glow: rgba(147, 197, 253, .45);
+}
+:host([data-size="lg"][data-frame="frame-tempest"]) { --af-w: 7px; }
+:host([data-frame="frame-tempest"])::before { animation: afc-spin 16s linear infinite; }
+:host([data-frame="frame-tempest"])::after {
+  content: '';
+  background:
+    radial-gradient(.7px 3.2px at 50% 50%, rgba(224, 242, 254, .95), transparent),
+    radial-gradient(.6px 2.6px at 50% 50%, rgba(191, 219, 254, .8), transparent);
+  background-size: 7px 12px, 11px 18px;
+  animation: afc-rain .6s linear infinite;
+}
+:host([data-frame="frame-tempest"]) .af-ornament { animation: afc-storm 3.2s linear infinite; }
+:host([data-frame="frame-tempest"]) .af-fx::before {
+  content: '';
+  width: 26%;
+  aspect-ratio: 70 / 120;
+  right: -4%;
+  top: -10%;
+  background: url('/assets/frames/bolt.svg') center / contain no-repeat;
+  animation: afc-flash 3.2s linear infinite;
+}
+:host([data-frame="frame-tempest"]) .af-fx::after {
+  content: '';
+  width: 46%;
+  aspect-ratio: 100 / 60;
+  right: -18%;
+  top: -24%;
+  background: url('/assets/frames/storm-cloud.svg') center / contain no-repeat;
+  animation: afc-bob 4s ease-in-out infinite;
+}
+
+/* Galaxia: nebulosa, estrellas, un planeta en órbita y una estrella fugaz */
+:host([data-frame="frame-galaxy"]) {
+  --af-paint: conic-gradient(from 0deg, #1e1b4b, #7e22ce 15%, #db2777 28%, #312e81 42%, #2563eb 58%, #a21caf 72%, #0f172a 86%, #1e1b4b);
+  --af-glow: rgba(168, 85, 247, .5);
+}
+:host([data-size="lg"][data-frame="frame-galaxy"]) { --af-w: 7px; }
+:host([data-frame="frame-galaxy"])::before { animation: afc-spin 20s linear infinite; }
+:host([data-frame="frame-galaxy"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 50.4% 2.7%, #fff 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 73% 8.9%, #e9d5ff 0 0.6px, transparent 1.3px),
+    radial-gradient(circle at 79.7% 15.2%, #bfdbfe 0 0.6px, transparent 1.3px),
+    radial-gradient(circle at 92.6% 33.7%, #fff 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 97% 44.5%, #e9d5ff 0 0.7px, transparent 1.4px),
+    radial-gradient(circle at 93.2% 67.2%, #bfdbfe 0 1px, transparent 1.7px),
+    radial-gradient(circle at 84.3% 82.6%, #fff 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 67.3% 93%, #e9d5ff 0 0.5px, transparent 1.2px),
+    radial-gradient(circle at 50.9% 95.4%, #bfdbfe 0 0.5px, transparent 1.2px),
+    radial-gradient(circle at 28.8% 90.2%, #fff 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 15% 80.4%, #e9d5ff 0 0.7px, transparent 1.4px),
+    radial-gradient(circle at 7% 67.5%, #bfdbfe 0 1px, transparent 1.7px),
+    radial-gradient(circle at 4% 55.7%, #fff 0 0.6px, transparent 1.3px),
+    radial-gradient(circle at 5.5% 35.1%, #e9d5ff 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 17.5% 16.2%, #bfdbfe 0 1px, transparent 1.7px),
+    radial-gradient(circle at 31.4% 7.3%, #fff 0 0.8px, transparent 1.5px);
+  animation: afc-pulse 2s ease-in-out infinite;
+}
+:host([data-frame="frame-galaxy"]) .af-ornament { animation: afc-breathe 4s ease-in-out infinite; }
+:host([data-frame="frame-galaxy"]) .af-fx::before {
+  content: '';
+  inset: -10%;
+  background: url('/assets/frames/planet.svg') center / contain no-repeat;
+  animation: afc-spin 10s linear infinite;
+}
+:host([data-frame="frame-galaxy"]) .af-fx::after {
+  content: '';
+  width: 46%;
+  aspect-ratio: 1;
+  left: -30%;
+  top: -30%;
+  background: url('/assets/frames/shooting-star.svg') center / contain no-repeat;
+  animation: afc-shoot 5s ease-in infinite;
+}
+
+/* ── Colores ─────────────────────────────────────────────────────────── */
+
+/* Rubí, Esmeralda y Zafiro: facetas y un destello que recorre el anillo */
+:host([data-frame="frame-ruby"]) {
+  --af-paint: repeating-conic-gradient(#881337 0 12deg, #e11d48 12deg 24deg, #fda4af 24deg 27deg, #be123c 27deg 36deg);
+  --af-glow: rgba(225, 29, 72, .42);
+}
+:host([data-frame="frame-emerald"]) {
+  --af-paint: repeating-conic-gradient(#064e3b 0 12deg, #10b981 12deg 24deg, #a7f3d0 24deg 27deg, #047857 27deg 36deg);
+  --af-glow: rgba(16, 185, 129, .42);
+}
+:host([data-frame="frame-sapphire"]) {
+  --af-paint: repeating-conic-gradient(#172554 0 12deg, #2563eb 12deg 24deg, #bfdbfe 24deg 27deg, #1d4ed8 27deg 36deg);
+  --af-glow: rgba(37, 99, 235, .42);
+}
+:host([data-frame="frame-ruby"])::after,
+:host([data-frame="frame-emerald"])::after,
+:host([data-frame="frame-sapphire"])::after {
+  content: '';
+  background: conic-gradient(from 0deg, transparent 0 300deg, rgba(255, 255, 255, .85) 330deg, transparent 345deg);
+  animation: afc-spin 4.5s linear infinite;
+}
+
+/* Marea */
+:host([data-frame="frame-ocean"]) {
+  --af-paint: conic-gradient(from 0deg, #0c4a6e, #0ea5e9 20%, #67e8f9 32%, #0369a1 50%, #22d3ee 68%, #075985 84%, #0c4a6e);
+  --af-glow: rgba(14, 165, 233, .4);
+}
+:host([data-frame="frame-ocean"])::before { animation: afc-spin 12s linear infinite; }
+
+/* Arcoíris, con brillo de pompa de jabón */
+:host([data-frame="frame-rainbow"]) {
+  --af-paint: conic-gradient(#ef4444, #f97316, #facc15, #22c55e, #06b6d4, #3b82f6, #8b5cf6, #ec4899, #ef4444);
+  --af-glow: rgba(168, 85, 247, .4);
+}
+:host([data-frame="frame-rainbow"])::before { animation: afc-spin 6s linear infinite; }
+:host([data-frame="frame-rainbow"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, .7), transparent 38%),
+    radial-gradient(circle at 74% 82%, rgba(255, 255, 255, .35), transparent 30%);
+}
+
+/* Sakura: rosa de cerezo y pétalos que caen a los costados */
+:host([data-frame="frame-sakura"]) {
+  --af-paint: conic-gradient(from 0deg, #fce7f3, #f9a8d4 25%, #fbcfe8 50%, #f472b6 75%, #fce7f3);
+  --af-glow: rgba(244, 114, 182, .42);
+}
+:host([data-frame="frame-sakura"])::before { animation: afc-spin 20s linear infinite; }
+:host([data-frame="frame-sakura"]) .af-fx::before,
+:host([data-frame="frame-sakura"]) .af-fx::after {
+  content: '';
+  width: 132%;
+  aspect-ratio: 100 / 60;
+  left: -16%;
+  top: -14%;
+  animation: afc-fall 4s linear infinite;
+}
+:host([data-frame="frame-sakura"]) .af-fx::before { background: url('/assets/frames/petals-a.svg') center / contain no-repeat; }
+:host([data-frame="frame-sakura"]) .af-fx::after { background: url('/assets/frames/petals-b.svg') center / contain no-repeat; animation-delay: -2s; }
+
+/* Neón: gira y parpadea como un letrero */
+:host([data-frame="frame-neon"]) {
+  --af-paint: conic-gradient(from 0deg, #ff2fb3, #ff7ad9 20%, #22d3ee 50%, #7df9ff 70%, #ff2fb3);
+  --af-glow: rgba(255, 47, 179, .6);
+}
+:host([data-frame="frame-neon"])::before { animation: afc-spin 8s linear infinite; }
+:host([data-frame="frame-neon"]) .af-ornament {
+  box-shadow: 0 0 calc(var(--af-w) * 1.6) rgba(255, 47, 179, .75), 0 0 calc(var(--af-w) * 3.4) rgba(34, 211, 238, .55);
+  animation: afc-neon 3.6s linear infinite;
+}
+
+/* Aurora boreal: dos cortinas de luz que se cruzan y estrellas */
+:host([data-frame="frame-aurora"]) {
+  --af-paint: conic-gradient(from 0deg, #064e3b, #10b981 15%, #22d3ee 30%, #6366f1 45%, #a855f7 58%, #10b981 72%, #34d399 85%, #064e3b);
+  --af-glow: rgba(45, 212, 191, .45);
+}
+:host([data-size="lg"][data-frame="frame-aurora"]) { --af-w: 7px; }
+:host([data-frame="frame-aurora"])::before { animation: afc-spin 14s linear infinite; }
+:host([data-frame="frame-aurora"])::after {
+  content: '';
+  background: conic-gradient(from 90deg, rgba(167, 243, 208, 0), rgba(167, 243, 208, .65) 15%, transparent 35%, rgba(196, 181, 253, .6) 60%, transparent 80%);
+  animation: afc-spin-rev 7s linear infinite;
+}
+:host([data-frame="frame-aurora"]) .af-ornament { animation: afc-breathe 4s ease-in-out infinite; }
+:host([data-frame="frame-aurora"]) .af-fx::before,
+:host([data-frame="frame-aurora"]) .af-fx::after {
+  content: '';
+  inset: -18%;
+  animation: afc-pulse 2s ease-in-out infinite;
+}
+:host([data-frame="frame-aurora"]) .af-fx::before { background: url('/assets/frames/aurora-stars-a.svg') center / contain no-repeat; }
+:host([data-frame="frame-aurora"]) .af-fx::after { background: url('/assets/frames/aurora-stars-b.svg') center / contain no-repeat; animation-delay: -1s; }
+
+/* ── Blanco y negro ──────────────────────────────────────────────────── */
+
+/* Los que tienen blanco llevan un filo gris para no perderse sobre fondos claros. */
+:host([data-frame="frame-bw-chessboard"]) .af-ornament,
+:host([data-frame="frame-bw-zebra"]) .af-ornament,
+:host([data-frame="frame-bw-yinyang"]) .af-ornament,
+:host([data-frame="frame-bw-piano"]) .af-ornament {
+  box-shadow: 0 0 0 1px rgba(115, 115, 115, .5), 0 0 calc(var(--af-w) * 2.5) var(--af-glow);
+}
+
+/* Ajedrez */
+:host([data-frame="frame-bw-chessboard"]) {
+  --af-paint: repeating-conic-gradient(#0a0a0a 0 15deg, #fafafa 15deg 30deg);
+  --af-glow: rgba(255, 255, 255, .28);
+}
+:host([data-frame="frame-bw-chessboard"])::before { animation: afc-spin 30s linear infinite; }
+
+/* Tinta china: trazo de pincel con salpicaduras que giran */
+:host([data-frame="frame-bw-ink"]) {
+  --af-paint: conic-gradient(from 10deg, #0a0a0a, #262626 15%, #0a0a0a 30%, #404040 42%, #0a0a0a 55%, #171717 75%, #525252 88%, #0a0a0a);
+  --af-glow: rgba(255, 255, 255, .22);
+}
+:host([data-size="lg"][data-frame="frame-bw-ink"]) { --af-w: 7px; }
+:host([data-frame="frame-bw-ink"])::after {
+  content: '';
+  background:
+    radial-gradient(circle at 51.9% 2.4%, #fafafa 0 1.9px, transparent 2.6px),
+    radial-gradient(circle at 73% 9.5%, #d4d4d4 0 1.8px, transparent 2.5px),
+    radial-gradient(circle at 87% 21.6%, #fafafa 0 2px, transparent 2.7px),
+    radial-gradient(circle at 96.8% 54.2%, #d4d4d4 0 1.3px, transparent 2px),
+    radial-gradient(circle at 93% 69.3%, #fafafa 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 69.9% 93.5%, #d4d4d4 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 51.5% 97.8%, #fafafa 0 1.7px, transparent 2.4px),
+    radial-gradient(circle at 31.9% 90.6%, #d4d4d4 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 6.4% 68.2%, #fafafa 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 2.3% 45.1%, #d4d4d4 0 1.6px, transparent 2.3px),
+    radial-gradient(circle at 9% 28.8%, #fafafa 0 0.8px, transparent 1.5px),
+    radial-gradient(circle at 20% 12.7%, #d4d4d4 0 1.6px, transparent 2.3px);
+  animation: afc-spin 40s linear infinite;
+}
+
+/* Cebra */
+:host([data-frame="frame-bw-zebra"]) {
+  --af-paint: repeating-conic-gradient(#0a0a0a 0 6deg, #fafafa 6deg 9deg, #0a0a0a 9deg 11deg, #fafafa 11deg 16deg, #0a0a0a 16deg 20deg, #fafafa 20deg 24deg);
+  --af-glow: rgba(255, 255, 255, .25);
+}
+:host([data-frame="frame-bw-zebra"])::before { animation: afc-spin 26s linear infinite; }
+
+/* Yin y yang */
+:host([data-frame="frame-bw-yinyang"]) {
+  --af-paint:
+    radial-gradient(circle at 96% 50%, #fafafa 0 1.6px, transparent 2.2px),
+    radial-gradient(circle at 4% 50%, #0a0a0a 0 1.6px, transparent 2.2px),
+    conic-gradient(#0a0a0a 0 50%, #fafafa 50% 100%);
+  --af-glow: rgba(255, 255, 255, .3);
+}
+:host([data-size="lg"][data-frame="frame-bw-yinyang"]) { --af-w: 7px; }
+:host([data-frame="frame-bw-yinyang"])::before { animation: afc-spin 10s linear infinite; }
+
+/* Teclas de piano: cinco octavas y notas que suben */
+:host([data-frame="frame-bw-piano"]) {
+  --af-paint: repeating-conic-gradient(#fafafa 0 9.4deg, #a3a3a3 9.4deg 10.3deg);
+  --af-glow: rgba(255, 255, 255, .28);
+}
+:host([data-size="lg"][data-frame="frame-bw-piano"]) { --af-w: 8px; }
+:host([data-frame="frame-bw-piano"])::after {
+  content: '';
+  padding: calc(var(--af-w) * .6);
+  background: repeating-conic-gradient(transparent 0 7.2deg, #111 7.2deg 13.4deg, transparent 13.4deg 17.5deg, #111 17.5deg 23.7deg, transparent 23.7deg 38.1deg, #111 38.1deg 44.2deg, transparent 44.2deg 48.3deg, #111 48.3deg 54.5deg, transparent 54.5deg 58.6deg, #111 58.6deg 64.8deg, transparent 64.8deg 72deg);
+}
+:host([data-frame="frame-bw-piano"]) .af-fx::before,
+:host([data-frame="frame-bw-piano"]) .af-fx::after {
+  content: '';
+  animation: afc-embers 3s ease-out infinite;
+}
+:host([data-frame="frame-bw-piano"]) .af-fx::before {
+  width: 22%;
+  aspect-ratio: 40 / 50;
+  right: -10%;
+  top: -10%;
+  background: url('/assets/frames/note.svg') center / contain no-repeat;
+}
+:host([data-frame="frame-bw-piano"]) .af-fx::after {
+  width: 26%;
+  aspect-ratio: 1;
+  left: -12%;
+  top: 0;
+  background: url('/assets/frames/double-note.svg') center / contain no-repeat;
+  animation-delay: -1.5s;
+}
+
+/* Cine mudo: la cinta corre y el carrete gira */
+:host([data-frame="frame-bw-film"]) {
+  --af-paint: conic-gradient(#0a0a0a, #262626 50%, #0a0a0a);
+  --af-glow: rgba(255, 255, 255, .25);
+}
+:host([data-size="lg"][data-frame="frame-bw-film"]) { --af-w: 9px; }
+:host([data-frame="frame-bw-film"])::after {
+  content: '';
+  background:
+    radial-gradient(closest-side, transparent calc(100% - var(--af-w) * .74), #1c1c1c calc(100% - var(--af-w) * .74) calc(100% - var(--af-w) * .26), transparent calc(100% - var(--af-w) * .26)),
+    repeating-conic-gradient(#e5e5e5 0 4deg, transparent 4deg 12deg);
+  animation: afc-spin 6s linear infinite;
+}
+:host([data-frame="frame-bw-film"]) .af-fx::after {
+  content: '';
+  width: 30%;
+  aspect-ratio: 1;
+  right: -12%;
+  bottom: -10%;
+  background: url('/assets/frames/film-reel.svg') center / contain no-repeat;
+  animation: afc-spin 4s linear infinite;
+}
+
+/* Eclipse: anillo negro, corona de rayos y el destello del anillo de diamante */
+:host([data-frame="frame-bw-eclipse"]) {
+  --af-paint: conic-gradient(#000, #18181b 50%, #000);
+  --af-glow: rgba(255, 255, 255, .75);
+}
+:host([data-frame="frame-bw-eclipse"]) .af-ornament { animation: afc-breathe 4s ease-in-out infinite; }
+:host([data-frame="frame-bw-eclipse"]) .af-ornament::before {
+  content: '';
+  inset: -18%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 255, 255, .6) 0 2deg, transparent 2deg 9deg);
+  -webkit-mask: radial-gradient(closest-side, transparent 72%, #000 76%, transparent 100%);
+          mask: radial-gradient(closest-side, transparent 72%, #000 76%, transparent 100%);
+  animation: afc-spin 30s linear infinite;
+}
+:host([data-frame="frame-bw-eclipse"]) .af-fx::after {
+  content: '';
+  width: 20%;
+  aspect-ratio: 1;
+  right: 2%;
+  top: 2%;
+  background: url('/assets/frames/sparkle-white.svg') center / contain no-repeat;
+  animation: afc-twinkle 3s ease-in-out infinite;
+}
+
+/* ── Movimiento ──────────────────────────────────────────────────────── */
+
+@keyframes afc-spin { to { transform: rotate(1turn); } }
+@keyframes afc-spin-rev { to { transform: rotate(-1turn); } }
+@keyframes afc-chase { to { transform: rotate(90deg); } }
+@keyframes afc-pulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+@keyframes afc-glow-soft { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+@keyframes afc-breathe { 50% { box-shadow: 0 0 calc(var(--af-w) * 5) var(--af-glow); } }
+@keyframes afc-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7%); } }
+@keyframes afc-sway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+@keyframes afc-flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.7) rotate(4deg); } }
+@keyframes afc-shine { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+@keyframes afc-twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .3; transform: scale(.6); } }
+@keyframes afc-float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-10%) rotate(4deg); }
+}
+@keyframes afc-twitch {
+  0%, 78%, 100% { transform: rotate(0); }
+  83% { transform: rotate(-12deg); }
+  88% { transform: rotate(6deg); }
+  92% { transform: rotate(0); }
+}
+@keyframes afc-blink {
+  0%, 44%, 50%, 100% { transform: scaleY(1); }
+  47% { transform: scaleY(.1); }
+}
+@keyframes afc-rise { to { background-position: 0 -100%; } }
+@keyframes afc-rain {
+  from { background-position: 0 0, 5px 0; }
+  to { background-position: 0 24px, 5px 36px; }
+}
+@keyframes afc-fall {
+  0% { transform: translateY(-20%); opacity: 0; }
+  15%, 80% { opacity: 1; }
+  100% { transform: translateY(60%); opacity: 0; }
+}
+@keyframes afc-embers {
+  0% { transform: translateY(30%); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-30%); opacity: 0; }
+}
+@keyframes afc-burst {
+  0% { transform: scale(.15); opacity: 0; }
+  8% { opacity: 1; }
+  45% { transform: scale(1); opacity: .85; }
+  60%, 100% { transform: scale(1.15); opacity: 0; }
+}
+@keyframes afc-flash {
+  0%, 84%, 100% { opacity: 0; }
+  86% { opacity: 1; }
+  88% { opacity: .15; }
+  91% { opacity: 1; }
+  95% { opacity: 0; }
+}
+@keyframes afc-storm {
+  0%, 34%, 40%, 84%, 95%, 100% { box-shadow: 0 0 calc(var(--af-w) * 2.5) var(--af-glow); }
+  36%, 86%, 91% { box-shadow: 0 0 calc(var(--af-w) * 6) rgba(224, 242, 254, .95); }
+}
+@keyframes afc-flicker {
+  from { box-shadow: 0 0 calc(var(--af-w) * 2) rgba(255, 109, 0, .45); }
+  to { box-shadow: 0 0 calc(var(--af-w) * 4.5) rgba(255, 145, 0, .75); }
+}
+@keyframes afc-flame {
+  from { transform: scaleY(.88) translateY(4%); }
+  to { transform: scaleY(1.1) translateY(-4%); }
+}
+@keyframes afc-neon {
+  0%, 89%, 93%, 96%, 100% { opacity: 1; }
+  91% { opacity: .3; }
+  95% { opacity: .5; }
+}
+@keyframes afc-shoot {
+  0% { transform: translate(0, 0); opacity: 0; }
+  4% { opacity: 1; }
+  24%, 100% { transform: translate(60%, 60%); opacity: 0; }
+}

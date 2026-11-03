@@ -231,6 +231,15 @@
   color: var(--th-gold);
 }
 
+/* Con cinco mostradores no caben los iconos al lado del nombre. */
+.bz-tabs.is-crowded button {
+  padding-inline: 4px;
+}
+
+.bz-tabs.is-crowded button .material-symbols-rounded {
+  display: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .bz-tabs button:hover {
     color: var(--th-ink);
@@ -1088,6 +1097,109 @@
 
 .bz-thumb app-cosmetic-preview {
   width: 100%;
+}
+
+/* ── Marcos: rarezas y precios ─────────────────────────────── */
+[data-tier='comun'] { --bz-tier: #b8b0a6; }
+[data-tier='raro'] { --bz-tier: #4fc3f7; }
+[data-tier='epico'] { --bz-tier: #c58cff; }
+[data-tier='legendario'] { --bz-tier: #f6bd3b; }
+[data-tier='mitico'] { --bz-tier: #ff5d6c; }
+
+/* El marco se ve entero (con sus adornos y su movimiento): necesita más aire que un objeto,
+   sobre todo arriba, donde van gorros, cabezas y estrellas. */
+.bz-thumb.is-frame {
+  height: 152px;
+  padding: 30px 10px 4px;
+  background:
+    radial-gradient(60% 70% at 50% 55%, color-mix(in srgb, var(--th-gold) 12%, transparent), transparent 72%),
+    color-mix(in srgb, #000 32%, transparent);
+}
+
+.bz-tier {
+  display: inline-block;
+  margin-bottom: 5px;
+  padding: 1px 7px;
+  border: 1px solid color-mix(in srgb, var(--bz-tier) 55%, transparent);
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--bz-tier) 16%, rgba(0, 0, 0, .55));
+  color: var(--bz-tier);
+  font: 700 .6rem var(--font-ui);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.bz-tier[data-tier='mitico'] {
+  border-color: transparent;
+  background: linear-gradient(100deg, #b91c1c, #f97316 55%, #facc15);
+  color: #1c0a00;
+}
+
+/* Escalera de precios: una rareza, un precio. También filtra. */
+.bz-tiers {
+  display: flex;
+  gap: 5px;
+  margin: -6px -20px 14px -22px;
+  padding: 2px 20px 4px 22px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.bz-tiers::-webkit-scrollbar {
+  display: none;
+}
+
+.bz-tiers button {
+  display: grid;
+  flex: 1 0 auto;
+  gap: 1px;
+  padding: 5px 6px 4px;
+  border: 1px solid var(--home-glass-border);
+  border-bottom: 3px solid var(--bz-tier);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--th-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .2s ease, border-color .2s ease;
+}
+
+.bz-tiers button[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--bz-tier) 70%, transparent);
+  background: color-mix(in srgb, var(--bz-tier) 14%, transparent);
+}
+
+.bz-tier-name {
+  color: var(--bz-tier);
+  font: 700 .6rem var(--font-ui);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.bz-tier-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font: 700 .8rem var(--font-ui);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bz-tier-price .material-symbols-rounded {
+  font-size: 14px;
+  color: var(--th-gold);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bz-tiers button:hover {
+    border-color: color-mix(in srgb, var(--bz-tier) 50%, var(--home-glass-border));
+  }
+}
+
+/* Con el Bazar cerrado los marcos dejan de moverse (siguen en el DOM, detrás de la mesa). */
+.bz-drawer:not(.is-open) {
+  --af-play: paused;
 }
 
 /* ── Taller de Tintes (Personalización de Maguito) ─────────── */

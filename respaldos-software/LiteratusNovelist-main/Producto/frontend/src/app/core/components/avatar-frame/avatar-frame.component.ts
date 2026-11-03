@@ -1,11 +1,8 @@
 import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
 
-/** Marcos que sabe dibujar (Profile.equipped_frame / ShopItem.value). */
-export const AVATAR_FRAMES = [
-  'frame-gold', 'frame-victorian', 'frame-maestro',
-  'frame-parchment', 'frame-inkblue', 'frame-autumn', 'frame-constellation',
-  'frame-laurel', 'frame-eternal-flame', 'frame-library', 'frame-owl', 'frame-summit', 'frame-tavern',
-] as const;
+import { AVATAR_FRAMES } from './frame-catalog';
+
+export { AVATAR_FRAMES } from './frame-catalog';
 
 /**
  * Envuelve un avatar redondo (foto, iniciales o el busto de Maguito) y le dibuja el marco equipado.
@@ -15,12 +12,13 @@ export const AVATAR_FRAMES = [
  *     <img class="..." ...>
  *   </app-avatar-frame>
  *
- * Tamaños: sm (menú superior, solo el anillo), md (listas), lg (perfil, con adornos y movimiento).
+ * Tamaños: sm (menú superior) y md (listas) llevan solo el anillo quieto; lg (perfil, Bazar) suma
+ * adornos y movimiento. Los marcos de temporada y de colección viven en avatar-frame.bazar.css.
  */
 @Component({
   selector: 'app-avatar-frame',
-  template: '<ng-content></ng-content><span class="af-ornament" aria-hidden="true"></span>',
-  styleUrls: ['./avatar-frame.component.css'],
+  template: '<ng-content></ng-content><span class="af-ornament" aria-hidden="true"></span><span class="af-fx" aria-hidden="true"></span>',
+  styleUrls: ['./avatar-frame.component.css', './avatar-frame.bazar.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AvatarFrameComponent {
@@ -29,7 +27,7 @@ export class AvatarFrameComponent {
 
   @HostBinding('attr.data-frame')
   get dataFrame(): string | null {
-    return this.frame && (AVATAR_FRAMES as readonly string[]).includes(this.frame) ? this.frame : null;
+    return this.frame && AVATAR_FRAMES.includes(this.frame) ? this.frame : null;
   }
 
   @HostBinding('attr.data-size')

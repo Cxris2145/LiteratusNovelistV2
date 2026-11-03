@@ -4,6 +4,9 @@ import {
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+import {
+  FRAME_COLLECTIONS, FRAME_TIERS, FrameCollection, FrameTier, frameCollection, frameTier,
+} from '../../core/components/avatar-frame/frame-catalog';
 import { MaguitoOutfit, SLOT_LABELS, WEAR_SLOTS, WearSlot, parseWear } from '../../core/components/maguito/maguito-outfit';
 import { ChatService } from '../../core/services/chat.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -11,22 +14,26 @@ import { GamificationService } from '../../core/services/gamification.service';
 import { LearningService, ShopItem } from '../../core/services/learning.service';
 import { NotificationService } from '../../core/services/notification.service';
 
-/** Mostradores del Bazar: el ropero de Maguito, lo que cuida tu racha y lo que adorna tu perfil. */
-export type BazarTab = 'ropero' | 'tintes' | 'racha' | 'perfil';
+/** Mostradores del Bazar: el ropero de Maguito, los marcos, lo que cuida tu racha y lo que adorna tu perfil. */
+export type BazarTab = 'ropero' | 'tintes' | 'marcos' | 'racha' | 'perfil';
 export type BazarGesture = 'try' | 'buy' | 'equip';
 type WearFilter = 'all' | WearSlot;
 
 const TAB_ITEMS: Record<BazarTab, ShopItem['item_type'][]> = {
   ropero: ['maguito_wear'],
   tintes: [],
+  marcos: ['profile_frame'],
   racha: ['streak_shield', 'streak_repair', 'hearts_refill'],
-  perfil: ['profile_frame', 'title', 'theme'],
+  perfil: ['title', 'theme'],
 };
 /** Lo que se gasta al usarlo: se puede canjear otra vez aunque ya tengas uno. */
 const CONSUMABLES = TAB_ITEMS.racha;
+/** Lo que se equipa en el perfil (además de la ropa de Maguito). */
+const EQUIPPABLE = [...TAB_ITEMS.marcos, ...TAB_ITEMS.perfil];
+const COLLECTION_ORDER = FRAME_COLLECTIONS.map(collection => collection.id as FrameCollection);
 
 export function isBazarTab(value: string | null | undefined): value is BazarTab {
-  return value === 'ropero' || value === 'tintes' || value === 'racha' || value === 'perfil';
+  return !!value && Object.keys(TAB_ITEMS).includes(value);
 }
 
 /**
@@ -62,8 +69,11 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild('heading') private heading?: ElementRef<HTMLElement>;
 
-  readonly tabLabels: Record<BazarTab, string> = { ropero: 'Ropero', tintes: 'Tintes', racha: 'Racha y vidas', perfil: 'Perfil' };
-  readonly tabIcons: Record<BazarTab, string> = { ropero: 'checkroom', tintes: 'palette', racha: 'local_fire_department', perfil: 'badge' };
+  readonly tabLabels: Record<BazarTab, string> = { ropero: 'Ropero', tintes: 'Tintes', marcos: 'Marcos', racha: 'Racha', perfil: 'Perfil' };
+  readonly tabIcons: Record<BazarTab, string> = {
+    ropero: 'checkroom', tintes: 'palette', marcos: 'account_circle', racha: 'local_fire_department', perfil: 'badge',
+  };
+  private readonly tierLabels = Object.fromEntries(FRAME_TIERS.map(tier => [tier.id, tier.label])) as Record<FrameTier, string>;
   private readonly wearFilterLabels: Record<WearFilter, string> = {
     all: 'Todo', head: 'Sombreros', eyes: 'Lentes', face: 'Rostro', neck: 'Accesorios', cape: 'Capas',
   };
@@ -75,6 +85,11 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   tabs: BazarTab[] = [];
   wearFilters: { id: WearFilter; label: string }[] = [];
   wearFilter: WearFilter = 'all';
+  /** Mostrador de marcos: colecciones presentes y la escalera de precios por rareza (de la más barata a la más cara). */
+  frameFilters: { id: FrameCollection; label: string }[] = [];
+  frameFilter: 'all' | FrameCollection = 'all';
+  tierLadder: { id: FrameTier; label: string; price: number; exact: boolean }[] = [];
+  tierFilter: FrameTier | null = null;
   query = '';
   ownedOnly = false;
   loading = false;
@@ -162,11 +177,24 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   selectTab(tab: BazarTab): void {
     this.tab = tab;
     this.wearFilter = 'all';
+    this.frameFilter = 'all';
+    this.tierFilter = null;
     this.applyFilter();
   }
 
   setWearFilter(filter: WearFilter): void {
     this.wearFilter = filter;
+    this.applyFilter();
+  }
+
+  setFrameFilter(filter: 'all' | FrameCollection): void {
+    this.frameFilter = filter;
+    this.applyFilter();
+  }
+
+  /** Pulsar una rareza muestra solo esos marcos; pulsarla otra vez la suelta. */
+  toggleTier(tier: FrameTier): void {
+    this.tierFilter = this.tierFilter === tier ? null : tier;
     this.applyFilter();
   }
 
@@ -179,6 +207,8 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
     this.query = '';
     this.ownedOnly = false;
     this.wearFilter = 'all';
+    this.frameFilter = 'all';
+    this.tierFilter = null;
     this.applyFilter();
   }
 
@@ -192,9 +222,15 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
     this.visibleItems = this.items.filter(item => {
       if (!types.includes(item.item_type)) return false;
       if (this.tab === 'ropero' && this.wearFilter !== 'all' && parseWear(item.value)?.slot !== this.wearFilter) return false;
+      if (this.tab === 'marcos' && this.frameFilter !== 'all' && frameCollection(item.value) !== this.frameFilter) return false;
+      if (this.tab === 'marcos' && this.tierFilter && this.tierOf(item) !== this.tierFilter) return false;
       if (this.ownedOnly && !item.is_owned) return false;
       return !query || normalize(item.name + ' ' + item.description).includes(query);
     });
+    // Los marcos van por colección y, dentro de cada una, del más barato al más caro.
+    if (this.tab === 'marcos') this.visibleItems.sort((a, b) =>
+      COLLECTION_ORDER.indexOf(frameCollection(a.value)) - COLLECTION_ORDER.indexOf(frameCollection(b.value))
+      || a.cost_ink - b.cost_ink || a.name.localeCompare(b.name, 'es'));
   }
 
   onCustomizerSaved(colors: any): void {
@@ -326,8 +362,14 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   // ── Ayudas para la plantilla ──────────────────────────────
 
   isWear(item: ShopItem): boolean { return item.item_type === 'maguito_wear'; }
+  /** Rareza de un marco a la venta (los premios de logros no tienen precio ni rareza). */
+  tierOf(item: ShopItem): FrameTier | null {
+    return item.item_type === 'profile_frame' && item.is_purchasable ? frameTier(item.cost_ink) : null;
+  }
+  tierLabel(tier: FrameTier): string { return this.tierLabels[tier]; }
   canBuy(item: ShopItem): boolean { return item.is_purchasable && (!item.is_owned || CONSUMABLES.includes(item.item_type)); }
-  canEquip(item: ShopItem): boolean { return item.is_owned && (this.isWear(item) || TAB_ITEMS.perfil.includes(item.item_type)); }
+  canEquip(item: ShopItem): boolean { return item.is_owned && (this.isWear(item) || EQUIPPABLE.includes(item.item_type)); }
+  isConsumable(item: ShopItem): boolean { return CONSUMABLES.includes(item.item_type); }
   wearSlot(item: ShopItem): WearSlot { return parseWear(item.value)?.slot ?? 'head'; }
   slotLabel(item: ShopItem): string { return SLOT_LABELS[this.wearSlot(item)]; }
   missingInk(item: ShopItem): number { return Math.max(0, item.cost_ink - this.balance); }
@@ -376,6 +418,13 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
       .filter(id => id === 'all' || slots.has(id))
       .map(id => ({ id, label: this.wearFilterLabels[id] }));
     if (this.wearFilters.length <= 2) this.wearFilters = [];
+    const frames = items.filter(item => item.item_type === 'profile_frame');
+    const collections = new Set(frames.map(item => frameCollection(item.value)));
+    this.frameFilters = FRAME_COLLECTIONS.filter(collection => collections.has(collection.id)).map(c => ({ id: c.id, label: c.label }));
+    this.tierLadder = [...FRAME_TIERS].reverse().flatMap(tier => {
+      const prices = frames.filter(item => this.tierOf(item) === tier.id).map(item => item.cost_ink);
+      return prices.length ? [{ id: tier.id, label: tier.label, price: Math.min(...prices), exact: prices.every(p => p === prices[0]) }] : [];
+    });
     this.applyFilter();
     this.updatePreview();
   }
