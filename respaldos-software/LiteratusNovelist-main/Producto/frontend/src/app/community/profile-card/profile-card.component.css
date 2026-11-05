@@ -199,15 +199,34 @@
 
 /* ── Acciones propias ───────────────────────────────────────────── */
 .pc-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 .pc-actions .th-btn {
-  min-height: 42px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
   padding: 8px 12px;
   gap: 6px;
-  white-space: nowrap;
+  line-height: 1.2;
+  text-align: center;
+}
+.pc-actions .pc-edit {
+  flex-grow: 0;
+}
+.pc-actions .material-symbols-rounded {
+  flex: none;
+  width: 1em;
+  overflow: hidden;
+}
+.pc-action-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-actions .th-btn:active:not(:disabled) { transform: none; }
 }
 
 /* "Más sobre mí": el alto se abre con grid-template-rows (0fr → 1fr), el único caso en que la
@@ -330,13 +349,21 @@
 .pc.is-compact .pc-stats dd { font-size: 1.25rem; }
 
 /* Columna de 240 px (notebooks de 1001 a 1180 px): retrato más chico para que el nombre quepa
-   entero, y "Editar" queda como ícono (su nombre accesible sigue siendo "Editar perfil"). */
+   entero. */
 @container pc (max-width: 240px) {
   .pc-head { --pc-portrait: 60px; --pc-seal: 26px; gap: 16px; }
   .pc .pc-head .pc-name { font-size: 1.3rem; }
   .pc .pc-head .pc-title { font-size: .88rem; }
+}
+
+/* Los tres botones con ícono y texto piden unos 330 px: en menos se compactan, y "Editar" queda
+   como ícono (su nombre accesible sigue siendo "Editar perfil"). */
+@container pc (max-width: 340px) {
+  .pc-actions { gap: 6px; }
+  .pc-actions .th-btn { padding-inline: 6px; gap: 4px; font-size: .78rem; }
+  .pc-actions .th-btn .material-symbols-rounded { font-size: 16px; }
   .pc-dress .material-symbols-rounded { display: none; }
-  .pc-edit { width: 42px; padding-inline: 0; }
+  .pc-actions .pc-edit { width: 44px; padding-inline: 0; }
   .pc-edit-label {
     position: absolute;
     width: 1px;

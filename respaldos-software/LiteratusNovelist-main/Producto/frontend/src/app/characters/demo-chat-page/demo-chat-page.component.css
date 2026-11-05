@@ -313,6 +313,7 @@
 .dchat-main {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   height: 100%;
   background: var(--color-bg-primary);
   position: relative;
@@ -339,7 +340,7 @@
 }
 
 .dchat-header-avatar {
-  position: relative;
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -354,29 +355,36 @@
 }
 
 .dchat-header-status {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background: #000;
-  border-radius: 50%;
-  width: 12px;
-  height: 12px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
-.dchat-pulse-sm {
+.dchat-status-dot {
+  flex-shrink: 0;
   width: 8px;
   height: 8px;
-  background-color: #22c55e;
+  background-color: var(--color-success);
   border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dchat-status-dot {
+    animation: dchat-status-in 220ms ease-out;
+  }
+}
+
+@keyframes dchat-status-in {
+  from { opacity: 0; transform: scale(0.75); }
 }
 
 .dchat-header-info {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 
 .dchat-header-info h2 {
@@ -385,9 +393,16 @@
   margin: 0;
   font-weight: 700;
   color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.dchat-header-info span {
+.dchat-header-book {
+  display: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -685,14 +700,6 @@
    RESPONSIVE DESIGN (Adaptado a móviles, tablets y PC)
    ────────────────────────────────────────────────────────────────────────── */
 
-/* DESKTOP: el sidebar ya muestra nombre + libro → ocultamos en el header del chat */
-@media (min-width: 769px) {
-  .dchat-header-info h2,
-  .dchat-header-info span {
-    display: none;
-  }
-}
-
 @media (max-width: 1024px) {
   .dchat-layout {
     grid-template-columns: 280px 1fr;
@@ -763,6 +770,10 @@
   
   .dchat-header {
     padding: 12px 16px;
+  }
+
+  .dchat-header-book {
+    display: block;
   }
 }
 
@@ -872,8 +883,29 @@
 
 .dchat-header-actions {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
   margin-left: auto;
+}
+
+@media (max-width: 400px) {
+  .dchat-header {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .dchat-header-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .dchat-header-info h2 {
+    font-size: 1rem;
+  }
+
+  .dchat-header-actions {
+    gap: 4px;
+  }
 }
 
 .dchat-icon-btn {

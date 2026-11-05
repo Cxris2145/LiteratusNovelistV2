@@ -60,17 +60,17 @@
         <div class="dchat-header-avatar">
           <img
             [src]="avatar.avatar_image_url || 'assets/images/default-avatar.svg'"
-            [alt]="avatar.name"
+            alt=""
             onerror="this.onerror=null;this.src='assets/default_cover.jpg'"
           />
-          <div class="dchat-header-status">
-            <span class="dchat-pulse-sm"></span>
-            En línea
-          </div>
         </div>
         <div class="dchat-header-info">
-          <h2>{{ avatar.name }}</h2>
-          <span *ngIf="avatar.book_title" class="show-on-mobile">{{ avatar.book_title }}</span>
+          <h2 [title]="avatar.name">{{ avatar.name }}</h2>
+          <span *ngIf="avatar.book_title" class="dchat-header-book" [title]="avatar.book_title">{{ avatar.book_title }}</span>
+          <span class="dchat-header-status">
+            <span class="dchat-status-dot" aria-hidden="true"></span>
+            En línea
+          </span>
         </div>
         
         <div class="dchat-header-actions">

@@ -6,6 +6,7 @@
 
 :host {
   display: block;
+  padding-inline-end: var(--senda-tools-gutter, 0px);
   background: #101d32;
   color: #eaf1ef;
   font-family: var(--font-ui,'Plus Jakarta Sans',sans-serif);

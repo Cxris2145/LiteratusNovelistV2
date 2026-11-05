@@ -51,11 +51,17 @@ import { NotebookService } from '../notebook.service';
     }
     /* Con el panel del asistente abierto, el botón quedaría encima de su caja de texto y del
        micrófono: se esconde hasta que el panel se cierra o se minimiza. */
-    :host-context(body:has(.lit-panel)) .nb-launcher { display: none; }
-    /* En La Taberna (escritorio) va junto al asistente y a su altura: los dos caben en el espacio
-       que la columna de amigos deja libre abajo. */
+    :host-context(body:has(.lit-panel)) .nb-launcher { display: var(--senda-notebook-display, none); }
+    /* En La Taberna (escritorio) va junto al asistente, bajo la columna de amigos. */
     @media (min-width: 701px) {
       :host-context(body:has(app-tavern-hall)) .nb-launcher { right: 84px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+    }
+    /* El panel del asistente queda a la izquierda de la columna. */
+    @media (min-width: 768px) {
+      :host-context(body:has(app-learning-path)) .nb-launcher {
+        right: var(--senda-tools-edge, 32px);
+        bottom: calc(24px + var(--senda-tools-size, 48px) + 12px + env(safe-area-inset-bottom, 0px));
+      }
     }
     @media (max-width: 640px) {
       /* Sobre la burbuja del asistente, que a su vez va sobre la barra inferior. */
@@ -65,6 +71,7 @@ import { NotebookService } from '../notebook.service';
     }
     @media (prefers-reduced-motion: reduce) {
       .nb-launcher { transition: none; }
+      .nb-launcher:hover { transform: none; }
     }
   `],
 })

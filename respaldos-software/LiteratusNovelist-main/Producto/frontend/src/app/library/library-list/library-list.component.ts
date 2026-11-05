@@ -5,7 +5,9 @@ import { NotebookService } from '../../notebook/notebook.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
-import { coverThumb } from '../../core/utils/cover-thumb.util';
+import { imageThumb } from '../../core/utils/cover-thumb.util';
+
+const DEFAULT_COVER = 'assets/default_cover.jpg';
 
 @Component({
   selector: 'app-library-list',
@@ -148,20 +150,22 @@ export class LibraryListComponent implements OnInit, OnDestroy {
 
   private decorate(list: any[]): any[] {
     return list.map((item, i) => {
-      const raw = item.book_cover || item.edition?.book?.cover_image || 'assets/default_cover.jpg';
-      return { ...item, coverThumb: this.thumb(raw), coverLoaded: true, coverPriority: i < this.EAGER_COVERS };
+      const originalCover = item.book_cover || item.edition?.book?.cover_image || DEFAULT_COVER;
+      return {
+        ...item,
+        originalCover,
+        coverThumb: imageThumb(originalCover, 360, 60),
+        coverLoaded: true,
+        coverPriority: i < this.EAGER_COVERS
+      };
     });
   }
 
-  private thumb(url: string): string {
-    return coverThumb(url, 240, 360, 60);
-  }
-
   onImgLoad(item: any): void { item.coverLoaded = true; }
-  onImgError(event: Event, item: any): void {
-    const img = event.target as HTMLImageElement;
+  onImgError(item: any): void {
     item.coverLoaded = true;
-    if (!img.src.endsWith('default_cover.jpg')) img.src = 'assets/default_cover.jpg';
+    if (item.coverThumb === DEFAULT_COVER) return;
+    item.coverThumb = item.coverThumb === item.originalCover ? DEFAULT_COVER : item.originalCover;
   }
 
   trackItem = (_: number, it: any) => it.id;

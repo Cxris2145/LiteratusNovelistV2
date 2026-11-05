@@ -76,6 +76,7 @@
   transform: perspective(500px) rotateX(-5deg); pointer-events: none; }
 .ts-seat-chair i { width: 12%; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #8f5a34, #59361e 60%, #2e1b12); box-shadow: 2px 0 0 #1e120b; }
 .ts-empty-seat {
+  --ts-invite-anchor: 34%;
   position: absolute;
   translate: -50% calc(-1 * clamp(24px, 3vw, 52px));
   aspect-ratio: 400/380;
@@ -86,10 +87,10 @@
   color: #f5d49d;
   z-index: 2;
 }
-/* Asiento libre: un medallón dorado sobre el respaldo; «Invitar» aparece al acercarse. */
+/* «Invitar» comparte el anclaje del medallón y se muestra arriba, lejos de los objetos de la mesa. */
 .ts-empty-medal {
   position: absolute;
-  top: 34%;
+  top: var(--ts-invite-anchor);
   left: 50%;
   display: grid;
   place-items: center;
@@ -106,8 +107,9 @@
 .ts-empty-medal .material-symbols-rounded { font-size: 22px; }
 .ts-empty-tag {
   position: absolute;
-  top: calc(34% + 46px);
+  bottom: calc(100% - var(--ts-invite-anchor) + 8px);
   left: 50%;
+  translate: -50% 0;
   padding: 3px 9px;
   border-radius: 99px;
   background: rgba(22, 15, 12, .9);
@@ -116,19 +118,24 @@
   font: 600 .7rem var(--font-ui);
   white-space: nowrap;
   opacity: 0;
-  transform: translate(-50%, -4px);
   transition: opacity .15s ease, transform .18s var(--th-ease-out);
 }
-.ts-empty-seat:focus-visible .ts-empty-tag { opacity: 1; transform: translate(-50%, 0); }
+.ts-empty-seat:focus-visible .ts-empty-tag { opacity: 1; }
 .ts-empty-seat:focus-visible .ts-empty-medal { border-color: #ffd700; }
-.ts-empty-seat:active .ts-empty-medal { transform: scale(.94); }
 @media (hover: hover) and (pointer: fine) {
-  .ts-empty-seat:hover .ts-empty-medal { transform: translateY(-3px); border-color: #ffd700; box-shadow: 0 8px 18px rgba(255, 193, 7, .28), inset 0 1px 0 rgba(255, 228, 160, .4); }
-  .ts-empty-seat:hover .ts-empty-tag { opacity: 1; transform: translate(-50%, 0); }
+  .ts-empty-seat:hover .ts-empty-medal { border-color: #ffd700; box-shadow: 0 8px 18px rgba(255, 193, 7, .28), inset 0 1px 0 rgba(255, 228, 160, .4); }
+  .ts-empty-seat:hover .ts-empty-tag { opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ts-empty-seat:active .ts-empty-medal { transform: scale(.94); }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ts-empty-seat:hover .ts-empty-medal { transform: translateY(-3px); }
+  .ts-empty-seat:not(:hover, :focus-visible) .ts-empty-tag { transform: translateY(4px); }
 }
 /* En pantallas táctiles no hay hover: la etiqueta se ve siempre, pequeña. */
 @media (hover: none) {
-  .ts-empty-tag { opacity: 1; transform: translate(-50%, 0); font-size: .64rem; }
+  .ts-empty-tag { opacity: 1; font-size: .64rem; }
 }
 
 .ts-empty-seat:focus-visible, .ts-name:focus-visible { outline: 3px solid var(--th-gold); outline-offset: 4px; }

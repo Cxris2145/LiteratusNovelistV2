@@ -1469,10 +1469,25 @@ body:has(.th-hall.is-cinema) .site-body.with-bottom-nav {
 /* La burbuja del Asistente y el botón del cuaderno flotan en la esquina inferior derecha, justo
    donde los chats tienen la caja de escribir y el botón de enviar. Mientras hay un chat a la vista
    se esconden (como ya hacen con el teclado abierto) y vuelven al cerrarlo: Charlas, Lecturas
-   conjuntas, la página de un personaje, el Encuentro de personajes y el Interrogatorio. Cada botón
+   conjuntas, la página de un personaje, el Encuentro de personajes y el Interrogatorio. También con
+   El Bazar abierto, donde tapaban el texto y el precio de las tarjetas. Cada botón
    lee la variable en su CSS. El chat rápido con personajes no necesita esto: va por encima de ellos (z-index 3100). */
-body:has(.fc-drawer.is-open, .rc-drawer.is-open, app-demo-chat-page, app-encounter-chat, .interrogation-input-bar) {
+body:has(.fc-drawer.is-open, .rc-drawer.is-open, .bz-drawer.is-open, app-demo-chat-page, app-encounter-chat, .interrogation-input-bar) {
   --floating-btn-display: none;
+}
+/* Si una ventana ya estaba abierta al entrar al Bazar, se oculta con los botones. */
+body:has(.bz-drawer.is-open) :is(.lit-panel, .lit-notebook) {
+  display: none;
+}
+
+/* La Senda reserva una columna a los botones en escritorio, incluso con el mapa vertical. */
+@media (min-width: 768px) {
+  body:has(app-learning-path):has(app-assistant-widget) {
+    --senda-tools-edge: 16px;
+    --senda-tools-size: 48px;
+    --senda-tools-gutter: calc(var(--senda-tools-size) + 2 * var(--senda-tools-edge));
+    --senda-notebook-display: var(--floating-btn-display, grid);
+  }
 }
 /* En el celular la caja de la mesa de la Taberna ocupa todo el ancho de abajo, igual que el botón
    «Comenzar encuentro» al armar un Encuentro de personajes. */

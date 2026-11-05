@@ -29,18 +29,21 @@
 }
 
 
+/* Cada fila se centra, incluida la última cuando tiene menos libros. */
 .grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 30px;
 }
 
 .book-card {
   display: flex;
   flex-direction: column;
+  flex: 0 1 280px;
+  min-width: 0;
   overflow: hidden;
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
   cursor: pointer;
 }
 
@@ -61,7 +64,7 @@
   }
 }
 
-/* Cuadrada: las portadas fuente son 800x800 con el titulo pegado a los bordes. */
+/* El marco cuadrado alinea las tarjetas y admite portadas de cualquier proporción. */
 .card-image {
   aspect-ratio: 1 / 1;
   background-color: var(--home-parchment);
@@ -73,8 +76,7 @@
 .card-image .cover-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center;
+  object-fit: contain;
   display: block;
   opacity: 1;
   position: relative;
@@ -104,21 +106,6 @@
   .card-image.cover-pending::before,
   .skeleton-text { animation: none; }
   .card-image .cover-img { transition: none; }
-}
-
-.progress-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: var(--home-sage-surface);
-  backdrop-filter: blur(4px);
-  color: var(--color-primary-text);
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border: 1px solid var(--glass-border);
-  border-color: var(--color-border);
 }
 
 .card-content {
@@ -249,6 +236,15 @@
 @media (hover: hover) and (pointer: fine) {
   .book-card:hover .read-btn svg {
     transform: translateX(2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-card:hover,
+  .book-card:hover .read-btn,
+  .read-btn:hover,
+  .book-card:hover .read-btn svg {
+    transform: none;
   }
 }
 
@@ -572,13 +568,7 @@
   color: #ffffff;
 }
 
-/* Insignia y barra para libros completados */
-.progress-badge.badge-completed {
-  background: rgba(34, 197, 94, 0.9);
-  color: #ffffff;
-  font-weight: 700;
-}
-
+/* Barra para libros completados */
 .progress-bar.bar-completed {
   background: #22c55e !important;
 }
@@ -866,17 +856,13 @@
   .grid-container { gap: 14px; }
   .book-card {
     display: grid;
+    flex-basis: 100%;
     grid-template-columns: 108px minmax(0, 1fr);
-    height: auto;
+    align-items: start;
   }
   .card-image {
-    aspect-ratio: auto;
-    height: 100%;
-    min-height: 168px;
-    border-bottom: none;
     border-right: 1px solid var(--glass-border);
   }
-  .progress-badge { display: none; } /* el porcentaje ya está en la barra de progreso */
   .card-content { padding: 12px 14px; min-width: 0; }
   .book-title {
     font-size: 1.02rem;
@@ -889,7 +875,13 @@
   .progress-section { margin-bottom: 12px; }
   .card-actions { flex-wrap: wrap; gap: 8px; }
   .card-page-count-badge { display: none; } /* poco útil y no cabía junto a "Continuar" */
-  .card-actions .read-btn { flex: 1; justify-content: center; }
+  .card-actions .read-btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
   .card-extra-actions { gap: 5px; margin-top: 8px; }
   .card-extra-actions .summary-card-btn { padding: 6px 0; font-size: 0.68rem; letter-spacing: 0; }
 }

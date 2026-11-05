@@ -26,9 +26,9 @@
 .lit-bubble {
   position: fixed;
   bottom: 24px;
-  right: 24px;
-  width: 64px;
-  height: 64px;
+  right: var(--senda-tools-edge, 24px);
+  width: var(--senda-tools-size, 64px);
+  height: var(--senda-tools-size, 64px);
   border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--color-500) 45%, transparent);
   background: linear-gradient(135deg, var(--color-surface, #14291F) 0%, var(--color-bg-primary, #0A1914) 100%);
@@ -43,6 +43,11 @@
   animation: lit-float 4.5s ease-in-out infinite;
 }
 
+.lit-bubble:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .lit-bubble:hover {
     border-color: var(--color-primary, #D4AF37);
@@ -52,6 +57,17 @@
 
 .lit-bubble.bouncing {
   animation: lit-bounce 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (min-width: 768px) {
+  :host-context(body:has(app-learning-path)) .lit-bubble:not(.bouncing) { animation: none; }
+  :host-context(body:has(app-learning-path)) .lit-bubble[hidden] { display: none; }
+  :host-context(body:has(app-learning-path)) .lit-bubble-avatar { width: 40px; height: 40px; }
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  :host-context(body:has(app-learning-path)) .lit-bubble { transition: scale 160ms var(--ease-out); }
+  :host-context(body:has(app-learning-path)) .lit-bubble:active { scale: .96; }
 }
 
 .lit-bubble-glow {
@@ -188,9 +204,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lit-bubble, .lit-bubble.bouncing, .lit-bubble-glow, .lit-bubble-ping {
+  .lit-bubble, .lit-bubble.bouncing, .lit-bubble-glow, .lit-bubble-orbit-ring, .lit-bubble-ping {
     animation: none;
   }
+  .lit-bubble-tooltip, .lit-mascot-avatar { transition: none; }
+  .lit-bubble:hover .lit-mascot-avatar { transform: none; }
 }
 
 /* --------------------------------------------------------------------------
@@ -199,7 +217,7 @@
 .lit-panel {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  right: calc(24px + var(--senda-tools-gutter, 0px));
   width: 380px;
   max-width: calc(100vw - 32px);
   height: 600px;
