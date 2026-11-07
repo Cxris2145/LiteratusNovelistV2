@@ -1,4 +1,4 @@
-﻿import { Injectable, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { ApiService } from './api.service';
@@ -498,7 +498,29 @@ export class KokoroTtsService {
   }
 
   /** Pide la voz del personaje al backend (Azure) y devuelve el MP3. */
+  // Tiempo máximo para la petición al backend Azure (20 s).
+  private readonly REQUEST_TIMEOUT_MS = 20000;
+
   private async fetchRemoteAudio(text: string): Promise<ArrayBuffer> {
+    // Ejecutamos la petición y la competimos con un timeout.
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Timeout al obtener audio de Azure')), this.REQUEST_TIMEOUT_MS);
+    });
+    const requestPromise = (async () => {
+      const res = await firstValueFrom(this.api.post<{ audio_base64: string }>('ai/audio/generate/', {
+        text,
+        avatar_id: this.avatarId,
+      }));
+      const binary = atob(res.audio_base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer as ArrayBuffer;
+    })();
+    // Race entre la petición y el timeout.
+    return await Promise.race([requestPromise, timeoutPromise]);
+  }
     const res = await firstValueFrom(this.api.post<{ audio_base64: string }>('ai/audio/generate/', {
       text,
       avatar_id: this.avatarId,
