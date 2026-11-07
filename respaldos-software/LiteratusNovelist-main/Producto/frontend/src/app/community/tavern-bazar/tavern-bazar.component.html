@@ -44,6 +44,7 @@
     <div class="bz-dyes-slot" *ngIf="tab === 'tintes'">
       <app-maguito-customizer
         [compact]="true"
+        [outfit]="currentOutfit"
         (saved)="onCustomizerSaved($event)"
         (canceled)="close()">
       </app-maguito-customizer>

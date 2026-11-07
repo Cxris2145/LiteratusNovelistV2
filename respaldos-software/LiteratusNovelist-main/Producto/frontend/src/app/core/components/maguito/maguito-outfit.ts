@@ -1,10 +1,13 @@
+import type { MaguitoCustomColors } from './maguito-colors';
+
 /**
  * Vestuario de Maguito. El backend guarda en Profile.outfit un objeto por espacio
  * ({ head: 'crown', face: 'beard' }) y los artículos del Bazar llevan `value = 'espacio:variante'`.
  * Lo que no viene (o una variante que este frontend aún no sabe dibujar) usa el atuendo de siempre.
+ * `colors` es el color que eligió el lector: viaja con la ropa, así que los amigos también lo ven.
  */
 export type WearSlot = 'head' | 'eyes' | 'face' | 'neck' | 'cape';
-export type MaguitoOutfit = Partial<Record<WearSlot, string>>;
+export type MaguitoOutfit = Partial<Record<WearSlot, string>> & { colors?: Partial<MaguitoCustomColors> | null };
 export type MaguitoLook = Record<WearSlot, string>;
 
 export const OUTFIT_DEFAULTS: MaguitoLook = {

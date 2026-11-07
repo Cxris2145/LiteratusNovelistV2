@@ -36,8 +36,19 @@
   --mg-aura-glow: #a855f7;
   --mg-spark-glow: #ffe08a;
   --mg-hat-glow: #b56cff;
+  --mg-metal-hi: #fff0b8;
   --mg-metal-acc: #d6a64f;
+  --mg-metal-lo: #986023;
+  --mg-ink: #18215a;
+  --mg-shade: #0c1446;
 }
+/* Cambio de color en vivo (el Maguito grande de los selectores): cruza al nuevo tinte y, si se
+   elige otro a medio camino, retoma desde donde va. Los de listas y chat cambian sin transición. */
+:host(.mg-dye-live) stop { transition: stop-color 240ms ease; }
+:host(.mg-dye-live) path[style*="--mg-"]:not(.mg-mouth),
+:host(.mg-dye-live) ellipse[style*="--mg-"],
+:host(.mg-dye-live) rect[style*="--mg-"] { transition: stroke 240ms ease, fill 240ms ease; }
+:host(.mg-dye-live) .mg-mouth { transition: opacity 140ms ease, stroke 240ms ease; }
 :host([data-cape="midnight"]) {
   --mg-cape-a: #6f79bf;
   --mg-cape-b: #303b78;

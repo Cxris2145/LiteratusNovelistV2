@@ -1,0 +1,31 @@
+<div class="mcp" [class.has-entrance]="entrance">
+  <div class="mcp-stage">
+    <!-- Las variables de color van aquí y no en la raíz: cambiarlas no recalcula los Maguitos de las fichas. -->
+    <div class="mcp-figure" [style.--mcp-aura]="selected.colors.magicAura" [style.--mcp-spark]="selected.colors.magicSparks">
+      <span class="mcp-glow" aria-hidden="true"></span>
+      <span #ring class="mcp-ring" aria-hidden="true"></span>
+      <app-maguito #preview [outfit]="outfit" [colors]="selected.colors" [dyeLive]="true" [greetOnEnter]="entrance"
+                   [label]="'Tu Maguito de color ' + selected.name"></app-maguito>
+      <span *ngFor="let burst of bursts" class="mcp-burst" aria-hidden="true" (animationend)="onBurstEnd(burst)">
+        <i style="--a: 0deg"></i><i style="--a: 45deg"></i><i style="--a: 90deg"></i><i style="--a: 135deg"></i>
+        <i style="--a: 180deg"></i><i style="--a: 225deg"></i><i style="--a: 270deg"></i><i style="--a: 315deg"></i>
+      </span>
+    </div>
+    <p class="mcp-name">{{ selected.name }}</p>
+    <p class="mcp-note" *ngIf="wearsBoughtCape">Tu capa del Bazar se queda: combina con cualquier color.</p>
+  </div>
+
+  <div class="mcp-grid" role="radiogroup" aria-label="Color de tu Maguito" (pointerdown)="noteInput(true)" (keydown)="noteInput(false)">
+    <label *ngFor="let option of options; let i = index; trackBy: trackOption" class="mcp-tile"
+           [class.is-selected]="option === selected" [style.--i]="i" [style.--mcp-tile-aura]="option.colors.magicAura">
+      <input type="radio" class="mcp-radio" [name]="groupName" [value]="option.id" [checked]="option === selected" [attr.aria-label]="option.name"
+             (change)="choose(option)" (keydown.enter)="$event.preventDefault()">
+      <span class="mcp-face">
+        <app-maguito crop="bust" [outfit]="outfit" [colors]="option.colors" [paused]="true" [calm]="true"
+                     [interactive]="false" [followPointer]="false"></app-maguito>
+      </span>
+      <span class="mcp-tile-name">{{ option.name }}</span>
+      <span class="material-symbols-rounded mcp-check" aria-hidden="true">check_circle</span>
+    </label>
+  </div>
+</div>

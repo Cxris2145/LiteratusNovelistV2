@@ -233,7 +233,9 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
       || a.cost_ink - b.cost_ink || a.name.localeCompare(b.name, 'es'));
   }
 
-  onCustomizerSaved(colors: any): void {
+  /** El taller guardó en la cuenta: la mesa y el probador se visten con el color nuevo. */
+  onCustomizerSaved(outfit: MaguitoOutfit): void {
+    this.saveOutfit(outfit);
     this.gesture.emit('equip');
   }
 
@@ -401,7 +403,9 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   private setItems(items: ShopItem[]): void {
     this.items = items;
     if (!this.wearing) {
-      this.currentOutfit = {};
+      // La lista del Bazar solo sabe de ropa: el color se conserva.
+      const colors = this.currentOutfit.colors;
+      this.currentOutfit = colors ? { colors } : {};
       for (const item of items) {
         const wear = item.is_equipped && this.isWear(item) ? parseWear(item.value) : null;
         if (wear) this.currentOutfit[wear.slot] = wear.variant;

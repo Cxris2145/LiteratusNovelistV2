@@ -43,6 +43,10 @@
         <span class="material-symbols-rounded">palette</span>
         Paleta de Colores
       </button>
+      <button type="button" class="tab-btn" [class.active]="selectedTab === 'maguito'" (click)="selectedTab = 'maguito'">
+        <span class="material-symbols-rounded">auto_fix_high</span>
+        Tu Maguito
+      </button>
     </div>
 
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-layout-grid">
@@ -143,6 +147,10 @@
                 <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
                 <span>Copiar código</span>
               </button>
+              <button type="button" class="avatar-action-btn" (click)="selectedTab = 'maguito'">
+                <span class="material-symbols-rounded" aria-hidden="true">palette</span>
+                <span>Cambiar color</span>
+              </button>
               <a class="avatar-action-btn" routerLink="/tavern" [queryParams]="{ bazar: 'ropero' }">
                 <span class="material-symbols-rounded" aria-hidden="true">checkroom</span>
                 <span>Vestir a Maguito</span>
@@ -205,6 +213,28 @@
               <span class="material-symbols-rounded theme-check" *ngIf="theme.id === selectedTheme">check_circle</span>
             </button>
           </div>
+        </div>
+      </aside>
+
+      <!-- ═══ TU MAGUITO: su color, el que ven tus amigos ═══ -->
+      <aside class="profile-side-col" *ngIf="selectedTab === 'maguito'">
+        <div class="col-section-header">
+          <span class="material-symbols-rounded col-header-icon">auto_fix_high</span>
+          <h3>El color de tu Maguito</h3>
+        </div>
+        <p class="field-hint maguito-hint">Te acompaña por todo Literatus y tus amigos lo ven de este color en La Taberna.</p>
+
+        <app-maguito-color-picker [value]="maguitoColors" [outfit]="outfit" (valueChange)="maguitoColors = $event"></app-maguito-color-picker>
+
+        <div class="maguito-actions">
+          <a class="avatar-action-btn" routerLink="/tavern" [queryParams]="{ bazar: 'tintes' }">
+            <span class="material-symbols-rounded" aria-hidden="true">palette</span>
+            <span>Mezclar colores a mano</span>
+          </a>
+          <button type="button" class="glass-btn save-btn maguito-save" [disabled]="!maguitoChanged || savingMaguito" (click)="saveMaguitoColors()">
+            <span *ngIf="savingMaguito" class="spinner"></span>
+            <span>{{ savingMaguito ? 'Guardando...' : 'Guardar color' }}</span>
+          </button>
         </div>
       </aside>
 

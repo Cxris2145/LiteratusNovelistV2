@@ -2,6 +2,7 @@ import { Component, ComponentRef, ElementRef, inject, NgZone, OnInit, HostListen
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { ApiService } from './core/services/api.service';
 import { AuthService, userStorageKey } from './core/services/auth.service';
+import { MaguitoThemeService } from './core/services/maguito-theme.service';
 import { ChatService } from './core/services/chat.service';
 import { filter } from 'rxjs/operators';
 import { routeTransitionAnimations, shakeAnimation } from './core/animations';
@@ -41,6 +42,7 @@ export class AppComponent implements OnInit {
   /** Si una sección no carga porque se publicó una versión nueva, recarga directo en ella. */
   private readonly appUpdate = inject(AppUpdateService);
   chatService = inject(ChatService);
+  private readonly maguitoTheme = inject(MaguitoThemeService);
   settingsService = inject(SettingsService);
   favoritesService = inject(FavoritesService);
   gamificationService = inject(GamificationService);
@@ -382,6 +384,7 @@ export class AppComponent implements OnInit {
   loadUserProfile() {
     this.chatService.getUserProfile().subscribe({
       next: (profile) => {
+        this.maguitoTheme.hydrate(profile?.outfit);
         this.userEquippedFrame = profile?.equipped_frame || '';
         this.userEquippedTitle = profile?.equipped_title || '';
         if (profile && profile.avatar) {

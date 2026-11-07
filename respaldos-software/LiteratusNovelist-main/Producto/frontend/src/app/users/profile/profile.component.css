@@ -484,6 +484,28 @@ label {
   color: var(--color-warning);
 }
 .tavern-identity-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+/* Pestaña Tu Maguito */
+.maguito-hint { margin: 0 0 20px; }
+.maguito-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+}
+.maguito-actions a { text-decoration: none; }
+.maguito-save {
+  width: auto;
+  padding: 12px 28px;
+  font-size: 1rem;
+  transition: transform 140ms var(--ease-out), background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+.maguito-save:not(:disabled):active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) {
+  .maguito-save:not(:disabled):active { transform: none; }
+}
 .tavern-identity-actions a { text-decoration: none; }
 @media (max-width: 520px) {
   .tavern-identity { flex-direction: column; text-align: center; }
@@ -673,6 +695,29 @@ label {
   box-shadow: 0 4px 12px var(--color-primary-shadow, rgba(0,0,0,0.3));
 }
 
+/* En el celular las tres pestañas se reparten el ancho, con el icono sobre el texto. */
+@media (max-width: 520px) {
+  .profile-tabs {
+    width: 100%;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 20px;
+    box-sizing: border-box;
+  }
+  .tab-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border-radius: 16px;
+    font-size: 12px;
+    line-height: 1.2;
+    text-align: center;
+  }
+}
+
 /* Perfil público / privado en La Taberna */
 .visibility-toggle {
   display: flex;
@@ -689,56 +734,56 @@ label {
   cursor: pointer;
 }
 .visibility-toggle .material-symbols-rounded { color: var(--color-warning, #d4af37); font-size: 20px; }
-.visibility-group .field-hint { margin-top: 2px; }
-
-/* Subopciones de privacidad granular */
-.privacy-suboptions {
-  margin-top: 14px;
-  padding: 12px 14px;
-  background: color-mix(in srgb, var(--color-surface, #fff) 40%, transparent);
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.15));
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.privacy-suboptions-title {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.privacy-toggles-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.visibility-toggle.sub-toggle {
-  min-height: 44px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--color-surface, #fff) 30%, transparent);
-  transition: background 0.15s ease;
-  user-select: none;
-}
-
-.visibility-toggle.sub-toggle:active {
-  background: color-mix(in srgb, var(--color-surface, #fff) 60%, transparent);
-}
-
-.visibility-toggle.sub-toggle .material-symbols-rounded {
-  font-size: 19px;
-  color: var(--color-primary, #6366f1);
-}
-
-@media (min-width: 600px) {
-  .privacy-toggles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
-  }
+.visibility-group .field-hint { margin-top: 2px; }
+
+/* Subopciones de privacidad granular */
+.privacy-suboptions {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--color-surface, #fff) 40%, transparent);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.15));
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.privacy-suboptions-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.privacy-toggles-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.visibility-toggle.sub-toggle {
+  min-height: 44px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-surface, #fff) 30%, transparent);
+  transition: background 0.15s ease;
+  user-select: none;
+}
+
+.visibility-toggle.sub-toggle:active {
+  background: color-mix(in srgb, var(--color-surface, #fff) 60%, transparent);
+}
+
+.visibility-toggle.sub-toggle .material-symbols-rounded {
+  font-size: 19px;
+  color: var(--color-primary, #6366f1);
+}
+
+@media (min-width: 600px) {
+  .privacy-toggles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
 }

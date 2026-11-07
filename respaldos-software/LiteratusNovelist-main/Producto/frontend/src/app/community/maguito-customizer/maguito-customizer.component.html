@@ -7,7 +7,9 @@
     <div class="mg-stage-frame">
       <div class="mg-maguito-anchor">
         <app-maguito
+          [outfit]="outfit"
           [colors]="currentColors"
+          [dyeLive]="true"
           [interactive]="true"
           [aura]="true"
           label="Tu Maguito personalizado">
@@ -94,6 +96,7 @@
 
       <!-- PESTAÑA: TÚNICA -->
       <div *ngIf="activeZone === 'cape'" class="mg-color-fields">
+        <p class="mg-cape-note" *ngIf="wearsBoughtCape">Llevas una capa del Bazar: estos tintes se verán cuando te la quites.</p>
         <div class="mg-field-group">
           <label class="mg-field-label">Tinte Primario de la Capa</label>
           <div class="mg-swatches-row">

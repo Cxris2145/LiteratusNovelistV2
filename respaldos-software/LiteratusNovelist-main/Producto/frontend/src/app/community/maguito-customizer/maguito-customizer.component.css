@@ -169,6 +169,13 @@
   color: var(--mg-parchment);
 }
 
+.mg-cape-note {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--mg-parchment-muted);
+  line-height: 1.35;
+}
+
 .mg-dyes-desc {
   margin: 0.25rem 0 0.85rem;
   font-size: 0.84rem;

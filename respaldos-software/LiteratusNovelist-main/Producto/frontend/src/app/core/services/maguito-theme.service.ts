@@ -1,90 +1,64 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import {
-  DEFAULT_MAGUITO_COLORS,
-  MaguitoCustomColors,
-  getMaguitoCssVariables,
-} from '../components/maguito/maguito-colors';
-import { ApiService } from './api.service';
+import { map, tap } from 'rxjs/operators';
 
+import { MaguitoCustomColors, storedMaguitoColors } from '../components/maguito/maguito-colors';
+import { MaguitoOutfit } from '../components/maguito/maguito-outfit';
+import { ApiService } from './api.service';
+import { userStorageKey } from './auth.service';
+
+/**
+ * El color del Maguito del lector con sesión. La fuente de verdad es Profile.outfit.colors, en el
+ * servidor; la copia local (una por cuenta) solo evita que al cargar se vea un instante el clásico.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class MaguitoThemeService {
-  private static readonly STORAGE_KEY = 'tavern_maguito_colors';
-  private api = inject(ApiService);
+  private static readonly STORAGE_BASE = 'maguito_colors';
+  // ApiService se pide al guardar: pintar un Maguito no debe depender de HttpClient.
+  private readonly injector = inject(Injector);
 
-  private readonly colorsSubject = new BehaviorSubject<MaguitoCustomColors>(this.loadInitialColors());
-  readonly colors$: Observable<MaguitoCustomColors> = this.colorsSubject.asObservable();
+  private readonly colorsSubject = new BehaviorSubject<Partial<MaguitoCustomColors> | null>(this.readStored());
+  /** null = Maguito clásico. */
+  readonly colors$: Observable<Partial<MaguitoCustomColors> | null> = this.colorsSubject.asObservable();
 
-  constructor() {
-    // Inyecta las variables en :root al inicio para que todos los Maguitos hereden la personalización
-    this.applyToRoot(this.colorsSubject.value);
-  }
-
-  /** Devuelve los colores activos en este momento. */
-  get currentColors(): MaguitoCustomColors {
+  get currentColors(): Partial<MaguitoCustomColors> | null {
     return this.colorsSubject.value;
   }
 
-  /** Carga los colores desde el almacenamiento local o devuelve los predeterminados. */
-  private loadInitialColors(): MaguitoCustomColors {
+  /** Toma el color del atuendo que acaba de llegar del servidor. */
+  hydrate(outfit: MaguitoOutfit | null | undefined): void {
+    this.remember(outfit?.colors || null);
+  }
+
+  /** Guarda el color en la cuenta y devuelve el atuendo completo que quedó. */
+  save(colors: Partial<MaguitoCustomColors> | null): Observable<MaguitoOutfit> {
+    return this.injector.get(ApiService)
+      .patch<{ outfit?: MaguitoOutfit }>('users/profile/', { maguito_colors: storedMaguitoColors(colors) })
+      .pipe(
+        map(profile => profile?.outfit || {}),
+        tap(outfit => this.hydrate(outfit)),
+      );
+  }
+
+  private remember(colors: Partial<MaguitoCustomColors> | null): void {
     try {
-      const saved = localStorage.getItem(MaguitoThemeService.STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return { ...DEFAULT_MAGUITO_COLORS, ...parsed };
-      }
-    } catch (e) {
-      console.warn('No se pudieron leer los colores guardados de Maguito:', e);
-    }
-    return { ...DEFAULT_MAGUITO_COLORS };
-  }
-
-  /** Guarda los nuevos colores en almacenamiento local, actualiza el estado y propaga al :root. */
-  saveColors(colors: MaguitoCustomColors): void {
-    const merged = { ...DEFAULT_MAGUITO_COLORS, ...colors };
-    try {
-      localStorage.setItem(MaguitoThemeService.STORAGE_KEY, JSON.stringify(merged));
-    } catch (e) {
-      console.warn('Error al persistir colores en localStorage:', e);
-    }
-
-    this.colorsSubject.next(merged);
-    this.applyToRoot(merged);
-
-    // Persistencia silenciosa hacia el backend si hay sesión activa
-    this.syncWithBackend(merged);
-  }
-
-  /** Restablece los colores a los originales de La Taberna. */
-  resetColors(): void {
-    this.saveColors({ ...DEFAULT_MAGUITO_COLORS });
-  }
-
-  /** Aplica las variables CSS a document.documentElement para cobertura global. */
-  private applyToRoot(colors: MaguitoCustomColors): void {
-    if (typeof document === 'undefined' || !document.documentElement) return;
-    const vars = getMaguitoCssVariables(colors);
-    const rootStyle = document.documentElement.style;
-    for (const [key, value] of Object.entries(vars)) {
-      rootStyle.setProperty(key, value);
-    }
-  }
-
-  /** Intenta enviar la personalización al backend si el endpoint de perfil está disponible. */
-  private syncWithBackend(colors: MaguitoCustomColors): void {
-    try {
-      // Si el usuario tiene sesión, guardamos en avatar_color o en perfil extendido
-      this.api.patch('users/profile/', { avatar_color: colors.capeA }).subscribe({
-        next: () => {},
-        error: () => {
-          // No es bloqueante: el almacenamiento local ya aseguró la persistencia en el dispositivo
-        },
-      });
+      const key = userStorageKey(MaguitoThemeService.STORAGE_BASE);
+      if (colors) localStorage.setItem(key, JSON.stringify(colors));
+      else localStorage.removeItem(key);
     } catch {
-      // Ignorar si no hay sesión o servicio HTTP
+      // Sin almacenamiento el color sigue valiendo en esta visita.
+    }
+    this.colorsSubject.next(colors);
+  }
+
+  private readStored(): Partial<MaguitoCustomColors> | null {
+    try {
+      const saved = localStorage.getItem(userStorageKey(MaguitoThemeService.STORAGE_BASE));
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
     }
   }
 }
-

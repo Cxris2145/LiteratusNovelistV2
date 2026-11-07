@@ -3,8 +3,11 @@ import {
   OnChanges, OnDestroy, Output, SimpleChanges, inject,
 } from '@angular/core';
 
-import { MaguitoLook, MaguitoOutfit, WearSlot, resolveOutfit } from './maguito-outfit';
-import { MaguitoCustomColors, applyMaguitoColors } from './maguito-colors';
+import { Subscription } from 'rxjs';
+
+import { MaguitoThemeService } from '../../services/maguito-theme.service';
+import { MaguitoLook, MaguitoOutfit, OUTFIT_DEFAULTS, WearSlot, resolveOutfit } from './maguito-outfit';
+import { MaguitoCustomColors, applyMaguitoColors, clearMaguitoColors } from './maguito-colors';
 
 /**
  * Estados de Maguito:
@@ -86,6 +89,7 @@ const NECK_FRAMES: Record<string, string> = {
     '[class.mg-walking]': "walking && crop === 'full'",
     '[class.mg-has-mug]': 'mug',
     '[class.mg-toasting]': 'toasting',
+    '[class.mg-dye-live]': 'dyeLive',
     '[attr.data-cape]': 'look.cape',
     '[attr.data-face]': 'look.face',
     '[attr.data-eyes]': 'look.eyes',
@@ -97,6 +101,7 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   private static instances = 0;
   private readonly zone = inject(NgZone);
   private readonly host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly theme = inject(MaguitoThemeService);
 
   @Input() state: MaguitoState = 'idle';
   /** Saluda la primera vez que aparece en pantalla. */
@@ -127,9 +132,13 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   /** Brinda chocando la jarra con sus compañeros. */
   @Input() toasting = false;
   /** Accesorios comprados en El Bazar. Sin outfit lleva el atuendo de siempre. */
-  @Input() outfit: MaguitoOutfit | null | undefined = null;
-  /** Paleta de colores personalizada de Maguito. */
+  @Input() outfit: MaguitoOutfit | null | undefined = null;
+  /** Colores puestos a mano (selectores). Si no vienen, manda el color que trae el outfit. */
   @Input() colors: Partial<MaguitoCustomColors> | null | undefined = null;
+  /** Es el Maguito del lector con sesión: sin outfit a mano, usa el color de su cuenta. */
+  @Input() mine = false;
+  /** Cruza al nuevo color en vez de cambiar de golpe (solo donde se está eligiendo). */
+  @Input() dyeLive = false;
 
   /** El outfit ya resuelto: cada espacio con una variante que este componente sabe dibujar. */
   look: MaguitoLook = resolveOutfit(null);
@@ -167,6 +176,9 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   private greetedOnEnter = false;
   private viewReady = false;
   private observer?: IntersectionObserver;
+  private myColors: Partial<MaguitoCustomColors> | null = null;
+  private mineSubscription?: Subscription;
+  private painted = false;
   private pupils: SVGGElement[] = [];
   private face: SVGGElement | null = null;
   private readonly reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -183,8 +195,9 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     // Antes del primer render también: el primer ngOnChanges llega sin vista.
-    if (changes['outfit']) this.look = resolveOutfit(this.outfit);
-    if (changes['colors'] && this.colors) applyMaguitoColors(this.host, this.colors);
+    if (changes['outfit']) this.look = resolveOutfit(this.outfit);
+    if (changes['mine']) this.watchMyColors();
+    if (changes['outfit'] || changes['colors'] || changes['mine']) this.paint();
     if (!this.viewReady) return;
     if (changes['state']) this.show(this.state);
     if (changes['paused']) this.updateRunning();
@@ -192,8 +205,7 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.pupils = Array.from(this.host.querySelectorAll<SVGGElement>('.mg-pupil'));
-    this.face = this.host.querySelector<SVGGElement>('.mg-face');
-    if (this.colors) applyMaguitoColors(this.host, this.colors);
+    this.face = this.host.querySelector<SVGGElement>('.mg-face');
     this.viewReady = true;
     this.show(this.state);
 
@@ -212,6 +224,7 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.mineSubscription?.unsubscribe();
     this.observer?.disconnect();
     document.removeEventListener('visibilitychange', this.onPageVisibility);
     window.removeEventListener('pointermove', this.onPointerMove);
@@ -230,6 +243,32 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   /** Reproduce un gesto suelto desde fuera (p. ej. al probarse ropa en la Taberna) sin emitir (poked). */
   play(gesture: 'poke' | 'success'): void {
     if (this.viewReady) this.show(gesture);
+  }
+
+  // ── Color ───────────────────────────────────────────────────────────
+
+  private watchMyColors(): void {
+    this.mineSubscription?.unsubscribe();
+    this.mineSubscription = undefined;
+    this.myColors = null;
+    if (this.mine) {
+      this.mineSubscription = this.theme.colors$.subscribe(colors => {
+        this.myColors = colors;
+        this.paint();
+      });
+    }
+  }
+
+  /** Sin color queda el dibujo original; una capa comprada en El Bazar conserva su tela. */
+  private paint(): void {
+    const colors = this.colors ?? this.outfit?.colors ?? this.myColors;
+    if (colors) {
+      applyMaguitoColors(this.host, colors, { keepCape: this.look.cape !== OUTFIT_DEFAULTS.cape });
+      this.painted = true;
+    } else if (this.painted) {
+      clearMaguitoColors(this.host);
+      this.painted = false;
+    }
   }
 
   // ── Estados ─────────────────────────────────────────────────────────

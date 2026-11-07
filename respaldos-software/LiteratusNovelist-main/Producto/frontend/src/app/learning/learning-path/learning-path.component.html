@@ -248,6 +248,7 @@
                   >
                     <div class="current-companion" *ngIf="level.id === currentLevelId" aria-hidden="true">
                       <app-maguito
+                        [mine]="true"
                         [interactive]="false"
                         [followPointer]="false"
                         [calm]="true"
@@ -504,7 +505,7 @@
           {{ chest.ink_reward }} de Tinta
         </span>
         <div class="wardrobe-prize" *ngIf="chest.item">
-          <app-maguito [outfit]="chestOutfit" [interactive]="false" [followPointer]="false" [paused]="true">
+          <app-maguito [outfit]="chestOutfit" [mine]="true" [interactive]="false" [followPointer]="false" [paused]="true">
           </app-maguito>
           <span>
             {{ chest.item.name }}

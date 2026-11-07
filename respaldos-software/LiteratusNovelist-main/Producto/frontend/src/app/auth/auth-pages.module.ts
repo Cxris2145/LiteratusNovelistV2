@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
+import { MaguitoColorPickerComponent } from '../core/components/maguito-color-picker/maguito-color-picker.component';
 import { SharedModule } from '../shared/shared.module';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
@@ -12,7 +13,7 @@ import { ResetPasswordComponent } from './reset-password/reset-password.componen
 /** Ingreso, registro, bienvenida y recuperación de contraseña: un solo paquete pequeño. */
 @NgModule({
   declarations: [LoginComponent, RegisterComponent, OnboardingComponent, VerifyEmailComponent, ForgotPasswordComponent, ResetPasswordComponent],
-  imports: [SharedModule],
+  imports: [SharedModule, MaguitoColorPickerComponent],
 })
 export class AuthPagesModule {}
 

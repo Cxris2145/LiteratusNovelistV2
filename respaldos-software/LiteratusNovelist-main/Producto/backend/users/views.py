@@ -433,6 +433,7 @@ class OnboardingView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
+        from .maguito_colors import with_maguito_colors
         from .serializers import OnboardingSerializer
         from catalog.models import Genre, Author
         from django.utils.text import slugify
@@ -491,6 +492,8 @@ class OnboardingView(APIView):
             profile.favorite_genres.set(matched_genres)
             profile.followed_authors.set(matched_authors)
             profile.has_completed_onboarding = True
+            if 'maguito_colors' in validated_data:
+                profile.outfit = with_maguito_colors(profile.outfit, validated_data['maguito_colors'])
             profile.save()
 
         return Response({

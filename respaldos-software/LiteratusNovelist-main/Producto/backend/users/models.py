@@ -176,6 +176,7 @@ class Profile(TimeStampedModel):
         max_length=80, blank=True, default='',
         help_text="Frase corta que ven los amigos en La Taberna."
     )
+    # También guarda el color del Maguito en 'colors' (ver users/maguito_colors.py).
     outfit = models.JSONField(
         default=dict, blank=True,
         help_text="Accesorios de Maguito por espacio: {'head': 'crown', ...}. Solo cambia desde El Bazar."

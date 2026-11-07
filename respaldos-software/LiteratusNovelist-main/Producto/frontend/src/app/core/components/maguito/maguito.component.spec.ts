@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CommonModule } from '@angular/common';
 
+import { MaguitoThemeService } from '../../services/maguito-theme.service';
+import { MAGUITO_BASIC_COLORS } from './maguito-colors';
 import { MaguitoComponent } from './maguito.component';
 import { resolveOutfit } from './maguito-outfit';
 
@@ -82,5 +84,88 @@ describe('MaguitoComponent (vestuario)', () => {
       expect(art.x + art.width).toBeLessThan(x + width);
       expect(art.y + art.height).toBeLessThan(y + height);
     }
+  });
+});
+
+describe('MaguitoComponent (color)', () => {
+  const green = MAGUITO_BASIC_COLORS.find(option => option.id === 'green')!.colors;
+  const black = MAGUITO_BASIC_COLORS.find(option => option.id === 'black')!.colors;
+  let fixture: ComponentFixture<MaguitoComponent>;
+  let host: HTMLElement;
+
+  const variable = (name: string) => host.style.getPropertyValue(name);
+  function set(inputs: Record<string, unknown>): void {
+    for (const [name, value] of Object.entries(inputs)) fixture.componentRef.setInput(name, value);
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    // Sin HttpClient a propósito: pintar un Maguito no debe depender de él.
+    await TestBed.configureTestingModule({ declarations: [MaguitoComponent], imports: [CommonModule] }).compileComponents();
+    fixture = TestBed.createComponent(MaguitoComponent);
+    host = fixture.nativeElement;
+  });
+
+  afterEach(() => TestBed.inject(MaguitoThemeService).hydrate(null));
+
+  it('sin color deja el dibujo original', () => {
+    set({ outfit: { head: 'crown' } });
+    expect(variable('--mg-body-c')).toBe('');
+  });
+
+  it('pinta el color que trae el atuendo, también en el de un amigo', () => {
+    set({ outfit: { head: 'crown', colors: green } });
+    expect(variable('--mg-body-c')).toBe(green.bodyB!);
+    expect(variable('--mg-hat-a')).toBe(green.hatA!);
+    expect(variable('--mg-cape-a')).toBe(green.capeA!);
+  });
+
+  it('el negro aclara las líneas de la cara para que se vean', () => {
+    set({ outfit: { colors: black } });
+    expect(variable('--mg-ink')).toBe(black.ink!);
+  });
+
+  it('al quitar el color vuelve al dibujo original', () => {
+    set({ outfit: { colors: green } });
+    set({ outfit: { head: 'crown' } });
+    expect(variable('--mg-body-c')).toBe('');
+    expect(variable('--mg-cape-a')).toBe('');
+  });
+
+  it('una capa comprada conserva su tela y el cuerpo sigue el color', () => {
+    set({ outfit: { cape: 'royal', colors: green } });
+    expect(variable('--mg-cape-a')).toBe('');
+    expect(variable('--mg-body-c')).toBe(green.bodyB!);
+    expect(host.getAttribute('data-cape')).toBe('royal');
+  });
+
+  it('al quitarse la capa comprada, la túnica toma el color', () => {
+    set({ outfit: { cape: 'royal', colors: green } });
+    set({ outfit: { colors: green } });
+    expect(variable('--mg-cape-a')).toBe(green.capeA!);
+  });
+
+  it('[colors] manda sobre el color del atuendo (selectores)', () => {
+    set({ outfit: { colors: green }, colors: black });
+    expect(variable('--mg-body-c')).toBe(black.bodyB!);
+  });
+
+  it('[mine] usa el color de la cuenta y lo sigue cuando cambia', () => {
+    const theme = TestBed.inject(MaguitoThemeService);
+    theme.hydrate({ colors: green });
+    set({ mine: true });
+    expect(variable('--mg-body-c')).toBe(green.bodyB!);
+
+    theme.hydrate({ colors: black });
+    expect(variable('--mg-body-c')).toBe(black.bodyB!);
+
+    theme.hydrate({});
+    expect(variable('--mg-body-c')).toBe('');
+  });
+
+  it('sin [mine] ignora el color de la cuenta', () => {
+    TestBed.inject(MaguitoThemeService).hydrate({ colors: green });
+    set({ outfit: { head: 'crown' } });
+    expect(variable('--mg-body-c')).toBe('');
   });
 });

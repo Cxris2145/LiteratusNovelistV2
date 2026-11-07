@@ -6,6 +6,7 @@ from rest_framework_simplejwt.utils import get_md5_hash_password
 from django.utils.crypto import constant_time_compare
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from .maguito_colors import MaguitoColorsField, with_maguito_colors
 from .models import User, Profile
 
 
@@ -135,6 +136,8 @@ class OnboardingSerializer(serializers.Serializer):
         required=False,
         default=list
     )
+    # El primer paso del onboarding: quien no toca nada se queda con el Maguito clásico.
+    maguito_colors = MaguitoColorsField(required=False, allow_null=True)
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -153,20 +156,22 @@ class ProfileSerializer(serializers.ModelSerializer):
     subscription_cosmetics = serializers.SerializerMethodField()
     favorite_genres = serializers.SerializerMethodField()
     followed_authors = serializers.SerializerMethodField()
-    
+    # Se lee dentro de outfit.colors; es la única parte del atuendo que se edita desde el perfil.
+    maguito_colors = MaguitoColorsField(write_only=True, required=False, allow_null=True)
+
     class Meta:
         model = Profile
         fields = [
-            'id', 'username', 'avatar', 'avatar_color', 'bio', 'country', 'preferred_language', 
+            'id', 'username', 'avatar', 'avatar_color', 'bio', 'country', 'preferred_language',
             'ink_balance', 'infinite_ink', 'theme', 'xp', 'level', 'level_name',
             'xp_to_next_level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'current_hearts', 'seconds_to_next_heart',
-            'equipped_frame', 'equipped_title', 'discount_percent', 
+            'equipped_frame', 'equipped_title', 'discount_percent',
             'level_perks', 'all_levels', 'subscription_cosmetics',
             'has_completed_onboarding', 'favorite_genres', 'followed_authors',
-            'friend_code', 'tagline', 'outfit', 'birth_date', 'is_public', 'show_friends', 'show_books', 'show_reviews'
+            'friend_code', 'tagline', 'outfit', 'maguito_colors', 'birth_date', 'is_public', 'show_friends', 'show_books', 'show_reviews'
         ]
-        # outfit solo cambia al equipar en El Bazar; friend_code es inmutable.
+        # La ropa de outfit solo cambia al equipar en El Bazar; friend_code es inmutable.
         read_only_fields = ['ink_balance', 'infinite_ink', 'xp', 'level', 'streak_current', 'streak_max', 'streak_shields',
             'streak_last_date', 'hearts', 'equipped_frame', 'equipped_title', 'has_completed_onboarding',
             'friend_code', 'outfit']
@@ -197,6 +202,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         if username and instance.user.username != username:
             instance.user.username = username
             instance.user.save(update_fields=['username'])
+
+        if 'maguito_colors' in validated_data:
+            instance.outfit = with_maguito_colors(instance.outfit, validated_data.pop('maguito_colors'))
 
         return super().update(instance, validated_data)
 

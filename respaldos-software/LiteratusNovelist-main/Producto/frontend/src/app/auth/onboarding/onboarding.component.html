@@ -1,18 +1,22 @@
-<div class="onboarding-container">
+<div class="onboarding-container" [class.going-back]="stepDirection === 'back'">
   
   <!-- BARRA SUPERIOR DE PROGRESO -->
   <header class="onboarding-progress-header">
     <div class="stepper-track">
-      <div class="stepper-fill" [style.width.%]="currentStep === 1 ? 50 : 100"></div>
+      <div class="stepper-fill" [style.transform]="'scaleX(' + currentStep / 3 + ')'"></div>
     </div>
     <div class="stepper-labels">
-      <div class="step-label-item" [class.active]="currentStep >= 1" (click)="currentStep = 1">
+      <div class="step-label-item" [class.active]="currentStep >= 1" (click)="goToEarlierStep(1)">
         <span class="step-bubble">{{ currentStep > 1 ? '✓' : '1' }}</span>
-        <span>Vocación Literaria</span>
+        <span>Tu Maguito</span>
       </div>
-      <div class="step-label-item" [class.active]="currentStep >= 2">
-        <span class="step-bubble">2</span>
-        <span>Preferencias & Autores</span>
+      <div class="step-label-item" [class.active]="currentStep >= 2" (click)="goToEarlierStep(2)">
+        <span class="step-bubble">{{ currentStep > 2 ? '✓' : '2' }}</span>
+        <span>Vocación</span>
+      </div>
+      <div class="step-label-item" [class.active]="currentStep >= 3">
+        <span class="step-bubble">3</span>
+        <span>Preferencias</span>
       </div>
     </div>
   </header>
@@ -24,13 +28,38 @@
   </div>
 
   <!-- ════════════════════════════════════════════════════════════════════
-       PASO 1: SELECCIÓN DE ROL (Lector vs Autor)
+       PASO 1: EL COLOR DE TU MAGUITO
   ════════════════════════════════════════════════════════════════════ -->
   <main class="onboarding-step-view" *ngIf="currentStep === 1">
     <div class="step-headline">
       <span class="headline-badge">
         <span class="material-symbols-outlined">waving_hand</span>
-        Primeros Pasos en Literatus
+        Paso 1 de 3: Tu Maguito
+      </span>
+      <h1 class="headline-title">¿De qué color quieres a tu Maguito?</h1>
+      <p class="headline-subtitle">
+        Te acompañará por todo Literatus y tus amigos lo verán de este color. Puedes cambiarlo cuando quieras desde tu perfil.
+      </p>
+    </div>
+
+    <app-maguito-color-picker [value]="maguitoColors" [entrance]="!maguitoStepSeen" (valueChange)="maguitoColors = $event"></app-maguito-color-picker>
+
+    <div class="step-footer-actions">
+      <button class="primary-continue-btn" (click)="goToStep(2)">
+        <span>Continuar</span>
+        <span class="material-symbols-outlined">arrow_forward</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════════════════
+       PASO 2: SELECCIÓN DE ROL (Lector vs Autor)
+  ════════════════════════════════════════════════════════════════════ -->
+  <main class="onboarding-step-view" *ngIf="currentStep === 2">
+    <div class="step-headline">
+      <span class="headline-badge">
+        <span class="material-symbols-outlined">auto_stories</span>
+        Paso 2 de 3: Vocación Literaria
       </span>
       <h1 class="headline-title">¿Cómo deseas vivir tu experiencia literaria?</h1>
       <p class="headline-subtitle">
@@ -114,9 +143,14 @@
 
     </div>
 
-    <!-- BOTÓN DE ACCIÓN PASO 1 -->
-    <div class="step-footer-actions">
-      <button class="primary-continue-btn" (click)="goToStep2()" [disabled]="!selectedRole">
+    <!-- BOTONES DE ACCIÓN PASO 2 -->
+    <div class="step-footer-actions step-2-actions">
+      <button class="secondary-back-btn" (click)="goToStep(1)">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Atrás</span>
+      </button>
+
+      <button class="primary-continue-btn" (click)="continueFromRole()" [disabled]="!selectedRole">
         <span>Continuar a Preferencias</span>
         <span class="material-symbols-outlined">arrow_forward</span>
       </button>
@@ -124,13 +158,13 @@
   </main>
 
   <!-- ════════════════════════════════════════════════════════════════════
-       PASO 2: PREFERENCIAS DE GUSTOS (Géneros y Autores)
+       PASO 3: PREFERENCIAS DE GUSTOS (Géneros y Autores)
   ════════════════════════════════════════════════════════════════════ -->
-  <main class="onboarding-step-view" *ngIf="currentStep === 2">
+  <main class="onboarding-step-view" *ngIf="currentStep === 3">
     <div class="step-headline">
       <span class="headline-badge">
         <span class="material-symbols-outlined">palette</span>
-        Paso 2 de 2: Gustos Literarios
+        Paso 3 de 3: Gustos Literarios
       </span>
       <h1 class="headline-title">¿Qué historias despiertan tu curiosidad?</h1>
       <p class="headline-subtitle">
@@ -235,14 +269,14 @@
       </div>
     </section>
 
-    <!-- BOTONES DE ACCIÓN PASO 2 -->
+    <!-- BOTONES DE ACCIÓN PASO 3 -->
     <div class="step-footer-actions step-2-actions">
-      <button class="secondary-back-btn" (click)="goToStep1()" [disabled]="isSubmitting">
+      <button class="secondary-back-btn" (click)="goToStep(2)" [disabled]="isSubmitting">
         <span class="material-symbols-outlined">arrow_back</span>
         <span>Atrás</span>
       </button>
 
-      <button class="primary-continue-btn" (click)="completeOnboarding()" [disabled]="!isStep2Valid || isSubmitting">
+      <button class="primary-continue-btn" (click)="completeOnboarding()" [disabled]="!isPreferencesValid || isSubmitting">
         <span class="spinner-inline" *ngIf="isSubmitting"></span>
         <span class="material-symbols-outlined" *ngIf="!isSubmitting">check_circle</span>
         <span>{{ isSubmitting ? 'Guardando preferencias...' : 'Completar y Entrar a Literatus' }}</span>

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
+import { MaguitoColorPickerComponent } from '../core/components/maguito-color-picker/maguito-color-picker.component';
 import { SharedModule } from '../shared/shared.module';
 import { ProfileComponent } from './profile/profile.component';
 import { DeleteAccountDialogComponent } from './profile/delete-account-dialog/delete-account-dialog.component';
@@ -12,7 +13,7 @@ import { AuthorSubmitBookComponent } from '../catalog/author-submit-book/author-
 /** Perfil, logros, tarjetas de vocabulario, favoritos y publicar libro (todas piden sesión). */
 @NgModule({
   declarations: [ProfileComponent, DeleteAccountDialogComponent, AchievementsComponent, FlashcardsComponent, FavoritesComponent, AuthorSubmitBookComponent],
-  imports: [SharedModule],
+  imports: [SharedModule, MaguitoColorPickerComponent],
   exports: [ProfileComponent, AchievementsComponent, FlashcardsComponent, FavoritesComponent, AuthorSubmitBookComponent],
 })
 export class AccountModule {}

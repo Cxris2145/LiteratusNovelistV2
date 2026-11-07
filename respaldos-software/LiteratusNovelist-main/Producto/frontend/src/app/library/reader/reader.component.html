@@ -247,7 +247,7 @@
   <div class="reader-loading-overlay glass-panel" [class.hidden]="!isOverlayActive">
     <div class="reader-loading-content">
       <!-- Maguito en capas: agita la pluma y suelta chispas mientras carga; al tocarlo reacciona -->
-      <app-maguito class="loading-maguito" state="loading" [aura]="true" [paused]="!isOverlayActive"
+      <app-maguito class="loading-maguito" state="loading" [mine]="true" [aura]="true" [paused]="!isOverlayActive"
                    label="Maguito prepara tu libro" (poked)="onMascotClick()"></app-maguito>
 
       <!-- Textos dinámicos de carga con efecto de brillo metálico -->

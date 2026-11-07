@@ -14,7 +14,7 @@
     </span>
     <div class="lit-bubble-avatar">
       <!-- Siempre a la vista: modo calmado (parpadea y te sigue con la mirada) -->
-      <app-maguito class="lit-mascot-avatar" crop="bust" [calm]="true" [interactive]="false"></app-maguito>
+      <app-maguito class="lit-mascot-avatar" crop="bust" [mine]="true" [calm]="true" [interactive]="false"></app-maguito>
     </div>
     <span class="lit-bubble-tooltip" aria-hidden="true">¡Hola! ¿Leemos algo? ✨</span>
     <span class="lit-bubble-ping" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
@@ -32,7 +32,7 @@
       <div class="lit-header-identity">
         <!-- Saluda al abrir, agita la pluma mientras piensa y celebra cuando llega la respuesta -->
         <div class="lit-header-avatar-wrap">
-          <app-maguito class="lit-header-mascot" crop="bust" [interactive]="false"
+          <app-maguito class="lit-header-mascot" crop="bust" [mine]="true" [interactive]="false"
                        [state]="isSending ? 'loading' : mascotState"></app-maguito>
         </div>
         <div class="lit-header-texts">

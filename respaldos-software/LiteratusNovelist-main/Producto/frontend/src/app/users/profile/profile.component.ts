@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,6 +10,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { DeleteAccountDialogComponent, DeleteAccountDialogData } from './delete-account-dialog/delete-account-dialog.component';
 import { NotificationService } from '../../core/services/notification.service';
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
+import { MaguitoCustomColors, sameMaguitoColors } from '../../core/components/maguito/maguito-colors';
+import { MaguitoColorPickerComponent } from '../../core/components/maguito-color-picker/maguito-color-picker.component';
+import { MaguitoThemeService } from '../../core/services/maguito-theme.service';
 import { copyText } from '../../community/clipboard.util';
 import { todayIsoDate } from '../../core/utils/birth-date.util';
 import { ParentalService } from '../../core/services/parental.service';
@@ -32,10 +35,12 @@ export class ProfileComponent implements OnInit {
   notificationService = inject(NotificationService);
   private dialog = inject(MatDialog);
   private parental = inject(ParentalService);
+  private maguitoTheme = inject(MaguitoThemeService);
+  @ViewChild(MaguitoColorPickerComponent) private maguitoPicker?: MaguitoColorPickerComponent;
   /** Cuenta a cargo de un tutor (control parental): quién la administra. */
   guardianName = '';
   loading = false;
-  selectedTab: 'datos' | 'paleta' = 'datos';
+  selectedTab: 'datos' | 'paleta' | 'maguito' = 'datos';
   userInitials = 'V';
 
   avatarColor: string = '#3b82f6';
@@ -52,6 +57,10 @@ export class ProfileComponent implements OnInit {
   /** La Taberna: código de amigo y ropa de Maguito (solo lectura aquí). */
   friendCode = '';
   outfit: MaguitoOutfit = {};
+  /** El color elegido en la pestaña Tu Maguito (null = clásico) y el que está guardado. */
+  maguitoColors: Partial<MaguitoCustomColors> | null = null;
+  private savedMaguitoColors: Partial<MaguitoCustomColors> | null = null;
+  savingMaguito = false;
   readonly taglineMax = TAGLINE_MAX;
   readonly bioMax = BIO_MAX;
   readonly today = todayIsoDate();
@@ -82,6 +91,29 @@ export class ProfileComponent implements OnInit {
     const copied = await copyText('#' + this.friendCode);
     if (copied) this.notificationService.success('Código copiado.', 'La Taberna');
     else this.notificationService.info(`Tu código es #${this.friendCode}.`, 'La Taberna');
+  }
+
+  get maguitoChanged(): boolean {
+    return !sameMaguitoColors(this.maguitoColors, this.savedMaguitoColors);
+  }
+
+  saveMaguitoColors() {
+    if (!this.maguitoChanged || this.savingMaguito) return;
+    this.savingMaguito = true;
+    const colors = this.maguitoColors;
+    this.maguitoTheme.save(colors).subscribe({
+      next: outfit => {
+        this.savingMaguito = false;
+        this.outfit = outfit;
+        this.savedMaguitoColors = colors;
+        this.maguitoPicker?.celebrate();
+        this.notificationService.success('Tus amigos ya ven a tu Maguito con este color.', 'Tu Maguito');
+      },
+      error: () => {
+        this.savingMaguito = false;
+        this.notificationService.error('No se pudo guardar el color. Inténtalo de nuevo.', 'Tu Maguito');
+      },
+    });
   }
 
   ngOnInit() {
@@ -143,6 +175,7 @@ export class ProfileComponent implements OnInit {
           else birthDate?.enable();
           this.friendCode = profile.friend_code || '';
           this.outfit = profile.outfit || {};
+          this.maguitoColors = this.savedMaguitoColors = this.outfit.colors || null;
           this.avatarUrl = profile.avatar || null;
           this.avatarColor = profile.avatar_color || '#3b82f6';
           this.equippedFrame = profile.equipped_frame || '';

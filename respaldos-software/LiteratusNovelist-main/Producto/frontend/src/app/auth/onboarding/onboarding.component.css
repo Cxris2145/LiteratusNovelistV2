@@ -26,7 +26,30 @@
 .stepper-fill {
   height: 100%;
   background: linear-gradient(90deg, #D4AF37, #F59E0B);
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left center;
+  transition: transform 300ms var(--ease-out);
+}
+
+@media (max-width: 480px) {
+  .step-label-item { gap: 6px; font-size: 0.78rem; }
+}
+
+/* Cada paso entra desde el lado hacia el que se avanza; al volver, desde el otro. */
+.onboarding-step-view {
+  animation: onboarding-step-in 220ms var(--ease-out) backwards;
+}
+.going-back .onboarding-step-view { --step-from: -12px; }
+
+@keyframes onboarding-step-in {
+  from { opacity: 0; transform: translateX(var(--step-from, 12px)); }
+}
+@keyframes onboarding-step-fade {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepper-fill { transition: none; }
+  .onboarding-step-view { animation-name: onboarding-step-fade; }
 }
 
 .stepper-labels {

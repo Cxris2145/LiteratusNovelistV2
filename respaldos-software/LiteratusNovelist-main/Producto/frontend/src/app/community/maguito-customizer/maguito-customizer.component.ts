@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
@@ -11,11 +12,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   DEFAULT_MAGUITO_COLORS,
+  MAGUITO_BASIC_COLORS,
   MAGUITO_COLOR_PRESETS,
   MAGUITO_SWATCHES,
   MaguitoCustomColors,
   MaguitoPresetPalette,
 } from '../../core/components/maguito/maguito-colors';
+import { MaguitoOutfit, OUTFIT_DEFAULTS } from '../../core/components/maguito/maguito-outfit';
 import { MaguitoThemeService } from '../../core/services/maguito-theme.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { SharedModule } from '../../shared/shared.module';
@@ -33,15 +36,23 @@ export type CustomizerZone = 'presets' | 'cape' | 'hat' | 'body' | 'magic' | 'de
 export class MaguitoCustomizerComponent implements OnInit {
   private themeService = inject(MaguitoThemeService);
   private notification = inject(NotificationService);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() initialColors?: Partial<MaguitoCustomColors> | null;
   @Input() compact = false;
-  @Output() saved = new EventEmitter<MaguitoCustomColors>();
+  /** Su ropa actual, para probarse los tintes sobre lo que lleva puesto. */
+  @Input() outfit?: MaguitoOutfit | null;
+  /** Emite el atuendo completo que quedó guardado en la cuenta. */
+  @Output() saved = new EventEmitter<MaguitoOutfit>();
   @Output() canceled = new EventEmitter<void>();
 
   activeZone: CustomizerZone = 'presets';
 
-  readonly presets: MaguitoPresetPalette[] = MAGUITO_COLOR_PRESETS;
+  // El clásico ya abre la lista de colores básicos.
+  readonly presets: MaguitoPresetPalette[] = [
+    ...MAGUITO_BASIC_COLORS,
+    ...MAGUITO_COLOR_PRESETS.filter(preset => preset.id !== 'classic'),
+  ];
   readonly swatches: string[] = MAGUITO_SWATCHES;
 
   currentColors: MaguitoCustomColors = { ...DEFAULT_MAGUITO_COLORS };
@@ -51,6 +62,12 @@ export class MaguitoCustomizerComponent implements OnInit {
   ngOnInit(): void {
     const active = this.initialColors || this.themeService.currentColors;
     this.currentColors = { ...DEFAULT_MAGUITO_COLORS, ...active };
+  }
+
+  /** Una capa del Bazar trae su propia tela: la túnica teñida no se ve hasta quitársela. */
+  get wearsBoughtCape(): boolean {
+    const cape = this.outfit?.cape;
+    return !!cape && cape !== OUTFIT_DEFAULTS.cape;
   }
 
   setZone(zone: CustomizerZone): void {
@@ -96,14 +113,20 @@ export class MaguitoCustomizerComponent implements OnInit {
 
   save(): void {
     this.isSaving = true;
-    this.themeService.saveColors(this.currentColors);
-
-    setTimeout(() => {
-      this.isSaving = false;
-      this.hasChanges = false;
-      this.notification.success('¡La apariencia mágica de tu Maguito ha sido guardada!', 'Taller de Tintes');
-      this.saved.emit(this.currentColors);
-    }, 300);
+    this.themeService.save(this.currentColors).subscribe({
+      next: outfit => {
+        this.isSaving = false;
+        this.hasChanges = false;
+        this.notification.success('Tus amigos ya ven a tu Maguito con estos colores.', 'Taller de Tintes');
+        this.saved.emit(outfit);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isSaving = false;
+        this.notification.error('No se pudieron guardar los colores. Inténtalo de nuevo.', 'Taller de Tintes');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   cancel(): void {

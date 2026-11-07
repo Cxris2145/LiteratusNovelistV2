@@ -7,6 +7,10 @@ import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { MaguitoThemeService } from '../../core/services/maguito-theme.service';
+import { MaguitoCustomColors } from '../../core/components/maguito/maguito-colors';
+
+type OnboardingStep = 1 | 2 | 3;
 
 export interface GenreItem {
   id: string;
@@ -34,14 +38,22 @@ export class OnboardingComponent implements OnInit {
   private api = inject(ApiService);
   private router = inject(Router);
   private notification = inject(NotificationService);
+  private maguitoTheme = inject(MaguitoThemeService);
 
-  // Stepper: 1 = Rol, 2 = Preferencias
-  currentStep: 1 | 2 = 1;
+  // Stepper: 1 = Tu Maguito, 2 = Rol, 3 = Preferencias
+  currentStep: OnboardingStep = 1;
+  /** Hacia dónde entra el paso nuevo: al volver atrás llega desde el otro lado. */
+  stepDirection: 'forward' | 'back' = 'forward';
 
-  // Paso 1: Rol
+  // Paso 1: Maguito (null = el clásico, que viene preseleccionado)
+  maguitoColors: Partial<MaguitoCustomColors> | null = null;
+  /** Las fichas entran escalonadas solo la primera vez, no al volver a este paso. */
+  maguitoStepSeen = false;
+
+  // Paso 2: Rol
   selectedRole: 'reader' | 'author' | null = null;
 
-  // Paso 2: Géneros y Autores
+  // Paso 3: Géneros y Autores
   availableGenres: GenreItem[] = [];
   selectedGenres: GenreItem[] = [];
   isLoadingGenres = false;
@@ -59,26 +71,32 @@ export class OnboardingComponent implements OnInit {
   errorMessage = '';
 
   ngOnInit(): void {
+    this.maguitoColors = this.maguitoTheme.currentColors;
     this.loadGenres();
     this.loadPopularAuthors();
     this.setupAuthorSearch();
   }
 
   // --- Navegación de Pasos ---
-  goToStep2(): void {
+  goToStep(step: OnboardingStep): void {
+    this.stepDirection = step < this.currentStep ? 'back' : 'forward';
+    if (this.currentStep === 1) this.maguitoStepSeen = true;
+    this.errorMessage = '';
+    this.currentStep = step;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /** Desde la barra de progreso solo se vuelve a pasos ya hechos. */
+  goToEarlierStep(step: OnboardingStep): void {
+    if (step < this.currentStep) this.goToStep(step);
+  }
+
+  continueFromRole(): void {
     if (!this.selectedRole) {
       this.errorMessage = 'Debes seleccionar tu vocación (Lector o Autor) para continuar.';
       return;
     }
-    this.errorMessage = '';
-    this.currentStep = 2;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  goToStep1(): void {
-    this.errorMessage = '';
-    this.currentStep = 1;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.goToStep(3);
   }
 
   // --- Selección de Rol ---
@@ -200,14 +218,14 @@ export class OnboardingComponent implements OnInit {
   }
 
   // --- Validación del Formulario ---
-  get isStep2Valid(): boolean {
+  get isPreferencesValid(): boolean {
     return this.selectedGenres.length >= 3;
   }
 
   // --- Envío Final al Backend ---
   completeOnboarding(): void {
     if (!this.selectedRole) {
-      this.currentStep = 1;
+      this.goToStep(2);
       this.errorMessage = 'Por favor selecciona tu rol.';
       return;
     }
@@ -223,7 +241,8 @@ export class OnboardingComponent implements OnInit {
     const payload = {
       role: this.selectedRole,
       favorite_genres: this.selectedGenres.map(g => g.id),
-      followed_authors: this.selectedAuthors.map(a => a.id)
+      followed_authors: this.selectedAuthors.map(a => a.id),
+      maguito_colors: this.maguitoColors
     };
 
     this.http.post<any>(`${environment.apiUrl}users/onboarding/`, payload).subscribe({
@@ -233,6 +252,8 @@ export class OnboardingComponent implements OnInit {
         this.api.invalidate('catalog/books/recommendations');
         // Actualizar el estado de usuario en AuthService (Signals y LocalStorage)
         this.auth.updateUserOnboarding(this.selectedRole!);
+        // El Maguito del encabezado luce el color elegido desde ya, sin recargar.
+        this.maguitoTheme.hydrate(res?.profile?.outfit);
         
         const roleLabel = this.selectedRole === 'author' ? 'Autor' : 'Lector';
         this.notification.success(
