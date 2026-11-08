@@ -1475,6 +1475,12 @@ body:has(.th-hall.is-cinema) .site-body.with-bottom-nav {
 body:has(.fc-drawer.is-open, .rc-drawer.is-open, .bz-drawer.is-open, app-demo-chat-page, app-encounter-chat, .interrogation-input-bar) {
   --floating-btn-display: none;
 }
+/* En Editar perfil, la barra de "Guardar cambios" ocupa el borde inferior en pantallas angostas. */
+@media (max-width: 900px) {
+  body:has(.profile-save-bar.is-visible) {
+    --floating-btn-display: none;
+  }
+}
 /* Si una ventana ya estaba abierta al entrar al Bazar, se oculta con los botones. */
 body:has(.bz-drawer.is-open) :is(.lit-panel, .lit-notebook) {
   display: none;

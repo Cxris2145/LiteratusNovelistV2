@@ -1,153 +1,167 @@
-<div class="profile-container fade-in">
+<div class="profile-container">
   <div class="glass-panel profile-card">
-    <div class="profile-header">
-      <div class="avatar-section">
+    <h1 class="pf-sr-only">Tu perfil</h1>
+
+    <!-- Ex libris: así te ven tus amigos en La Taberna. Cambia en vivo mientras editas abajo. -->
+    <header class="bookplate" aria-label="Así te ven en La Taberna">
+      <span class="bp-corner is-tl" aria-hidden="true"></span>
+      <span class="bp-corner is-tr" aria-hidden="true"></span>
+      <span class="bp-corner is-bl" aria-hidden="true"></span>
+      <span class="bp-corner is-br" aria-hidden="true"></span>
+
+      <div class="bookplate-portrait">
         <app-avatar-frame class="profile-frame" [frame]="equippedFrame" size="lg">
-          <div class="avatar-wrapper">
+          <div class="avatar-wrapper" [class.is-fresh]="avatarFresh">
             <img *ngIf="avatarUrl" [src]="avatarUrl" alt="Foto de perfil" class="profile-avatar-img">
             <div *ngIf="!avatarUrl" class="initials-avatar-large" [style.background-color]="avatarColor">{{ userInitials }}</div>
 
-            <button type="button" class="avatar-edit-badge" (click)="fileInput.click()" title="Subir o cambiar foto">
-              <span class="material-symbols-rounded">photo_camera</span>
+            <button type="button" class="avatar-edit-badge" (click)="fileInput.click()" aria-label="Subir o cambiar foto">
+              <span class="material-symbols-rounded" aria-hidden="true">photo_camera</span>
             </button>
           </div>
         </app-avatar-frame>
+      </div>
 
-        <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/webp, image/gif" style="display: none;">
+      <div class="bookplate-copy">
+        <p class="bookplate-name">{{ displayName }}</p>
+        <p class="bookplate-tagline" *ngIf="taglineValue">“{{ taglineValue }}”</p>
+        <p class="bookplate-tagline is-empty" *ngIf="!taglineValue">Añade una frase de taberna más abajo.</p>
+
+        <div class="bookplate-meta">
+          <span class="pf-chip is-gold" *ngIf="maestroActive">✦ Maestro</span>
+          <span class="pf-chip is-gold" *ngIf="equippedTitle">
+            <span class="material-symbols-rounded" aria-hidden="true">military_tech</span>{{ equippedTitle }}
+          </span>
+          <button type="button" class="pf-chip is-code" *ngIf="friendCode" (click)="copyFriendCode()"
+                  [attr.aria-label]="codeCopied ? 'Código copiado' : 'Copiar tu código de amigo #' + friendCode">
+            <span class="code-value">#{{ friendCode }}</span>
+            <span class="material-symbols-rounded copy-icon" aria-hidden="true" *ngIf="!codeCopied">content_copy</span>
+            <span class="material-symbols-rounded copy-icon is-done" aria-hidden="true" *ngIf="codeCopied">check</span>
+          </button>
+          <span class="pf-chip">
+            <span class="material-symbols-rounded" aria-hidden="true">{{ isPublic ? 'public' : 'group' }}</span>
+            {{ isPublic ? 'Perfil público' : 'Solo amigos' }}
+          </span>
+        </div>
 
         <div class="avatar-actions-row">
           <button type="button" class="avatar-action-btn" (click)="fileInput.click()">
-            <span class="material-symbols-rounded">cloud_upload</span>
+            <span class="material-symbols-rounded" aria-hidden="true">add_a_photo</span>
             <span>{{ avatarUrl ? 'Cambiar foto' : 'Subir foto' }}</span>
           </button>
-          <button type="button" class="avatar-action-btn remove-photo-btn" *ngIf="avatarUrl" (click)="removeAvatar()" title="Quitar foto y usar color">
-            <span class="material-symbols-rounded">delete</span>
+          <button type="button" class="avatar-action-btn remove-photo-btn" *ngIf="avatarUrl" (click)="removeAvatar()">
+            <span class="material-symbols-rounded" aria-hidden="true">delete</span>
             <span>Quitar foto</span>
           </button>
         </div>
       </div>
 
-      <h2>Tu Perfil</h2>
-      <span class="maestro-insignia" *ngIf="maestroActive">✦ Maestro</span>
-      <span class="profile-equipped-title" *ngIf="equippedTitle">
-        <span class="material-symbols-rounded" aria-hidden="true">military_tech</span>{{ equippedTitle }}
-      </span>
-      <p class="subtitle">Gestiona tu identidad, paleta visual y accesibilidad en Literatus Novelist</p>
-    </div>
-    <div class="profile-tabs">
-      <button type="button" class="tab-btn" [class.active]="selectedTab === 'datos'" (click)="selectedTab = 'datos'">
-        <span class="material-symbols-rounded">badge</span>
-        Datos del Lector
+      <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/webp, image/gif" hidden>
+    </header>
+
+    <div class="profile-tabs" role="tablist" aria-label="Secciones del perfil" (keydown)="onTabKeydown($event)"
+         [style.--tab-index]="tabIndex">
+      <button type="button" class="tab-btn" role="tab" *ngFor="let tab of tabs"
+              [id]="'profile-tab-' + tab.id" [attr.aria-controls]="'profile-panel-' + tab.id"
+              [attr.aria-selected]="selectedTab === tab.id" [attr.tabindex]="selectedTab === tab.id ? 0 : -1"
+              (click)="selectTab(tab.id)">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ tab.icon }}</span>
+        {{ tab.label }}
       </button>
-      <button type="button" class="tab-btn" [class.active]="selectedTab === 'paleta'" (click)="selectedTab = 'paleta'">
-        <span class="material-symbols-rounded">palette</span>
-        Paleta de Colores
-      </button>
-      <button type="button" class="tab-btn" [class.active]="selectedTab === 'maguito'" (click)="selectedTab = 'maguito'">
-        <span class="material-symbols-rounded">auto_fix_high</span>
-        Tu Maguito
-      </button>
+      <span class="profile-tabs-ink" aria-hidden="true"></span>
     </div>
 
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-layout-grid">
 
-      
-      <!-- ═══ COLUMNA PRINCIPAL (IZQUIERDA): DATOS PERSONALES ═══ -->
-      <div class="profile-main-col" *ngIf="selectedTab === 'datos'">
-        <div class="col-section-header">
-          <span class="material-symbols-rounded col-header-icon">badge</span>
-          <h3>Información del Lector</h3>
-        </div>
+      <!-- ═══ TUS DATOS ═══ -->
+      <div class="tab-panel" *ngIf="selectedTab === 'datos'" role="tabpanel" id="profile-panel-datos"
+           aria-labelledby="profile-tab-datos" [attr.data-dir]="tabDirection">
+        <section class="form-section" aria-labelledby="pf-sec-taberna">
+          <h2 class="form-section-title" id="pf-sec-taberna">Cómo te ven en La Taberna</h2>
+          <p class="form-section-lead">Tu nombre, tu frase y lo que cuentas de ti aparecen en tu tarjeta de lector.</p>
 
-        <div class="form-group">
-          <label>Nombre de Usuario</label>
-          <input type="text" formControlName="username" class="glass-input" placeholder="Tu alias de escritor" (input)="updateInitials()">
-        </div>
+          <div class="field">
+            <label class="field-label" for="profile-username">Nombre de usuario</label>
+            <input id="profile-username" type="text" formControlName="username" class="glass-input field-input"
+                   placeholder="Cómo quieres que te llamen" autocomplete="username" (input)="updateInitials()"
+                   aria-describedby="profile-username-error">
+            <p class="field-error" id="profile-username-error" *ngIf="usernameInvalid">Usa al menos 3 caracteres.</p>
+          </div>
 
-        <div class="form-group">
-          <label>Correo Electrónico (No modificable)</label>
-          <input type="email" formControlName="email" class="glass-input locked-input">
-          <span class="material-symbols-rounded lock-icon" aria-hidden="true">lock</span>
-        </div>
+          <div class="field">
+            <div class="field-label-row">
+              <label class="field-label" for="profile-tagline">Frase de taberna</label>
+              <span class="field-count" id="profile-tagline-count" [class.is-near]="taglineValue.length > taglineMax - 10">
+                {{ taglineValue.length }}/{{ taglineMax }}
+              </span>
+            </div>
+            <input id="profile-tagline" type="text" formControlName="tagline" class="glass-input field-input" [attr.maxlength]="taglineMax"
+                   placeholder="Ej. Leo de noche y subrayo todo" aria-describedby="profile-tagline-count profile-tagline-hint">
+            <p class="field-hint" id="profile-tagline-hint">Aparece bajo tu nombre, como en la tarjeta de arriba.</p>
+          </div>
 
-        <div class="form-group">
-          <label for="profile-tagline">Frase de taberna</label>
-          <input id="profile-tagline" type="text" formControlName="tagline" class="glass-input" [attr.maxlength]="taglineMax"
-                 placeholder="Ej. Lector de mundos, escritor de posibilidades" aria-describedby="profile-tagline-count">
-          <p class="field-hint field-count" id="profile-tagline-count">
-            Aparece bajo tu nombre en tu tarjeta de La Taberna · {{ profileForm.get('tagline')?.value?.length || 0 }}/{{ taglineMax }}
-          </p>
-        </div>
+          <div class="field">
+            <div class="field-label-row">
+              <label class="field-label" for="profile-bio">Sobre mí</label>
+              <span class="field-count" id="profile-bio-count" [class.is-near]="bioLength > bioMax - 50">
+                {{ bioLength }}/{{ bioMax }}
+              </span>
+            </div>
+            <textarea id="profile-bio" formControlName="bio" class="glass-input field-input textarea" rows="4" [attr.maxlength]="bioMax"
+              placeholder="Tus autores favoritos, lo que estás leyendo, lo que te gustaría leer…" aria-describedby="profile-bio-count"></textarea>
+          </div>
 
-        <div class="form-group">
-          <label for="profile-bio">Sobre mí (aparece en tu tarjeta de La Taberna)</label>
-          <textarea id="profile-bio" formControlName="bio" class="glass-input textarea" rows="4" [attr.maxlength]="bioMax"
-            placeholder="Cuéntanos un poco sobre ti, tus autores favoritos o tus lecturas en curso..."></textarea>
-        </div>
-
-        <div class="form-group visibility-group">
-          <label class="visibility-toggle" for="profile-is-public">
-            <input id="profile-is-public" type="checkbox" formControlName="is_public" aria-describedby="profile-is-public-hint">
-            <span class="material-symbols-rounded" aria-hidden="true">{{ profileForm.get('is_public')?.value ? 'public' : 'lock' }}</span>
-            <span>Perfil público en La Taberna</span>
+          <label class="switch-row">
+            <span class="switch-copy">
+              <span class="switch-title">
+                <span class="material-symbols-rounded" aria-hidden="true">{{ isPublic ? 'public' : 'lock' }}</span>
+                Perfil público
+              </span>
+              <span class="field-hint" id="profile-is-public-hint">
+                {{ isPublic
+                  ? 'Cualquier lector ve tu tarjeta y puedes salir en sus sugerencias de amigos.'
+                  : 'Solo tus amigos ven tu tarjeta; los demás te encuentran con tu código de amigo.' }}
+              </span>
+            </span>
+            <input type="checkbox" role="switch" class="switch-input" formControlName="is_public" aria-describedby="profile-is-public-hint">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </label>
-          <p class="field-hint" id="profile-is-public-hint">
-            {{ profileForm.get('is_public')?.value
-              ? 'Cualquier lector ve tu tarjeta (libros, reseñas, amigos y "Sobre mí") y puedes salir en sus sugerencias de amigos.'
-              : 'Privado: solo tus amigos ven tu tarjeta; los demás te encuentran únicamente con tu código de amigo.' }}
-          </p>
 
-          <!-- Opciones granulares de visibilidad pública -->
-          <div class="privacy-suboptions" *ngIf="profileForm.get('is_public')?.value">
-            <span class="privacy-suboptions-title">Elementos visibles en tu perfil público:</span>
-            
-            <div class="privacy-toggles-grid">
-              <label class="visibility-toggle sub-toggle" for="profile-show-books">
-                <input id="profile-show-books" type="checkbox" formControlName="show_books">
-                <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>
-                <span>Libros y lecturas</span>
-              </label>
-
-              <label class="visibility-toggle sub-toggle" for="profile-show-reviews">
-                <input id="profile-show-reviews" type="checkbox" formControlName="show_reviews">
-                <span class="material-symbols-rounded" aria-hidden="true">rate_review</span>
-                <span>Reseñas literarias</span>
-              </label>
-
-              <label class="visibility-toggle sub-toggle" for="profile-show-friends">
-                <input id="profile-show-friends" type="checkbox" formControlName="show_friends">
-                <span class="material-symbols-rounded" aria-hidden="true">group</span>
-                <span>Amigos de taberna</span>
-              </label>
+          <div class="privacy-collapse" [class.is-open]="isPublic" [attr.inert]="isPublic ? null : ''">
+            <div class="privacy-collapse-inner">
+              <fieldset class="privacy-suboptions">
+                <legend>Qué ven los demás en tu tarjeta</legend>
+                <div class="check-chips">
+                  <label class="check-chip">
+                    <input type="checkbox" formControlName="show_books">
+                    <span class="material-symbols-rounded check-chip-mark" aria-hidden="true">check</span>
+                    <span>Libros y lecturas</span>
+                  </label>
+                  <label class="check-chip">
+                    <input type="checkbox" formControlName="show_reviews">
+                    <span class="material-symbols-rounded check-chip-mark" aria-hidden="true">check</span>
+                    <span>Reseñas</span>
+                  </label>
+                  <label class="check-chip">
+                    <input type="checkbox" formControlName="show_friends">
+                    <span class="material-symbols-rounded check-chip-mark" aria-hidden="true">check</span>
+                    <span>Amigos</span>
+                  </label>
+                </div>
+              </fieldset>
             </div>
           </div>
-        </div>
 
-        <div class="form-group">
-          <label for="profile-birth-date">Fecha de Nacimiento{{ birthDateLocked ? ' (No modificable)' : '' }}</label>
-          <input id="profile-birth-date" type="date" formControlName="birth_date" class="glass-input"
-                 [class.locked-input]="birthDateLocked" [attr.max]="today" aria-describedby="profile-birth-date-hint">
-          <span class="material-symbols-rounded lock-icon" *ngIf="birthDateLocked" aria-hidden="true">lock</span>
-          <p class="field-hint" id="profile-birth-date-hint">
-            {{ birthDateLocked
-              ? 'Ya está registrada y no se puede cambiar.'
-              : 'Requerida para libros restringidos. Revísala bien: una vez guardada no se puede cambiar.' }}
-          </p>
-        </div>
-
-        <div class="tavern-identity" *ngIf="friendCode">
-          <div class="tavern-identity-maguito">
-            <app-maguito crop="bust" [outfit]="outfit" [followPointer]="false" [calm]="true" label="Tu Maguito"></app-maguito>
-          </div>
-          <div class="tavern-identity-copy">
-            <span class="field-hint">Tu código de amigo en La Taberna</span>
-            <strong class="tavern-code">#{{ friendCode }}</strong>
-            <div class="tavern-identity-actions">
-              <button type="button" class="avatar-action-btn" (click)="copyFriendCode()">
-                <span class="material-symbols-rounded" aria-hidden="true">content_copy</span>
-                <span>Copiar código</span>
-              </button>
-              <button type="button" class="avatar-action-btn" (click)="selectedTab = 'maguito'">
+          <div class="maguito-row" *ngIf="friendCode">
+            <div class="tavern-identity-maguito">
+              <app-maguito crop="bust" [outfit]="outfit" [followPointer]="false" [calm]="true" label="Tu Maguito"></app-maguito>
+            </div>
+            <div class="maguito-row-copy">
+              <span class="maguito-row-title">Tu Maguito</span>
+              <span class="field-hint">Te acompaña en La Taberna con el color y la ropa que elijas.</span>
+            </div>
+            <div class="maguito-row-actions">
+              <button type="button" class="avatar-action-btn" (click)="selectTab('maguito')">
                 <span class="material-symbols-rounded" aria-hidden="true">palette</span>
                 <span>Cambiar color</span>
               </button>
@@ -157,92 +171,113 @@
               </a>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div class="form-actions">
-          <button type="submit" class="glass-btn save-btn" [disabled]="profileForm.invalid || loading">
-            <span *ngIf="!loading">Guardar Cambios</span>
-            <span *ngIf="loading" class="spinner"></span>
-            <span *ngIf="loading">Guardando...</span>
+        <section class="form-section" aria-labelledby="pf-sec-cuenta">
+          <h2 class="form-section-title" id="pf-sec-cuenta">Datos de la cuenta</h2>
+          <p class="form-section-lead">Nadie más los ve.</p>
+
+          <div class="field">
+            <label class="field-label" for="profile-email">Correo electrónico</label>
+            <div class="field-control">
+              <input id="profile-email" type="email" formControlName="email" class="glass-input field-input" aria-describedby="profile-email-hint">
+              <span class="material-symbols-rounded field-lock" aria-hidden="true">lock</span>
+            </div>
+            <p class="field-hint" id="profile-email-hint">No se puede cambiar.</p>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="profile-birth-date">Fecha de nacimiento</label>
+            <div class="field-control">
+              <input id="profile-birth-date" type="date" formControlName="birth_date" class="glass-input field-input"
+                     [attr.max]="today" aria-describedby="profile-birth-date-hint">
+              <span class="material-symbols-rounded field-lock" *ngIf="birthDateLocked" aria-hidden="true">lock</span>
+            </div>
+            <p class="field-hint" id="profile-birth-date-hint">
+              {{ birthDateLocked
+                ? 'Ya está registrada y no se puede cambiar.'
+                : 'Se pide para los libros con restricción de edad. Revísala bien: una vez guardada no se puede cambiar.' }}
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══ APARIENCIA ═══ -->
+      <div class="tab-panel" *ngIf="selectedTab === 'paleta'" role="tabpanel" id="profile-panel-paleta"
+           aria-labelledby="profile-tab-paleta" [attr.data-dir]="tabDirection">
+        <section class="form-section" aria-labelledby="pf-sec-color">
+          <h2 class="form-section-title" id="pf-sec-color">Color de tus iniciales</h2>
+          <p class="form-section-lead">Es el fondo de tu inicial cuando no tienes foto de perfil.</p>
+          <div class="color-options" role="radiogroup" aria-labelledby="pf-sec-color">
+            <button type="button" *ngFor="let color of availableColors" class="color-circle" role="radio"
+                    [style.background-color]="color" [attr.aria-checked]="color === avatarColor"
+                    [attr.aria-label]="color" (click)="selectAvatarColor(color)"></button>
+          </div>
+        </section>
+
+        <section class="form-section" aria-labelledby="pf-sec-theme">
+          <h2 class="form-section-title" id="pf-sec-theme">Tema de la interfaz</h2>
+          <p class="form-section-lead">Se aplica al instante para que lo pruebes. Guarda los cambios para conservarlo.</p>
+          <div class="theme-cards-list" role="radiogroup" aria-labelledby="pf-sec-theme">
+            <button type="button" *ngFor="let theme of availableThemes" class="theme-card-item" role="radio"
+                    [attr.aria-checked]="theme.id === selectedTheme" (click)="previewTheme(theme.id)">
+              <span class="theme-swatch-box" [style.background]="theme.previewBg" [style.border-color]="theme.previewBorder">
+                <span class="theme-swatch-dot" [style.background]="theme.previewAccent"></span>
+              </span>
+              <span class="theme-text-info">
+                <span class="theme-title-text">{{ theme.label }}</span>
+                <span class="theme-desc-text">{{ theme.desc }}</span>
+              </span>
+              <span class="material-symbols-rounded theme-check" aria-hidden="true" *ngIf="theme.id === selectedTheme">check_circle</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ═══ TU MAGUITO: su color, el que ven tus amigos ═══ -->
+      <div class="tab-panel" *ngIf="selectedTab === 'maguito'" role="tabpanel" id="profile-panel-maguito"
+           aria-labelledby="profile-tab-maguito" [attr.data-dir]="tabDirection">
+        <section class="form-section" aria-labelledby="pf-sec-maguito">
+          <h2 class="form-section-title" id="pf-sec-maguito">El color de tu Maguito</h2>
+          <p class="form-section-lead">Te acompaña por todo Literatus y tus amigos lo ven de este color en La Taberna.</p>
+
+          <app-maguito-color-picker [value]="maguitoColors" [outfit]="outfit" (valueChange)="maguitoColors = $event"></app-maguito-color-picker>
+
+          <div class="maguito-actions">
+            <a class="avatar-action-btn" routerLink="/tavern" [queryParams]="{ bazar: 'tintes' }">
+              <span class="material-symbols-rounded" aria-hidden="true">palette</span>
+              <span>Mezclar colores a mano</span>
+            </a>
+            <button type="button" class="pf-btn-primary" [disabled]="!maguitoChanged || savingMaguito" (click)="saveMaguitoColors()">
+              <span *ngIf="savingMaguito" class="spinner" aria-hidden="true"></span>
+              <span>{{ savingMaguito ? 'Guardando…' : 'Guardar color' }}</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- Aparece con cambios sin guardar (en Tus datos o Apariencia) y confirma al guardar. -->
+      <div class="profile-save-bar" [class.is-visible]="saveBarVisible" [class.is-saved]="justSaved">
+        <p class="save-bar-status" role="status">
+          <span class="material-symbols-rounded save-bar-icon" aria-hidden="true" *ngIf="!justSaved">edit_note</span>
+          <span class="material-symbols-rounded save-bar-icon is-done" aria-hidden="true" *ngIf="justSaved">check_circle</span>
+          <span *ngIf="justSaved">Cambios guardados</span>
+          <span *ngIf="!justSaved" class="save-bar-text-long">Cambios sin guardar</span>
+          <span *ngIf="!justSaved" class="save-bar-text-short">Sin guardar</span>
+        </p>
+        <div class="save-bar-actions" *ngIf="!justSaved">
+          <button type="button" class="pf-btn-ghost" (click)="discardChanges()" [disabled]="loading">Descartar</button>
+          <button type="submit" class="pf-btn-primary" [disabled]="profileForm.invalid || loading">
+            <span *ngIf="loading" class="spinner" aria-hidden="true"></span>
+            <span>{{ loading ? 'Guardando…' : 'Guardar cambios' }}</span>
           </button>
         </div>
       </div>
-
-      <!-- ═══ COLUMNA LATERAL (DERECHA): PALETA DE COLORES Y ACCESIBILIDAD ═══ -->
-      <aside class="profile-side-col" *ngIf="selectedTab === 'paleta'">
-        <div class="col-section-header">
-          <span class="material-symbols-rounded col-header-icon">palette</span>
-          <h3>Paleta de Colores & Temas</h3>
-        </div>
-
-        <!-- 1. Color de Avatar -->
-        <div class="side-panel-card color-picker-group">
-          <label class="side-label">Color de Avatar</label>
-          <p class="field-hint">Personaliza el tono con el que te identificas en la plataforma:</p>
-          <div class="color-options">
-            <button type="button" *ngFor="let color of availableColors"
-                    class="color-circle" 
-                    [style.background-color]="color"
-                    [class.selected]="color === avatarColor"
-                    (click)="avatarColor = color"
-                    [attr.aria-label]="'Seleccionar color ' + color"></button>
-          </div>
-        </div>
-
-        <!-- 2. Paletas de Contraste y Accesibilidad -->
-        <div class="side-panel-card theme-picker-group">
-          <div class="theme-header-row">
-            <label class="side-label">Paleta de Interfaz</label>
-            <span class="active-theme-tag">Activo: {{ getSelectedThemeLabel() }}</span>
-          </div>
-          <p class="field-hint">
-            Elige la paleta visual que mejor se adapte a tu comodidad de lectura y descanso visual:
-          </p>
-          <div class="theme-cards-list">
-            <button type="button" *ngFor="let theme of availableThemes"
-                    class="theme-card-item" 
-                    [class.selected]="theme.id === selectedTheme"
-                    (click)="previewTheme(theme.id)">
-              <div class="theme-swatch-box" [style.background]="theme.previewBg" [style.border-color]="theme.previewBorder">
-                <span class="theme-swatch-dot" [style.background]="theme.previewAccent"></span>
-              </div>
-              <div class="theme-text-info">
-                <span class="theme-title-text">{{ theme.label }}</span>
-                <span class="theme-desc-text">{{ theme.desc }}</span>
-              </div>
-              <span class="material-symbols-rounded theme-check" *ngIf="theme.id === selectedTheme">check_circle</span>
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      <!-- ═══ TU MAGUITO: su color, el que ven tus amigos ═══ -->
-      <aside class="profile-side-col" *ngIf="selectedTab === 'maguito'">
-        <div class="col-section-header">
-          <span class="material-symbols-rounded col-header-icon">auto_fix_high</span>
-          <h3>El color de tu Maguito</h3>
-        </div>
-        <p class="field-hint maguito-hint">Te acompaña por todo Literatus y tus amigos lo ven de este color en La Taberna.</p>
-
-        <app-maguito-color-picker [value]="maguitoColors" [outfit]="outfit" (valueChange)="maguitoColors = $event"></app-maguito-color-picker>
-
-        <div class="maguito-actions">
-          <a class="avatar-action-btn" routerLink="/tavern" [queryParams]="{ bazar: 'tintes' }">
-            <span class="material-symbols-rounded" aria-hidden="true">palette</span>
-            <span>Mezclar colores a mano</span>
-          </a>
-          <button type="button" class="glass-btn save-btn maguito-save" [disabled]="!maguitoChanged || savingMaguito" (click)="saveMaguitoColors()">
-            <span *ngIf="savingMaguito" class="spinner"></span>
-            <span>{{ savingMaguito ? 'Guardando...' : 'Guardar color' }}</span>
-          </button>
-        </div>
-      </aside>
-
     </form>
 
     <section class="account-zone" aria-labelledby="account-zone-title">
       <div class="account-zone-copy">
-        <h3 id="account-zone-title">Tu cuenta</h3>
+        <h2 id="account-zone-title">Tu cuenta</h2>
         <p class="field-hint" *ngIf="!isGuest && !guardianName">Cierra la sesión en este navegador o elimina tu cuenta para siempre.</p>
         <p class="field-hint" *ngIf="isGuest">Es una cuenta de prueba: al cerrar la sesión (o la página) se borra con todo lo que hiciste.</p>
         <p class="field-hint parental-note" *ngIf="guardianName">

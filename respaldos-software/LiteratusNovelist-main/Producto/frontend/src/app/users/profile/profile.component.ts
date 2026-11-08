@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -20,6 +20,14 @@ import { ParentalService } from '../../core/services/parental.service';
 export const TAGLINE_MAX = 80;
 export const BIO_MAX = 1000;
 
+type ProfileTab = 'datos' | 'paleta' | 'maguito';
+
+export const PROFILE_TABS: readonly { id: ProfileTab; label: string; icon: string }[] = [
+  { id: 'datos', label: 'Tus datos', icon: 'badge' },
+  { id: 'paleta', label: 'Apariencia', icon: 'palette' },
+  { id: 'maguito', label: 'Tu Maguito', icon: 'auto_fix_high' },
+];
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
@@ -40,8 +48,17 @@ export class ProfileComponent implements OnInit {
   /** Cuenta a cargo de un tutor (control parental): quién la administra. */
   guardianName = '';
   loading = false;
-  selectedTab: 'datos' | 'paleta' | 'maguito' = 'datos';
+  readonly tabs = PROFILE_TABS;
+  selectedTab: ProfileTab = 'datos';
+  /** Hacia dónde entra el panel al cambiar de pestaña (null en la primera carga: sin animación). */
+  tabDirection: 'forward' | 'back' | null = null;
   userInitials = 'V';
+  /** Confirmaciones breves: código copiado, foto recién cambiada y "Cambios guardados". */
+  codeCopied = false;
+  avatarFresh = false;
+  justSaved = false;
+  private timers: Record<'code' | 'avatar' | 'saved', ReturnType<typeof setTimeout> | undefined> =
+    { code: undefined, avatar: undefined, saved: undefined };
 
   avatarColor: string = '#3b82f6';
   availableColors = ['#3b82f6', '#f97316', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b', '#ec4899'];
@@ -84,12 +101,69 @@ export class ProfileComponent implements OnInit {
     // (así "Guardar Cambios" no reenvía un tema viejo).
     this.settingsService.currentTheme$.pipe(takeUntilDestroyed())
       .subscribe(theme => this.selectedTheme = theme);
+    inject(DestroyRef).onDestroy(() => Object.values(this.timers).forEach(clearTimeout));
+  }
+
+  /** El ex libris de arriba muestra lo que se está escribiendo, antes de guardar. */
+  get displayName(): string {
+    return (this.profileForm.get('username')?.value || '').trim() || 'Tu nombre';
+  }
+
+  get taglineValue(): string {
+    return (this.profileForm.get('tagline')?.value || '').trim();
+  }
+
+  get bioLength(): number {
+    return this.profileForm.get('bio')?.value?.length || 0;
+  }
+
+  get isPublic(): boolean {
+    return this.profileForm.get('is_public')?.value !== false;
+  }
+
+  get usernameInvalid(): boolean {
+    const control = this.profileForm.get('username');
+    return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  get tabIndex(): number {
+    return this.tabs.findIndex(tab => tab.id === this.selectedTab);
+  }
+
+  /** La barra de guardar sigue a la vista mientras guarda y un momento después, para confirmar. */
+  get saveBarVisible(): boolean {
+    return this.profileForm.dirty || this.loading || this.justSaved;
+  }
+
+  selectTab(id: ProfileTab) {
+    if (id === this.selectedTab) return;
+    this.tabDirection = this.tabs.findIndex(tab => tab.id === id) > this.tabIndex ? 'forward' : 'back';
+    this.selectedTab = id;
+  }
+
+  /** Flechas, Inicio y Fin recorren las pestañas (patrón de pestañas de WAI-ARIA). */
+  onTabKeydown(event: KeyboardEvent) {
+    const last = this.tabs.length - 1;
+    const next = { ArrowRight: this.tabIndex + 1, ArrowLeft: this.tabIndex - 1, Home: 0, End: last }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    const index = (next + this.tabs.length) % this.tabs.length;
+    this.selectTab(this.tabs[index].id);
+    const buttons = (event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('[role="tab"]');
+    buttons[index]?.focus();
+  }
+
+  private flash(key: 'code' | 'avatar' | 'saved', ms: number) {
+    const field = ({ code: 'codeCopied', avatar: 'avatarFresh', saved: 'justSaved' } as const)[key];
+    this[field] = true;
+    clearTimeout(this.timers[key]);
+    this.timers[key] = setTimeout(() => this[field] = false, ms);
   }
 
   async copyFriendCode() {
     if (!this.friendCode) return;
     const copied = await copyText('#' + this.friendCode);
-    if (copied) this.notificationService.success('Código copiado.', 'La Taberna');
+    if (copied) this.flash('code', 1800);
     else this.notificationService.info(`Tu código es #${this.friendCode}.`, 'La Taberna');
   }
 
@@ -191,10 +265,6 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  getSelectedThemeLabel(): string {
-    return this.availableThemes.find(t => t.id === this.selectedTheme)?.label || 'Azul Tinta';
-  }
-
   updateInitials() {
     const name = this.profileForm.get('username')?.value;
     this.userInitials = name ? name.charAt(0).toUpperCase() : 'V';
@@ -240,25 +310,42 @@ export class ProfileComponent implements OnInit {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0, width, height);
+          // La barra de guardar aparece sola: la foto queda en vista previa hasta "Guardar cambios".
           this.avatarUrl = canvas.toDataURL('image/jpeg', 0.88);
           this.profileForm.markAsDirty();
-          this.notificationService.info('Foto cargada en la vista previa. Haz clic en "Guardar Cambios" para confirmar.', 'Foto Actualizada');
+          this.flash('avatar', 700);
         }
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+    event.target.value = '';
   }
 
   removeAvatar() {
     this.avatarUrl = null;
     this.profileForm.markAsDirty();
-    this.notificationService.info('Foto eliminada. Haz clic en "Guardar Cambios" para confirmar.', 'Foto Removida');
+    this.flash('avatar', 700);
+  }
+
+  selectAvatarColor(color: string) {
+    if (color === this.avatarColor) return;
+    this.avatarColor = color;
+    this.profileForm.markAsDirty();
   }
 
   previewTheme(themeId: string) {
+    if (themeId === this.selectedTheme) return;
     this.selectedTheme = themeId;
     this.settingsService.setThemeDirectly(themeId);
+    this.profileForm.markAsDirty();
+  }
+
+  /** Vuelve a lo guardado: datos, foto, color y tema (loadProfile reaplica el tema del servidor). */
+  discardChanges() {
+    this.profileForm.markAsPristine();
+    this.profileForm.markAsUntouched();
+    this.loadProfile();
   }
 
   onSubmit() {
@@ -302,7 +389,8 @@ export class ProfileComponent implements OnInit {
           }
         }
         this.updateInitials();
-        this.notificationService.success('Perfil actualizado exitosamente.', 'Perfil');
+        this.profileForm.markAsPristine();
+        this.flash('saved', 2200);
         // Actualizar el estado global
         this.chatService.notifyProfileUpdate();
         this.loadProfile();
