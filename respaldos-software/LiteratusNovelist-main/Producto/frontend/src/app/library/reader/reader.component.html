@@ -58,7 +58,7 @@
          subrayados, biónica, imágenes), no en cada pasada del lector. La palabra activa, su frase y su
          párrafo los marca ReaderHighlighter directo en el DOM; los clics en palabras los atiende un solo
          listener en el lienzo (onCanvasClick). -->
-    <ng-template [rdFrozen]="[titleTokens, renderedBlocks, chapterTitle, bionicReadingActive, showSceneImages, textVersion, titlePageKey]"
+    <ng-template [rdFrozen]="[titleTokens, renderedBlocks, chapterTitle, bionicReadingActive, showSceneImages, textVersion, titlePageKey, shouldRenderChapterTitle, isInitialChapterRedundant]"
                  (rdFrozenRefreshed)="onTextRefreshed()">
     <!-- Vista Libro: la portadilla ocupa la primera página del capítulo 1 (sin palabras narrables:
          la voz, los subrayados y el progreso no la ven). Divs y no <p>: no lleva capitular ni sangría. -->
@@ -72,18 +72,20 @@
         <div class="rd-tp-brand">Literatus Novelist</div>
       </section>
     }
-    <h1 class="chapter-title-main">
-      @for (tok of titleTokens; track trackByToken($index, tok)) {
-        @if (tok.isWord) {
-          <span class="word" id="word-{{ tok.idx }}"
-                [attr.data-hl]="tok.hl || null">@if (bionicReadingActive) {<strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span>} @else {{{ tok.text }}}</span>
-        } @else if (tok.isImg) {
-          @if (showSceneImages) {
-            <img [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
-          }
-        } @else {{{ tok.text }}}
-      } @empty {{{ chapterTitle }}}
-    </h1>
+    @if (shouldRenderChapterTitle) {
+      <h1 class="chapter-title-main">
+        @for (tok of titleTokens; track trackByToken($index, tok)) {
+          @if (tok.isWord) {
+            <span class="word" id="word-{{ tok.idx }}"
+                  [attr.data-hl]="tok.hl || null">@if (bionicReadingActive) {<strong class="bionic-bold">{{ tok.bionicBold }}</strong><span class="bionic-muted">{{ tok.bionicNormal }}</span>} @else {{{ tok.text }}}</span>
+          } @else if (tok.isImg) {
+            @if (showSceneImages) {
+              <img [src]="tok.src" [alt]="tok.alt || ''" class="inline-img scene-image" loading="lazy" (click)="openImageModal(tok.src)">
+            }
+          } @else {{{ tok.text }}}
+        } @empty {{{ chapterTitle }}}
+      </h1>
+    }
 
     <ng-template #blockSentences let-block>
       @for (sentence of block.sentences; track sentence) {
@@ -105,25 +107,27 @@
     </ng-template>
 
     @for (block of renderedBlocks; track $index) {
-      @if (block.tag === 'img-block') {
-        <!-- Imagen a nivel raíz (standalone) -->
-        @if (showSceneImages) {
-          <figure class="chapter-image scene-image-container">
-            <img [src]="block.tokens[0].src" [alt]="block.tokens[0].alt || ''" loading="lazy" (click)="openImageModal(block.tokens[0].src)" class="scene-image">
-          </figure>
+      @if (shouldRenderBlock(block, $index)) {
+        @if (block.tag === 'img-block') {
+          <!-- Imagen a nivel raíz (standalone) -->
+          @if (showSceneImages) {
+            <figure class="chapter-image scene-image-container">
+              <img [src]="block.tokens[0].src" [alt]="block.tokens[0].alt || ''" loading="lazy" (click)="openImageModal(block.tokens[0].src)" class="scene-image">
+            </figure>
+          }
+        } @else if (block.tag === 'h1') {
+          <h1 class="chapter-heading">
+            <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
+          </h1>
+        } @else if (block.tag === 'h2') {
+          <h2 class="chapter-heading">
+            <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
+          </h2>
+        } @else if (block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote') {
+          <p [class.long-para]="block.long">
+            <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
+          </p>
         }
-      } @else if (block.tag === 'h1') {
-        <h1 class="chapter-heading">
-          <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
-        </h1>
-      } @else if (block.tag === 'h2') {
-        <h2 class="chapter-heading">
-          <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
-        </h2>
-      } @else if (block.tag === 'p' || block.tag === 'div' || block.tag === 'blockquote') {
-        <p [class.long-para]="block.long">
-          <ng-container *ngTemplateOutlet="blockSentences; context: { $implicit: block }"></ng-container>
-        </p>
       }
     }
     </ng-template>

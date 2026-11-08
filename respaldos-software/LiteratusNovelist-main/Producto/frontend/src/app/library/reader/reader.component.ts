@@ -224,10 +224,172 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   /** La portadilla va en la primera página del capítulo 1, solo en la vista Libro. */
   get isTitlePageInCanvas(): boolean { return this.isBookView && this.currentPage === 1 && this.chapters.length > 0; }
   get isTitlePageVisible(): boolean { return this.isTitlePageInCanvas && this.currentSpreadIndex === 0; }
+  get shouldRenderTitlePage(): boolean { return this.isTitlePageInCanvas; }
   /** Lo que muestra la portadilla: si cambia, el texto congelado se vuelve a pintar. */
   get titlePageKey(): string {
     return this.isTitlePageInCanvas
       ? [this.bookTitle, this.authorName, this.bookPublisher, this.bookYear, this.exLibrisName].join('|') : '';
+  }
+
+  // ── VALIDACIÓN Y CONTROL DE METADATOS REDUNDANTES EN CAPÍTULO INICIAL ──
+  /** Normaliza texto eliminando acentos, puntuación y espacios redundantes para comparar metadatos. */
+  private normalizeMetadataText(text: string): string {
+    if (!text) return '';
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Comprueba si un texto consiste únicamente en metadatos redundantes (título, autor, editorial, etc.)
+   * que ya se muestran en la cabecera o portada de la vista.
+   */
+  isMetadataMatch(text: string): boolean {
+    const norm = this.normalizeMetadataText(text);
+    if (!norm) return true;
+
+    const titleNorm = this.normalizeMetadataText(this.bookTitle);
+    const authorNorm = this.normalizeMetadataText(this.authorName);
+    const publisherNorm = this.normalizeMetadataText(this.bookPublisher);
+    const yearNorm = this.normalizeMetadataText(this.bookYear);
+
+    // Coincidencia directa con título o autor del libro
+    if (titleNorm && (norm === titleNorm || norm.replace(/^(libro|novela|titulo|obra)\s+/i, '').trim() === titleNorm)) return true;
+    if (authorNorm && (norm === authorNorm || norm.replace(/^(por|de|by|autor|escrito por)\s+/i, '').trim() === authorNorm)) return true;
+
+    // Coincidencia con editorial o año
+    if (publisherNorm && norm === publisherNorm) return true;
+    if (yearNorm && norm === yearNorm) return true;
+
+    // Coincidencia con título del capítulo si este a su vez repite el título o es genérico
+    const chapNorm = this.normalizeMetadataText(this.chapterTitle);
+    if (chapNorm && norm === chapNorm && (chapNorm === titleNorm || /^(portada|cover|tapa|titulo|title|capitulo 1)$/i.test(chapNorm))) return true;
+
+    // Bloques combinados: "Título por Autor", "Título - Autor", etc.
+    if (titleNorm && authorNorm) {
+      let combined = norm;
+      if (combined.includes(titleNorm)) {
+        combined = combined.replace(titleNorm, '').trim();
+      }
+      combined = combined.replace(/^(por|de|by|autor|escrito por|y|-)\s+/i, '').trim();
+      if (combined === authorNorm || combined === '') return true;
+    }
+
+    // Etiquetas genéricas habituales en portadas digitales
+    if (/^(portada|cover|tapa|titulo|title|front cover)$/i.test(norm)) return true;
+
+    return false;
+  }
+
+  /**
+   * Determina si un bloque de contenido consiste únicamente en metadatos redundantes.
+   */
+  isBlockRedundant(block: ReaderBlock): boolean {
+    if (!block || block.tag === 'img-block') return false;
+    const blockText = (block.tokens || []).map(t => t.text).join('');
+    return this.isMetadataMatch(blockText);
+  }
+
+  /**
+   * Determina si el título del capítulo actual coincide con metadatos ya mostrados en cabecera o portada.
+   */
+  get isChapterTitleRedundant(): boolean {
+    if (this.currentPage !== 1) return false;
+    const chapNorm = this.normalizeMetadataText(this.chapterTitle);
+    if (!chapNorm) return true;
+    return this.isMetadataMatch(this.chapterTitle);
+  }
+
+  /**
+   * Valida si el primer capítulo o la primera sección contiene metadatos redundantes
+   * (título y autor) que ya se muestran en la cabecera o portada de la vista.
+   */
+  hasRedundantInitialMetadata(): boolean {
+    if (this.currentPage !== 1) return false;
+    if (this.isInitialChapterRedundant) return true;
+    if (this.isChapterTitleRedundant) return true;
+    if (this.parsedBlocks.length > 0 && this.isBlockRedundant(this.parsedBlocks[0])) return true;
+    return false;
+  }
+
+  /**
+   * Determina si la primera sección (o bloque inicial) contiene metadatos redundantes.
+   */
+  isFirstSectionRedundant(blockIndex = 0): boolean {
+    if (this.currentPage !== 1) return false;
+    if (blockIndex < 0 || blockIndex >= this.parsedBlocks.length) return false;
+    return this.isBlockRedundant(this.parsedBlocks[blockIndex]);
+  }
+
+  /** Alias para compatibilidad con diferentes convenciones de llamada. */
+  isInitialSectionRedundant(blockIndex = 0): boolean {
+    return this.isFirstSectionRedundant(blockIndex);
+  }
+
+  /**
+   * Comprueba si el capítulo inicial (página 1) consiste únicamente en la repetición
+   * de la portada o metadatos de título y autor sin contenido narrativo sustancial adicional.
+   */
+  get isInitialChapterRedundant(): boolean {
+    if (this.currentPage !== 1 || !this.chapters.length) return false;
+
+    const titleNorm = this.normalizeMetadataText(this.bookTitle);
+    const authorNorm = this.normalizeMetadataText(this.authorName);
+    if (!titleNorm && !authorNorm) return false;
+
+    if (!this.isChapterTitleRedundant) return false;
+
+    const contentBlocks = this.parsedBlocks.filter(b => b.tag !== 'img-block');
+    if (contentBlocks.length === 0) return true;
+
+    return contentBlocks.every(b => this.isBlockRedundant(b));
+  }
+
+  /**
+   * Comprueba si el bloque en `index` forma parte de una sección inicial consecutiva
+   * que solo contiene metadatos redundantes antes del contenido real del libro.
+   */
+  private isLeadingRedundantBlock(index: number): boolean {
+    if (this.currentPage !== 1 || index < 0 || index >= this.parsedBlocks.length) return false;
+    for (let i = 0; i <= index; i++) {
+      if (!this.isBlockRedundant(this.parsedBlocks[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Condiciona el renderizado del título principal del capítulo para evitar mostrarlo
+   * dos veces en el DOM cuando es redundante con la portada o cabecera.
+   */
+  get shouldRenderChapterTitle(): boolean {
+    if (this.currentPage === 1) {
+      if (this.isInitialChapterRedundant) return false;
+      if (this.isTitlePageInCanvas && this.isChapterTitleRedundant) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Condiciona el renderizado de cada bloque del capítulo para evitar duplicar
+   * en el DOM metadatos de portada/cabecera en el capítulo inicial o en su primera sección.
+   */
+  shouldRenderBlock(block: ReaderBlock, index: number): boolean {
+    if (this.currentPage === 1) {
+      if (this.isInitialChapterRedundant) return false;
+      if (this.isTitlePageInCanvas && this.isLeadingRedundantBlock(index)) return false;
+    }
+    return true;
+  }
+
+  /** Bloques de contenido visibles tras excluir metadatos redundantes condicionados. */
+  get visibleRenderedBlocks(): ReaderBlock[] {
+    return this.renderedBlocks.filter((block, idx) => this.shouldRenderBlock(block, idx));
   }
   get isAtBookStart(): boolean { return this.bookClosed === 'front' || (!this.isBookView && this.currentPage <= 1 && this.isFirstSpread); }
   get isAtBookEnd(): boolean { return this.bookClosed === 'back' || (!this.isBookView && this.currentPage >= this.totalPages && this.isLastSpread); }

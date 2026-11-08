@@ -521,17 +521,6 @@ export class KokoroTtsService {
     // Race entre la petición y el timeout.
     return await Promise.race([requestPromise, timeoutPromise]);
   }
-    const res = await firstValueFrom(this.api.post<{ audio_base64: string }>('ai/audio/generate/', {
-      text,
-      avatar_id: this.avatarId,
-    }));
-    const binary = atob(res.audio_base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes.buffer as ArrayBuffer;
-  }
 
   /**
    * Parte el texto en frases para empezar a hablar rápido. Con `groupChars` > 0 junta
