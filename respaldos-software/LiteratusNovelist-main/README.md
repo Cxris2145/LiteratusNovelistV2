@@ -15,7 +15,7 @@
 ---
 
 ## Demo en Vivo 🚀
-Puedes probar la aplicación funcionando en el siguiente enlace: **[https://www.novelatus.tech/](https://www.novelatus.tech/)**
+Puedes probar la aplicación funcionando en el siguiente enlace: **[https://literatus-novelist-v2.vercel.app/](https://literatus-novelist-v2.vercel.app/)**
 
 ---
 

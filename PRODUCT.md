@@ -46,7 +46,7 @@ Clásicos íntegros en español que se pueden leer, escuchar con narración por 
 
 - Catálogo real: el contador de la portada muestra 1.046 obras (dato vivo de la API).
 - Portadas reales en Supabase Storage.
-- Demo pública: https://www.novelatus.tech/
+- Demo pública: https://literatus-novelist-v2.vercel.app/
 - No hay testimonios, reseñas de prensa, cifras de usuarios ni alianzas con colegios: no inventarlas.
 
 ## Product Principles
