@@ -149,6 +149,16 @@ a {
   gap: 12px;
   margin-top: 26px;
 }
+/* Con plan activo: el estado del plan con su punto encendido, en vez del lema */
+.hero-lead.tv-status {
+  gap: 10px;
+}
+.page-loading {
+  margin: 56px 0;
+  text-align: center;
+  font-size: .9rem;
+  color: var(--home-ink-muted);
+}
 /* ================= Botones entintados ================= */
 .button {
   position: relative;
@@ -217,6 +227,9 @@ a {
 }
 .button:active:not(:disabled) {
   transform: scale(.97);
+}
+.button .material-symbols-rounded {
+  font-size: 20px;
 }
 button:disabled {
   opacity: .55;
@@ -515,6 +528,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   width: 100%;
   margin-top: 12px;
 }
+.account-panel details .button {
+  display: flex;
+  width: 100%;
+  margin-top: 8px;
+}
 .meter-heading {
   display: flex;
   justify-content: space-between;
@@ -638,22 +656,94 @@ th, td {
 }
 
 /* ================= Cofres ================= */
+.ink-intro {
+  max-width: 640px;
+  margin: -8px 0 26px;
+  color: var(--home-ink-muted);
+  font-size: .9rem;
+  line-height: 1.6;
+}
+.ink-infinite {
+  margin: -14px 0 22px;
+  font-size: .85rem;
+  color: var(--color-warning);
+}
 .ink-packages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
   align-items: stretch;
+}
+.ink-packages.is-loading {
+  min-height: 300px;
 }
 .tv-coffer {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 22px;
+  padding: 26px 24px 24px;
   border: 1px solid var(--home-glass-border);
   border-radius: 16px;
   background: var(--home-bg-surface);
+  transition: border-color .3s, translate .45s var(--tv-ease);
+}
+.tv-coffer.is-best {
+  border-color: var(--tv-gold);
+  box-shadow: 0 22px 48px -30px var(--tv-glow);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tv-coffer:hover {
+    border-color: color-mix(in srgb, var(--tv-gold) 70%, var(--home-glass-border));
+    translate: 0 -4px;
+  }
+}
+.coffer-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+.coffer-badge {
+  font-size: .7rem;
+  font-weight: 600;
+  border: 1px solid var(--tv-gold);
+  border-radius: 20px;
+  padding: 5px 10px;
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--tv-gold) 14%, transparent);
+}
+.tv-coffer h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 1.25rem;
+}
+.coffer-amount {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -.03em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.coffer-price {
+  margin: 8px 0 2px;
+  font: 600 1.2rem var(--font-ui);
+  color: var(--home-ink);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+.coffer-price > span {
+  font-size: .75rem;
+  font-weight: 400;
+  color: var(--home-ink-muted);
 }
 .tv-coffer .button {
   margin-top: auto;
-  font-size: .8rem;
+  font-size: .85rem;
+}
+.coffer-button {
+  width: 100%;
 }
 .tv-chest {
   position: relative;
@@ -750,7 +840,8 @@ th, td {
 }
 .tv-unit {
   font-size: .78rem;
-  margin: -6px 0 14px;
+  color: var(--home-ink-muted);
+  margin: 0 0 20px;
 }
 
 /* ================= Preguntas ================= */

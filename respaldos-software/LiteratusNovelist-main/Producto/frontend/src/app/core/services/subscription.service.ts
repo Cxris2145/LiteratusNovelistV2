@@ -35,11 +35,31 @@ export class SubscriptionService {
   private api = inject(ApiService);
   private usageSubject = new BehaviorSubject<AIUsage | null>(null);
   readonly usage$ = this.usageSubject.asObservable();
+  /**
+   * ¿La cuenta tiene un plan con período pagado? null mientras no se sabe (o sin sesión).
+   * Con plan, el botón del encabezado y /planes ya no ofrecen suscribirse: solo comprar Tinta.
+   */
+  private subscribedSubject = new BehaviorSubject<boolean | null>(null);
+  readonly subscribed$ = this.subscribedSubject.asObservable();
+  get subscribed(): boolean | null { return this.subscribedSubject.value; }
+  private subscribedLoading = false;
   private pending = new Map<string, PendingChat>();
   plans(): Observable<SubscriptionPlan[]> { return this.api.get('finance/plans/'); }
-  account(): Observable<SubscriptionAccount> { return this.api.get('finance/subscription/'); }
-  usage(): Observable<AIUsage> { return this.api.get<AIUsage>('ai/usage/').pipe(tap(v => this.usageSubject.next(v))); }
-  updateUsage(value: AIUsage): void { this.usageSubject.next(value); }
+  account(): Observable<SubscriptionAccount> {
+    return this.api.get<SubscriptionAccount>('finance/subscription/').pipe(tap(v => this.subscribedSubject.next(!!v.subscription?.active)));
+  }
+  usage(): Observable<AIUsage> { return this.api.get<AIUsage>('ai/usage/').pipe(tap(v => this.updateUsage(v))); }
+  updateUsage(value: AIUsage): void {
+    this.usageSubject.next(value);
+    if (typeof value?.has_plan === 'boolean') this.subscribedSubject.next(value.has_plan);
+  }
+  /** El encabezado lo pide una vez al entrar con sesión; la consulta solo lee. */
+  loadSubscribed(): void {
+    if (this.subscribedSubject.value !== null || this.subscribedLoading) return;
+    this.subscribedLoading = true;
+    this.account().subscribe({ next: () => this.subscribedLoading = false, error: () => this.subscribedLoading = false });
+  }
+  clearSubscribed(): void { this.subscribedSubject.next(null); }
   heartbeat(session_id: string, client_id: string, active: boolean): Observable<AIUsage> {
     return this.api.post<AIUsage>('ai/usage/heartbeat/', { session_id, client_id, active }).pipe(tap(v => this.updateUsage(v)));
   }

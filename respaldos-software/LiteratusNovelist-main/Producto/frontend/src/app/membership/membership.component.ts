@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, NgZone, OnDestroy, OnInit, inject } from '@angular/core';
+import { Router, ActivatedRoute, Scroll } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NotificationService } from '../core/services/notification.service';
 import { ApiService } from '../core/services/api.service';
@@ -7,14 +7,16 @@ import { ChatService } from '../core/services/chat.service';
 import { SubscriptionService, SubscriptionAccount, SubscriptionPlan, AIUsage } from '../core/services/subscription.service';
 import { prefersReducedMotion } from '../core/utils/motion.util';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { filter, takeUntil } from 'rxjs/operators';
 
 /**
- * "Sé parte de Literatus" (/planes): los planes mensuales, tu membresía (estado, consumo e
- * historial) y los cofres de Tinta. El Bazar, donde se canjea la Tinta, vive en La Taberna.
+ * "Sé parte de Literatus" (/planes): los planes mensuales, los cofres de Tinta y tu membresía
+ * (estado, consumo e historial). El Bazar, donde se canjea la Tinta, vive en La Taberna.
+ * Con un plan activo la página ya no ofrece planes: queda "Ya eres parte de Literatus" con la
+ * compra de Tinta primero; cambiar o cancelar el plan sigue en "Tu suscripción".
  */
 @Component({ selector: 'app-membership', templateUrl: './membership.component.html', styleUrls: ['./membership.component.css'] })
-export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MembershipComponent implements OnInit, AfterViewInit, AfterViewChecked, OnDestroy {
   private api = inject(ApiService);
   private chat = inject(ChatService);
   private subscriptions = inject(SubscriptionService);
@@ -33,6 +35,9 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Se enciende después de la primera carga del saldo: desde ahí los cambios muestran "+N". */
   balanceReady = false;
   packages: { amount: number; price: string; currency: string }[] = [];
+  packagesState: 'loading' | 'ready' | 'error' = 'loading';
+  /** El cofre con el menor precio por Tinta (solo si hay más de uno para comparar). */
+  bestPackAmount: number | null = null;
   history: any[] = [];
   inkHistory: any[] = [];
   showHistory = false;
@@ -43,6 +48,11 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
   serverOffset = 0;
   private timer?: ReturnType<typeof setInterval>;
   private observer?: IntersectionObserver;
+  private readonly observed = new WeakSet<Element>();
+  private layoutKey = '';
+  private accountFailed = false;
+  /** Ancla pendiente (#tinta, #plans-title): se sigue cuando la sección ya existe. */
+  private pendingFragment: string | null = null;
   private readonly session = !!localStorage.getItem('access_token');
   isLoggedIn(): boolean { return this.session; }
   formatAmount(value: number): string { return Number(value || 0).toLocaleString('es-CL'); }
@@ -79,6 +89,28 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     return labels[concept] || (concept.startsWith('shop_purchase_') ? 'Canje en el Bazar' : 'Movimiento de Tinta');
   }
+  /**
+   * ¿Tiene un plan con período pagado? Sin sesión, no. Con sesión, lo dice la cuenta (o lo que ya
+   * sabía el encabezado); null mientras no se sabe.
+   */
+  get subscribed(): boolean | null {
+    if (!this.isLoggedIn()) return false;
+    if (this.account) return !!this.account.subscription?.active;
+    return this.subscriptions.subscribed ?? (this.accountFailed ? false : null);
+  }
+  get layoutReady(): boolean { return this.subscribed !== null; }
+  get planLine(): string {
+    const sub = this.account?.subscription;
+    if (!sub?.plan) return 'Tu plan está activo.';
+    return sub.cancel_at_period_end
+      ? `Tu plan ${sub.plan.name} sigue activo hasta el ${this.date(sub.paid_until)}.`
+      : `Tu plan ${sub.plan.name} está activo.`;
+  }
+  /** Planes a los que se puede cambiar desde "Tu suscripción". */
+  get otherPlans(): SubscriptionPlan[] {
+    const current = this.account?.subscription?.plan?.code;
+    return this.plans.filter(plan => plan.purchasable && plan.code !== current);
+  }
   get statusLabel(): string {
     const sub = this.account?.subscription;
     if (!sub) return 'Sin suscripción';
@@ -103,7 +135,13 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscriptions.plans().pipe(takeUntil(this.destroy$)).subscribe({ next: v => { this.plans = v; this.loading = false; }, error: () => { this.loading = false; this.error = 'No pudimos cargar los planes. Intenta de nuevo.'; } });
-    this.api.get<any[]>('finance/ink-packages/').pipe(takeUntil(this.destroy$)).subscribe({ next: v => this.packages = v, error: () => {} });
+    this.api.get<any[]>('finance/ink-packages/').pipe(takeUntil(this.destroy$)).subscribe({
+      next: v => { this.packages = v; this.bestPackAmount = this.cheapestPerInk(v); this.packagesState = 'ready'; },
+      error: () => this.packagesState = 'error'
+    });
+    // "Comprar Tinta" del encabezado estando ya en /planes: solo cambia el ancla.
+    this.router.events.pipe(filter((e): e is Scroll => e instanceof Scroll && !!e.anchor), takeUntil(this.destroy$))
+      .subscribe(e => this.goTo(e.anchor!));
     if (this.isLoggedIn()) {
       this.refreshAccount();
       if (this.route.snapshot.queryParamMap.get('paypal') === 'return') {
@@ -115,15 +153,11 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    // Llegada directa a una sección (p. ej. "Recargar" desde el Bazar): sin animación de desplazamiento.
+    this.pendingFragment = this.route.snapshot.fragment;
     // Un solo observador para toda la página: revela cada sección la primera vez que entra
     // y pausa sus animaciones en bucle mientras está fuera de pantalla.
-    const sections = Array.from(this.host.nativeElement.querySelectorAll<HTMLElement>('[data-tv-section]'));
-    const fragment = this.route.snapshot.fragment;
-    if (fragment) {
-      // Llegada directa a una sección (p. ej. "Recargar" desde el Bazar): sin animación de desplazamiento.
-      setTimeout(() => document.getElementById(fragment)?.scrollIntoView({ block: 'start' }));
-    }
-    if (typeof IntersectionObserver === 'undefined') { sections.forEach(s => s.classList.add('is-revealed')); return; }
+    if (typeof IntersectionObserver === 'undefined') return;
     this.zone.runOutsideAngular(() => {
       this.observer = new IntersectionObserver(entries => {
         for (const entry of entries) {
@@ -132,8 +166,22 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
           if (entry.isIntersecting) section.classList.add('is-revealed');
         }
       }, { rootMargin: '0px 0px -8% 0px' });
-      sections.forEach(section => this.observer!.observe(section));
     });
+  }
+
+  /** Las secciones aparecen cuando se sabe si hay plan: se observan y se sigue el ancla pendiente. */
+  ngAfterViewChecked(): void {
+    const key = `${this.layoutReady}:${this.subscribed}`;
+    if (key === this.layoutKey) return;
+    this.layoutKey = key;
+    const sections = this.host.nativeElement.querySelectorAll<HTMLElement>('[data-tv-section]');
+    sections.forEach(section => {
+      if (!this.observer) { section.classList.add('is-revealed'); return; }
+      if (this.observed.has(section)) return;
+      this.observed.add(section);
+      this.observer.observe(section);
+    });
+    if (this.layoutReady && this.pendingFragment) this.goTo(this.pendingFragment);
   }
 
   refreshAccount(): void {
@@ -142,13 +190,30 @@ export class MembershipComponent implements OnInit, AfterViewInit, OnDestroy {
         this.account = value; this.inkBalance = value.ink_balance; this.chat.updateInkBalance(value.ink_balance);
         if (!this.balanceReady) setTimeout(() => this.balanceReady = true);
       },
-      error: () => this.error = 'No pudimos actualizar tu cuenta. Recarga la página para intentarlo de nuevo.'
+      error: () => { this.accountFailed = true; this.error = 'No pudimos actualizar tu cuenta. Recarga la página para intentarlo de nuevo.'; }
     });
     this.subscriptions.usage().pipe(takeUntil(this.destroy$)).subscribe({ next: value => { this.usage = value; this.serverOffset = Date.parse(value.server_now) - Date.now(); }, error: () => {} });
   }
   jump(event: Event, id: string): void {
     event.preventDefault();
     document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  }
+  /** Va a un ancla en cuanto existe (después del desplazamiento al inicio que hace el router). */
+  private goTo(id: string): void {
+    this.pendingFragment = id;
+    if (!this.layoutReady) return;
+    setTimeout(() => {
+      const target = document.getElementById(id);
+      if (!target) return;
+      this.pendingFragment = null;
+      target.scrollIntoView({ block: 'start' });
+    });
+  }
+  private cheapestPerInk(packs: { amount: number; price: string }[]): number | null {
+    const perInk = (pack: { amount: number; price: string }) => Number(pack.price) / Number(pack.amount);
+    const valid = packs.filter(pack => Number.isFinite(perInk(pack)) && perInk(pack) > 0);
+    if (valid.length < 2) return null;
+    return valid.reduce((best, pack) => perInk(pack) < perInk(best) ? pack : best).amount;
   }
   choosePlan(plan: SubscriptionPlan): void {
     if (!this.isLoggedIn()) { this.router.navigate(['/login'], { queryParams: { returnUrl: '/planes' } }); return; }

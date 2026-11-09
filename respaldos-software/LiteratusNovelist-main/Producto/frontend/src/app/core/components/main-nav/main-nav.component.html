@@ -23,10 +23,12 @@
     </div>
   </div>
 
-  <a class="mn-cta" routerLink="/planes" routerLinkActive="is-current" ariaCurrentWhenActive="page">
+  <!-- Con un plan activo ya no invita a suscribirse: lleva directo a los cofres de Tinta. -->
+  <a class="mn-cta" routerLink="/planes" [fragment]="subscribed ? 'tinta' : undefined"
+     routerLinkActive="is-current" ariaCurrentWhenActive="page">
     <span *ngIf="showSheen" class="mn-cta-sheen" aria-hidden="true"></span>
-    <span class="mn-cta-icon material-symbols-rounded" aria-hidden="true">crown</span>
-    <span class="mn-cta-label">Sé parte de Literatus</span>
+    <span class="mn-cta-icon material-symbols-rounded" aria-hidden="true">{{ subscribed ? 'ink_pen' : 'crown' }}</span>
+    <span class="mn-cta-label">{{ subscribed ? 'Comprar Tinta' : 'Sé parte de Literatus' }}</span>
     <span class="mn-cta-arrow material-symbols-rounded" aria-hidden="true">arrow_forward</span>
   </a>
 </div>

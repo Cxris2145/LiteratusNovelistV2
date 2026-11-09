@@ -2,7 +2,7 @@
 
 <div class="bn-sheet" id="bn-more" *ngIf="isMoreOpen" role="dialog" aria-label="Más secciones">
   <span class="bn-grabber" aria-hidden="true"></span>
-  <a *ngFor="let item of more" class="bn-sheet-item" [routerLink]="item.link" [class.is-active]="isActive(item)"
+  <a *ngFor="let item of more" class="bn-sheet-item" [routerLink]="item.link" [fragment]="item.fragment" [class.is-active]="isActive(item)"
      [attr.aria-current]="isActive(item) ? 'page' : null" (click)="isMoreOpen = false">
     <span class="material-symbols-rounded" aria-hidden="true">{{ item.icon }}</span>
     <span class="bn-sheet-label">{{ item.label }}</span>

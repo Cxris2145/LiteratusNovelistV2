@@ -3,11 +3,17 @@ import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 
 import { NAV_ITEMS, NavItem } from '../main-nav/nav-items';
+import { SubscriptionService } from '../../services/subscription.service';
 
 interface BottomItem extends NavItem {
   /** Etiqueta corta para la barra (el ancho de un celular da para ~10 letras). */
   short?: string;
+  fragment?: string;
 }
+
+const PLANS: BottomItem = { label: 'Planes', icon: 'workspace_premium', link: '/planes', match: ['/planes'] };
+/** Con un plan activo ya no se ofrecen planes: el mismo lugar lleva a los cofres de Tinta. */
+const BUY_INK: BottomItem = { label: 'Comprar Tinta', icon: 'ink_pen', link: '/planes', fragment: 'tinta', match: ['/planes'] };
 
 const PRIMARY: Record<string, string> = {
   '/catalog': 'Explorar',
@@ -28,19 +34,16 @@ const PRIMARY: Record<string, string> = {
 })
 export class BottomNavComponent implements OnDestroy {
   private readonly router = inject(Router);
+  private readonly subscriptions = inject(SubscriptionService);
 
   @Input() rewardReady: boolean | null = false;
 
   readonly primary: BottomItem[] = Object.keys(PRIMARY)
     .map(link => NAV_ITEMS.find(item => item.link === link)!)
     .map(item => ({ ...item, short: PRIMARY[item.link] }));
-  readonly more: BottomItem[] = [
-    ...NAV_ITEMS.filter(item => !PRIMARY[item.link]),
-    { label: 'Planes', icon: 'workspace_premium', link: '/planes', match: ['/planes'] },
-    // En el celular estos dos salen del encabezado (no cabían) y viven aquí.
-    { label: 'Favoritos', icon: 'favorite', link: '/favorites', match: ['/favorites'] },
-    { label: 'Carrito', icon: 'shopping_cart', link: '/cart', match: ['/cart', '/checkout'] },
-  ];
+  more: BottomItem[] = this.moreItems(false);
+  private readonly subscribedSub: Subscription = this.subscriptions.subscribed$
+    .subscribe(value => this.more = this.moreItems(value === true));
 
   isMoreOpen = false;
   private url = this.router.url;
@@ -50,6 +53,16 @@ export class BottomNavComponent implements OnDestroy {
       this.url = (e as NavigationEnd).urlAfterRedirects;
       this.isMoreOpen = false;
     });
+
+  private moreItems(subscribed: boolean): BottomItem[] {
+    return [
+      ...NAV_ITEMS.filter(item => !PRIMARY[item.link]),
+      subscribed ? BUY_INK : PLANS,
+      // En el celular estos dos salen del encabezado (no cabían) y viven aquí.
+      { label: 'Favoritos', icon: 'favorite', link: '/favorites', match: ['/favorites'] },
+      { label: 'Carrito', icon: 'shopping_cart', link: '/cart', match: ['/cart', '/checkout'] },
+    ];
+  }
 
   isActive(item: NavItem): boolean {
     return item.match.some(prefix => this.url.startsWith(prefix));
@@ -70,5 +83,6 @@ export class BottomNavComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.subscribedSub.unsubscribe();
   }
 }

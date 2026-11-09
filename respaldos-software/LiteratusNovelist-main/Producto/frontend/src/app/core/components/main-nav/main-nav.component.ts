@@ -4,6 +4,7 @@ import {
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { SubscriptionService } from '../../services/subscription.service';
 import { coverThumb } from '../../utils/cover-thumb.util';
 import { getBookPages } from '../../utils/book-pages.util';
 import { NAV_GENRES } from './nav-genres';
@@ -43,7 +44,8 @@ export function firstTimeThisSession(key: string): boolean {
 
 /**
  * Segunda fila del header: secciones con un indicador que se desliza a la activa,
- * menús amplios (Categorías, Autores, Mi Biblioteca) y el botón "Sé parte de Literatus".
+ * menús amplios (Categorías, Autores, Mi Biblioteca) y el botón "Sé parte de Literatus"
+ * (con un plan activo ya no invita a suscribirse: pasa a "Comprar Tinta").
  *
  * Los paneles se posicionan contra el header (sticky) para no quedar recortados por la
  * barra, que oculta su contenido al plegarse. Con mouse se abren por intención (hover
@@ -57,6 +59,7 @@ export function firstTimeThisSession(key: string): boolean {
 export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly subscriptions = inject(SubscriptionService);
   private readonly host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   @Input() isLoggedIn = false;
@@ -93,6 +96,9 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
     games: { left: 0, origin: '50% 0' },
   };
 
+  /** Con plan activo el botón destacado lleva a los cofres de Tinta en vez de a los planes. */
+  subscribed = false;
+
   /** El destello del botón destacado se ve una vez por sesión, no en cada recarga del header. */
   readonly showSheen = firstTimeThisSession('lit-nav-sheen');
 
@@ -108,12 +114,15 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
   private libraryFetchedAt = 0;
   private revealed = false;
   private routerSub?: Subscription;
+  private subscribedSub?: Subscription;
   private readonly finePointer =
     typeof matchMedia === 'function' && matchMedia('(hover: hover) and (pointer: fine)').matches;
   private readonly reducedMotion =
     typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   ngOnInit(): void {
+    this.subscribedSub = this.subscriptions.subscribed$.subscribe(value => this.subscribed = value === true);
+    if (this.isLoggedIn) this.subscriptions.loadSubscribed();
     this.syncActive(this.router.url);
     this.routerSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
@@ -128,11 +137,14 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['isLoggedIn'] && !changes['isLoggedIn'].firstChange) {
       this.library = { state: 'idle', current: null, shelf: [], more: 0 };
       this.libraryFetchedAt = 0;
+      if (this.isLoggedIn) this.subscriptions.loadSubscribed();
+      else this.subscriptions.clearSubscribed();
     }
   }
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+    this.subscribedSub?.unsubscribe();
     clearTimeout(this.openTimer);
     clearTimeout(this.closeTimer);
   }
