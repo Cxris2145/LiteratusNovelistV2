@@ -1,7 +1,7 @@
 <section class="th-panel pc" *ngIf="card; else skeleton" [class.is-compact]="compact"
          [attr.aria-label]="mine ? 'Tu perfil' : 'Perfil de ' + card.username">
   <!-- Ficha de lector: retrato a la izquierda, quién es a la derecha. -->
-  <header class="pc-head">
+  <header class="pc-head" [style]="frameRoom.style" [class.is-winged]="frameRoom.winged">
     <div class="pc-portrait">
       <app-avatar-frame [frame]="card.equipped_frame" size="lg">
         <div class="pc-avatar">

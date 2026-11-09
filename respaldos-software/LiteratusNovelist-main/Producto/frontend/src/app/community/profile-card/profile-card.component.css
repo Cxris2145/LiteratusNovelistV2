@@ -20,13 +20,38 @@
 
 /* ── Retrato + quién es ─────────────────────────────────────────── */
 .pc-head {
+  /* Cuánto se salen del retrato los adornos del marco (alas, cabezas, gorros), en fracciones de
+     su diámetro: lo pone el componente desde FRAME_REACH. En la sala la ficha es una caja con
+     scroll y recorta lo que se sale, así que cada borde reserva ese tanto con unos 9 px de aire
+     (el borde y el relleno de 18 px del panel ya cubren 19), porque las cabezas suben un poco al
+     mecerse. Al lado derecho, el nombre se corre lo mismo que sobresale el adorno. */
+  --pc-reach-t: 0;
+  --pc-reach-r: 0;
+  --pc-reach-b: 0;
+  --pc-reach-l: 0;
+  /* El anillo del marco sale 12 px por fuera del retrato: el gap lo deja respirar. */
+  --pc-gap: 20px;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  /* El marco equipado sale 10 px por fuera del retrato: el gap lo deja respirar. */
-  gap: 20px;
-  padding: 4px 0 0 4px;
+  column-gap: max(var(--pc-gap), calc(var(--pc-portrait) * var(--pc-reach-r) + 6px));
+  row-gap: max(16px, calc(var(--pc-portrait) * var(--pc-reach-b) + 4px));
+  padding:
+    max(4px, calc(var(--pc-portrait) * var(--pc-reach-t) - 10px))
+    0
+    max(0px, calc(var(--pc-portrait) * var(--pc-reach-b) - 10px))
+    max(4px, calc(var(--pc-portrait) * var(--pc-reach-l) - 10px));
 }
+/* Con alas a los dos lados (Fénix, Dragones, Kraken), el nombre no cabe al lado: el retrato va
+   arriba y centrado, con todo el ancho de la ficha para las alas, y el nombre debajo. */
+.pc-head.is-winged {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding-inline: 0;
+  padding-bottom: 0;
+  text-align: center;
+}
+.pc-head.is-winged .pc-identity { justify-items: center; }
 .pc-portrait {
   position: relative;
   width: var(--pc-portrait);
@@ -351,7 +376,7 @@
 /* Columna de 240 px (notebooks de 1001 a 1180 px): retrato más chico para que el nombre quepa
    entero. */
 @container pc (max-width: 240px) {
-  .pc-head { --pc-portrait: 60px; --pc-seal: 26px; gap: 16px; }
+  .pc-head { --pc-portrait: 60px; --pc-seal: 26px; --pc-gap: 16px; }
   .pc .pc-head .pc-name { font-size: 1.3rem; }
   .pc .pc-head .pc-title { font-size: .88rem; }
 }

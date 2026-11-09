@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, inject } from '@angular/core';
 
+import { frameReach } from '../../core/components/avatar-frame/frame-catalog';
 import { AuthService, userStorageKey } from '../../core/services/auth.service';
 import { CommunityProfile } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -51,6 +52,25 @@ export class ProfileCardComponent {
   @Input() savingPrivacy = false;
   /** El interruptor de perfil público: la página lo guarda. */
   @Output() privacyChange = new EventEmitter<boolean>();
+
+  /**
+   * Espacio para los adornos del marco equipado (ver FRAME_REACH): la cabecera lo toma como
+   * --pc-reach-*. Con alas a los dos lados, el retrato va arriba y centrado, y el nombre debajo.
+   */
+  get frameRoom(): { style: Record<string, string>; winged: boolean } {
+    const frame = this.card?.equipped_frame ?? null;
+    if (frame !== this.roomFrame) {
+      const [top, right, bottom, left] = frameReach(frame);
+      this.roomFrame = frame;
+      this.room = {
+        style: { '--pc-reach-t': `${top}`, '--pc-reach-r': `${right}`, '--pc-reach-b': `${bottom}`, '--pc-reach-l': `${left}` },
+        winged: Math.min(left, right) >= 0.5,
+      };
+    }
+    return this.room;
+  }
+  private roomFrame: string | null | undefined = undefined;
+  private room = { style: {} as Record<string, string>, winged: false };
 
   /** Foto de perfil del lector (se ve como sello sobre Maguito); si no carga, se oculta. */
   get photo(): string | null {

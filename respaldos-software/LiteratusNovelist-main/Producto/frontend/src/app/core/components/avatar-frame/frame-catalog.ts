@@ -51,6 +51,65 @@ export const FRAME_COLLECTION_OF: Readonly<Record<string, FrameCollection>> = {
 
 export const AVATAR_FRAMES: readonly string[] = Object.keys(FRAME_COLLECTION_OF);
 
+/** [arriba, derecha, abajo, izquierda], en fracciones del diámetro del retrato. */
+export type FrameReach = readonly [number, number, number, number];
+
+const NO_REACH: FrameReach = [0, 0, 0, 0];
+
+/**
+ * Cuánto se salen del retrato los adornos de cada marco en tamaño lg (alas, cabezas, gorros,
+ * brasas...), como fracción de su diámetro. Lo usa quien tiene que dejarles espacio, como la
+ * ficha de la Taberna, que es una caja con scroll y recorta lo que se sale. Solo figuran los
+ * marcos que pasan de su propio anillo. Son las cajas de los adornos de avatar-frame*.css
+ * medidas en el navegador, con un poco de holgura: si se agranda un adorno, hay que actualizar
+ * su fila.
+ */
+export const FRAME_REACH: Readonly<Record<string, FrameReach>> = {
+  'frame-eternal-flame': [0.31, 0, 0, 0],
+  'frame-owl': [0.25, 0, 0, 0],
+  'frame-summit': [0, 0, 0.24, 0],
+
+  'frame-xmas-snow': [0.29, 0.26, 0, 0],
+  'frame-xmas-wreath': [0, 0, 0.39, 0],
+  'frame-xmas-star': [0.66, 0, 0, 0],
+  'frame-xmas-santa': [0.63, 0, 0, 0],
+
+  'frame-ny-confetti': [0.49, 0.25, 0, 0.25],
+  'frame-ny-champagne': [0.22, 0, 0, 0],
+  'frame-ny-clock': [0.43, 0, 0, 0],
+  'frame-ny-fireworks': [0.43, 0.35, 0.35, 0.41],
+
+  'frame-hw-bats': [0.35, 0.35, 0.35, 0.35],
+  'frame-hw-pumpkin': [0.47, 0.34, 0.31, 0],
+  'frame-hw-web': [0.38, 0, 0, 0.37],
+  'frame-hw-ghost': [0.35, 0.35, 0.22, 0.3],
+  'frame-hw-bloodmoon': [0.43, 0.43, 0.41, 0.46],
+
+  'frame-wolf': [0.41, 0.38, 0, 0],
+  'frame-ouroboros': [0.37, 0.37, 0.37, 0.37],
+  'frame-kraken': [0, 0.58, 0.25, 0.58],
+  'frame-unicorn': [0.55, 0, 0, 0],
+  'frame-phoenix': [0.68, 0.68, 0, 0.68],
+  'frame-dragon-emerald': [0.6, 0.76, 0.29, 0.76],
+  'frame-dragon-fire': [0.87, 0.81, 0, 0.81],
+
+  'frame-forest': [0.41, 0.41, 0.41, 0.41],
+  'frame-ice': [0.5, 0.27, 0, 0],
+  'frame-tempest': [0.49, 0.41, 0, 0],
+  'frame-galaxy': [0.55, 0.3, 0.3, 0.55],
+
+  'frame-sakura': [0.33, 0.35, 0, 0.35],
+  'frame-aurora': [0.41, 0.41, 0.41, 0.41],
+
+  'frame-bw-piano': [0.31, 0.31, 0, 0.34],
+  'frame-bw-film': [0, 0.35, 0.33, 0],
+  'frame-bw-eclipse': [0.38, 0.38, 0.38, 0.38],
+};
+
+export function frameReach(value: string | null | undefined): FrameReach {
+  return (value && FRAME_REACH[value]) || NO_REACH;
+}
+
 /**
  * Rarezas por precio, de la más cara a la más barata. El backend pone cada marco exactamente en
  * su escalón (FRAME_PRICES en learning/cosmetics_catalog.py: 90 · 160 · 280 · 450 · 750); los
