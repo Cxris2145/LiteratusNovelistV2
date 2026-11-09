@@ -653,6 +653,13 @@ h2.chapter-heading { font-size: 1.28em; }
   pointer-events: none;
 }
 
+/* Oculto, el aviso de carga sigue en el DOM: sus animaciones (brillo, punto) obligaban al navegador a
+   preparar un cuadro nuevo cada 16 ms. Con un capítulo largo cada cuadro recorre todo el texto, y en
+   un celular la lectura se trababa incluso sin tocar nada (cuadros de 170 ms). */
+.reader-loading-overlay.hidden * {
+  animation-play-state: paused;
+}
+
 .reader-loading-content {
   display: flex;
   flex-direction: column;
@@ -917,6 +924,12 @@ h2.chapter-heading { font-size: 1.28em; }
   display: inline-block;
   font-size: 1.2rem;
   animation: bounce 1s infinite;
+}
+
+/* Los avisos ocultos siguen en el DOM (opacity 0): el emoji solo salta mientras se ven (ver el aviso de carga). */
+.bookmark-toast:not(.show) .animated-emoji,
+.bookmark-resume-toast:not(.show) .animated-emoji {
+  animation-play-state: paused;
 }
 
 @keyframes bounce {

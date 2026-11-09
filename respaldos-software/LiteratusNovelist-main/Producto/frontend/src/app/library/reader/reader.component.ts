@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, ViewChild, ElementRef, signal } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone, HostListener, signal } from '@angular/core';
 import { Subject, Subscription, TimeoutError, EMPTY, of, timer } from 'rxjs';
 import { catchError, concatMap, debounce, finalize, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
@@ -45,6 +45,26 @@ export interface ProgressData {
   timestamp: number;
   scrollPercent?: number;
 }
+
+/** Pintado del capítulo por trozos (ver parseAndRenderChapter), en tokens. */
+const CHUNK_FIRST_TOKENS = 1200;
+const CHUNK_CATCH_UP_TOKENS = 6000;
+const CHUNK_MIN_TOKENS = 400;
+const CHUNK_MAX_TOKENS = 12000;
+/** Milisegundos de trabajo de Angular buscados por trozo (el estilo y el maquetado van aparte). */
+const CHUNK_TARGET_MS = 10;
+
+/** Variables de los cantos del libro: cambian con cada página, así que no van en el contenedor. */
+const BOOK_EDGE_VARS = ['--book-edge-left', '--book-edge-right'];
+
+/**
+ * Clase de <html> y <body> mientras hay un lector abierto. El CSS global tiene reglas body:has(…)
+ * de otras páginas (tema de navegación, Taberna, Senda, panel…) que llevan :where(:not(.reader-open)): sin
+ * eso, cada párrafo que se pinta en el lienzo hace que el navegador las revise contra todo el
+ * documento (~120 ms por vez con un capítulo de 23.000 palabras). Ver styles.css y browse-theme.css.
+ */
+const READER_OPEN_CLASS = 'reader-open';
+let openReaders = 0; // al cambiar de pestaña conviven un instante el lector que sale y el que entra
 
 @Component({
   selector: 'app-reader',
@@ -115,11 +135,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   exLibrisName = '';
   private readonly auth = inject(AuthService);
   private bookFrameState: BookFrame | null = null;
-  @ViewChild('flipLayer') private flipLayerRef?: ElementRef<HTMLElement>;
   /** La hoja que se dobla: copias de páginas solo mientras dura el giro (ver reader-book-flip.ts). */
   private readonly bookFlip = new ReaderBookFlip({
     shell: () => this.shellEl(),
-    layer: () => this.flipLayerRef?.nativeElement ?? null,
+    layer: () => document.querySelector<HTMLElement>('.rd-flip-layer'),
     canvas: () => this.canvasEl(),
     viewport: () => this.viewportEl(),
     container: () => this.containerEl(),
@@ -128,10 +147,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       return canvas ? this.columnGap(canvas) : 0;
     },
   }, this.ngZone);
-  @ViewChild('coverLayer') private coverLayerRef?: ElementRef<HTMLElement>;
   /** La tapa dura que gira al abrir o cerrar el libro (ver reader-book-cover.ts). */
   private readonly coverSwing = new ReaderBookCover({
-    layer: () => this.coverLayerRef?.nativeElement ?? null,
+    layer: () => document.querySelector<HTMLElement>('.rd-cover-layer'),
     shell: () => this.shellEl(),
     closedBook: () => document.querySelector<HTMLElement>('app-reader-book-closed .rbc-book'),
   }, this.ngZone);
@@ -166,10 +184,22 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   isBookmarkBusy: boolean = false;
   /** Marcadores, subrayados y post-its del libro (datos y servidor). */
   readonly annotations = inject(ReaderAnnotationsService);
-  /** Menú de la selección, tarjeta del subrayado y diccionario. */
-  @ViewChild('selectionMenu') private menu?: ReaderSelectionMenuComponent;
-  /** Papelitos en los márgenes y su nota. */
-  @ViewChild('postIts') private postIts?: ReaderPostItsComponent;
+  // Sin @ViewChild en el lector: una consulta de vista recorre, en cada detección de cambios, todas
+  // las vistas declaradas en esta plantilla, y el capítulo son miles (una por palabra). Con un capítulo
+  // de 23.000 palabras eso eran ~9 s solo al pintarlo, y se repetía en cada pasada (toques, páginas).
+  // Los hijos se anotan solos (registerSelectionMenu / registerPostIts) y los elementos se buscan en el DOM.
+  /** Menú de la selección, tarjeta del subrayado y diccionario (se anota él mismo). */
+  private menu?: ReaderSelectionMenuComponent;
+  /** Papelitos en los márgenes y su nota (se anota él mismo). */
+  private postIts?: ReaderPostItsComponent;
+
+  registerSelectionMenu(menu: ReaderSelectionMenuComponent | null): void {
+    this.menu = menu ?? undefined;
+  }
+
+  registerPostIts(postIts: ReaderPostItsComponent | null): void {
+    this.postIts = postIts ?? undefined;
+  }
   get bookmarks(): PageBookmark[] { return this.annotations.bookmarks; }
   get activeHighlight(): ReaderHighlight | null { return this.menu?.activeHighlight ?? null; }
   get activePostIt() { return this.postIts?.activePostIt ?? null; }
@@ -197,7 +227,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   reportContext: ReportContextData | null = null;
 
   /** Pestaña que baja línea a línea por el margen mientras habla la narración. */
-  @ViewChild('narrationMarker') narrationMarkerRef?: ElementRef<HTMLElement>;
+  private narrationMarkerEl(): HTMLElement | null {
+    return document.querySelector<HTMLElement>('.narration-marker');
+  }
   /** Palabra que está leyendo la narración (-1 si no hay narración en curso). */
   private narrationWordIdx: number = -1;
 
@@ -335,6 +367,20 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    * de la portada o metadatos de título y autor sin contenido narrativo sustancial adicional.
    */
   get isInitialChapterRedundant(): boolean {
+    // La plantilla lo lee una vez por trozo del capítulo en cada pasada y revisarlo recorre todos los
+    // bloques: se recuerda mientras no cambie nada de lo que mira.
+    const key = [this.parsedBlocks, this.currentPage, this.chapters.length, this.chapterTitle,
+      this.bookTitle, this.authorName, this.bookPublisher, this.bookYear];
+    const memo = this.initialRedundantMemo;
+    if (memo && memo.key.every((value, i) => value === key[i])) return memo.value;
+    const value = this.computeInitialChapterRedundant();
+    this.initialRedundantMemo = { key, value };
+    return value;
+  }
+
+  private initialRedundantMemo: { key: unknown[]; value: boolean } | null = null;
+
+  private computeInitialChapterRedundant(): boolean {
     if (this.currentPage !== 1 || !this.chapters.length) return false;
 
     const titleNorm = this.normalizeMetadataText(this.bookTitle);
@@ -452,7 +498,6 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   sessionTimerRunning: boolean = false;
   showBreakModal: boolean = false;
   private sessionTimerInterval: any = null;
-  @ViewChild('sessionTimerText') private sessionTimerTextRef?: ElementRef<HTMLElement>;
 
   // Botón flotante "volver a mi lectura" — aparece si el usuario se aleja
   // de su posición de lectura (scroll manual, exploración) más allá de lo visible.
@@ -477,7 +522,18 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Renderizado de palabras (para highlighting nativo de Angular)
   parsedBlocks: ReaderBlock[] = [];
-  renderedBlocks: ReaderBlock[] = [];
+  /**
+   * Lo pintado del capítulo, en trozos: cada uno va congelado aparte en la plantilla, así que sumar
+   * uno no vuelve a revisar los anteriores. `start` es el índice de su primer bloque en parsedBlocks.
+   */
+  renderedParts: ReadonlyArray<{ readonly start: number; readonly blocks: ReaderBlock[] }> = [];
+  /** Todos los bloques ya pintados, en orden. */
+  get renderedBlocks(): ReaderBlock[] {
+    return this.renderedParts.length === 1 ? this.renderedParts[0].blocks : this.renderedParts.flatMap(part => part.blocks);
+  }
+  set renderedBlocks(blocks: ReaderBlock[]) {
+    this.renderedParts = blocks.length ? [{ start: 0, blocks }] : [];
+  }
   /** Sube cuando cambian los tokens por dentro (subrayados): el texto congelado se vuelve a pintar. */
   textVersion = 0;
   titleTokens: any[] = [];
@@ -557,6 +613,10 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
+    if (openReaders++ === 0) {
+      document.documentElement.classList.add(READER_OPEN_CLASS);
+      document.body.classList.add(READER_OPEN_CLASS);
+    }
     this.inventoryId = this.route.snapshot.paramMap.get('id') || '';
     // "Ir al pasaje" del cuaderno salta aquí mismo, sin recargar el libro.
     this.unregisterNotebook = this.notebook.registerReader(this.inventoryId,
@@ -950,6 +1010,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroyed = true;
+    if (--openReaders <= 0) {
+      openReaders = 0;
+      document.documentElement.classList.remove(READER_OPEN_CLASS);
+      document.body.classList.remove(READER_OPEN_CLASS);
+    }
     this.restoreThemeColor();
     this.unregisterNotebook?.();
     if (this.rulerCanvasEl) {
@@ -1385,7 +1450,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
         });
         return;
       }
-      const badge = this.sessionTimerTextRef?.nativeElement;
+      const badge = document.querySelector<HTMLElement>('.session-timer-text');
       if (badge) badge.textContent = this.sessionTimerLabel;
     }, 1000));
   }
@@ -1506,7 +1571,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Token del render en curso. Si el usuario cambia de capítulo (doble tap en
    *  "Siguiente"/"Anterior") antes de que termine el renderizado progresivo por
    *  chunks del capítulo anterior, ese renderChunks() antiguo debe abortar en vez
-   *  de seguir empujando bloques viejos sobre `renderedBlocks` del capítulo nuevo. */
+   *  de seguir empujando bloques viejos sobre `renderedParts` del capítulo nuevo. */
   private renderToken = 0;
 
   /** Los últimos capítulos analizados; el siguiente se prepara mientras el navegador está ocioso. */
@@ -1582,7 +1647,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     // Iniciar renderizado progresivo para evitar bloquear el hilo principal
-    this.renderedBlocks = [];
+    this.renderedParts = [];
 
     // Determinar en qué bloque está el progreso guardado para restaurarlo correctamente
     let targetBlockIndex = 0;
@@ -1603,22 +1668,35 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (targetBlockIndex === -1) targetBlockIndex = 0;
     let lottieDismissed = false;
+    // Los trozos se miden en tokens (palabras, espacios y signos) y no en bloques: un párrafo largo
+    // pesa como diez líneas de diálogo. El primero es chico (la primera página sale enseguida) y
+    // los siguientes se ajustan a lo que tardó el anterior, para no trabar la lectura ni demorar
+    // de más el final en un capítulo de miles de párrafos.
+    let tokenBudget = CHUNK_FIRST_TOKENS;
 
     const renderChunks = (startIndex: number) => {
       // Si mientras tanto se cambió de capítulo, este render quedó obsoleto: abortar
-      // sin tocar `renderedBlocks` (que ya pertenece al capítulo nuevo).
+      // sin tocar `renderedParts` (que ya pertenece al capítulo nuevo).
       if (myRenderToken !== this.renderToken) return;
 
-      // Trozos grandes solo para alcanzar rápido el progreso guardado; un capítulo que abre en su
-      // primera página parte con uno chico (sin una tarea larga al pasar de capítulo).
-      const chunkSize = (startIndex < targetBlockIndex || needsFullRender) ? 50 : 15;
-      const chunk = this.parsedBlocks.slice(startIndex, startIndex + chunkSize);
+      // Trozos grandes solo para alcanzar rápido el progreso guardado.
+      const catchingUp = startIndex < targetBlockIndex || needsFullRender;
+      const limit = catchingUp ? Math.max(tokenBudget, CHUNK_CATCH_UP_TOKENS) : tokenBudget;
+      let end = startIndex, tokens = 0;
+      while (end < this.parsedBlocks.length && (end === startIndex || tokens < limit)) {
+        tokens += this.parsedBlocks[end].tokens.length || 1;
+        end++;
+      }
+      const chunk = this.parsedBlocks.slice(startIndex, end);
 
       if (chunk.length > 0) {
-        this.renderedBlocks = [...this.renderedBlocks, ...chunk];
+        const started = performance.now();
+        this.renderedParts = [...this.renderedParts, { start: startIndex, blocks: chunk }];
         this.cdr.detectChanges();
+        const spent = Math.max(1, performance.now() - started);
+        tokenBudget = Math.round(Math.min(CHUNK_MAX_TOKENS, Math.max(CHUNK_MIN_TOKENS, tokens * CHUNK_TARGET_MS / spent)));
 
-        const nextIndex = startIndex + chunkSize;
+        const nextIndex = end;
         const reachedTarget = needsFullRender ? (nextIndex >= this.parsedBlocks.length) : (nextIndex > targetBlockIndex);
         // Giro hacia el capítulo siguiente: la hoja da vuelta apenas su primera página está pintada.
         if (this.bookFlip.frozenDirection === 1 && (nextIndex >= 30 || nextIndex >= this.parsedBlocks.length)) {
@@ -1656,9 +1734,9 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
           }, 50);
         }
 
-        // Continuar pintando el resto en el siguiente frame
+        // Sigue en otra tarea: entre medio el navegador atiende toques y pinta cuando le toca.
         if (nextIndex < this.parsedBlocks.length) {
-          setTimeout(() => renderChunks(nextIndex), 16);
+          setTimeout(() => renderChunks(nextIndex), 0);
         } else {
           // Finalizado el renderizado total
           this.isFullyRendered = true;
@@ -2440,8 +2518,14 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
       columns: columnsForViewport(window.innerWidth, window.innerHeight),
     });
     const vars = bookCssVars(frame, this.settings.value.margins, this.bookReadFraction());
-    for (const [name, value] of Object.entries(vars)) container.style.setProperty(name, value);
+    for (const [name, value] of Object.entries(vars)) {
+      // Los cantos cambian con cada página: en el contenedor solo se ponen la primera vez (de respaldo
+      // para un canto recién creado); después van en cada canto (updateBookEdges).
+      if (BOOK_EDGE_VARS.includes(name) && container.style.getPropertyValue(name)) continue;
+      container.style.setProperty(name, value);
+    }
     this.bookFrameState = frame;
+    this.updateBookEdges();
   }
 
   private bookReadFraction(): number {
@@ -2452,9 +2536,11 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   private updateBookEdges() {
     if (!this.isBookView || !this.bookFrameState) return;
     const edges = bookEdges(this.bookReadFraction(), this.bookFrameState);
-    const style = this.containerEl()?.style;
-    style?.setProperty('--book-edge-left', `${edges.left}px`);
-    style?.setProperty('--book-edge-right', `${edges.right}px`);
+    // En cada canto y no en el contenedor: una variable CSS del contenedor la heredan todas las palabras
+    // del capítulo, y recalcular sus estilos costaba ~100 ms por página en un capítulo largo.
+    const container = this.containerEl();
+    container?.querySelector<HTMLElement>('.rd-book-edge-left')?.style.setProperty('--book-edge-left', `${edges.left}px`);
+    container?.querySelector<HTMLElement>('.rd-book-edge-right')?.style.setProperty('--book-edge-right', `${edges.right}px`);
   }
 
   /** "Págs. 34–35 de 612" (en la vista Libro, páginas de todo el libro; en Páginas, del capítulo). */
@@ -2978,7 +3064,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
    * está leyendo, en el margen exterior de su página, y baja renglón a renglón.
    */
   private updateNarrationMarker() {
-    const marker = this.narrationMarkerRef?.nativeElement;
+    const marker = this.narrationMarkerEl();
     if (!marker) return;
     const host = marker.offsetParent as HTMLElement | null;
     const canvas = this.canvasEl();

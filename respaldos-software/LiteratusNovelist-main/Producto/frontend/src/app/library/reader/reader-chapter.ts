@@ -83,7 +83,7 @@ function extractTitle(blocks: ReaderBlock[], title: string): ReaderToken[] {
     }
     if (normalizedAccumulated.length > titleToCompare.length + 5) break; // ya se pasó del largo
   }
-  if (splitIndex === -1) return [];
+  if (splitIndex === -1) return extractTitleAcrossBlocks(blocks, titleToCompare);
 
   const titleTokens = firstBlock.tokens.splice(0, splitIndex);
   // Espacios sobrantes al inicio del párrafo que queda
@@ -98,6 +98,33 @@ function extractTitle(blocks: ReaderBlock[], title: string): ReaderToken[] {
     blocks.shift();
   }
   return titleTokens;
+}
+
+/**
+ * Título repartido en varios bloques seguidos al comienzo: «VOLUMEN I» + «CARTA I», o «Capítulo 1» + su
+ * subtítulo en cursiva (el capítulo se llama «VOLUMEN I · CARTA I»; ver split_long_chapters en el backend).
+ * Si esos bloques juntos dicen exactamente el título, pasan al encabezado y salen del cuerpo.
+ */
+function extractTitleAcrossBlocks(blocks: ReaderBlock[], titleToCompare: string): ReaderToken[] {
+  const MAX_BLOCKS = 4;
+  let accumulated = '';
+  for (let count = 1; count <= Math.min(MAX_BLOCKS, blocks.length); count++) {
+    const block = blocks[count - 1];
+    if (block.tag === 'img-block') return [];
+    accumulated += normTitle(block.tokens.map(t => t.text).join(''));
+    if (!accumulated || !titleToCompare.startsWith(accumulated)) return [];
+    if (accumulated === titleToCompare) {
+      if (count === 1) return []; // un solo bloque ya lo resolvió extractTitle
+      const taken = blocks.splice(0, count);
+      const titleTokens: ReaderToken[] = [];
+      taken.forEach((b, i) => {
+        if (i > 0) titleTokens.push({ text: ' · ', isWord: false, isImg: false, idx: -1 });
+        titleTokens.push(...b.tokens);
+      });
+      return titleTokens;
+    }
+  }
+  return [];
 }
 
 /**

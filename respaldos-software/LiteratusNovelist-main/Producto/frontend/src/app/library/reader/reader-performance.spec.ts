@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { ChapterCache, prepareChapter } from './reader-chapter';
 import { ReaderFrozenDirective } from './reader-frozen.directive';
 import { ReaderHighlighter } from './reader-highlighter';
+import { ReaderComponent } from './reader.component';
 
 describe('ReaderHighlighter', () => {
   let canvas: HTMLElement;
@@ -81,6 +82,23 @@ describe('prepareChapter y ChapterCache', () => {
     expect(ch.plainText).toContain('Llovía mucho.');
   });
 
+  it('saca un título repartido en dos bloques («VOLUMEN I» + «CARTA I», o capítulo + subtítulo)', () => {
+    const ch = prepareChapter('<h3>VOLUMEN I</h3><h4>CARTA I</h4><p>A la señora Saville.</p>', 'VOLUMEN I · CARTA I', 'http://x');
+    expect(ch.titleTokens.filter(t => t.isWord).map(t => t.text)).toEqual(['VOLUMEN', 'I', 'CARTA', 'I']);
+    expect(ch.blocks.length).toBe(1);
+    expect(ch.blocks[0].tokens.find(t => t.isWord)?.text).toBe('A');
+
+    const sub = prepareChapter('<p>Capítulo 1</p><p><i>Los tres presentes</i></p><p>El primer lunes.</p>', 'Capítulo 1 · Los tres presentes', 'http://x');
+    expect(sub.blocks.length).toBe(1);
+    expect(sub.titleTokens.filter(t => t.isWord).length).toBe(5);
+  });
+
+  it('no toca bloques que solo empiezan como el título', () => {
+    const ch = prepareChapter('<h3>VOLUMEN I</h3><p>CARTA I y algo más.</p>', 'VOLUMEN I · CARTA I', 'http://x');
+    expect(ch.titleTokens.length).toBe(0);
+    expect(ch.blocks.length).toBe(2);
+  });
+
   it('no descarga imágenes al preparar y las apunta al backend', () => {
     const ch = prepareChapter('<p>Hola <img src="media/a.png"></p>', 'Otro', 'http://api');
     const img = ch.blocks.flatMap(b => b.tokens).find(t => t.isImg);
@@ -136,5 +154,46 @@ describe('ReaderFrozenDirective', () => {
     fixture.detectChanges();
     expect(items()).toEqual(['a', 'b', 'c', 'd']);
     expect(host.refreshed).toBe(3);
+  });
+});
+
+@Component({
+  template: `@for (part of parts; track part) {
+    <ng-template [rdFrozen]="[part, version]">
+      @for (item of part.items; track $index) { <span class="item">{{ label(item) }}</span> }
+    </ng-template>
+  }`,
+})
+class FrozenPartsHostComponent {
+  parts: { items: string[] }[] = [{ items: ['a', 'b'] }];
+  version = 0;
+  reads: string[] = [];
+  label(item: string) { this.reads.push(item); return item; }
+}
+
+describe('Capítulo pintado por trozos congelados', () => {
+  it('sumar un trozo solo revisa el trozo nuevo, no los anteriores', () => {
+    TestBed.configureTestingModule({ declarations: [FrozenPartsHostComponent, ReaderFrozenDirective] });
+    const fixture = TestBed.createComponent(FrozenPartsHostComponent);
+    const host = fixture.componentInstance;
+    fixture.detectChanges();
+    host.reads = [];
+
+    host.parts = [...host.parts, { items: ['c'] }];
+    fixture.detectChanges();
+    expect(host.reads).toEqual(['c']);
+    const items = Array.from(fixture.nativeElement.querySelectorAll('.item')).map((e: any) => e.textContent);
+    expect(items).toEqual(['a', 'b', 'c']); // en orden y como hermanos, igual que con un solo congelado
+
+    host.reads = [];
+    host.version++; // subrayados o biónica: se repintan todos
+    fixture.detectChanges();
+    expect(host.reads).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('ReaderComponent sin consultas de vista', () => {
+  it('no declara @ViewChild: recorrerían todas las palabras del capítulo en cada detección de cambios', () => {
+    expect((ReaderComponent as any).ɵcmp.viewQuery).toBeNull();
   });
 });

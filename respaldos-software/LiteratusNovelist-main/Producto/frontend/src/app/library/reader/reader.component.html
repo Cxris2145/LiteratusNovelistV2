@@ -57,8 +57,12 @@
          Va congelado (rdFrozen): se vuelve a revisar solo si cambia algo de la lista (capítulo, título,
          subrayados, biónica, imágenes), no en cada pasada del lector. La palabra activa, su frase y su
          párrafo los marca ReaderHighlighter directo en el DOM; los clics en palabras los atiende un solo
-         listener en el lienzo (onCanvasClick). -->
-    <ng-template [rdFrozen]="[titleTokens, renderedBlocks, chapterTitle, bionicReadingActive, showSceneImages, textVersion, titlePageKey, shouldRenderChapterTitle, isInitialChapterRedundant]"
+         listener en el lienzo (onCanvasClick).
+         Encabezado y cuerpo van congelados por separado, y el cuerpo en trozos (renderedParts): cada trozo
+         que se suma al pintar el capítulo se revisa solo, sin volver a recorrer los anteriores. Con un solo
+         congelado, sumar el trozo N revisaba las N-1 anteriores (un capítulo de 23.000 palabras tardaba
+         30 s en terminar de pintarse). Todo queda como hermanos directos del lienzo, igual que antes. -->
+    <ng-template [rdFrozen]="[titleTokens, chapterTitle, bionicReadingActive, showSceneImages, textVersion, titlePageKey, shouldRenderChapterTitle]"
                  (rdFrozenRefreshed)="onTextRefreshed()">
     <!-- Vista Libro: la portadilla ocupa la primera página del capítulo 1 (sin palabras narrables:
          la voz, los subrayados y el progreso no la ven). Divs y no <p>: no lleva capitular ni sangría. -->
@@ -86,7 +90,12 @@
         } @empty {{{ chapterTitle }}}
       </h1>
     }
+    </ng-template>
 
+    @for (part of renderedParts; track part) {
+    <ng-template [rdFrozen]="[part, bionicReadingActive, showSceneImages, textVersion, titlePageKey, isInitialChapterRedundant]"
+                 (rdFrozenRefreshed)="onTextRefreshed()">
+    <!-- Declarada dentro del trozo: al revisarlo, Angular solo marca las vistas de sus propios párrafos. -->
     <ng-template #blockSentences let-block>
       @for (sentence of block.sentences; track sentence) {
         <span class="sentence-wrap">
@@ -106,8 +115,8 @@
       }
     </ng-template>
 
-    @for (block of renderedBlocks; track $index) {
-      @if (shouldRenderBlock(block, $index)) {
+    @for (block of part.blocks; track $index) {
+      @if (shouldRenderBlock(block, part.start + $index)) {
         @if (block.tag === 'img-block') {
           <!-- Imagen a nivel raíz (standalone) -->
           @if (showSceneImages) {
@@ -131,6 +140,7 @@
       }
     }
     </ng-template>
+    }
   </main>
       <div class="reading-ruler" *ngIf="rulerActive" [class.col-left]="rulerColumn === 'left'"
            [class.col-right]="rulerColumn === 'right'" [class.col-full]="rulerColumn === 'full'"
@@ -145,13 +155,13 @@
       <span>{{ isBookView ? (isTitlePageVisible ? '' : bookPageCurrent) : currentLeftPageNum }}</span>
       <span *ngIf="columnsPerSpread === 2 && currentLeftPageNum < chapterPageCount">{{ isBookView ? bookPageCurrent + 1 : currentRightPageNum }}</span>
     </div>
-    <div class="narration-marker" #narrationMarker aria-hidden="true">
+    <div class="narration-marker" aria-hidden="true">
       <span class="material-symbols-rounded">graphic_eq</span>
     </div>
     <!-- La hoja que se pliega: aquí se arman las copias de las páginas mientras dura el giro. -->
-    <div class="rd-flip-layer" #flipLayer aria-hidden="true"></div>
+    <div class="rd-flip-layer" aria-hidden="true"></div>
     <!-- La tapa dura que gira al abrir o cerrar el libro (reader-book-cover.ts). -->
-    <div class="rd-cover-layer" #coverLayer aria-hidden="true"></div>
+    <div class="rd-cover-layer" aria-hidden="true"></div>
   </section>
 
   <!-- Vista Libro en pantallas grandes: flechas fuera del libro (no tapan el texto) -->
@@ -184,10 +194,10 @@
   <div class="rd-sr-only" aria-live="polite" aria-atomic="true">{{ pageAnnouncement }}</div>
 
   <!-- Menú de la selección, tarjeta del subrayado y diccionario -->
-  <app-reader-selection-menu #selectionMenu></app-reader-selection-menu>
+  <app-reader-selection-menu></app-reader-selection-menu>
 
   <!-- Post-its en los márgenes y su nota -->
-  <app-reader-postits #postIts></app-reader-postits>
+  <app-reader-postits></app-reader-postits>
 
   <!-- TOAST DE MARCADOR GUARDADO -->
   <div class="bookmark-toast glass-panel" [class.show]="showBookmarkToast" role="status" aria-live="polite">
@@ -333,7 +343,7 @@
   <div class="session-timer-badge" *ngIf="sessionTimerRunning" (click)="setSessionTimer(0)"
        title="Toca para apagar el temporizador">
     <span class="material-symbols-rounded">hourglass_top</span>
-    <span #sessionTimerText>{{ sessionTimerLabel }}</span>
+    <span class="session-timer-text">{{ sessionTimerLabel }}</span>
   </div>
 
   <!-- MODAL DE RECORDATORIO DE PAUSA -->

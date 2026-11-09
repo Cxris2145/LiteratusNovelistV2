@@ -490,7 +490,7 @@ body.keyboard-open .lit-notebook .nb-window.nb-mobile { top: var(--vv-top, 0px);
 body.has-bottom-nav .lit-notebook .nb-pill { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 @media (min-width: 768px) {
   /* La columna de La Senda ya tiene un acceso para restaurar el cuaderno. */
-  body:has(app-learning-path):has(app-notebook-launcher) .lit-notebook .nb-pill { display: none; }
+  body:where(:not(.reader-open)):has(app-learning-path):has(app-notebook-launcher) .lit-notebook .nb-pill { display: none; }
 }
 
 /* ── Menús desplegables (viven en la capa de Angular Material) ── */

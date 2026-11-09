@@ -5,11 +5,11 @@
 /* En la taberna (escritorio) la burbuja se achica para tapar menos la columna de amigos. En el
    celular no se muestra ahí: la caja de la mesa llega al borde (ver styles.css). */
 @media (min-width: 701px) {
-  :host-context(body:has(app-tavern-hall)) .lit-bubble {
+  body:where(:not(.reader-open)):has(app-tavern-hall) :host .lit-bubble {
     width: 48px;
     height: 48px;
   }
-  :host-context(body:has(app-tavern-hall)) .lit-bubble-avatar {
+  body:where(:not(.reader-open)):has(app-tavern-hall) :host .lit-bubble-avatar {
     width: 40px;
     height: 40px;
   }
@@ -60,14 +60,14 @@
 }
 
 @media (min-width: 768px) {
-  :host-context(body:has(app-learning-path)) .lit-bubble:not(.bouncing) { animation: none; }
-  :host-context(body:has(app-learning-path)) .lit-bubble[hidden] { display: none; }
-  :host-context(body:has(app-learning-path)) .lit-bubble-avatar { width: 40px; height: 40px; }
+  body:where(:not(.reader-open)):has(app-learning-path) :host .lit-bubble:not(.bouncing) { animation: none; }
+  body:where(:not(.reader-open)):has(app-learning-path) :host .lit-bubble[hidden] { display: none; }
+  body:where(:not(.reader-open)):has(app-learning-path) :host .lit-bubble-avatar { width: 40px; height: 40px; }
 }
 
 @media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
-  :host-context(body:has(app-learning-path)) .lit-bubble { transition: scale 160ms var(--ease-out); }
-  :host-context(body:has(app-learning-path)) .lit-bubble:active { scale: .96; }
+  body:where(:not(.reader-open)):has(app-learning-path) :host .lit-bubble { transition: scale 160ms var(--ease-out); }
+  body:where(:not(.reader-open)):has(app-learning-path) :host .lit-bubble:active { scale: .96; }
 }
 
 .lit-bubble-glow {

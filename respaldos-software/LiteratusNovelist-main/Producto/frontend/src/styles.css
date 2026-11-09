@@ -715,7 +715,12 @@ app-dashboard-layout :is(.alert-success, .success-message) {
 }
 
 /* When in dashboard, prevent body from creating its own scrollbar */
-body:has(.container.dashboard-mode) {
+/* Todas las reglas body:has(…) / html:has(…) de otras páginas llevan :where(:not(.reader-open)), que no
+   suma especificidad. Con el lector abierto (clase que pone ReaderComponent), cada párrafo que se pinta
+   hace que el navegador vuelva a revisar estas reglas contra todo el documento: ~120 ms por vez en un
+   capítulo de 23.000 palabras.
+   Una regla body:has nueva que no sea para el lector debe llevar la misma compuerta. */
+body:where(:not(.reader-open)):has(.container.dashboard-mode) {
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
@@ -1393,24 +1398,24 @@ html.tavern-morph-reduced::view-transition-new(root) { animation-duration: 150ms
    TABERNA: PANTALLA COMPLETA (sin scroll ni desplazamiento innecesario)
    ═════════════════════════════════════════════════════════════════════ */
 @media (min-width: 1001px) {
-  html:has(.th-hall),
-  body:has(.th-hall) {
+  html:where(:not(.reader-open)):has(.th-hall),
+  body:where(:not(.reader-open)):has(.th-hall) {
     overflow: hidden !important;
     overscroll-behavior: none;
   }
 }
 
-html:has(.th-hall.is-cinema),
-body:has(.th-hall.is-cinema) {
+html:where(:not(.reader-open)):has(.th-hall.is-cinema),
+body:where(:not(.reader-open)):has(.th-hall.is-cinema) {
   overflow: hidden !important;
   overscroll-behavior: none;
 }
 
-body:has(.th-hall.is-cinema) app-bottom-nav {
+body:where(:not(.reader-open)):has(.th-hall.is-cinema) app-bottom-nav {
   display: none !important;
 }
 
-body:has(.th-hall.is-cinema) .site-body.with-bottom-nav {
+body:where(:not(.reader-open)):has(.th-hall.is-cinema) .site-body.with-bottom-nav {
   --bottom-nav-h: 0px !important;
   padding-bottom: 0px !important;
 }
@@ -1472,23 +1477,23 @@ body:has(.th-hall.is-cinema) .site-body.with-bottom-nav {
    conjuntas, la página de un personaje, el Encuentro de personajes y el Interrogatorio. También con
    El Bazar abierto, donde tapaban el texto y el precio de las tarjetas. Cada botón
    lee la variable en su CSS. El chat rápido con personajes no necesita esto: va por encima de ellos (z-index 3100). */
-body:has(.fc-drawer.is-open, .rc-drawer.is-open, .bz-drawer.is-open, app-demo-chat-page, app-encounter-chat, .interrogation-input-bar) {
+body:where(:not(.reader-open)):has(.fc-drawer.is-open, .rc-drawer.is-open, .bz-drawer.is-open, app-demo-chat-page, app-encounter-chat, .interrogation-input-bar) {
   --floating-btn-display: none;
 }
 /* En Editar perfil, la barra de "Guardar cambios" ocupa el borde inferior en pantallas angostas. */
 @media (max-width: 900px) {
-  body:has(.profile-save-bar.is-visible) {
+  body:where(:not(.reader-open)):has(.profile-save-bar.is-visible) {
     --floating-btn-display: none;
   }
 }
 /* Si una ventana ya estaba abierta al entrar al Bazar, se oculta con los botones. */
-body:has(.bz-drawer.is-open) :is(.lit-panel, .lit-notebook) {
+body:where(:not(.reader-open)):has(.bz-drawer.is-open) :is(.lit-panel, .lit-notebook) {
   display: none;
 }
 
 /* La Senda reserva una columna a los botones en escritorio, incluso con el mapa vertical. */
 @media (min-width: 768px) {
-  body:has(app-learning-path):has(app-assistant-widget) {
+  body:where(:not(.reader-open)):has(app-learning-path):has(app-assistant-widget) {
     --senda-tools-edge: 16px;
     --senda-tools-size: 48px;
     --senda-tools-gutter: calc(var(--senda-tools-size) + 2 * var(--senda-tools-edge));
@@ -1498,7 +1503,7 @@ body:has(.bz-drawer.is-open) :is(.lit-panel, .lit-notebook) {
 /* En el celular la caja de la mesa de la Taberna ocupa todo el ancho de abajo, igual que el botón
    «Comenzar encuentro» al armar un Encuentro de personajes. */
 @media (max-width: 700px) {
-  body:has(app-tavern-hall, app-encounter-picker) {
+  body:where(:not(.reader-open)):has(app-tavern-hall, app-encounter-picker) {
     --floating-btn-display: none;
   }
 }

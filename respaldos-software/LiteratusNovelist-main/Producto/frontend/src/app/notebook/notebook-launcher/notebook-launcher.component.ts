@@ -54,11 +54,11 @@ import { NotebookService } from '../notebook.service';
     :host-context(body:has(.lit-panel)) .nb-launcher { display: var(--senda-notebook-display, none); }
     /* En La Taberna (escritorio) va junto al asistente, bajo la columna de amigos. */
     @media (min-width: 701px) {
-      :host-context(body:has(app-tavern-hall)) .nb-launcher { right: 84px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+      body:where(:not(.reader-open)):has(app-tavern-hall) :host .nb-launcher { right: 84px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
     }
     /* El panel del asistente queda a la izquierda de la columna. */
     @media (min-width: 768px) {
-      :host-context(body:has(app-learning-path)) .nb-launcher {
+      body:where(:not(.reader-open)):has(app-learning-path) :host .nb-launcher {
         right: var(--senda-tools-edge, 32px);
         bottom: calc(24px + var(--senda-tools-size, 48px) + 12px + env(safe-area-inset-bottom, 0px));
       }

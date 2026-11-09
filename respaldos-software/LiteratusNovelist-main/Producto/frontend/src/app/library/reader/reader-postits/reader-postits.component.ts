@@ -60,6 +60,10 @@ export class ReaderPostItsComponent implements AfterViewInit, OnDestroy {
     return postIt.id || 'nuevo';
   }
 
+  constructor() {
+    this.reader.registerPostIts(this); // el lector no usa @ViewChild (ver registerPostIts)
+  }
+
   ngAfterViewInit(): void {
     // Se arrastran desde su capa, fuera de la zona de Angular (pointermove llega en cada cuadro).
     this.ngZone.runOutsideAngular(() =>
@@ -67,6 +71,7 @@ export class ReaderPostItsComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.reader.registerPostIts(null);
     this.endPostItDrag();
     this.layerRef?.nativeElement.removeEventListener('pointerdown', this.handleMarginPointerDown);
     if (this.marginLayoutRaf !== null) cancelAnimationFrame(this.marginLayoutRaf);

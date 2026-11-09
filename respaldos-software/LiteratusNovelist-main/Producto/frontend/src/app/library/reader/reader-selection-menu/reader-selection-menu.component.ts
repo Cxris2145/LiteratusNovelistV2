@@ -62,10 +62,12 @@ export class ReaderSelectionMenuComponent implements OnInit, OnDestroy {
   private readonly handleSelectionChange = () => this.onSelectionChange();
 
   ngOnInit(): void {
+    this.reader.registerSelectionMenu(this); // el lector no usa @ViewChild (ver registerSelectionMenu)
     this.ngZone.runOutsideAngular(() => document.addEventListener('selectionchange', this.handleSelectionChange));
   }
 
   ngOnDestroy(): void {
+    this.reader.registerSelectionMenu(null);
     document.removeEventListener('selectionchange', this.handleSelectionChange);
     if (this.selectionMenuTimer) clearTimeout(this.selectionMenuTimer);
   }
