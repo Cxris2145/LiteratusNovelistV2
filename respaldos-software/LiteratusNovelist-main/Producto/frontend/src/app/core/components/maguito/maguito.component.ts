@@ -241,7 +241,7 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   /** Reproduce un gesto suelto desde fuera (p. ej. al probarse ropa en la Taberna) sin emitir (poked). */
-  play(gesture: 'poke' | 'success'): void {
+  play(gesture: 'poke' | 'success' | 'greet' | 'chat'): void {
     if (this.viewReady) this.show(gesture);
   }
 

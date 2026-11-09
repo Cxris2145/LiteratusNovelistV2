@@ -1,8 +1,9 @@
 <main class="th-hall" [class.is-cinema]="cinemaMode">
   <!-- El salón ilustrado: una capa pegajosa que no obliga a repintar la página al desplazarse. -->
-  <div class="th-backdrop" aria-hidden="true">
-    <!-- El salón con su gente: magos que pasan, la mesera, un duelo, amigos que brindan. -->
-    <div class="th-room"><app-tavern-crowd></app-tavern-crowd></div>
+  <!-- La luz sigue el sol de la zona del lector: día, tarde, crepúsculo o noche. -->
+  <div class="th-backdrop" aria-hidden="true" [attr.data-light]="daylight.info().light">
+    <!-- El salón con su gente: magos que pasan, la mesera, la pelotita, amigos que brindan. -->
+    <div class="th-room"><app-tavern-crowd [light]="daylight.info().light"></app-tavern-crowd></div>
   </div>
   <!-- Cabecera compacta para dejar el protagonismo al salón. -->
   <header class="th-hero">
@@ -11,7 +12,18 @@
         <span class="material-symbols-rounded th-title-icon" aria-hidden="true">sports_bar</span>
         La Taberna de Tinta
       </h1>
-      <p class="th-lead">Donde las historias nos reúnen.</p>
+      <p class="th-lead">
+        Donde las historias nos reúnen.
+        <span class="th-clock" [attr.data-light]="daylight.info().light"
+              [attr.title]="'La taberna sigue la hora de tu zona (' + daylight.info().zone + ')'">
+          <svg viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="daylight.info().light">
+            <g *ngSwitchCase="'day'"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7" /></g>
+            <g *ngSwitchCase="'night'"><path d="M19.5 14.6A7.8 7.8 0 1 1 9.4 4.5a6.3 6.3 0 0 0 10.1 10.1Z" /></g>
+            <g *ngSwitchDefault><path d="M6.8 16a5.2 5.2 0 0 1 10.4 0M2.5 19.5h19M12 5.5v2.6M4.6 9.1l1.8 1.8M19.4 9.1l-1.8 1.8" /></g>
+          </svg>
+          {{ daylight.info().label }}
+        </span>
+      </p>
     </div>
     <div class="th-actions" *ngIf="loggedIn; else visitorActions">
       <!-- Control de la vista del salón. -->

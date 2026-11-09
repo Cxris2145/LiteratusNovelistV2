@@ -8,33 +8,52 @@
 }
 :host {
   --cr-ease-out: var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+  --cr-ball-cycle: 4s;
+  /* Cuánto alumbra la sala a cada fila de personajes, y cuánto brillan las velas (por hora). */
+  --cr-far-light: brightness(.62) saturate(.82);
+  --cr-mid-light: brightness(.74) saturate(.9);
+  --cr-near-light: brightness(.84);
+  --cr-glow: 1.12;
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
+:host([data-light='twilight']) {
+  --cr-far-light: brightness(.72) saturate(.85);
+  --cr-mid-light: brightness(.84) saturate(.92);
+  --cr-near-light: brightness(.94);
+  --cr-glow: 1;
+}
+:host([data-light='dusk']) {
+  --cr-far-light: brightness(.82) saturate(.92);
+  --cr-mid-light: brightness(.92) saturate(.96);
+  --cr-near-light: brightness(.98);
+  --cr-glow: .7;
+}
+:host([data-light='day']) {
+  --cr-far-light: brightness(.9) saturate(.9);
+  --cr-mid-light: brightness(.98) saturate(.95);
+  --cr-near-light: brightness(1.03);
+  --cr-glow: .38;
+}
 /* Los muebles pertenecen a la misma pintura y conservan sus bordes al tapar a los sentados. */
-.cr-seating, .cr-furniture, .cr-activity { position: absolute; inset: 0; }
+.cr-seating, .cr-back, .cr-furniture, .cr-activity { position: absolute; inset: 0; }
 .cr-seating { z-index: auto; }
-.cr-seated.cr-far { z-index: 0; }
-.cr-seated:not(.cr-far) { z-index: 2; }
-.cr-seated::after { display: none; }
+.cr-seated, .cr-back { z-index: 0; }
+.cr-seated::after, .cr-back .cr-actor::after { display: none; }
+/* La misma pintura que la sala (cambia con la hora del día: la pone tavern-hall). */
 .cr-furniture {
   z-index: 1;
-  background: url('/assets/images/tavern-room-empty.jpg') center / 100% 100% no-repeat;
+  background: var(--th-room-image, url('/assets/images/tavern-room-night.jpg')) center / 100% 100% no-repeat;
 }
-.cr-left-table, .cr-right-table { z-index: 3; }
 .cr-activity { z-index: 4; }
 .cr-counter {
   clip-path: polygon(0 50.5%, 8% 50.5%, 8% 50.1%, 14.8% 50.1%, 14.8% 50.7%, 19.2% 50.6%, 19.2% 50.2%, 29.6% 50.2%, 30.5% 50.7%, 30.5% 64%, 0 64%);
 }
+/* El pilar de madera que corta la barra va delante de ella: tapa a quien quede detrás. */
+.cr-pillar { clip-path: polygon(16% 30%, 20.4% 30%, 20.4% 56%, 16% 56%); }
 .cr-back-tables {
   clip-path: polygon(32.9% 49.7%, 35% 49.7%, 35% 50.4%, 39.2% 50.4%, 39.2% 49.7%, 42% 49.7%, 42% 50.4%, 45.3% 50.4%, 45.3% 49.7%, 47.1% 49.7%, 47.1% 50.4%, 50.6% 50.4%, 50.6% 49.7%, 52.4% 49.7%, 52.4% 50.4%, 59% 50.4%, 59% 49.7%, 61.8% 49.7%, 61.8% 56.6%, 32.9% 56.6%);
-}
-.cr-left-table {
-  clip-path: polygon(3.8% 56.6%, 5.6% 56.1%, 5.6% 54.9%, 6.3% 55%, 6.6% 55.7%, 8.7% 56%, 8.8% 55.3%, 9.6% 55.4%, 10.2% 57.7%, 14.4% 58%, 14.4% 55.2%, 14.9% 54.8%, 16% 54.8%, 16.2% 58%, 17.4% 57.8%, 17.4% 55%, 17.8% 54.4%, 17.8% 52.7%, 18.4% 52.2%, 19% 52.7%, 19% 54.3%, 19.5% 55.1%, 19.5% 58%, 20.9% 58.3%, 21.1% 60.2%, 21.1% 74%, 3.8% 74%);
-}
-.cr-right-table {
-  clip-path: polygon(75.8% 53.1%, 76.4% 52.5%, 77% 52.6%, 77.3% 53.2%, 79.2% 53.2%, 79.2% 52.5%, 79.8% 52.5%, 80.1% 53.4%, 82.1% 53.3%, 82.1% 52.6%, 82.9% 52.7%, 83.3% 53.5%, 83.3% 56.1%, 83.5% 53.9%, 83.8% 53.2%, 85% 53.2%, 85.2% 56.2%, 85.4% 55.7%, 85.4% 53.7%, 85.8% 52.8%, 85.8% 51.7%, 86.2% 51.1%, 86.6% 51.7%, 86.6% 52.7%, 87% 53.7%, 87% 56.2%, 88% 56.3%, 88.2% 53.9%, 89.5% 53.8%, 89.8% 56.5%, 91.7% 56.9%, 91.7% 53.4%, 92.2% 52.9%, 92.8% 53.1%, 92.8% 55.7%, 94.7% 56%, 94.7% 55.5%, 95.3% 55.3%, 95.6% 56%, 97.5% 55.9%, 97.5% 55.3%, 98.3% 55.4%, 98.3% 74%, 75.8% 74%);
 }
 /* Pestaña oculta: todo queda donde está. */
 :host(.is-paused) *,
@@ -64,10 +83,10 @@
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(10, 6, 4, .55), transparent);
 }
-/* Profundidad: lo lejano, más apagado (la luz de la sala no llega igual). */
-.cr-far { filter: brightness(.72) saturate(.85); }
-.cr-mid { filter: brightness(.84) saturate(.92); }
-.cr-near { filter: brightness(.94); }
+/* Profundidad: lo lejano, más apagado (la luz de la sala no llega igual); de día, todos más claros. */
+.cr-far { filter: var(--cr-far-light); }
+.cr-mid { filter: var(--cr-mid-light); }
+.cr-near { filter: var(--cr-near-light); }
 
 .cr-face.is-left { transform: scaleX(-1); }
 /* Paso al caminar: un rebote corto y un leve vaivén. */
@@ -88,7 +107,14 @@
   to { transform: translateY(-1.5%) rotate(1.5deg); }
 }
 
-/* ── Carriles: cruzan el salón (el % de translateX es del ancho de la pintura) ── */
+/* ── Carriles: cruzan el salón (el % de translateX es del ancho de la pintura) ──
+   Nadie se da vuelta: cada uno entra por un costado, sale por el otro y el bucle vuelve a
+   empezar fuera de la pintura (-8 % / 102 %). La velocidad sale del paso del Maguito: el pie
+   apoyado retrocede 50 de las 400 unidades del dibujo en medio ciclo, así que el cuerpo avanza
+   un cuarto de su ancho por ciclo (6 % de ancho y 1 s de ciclo = 1,5 % por segundo) y los pies
+   no patinan. Al detenerse frenan con desaceleración constante: cubic-bezier(.333,.667,.667,1)
+   empieza con el doble de la pendiente media, justo la velocidad que traían, y el arranque usa
+   la curva inversa, cubic-bezier(.333,0,.667,.333). */
 .cr-lane {
   position: absolute;
   left: 0;
@@ -96,165 +122,231 @@
   width: 100%;
   height: 0;
 }
+/* Los dos cruzan por delante de las mesas de los costados (más cerca que sus sillas), así ningún
+   mueble los recorta. Más cerca, más grandes: 10 % y 9,5 % de ancho. */
+/* De izquierda a derecha, de un tirón (10 % de ancho: 2,5 % por segundo). */
 .cr-lane-a {
-  --cr-route-duration: 64s;
-  --cr-route-phase: -8s;
   --mg-walk-cycle: 1000ms;
   --mg-walk-phase: -240ms;
-  animation: cr-patrol-a var(--cr-route-duration) linear var(--cr-route-phase) infinite;
+  animation: cr-cross-a 56s linear -30s infinite;
 }
+@keyframes cr-cross-a {
+  0% { transform: translateX(-12%); }
+  81.43%, 100% { transform: translateX(102%); }
+}
+/* De derecha a izquierda; se detiene un momento a mirar la pelotita y sigue su camino. */
 .cr-lane-b {
-  --cr-route-duration: 76s;
-  --cr-route-phase: -34s;
   --mg-walk-cycle: 1180ms;
   --mg-walk-phase: -740ms;
-  animation: cr-patrol-b var(--cr-route-duration) linear var(--cr-route-phase) infinite;
+  animation: cr-cross-b 72s linear -14s infinite;
 }
-/* El viaje y los pasos comparten sus pausas. Cada recorrido vuelve a su punto inicial. */
-@keyframes cr-patrol-a {
-  0%, 3% { transform: translateX(23%); --mg-walk-amount: 0; }
-  4%, 46% { --mg-walk-amount: 1; }
-  47%, 51% { transform: translateX(71%); --mg-walk-amount: 0; }
-  52%, 95% { --mg-walk-amount: 1; }
-  96%, 100% { transform: translateX(23%); --mg-walk-amount: 0; }
-}
-@keyframes cr-patrol-b {
-  0%, 3% { transform: translateX(71%); --mg-walk-amount: 0; }
-  4%, 46% { --mg-walk-amount: 1; }
-  47%, 51% { transform: translateX(23%); --mg-walk-amount: 0; }
-  52%, 95% { --mg-walk-amount: 1; }
-  96%, 100% { transform: translateX(71%); --mg-walk-amount: 0; }
-}
-.cr-face-walker-a { animation: cr-turn-a var(--cr-route-duration) linear var(--cr-route-phase) infinite; }
-.cr-face-walker-b { animation: cr-turn-b var(--cr-route-duration) linear var(--cr-route-phase) infinite; }
-@keyframes cr-turn-a {
-  0%, 48%, 99%, 100% { transform: scaleX(1); }
-  49%, 97% { transform: scaleX(-1); }
-}
-@keyframes cr-turn-b {
-  0%, 48%, 99%, 100% { transform: scaleX(-1); }
-  49%, 97% { transform: scaleX(1); }
+@keyframes cr-cross-b {
+  0% { transform: translateX(102%); --mg-walk-amount: 1; }
+  37.82% { transform: translateX(47.2%); --mg-walk-amount: 1; animation-timing-function: cubic-bezier(.333, .667, .667, 1); }
+  39.47% { transform: translateX(46%); --mg-walk-amount: 0; }
+  45.03% { transform: translateX(46%); --mg-walk-amount: 0; animation-timing-function: cubic-bezier(.333, 0, .667, .333); }
+  46.68% { transform: translateX(44.8%); --mg-walk-amount: 1; }
+  85.88%, 100% { transform: translateX(-12%); --mg-walk-amount: 1; }
 }
 
-/* La mesera: va a una mesa, sirve, va a otra, sirve y vuelve a la barra. */
-.cr-lane-waitress {
-  --mg-walk-cycle: 900ms;
-  --mg-walk-phase: -300ms;
-  animation: cr-serve 36s linear -6s infinite;
-}
-.cr-face-waitress { animation: cr-serve-face 36s linear -6s infinite; }
-@keyframes cr-serve {
-  0%, 1% { transform: translateX(24%); --mg-walk-amount: 0; }
-  2%, 23% { --mg-walk-amount: 1; }
-  24%, 30% { transform: translateX(45%); --mg-walk-amount: 0; }
-  31%, 49.5% { --mg-walk-amount: 1; }
-  50.5%, 56.5% { transform: translateX(63%); --mg-walk-amount: 0; }
-  57.5%, 96% { --mg-walk-amount: 1; }
-  97%, 100% { transform: translateX(24%); --mg-walk-amount: 0; }
-}
-@keyframes cr-serve-face {
-  0%, 54.5%, 100% { transform: scaleX(1); }
-  55.5%, 98% { transform: scaleX(-1); }
-  99% { transform: scaleX(1); }
-}
-.cr-tray {
-  position: absolute;
-  top: 62%;
-  right: -7%;
-  width: 55%;
-  overflow: visible;
-  transform-origin: 50% 80%;
-  animation: cr-tray-carry var(--mg-walk-cycle) ease-in-out var(--mg-walk-phase) infinite;
-}
-@keyframes cr-tray-carry {
-  0%, 50%, 100% { transform: none; }
-  25% { transform: translateY(calc(-1px * var(--mg-walk-amount, 1))) rotate(calc(-.7deg * var(--mg-walk-amount, 1))); }
-  75% { transform: translateY(calc(-1px * var(--mg-walk-amount, 1))) rotate(calc(.7deg * var(--mg-walk-amount, 1))); }
-}
-.cr-mug { fill: #8a5a2b; stroke: #4a2c14; stroke-width: 1.2; }
-.cr-foam { fill: #fff3d6; }
-.cr-plate { fill: #c9a14a; stroke: #7a5a1e; stroke-width: 1.2; }
 
-/* ── Duelo de varitas ───────────────────────────────────────────── */
+/* ── La pelotita mágica ─────────────────────────────────────────────
+   Un ciclo de 4 s, en espejo: quien la tiene se prepara (6-13 %), la lanza con la varita (14 %),
+   vuela en arco (14-32 %) y el otro la ataja y la tiñe de su color (32 %). El segundo jugador usa
+   los mismos gestos medio ciclo después. El arco es una parábola: sube frenando y baja
+   acelerando, con las mismas curvas cuadráticas de los frenados. */
 .cr-wand {
   position: absolute;
   top: 30%;
   right: -20%;
   width: 34%;
   overflow: visible;
+  transform-origin: 10% 85%;
+  animation: cr-wand-play var(--cr-ball-cycle) linear infinite;
 }
 .cr-wand path:first-child { stroke: #5a3a1e; stroke-width: 3.2; stroke-linecap: round; fill: none; }
 .cr-wand-tip { fill: #ffd166; }
-/* Quien recibe la chispa retrocede un instante. */
-.cr-recoil-r { animation: cr-recoil-r 3.4s var(--cr-ease-out) infinite; }
-.cr-recoil-l { animation: cr-recoil-l 3.4s var(--cr-ease-out) infinite; }
-@keyframes cr-recoil-r {
-  0%, 32%, 46%, 100% { transform: none; }
-  35% { transform: translateX(-8%) rotate(-8deg); }
+.cr-bob.cr-player { animation: cr-player var(--cr-ball-cycle) linear infinite; }
+.cr-player.is-second,
+.cr-player.is-second .cr-wand { animation-delay: calc(var(--cr-ball-cycle) / -2); }
+/* Echa la varita atrás, la sacude hacia adelante y, al atajar, el golpe se la empuja un poco. */
+@keyframes cr-wand-play {
+  0%, 5% { transform: none; animation-timing-function: ease-in-out; }
+  12.5% { transform: rotate(-24deg); animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  16.5% { transform: rotate(16deg); animation-timing-function: ease-in-out; }
+  27%, 81.5% { transform: none; animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  84% { transform: rotate(-12deg); animation-timing-function: ease-in-out; }
+  93%, 100% { transform: none; }
 }
-@keyframes cr-recoil-l {
-  0%, 82%, 96%, 100% { transform: none; }
-  85% { transform: translateX(-8%) rotate(-8deg); }
+/* El cuerpo acompaña: se inclina hacia atrás, sigue el lanzamiento y amortigua la atajada. */
+@keyframes cr-player {
+  0%, 5% { transform: none; animation-timing-function: ease-in-out; }
+  12.5% { transform: translateX(-4%) rotate(-4deg); animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  17% { transform: translateX(3%) rotate(3deg); animation-timing-function: ease-in-out; }
+  29%, 81.5% { transform: none; animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  84.5% { transform: translateX(-5%) rotate(-3.5deg); animation-timing-function: ease-in-out; }
+  95%, 100% { transform: none; }
 }
-.cr-spark-lane {
+/* El carril va de la punta de una varita a la otra. */
+.cr-ball-lane {
+  --cr-orb: 19%;
   position: absolute;
   left: var(--x);
   bottom: var(--b);
   width: var(--w);
   height: 0;
 }
-.cr-spark-run {
+.cr-ball {
+  --lag: 0ms;
   position: absolute;
   left: 0;
   bottom: 0;
   width: 100%;
   height: 0;
-  opacity: 0;
+  animation: cr-ball-x var(--cr-ball-cycle) linear var(--lag) infinite;
 }
-.cr-spark-run i {
+.cr-ball-arc {
   position: absolute;
   left: 0;
   bottom: 0;
-  width: 11%;
+  width: var(--cr-orb);
   aspect-ratio: 1;
-  border-radius: 50%;
   translate: -50% 50%;
+  animation: cr-ball-arc var(--cr-ball-cycle) linear var(--lag) infinite;
 }
-.cr-spark-run.is-gold { animation: cr-spark-go 3.4s linear infinite; }
-.cr-spark-run.is-gold i { background: radial-gradient(circle, #fffbe6 0 30%, #ffd166 55%, transparent 72%); box-shadow: 0 0 14px 5px rgba(255, 196, 92, .75); }
-.cr-spark-run.is-violet { animation: cr-spark-back 3.4s linear infinite; }
-.cr-spark-run.is-violet i { background: radial-gradient(circle, #f5ecff 0 30%, #b88bff 55%, transparent 72%); box-shadow: 0 0 14px 5px rgba(168, 120, 255, .75); }
-@keyframes cr-spark-go {
-  0%, 2% { transform: translateX(0); opacity: 0; }
-  4%, 30% { opacity: 1; }
-  32%, 100% { transform: translateX(100%); opacity: 0; }
+.cr-ball-core {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: cr-ball-squash var(--cr-ball-cycle) linear var(--lag) infinite;
 }
-@keyframes cr-spark-back {
-  0%, 52% { transform: translateX(100%); opacity: 0; }
-  54%, 80% { opacity: 1; }
-  82%, 100% { transform: translateX(0); opacity: 0; }
+/* Dos capas de color que se funden: dorada para un jugador, violeta para el otro. */
+.cr-ball-core::before,
+.cr-ball-core::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: var(--cr-ball-cycle) linear var(--lag) infinite;
 }
-/* Chispazo al llegar: crece y se apaga. */
-.cr-burst {
+.cr-ball-core::before {
+  background: radial-gradient(circle at 38% 36%, #fffdf2 0 22%, #ffd166 48%, rgba(255, 170, 60, .2) 72%, transparent 74%);
+  box-shadow: 0 0 10px 3px rgba(255, 196, 92, .7);
+  animation-name: cr-ball-gold;
+}
+.cr-ball-core::after {
+  background: radial-gradient(circle at 38% 36%, #fbf6ff 0 22%, #b88bff 48%, rgba(150, 100, 255, .2) 72%, transparent 74%);
+  box-shadow: 0 0 10px 3px rgba(168, 120, 255, .7);
+  animation-name: cr-ball-violet;
+}
+/* La estela: dos copias que van un poco atrás, solo visibles en el aire. */
+.cr-ball.is-trail {
+  --lag: 55ms;
+  animation-name: cr-ball-x, cr-trail;
+  animation-duration: var(--cr-ball-cycle);
+  animation-timing-function: linear;
+  animation-delay: var(--lag);
+  animation-iteration-count: infinite;
+  opacity: 0;
+}
+.cr-ball.is-trail.is-far { --lag: 110ms; }
+.cr-ball.is-trail .cr-ball-core { animation: none; scale: .72; }
+.cr-ball.is-trail.is-far .cr-ball-core { scale: .5; }
+.cr-ball.is-trail .cr-ball-core::before,
+.cr-ball.is-trail .cr-ball-core::after { box-shadow: none; }
+
+@keyframes cr-ball-x {
+  0%, 6% { transform: translateX(0); animation-timing-function: ease-in-out; }
+  12.5% { transform: translateX(-6%); }
+  14% { transform: translateX(-6%); }
+  32% { transform: translateX(100%); animation-timing-function: ease-in-out; }
+  56% { transform: translateX(100%); animation-timing-function: ease-in-out; }
+  62.5% { transform: translateX(106%); }
+  64% { transform: translateX(106%); }
+  82% { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+@keyframes cr-ball-arc {
+  0% { transform: translateY(-30%); animation-timing-function: ease-in-out; }
+  7% { transform: translateY(0); animation-timing-function: ease-in-out; }
+  12.5% { transform: translateY(-45%); }
+  14% { transform: translateY(-45%); animation-timing-function: cubic-bezier(.333, .667, .667, 1); }
+  23% { transform: translateY(-165%); animation-timing-function: cubic-bezier(.333, 0, .667, .333); }
+  32% { transform: translateY(0); animation-timing-function: ease-in-out; }
+  41% { transform: translateY(-30%); animation-timing-function: ease-in-out; }
+  50% { transform: translateY(0); animation-timing-function: ease-in-out; }
+  57% { transform: translateY(0); animation-timing-function: ease-in-out; }
+  62.5% { transform: translateY(-45%); }
+  64% { transform: translateY(-45%); animation-timing-function: cubic-bezier(.333, .667, .667, 1); }
+  73% { transform: translateY(-165%); animation-timing-function: cubic-bezier(.333, 0, .667, .333); }
+  82% { transform: translateY(0); animation-timing-function: ease-in-out; }
+  91% { transform: translateY(-30%); animation-timing-function: ease-in-out; }
+  100% { transform: translateY(-30%); }
+}
+/* Se estira al salir disparada y se aplasta contra la varita al atajarla. */
+@keyframes cr-ball-squash {
+  0%, 13% { transform: none; }
+  15.5% { transform: scale(1.22, .84); }
+  21%, 31.5% { transform: none; animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  33% { transform: scale(.74, 1.24); animation-timing-function: ease-in-out; }
+  37% { transform: scale(1.08, .94); animation-timing-function: ease-in-out; }
+  41%, 63% { transform: none; }
+  65.5% { transform: scale(1.22, .84); }
+  71%, 81.5% { transform: none; animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  83% { transform: scale(.74, 1.24); animation-timing-function: ease-in-out; }
+  87% { transform: scale(1.08, .94); animation-timing-function: ease-in-out; }
+  91%, 100% { transform: none; }
+}
+@keyframes cr-ball-gold {
+  0%, 32% { opacity: 1; }
+  34.5%, 82% { opacity: 0; }
+  84.5%, 100% { opacity: 1; }
+}
+@keyframes cr-ball-violet {
+  0%, 32% { opacity: 0; }
+  34.5%, 82% { opacity: 1; }
+  84.5%, 100% { opacity: 0; }
+}
+@keyframes cr-trail {
+  0%, 14.5% { opacity: 0; }
+  16%, 30% { opacity: .5; }
+  32%, 64.5% { opacity: 0; }
+  66%, 80% { opacity: .5; }
+  82%, 100% { opacity: 0; }
+}
+/* Un anillo del color de quien ataja, que se abre y se apaga. */
+.cr-catch {
   position: absolute;
   bottom: 0;
-  width: 30%;
+  width: 46%;
   aspect-ratio: 1;
   border-radius: 50%;
   translate: -50% 50%;
   opacity: 0;
+  animation: var(--cr-ball-cycle) var(--cr-ease-out) infinite;
 }
-.cr-burst.is-right { left: 100%; background: radial-gradient(circle, rgba(255, 240, 190, .95), rgba(255, 190, 90, .45) 38%, transparent 70%); animation: cr-burst-r 3.4s var(--cr-ease-out) infinite; }
-.cr-burst.is-left { left: 0; background: radial-gradient(circle, rgba(240, 225, 255, .95), rgba(170, 120, 255, .45) 38%, transparent 70%); animation: cr-burst-l 3.4s var(--cr-ease-out) infinite; }
-@keyframes cr-burst-r {
-  0%, 31% { opacity: 0; transform: scale(.5); }
-  33% { opacity: 1; }
-  44%, 100% { opacity: 0; transform: scale(1.7); }
+.cr-catch.is-right {
+  left: 100%;
+  border: 1.5px solid rgba(214, 190, 255, .9);
+  background: radial-gradient(closest-side, rgba(200, 160, 255, .35), transparent);
+  animation-name: cr-catch-r;
 }
-@keyframes cr-burst-l {
-  0%, 81% { opacity: 0; transform: scale(.5); }
-  83% { opacity: 1; }
-  94%, 100% { opacity: 0; transform: scale(1.7); }
+.cr-catch.is-left {
+  left: 0;
+  border: 1.5px solid rgba(255, 226, 150, .9);
+  background: radial-gradient(closest-side, rgba(255, 210, 120, .35), transparent);
+  animation-name: cr-catch-l;
+}
+@keyframes cr-catch-r {
+  0%, 31.5% { opacity: 0; transform: scale(.35); }
+  32.5% { opacity: 1; transform: scale(.45); }
+  45%, 100% { opacity: 0; transform: scale(1.6); }
+}
+@keyframes cr-catch-l {
+  0%, 81.5% { opacity: 0; transform: scale(.35); }
+  82.5% { opacity: 1; transform: scale(.45); }
+  95%, 100% { opacity: 0; transform: scale(1.6); }
 }
 
 /* ── Charla al fondo y brindis ──────────────────────────────────── */
@@ -273,14 +365,9 @@
   font-size: clamp(10px, .85vw, 16px);
   opacity: 0;
   transform: translate(-50%, 4px) scale(.9);
-  animation: cr-say 7s var(--cr-ease-out) infinite;
+  transition: opacity 200ms var(--cr-ease-out), transform 260ms var(--cr-ease-out);
 }
-.cr-say-b { animation-delay: 3.5s; }
-@keyframes cr-say {
-  0%, 6% { opacity: 0; transform: translate(-50%, 4px) scale(.9); }
-  10%, 38% { opacity: 1; transform: translate(-50%, 0); }
-  44%, 100% { opacity: 0; transform: translate(-50%, 0); }
-}
+.cr-say.is-on { opacity: 1; transform: translate(-50%, 0); }
 .cr-cheers {
   color: #1a1005;
   background: #ffd166;
@@ -291,14 +378,264 @@
 }
 .cr-cheers.is-on { opacity: 1; transform: translate(-50%, 0); }
 
-/* Reducir movimiento: cada uno queda quieto en un buen lugar, sin chispas ni globitos. */
+/* ── Más vida en los Maguitos ───────────────────────────────────────
+   Además de los gestos propios del Maguito (los dispara el componente al azar: saludo con el
+   sombrero, celebración, sorpresa), cada uno tiene un movimiento de cuerpo entero hecho solo con
+   transform, que el navegador compone sin repintar. */
+
+/* Sentados: se acomodan, miran a un lado y vuelven, cada uno a su ritmo. */
+.cr-idle {
+  transform-origin: 50% 100%;
+  animation: cr-idle var(--idle-d, 4s) ease-in-out var(--idle-delay, 0s) infinite;
+}
+@keyframes cr-idle {
+  0%, 100% { transform: none; }
+  22% { transform: translateY(-2.5%) rotate(-2.5deg); }
+  46% { transform: translateY(-.5%) rotate(1deg); }
+  70% { transform: translateY(-3%) rotate(2.5deg); }
+}
+/* El cuerpo acompaña los gestos del Maguito (el componente pone y saca la clase): saludar es
+   inclinarse con un rebote, celebrar es un salto que aterriza aplastándose, la sorpresa es un
+   respingo y hablar son dos asentimientos. */
+.cr-actor app-maguito { transform-origin: 50% 100%; }
+.cr-actor app-maguito.cr-gest-greet { animation: cr-gest-greet 1.3s var(--cr-ease-out); }
+.cr-actor app-maguito.cr-gest-chat { animation: cr-gest-chat 1.1s ease-in-out; }
+.cr-actor app-maguito.cr-gest-success { animation: cr-gest-success .95s linear; }
+.cr-actor app-maguito.cr-gest-poke { animation: cr-gest-poke .52s var(--cr-ease-out); }
+@keyframes cr-gest-greet {
+  0% { transform: none; }
+  18% { transform: translateY(-6%) rotate(-5deg); }
+  40% { transform: translateY(-2%) rotate(3deg); }
+  62% { transform: translateY(-4%) rotate(-2deg); }
+  100% { transform: none; }
+}
+@keyframes cr-gest-chat {
+  0%, 100% { transform: none; }
+  20% { transform: translateY(-4%) rotate(-2deg); }
+  40% { transform: none; }
+  62% { transform: translateY(-3%) rotate(2deg); }
+  82% { transform: none; }
+}
+@keyframes cr-gest-success {
+  0% { transform: none; animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  12% { transform: scale(1.06, .92); animation-timing-function: cubic-bezier(.333, .667, .667, 1); }
+  42% { transform: translateY(-15%) scale(.96, 1.05); animation-timing-function: cubic-bezier(.333, 0, .667, .333); }
+  70% { transform: scale(1.08, .9); animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  100% { transform: none; }
+}
+@keyframes cr-gest-poke {
+  0% { transform: none; }
+  30% { transform: translateY(-9%) scale(.94, 1.08); }
+  62% { transform: scale(1.05, .95); }
+  100% { transform: none; }
+}
+
+/* La mesera va y viene por su tramo de barra (de lado, sin darse vuelta). El recorrido termina
+   antes del pilar: a 7,8 % + 6 % de ancho + 20 % de corrimiento, su borde llega a 15 % y el pilar
+   empieza en 16 %. */
+.cr-bartender { animation: cr-tend 11s ease-in-out infinite; }
+@keyframes cr-tend {
+  0%, 18% { transform: none; }
+  38%, 58% { transform: translateX(20%); }
+  78%, 100% { transform: none; }
+}
+/* Al brindar, los tres amigos dan un saltito uno detrás del otro y aterrizan con un leve aplaste. */
+.cr-hop { transform-origin: 50% 100%; }
+.cr-back.is-toasting .cr-hop { animation: cr-cheer-hop 640ms var(--cr-ease-out) both; }
+.cr-back.is-toasting .cr-hop.is-second { animation-delay: 70ms; }
+.cr-back.is-toasting .cr-hop.is-third { animation-delay: 140ms; }
+@keyframes cr-cheer-hop {
+  0% { transform: none; }
+  38% { transform: translateY(-16%) scale(.97, 1.03); }
+  72% { transform: translateY(0) scale(1.05, .95); }
+  100% { transform: none; }
+}
+/* El de galera, en su parada, le hace una reverencia a la pelotita (mismo reloj que su recorrido;
+   el espejo de .cr-face la dirige hacia la izquierda, adonde mira). */
+.cr-lane-b .cr-walk {
+  transform-origin: 50% 100%;
+  animation: cr-bow 72s linear -14s infinite;
+}
+@keyframes cr-bow {
+  0%, 40.2% { transform: none; animation-timing-function: cubic-bezier(.23, 1, .32, 1); }
+  41.4% { transform: rotate(8deg) translateY(1.5%); }
+  42.6% { transform: rotate(8deg) translateY(1.5%); animation-timing-function: ease-in-out; }
+  43.8%, 100% { transform: none; }
+}
+/* El pirata da dos saltitos de contento a mitad de camino: sube frenando y baja acelerando. */
+.cr-lane-a .cr-walk {
+  transform-origin: 50% 100%;
+  animation: cr-skip 56s linear -30s infinite;
+}
+@keyframes cr-skip {
+  0%, 55% { transform: none; animation-timing-function: cubic-bezier(.333, .667, .667, 1); }
+  55.6% { transform: translateY(-12%); animation-timing-function: cubic-bezier(.333, 0, .667, .333); }
+  56.2% { transform: none; animation-timing-function: cubic-bezier(.333, .667, .667, 1); }
+  56.8% { transform: translateY(-9%); animation-timing-function: cubic-bezier(.333, 0, .667, .333); }
+  57.4%, 100% { transform: none; }
+}
+
+/* ── La luz del salón ───────────────────────────────────────────────
+   Va encima de todo: un halo tibio sobre cada vela, farol y chimenea de la pintura, polvo que
+   flota en la luz y estrellas en los ventanales. Son capas chicas que solo cambian opacidad y
+   transform; ninguna usa filtros ni modos de mezcla, así no se repinta la sala en cada cuadro. */
+.cr-ambience {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+}
+/* La opacidad propia de cada halo va en el elemento; el parpadeo, en su capa interior. */
+.cr-glow {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  aspect-ratio: var(--ratio, 1);
+  translate: -50% -50%;
+  opacity: calc(var(--o, .7) * var(--cr-glow, 1));
+}
+.cr-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 199, 118, .36), rgba(255, 160, 66, .15) 46%, rgba(255, 140, 50, 0));
+  animation: cr-candle var(--d, 3s) linear var(--delay, 0s) infinite;
+}
+.cr-glow.is-fire::before {
+  background: radial-gradient(closest-side, rgba(255, 176, 84, .5), rgba(255, 120, 40, .2) 50%, rgba(255, 100, 30, 0));
+  animation-name: cr-fire;
+}
+/* Una vela no respira parejo: baja, se recupera, titubea. */
+@keyframes cr-candle {
+  0%, 100% { opacity: 1; transform: scale(1); animation-timing-function: ease-in-out; }
+  21% { opacity: .78; transform: scale(.97); animation-timing-function: ease-in-out; }
+  37% { opacity: .95; transform: scale(1.02); animation-timing-function: ease-in-out; }
+  48% { opacity: .82; transform: scale(.98); animation-timing-function: ease-in-out; }
+  66% { opacity: .7; transform: scale(.96); animation-timing-function: ease-in-out; }
+  83% { opacity: .93; transform: scale(1.015); animation-timing-function: ease-in-out; }
+}
+@keyframes cr-fire {
+  0%, 100% { opacity: 1; transform: scale(1); animation-timing-function: ease-in-out; }
+  14% { opacity: .7; transform: scale(.95) translateY(2%); animation-timing-function: ease-in-out; }
+  27% { opacity: .92; transform: scale(1.04) translateY(-2%); animation-timing-function: ease-in-out; }
+  41% { opacity: .62; transform: scale(.94); animation-timing-function: ease-in-out; }
+  58% { opacity: 1; transform: scale(1.05) translateY(-3%); animation-timing-function: ease-in-out; }
+  76% { opacity: .75; transform: scale(.97) translateY(1%); animation-timing-function: ease-in-out; }
+}
+
+/* Polvo en la luz: sube despacio con un vaivén y se pierde. Las brasas suben más rápido. */
+.cr-mote {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 234, 192, .95);
+  box-shadow: 0 0 4px 1px rgba(255, 210, 140, .5);
+  opacity: 0;
+  animation: cr-mote var(--d, 12s) linear var(--delay, 0s) infinite;
+}
+.cr-mote.is-ember {
+  background: #ffbe6b;
+  box-shadow: 0 0 5px 2px rgba(255, 140, 50, .7);
+}
+@keyframes cr-mote {
+  0% { opacity: 0; transform: translate(0, 0); animation-timing-function: ease-in-out; }
+  20% { opacity: .8; }
+  50% { transform: translate(var(--dx), calc(var(--rise) * -.5)); animation-timing-function: ease-in-out; }
+  80% { opacity: .55; }
+  100% { opacity: 0; transform: translate(calc(var(--dx) * .3), calc(var(--rise) * -1)); }
+}
+
+/* Estrellas de cuatro puntas que titilan detrás de los vidrios. */
+.cr-star {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 32%, rgba(226, 216, 255, .55) 52%, transparent 72%);
+  animation: cr-twinkle var(--d, 4s) ease-in-out var(--delay, 0s) infinite;
+}
+.cr-star::before,
+.cr-star::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 360%;
+  height: 12%;
+  translate: -50% -50%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .8), transparent);
+}
+.cr-star::after { rotate: 90deg; }
+@keyframes cr-twinkle {
+  0%, 100% { opacity: .3; transform: scale(.6); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+/* De vez en cuando, una estrella fugaz cruza el ventanal grande. */
+.cr-meteor {
+  position: absolute;
+  left: 91%;
+  top: 30%;
+  width: 4.5%;
+  height: .14%;
+  min-height: 1px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, rgba(255, 250, 235, 0), rgba(255, 250, 235, .95));
+  transform-origin: 100% 50%;
+  opacity: 0;
+  animation: cr-meteor 19s linear 6s infinite;
+}
+@keyframes cr-meteor {
+  0%, 92% { opacity: 0; transform: rotate(152deg) translateX(0); }
+  92.6% { opacity: 1; }
+  96.5% { opacity: 0; transform: rotate(152deg) translateX(150%); }
+  100% { opacity: 0; transform: rotate(152deg) translateX(150%); }
+}
+
+/* Rayos por los ventanales grandes: sol alto y blanco de día, largo y dorado de tarde, una luz de
+   luna fría y tenue de noche; al crepúsculo no hay. Cada rayo es un polígono fijo (de la ventana
+   al piso) con un degradado; solo respira su opacidad, como si pasaran nubes. */
+.cr-beam {
+  --beam: rgba(176, 190, 255, .1);
+  --beam-soft: rgba(176, 190, 255, .04);
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 38%, var(--beam) 50%, var(--beam-soft) 68%, transparent 92%);
+  animation: cr-beam-breathe 11s ease-in-out infinite alternate;
+}
+.cr-beam.is-near { clip-path: polygon(70% 22%, 79.5% 18%, 77% 84%, 64% 88%); }
+.cr-beam.is-far { clip-path: polygon(85.5% 16%, 96% 13%, 96% 82%, 82% 88%); animation-delay: -5s; }
+:host([data-light='twilight']) .cr-beam { display: none; }
+:host([data-light='day']) .cr-beam { --beam: rgba(255, 249, 228, .3); --beam-soft: rgba(255, 244, 214, .1); }
+:host([data-light='day']) .cr-beam.is-near { clip-path: polygon(69.5% 24%, 79.6% 19%, 74% 86%, 60% 90%); }
+:host([data-light='day']) .cr-beam.is-far { clip-path: polygon(85% 18%, 96.2% 14%, 94% 84%, 77% 90%); }
+:host([data-light='dusk']) .cr-beam { --beam: rgba(255, 186, 104, .3); --beam-soft: rgba(255, 160, 80, .1); }
+:host([data-light='dusk']) .cr-beam.is-near { clip-path: polygon(69.5% 26%, 79.6% 22%, 62% 80%, 40% 86%); }
+:host([data-light='dusk']) .cr-beam.is-far { clip-path: polygon(85% 22%, 96.2% 18%, 82% 82%, 58% 88%); }
+@keyframes cr-beam-breathe {
+  from { opacity: .72; }
+  to { opacity: 1; }
+}
+/* Con sol no hay estrellas. */
+:host([data-light='day']) .cr-star, :host([data-light='day']) .cr-meteor,
+:host([data-light='dusk']) .cr-star, :host([data-light='dusk']) .cr-meteor { display: none; }
+
+/* Reducir movimiento: cada uno queda quieto en un buen lugar, con la pelotita en la varita, las
+   velas encendidas sin parpadeo y las estrellas quietas; sin polvo, estela ni globitos. */
 @media (prefers-reduced-motion: reduce) {
-  .cr-lane, .cr-face-waitress, .cr-face-walker-a, .cr-face-walker-b,
-  .cr-bob, .cr-tray, .cr-spark-run, .cr-burst, .cr-say { animation: none !important; }
-  .cr-lane-a { transform: translateX(31%); }
-  .cr-lane-b { transform: translateX(63%); }
-  .cr-lane-waitress { transform: translateX(45%); }
-  .cr-face-walker-b { transform: scaleX(-1); }
-  .cr-spark-run, .cr-burst, .cr-say { display: none; }
+  .cr-lane, .cr-bob, .cr-wand, .cr-say, .cr-idle, .cr-hop, .cr-bartender, .cr-walk, .cr-actor app-maguito,
+  .cr-ball, .cr-ball-arc, .cr-ball-core, .cr-ball-core::before, .cr-ball-core::after, .cr-catch,
+  .cr-glow::before, .cr-mote, .cr-star, .cr-meteor, .cr-beam { animation: none !important; }
+  .cr-lane-a { transform: translateX(60%); }
+  .cr-lane-b { transform: translateX(44%); }
+  .cr-ball-core::after { opacity: 0; }
+  .cr-ball.is-trail, .cr-catch, .cr-mote, .cr-meteor, .cr-say { display: none; }
+  .cr-star { opacity: .7; }
   .cr-cheers { transition: opacity 150ms ease; transform: translate(-50%, 0); }
 }

@@ -16,6 +16,7 @@ import { BazarGesture, BazarTab, isBazarTab } from '../tavern-bazar/tavern-bazar
 import { SceneGuest } from '../tavern-scene/tavern-scene.component';
 import { TavernTableAction } from '../tavern-table/tavern-table.types';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
+import { TavernDaylightService } from '../tavern-daylight';
 import { listContainerMotion, listItemMotion, listItemParams, morphLayout } from '../tavern-motion';
 
 const POLL_MS = 8000;
@@ -77,6 +78,9 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
   private poll: ReturnType<typeof setInterval> | null = null;
+  /** La sala de día, de tarde, al crepúsculo o de noche, según el sol de la zona del lector. */
+  readonly daylight = inject(TavernDaylightService);
+  private stopDaylight = this.daylight.watch();
 
   readonly loggedIn = this.auth.isLoggedIn();
   get isGuest(): boolean { return this.auth.isGuest(); }
@@ -189,6 +193,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.stopDaylight();
     if (this.poll) clearInterval(this.poll);
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
     if (this.spotlightTimer) clearTimeout(this.spotlightTimer);

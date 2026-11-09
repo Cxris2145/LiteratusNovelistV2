@@ -80,7 +80,14 @@
   overflow: hidden;
   /* La pintura y su gente se miden contra este recuadro (unidades cqw / cqh). */
   container-type: size;
+  /* Una pintura por hora del día; las copias de muebles de app-tavern-crowd leen la misma. */
+  --th-room-image: url('/assets/images/tavern-room-night.jpg');
+  --th-shade: rgba(12, 10, 20, .5);
 }
+.th-backdrop[data-light='day'] { --th-room-image: url('/assets/images/tavern-room-day.jpg'); --th-shade: rgba(28, 20, 14, .3); }
+.th-backdrop[data-light='dusk'] { --th-room-image: url('/assets/images/tavern-room-dusk.jpg'); --th-shade: rgba(30, 14, 10, .4); }
+.th-backdrop[data-light='twilight'] { --th-room-image: url('/assets/images/tavern-room-empty.jpg'); }
+.th-backdrop[data-light='night'] { --th-shade: rgba(8, 8, 22, .58); }
 /* El salón: misma proporción que la pintura (1376 × 768), recortado como "cover" y apoyado abajo.
    La gente del fondo (app-tavern-crowd) vive dentro, así pisa siempre el piso pintado. */
 .th-room {
@@ -90,16 +97,16 @@
   width: max(100cqw, calc(100cqh * 1376 / 768));
   aspect-ratio: 1376 / 768;
   transform: translateX(-50%);
-  background: url('/assets/images/tavern-room-empty.jpg') center / 100% 100% no-repeat;
+  background: var(--th-room-image) center / 100% 100% no-repeat;
 }
-/* Penumbra a los lados y abajo, por encima de la pintura y de la gente. */
+/* Penumbra a los lados y abajo, por encima de la pintura y de la gente: más honda de noche. */
 .th-backdrop::after {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(90deg, rgba(12, 10, 20, .48), rgba(12, 10, 20, .08) 35%, rgba(12, 10, 20, .08) 65%, rgba(12, 10, 20, .48)),
-    linear-gradient(0deg, rgba(12, 10, 20, .5), transparent 45%);
+    linear-gradient(90deg, var(--th-shade), transparent 35%, transparent 65%, var(--th-shade)),
+    linear-gradient(0deg, var(--th-shade), transparent 45%);
 }
 
 /* Sin relleno lateral: el título queda alineado con el borde de las columnas. */
@@ -140,6 +147,36 @@
   line-height: 1.5;
   text-shadow: 0 1px 4px #160f0d, 0 2px 10px #160f0d;
 }
+/* La hora de la sala, junto al lema: el ícono toma el color de la luz de afuera. */
+.th-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 8px;
+  padding: 1px 9px 1px 6px;
+  border: 1px solid rgba(255, 226, 170, .22);
+  border-radius: 99px;
+  background: rgba(22, 15, 12, .55);
+  color: #f6e6cc;
+  font-size: .74rem;
+  font-weight: 600;
+  vertical-align: 1px;
+  text-shadow: none;
+  white-space: nowrap;
+}
+.th-clock svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.th-clock[data-light='day'] svg { color: #ffd166; }
+.th-clock[data-light='dusk'] svg { color: #ffa45c; }
+.th-clock[data-light='twilight'] svg { color: #f4a3c6; }
+.th-clock[data-light='night'] svg { color: #c9c3ff; fill: rgba(201, 195, 255, .25); }
 /* Cabecera: utilidades (íconos) | separador | Lecturas conjuntas · Charlas · El Bazar.
    Todo mide --th-control-h para quedar en una línea. */
 .th-actions {
