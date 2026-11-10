@@ -21,13 +21,13 @@
       <div class="hero-metrics">
         <div class="metric-pill">
           <span class="material-symbols-rounded metric-icon">category</span>
-          <span class="metric-value">{{ totalCategoriesCount || 33 }}</span>
+          <span class="metric-value">{{ totalCategoriesCount }}</span>
           <span class="metric-label">Géneros Curados</span>
         </div>
         <div class="metric-divider"></div>
         <div class="metric-pill">
           <span class="material-symbols-rounded metric-icon">auto_stories</span>
-          <span class="metric-value">{{ totalBooksCount > 0 ? (totalBooksCount | number) : '2,500+' }}</span>
+          <span class="metric-value">{{ totalBooksCount > 0 ? (totalBooksCount | number) : '200' }}</span>
           <span class="metric-label">Libros Disponibles</span>
         </div>
         <div class="metric-divider"></div>
@@ -185,7 +185,7 @@
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
               </svg>
-              <span>{{ cat.bookCount }}+ obras</span>
+              <span>{{ cat.bookCount }} {{ cat.bookCount === 1 ? 'obra' : 'obras' }}</span>
             </div>
           </div>
 

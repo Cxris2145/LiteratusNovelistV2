@@ -86,8 +86,14 @@ export class CategoriesComponent implements OnInit {
     return result;
   }
 
+  realGenresCount = 0;
+
   get totalCategoriesCount(): number {
-    return this.categories.length;
+    if (this.realGenresCount > 0) {
+      return this.realGenresCount;
+    }
+    const realList = this.categories.filter(c => c.slug !== 'literatura-y-ficcion');
+    return realList.length > 0 ? realList.length : 10;
   }
 
   ngOnInit(): void {
@@ -99,6 +105,7 @@ export class CategoriesComponent implements OnInit {
     this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000).subscribe({
       next: (res) => {
         const genres = res.results || res;
+        this.realGenresCount = typeof res.count === 'number' ? res.count : (Array.isArray(genres) ? genres.length : 10);
         this.categories = genres.map((g: any, index: number) => {
           const meta = CATEGORY_METADATA[g.slug] || {
             desc: `Explora nuestra colección selecta de obras de ${g.name.toLowerCase()}.`,
@@ -137,9 +144,12 @@ export class CategoriesComponent implements OnInit {
         this.isLoading = false;
         this.scrollReveal.debouncedScan(); // la grilla .stagger-group recién se pinta
 
-        // Conteo general en vivo de libros
+        // Conteo general en vivo de libros y géneros
         this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000).subscribe({
           next: (stats: any) => {
+            if (stats && typeof stats.total_genres === 'number' && stats.total_genres > 0) {
+              this.realGenresCount = stats.total_genres;
+            }
             const card = this.categories.find(c => c.slug === 'literatura-y-ficcion');
             if (stats && typeof stats.total_books === 'number') {
               this.totalBooksCount = stats.total_books;
