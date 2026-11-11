@@ -110,6 +110,11 @@
   font-family: var(--font-ui, sans-serif);
   transition: all 0.25s ease;
   box-sizing: border-box;
+  text-overflow: ellipsis;
+}
+
+.search-input::placeholder {
+  text-overflow: ellipsis;
 }
 
 .search-input:focus {
@@ -1232,6 +1237,17 @@
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
+  }
+
+  .search-input {
+    font-size: 0.92rem;
+    padding: 12px 38px 12px 44px;
+    height: 46px;
+  }
+
+  .search-box .search-icon {
+    left: 14px;
+    font-size: 1.25rem;
   }
 
   .controls-actions {

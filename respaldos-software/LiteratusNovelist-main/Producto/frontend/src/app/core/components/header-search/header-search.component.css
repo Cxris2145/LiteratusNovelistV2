@@ -40,9 +40,14 @@
     box-shadow 200ms ease;
 }
 
+.nav-search-input {
+  text-overflow: ellipsis;
+}
+
 .nav-search-input::placeholder {
   color: var(--color-text-disabled);
   opacity: 0.85;
+  text-overflow: ellipsis;
 }
 
 .nav-search-input:focus {
@@ -153,10 +158,20 @@
 @media (max-width: 768px) {
   .nav-search-input {
     height: 44px;
+    padding: 0 118px 0 42px;
+  }
+  .search-icon {
+    left: 13px;
+    font-size: 20px;
+  }
+  .search-tools {
+    right: 44px;
+    gap: 0;
   }
   .search-submit-btn {
     width: 36px;
     height: 36px;
+    right: 4px;
   }
 }
 

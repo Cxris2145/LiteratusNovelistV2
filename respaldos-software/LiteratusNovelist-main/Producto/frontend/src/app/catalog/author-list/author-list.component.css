@@ -93,6 +93,11 @@
   transition: all 0.3s ease;
   box-shadow: none;
   box-sizing: border-box;
+  text-overflow: ellipsis;
+}
+
+.search-input::placeholder {
+  text-overflow: ellipsis;
 }
 
 .search-input:focus {
@@ -350,6 +355,15 @@
   .search-container {
     flex-direction: column;
     gap: 10px;
+  }
+  .search-input {
+    height: 48px;
+    font-size: 1rem;
+    padding: 12px 18px 12px 52px;
+  }
+  .search-box .search-icon {
+    left: 16px;
+    font-size: 1.35rem;
   }
   .filter-box, .glass-btn {
     width: 100%;

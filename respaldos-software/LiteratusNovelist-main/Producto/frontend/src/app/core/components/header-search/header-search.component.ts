@@ -73,6 +73,18 @@ const MEMO_LIMIT = 60;
   styleUrl: './header-search.component.css',
 })
 export class HeaderSearchComponent implements OnInit, OnDestroy {
+  isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (typeof window !== 'undefined') {
+      this.isMobile = window.innerWidth <= 768;
+    }
+  }
+
+  get searchPlaceholder(): string {
+    return this.isMobile ? 'Buscar libros o autores…' : 'Buscar libros, autores, sagas…';
+  }
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);

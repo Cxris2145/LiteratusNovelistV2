@@ -429,6 +429,11 @@
 :where(input, textarea)::placeholder {
   color: var(--color-text-disabled);
   opacity: 1;
+  text-overflow: ellipsis;
+}
+
+:where(input) {
+  text-overflow: ellipsis;
 }
 
 * {

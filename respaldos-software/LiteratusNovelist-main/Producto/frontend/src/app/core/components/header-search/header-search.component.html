@@ -5,7 +5,7 @@
     type="text"
     class="nav-search-input"
     name="globalSearch"
-    placeholder="Buscar libros, autores, géneros, sagas..."
+    [placeholder]="searchPlaceholder"
     [(ngModel)]="term"
     (ngModelChange)="onTermChange()"
     (focus)="onFocus()"
