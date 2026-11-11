@@ -425,6 +425,7 @@
 /* Messages Feed */
 .dchat-messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain; /* llegar al final no arrastra la página de atrás */
   padding: 24px;
@@ -432,6 +433,15 @@
   flex-direction: column;
   gap: 20px;
   scroll-behavior: smooth;
+}
+
+/* Medidores de uso y pases dentro del chat: margen generoso sobre la barra inferior */
+.dchat-main > app-ai-usage-meter,
+.dchat-main > app-ink-day-pass {
+  display: block;
+  margin: 0 24px 14px;
+  flex-shrink: 0;
+  z-index: 5;
 }
 
 /* Scrollbar personalizado */
@@ -754,6 +764,16 @@
 
   .dchat-messages {
     padding: 16px;
+    min-height: 0;
+  }
+
+  .dchat-main > app-ai-usage-meter,
+  .dchat-main > app-ink-day-pass {
+    margin: 0 16px 14px;
+  }
+
+  .dchat-input-wrap {
+    padding: 10px 16px 18px;
   }
 
   .dchat-msg {

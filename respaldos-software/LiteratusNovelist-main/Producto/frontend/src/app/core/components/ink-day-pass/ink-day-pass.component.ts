@@ -39,6 +39,11 @@ import { OwnInkPipe } from '../../pipes/own-ink.pipe';
     </section>
   `,
   styles: [`
+    :host {
+      display: block;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
     .idp {
       display: flex;
       gap: 12px;

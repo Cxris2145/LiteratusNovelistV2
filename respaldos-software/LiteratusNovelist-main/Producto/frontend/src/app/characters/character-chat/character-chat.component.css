@@ -126,6 +126,12 @@
   flex-direction: column;
   gap: 10px;
 }
+app-ai-usage-meter,
+app-ink-day-pass {
+  display: block;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
 .cc-line { display: flex; }
 .cc-line--me { justify-content: flex-end; }
 .cc-bubble {

@@ -12,11 +12,44 @@ import { Subscription } from 'rxjs';
       <div class="meter-row"><span>{{ usage.tokens_used | number:'1.0-0' }} / {{ usage.token_limit | number:'1.0-0' }} tokens</span><span>{{ usage.time_limit === null ? 'Sin límite horario' : elapsed }}</span></div>
       <p *ngIf="!usage.plan_available && !usage.ink_pass_active"><strong>Tu magia necesita descansar.</strong> Reinicio en {{ countdown }}.</p></ng-container>
     <p *ngIf="usage.ink_pass_active && !usage.plan_available">Conversa sin límite con todos los personajes hasta medianoche (quedan {{ countdown }}).</p>
-    <div class="meter-row" *ngIf="!usage.plan_available && !usage.ink_pass_active">
+    <div class="meter-row meter-action-row" *ngIf="!usage.plan_available && !usage.ink_pass_active">
       <span>Pase del día: conversa sin límite hasta medianoche por {{ usage.ink_pass_price ?? 20 }} Tinta.</span>
-      <button type="button" (click)="activatePass()" [disabled]="busy || !chat.canSpendInk(usage.ink_balance, usage.ink_pass_price ?? 20)">{{ busy ? 'Activando…' : 'Activar' }}</button></div>
+      <button type="button" (click)="activatePass()" [disabled]="busy || !chat.canSpendInk(usage.ink_balance, usage.ink_pass_price ?? 20)">{{ busy ? 'Activando…' : 'Activar' }}</button>
+    </div>
     <small>{{ passError || 'El asistente general sigue gratis.' }}</small></section>`,
-  styles: [`.usage-meter{padding:.7rem 1rem;background:var(--home-bg-surface);color:var(--home-ink);border:1px solid var(--home-glass-border);border-radius:.75rem;font:.8rem var(--font-ui)}.meter-row{display:flex;justify-content:space-between;gap:.7rem;flex-wrap:wrap}a{color:var(--color-warning)}small{display:block;margin-top:.4rem;color:var(--home-ink-muted)}progress{width:100%;height:.5rem;accent-color:var(--color-warning);margin:.45rem 0}p{margin:.5rem 0}button{background:transparent;color:var(--color-warning);border:1px solid currentColor;border-radius:.5rem;padding:.4rem .6rem;min-height:44px;cursor:pointer}button:focus-visible{outline:3px solid var(--color-warning);outline-offset:3px}a:focus-visible{outline:2px solid currentColor;outline-offset:3px}`]
+  styles: [`
+    :host { display: block; box-sizing: border-box; flex-shrink: 0; }
+    .usage-meter {
+      display: flex; flex-direction: column; gap: 0.6rem;
+      padding: 0.9rem 1.1rem 1.05rem;
+      background: var(--home-bg-surface, #15233B);
+      color: var(--home-ink, #EAF0F8);
+      border: 1px solid var(--home-glass-border, rgba(255, 255, 255, 0.12));
+      border-radius: 0.85rem;
+      font: 0.82rem/1.4 var(--font-ui, system-ui, sans-serif);
+      box-sizing: border-box;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    }
+    .meter-row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .meter-action-row { align-items: center; }
+    .meter-action-row span { flex: 1 1 200px; line-height: 1.45; }
+    a { color: var(--color-warning, #FFB353); text-decoration: underline; font-weight: 600; white-space: nowrap; }
+    small { display: block; margin-top: 0.15rem; line-height: 1.45; font-size: 0.8rem; color: var(--home-ink-muted, #9DB2CE); word-break: break-word; }
+    progress { width: 100%; height: 0.5rem; accent-color: var(--color-warning, #FFB353); margin: 0.2rem 0; border-radius: 4px; }
+    p { margin: 0; line-height: 1.45; }
+    button {
+      background: transparent; color: var(--color-warning, #FFB353);
+      border: 1px solid currentColor; border-radius: 0.5rem;
+      padding: 0.45rem 1rem; min-height: 42px; font-weight: 600; cursor: pointer; white-space: nowrap;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      button:hover:not(:disabled) { background: color-mix(in srgb, var(--color-warning, #FFB353) 15%, transparent); }
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button:focus-visible { outline: 3px solid var(--color-warning, #FFB353); outline-offset: 3px; }
+    a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+  `]
 })
 export class AIUsageMeterComponent implements OnInit, OnDestroy {
   @Input() sessionId: string | null = null;
