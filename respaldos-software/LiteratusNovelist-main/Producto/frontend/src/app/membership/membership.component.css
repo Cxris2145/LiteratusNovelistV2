@@ -422,6 +422,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   width: 100%;
   margin-top: 10px;
 }
+.plan-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
 .payment-note, .plans-footnote {
   font-size: .78rem;
   color: var(--home-ink-muted);

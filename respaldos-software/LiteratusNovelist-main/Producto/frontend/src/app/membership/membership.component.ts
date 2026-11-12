@@ -119,8 +119,10 @@ export class MembershipComponent implements OnInit, AfterViewInit, AfterViewChec
   }
   isCurrentPlan(plan: SubscriptionPlan): boolean { return !!this.account?.subscription?.active && this.account.subscription.plan?.code === plan.code; }
   planDisabled(plan: SubscriptionPlan): boolean {
+    if (this.busy) return true;
+    if (!plan.purchasable) return true;
     const sub = this.account?.subscription;
-    return this.busy || (this.isLoggedIn() && (!plan.purchasable || (!!sub?.active && (sub.plan?.code === plan.code || sub.cancel_at_period_end))));
+    return this.isLoggedIn() && !!sub?.active && (sub.plan?.code === plan.code || sub.cancel_at_period_end);
   }
   planLabel(plan: SubscriptionPlan): string {
     if (this.isCurrentPlan(plan)) return 'Tu plan actual';
@@ -216,6 +218,7 @@ export class MembershipComponent implements OnInit, AfterViewInit, AfterViewChec
     return valid.reduce((best, pack) => perInk(pack) < perInk(best) ? pack : best).amount;
   }
   choosePlan(plan: SubscriptionPlan): void {
+    if (!plan.purchasable) return;
     if (!this.isLoggedIn()) { this.router.navigate(['/login'], { queryParams: { returnUrl: '/planes' } }); return; }
     if (this.busy) return;
     this.busy = true;

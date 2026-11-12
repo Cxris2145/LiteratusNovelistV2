@@ -65,7 +65,7 @@
             <li *ngFor="let benefit of extraBenefits(plan); let b = index" [style.--li]="4 + b">{{ benefit }}</li>
           </ul>
           <p class="plan-quota" *ngIf="plan.daily_time_limit !== null">Incluye hasta {{ formatAmount(plan.daily_token_limit) }} tokens al día. Termina al alcanzar primero el cupo o las 5 horas.</p>
-          <button type="button" class="button plan-button" (click)="choosePlan(plan)" [disabled]="planDisabled(plan)">{{ planLabel(plan) }}</button>
+          <button type="button" class="button plan-button" (click)="choosePlan(plan)" [disabled]="planDisabled(plan)" [attr.aria-disabled]="planDisabled(plan)">{{ planLabel(plan) }}</button>
           <p class="payment-note" *ngIf="!plan.purchasable">Disponible cuando se habiliten los pagos PayPal.</p>
         </article>
       </div>
