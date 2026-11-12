@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { getBookPages } from '../../core/utils/book-pages.util';
 import { coverThumb } from '../../core/utils/cover-thumb.util';
+import { getAuthorPhoto, handleAuthorPhotoError } from '../../core/utils/author-photo.util';
 
 @Component({
   selector: 'app-author-detail-page',
@@ -14,6 +15,8 @@ export class AuthorDetailPageComponent implements OnInit {
   isLoading = true;
   errorMsg = '';
   getBookPages = getBookPages;
+  getAuthorPhoto = getAuthorPhoto;
+  handleAuthorPhotoError = handleAuthorPhotoError;
 
   thumbUrl(url: string | null | undefined): string {
     return coverThumb(url, 300, 450, 62);

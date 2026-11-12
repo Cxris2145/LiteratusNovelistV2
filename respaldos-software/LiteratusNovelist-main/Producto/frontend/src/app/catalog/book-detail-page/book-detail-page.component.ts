@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { LiyumiService } from '../../core/services/liyumi.service';
 import { ChatService } from '../../core/services/chat.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { getAuthorPhoto, handleAuthorPhotoError } from '../../core/utils/author-photo.util';
 
 @Component({
   selector: 'app-book-detail-page',
@@ -13,6 +14,8 @@ import { NotificationService } from '../../core/services/notification.service';
   styleUrls: ['./book-detail-page.component.css']
 })
 export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy {
+  getAuthorPhoto = getAuthorPhoto;
+  handleAuthorPhotoError = handleAuthorPhotoError;
   private _avatarCarousel!: ElementRef;
   @ViewChild('avatarCarousel') set avatarCarousel(el: ElementRef) {
     this._avatarCarousel = el;

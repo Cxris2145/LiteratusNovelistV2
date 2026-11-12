@@ -133,7 +133,7 @@
           <ng-container *ngIf="book.book_authors[0] as rel">
             <div class="author-card-content">
               <div class="author-card-image">
-                <img [src]="$any(rel).author.photo || 'assets/images/default-avatar.svg'" alt="{{ $any(rel).author.full_name }}">
+                <img [src]="getAuthorPhoto($any(rel).author)" (error)="handleAuthorPhotoError($event, $any(rel).author)" alt="{{ $any(rel).author.full_name }}">
               </div>
               <div class="author-card-info">
                 <h3>{{ $any(rel).author.full_name | uppercase }}</h3>

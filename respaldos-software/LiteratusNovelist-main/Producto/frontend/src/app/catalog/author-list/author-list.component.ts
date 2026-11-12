@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { HttpParams } from '@angular/common/http';
+import { getAuthorPhoto, handleAuthorPhotoError } from '../../core/utils/author-photo.util';
 
 interface PaginatedResponse<T> {
   count: number;
@@ -19,6 +20,8 @@ export class AuthorListComponent implements OnInit {
   filteredAuthors: any[] = [];
   loading = true;
   api = inject(ApiService);
+  getAuthorPhoto = getAuthorPhoto;
+  handleAuthorPhotoError = handleAuthorPhotoError;
 
   // Paginación
   totalCount = 0;
@@ -69,7 +72,7 @@ export class AuthorListComponent implements OnInit {
         this.authors = data.results;
         // Filtro local de foto (no existe en servidor, se aplica aquí)
         this.filteredAuthors = this.onlyWithPhoto
-          ? data.results.filter((a: any) => a.photo)
+          ? data.results.filter((a: any) => this.getAuthorPhoto(a) !== 'assets/images/default-avatar.svg')
           : data.results;
         this.loading = false;
       },
@@ -92,7 +95,7 @@ export class AuthorListComponent implements OnInit {
   togglePhotoFilter() {
     this.onlyWithPhoto = !this.onlyWithPhoto;
     this.filteredAuthors = this.onlyWithPhoto
-      ? this.authors.filter(a => a.photo)
+      ? this.authors.filter(a => this.getAuthorPhoto(a) !== 'assets/images/default-avatar.svg')
       : [...this.authors];
   }
 
