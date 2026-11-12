@@ -33,7 +33,7 @@ export class GuideDialogComponent {
       tag: 'Inicio Rápido',
       description: 'Literatus combina la magia de los libros clásicos con herramientas modernas para que disfrutes y comprendas cada obra a tu propio ritmo.',
       points: [
-        { icon: 'explore', text: 'Accede a miles de obras maestras libres de derechos.' },
+        { icon: 'explore', text: 'Accede a más de 200 obras maestras libres de derechos.' },
         { icon: 'psychology', text: 'Conversa con personajes literarios impulsados por IA.' },
         { icon: 'menu_book', text: 'Lector inteligente con narración por voz y seguimiento.' }
       ]
