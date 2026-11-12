@@ -35,7 +35,7 @@
         </button>
       </div>
       <span class="th-actions-divider" aria-hidden="true"></span>
-      <button type="button" class="th-btn secondary" (click)="clubsOpen ? closeClubs() : openClubs()"
+      <button type="button" class="th-btn secondary th-btn-clubs" (click)="clubsOpen ? closeClubs() : openClubs()"
               [attr.aria-expanded]="clubsOpen" aria-controls="tavern-reading-clubs">
         <span class="material-symbols-rounded" aria-hidden="true">menu_book</span>Lecturas conjuntas
       </button>
@@ -49,7 +49,7 @@
                 aria-hidden="true">{{ count > 99 ? '99+' : count }}</span>
         </ng-container>
       </button>
-      <button type="button" class="th-btn secondary" (click)="openBazar()" [attr.aria-expanded]="bazarOpen" aria-controls="tavern-bazar">
+      <button type="button" class="th-btn secondary th-btn-bazar" (click)="openBazar()" [attr.aria-expanded]="bazarOpen" aria-controls="tavern-bazar">
         <span class="material-symbols-rounded" aria-hidden="true">storefront</span>El Bazar
       </button>
     </div>
@@ -62,10 +62,10 @@
             <span class="th-tip" aria-hidden="true">{{ cinemaMode ? 'Salir del modo cine' : 'Modo cine' }}</span>
           </button>
         </div>
-        <a class="th-btn" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
+        <a class="th-btn th-btn-login" routerLink="/login" [queryParams]="{ returnUrl: '/tavern' }">
           <span class="material-symbols-rounded" aria-hidden="true">login</span>Entra con tu Maguito
         </a>
-        <a class="th-btn secondary" routerLink="/register">Crear cuenta</a>
+        <a class="th-btn secondary th-btn-register" routerLink="/register">Crear cuenta</a>
       </div>
     </ng-template>
   </header>

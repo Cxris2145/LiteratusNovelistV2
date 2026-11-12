@@ -557,17 +557,54 @@
   .th-hero { padding: 8px 0; gap: 10px; margin-bottom: 12px; }
   .th-title { gap: 8px; font-size: clamp(1.4rem, 5.6vw, 1.7rem); }
   .th-title-icon { font-size: 28px; }
-  .th-actions { width: 100%; gap: 8px; }
+  .th-actions {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px;
+  }
   .th-actions-divider { display: none; }
-  .th-actions .th-btn { flex: 1 1 0; min-width: 0; gap: 6px; padding-inline: 8px; font-size: .78rem; white-space: nowrap; }
+  .th-actions .th-btn {
+    min-height: var(--th-control-h);
+    gap: 6px;
+    padding-inline: 10px;
+    font-size: .8rem;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
   .th-actions .th-btn .material-symbols-rounded { font-size: 18px; }
+  .th-actions .th-btn-clubs {
+    order: 1;
+    flex: 1 1 calc(100% - 48px - 8px);
+    min-width: 0;
+  }
+  .th-actions .th-utilities {
+    order: 2;
+    flex: 0 0 auto;
+  }
+  .th-actions .th-chats-btn {
+    order: 3;
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+  .th-actions .th-btn-bazar {
+    order: 4;
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+  .th-actions .th-btn-login {
+    order: 1;
+    flex: 1 1 calc(100% - 48px - 8px);
+    min-width: 0;
+  }
+  .th-actions .th-btn-register {
+    order: 3;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
   .th-layout {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'scene' 'profile' 'friends';
     gap: 16px;
   }
-}
-/* En teléfonos angostos las etiquetas mandan: los íconos de las acciones se ocultan para que quepan en una línea. */
-@media (max-width: 420px) {
-  .th-actions .th-btn .material-symbols-rounded { display: none; }
 }
