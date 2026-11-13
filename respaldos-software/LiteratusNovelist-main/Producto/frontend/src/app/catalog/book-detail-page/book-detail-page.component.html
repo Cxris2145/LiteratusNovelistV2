@@ -8,7 +8,7 @@
   <div *ngIf="errorMsg" class="error-state glass-panel">
     <h2>Ha ocurrido un error</h2>
     <p>{{ errorMsg }}</p>
-    <button class="glass-btn" routerLink="/catalog">Volver al Catálogo</button>
+    <button class="glass-btn" routerLink="/catalog">Volver al catálogo</button>
   </div>
 
   <div *ngIf="book && !isLoading" class="content-container fade-in">
@@ -77,7 +77,7 @@
                         [disabled]="purchaseLoading"
                         (click)="handleAction()">
                   <ng-container *ngIf="!(auth.isLoggedIn$ | async)">
-                    <svg lucideLogIn></svg> Ingresar para Explorar
+                    <svg lucideLogIn></svg> Iniciar sesión para leer
                   </ng-container>
                   <ng-container *ngIf="(auth.isLoggedIn$ | async)">
                     <span *ngIf="purchaseLoading" class="flex-center">
@@ -85,8 +85,8 @@
                     </span>
                     <ng-container *ngIf="!purchaseLoading">
                       <span *ngIf="book?.is_age_restricted && !isOwned" class="flex-center"><svg lucideLock></svg> Restringido (+{{ book?.min_age }})</span>
-                      <span *ngIf="!book?.is_age_restricted && !isOwned" class="flex-center"><svg lucideShoppingCart></svg> Adquirir Obra</span>
-                      <span *ngIf="isOwned" class="flex-center"><svg lucideBookOpen></svg> Empezar Lectura</span>
+                      <span *ngIf="!book?.is_age_restricted && !isOwned" class="flex-center"><svg lucideShoppingCart></svg> Adquirir obra</span>
+                      <span *ngIf="isOwned" class="flex-center"><svg lucideBookOpen></svg> Empezar lectura</span>
                     </ng-container>
                   </ng-container>
                 </button>
@@ -95,7 +95,7 @@
               <button class="action-btn secondary-btn" 
                       *ngIf="(auth.isLoggedIn$ | async) && isOwned" 
                       routerLink="/library" title="Ver en Mi Biblioteca">
-                <svg lucideLibrary></svg> Mi Biblioteca
+                <svg lucideLibrary></svg> Mi biblioteca
               </button>
 
               <button class="download-btn glass-btn" 
@@ -122,7 +122,7 @@
             <button class="tts-btn minimal" (click)="speakSynopsis()" *ngIf="book?.synopsis">
               <svg lucideVolumeX *ngIf="isTalking" class="icon-sm"></svg>
               <svg lucideVolume2 *ngIf="!isTalking" class="icon-sm"></svg>
-              {{ isTalking ? 'Detener' : 'Escuchar Sinopsis' }}
+              {{ isTalking ? 'Detener' : 'Escuchar sinopsis' }}
             </button>
           </div>
           <p class="synopsis-text">{{ book.synopsis }}</p>
@@ -137,7 +137,7 @@
               </div>
               <div class="author-card-info">
                 <h3>{{ $any(rel).author.full_name | uppercase }}</h3>
-                <p class="author-card-bio">{{ $any(rel).author.bio | slice:0:200 }}{{ $any(rel).author.bio?.length > 200 ? '...' : '' }}</p>
+                <p class="author-card-bio">{{ formatAuthorBio($any(rel).author.bio, 200) }}</p>
                 <button class="glass-btn primary author-card-btn" routerLink="/author/{{ $any(rel).author.slug }}">
                   Conocer al autor
                 </button>

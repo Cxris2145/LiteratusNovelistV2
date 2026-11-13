@@ -69,9 +69,8 @@
           <span class="author-nationality" *ngIf="author.nationality">{{ author.nationality }}</span>
 
           <p class="author-bio">
-            {{ (author.bio | slice:0:120) || 'Descubre la fascinante historia y las obras maestras literarias de este
-            icónico autor...' }}
-            <span class="read-more">Leer más...</span>
+            {{ formatBioExcerpt(author.bio) }}
+            <span class="read-more">Leer más</span>
           </p>
         </div>
       </div>

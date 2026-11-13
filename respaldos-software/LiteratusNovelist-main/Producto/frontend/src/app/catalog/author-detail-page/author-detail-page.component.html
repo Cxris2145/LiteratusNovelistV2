@@ -48,7 +48,7 @@
     <div class="author-books-section">
       <div class="section-header">
         <h2>Obras en nuestra Biblioteca</h2>
-        <span class="books-count">{{ author.books?.length || 0 }} títulos disponibles</span>
+        <span class="books-count">{{ author.books?.length || 0 }} {{ (author.books?.length === 1) ? 'título disponible' : 'títulos disponibles' }}</span>
       </div>
 
       <div class="books-grid">

@@ -506,4 +506,18 @@ handleAction(): void {
       }
     });
   }
+
+  formatAuthorBio(bio: string | null | undefined, maxLength = 200): string {
+    if (!bio || !bio.trim()) return '';
+    const clean = bio.trim().replace(/\s+/g, ' ');
+    if (clean.length <= maxLength) return clean;
+    let truncated = clean.slice(0, maxLength);
+    if (!/\s/.test(clean[maxLength])) {
+      const lastSpace = truncated.lastIndexOf(' ');
+      if (lastSpace > 0) {
+        truncated = truncated.slice(0, lastSpace);
+      }
+    }
+    return truncated.replace(/[\s,.;:¡!¿?\-–—(['"«“]+$/, '') + '...';
+  }
 }

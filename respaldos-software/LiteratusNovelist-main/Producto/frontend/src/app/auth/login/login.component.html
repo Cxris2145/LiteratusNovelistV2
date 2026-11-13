@@ -21,8 +21,8 @@
         </div>
       </div>
       
-      <div class="forgot-password-container" style="text-align: right; margin-top: -10px; margin-bottom: 15px;">
-        <a routerLink="/forgot-password" style="color: var(--glow-gold, #fbbf24); font-size: 0.85rem; text-decoration: none; font-weight: 500; transition: opacity 0.2s;">¿Olvidaste tu contraseña?</a>
+      <div class="forgot-password-container">
+        <a routerLink="/forgot-password" class="forgot-password-link">¿Olvidaste tu contraseña? Recupérala aquí</a>
       </div>
 
       <div class="error-banner" *ngIf="errorMsg">
@@ -37,12 +37,17 @@
         {{ infoMsg }}
       </div>
 
-      <button type="submit" class="glass-btn" [disabled]="loginForm.invalid || isLoading">
-        {{ isLoading && !isGuestLoading ? 'Conectando...' : 'Iniciar Sesión' }}
+      <button type="submit" class="glass-btn primary-login-btn" [disabled]="loginForm.invalid || isLoading">
+        {{ isLoading && !isGuestLoading ? 'Conectando...' : 'Iniciar sesión' }}
       </button>
 
-      <button type="button" class="glass-btn test-login-btn" (click)="loginAsGuest()" [disabled]="isLoading">
-        {{ isGuestLoading ? 'Preparando tu cuenta de prueba…' : 'Probar sin cuenta' }}
+      <div class="guest-login-divider">
+        <span>o</span>
+      </div>
+
+      <button type="button" class="test-login-btn" (click)="loginAsGuest()" [disabled]="isLoading">
+        <span class="material-symbols-rounded test-login-icon" aria-hidden="true">explore</span>
+        <span>{{ isGuestLoading ? 'Preparando tu cuenta de prueba…' : 'Probar sin cuenta' }}</span>
       </button>
       <p class="test-login-note">Cuenta temporal: se borra al cerrar la página o después de una hora.</p>
 

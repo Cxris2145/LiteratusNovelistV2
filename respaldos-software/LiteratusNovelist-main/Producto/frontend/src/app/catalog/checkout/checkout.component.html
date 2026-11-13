@@ -68,7 +68,7 @@
       <button class="btn-pay" (click)="confirmPurchase()" [disabled]="isLoading || !!errorMsg">
         <span *ngIf="!isLoading">
           <ng-container *ngIf="itemType === 'book' && bookInfo && (!bookInfo.price || bookInfo.price === 0)">
-            Obtener Gratis <svg lucideCheckCircle [size]="18" class="lucide-icon"></svg>
+            Obtener gratis <svg lucideCheckCircle [size]="18" class="lucide-icon"></svg>
           </ng-container>
           <ng-container *ngIf="itemType !== 'book' || (bookInfo && bookInfo.price > 0)">
             Pagar con Webpay Plus <svg lucideCreditCard [size]="18" class="lucide-icon"></svg>

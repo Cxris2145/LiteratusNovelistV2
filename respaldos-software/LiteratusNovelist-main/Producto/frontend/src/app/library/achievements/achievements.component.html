@@ -378,7 +378,7 @@
         <!-- Contenido textual (sin texto de rareza en la vista general) -->
         <div class="achievement-card__body">
           <h3 class="achievement-card__title">{{ ua.achievement.title }}</h3>
-          <p class="achievement-card__desc">{{ ua.achievement.description }}</p>
+          <p class="achievement-card__desc">{{ achievementDescription(ua) }}</p>
 
           <!-- Fecha de desbloqueo -->
           <p class="achievement-card__date" *ngIf="ua.is_unlocked && ua.unlocked_at">

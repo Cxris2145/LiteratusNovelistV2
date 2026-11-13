@@ -22,7 +22,8 @@
         <p class="hero-pill">
           <ng-container *ngIf="isLoggedIn && profileLoaded; else visitorPill">
             <span class="material-symbols-rounded" aria-hidden="true">local_fire_department</span>
-            <span>{{ greeting }}<ng-container *ngIf="userName">, {{ userName }}</ng-container>. Llevas {{ userStreak }} {{ userStreak === 1 ? 'día' : 'días' }} de racha.</span>
+            <span *ngIf="userStreak > 0">{{ greeting }}<ng-container *ngIf="userName">, {{ userName }}</ng-container>. Llevas {{ userStreak }} {{ userStreak === 1 ? 'día' : 'días' }} de racha.</span>
+            <span *ngIf="userStreak === 0">{{ greeting }}<ng-container *ngIf="userName">, {{ userName }}</ng-container>. ¡Empieza tu racha hoy!</span>
           </ng-container>
           <ng-template #visitorPill>
             <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>

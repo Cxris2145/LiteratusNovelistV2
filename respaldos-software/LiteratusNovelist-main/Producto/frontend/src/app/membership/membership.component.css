@@ -426,13 +426,39 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   opacity: .55;
   cursor: not-allowed;
 }
+.plan-button.is-unavailable:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--home-ink-muted, #94a3b8);
+  box-shadow: none;
+}
+.plan-purchase-block {
+  margin-top: auto;
+  width: 100%;
+}
 .payment-note, .plans-footnote {
-  font-size: .78rem;
+  font-size: .82rem;
   color: var(--home-ink-muted);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 .payment-note {
-  margin: 10px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 0.8rem;
+  text-align: center;
+}
+.payment-note-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  color: #f87171;
 }
 .plans-footnote {
   margin: 18px 0 0;

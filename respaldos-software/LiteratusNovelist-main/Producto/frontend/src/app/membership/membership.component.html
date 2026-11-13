@@ -55,21 +55,32 @@
           </div>
           <h3>{{ plan.name }}</h3>
           <p class="plan-price">{{ price(plan) }} <span>/ mes</span></p>
-          <p class="plan-quota" *ngIf="plan.daily_time_limit === null">Sin límite de tiempo de conversación, sujeto a un cupo diario de {{ formatAmount(plan.daily_token_limit) }} tokens.</p>
-          <p class="plan-description">{{ plan.code === 'maestro' ? 'Para quienes quieren seguir conversando.' : 'Para acompañar tus lecturas de cada día.' }}</p>
+          <p class="plan-description">{{ plan.code === 'maestro' ? 'Para lectores apasionados que desean charlar sin pausas con sus personajes favoritos.' : 'Ideal para enriquecer tu hábito de lectura diario con conversaciones interactivas.' }}</p>
           <ul>
-            <li style="--li: 0"><strong>{{ plan.daily_time_limit === null ? 'Sin límite de tiempo de conversación' : 'Hasta 5 horas activas al día' }}</strong></li>
-            <li style="--li: 1">Personajes y autores según tu progreso de lectura</li>
-            <li style="--li: 2">Asistente general gratuito, fuera del cupo</li>
-            <li style="--li: 3" *ngIf="plan.monthly_ink_bonus">{{ plan.monthly_ink_bonus }} Tinta por mensualidad pagada</li>
-            <li *ngFor="let benefit of extraBenefits(plan); let b = index" [style.--li]="4 + b">{{ benefit }}</li>
+            <li style="--li: 0">
+              <strong>{{ plan.daily_time_limit === null ? 'Conversaciones ilimitadas cada día' : 'Hasta 5 horas de conversación diaria' }}</strong>
+            </li>
+            <li style="--li: 1">
+              <span>{{ plan.code === 'maestro' ? 'Cupo diario amplio de mensajes interactivos (sin límite de tiempo)' : 'Amplio cupo diario de interacción con la inteligencia artificial' }}</span>
+            </li>
+            <li style="--li: 2">Diálogo con personajes y autores según avanzas en tus lecturas</li>
+            <li style="--li: 3">Asistente general de lectura disponible en todo momento</li>
+            <li style="--li: 4" *ngIf="plan.monthly_ink_bonus">{{ plan.monthly_ink_bonus }} Tinta de regalo todos los meses para usar en la Taberna</li>
+            <li *ngFor="let benefit of extraBenefits(plan); let b = index" [style.--li]="5 + b">{{ benefit }}</li>
           </ul>
-          <p class="plan-quota" *ngIf="plan.daily_time_limit !== null">Incluye hasta {{ formatAmount(plan.daily_token_limit) }} tokens al día. Termina al alcanzar primero el cupo o las 5 horas.</p>
-          <button type="button" class="button plan-button" (click)="choosePlan(plan)" [disabled]="planDisabled(plan)" [attr.aria-disabled]="planDisabled(plan)">{{ planLabel(plan) }}</button>
-          <p class="payment-note" *ngIf="!plan.purchasable">Disponible cuando se habiliten los pagos PayPal.</p>
+          
+          <div class="plan-purchase-block">
+            <button type="button" class="button plan-button is-unavailable" (click)="choosePlan(plan)" [disabled]="planDisabled(plan)" [attr.aria-disabled]="planDisabled(plan)">
+              {{ plan.purchasable ? planLabel(plan) : 'Suscripción no disponible' }}
+            </button>
+            <p class="payment-note" *ngIf="!plan.purchasable">
+              <span class="material-symbols-rounded payment-note-icon" aria-hidden="true">info</span>
+              <span>Compras temporalmente desactivadas hasta habilitar PayPal.</span>
+            </p>
+          </div>
         </article>
       </div>
-      <p class="plans-footnote">Los créditos de IA se renuevan cada día y no se acumulan. La Tinta es tu moneda para canjes y extras.</p>
+      <p class="plans-footnote">Tu tiempo de conversación diaria se renueva cada medianoche. La Tinta obtenida es acumulable y no vence.</p>
     </section>
 
     <section id="tinta" class="tv-section" aria-labelledby="ink-title" data-tv-section>

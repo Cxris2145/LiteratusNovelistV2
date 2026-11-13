@@ -96,14 +96,115 @@
   }
 }
 
-/* ── Botón "Probar sin cuenta" (mismo formato que Iniciar Sesión) ── */
-.test-login-btn {
-  margin-top: 12px;
+.forgot-password-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+  margin-bottom: 20px;
 }
+
+.forgot-password-link {
+  color: var(--color-primary-text, #e2b96f);
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.95;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  opacity: 1;
+  color: #fff;
+}
+
+.primary-login-btn {
+  background: linear-gradient(135deg, var(--color-primary, #d4af37), color-mix(in srgb, var(--color-primary, #d4af37) 80%, #000)) !important;
+  color: #0b1120 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35) !important;
+}
+
+.primary-login-btn:hover:not(:disabled) {
+  background: var(--color-primary, #d4af37) !important;
+  color: #000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(212, 175, 55, 0.5) !important;
+}
+
+.primary-login-btn:disabled {
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+
+.guest-login-divider {
+  display: flex;
+  align-items: center;
+  margin: 18px 0 14px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: lowercase;
+}
+
+.guest-login-divider::before,
+.guest-login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border, rgba(255, 255, 255, 0.12));
+}
+
+.guest-login-divider span {
+  padding: 0 12px;
+}
+
+/* ── Botón secundario "Probar sin cuenta" con menor jerarquía ── */
+.test-login-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-secondary, #cbd5e1);
+  border: 1px dashed color-mix(in srgb, var(--color-primary, #d4af37) 45%, var(--glass-border, rgba(255, 255, 255, 0.2)));
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-login-icon {
+  font-size: 19px;
+  color: var(--color-primary-text, #d4af37);
+  transition: transform 0.2s ease;
+}
+
+.test-login-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-style: solid;
+  border-color: var(--color-primary, #d4af37);
+  transform: translateY(-1px);
+}
+
+.test-login-btn:hover:not(:disabled) .test-login-icon {
+  transform: rotate(20deg);
+}
+
+.test-login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .test-login-note {
   margin: 8px 0 0;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   text-align: center;
 }
 

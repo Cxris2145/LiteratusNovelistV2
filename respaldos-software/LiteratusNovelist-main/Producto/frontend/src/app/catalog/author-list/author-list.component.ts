@@ -109,4 +109,23 @@ export class AuthorListComponent implements OnInit {
     if (page < 1 || page > this.totalPages) return;
     this.fetchAuthors(page);
   }
+
+  formatBioExcerpt(bio: string | null | undefined, maxLength = 120): string {
+    const fallback = 'Descubre la fascinante historia y las obras maestras literarias de este icónico autor...';
+    if (!bio || !bio.trim()) {
+      return fallback;
+    }
+    const clean = bio.trim().replace(/\s+/g, ' ');
+    if (clean.length <= maxLength) {
+      return clean.replace(/[\s,.;:¡!¿?\-–—]+$/, '') + '...';
+    }
+    let truncated = clean.slice(0, maxLength);
+    if (!/\s/.test(clean[maxLength])) {
+      const lastSpace = truncated.lastIndexOf(' ');
+      if (lastSpace > 0) {
+        truncated = truncated.slice(0, lastSpace);
+      }
+    }
+    return truncated.replace(/[\s,.;:¡!¿?\-–—(['"«“]+$/, '') + '...';
+  }
 }
