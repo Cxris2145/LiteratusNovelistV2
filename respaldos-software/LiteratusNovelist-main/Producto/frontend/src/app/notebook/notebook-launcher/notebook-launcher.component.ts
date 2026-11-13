@@ -63,11 +63,11 @@ import { NotebookService } from '../notebook.service';
         bottom: calc(24px + var(--senda-tools-size, 48px) + 12px + env(safe-area-inset-bottom, 0px));
       }
     }
-    @media (max-width: 640px) {
-      /* Sobre la burbuja del asistente, que a su vez va sobre la barra inferior. */
-      :host-context(body.has-bottom-nav) .nb-launcher { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
-      :host-context(body.keyboard-open) .nb-launcher { display: none; }
-      .nb-launcher { right: 28px; width: 46px; height: 46px; }
+    @media (max-width: 768px) {
+      /* En vista móvil, el cuaderno se unifica en el Speed Dial del Asistente */
+      :host, .nb-launcher {
+        display: none !important;
+      }
     }
     @media (prefers-reduced-motion: reduce) {
       .nb-launcher { transition: none; }

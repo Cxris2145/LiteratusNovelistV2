@@ -56,7 +56,7 @@ export class MembershipComponent implements OnInit, AfterViewInit, AfterViewChec
   private readonly session = !!localStorage.getItem('access_token');
   isLoggedIn(): boolean { return this.session; }
   formatAmount(value: number): string { return Number(value || 0).toLocaleString('es-CL'); }
-  price(plan: SubscriptionPlan): string { return `US$${Number(plan.price).toLocaleString('es-CL', { minimumFractionDigits: 2 })}`; }
+  price(plan: SubscriptionPlan): string { return `$${Number(plan.price).toLocaleString('es-CL')} CLP`; }
   get percent(): number { return this.usage?.token_limit ? Math.min(100, Math.round(this.usage.tokens_used / this.usage.token_limit * 100)) : 0; }
   get elapsed(): string { const n = this.usage?.active_seconds || 0; return `${Math.floor(n / 3600)} h ${Math.floor(n % 3600 / 60)} min`; }
   get resetIn(): string {

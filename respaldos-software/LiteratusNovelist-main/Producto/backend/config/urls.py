@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
@@ -23,12 +24,14 @@ from django.http import JsonResponse
 def health_check(request):
     return JsonResponse({"status": "ok", "message": "Server is awake!"})
 
+admin_path = getattr(settings, 'ADMIN_URL', 'admin/').strip('/') + '/'
+
 urlpatterns = [
     # Health check para pings automáticos (ej. cron-job.org)
     path('api/health/', health_check, name='health_check'),
 
-    # Panel de administración base
-    path('admin/', admin.site.urls),
+    # Panel de administración parametrizado (protege contra escaneo de /admin/ por defecto)
+    path(admin_path, admin.site.urls),
 
     # -----------------------------------------------------------------------
     # Rutas OpenAPI y Documentación Swagger

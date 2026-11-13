@@ -1512,3 +1512,12 @@ body:where(:not(.reader-open)):has(.bz-drawer.is-open) :is(.lit-panel, .lit-note
     --floating-btn-display: none;
   }
 }
+
+/* Espaciado inferior seguro (Safe Area) en móvil (<= 768px):
+   Garantiza que ningún contenido interactivo quede tapado bajo el botón flotante unificado */
+@media (max-width: 768px) {
+  .site-content,
+  main.container:not(.dashboard-mode) {
+    padding-bottom: max(88px, calc(88px + env(safe-area-inset-bottom, 0px)));
+  }
+}

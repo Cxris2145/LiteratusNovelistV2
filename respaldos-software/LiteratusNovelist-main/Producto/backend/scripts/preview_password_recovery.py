@@ -1,6 +1,7 @@
 """Cuenta ficticia para auditar recuperación, exclusivamente en la SQLite local."""
 import os
 import sys
+import secrets
 from pathlib import Path
 
 backend = Path(__file__).resolve().parents[1]
@@ -20,7 +21,8 @@ assert settings.DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3'
 call_command('migrate', verbosity=0)
 user, _ = get_user_model().objects.get_or_create(
     username='RecuperacionDemo', defaults={'email': 'recuperacion@preview.example'})
-user.set_password('LecturaAnterior2026!')
+preview_password = os.environ.get('PREVIEW_USER_PASSWORD') or secrets.token_urlsafe(16)
+user.set_password(preview_password)
 user.save(update_fields=['password'])
 user.profile.has_completed_onboarding = True
 user.profile.save(update_fields=['has_completed_onboarding'])

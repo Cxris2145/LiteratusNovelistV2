@@ -884,4 +884,5 @@
   }
   .card-extra-actions { gap: 5px; margin-top: 8px; }
   .card-extra-actions .summary-card-btn { padding: 6px 0; font-size: 0.68rem; letter-spacing: 0; }
+  .library-wrapper { padding-bottom: 88px; }
 }

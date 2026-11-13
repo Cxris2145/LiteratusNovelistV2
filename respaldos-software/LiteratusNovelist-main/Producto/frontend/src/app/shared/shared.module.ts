@@ -28,6 +28,7 @@ import { ScrollRevealDirective } from '../core/directives/scroll-reveal.directiv
 import { CountUpDirective } from '../core/directives/count-up.directive';
 import { TiltDirective } from '../core/directives/tilt.directive';
 import { OwnInkPipe } from '../core/pipes/own-ink.pipe';
+import { ClpPipe } from '../core/pipes/clp.pipe';
 
 const LUCIDE = [
   LucideSparkles, LucideFlame, LucideStar, LucideShoppingCart, LucideBookOpen, LucidePenTool,
@@ -56,7 +57,7 @@ const SHARED_DECLARATIONS = [
  */
 @NgModule({
   declarations: SHARED_DECLARATIONS,
-  imports: [...SHARED_MODULES, ...LUCIDE, AIUsageMeterComponent, InkDayPassComponent, OwnInkPipe],
-  exports: [...SHARED_MODULES, ...LUCIDE, AIUsageMeterComponent, InkDayPassComponent, OwnInkPipe, ...SHARED_DECLARATIONS],
+  imports: [...SHARED_MODULES, ...LUCIDE, AIUsageMeterComponent, InkDayPassComponent, OwnInkPipe, ClpPipe],
+  exports: [...SHARED_MODULES, ...LUCIDE, AIUsageMeterComponent, InkDayPassComponent, OwnInkPipe, ClpPipe, ...SHARED_DECLARATIONS],
 })
 export class SharedModule {}

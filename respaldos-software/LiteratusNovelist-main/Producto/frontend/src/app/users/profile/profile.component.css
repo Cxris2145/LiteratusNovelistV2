@@ -907,6 +907,7 @@ button.pf-chip { cursor: pointer; transition: border-color 160ms ease, backgroun
   .save-bar-text-short { display: inline; }
   .pf-btn-primary,
   .pf-btn-ghost { padding: 0 12px; font-size: 0.86rem; }
+  .profile-container { padding-bottom: 96px; }
 }
 
 @media (max-width: 480px) {

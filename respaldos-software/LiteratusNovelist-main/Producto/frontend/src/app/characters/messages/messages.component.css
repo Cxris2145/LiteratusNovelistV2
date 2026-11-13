@@ -585,6 +585,10 @@
   .conv-snippet { font-size: 0.8rem; -webkit-line-clamp: 2; }
 }
 
+@media (max-width: 768px) {
+  .messages-wrapper { padding-bottom: 88px; }
+}
+
 /* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
 @media (pointer: coarse) {
   .search-input {

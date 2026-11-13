@@ -28,7 +28,7 @@
           <span class="material-symbols-rounded">ink_pen</span>
         </div>
         <h4 class="ink-pack-title">{{ pkg.title }}</h4>
-        <p class="ink-pack-price">${{ pkg.price | number }} CLP</p>
+        <p class="ink-pack-price">{{ pkg.price | clp }}</p>
         <p class="ink-pack-desc">{{ pkg.description }}</p>
         <button type="button" class="btn-add-ink" (click)="addInkPackage(pkg)">
           <span class="material-symbols-rounded">add_shopping_cart</span>
@@ -79,7 +79,7 @@
               <span class="item-tag-pill" *ngIf="item.label">{{ item.label }}</span>
             </div>
             <p class="item-author" *ngIf="item.author_name">{{ item.author_name }}</p>
-            <p class="item-unit-price">${{ item.price | number }} CLP c/u</p>
+            <p class="item-unit-price">{{ item.price | clp }} c/u</p>
           </div>
 
           <!-- Controles de Cantidad -->
@@ -91,7 +91,7 @@
 
           <!-- Subtotal del Item -->
           <div class="item-subtotal-wrap">
-            <span class="item-subtotal">${{ (item.price * item.quantity) | number }} CLP</span>
+            <span class="item-subtotal">{{ (item.price * item.quantity) | clp }}</span>
             <button type="button" class="remove-item-btn" (click)="removeItem(item)" title="Eliminar del carrito">
               <span class="material-symbols-rounded">delete</span>
             </button>
@@ -107,7 +107,7 @@
           <div class="quick-ink-card glass-panel" *ngFor="let pkg of POPULAR_INK_PACKAGES">
             <div class="q-ink-info">
               <strong>{{ pkg.title }}</strong>
-              <span>${{ pkg.price | number }} CLP</span>
+              <span>{{ pkg.price | clp }}</span>
             </div>
             <button type="button" class="q-ink-add-btn" (click)="addInkPackage(pkg)">
               + Añadir
@@ -124,7 +124,7 @@
 
         <div class="summary-line">
           <span>Subtotal</span>
-          <span>${{ subtotal | number }} CLP</span>
+          <span>{{ subtotal | clp }}</span>
         </div>
 
         <p>Los cofres se pagan por separado. Confirma el precio del artículo elegido en Webpay.</p>
@@ -133,7 +133,7 @@
 
         <div class="summary-total-row">
           <span class="total-label">Total de tu cesta</span>
-          <span class="total-amount">${{ total | number }} CLP</span>
+          <span class="total-amount">{{ total | clp }}</span>
         </div>
 
         <button type="button" class="btn-checkout-webpay" (click)="proceedToCheckout()">

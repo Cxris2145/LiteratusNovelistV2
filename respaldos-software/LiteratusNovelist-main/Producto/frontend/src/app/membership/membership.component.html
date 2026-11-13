@@ -39,7 +39,7 @@
     <section class="tv-section" aria-labelledby="plans-title" data-tv-section *ngIf="!subscribed">
       <div class="section-heading">
         <h2 id="plans-title">Un plan para tus conversaciones</h2>
-        <span>Pago mensual en dólares. Cancela la renovación cuando quieras.</span>
+        <span>Pago mensual en pesos chilenos. Cancela la renovación cuando quieras.</span>
       </div>
       <p *ngIf="loading" role="status">Cargando planes…</p>
       <div class="plans-grid" [class.is-loading]="loading">
@@ -95,7 +95,7 @@
             <span class="coffer-badge" *ngIf="pack.amount === bestPackAmount">Mejor precio por Tinta</span>
           </div>
           <h3><span class="coffer-amount">{{ formatAmount(pack.amount) }}</span> Tinta</h3>
-          <p class="coffer-price">${{ formatAmount(+pack.price) }} <span>CLP</span></p>
+          <p class="coffer-price">{{ +pack.price | clp }}</p>
           <p class="tv-unit" *ngIf="unitPrice(pack) as unit">{{ unit }} por Tinta</p>
           <button class="button coffer-button" [class.secondary]="pack.amount !== bestPackAmount" type="button" (click)="buyInk(pack.amount)"
                   [attr.aria-label]="'Comprar ' + formatAmount(pack.amount) + ' Tinta por $' + formatAmount(+pack.price) + ' CLP'">Comprar</button>
@@ -172,7 +172,7 @@
         <div class="table-scroll" *ngIf="history.length">
           <table>
             <thead><tr><th>Fecha</th><th>Compra</th><th>Monto</th><th>Estado</th></tr></thead>
-            <tbody><tr *ngFor="let payment of history"><td>{{ date(payment.created_at) }}</td><td>{{ purchaseLabel(payment) }}</td><td>{{ payment.amount }} {{ payment.currency }}</td><td>{{ payment.status }}</td></tr></tbody>
+            <tbody><tr *ngFor="let payment of history"><td>{{ date(payment.created_at) }}</td><td>{{ purchaseLabel(payment) }}</td><td>{{ payment.amount | clp }}</td><td>{{ payment.status }}</td></tr></tbody>
           </table>
         </div>
         <h3>Movimientos de Tinta</h3>

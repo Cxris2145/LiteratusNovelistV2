@@ -59,7 +59,7 @@ export class TransactionsComponent implements OnInit {
     let csvContent = 'data:text/csv;charset=utf-8,';
     csvContent += 'Orden Webpay,Usuario,Email,Tipo,Referencia,Monto CLP,Estado,Fecha\r\n';
     this.transactions.forEach(t => {
-      const row = `"${t.buy_order}","${(t.username || '').replace(/"/g, '""')}","${t.user_email || ''}","${t.item_type}","${(t.item_reference || '').replace(/"/g, '""')}","${t.amount}","${t.status_display || t.status}","${t.created_at}"`;
+      const row = `"${t.buy_order}","${(t.username || '').replace(/"/g, '""')}","${t.user_email || ''}","${t.item_type}","${(t.item_reference || '').replace(/"/g, '""')}","${Number(t.amount).toLocaleString('es-CL')} CLP","${t.status_display || t.status}","${t.created_at}"`;
       csvContent += row + '\r\n';
     });
 

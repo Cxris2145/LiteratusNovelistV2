@@ -134,15 +134,29 @@ DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=0)
 DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 # ---------------------------------------------------------------------------
-# Validación de contraseñas
+# Validación de contraseñas y endurecimiento de políticas de acceso
 # ---------------------------------------------------------------------------
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 12,
+        },
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
+
+# Ruta parametrizable del panel de administración (mitiga ataques de fuerza bruta y enumeración)
+ADMIN_URL = env('ADMIN_URL', default='admin/').strip('/') + '/'
 
 # ---------------------------------------------------------------------------
 # Internacionalización
@@ -193,6 +207,10 @@ if DEBUG:
 # Desactivado para producción (Seguridad)
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
+
+# Endurecimiento de cookies de sesión y CSRF (mitigación de secuestro y XSS)
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
 
 # Flags de seguridad estrictos (activos cuando DEBUG=False en producción)
 if not DEBUG:

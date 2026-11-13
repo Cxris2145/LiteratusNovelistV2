@@ -69,7 +69,7 @@
           <span class="stat-label">Ingresos Webpay</span>
         </div>
         <div class="stat-body">
-          <div class="stat-main-val">${{ stats.revenue.total | number:'1.0-0' }}</div>
+          <div class="stat-main-val">{{ stats.revenue.total | clp }}</div>
           <div class="stat-sub">
             <span class="material-symbols-outlined">info</span>
             {{ stats.revenue.completed_count }} compras confirmadas
@@ -199,12 +199,12 @@
         <div 
           class="bar-column" 
           *ngFor="let day of stats.sales_chart"
-          [title]="day.date + ': $' + day.amount">
+          [title]="day.date + ': ' + (day.amount | clp)">
           <div class="bar-track">
             <div class="bar-fill sales-fill" [style.height.%]="getBarHeight(day.amount, 'sales')"></div>
           </div>
           <span class="bar-date">{{ day.date }}</span>
-          <span class="bar-val">${{ day.amount }}</span>
+          <span class="bar-val">{{ day.amount | clp:false }}</span>
         </div>
       </div>
 
@@ -289,7 +289,7 @@
                 <span class="sale-name">{{ s.username }}</span>
                 <span class="sale-order font-mono">{{ s.buy_order }}</span>
               </div>
-              <div class="sale-amount">${{ s.amount | number:'1.0-0' }}</div>
+              <div class="sale-amount">{{ s.amount | clp }}</div>
               <span class="sale-status" [class.success]="s.status === 'exitosa'">{{ s.status_display }}</span>
             </div>
           </div>

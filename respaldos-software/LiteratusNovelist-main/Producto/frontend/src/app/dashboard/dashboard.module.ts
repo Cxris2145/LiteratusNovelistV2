@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 
+import { ClpPipe } from '../core/pipes/clp.pipe';
 import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardLayoutComponent } from './dashboard-layout/dashboard-layout.component';
 import { OverviewComponent } from './overview/overview.component';
@@ -60,6 +61,7 @@ import { BookReportsComponent } from './book-reports/book-reports.component';
     MatMenuModule,
     MatButtonModule,
     MatDividerModule,
+    ClpPipe,
   ]
 })
 export class DashboardModule {}

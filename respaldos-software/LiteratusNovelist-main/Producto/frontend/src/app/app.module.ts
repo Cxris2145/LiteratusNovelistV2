@@ -1,8 +1,12 @@
 import { NotebookLauncherComponent } from './notebook/notebook-launcher/notebook-launcher.component';
 import { RouteProgressComponent } from './core/components/route-progress/route-progress.component';
-import { NgModule, isDevMode } from '@angular/core';
+import { NgModule, isDevMode, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { registerLocaleData } from '@angular/common';
+import localeEsCl from '@angular/common/locales/es-CL';
+
+registerLocaleData(localeEsCl, 'es-CL');
 
 import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './shared/shared.module';
@@ -62,7 +66,8 @@ import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialo
     // El motor de animaciones (~60 KB) se baja aparte, sin frenar la primera página.
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor, achievementInterceptor])),
-    { provide: RouteReuseStrategy, useClass: AppRouteReuseStrategy }
+    { provide: RouteReuseStrategy, useClass: AppRouteReuseStrategy },
+    { provide: LOCALE_ID, useValue: 'es-CL' }
   ],
   bootstrap: [AppComponent]
 })

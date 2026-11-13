@@ -6,6 +6,7 @@ import { AssistantService, AssistantConversation, AssistantMessage } from '../..
 import { SpeechRecognitionService } from '../../services/speech-recognition.service';
 import { NotificationService } from '../../services/notification.service';
 import { MaguitoState } from '../maguito/maguito.component';
+import { NotebookService } from '../../../notebook/notebook.service';
 
 @Component({
   selector: 'app-assistant-widget',
@@ -17,6 +18,7 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   private assistant = inject(AssistantService);
   private speechService = inject(SpeechRecognitionService);
   private notifications = inject(NotificationService);
+  readonly notebook = inject(NotebookService);
   private destroy$ = new Subject<void>();
 
   @ViewChild('messagesEl') private messagesEl?: ElementRef<HTMLDivElement>;
@@ -42,6 +44,14 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   private lastUnreadCount = 0;
   private shouldScrollOnNextCheck = false;
   private lottieAnim?: any;
+
+  /* Estados para modo móvil y Speed Dial */
+  isMobile = false;
+  isMobileSpeedDialOpen = false;
+  isScrolledDown = false;
+  isInputFocused = false;
+  private lastScrollY = 0;
+  private scrollStopTimer: any = null;
 
   get currentSection(): string {
     return this.assistant.currentSection;
@@ -72,7 +82,81 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
 
     this.assistant.bootstrap();
     this.loadMascot();
+    this.initMobileListeners();
   }
+
+  private initMobileListeners(): void {
+    if (typeof window === 'undefined') return;
+    this.checkViewport();
+    window.addEventListener('resize', this.onWindowResize, { passive: true });
+    window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+    document.addEventListener('focusin', this.onDocFocusIn, { passive: true });
+    document.addEventListener('focusout', this.onDocFocusOut, { passive: true });
+  }
+
+  private checkViewport = () => {
+    this.isMobile = window.innerWidth <= 768;
+    if (!this.isMobile) {
+      this.isMobileSpeedDialOpen = false;
+      this.isScrolledDown = false;
+      this.isInputFocused = false;
+    }
+  };
+
+  private onWindowResize = () => {
+    this.checkViewport();
+  };
+
+  private onWindowScroll = () => {
+    if (!this.isMobile || this.isOpen) return;
+    const currentY = window.scrollY;
+    const delta = currentY - this.lastScrollY;
+    this.lastScrollY = currentY;
+
+    if (delta > 8 && currentY > 60) {
+      // Desplazamiento hacia abajo: ocultar o reducir escala
+      if (!this.isScrolledDown) {
+        this.isScrolledDown = true;
+        this.isMobileSpeedDialOpen = false;
+      }
+    } else if (delta < -8) {
+      // Desplazamiento hacia arriba: reaparecer
+      if (this.isScrolledDown) {
+        this.isScrolledDown = false;
+      }
+    }
+
+    // Al detenerse el scroll, reaparecer
+    if (this.scrollStopTimer) clearTimeout(this.scrollStopTimer);
+    this.scrollStopTimer = setTimeout(() => {
+      if (this.isScrolledDown) {
+        this.isScrolledDown = false;
+      }
+    }, 700);
+  };
+
+  private isInputElement(el: Element | null): boolean {
+    if (!el || !(el instanceof HTMLElement)) return false;
+    return el.isContentEditable || el.matches('input, textarea, select, [contenteditable="true"]');
+  }
+
+  private onDocFocusIn = (event: FocusEvent) => {
+    if (!this.isMobile) return;
+    const target = event.target as Element | null;
+    if (this.isInputElement(target)) {
+      this.isInputFocused = true;
+      this.isMobileSpeedDialOpen = false;
+    }
+  };
+
+  private onDocFocusOut = () => {
+    if (!this.isMobile) return;
+    setTimeout(() => {
+      if (!this.isInputElement(document.activeElement)) {
+        this.isInputFocused = false;
+      }
+    }, 100);
+  };
 
   ngAfterViewChecked(): void {
     if (this.shouldScrollOnNextCheck && this.messagesEl) {
@@ -87,6 +171,13 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
       this.speechService.stopListening();
       this.isListening = false;
     }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.onWindowResize);
+      window.removeEventListener('scroll', this.onWindowScroll);
+      document.removeEventListener('focusin', this.onDocFocusIn);
+      document.removeEventListener('focusout', this.onDocFocusOut);
+    }
+    if (this.scrollStopTimer) clearTimeout(this.scrollStopTimer);
     this.destroy$.next();
     this.destroy$.complete();
     this.lottieAnim?.destroy?.();
@@ -112,6 +203,28 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
 
   toggle(): void {
     this.assistant.toggleOpen();
+  }
+
+  onBubbleClick(): void {
+    if (this.isMobile) {
+      this.isMobileSpeedDialOpen = !this.isMobileSpeedDialOpen;
+    } else {
+      this.toggle();
+    }
+  }
+
+  openAssistantFromSpeedDial(): void {
+    this.isMobileSpeedDialOpen = false;
+    this.assistant.toggleOpen();
+  }
+
+  openNotebookFromSpeedDial(): void {
+    this.isMobileSpeedDialOpen = false;
+    this.notebook.toggle();
+  }
+
+  closeMobileSpeedDial(): void {
+    this.isMobileSpeedDialOpen = false;
   }
 
   minimize(): void {

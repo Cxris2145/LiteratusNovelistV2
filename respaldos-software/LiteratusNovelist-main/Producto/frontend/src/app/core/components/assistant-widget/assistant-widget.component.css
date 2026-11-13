@@ -693,18 +693,159 @@
 }
 
 /* --------------------------------------------------------------------------
-   RESPONSIVE
+   RESPONSIVE & SPEED DIAL UNIFICADO EN MÓVIL (<= 768px)
    -------------------------------------------------------------------------- */
-@media (max-width: 640px) {
+.lit-mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 12, 9, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 2998;
+  animation: lit-dial-fade 0.2s ease-out;
+}
+
+.lit-speed-dial-menu {
+  position: fixed;
+  right: 16px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 3001;
+  pointer-events: auto;
+}
+
+:host-context(body.has-bottom-nav) .lit-speed-dial-menu {
+  bottom: calc(134px + env(safe-area-inset-bottom, 0px));
+}
+
+.lit-speed-dial-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 8px 12px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, rgba(20, 41, 31, 0.96) 0%, rgba(10, 25, 20, 0.98) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-500, #D4AF37) 45%, transparent);
+  color: var(--color-text-primary, #f1f5f9);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(212, 175, 55, 0.12);
+  cursor: pointer;
+  font-family: var(--font-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: lit-dial-slide 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.lit-speed-dial-item:active {
+  transform: scale(0.95);
+  background: rgba(28, 54, 42, 0.98);
+}
+
+.lit-speed-dial-item .lit-speed-dial-icon {
+  font-size: 20px;
+  color: #fbbf24;
+}
+
+.lit-speed-dial-item.item-notebook {
+  animation-delay: 0.03s;
+}
+
+.lit-speed-dial-item.item-assistant {
+  animation-delay: 0.07s;
+}
+
+.lit-speed-dial-ping {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.2;
+}
+
+.lit-dial-close-icon {
+  font-size: 24px;
+  color: #f1f5f9;
+  animation: lit-dial-rotate 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes lit-dial-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lit-dial-slide {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lit-dial-rotate {
+  from { transform: rotate(-90deg) scale(0.8); }
+  to { transform: rotate(0deg) scale(1); }
+}
+
+@media (max-width: 768px) {
   .lit-bubble {
     bottom: 16px;
     right: 16px;
-    width: 58px;
-    height: 58px;
+    width: 48px;
+    height: 48px;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.28s ease,
+                scale 0.28s ease,
+                box-shadow 0.2s ease;
   }
 
-  /* En el celular el Asistente ocupa toda la pantalla y su barra de escribir queda sobre el
-     teclado: --kb-inset y --vv-top los publica core/utils/keyboard-inset.util.ts. */
+  .lit-bubble-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .lit-mascot-avatar {
+    width: 38px;
+  }
+
+  .lit-bubble.is-active-dial {
+    background: linear-gradient(135deg, rgba(28, 54, 42, 0.98) 0%, rgba(15, 32, 25, 0.98) 100%);
+    border-color: var(--color-primary, #D4AF37);
+    box-shadow: 0 0 18px rgba(212, 175, 55, 0.35);
+    animation: none;
+  }
+
+  /* Con la barra inferior de navegación (bottom-nav), la burbuja queda cómodamente encima */
+  :host-context(body.has-bottom-nav) .lit-bubble {
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Ocultamiento inteligente al hacer scroll hacia abajo */
+  .lit-assistant-root.is-scrolled-down:not(.speed-dial-open) .lit-bubble {
+    opacity: 0.35;
+    transform: translateY(12px) scale(0.86);
+  }
+
+  /* Ocultamiento total al enfocar campos de texto/formulario */
+  .lit-assistant-root.is-input-focused .lit-bubble,
+  .lit-assistant-root.is-input-focused .lit-speed-dial-menu,
+  :host-context(body.keyboard-open) .lit-bubble,
+  :host-context(body.keyboard-open) .lit-speed-dial-menu {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(28px) scale(0.8) !important;
+  }
+
+  /* En pantallas móviles el Asistente ocupa la pantalla completa */
   .lit-panel {
     top: var(--vv-top, 0px);
     bottom: var(--kb-inset, 0px);
@@ -731,13 +872,11 @@
 .lit-bubble, .lit-panel {
   margin-bottom: env(safe-area-inset-bottom, 0px);
 }
-@media (max-width: 640px) {
+
+@media (max-width: 768px) {
   /* A pantalla completa la barra de escribir lleva el margen de la barra de inicio por dentro. */
   .lit-panel { margin-bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
   :host-context(body.keyboard-open) .lit-panel { padding-bottom: 0; }
-  /* Con la barra inferior de secciones, la burbuja va encima de ella. */
-  :host-context(body.has-bottom-nav) .lit-bubble { bottom: 76px; }
-  :host-context(body.keyboard-open) .lit-bubble { display: none; }
 }
 
 .lit-ephemeral-notice {

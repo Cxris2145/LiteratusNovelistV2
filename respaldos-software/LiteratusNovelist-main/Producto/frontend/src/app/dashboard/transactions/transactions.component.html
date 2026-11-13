@@ -11,7 +11,7 @@
   <div class="summary-grid" *ngIf="summary">
     <div class="summary-card">
       <span class="card-label">Recaudación Total</span>
-      <span class="card-value">${{ summary.total_revenue | number:'1.0-0' }}</span>
+      <span class="card-value">{{ summary.total_revenue | clp }}</span>
       <span class="card-hint">Monto confirmado</span>
     </div>
     <div class="summary-card">
@@ -101,7 +101,7 @@
             </span>
           </td>
           <td class="reference-cell">{{ t.item_reference }}</td>
-          <td class="amount-cell">${{ t.amount | number:'1.0-0' }}</td>
+          <td class="amount-cell">{{ t.amount | clp }}</td>
           <td>
             <span class="status-pill" [class.success]="t.status === 'exitosa'" [class.failed]="t.status === 'fallida'" [class.pending]="t.status === 'iniciada'">
               <span class="dot"></span>

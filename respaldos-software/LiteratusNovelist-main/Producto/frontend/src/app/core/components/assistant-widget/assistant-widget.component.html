@@ -1,23 +1,68 @@
-<div class="lit-assistant-root">
+<div class="lit-assistant-root"
+     [class.is-mobile]="isMobile"
+     [class.is-scrolled-down]="isScrolledDown"
+     [class.is-input-focused]="isInputFocused"
+     [class.speed-dial-open]="isMobileSpeedDialOpen">
 
-  <!-- BURBUJA FLOTANTE -->
+  <!-- BACKDROP SUTIL EN MÓVIL AL ABRIR EL SPEED DIAL -->
+  <div class="lit-mobile-backdrop"
+       *ngIf="isMobile && isMobileSpeedDialOpen"
+       (click)="closeMobileSpeedDial()"
+       aria-hidden="true">
+  </div>
+
+  <!-- MENÚ SPEED DIAL DESPLEGADO HACIA ARRIBA (SOLO MÓVIL) -->
+  <div class="lit-speed-dial-menu" *ngIf="isMobile && isMobileSpeedDialOpen" role="menu" aria-label="Herramientas rápidas">
+    <!-- Opción Cuaderno de Notas -->
+    <button type="button"
+            class="lit-speed-dial-item item-notebook"
+            (click)="openNotebookFromSpeedDial()"
+            role="menuitem"
+            title="Abrir cuaderno de notas y apuntes">
+      <span class="lit-speed-dial-icon material-symbols-rounded">stylus_note</span>
+      <span class="lit-speed-dial-label">Cuaderno</span>
+    </button>
+
+    <!-- Opción Asistente Virtual -->
+    <button type="button"
+            class="lit-speed-dial-item item-assistant"
+            (click)="openAssistantFromSpeedDial()"
+            role="menuitem"
+            title="Abrir Asistente Virtual">
+      <span class="lit-speed-dial-icon material-symbols-rounded">auto_awesome</span>
+      <span class="lit-speed-dial-label">Asistente</span>
+      <span class="lit-speed-dial-ping" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+    </button>
+  </div>
+
+  <!-- BURBUJA FLOTANTE UNIFICADA -->
   <button
     type="button"
     class="lit-bubble"
     [hidden]="isOpen"
     [class.bouncing]="isBouncing"
-    (click)="toggle()"
-    aria-label="Abrir el Asistente de Literatus">
-    <span class="lit-bubble-glow"></span>
-    <span class="lit-bubble-orbit-ring" aria-hidden="true">
-      <span class="lit-orbit-star">✦</span>
+    [class.is-active-dial]="isMobile && isMobileSpeedDialOpen"
+    (click)="onBubbleClick()"
+    [attr.aria-expanded]="isMobile ? isMobileSpeedDialOpen : null"
+    [attr.aria-label]="isMobile ? (isMobileSpeedDialOpen ? 'Cerrar opciones' : 'Abrir opciones de asistente y cuaderno') : 'Abrir el Asistente de Literatus'">
+    
+    <!-- En móvil cuando el Speed Dial está abierto, muestra ícono de cerrar -->
+    <span class="lit-dial-close-icon material-symbols-rounded" *ngIf="isMobile && isMobileSpeedDialOpen" aria-hidden="true">
+      close
     </span>
-    <div class="lit-bubble-avatar">
-      <!-- Siempre a la vista: modo calmado (parpadea y te sigue con la mirada) -->
-      <app-maguito class="lit-mascot-avatar" crop="bust" [mine]="true" [calm]="true" [interactive]="false"></app-maguito>
-    </div>
-    <span class="lit-bubble-tooltip" aria-hidden="true">¡Hola! ¿Leemos algo? ✨</span>
-    <span class="lit-bubble-ping" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+
+    <ng-container *ngIf="!isMobile || !isMobileSpeedDialOpen">
+      <span class="lit-bubble-glow"></span>
+      <span class="lit-bubble-orbit-ring" aria-hidden="true">
+        <span class="lit-orbit-star">✦</span>
+      </span>
+      <div class="lit-bubble-avatar">
+        <!-- Siempre a la vista: modo calmado (parpadea y te sigue con la mirada) -->
+        <app-maguito class="lit-mascot-avatar" crop="bust" [mine]="true" [calm]="true" [interactive]="false"></app-maguito>
+      </div>
+      <span class="lit-bubble-tooltip" aria-hidden="true">¡Hola! ¿Leemos algo? ✨</span>
+      <span class="lit-bubble-ping" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+    </ng-container>
   </button>
 
   <!-- PANEL DE CONVERSACIÓN -->
