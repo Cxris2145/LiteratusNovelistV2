@@ -50,6 +50,10 @@
             <span class="d-label">Estado Inicial:</span>
             <span class="status-pill status-pending">En Revisión Editorial</span>
           </div>
+          <div class="dossier-row" *ngIf="submittedBookResult?.chapters_count">
+            <span class="d-label">Capítulos detectados:</span>
+            <span>{{ submittedBookResult.chapters_count }}<ng-container *ngIf="submittedBookResult.word_count"> · {{ submittedBookResult.word_count | number }} palabras</ng-container></span>
+          </div>
           <div class="dossier-row">
             <span class="d-label">Identificador:</span>
             <code>{{ submittedBookResult?.id || 'Ref-Novelist' }}</code>
@@ -96,7 +100,7 @@
           <div class="form-grid-2">
             <div class="input-field">
               <label for="bookTitle">Título de la Obra <span class="required-star">*</span></label>
-              <input type="text" id="bookTitle" [(ngModel)]="title" placeholder="Ej: Las Crónicas del Tintero de Oro" class="text-input" [class.input-valid]="hasValidTitle">
+              <input type="text" id="bookTitle" [(ngModel)]="title" maxlength="255" placeholder="Ej: Las Crónicas del Tintero de Oro" class="text-input" [class.input-valid]="hasValidTitle">
               <span class="field-hint" [class.hint-valid]="hasValidTitle">
                 {{ hasValidTitle ? '✓ Título válido' : 'Mínimo 3 caracteres requeridos.' }}
               </span>
@@ -187,7 +191,7 @@
 
           <div class="cover-uploader-layout">
             <div class="upload-dropzone" (click)="coverFileInput.click()" [class.has-file]="hasCover">
-              <input #coverFileInput type="file" accept="image/*" (change)="onCoverSelected($event)" style="display: none;">
+              <input #coverFileInput type="file" accept="image/jpeg,image/png,image/webp" (change)="onCoverSelected($event)" style="display: none;">
               
               <div class="dropzone-content" *ngIf="!coverPreview">
                 <span class="material-symbols-outlined drop-icon">add_photo_alternate</span>
@@ -394,16 +398,16 @@
       <div class="submissions-grid" *ngIf="mySubmissions.length > 0; else noSubmissions">
         <div class="submission-card" *ngFor="let item of mySubmissions">
           <div class="card-cover-side">
-            <img [src]="item.cover || 'assets/no-cover.jpg'" alt="Portada">
+            <img [src]="item.cover || 'assets/default_cover.jpg'" alt="Portada">
             <span class="status-badge" [class.badge-pending]="item.status === 'pending_review'" [class.badge-approved]="item.status === 'published'" [class.badge-rejected]="item.status === 'rejected'">
-              {{ item.status === 'pending_review' ? 'En Revisión' : (item.status === 'published' ? 'Publicado' : 'Observado') }}
+              {{ statusLabel(item.status) }}
             </span>
           </div>
 
           <div class="card-info-side">
             <div class="info-top">
               <span class="date-badge">{{ item.created_at | date:'dd MMM yyyy' }}</span>
-              <span class="diff-tag">{{ item.difficulty_level }}</span>
+              <span class="diff-tag">{{ difficultyLabel(item.difficulty_level) }}</span>
             </div>
 
             <h3 class="item-title">{{ item.title }}</h3>

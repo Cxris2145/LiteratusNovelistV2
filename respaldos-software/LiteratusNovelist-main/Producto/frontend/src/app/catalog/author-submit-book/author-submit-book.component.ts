@@ -79,7 +79,7 @@ export class AuthorSubmitBookComponent implements OnInit {
   }
 
   loadGenres(): void {
-    this.http.get<any>(`${environment.apiUrl}catalog/genres/`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}catalog/genres/`, { params: { page_size: 50 } }).subscribe({
       next: (res) => {
         const results = Array.isArray(res) ? res : (res?.results || []);
         this.availableGenres = results;
@@ -180,9 +180,10 @@ export class AuthorSubmitBookComponent implements OnInit {
   // --- Manejo de Archivos ---
   onCoverSelected(event: any): void {
     const file = event.target.files?.[0];
+    event.target.value = ''; // permite volver a elegir el mismo archivo después de quitarlo
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       this.notificationService.error('El archivo de portada debe ser una imagen válida (JPG, PNG o WEBP).', 'Formato no válido');
       return;
     }
@@ -207,14 +208,13 @@ export class AuthorSubmitBookComponent implements OnInit {
 
   onManuscriptSelected(event: any): void {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
 
     const lowerName = file.name.toLowerCase();
-    if (lowerName.endsWith('.epub')) {
-      this.manuscriptFormat = 'epub';
-    } else if (lowerName.endsWith('.pdf')) {
-      this.manuscriptFormat = 'pdf';
-    } else {
+    const format: 'epub' | 'pdf' | null =
+      lowerName.endsWith('.epub') ? 'epub' : lowerName.endsWith('.pdf') ? 'pdf' : null;
+    if (!format) {
       this.notificationService.error('El manuscrito debe ser un archivo .EPUB o .PDF.', 'Formato no admitido');
       return;
     }
@@ -224,9 +224,10 @@ export class AuthorSubmitBookComponent implements OnInit {
       return;
     }
 
+    this.manuscriptFormat = format;
     this.manuscriptFile = file;
     this.manuscriptFileName = file.name;
-    this.notificationService.info(`Manuscrito ${this.manuscriptFormat.toUpperCase()} adjuntado correctamente.`, 'Manuscrito');
+    this.notificationService.info(`Manuscrito ${format.toUpperCase()} adjuntado correctamente.`, 'Manuscrito');
   }
 
   removeManuscript(): void {
@@ -284,7 +285,7 @@ export class AuthorSubmitBookComponent implements OnInit {
     const formData = new FormData();
     formData.append('title', this.title.trim());
     formData.append('author_name', this.authorName.trim() || 'Autor Anónimo');
-    formData.append('bio', this.authorBio.trim());
+    formData.append('author_bio', this.authorBio.trim());
     formData.append('synopsis', this.synopsis.trim());
     formData.append('difficulty_level', this.difficultyLevel);
     formData.append('genres', JSON.stringify(this.selectedGenres));
@@ -315,10 +316,32 @@ export class AuthorSubmitBookComponent implements OnInit {
       },
       error: (err) => {
         this.submitting = false;
-        const msg = err.error?.detail || err.error?.message || 'Ocurrió un error al enviar tu obra. Verifica los campos requeridos.';
-        this.notificationService.error(msg, 'Error en el Envío');
+        this.notificationService.error(this.submissionErrorMessage(err), 'Error en el Envío');
       }
     });
+  }
+
+  /** El backend explica en `message` qué requisito falló (p. ej. un PDF escaneado sin texto). */
+  private submissionErrorMessage(err: any): string {
+    if (err?.status === 0) return 'No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.';
+    if (err?.status === 413) return 'Los archivos son demasiado pesados para enviarlos.';
+    const details = err?.error?.details;
+    const firstDetail = details && typeof details === 'object' ? Object.values(details)[0] : null;
+    return err?.error?.message || firstDetail || err?.error?.detail
+      || 'Ocurrió un error al enviar tu obra. Verifica los campos requeridos.';
+  }
+
+  difficultyLabel(level: string): string {
+    return ({ beginner: 'Iniciación', intermediate: 'Intermedio', advanced: 'Avanzado', master: 'Maestro' } as Record<string, string>)[level] || level;
+  }
+
+  statusLabel(status: string): string {
+    switch (status) {
+      case 'pending_review': return 'En Revisión';
+      case 'published': return 'Publicado';
+      case 'rejected': return 'Con observaciones';
+      default: return 'Oculta';
+    }
   }
 
   resetForm(): void {

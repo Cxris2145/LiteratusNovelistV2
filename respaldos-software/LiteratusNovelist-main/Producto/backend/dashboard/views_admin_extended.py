@@ -67,7 +67,8 @@ class AdminCurationView(APIView):
             has_cover = bool(b.cover_image)
             has_synopsis = bool(b.synopsis and len(b.synopsis.strip()) >= 50)
             has_genres = b.genres.count() > 0
-            has_content = b.anno_chapters_count > 0 or bool(b.pdf_file)
+            # El lector solo lee capítulos: un PDF guardado sin capítulos no se puede leer.
+            has_content = b.anno_chapters_count > 0
             has_declaration = bool(b.submission_declaration)
             meets_all = has_cover and has_synopsis and has_genres and has_content
 
@@ -108,7 +109,7 @@ class AdminCurationView(APIView):
                     'cover': {'passed': has_cover, 'label': 'Portada en formato válido'},
                     'synopsis': {'passed': has_synopsis, 'label': 'Sinopsis descriptiva (mínimo 50 caracteres)'},
                     'genres': {'passed': has_genres, 'label': 'Al menos una categoría o género literario'},
-                    'content': {'passed': has_content, 'label': 'Manuscrito adjunto (capítulos o archivo PDF/EPUB)'},
+                    'content': {'passed': has_content, 'label': 'Capítulos legibles (del EPUB, del PDF o escritos a mano)'},
                     'declaration': {'passed': has_declaration, 'label': 'Declaración jurada de autoría y derechos'}
                 },
                 'meets_minimum_requirements': meets_all,
@@ -157,13 +158,24 @@ class AdminBookApproveView(APIView):
         book = get_object_or_404(Book, pk=pk)
         notes = request.data.get('notes', request.data.get('editorial_notes', ''))
 
-        book.is_published = True
-        book.status = Book.StatusChoices.PUBLISHED
-        update_fields = ['is_published', 'status', 'updated_at']
-        if notes:
-            book.editorial_notes = notes
-            update_fields.append('editorial_notes')
-        book.save(update_fields=update_fields)
+        if not book.chapters.exists():
+            return Response({
+                'error': 'SIN_CAPITULOS',
+                'message': f'"{book.title}" no tiene capítulos legibles: publicada, nadie podría leerla. '
+                           'Recházala con observaciones para que el autor la envíe de nuevo.',
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        with db_transaction.atomic():
+            # Sin edición nadie puede agregarla a su biblioteca (la compra usa la primera edición).
+            if not book.editions.exists():
+                Edition.objects.create(book=book, format=Edition.FormatChoices.EPUB, price=0, language='es')
+            book.is_published = True
+            book.status = Book.StatusChoices.PUBLISHED
+            update_fields = ['is_published', 'status', 'updated_at']
+            if notes:
+                book.editorial_notes = notes
+                update_fields.append('editorial_notes')
+            book.save(update_fields=update_fields)
 
         return Response({
             'success': True,

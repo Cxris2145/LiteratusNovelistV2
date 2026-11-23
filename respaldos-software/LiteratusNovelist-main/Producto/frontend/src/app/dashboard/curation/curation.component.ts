@@ -95,9 +95,9 @@ export class CurationComponent implements OnInit {
         this.submittingApprove = false;
         setTimeout(() => this.actionMessage = '', 4000);
       },
-      error: () => {
+      error: (err) => {
         this.submittingApprove = false;
-        this.notificationService.error('Error al aprobar y publicar el libro.', 'Error');
+        this.notificationService.error(err?.error?.message || 'Error al aprobar y publicar el libro.', 'Error');
       }
     });
   }

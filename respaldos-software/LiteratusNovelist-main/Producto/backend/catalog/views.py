@@ -8,7 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db import transaction
-from django.db.models import Case, Count, IntegerField, Q, Value, When
+from django.db.models import Case, Count, Exists, IntegerField, OuterRef, Q, Value, When
+from django.http import Http404
 from django.utils.cache import patch_vary_headers
 from django.core.cache import cache
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,7 +18,7 @@ from . import summary as book_summary
 from .age import age_block_message, allowed_age, ensure_book_access, visible_books
 from .search_suggest import search_book_ids, suggest
 from .home import cached_home_payload
-from .models import Book, Author, Genre, Tag, Review, BookErrorReport
+from .models import Book, BookAuthor, Author, Genre, Tag, Review, BookErrorReport
 from .serializers import (
     BookListSerializer, BookDetailSerializer, BookDetailFullSerializer, 
     AuthorDetailSerializer, AuthorReadSerializer, GenreSerializer,
@@ -32,6 +33,11 @@ from core.pagination import StandardResultsSetPagination
 # ya serializada (`response.data`, aún sin renderizar) por unos minutos para
 # que la home y el catálogo dejen de esperar ~2s en cada carga/recarga.
 CATALOG_CACHE_TTL = 300  # segundos
+
+
+def can_see_unpublished(user, book):
+    """Una obra sin publicar la ven solo quien la envió y el equipo (curaduría)."""
+    return bool(user and user.is_authenticated and (user.is_staff or book.submitted_by_id == user.pk))
 
 
 def age_catalog_response(data):
@@ -56,7 +62,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Genre.objects.annotate(book_count=Count(
-            'books', filter=Q(books__min_age__lte=allowed_age(self.request.user),
+            'books', filter=Q(books__min_age__lte=allowed_age(self.request.user), books__is_published=True,
                               books__deleted_at__isnull=True), distinct=True
         )).order_by('-book_count', 'name')
 
@@ -87,6 +93,12 @@ class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['full_name', 'bio', 'nationality']
     ordering_fields = ['full_name', 'birth_year']
     ordering = ['full_name']
+
+    def get_queryset(self):
+        # Solo autores con alguna obra publicada: el seudónimo de un envío en revisión no aparece.
+        published = BookAuthor.objects.filter(
+            author=OuterRef('pk'), book__is_published=True, book__deleted_at__isnull=True)
+        return super().get_queryset().filter(Exists(published))
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -135,6 +147,8 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_object(self):
         book = super().get_object()
+        if not book.is_published and not can_see_unpublished(self.request.user, book):
+            raise Http404  # en revisión, rechazada u oculta: solo la ven su autor y el equipo
         ensure_book_access(self.request.user, book)
         return book
 
@@ -146,7 +160,7 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         qs = Book.objects.prefetch_related('genres', 'book_authors__author', 'editions', 'tags')
         qs = qs.annotate(ai_character_count=Count('editions__avatars', distinct=True))
         if self.action in ('list', 'recommendations'):
-            qs = visible_books(qs, self.request.user)
+            qs = visible_books(qs.filter(is_published=True), self.request.user)
         if self.action == 'details':
             qs = qs.prefetch_related('editions__avatars', 'reviews__user__profile')
 
@@ -356,7 +370,8 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': 'Debes iniciar sesión para comprar.'}, status=status.HTTP_401_UNAUTHORIZED)
             
         book = self.get_object()
-        
+        if not book.is_published:
+            return Response({'error': 'Esta obra todavía no está publicada.'}, status=status.HTTP_400_BAD_REQUEST)
 
         edition = book.editions.first()
         if not edition:
@@ -559,7 +574,7 @@ class CatalogStatsView(APIView):
         if cached is not None:
             return age_catalog_response(cached)
 
-        books = visible_books(Book.objects.all(), request.user)
+        books = visible_books(Book.objects.filter(is_published=True), request.user)
         total_books = books.count()
         books_with_chapters = (
             books.annotate(_n=Count('chapters')).filter(_n__gt=0).count()
@@ -593,10 +608,81 @@ class CatalogStatsView(APIView):
 # ─────────────────────────────────────────────────────────────────────────────
 
 from rest_framework.parsers import MultiPartParser, FormParser
-from io import BytesIO
+from django.core.files.base import ContentFile
 from django.utils.text import slugify
+from io import BytesIO
 import json
-from .models import Edition, Chapter, BookAuthor
+import logging
+import uuid
+from core.storage import upload_to_supabase_if_configured
+from .models import Edition, Chapter
+from .author_submission import ManuscriptError, chapters_from_epub, chapters_from_form, chapters_from_pdf
+
+logger = logging.getLogger(__name__)
+
+MAX_COVER_BYTES = 5 * 1024 * 1024
+MAX_MANUSCRIPT_BYTES = 40 * 1024 * 1024
+MAX_SUBMISSION_GENRES = 4
+COVER_FORMATS = {'JPEG': ('jpg', 'image/jpeg'), 'PNG': ('png', 'image/png'), 'WEBP': ('webp', 'image/webp')}
+
+
+def _read_cover(cover_file):
+    """(bytes, extensión, content-type) de una portada JPG/PNG/WebP válida, o un mensaje de error."""
+    if cover_file.size > MAX_COVER_BYTES:
+        return None, 'La portada no debe superar los 5 MB.'
+    data = cover_file.read()
+    try:
+        from PIL import Image
+        with Image.open(BytesIO(data)) as image:
+            image.verify()
+            fmt = image.format
+    except Exception:
+        return None, 'La portada no es una imagen válida.'
+    if fmt not in COVER_FORMATS:
+        return None, 'La portada debe ser JPG, PNG o WebP.'
+    ext, content_type = COVER_FORMATS[fmt]
+    return (data, ext, content_type), None
+
+
+def _submission_genres(raw):
+    """Géneros elegidos (ids, nombres o slugs) que existen en la plataforma."""
+    try:
+        items = json.loads(raw) if isinstance(raw, str) else list(raw or [])
+    except (TypeError, ValueError):
+        return Genre.objects.none()
+    if not isinstance(items, list):
+        return Genre.objects.none()
+    query = Q()
+    for item in items[:MAX_SUBMISSION_GENRES]:
+        value = str(item).strip()
+        if not value:
+            continue
+        try:
+            query |= Q(id=uuid.UUID(value))
+        except ValueError:
+            query |= Q(name__iexact=value) | Q(slug__iexact=slugify(value))
+    return Genre.objects.filter(query) if query else Genre.objects.none()
+
+
+def _submission_author(user, name, bio):
+    """
+    El autor de la obra enviada. Se reutiliza solo uno que ya firmó obras de este mismo usuario: si
+    alguien firma «Julio Verne», no debe quedar colgado del Julio Verne del catálogo ni del seudónimo
+    de otra persona; Author.save le da un slug libre al nuevo.
+    """
+    own = (
+        Author.objects.filter(author_books__book__submitted_by=user, full_name__iexact=name)
+        .distinct().first()
+    )
+    if own:
+        if bio and not own.bio:
+            own.bio = bio
+            own.save(update_fields=['bio', 'updated_at'])
+        return own
+    return Author.objects.create(
+        full_name=name[:255],
+        bio=bio or f'Autor independiente en Literatus Novelist: {name}.',
+    )
 
 
 class AuthorSubmitBookView(APIView):
@@ -605,214 +691,165 @@ class AuthorSubmitBookView(APIView):
     Permite a los autores enviar una obra de su autoría para evaluación editorial.
     La obra queda en estado PENDING_REVIEW con is_published=False hasta que
     el Administrador verifique el cumplimiento de los requisitos mínimos.
+
+    El manuscrito (EPUB, PDF o capítulos del formulario) se convierte aquí en capítulos: el lector
+    solo lee capítulos de la base. Si no sale texto, el envío se rechaza sin crear nada.
     """
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         data = request.data
-        title = (data.get('title') or '').strip()
+        title = ' '.join((data.get('title') or '').split())
         synopsis = (data.get('synopsis') or '').strip()
         declaration = str(data.get('submission_declaration', '')).lower() in ('true', '1', 'yes')
+        difficulty = data.get('difficulty_level') or Book.DifficultyChoices.INTERMEDIATE
 
         # ─── 1. Validación Estricta de Requisitos Mínimos ───
         errors = {}
-        if not title or len(title) < 3:
+        if len(title) < 3:
             errors['title'] = 'El título de la obra es obligatorio y debe contener al menos 3 caracteres.'
+        elif len(title) > 255:
+            errors['title'] = 'El título no puede superar los 255 caracteres.'
 
-        if not synopsis or len(synopsis) < 50:
+        if len(synopsis) < 50:
             errors['synopsis'] = 'La sinopsis es obligatoria y debe tener al menos 50 caracteres (idealmente 100+ palabras) para la curaduría editorial.'
+
+        if difficulty not in Book.DifficultyChoices.values:
+            errors['difficulty_level'] = 'El nivel de dificultad no es válido.'
 
         if not declaration:
             errors['submission_declaration'] = 'Debes aceptar la declaración jurada que certifica que eres el autor legítimo de la obra o posees los derechos de difusión.'
 
+        cover = None
         cover_file = request.FILES.get('cover')
         if not cover_file:
             errors['cover'] = 'Se requiere una portada en alta resolución (JPG, PNG o WebP).'
+        else:
+            cover, cover_error = _read_cover(cover_file)
+            if cover_error:
+                errors['cover'] = cover_error
 
         epub_file = request.FILES.get('epub')
         pdf_file = request.FILES.get('pdf_file')
         raw_chapters = data.get('chapters')
-
-        if not epub_file and not pdf_file and not raw_chapters:
+        manuscript = epub_file or pdf_file
+        if not manuscript and not raw_chapters:
             errors['file'] = 'Debes adjuntar el manuscrito de la obra en formato EPUB, PDF o ingresar sus capítulos.'
+        elif manuscript and manuscript.size > MAX_MANUSCRIPT_BYTES:
+            errors['file'] = 'El manuscrito excede el límite máximo de 40 MB.'
 
-        genres_raw = data.get('genres')
-        genre_ids = []
-        if genres_raw:
-            try:
-                genre_ids = json.loads(genres_raw) if isinstance(genres_raw, str) else list(genres_raw)
-            except Exception:
-                genre_ids = []
-
-        if not genre_ids:
+        genres = list(_submission_genres(data.get('genres')))
+        if not genres:
             errors['genres'] = 'Debes seleccionar al menos una categoría o género literario de la plataforma.'
+
+        # ─── 2. Capítulos: si el manuscrito no trae texto legible, no se crea nada ───
+        chapters, manuscript_bytes = [], None
+        if 'file' not in errors:
+            try:
+                if epub_file:
+                    manuscript_bytes = epub_file.read()
+                    chapters = chapters_from_epub(manuscript_bytes)
+                elif pdf_file:
+                    manuscript_bytes = pdf_file.read()
+                    chapters = chapters_from_pdf(manuscript_bytes, skip_lines=(
+                        title, data.get('author_name') or request.user.get_full_name() or request.user.username))
+                else:
+                    try:
+                        items = json.loads(raw_chapters) if isinstance(raw_chapters, str) else raw_chapters
+                    except ValueError:
+                        items = None
+                    chapters = chapters_from_form(items)
+            except ManuscriptError as exc:
+                errors['file'] = str(exc)
 
         if errors:
             return Response({
                 'error': 'REQUISITOS_NO_CUMPLIDOS',
-                'message': 'La obra no cumple con los requisitos mínimos de calidad editorial.',
+                'message': next(iter(errors.values())),
                 'details': errors
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # ─── 2. Registro de la Obra y sus Componentes ───
+        # ─── 3. Registro de la Obra y sus Componentes ───
         try:
             with transaction.atomic():
-                # Autor
-                author_name = (data.get('author_name') or '').strip()
+                author_name = ' '.join((data.get('author_name') or '').split())[:255]
                 if not author_name:
                     author_name = request.user.get_full_name() or request.user.username
+                bio = (data.get('author_bio') or data.get('bio') or '').strip()
+                author = _submission_author(request.user, author_name, bio)
 
-                author_slug = slugify(author_name)
-                author, _ = Author.objects.get_or_create(
-                    slug=author_slug,
-                    defaults={
-                        'full_name': author_name,
-                        'bio': data.get('author_bio', f'Autor independiente en Literatus Novelist: {author_name}.'),
-                    }
-                )
-
-                # Slug del Libro
-                base_slug = slugify(title)
-                book_slug = base_slug
-                counter = 1
-                while Book.objects.filter(slug=book_slug).exists():
-                    book_slug = f"{base_slug}-{counter}"
-                    counter += 1
-
-                # Creación en estado EN REVISIÓN (No publicado)
+                # Creación en estado EN REVISIÓN (No publicado). Book.save le da un slug libre.
                 book = Book.objects.create(
                     title=title,
-                    slug=book_slug,
                     synopsis=synopsis,
                     status=Book.StatusChoices.PENDING_REVIEW,
                     is_published=False,
-                    difficulty_level=data.get('difficulty_level', Book.DifficultyChoices.INTERMEDIATE),
-                    copyright_notice=data.get('copyright_notice', f'Obra original remitida por su autor ({author_name}) para difusión y lectura en Literatus Novelist.'),
+                    difficulty_level=difficulty,
+                    copyright_notice=f'Obra original remitida por su autor ({author_name}) para difusión y lectura en Literatus Novelist.',
                     submitted_by=request.user,
                     submission_declaration=True,
                 )
 
-                # Portada
-                book.cover_image.save(f'cover_{book.pk}.jpg', cover_file, save=True)
+                # Portada: MEDIA_URL apunta al bucket de Supabase, así que se sube también allá
+                # (el disco del servidor se borra en cada actualización).
+                cover_bytes, cover_ext, cover_type = cover
+                book.cover_image.save(f'cover_{book.pk}.{cover_ext}', ContentFile(cover_bytes), save=True)
+                if not upload_to_supabase_if_configured(cover_bytes, book.cover_image.name, cover_type, upsert=True):
+                    logger.warning('Portada de %s guardada solo en el disco local (sin Supabase).', book.pk)
 
-                # Relación con Autor
                 BookAuthor.objects.create(book=book, author=author, role=BookAuthor.RoleChoices.PRIMARY)
+                book.genres.set(genres)
 
-                # Géneros (soporta UUID, nombres o slugs)
-                import uuid
-                from django.db.models import Q
-                genre_queries = Q()
-                for item in genre_ids:
-                    item_str = str(item).strip()
-                    try:
-                        uuid_obj = uuid.UUID(item_str)
-                        genre_queries |= Q(id=uuid_obj)
-                    except ValueError:
-                        genre_queries |= Q(name__iexact=item_str) | Q(slug__iexact=slugify(item_str))
+                tags_raw = data.get('tags', '') or ''
+                for tag_name in [t.strip() for t in tags_raw.split(',') if t.strip()][:15]:
+                    t_slug = slugify(tag_name)[:150]
+                    if t_slug:
+                        tag = Tag.objects.filter(slug=t_slug).first() or Tag.objects.filter(name__iexact=tag_name[:150]).first()
+                        if not tag:
+                            tag = Tag.objects.create(slug=t_slug, name=tag_name[:150])
+                        book.tags.add(tag)
 
-                valid_genres = Genre.objects.filter(genre_queries) if genre_queries else Genre.objects.none()
-                book.genres.set(valid_genres)
+                Chapter.objects.bulk_create([
+                    Chapter(book=book, order=ch['order'], title=ch['title'], content_html=ch['content_html'])
+                    for ch in chapters
+                ])
+                book.recount_words(save=True)
 
-                # Tags temáticos opcionales
-                tags_raw = data.get('tags', '')
-                if tags_raw:
-                    for tag_name in [t.strip() for t in tags_raw.split(',') if t.strip()]:
-                        t_slug = slugify(tag_name)[:150]
-                        if t_slug:
-                            tag, _ = Tag.objects.get_or_create(slug=t_slug, defaults={'name': tag_name[:150]})
-                            book.tags.add(tag)
-
-                # PDF si se adjuntó
-                if pdf_file:
-                    book.pdf_file.save(f'book_{book.pk}.pdf', pdf_file, save=True)
-                    Edition.objects.create(
-                        book=book,
-                        format=Edition.FormatChoices.PDF,
-                        price=0.00,
-                        language='es'
-                    )
-
-                # EPUB si se adjuntó
-                total_words = 0
+                # Edición gratuita: sin ella nadie puede agregar la obra a su biblioteca ni leerla.
+                edition = Edition.objects.create(
+                    book=book,
+                    format=Edition.FormatChoices.PDF if pdf_file else Edition.FormatChoices.EPUB,
+                    price=0,
+                    language='es',
+                    publisher=author_name,
+                )
                 if epub_file:
-                    try:
-                        import ebooklib
-                        from ebooklib import epub
-                        from bs4 import BeautifulSoup
-                        content = epub_file.read()
-                        book_epub = epub.read_epub(BytesIO(content))
-                        order = 1
-                        for item in book_epub.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-                            name = item.get_name().lower()
-                            if any(x in name for x in ['cover', 'titlepage', 'nav', 'toc']):
-                                continue
-                            raw = item.get_body_content().decode('utf-8', errors='ignore')
-                            soup = BeautifulSoup(raw, 'html.parser')
-                            text_only = soup.get_text(separator=' ', strip=True)
-                            if len(text_only) > 80:
-                                title_tag = soup.find('h1') or soup.find('h2') or soup.find('h3')
-                                chapter_title = title_tag.text.strip() if title_tag else f'Capítulo {order}'
-                                Chapter.objects.create(
-                                    book=book,
-                                    order=order,
-                                    title=chapter_title[:200],
-                                    content_html=str(soup),
-                                )
-                                total_words += len(text_only.split())
-                                order += 1
+                    edition.file.save(f'book_{book.pk}.epub', ContentFile(manuscript_bytes), save=True)
+                elif pdf_file:
+                    book.pdf_file.save(f'book_{book.pk}.pdf', ContentFile(manuscript_bytes), save=True)
 
-                        epub_file.seek(0)
-                        edition = Edition.objects.create(
-                            book=book,
-                            format=Edition.FormatChoices.EPUB,
-                            price=0.00,
-                            language='es'
-                        )
-                        edition.file.save(f'book_{book.pk}.epub', epub_file, save=True)
-                    except Exception as epub_err:
-                        print(f"[AuthorSubmitBook] Error procesando EPUB: {epub_err}")
+            return Response({
+                'success': True,
+                'message': '¡Tu obra ha sido enviada exitosamente al equipo editorial! Se encuentra en revisión.',
+                'book': {
+                    'id': str(book.pk),
+                    'title': book.title,
+                    'slug': book.slug,
+                    'status': book.status,
+                    'status_label': book.get_status_display(),
+                    'author': author.full_name,
+                    'chapters_count': len(chapters),
+                    'word_count': book.word_count,
+                    'created_at': book.created_at,
+                }
+            }, status=status.HTTP_201_CREATED)
 
-                elif raw_chapters:
-                    try:
-                        parsed_chapters = json.loads(raw_chapters) if isinstance(raw_chapters, str) else raw_chapters
-                        for idx, ch in enumerate(parsed_chapters, start=1):
-                            ch_title = ch.get('title', f'Capítulo {idx}')
-                            ch_html = ch.get('content_html', ch.get('content', ''))
-                            Chapter.objects.create(
-                                book=book,
-                                order=idx,
-                                title=ch_title[:200],
-                                content_html=ch_html
-                            )
-                            total_words += len(ch_html.split())
-                    except Exception as ch_err:
-                        print(f"[AuthorSubmitBook] Error procesando capítulos: {ch_err}")
-
-                if total_words > 0:
-                    book.word_count = total_words
-                    book.save(update_fields=['word_count'])
-
-                return Response({
-                    'success': True,
-                    'message': '¡Tu obra ha sido enviada exitosamente al equipo editorial! Se encuentra en revisión.',
-                    'book': {
-                        'id': str(book.pk),
-                        'title': book.title,
-                        'slug': book.slug,
-                        'status': book.status,
-                        'status_label': book.get_status_display(),
-                        'author': author.full_name,
-                        'chapters_count': book.chapters.count(),
-                        'word_count': book.word_count,
-                        'created_at': book.created_at,
-                    }
-                }, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
+        except Exception:
+            logger.exception('Error al registrar la obra enviada por %s', request.user.pk)
             return Response({
                 'error': 'SUBMISSION_FAILED',
-                'message': f'Error interno al procesar el envío de la obra: {str(e)}'
+                'message': 'No pudimos registrar tu obra por un error interno. Inténtalo de nuevo en unos minutos.'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

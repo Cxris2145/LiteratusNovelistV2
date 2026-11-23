@@ -15,7 +15,7 @@ class AuthorReadSerializer(serializers.ModelSerializer):
 
     def get_books_count(self, obj):
         request = self.context.get('request')
-        return visible_books(obj.books.all(), getattr(request, 'user', None)).distinct().count()
+        return visible_books(obj.books.filter(is_published=True), getattr(request, 'user', None)).distinct().count()
 
 class AuthorDetailSerializer(serializers.ModelSerializer):
     """
@@ -33,7 +33,7 @@ class AuthorDetailSerializer(serializers.ModelSerializer):
         # Obtenemos todos los BookAuthor para este autor, luego extraemos los libros.
         # Esto previene el problema N+1 si lo optimizamos en la vista.
         request = self.context.get('request')
-        books = visible_books(obj.books.all(), getattr(request, 'user', None)).prefetch_related(
+        books = visible_books(obj.books.filter(is_published=True), getattr(request, 'user', None)).prefetch_related(
             'genres', 'tags', 'editions', 'book_authors__author'
         ).distinct()
         # Import local para evitar dependencia circular
