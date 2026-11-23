@@ -144,6 +144,22 @@
   display: block;
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.6));
 }
+/* Celular (TAVERN_LITE_QUERY de tavern-motion.ts): los Maguitos de la mesa van en modo calmado y
+   respiran con el cuerpo entero. Mecer las piezas del dibujo (SVG) obligaba a repintar la página y
+   a rehacer el difuminado de la sombra en cada cuadro: con la sala quieta, el procesador de un
+   celular simulado quedaba al 98 %. Escalar el Maguito completo lo compone la GPU sola. */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  .ts-seat app-maguito {
+    transform-origin: 50% 100%;
+    animation: ts-seat-breathe 3.8s ease-in-out infinite;
+  }
+  .ts-seat.seat-l1 app-maguito, .ts-seat.seat-r2 app-maguito { animation-delay: -1.3s; }
+  .ts-seat.seat-r1 app-maguito, .ts-seat.seat-l2 app-maguito { animation-delay: -2.5s; }
+}
+@keyframes ts-seat-breathe {
+  0%, 100% { transform: none; }
+  50% { transform: translateY(-1%) scale(1.012, 1.03); }
+}
 
 /* ── Probador: la lámpara se vuelve hacia tu Maguito ───────── */
 .ts-seat { transition: filter .45s ease; }

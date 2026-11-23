@@ -14,6 +14,11 @@ const IDLE_FPS = 15;
 const LITE_IDLE_FPS = 8;
 /** Sin puntero, resaltado ni reacción durante este tiempo, la mesa pasa a reposo. */
 const IDLE_AFTER_MS = 4000;
+/**
+ * El temporizador despierta la mesa este margen antes de su cuadro, así el requestAnimationFrame
+ * que sigue cae justo en el refresco que toca (a 60 Hz llegan cada 16,7 ms).
+ */
+const FRAME_SLACK_MS = 8;
 
 /** La escena se carga al abrir la taberna; WebGL no entra en el bundle inicial. */
 @Component({
@@ -89,6 +94,8 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   private lite = matchMedia(TAVERN_LITE_QUERY);
   private stage?: HTMLElement;
   private frame = 0;
+  /** Espera hasta el próximo cuadro de la mesa (ver queueFrame). */
+  private nextFrame: ReturnType<typeof setTimeout> | null = null;
   private lastFrame = 0;
   private elapsed = 0;
   private visible = true;
@@ -166,8 +173,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private syncAnimation = (): void => {
-    cancelAnimationFrame(this.frame);
-    this.frame = 0;
+    this.cancelFrame();
     this.lastFrame = 0;
     if (!this.scene || document.hidden || !this.visible || this.destroyed || this.contextLost) return;
     if (this.motion.matches) {
@@ -190,12 +196,40 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
     // 2 ms de holgura: en una pantalla de 60 Hz los cuadros llegan cada 16,7 ms y, sin ella,
     // 30 cps se volvían 20 (y 15, 12).
     if (delta >= 1000 / fps - 2) {
-      this.elapsed += Math.min(delta, 100) / 1000;
+      // Hasta 250 ms por cuadro: en reposo en el celular pasan ~130 ms entre uno y otro, y con el
+      // tope anterior (100 ms) las llamas y el vapor iban más lentos.
+      this.elapsed += Math.min(delta, 250) / 1000;
       this.lastFrame = now;
       this.scene.render(this.elapsed, true);
     }
-    this.frame = requestAnimationFrame(this.animate);
+    this.queueFrame(fps);
   };
+
+  /**
+   * Pide el próximo cuadro. Si falta más de un refresco, espera con un temporizador: un
+   * requestAnimationFrame en cada refresco obliga al navegador a preparar un cuadro completo
+   * (estilos, capas, composición) 60 veces por segundo aunque la mesa dibuje 8. Medido en un
+   * celular simulado: eso solo ocupaba un cuarto del procesador con la Taberna quieta.
+   */
+  private queueFrame(fps: number): void {
+    // Contra el reloj de ahora, no el del cuadro: dibujar la mesa ya tomó unos milisegundos.
+    const wait = this.lastFrame + 1000 / fps - performance.now() - FRAME_SLACK_MS;
+    if (wait > FRAME_SLACK_MS) {
+      this.nextFrame = setTimeout(() => {
+        this.nextFrame = null;
+        this.frame = requestAnimationFrame(this.animate);
+      }, wait);
+    } else {
+      this.frame = requestAnimationFrame(this.animate);
+    }
+  }
+
+  private cancelFrame(): void {
+    cancelAnimationFrame(this.frame);
+    this.frame = 0;
+    if (this.nextFrame) clearTimeout(this.nextFrame);
+    this.nextFrame = null;
+  }
 
   private onPointer = (event: PointerEvent): void => {
     if (this.motion.matches || event.pointerType !== 'mouse' || !this.stage) return;
@@ -205,13 +239,22 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   };
   private onPointerLeave = (): void => { this.wake(); this.scene?.setPointer(0, 0); };
   /** Vuelve a 30 cps: el puntero se movió, algo se resaltó o hubo una reacción. */
-  private wake(): void { this.lastActivity = performance.now(); }
+  private wake(): void {
+    const now = performance.now();
+    const wasIdle = now - this.lastActivity >= IDLE_AFTER_MS;
+    this.lastActivity = now;
+    // En reposo la mesa puede estar esperando hasta 125 ms: el próximo cuadro llega ya.
+    if (wasIdle && this.nextFrame) {
+      clearTimeout(this.nextFrame);
+      this.nextFrame = null;
+      this.zone.runOutsideAngular(() => { this.frame = requestAnimationFrame(this.animate); });
+    }
+  }
   private onContextLost = (event: Event): void => {
     event.preventDefault();
     this.contextLost = true;
     this.anchors = [];
-    cancelAnimationFrame(this.frame);
-    this.frame = 0;
+    this.cancelFrame();
     this.zone.run(() => this.readyChange.emit(false));
   };
   private onContextRestored = (): void => {
@@ -222,7 +265,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   };
 
   private release(): void {
-    cancelAnimationFrame(this.frame);
+    this.cancelFrame();
     this.resize?.disconnect();
     this.intersection?.disconnect();
     this.stage?.removeEventListener('pointermove', this.onPointer);

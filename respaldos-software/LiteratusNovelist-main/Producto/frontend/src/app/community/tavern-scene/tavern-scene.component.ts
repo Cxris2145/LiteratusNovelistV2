@@ -8,6 +8,7 @@ import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { AuthService, userStorageKey } from '../../core/services/auth.service';
 import { FriendStatus, TavernChatMessage, TavernReactionItem } from '../../core/services/community.service';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
+import { TAVERN_LITE_QUERY } from '../tavern-motion';
 import { TavernTableAction } from '../tavern-table/tavern-table.types';
 import { timeAgo } from '../time-ago.util';
 
@@ -121,6 +122,13 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChildren('seatMaguito') private seatMaguitos?: QueryList<MaguitoComponent>;
 
+  /**
+   * Celular: los Maguitos de la mesa van calmados (sin mecer las piezas del dibujo) y respiran con
+   * el cuerpo entero desde el CSS; los gestos (brindis, saludo, probador) siguen igual.
+   */
+  private readonly liteQuery = matchMedia(TAVERN_LITE_QUERY);
+  lite = this.liteQuery.matches;
+
   seats: Seat[] = [];
   emptySlots: Slot[] = [];
   summary = '';
@@ -170,6 +178,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
       });
     }
     document.addEventListener('visibilitychange', this.syncAmbient);
+    this.liteQuery.addEventListener('change', this.onLiteChange);
     this.syncAmbient();
     if (!prefersReducedMotion()) {
       this.zone.runOutsideAngular(() => {
@@ -211,7 +220,14 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     if (this.welcomeFadeTimer) clearTimeout(this.welcomeFadeTimer);
     this.observer?.disconnect();
     document.removeEventListener('visibilitychange', this.syncAmbient);
+    this.liteQuery.removeEventListener('change', this.onLiteChange);
   }
+
+  /** Al girar el teléfono o cambiar el ancho de la ventana. */
+  private onLiteChange = (event: MediaQueryListEvent): void => {
+    this.lite = event.matches;
+    this.cdr.markForCheck();
+  };
 
   private syncAmbient = (): void => {
     this.host.dataset['ambientPaused'] = String(document.hidden || this.host.dataset['onscreen'] === 'false');

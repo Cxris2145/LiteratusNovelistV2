@@ -125,6 +125,12 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
    * que están siempre a la vista (la burbuja del asistente en todas las páginas).
    */
   @Input() calm = false;
+  /**
+   * Mira alrededor por su cuenta cada pocos segundos. Cada vistazo anima las pupilas y la cara
+   * dentro del SVG (no lo compone la GPU): en la mesa de la Taberna en el celular se apaga y el
+   * Maguito queda mirando al frente, parpadeando.
+   */
+  @Input() glances = true;
   /** Camina con los pies originales; solo en cuerpo completo y estado idle. */
   @Input() walking = false;
   /** Sostiene una jarra de madera con espuma de la Taberna. */
@@ -200,7 +206,13 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (changes['outfit'] || changes['colors'] || changes['mine']) this.paint();
     if (!this.viewReady) return;
     if (changes['state']) this.show(this.state);
-    if (changes['paused']) this.updateRunning();
+    if (changes['glances'] && !this.glances) {
+      clearTimeout(this.glanceTimer);
+      this.glanceTimer = null;
+      this.glance = { x: 0, y: 0 };
+      this.applyGaze();
+    }
+    if (changes['paused'] || changes['glances']) this.updateRunning();
   }
 
   ngAfterViewInit(): void {
@@ -318,7 +330,7 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   private startLoops(): void {
     if (!this.blinkTimer) this.scheduleBlink();
-    if (!this.glanceTimer && !this.reducedMotion) this.scheduleGlance();
+    if (!this.glanceTimer && !this.reducedMotion && this.glances) this.scheduleGlance();
   }
 
   private stopLoops(): void {
