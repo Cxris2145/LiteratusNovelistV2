@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { ProfileCardComponent } from './profile-card.component';
-import { userStorageKey } from '../../core/services/auth.service';
+import { AuthService, userStorageKey } from '../../core/services/auth.service';
 import { CommunityProfile } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 
@@ -24,7 +24,10 @@ describe('ProfileCardComponent', () => {
     TestBed.configureTestingModule({
       declarations: [ProfileCardComponent],
       imports: [RouterTestingModule],
-      providers: [{ provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'info']) }],
+      providers: [
+        { provide: NotificationService, useValue: jasmine.createSpyObj('NotificationService', ['success', 'info']) },
+        { provide: AuthService, useValue: { isGuest: () => false } },
+      ],
       schemas: [NO_ERRORS_SCHEMA],
     });
   });
@@ -79,5 +82,28 @@ describe('ProfileCardComponent', () => {
     expect(el.querySelector('.pc-more-toggle')).toBeNull();
     expect(el.querySelector('.pc-about')).not.toBeNull();
     expect(el.querySelector('.pc-stats dd')!.textContent!.trim()).toBe('2');
+  });
+
+  function head(frame: string): HTMLElement {
+    const fixture = TestBed.createComponent(ProfileCardComponent);
+    fixture.componentRef.setInput('card', { ...CARD, equipped_frame: frame });
+    fixture.componentRef.setInput('compact', true);
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelector('.pc-head');
+  }
+
+  it('deja espacio a los adornos del marco y, con alas, pone el retrato arriba', () => {
+    const dragon = head('frame-dragon-fire');
+    expect(dragon.classList).toContain('is-winged');
+    expect(dragon.style.getPropertyValue('--pc-reach-t')).toBe('0.87');
+    expect(dragon.style.getPropertyValue('--pc-reach-l')).toBe('0.81');
+
+    const star = head('frame-xmas-star');
+    expect(star.classList).not.toContain('is-winged');
+    expect(star.style.getPropertyValue('--pc-reach-t')).toBe('0.66');
+
+    const plain = head('frame-gold');
+    expect(plain.classList).not.toContain('is-winged');
+    expect(plain.style.getPropertyValue('--pc-reach-t')).toBe('0');
   });
 });
