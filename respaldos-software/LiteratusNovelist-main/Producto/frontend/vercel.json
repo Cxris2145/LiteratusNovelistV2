@@ -3,6 +3,18 @@
   "outputDirectory": "dist/frontend/browser",
   "headers": [
     {
+      "source": "/(chunk-[A-Z0-9]+\\.js|main-[A-Z0-9]+\\.js|polyfills-[A-Z0-9]+\\.js|styles-[A-Z0-9]+\\.css)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/media/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
       "source": "/api/public-home",
       "headers": [
         { "key": "x-vercel-enable-rewrite-caching", "value": "1" }

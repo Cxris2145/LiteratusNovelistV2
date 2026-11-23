@@ -7,6 +7,7 @@ import { LiyumiService } from '../../core/services/liyumi.service';
 import { ChatService } from '../../core/services/chat.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { getAuthorPhoto, handleAuthorPhotoError } from '../../core/utils/author-photo.util';
+import { coverThumb, imageThumb } from '../../core/utils/cover-thumb.util';
 
 @Component({
   selector: 'app-book-detail-page',
@@ -16,6 +17,10 @@ import { getAuthorPhoto, handleAuthorPhotoError } from '../../core/utils/author-
 export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy {
   getAuthorPhoto = getAuthorPhoto;
   handleAuthorPhotoError = handleAuthorPhotoError;
+  /** Portada a 360×540 (se muestra a 350 px como mucho): la original pesa varias veces más. */
+  coverThumb = coverThumb;
+  /** Retratos de los personajes: el carrusel los muestra a 140×180 y el detalle a ~320 px. */
+  imageThumb = imageThumb;
   private _avatarCarousel!: ElementRef;
   @ViewChild('avatarCarousel') set avatarCarousel(el: ElementRef) {
     this._avatarCarousel = el;

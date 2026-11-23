@@ -414,6 +414,16 @@
   margin: 0;
 }
 
+/* El pie siempre empieza bajo el borde de la pantalla. Mientras una página se descarga, <main> está
+   vacío y el pie quedaba justo bajo el encabezado, tapando casi toda la pantalla; al llegar el
+   contenido bajaba de golpe (CLS ≈ 0,76 en catálogo, personajes, juegos y ficha de libro).
+   Se descuenta el encabezado (--navbar-h, lo mide AppComponent) para no sumar scroll a las
+   pantallas que caben justas, como la Taberna o el mapa de La Senda. */
+.site-content > main.container:not(.dashboard-mode) {
+  min-height: calc(100vh - var(--navbar-h, 0px));
+  min-height: calc(100svh - var(--navbar-h, 0px));
+}
+
 /* ── Saldo de tinta (La Taberna) ─────────────────────────────────── */
 .ink-widget {
   position: relative;

@@ -1,7 +1,8 @@
 """Genera src/assets/fonts/material-symbols-{rounded,outlined}.woff2 con solo los iconos de icons.txt.
 
 Las fuentes completas de Google pesan 5,4 MB y 4 MB. Esta versión conserva los ejes que usa
-el sitio (FILL, wght y opsz) y fija GRAD en 0, que es el único valor que se usa.
+el sitio (FILL y wght), fija GRAD en 0, que es el único valor que se usa, y opsz en 24
+(~174 KB y ~135 KB en vez de 364 KB y 277 KB).
 
 Uso (desde frontend/):
     pip install fonttools brotli
@@ -77,7 +78,9 @@ def build(key, family, icons):
     sub = subset.Subsetter(opts)
     sub.populate(glyphs=sorted(glyphs), unicodes=sorted(codes))
     sub.subset(font)
-    instancer.instantiateVariableFont(font, {'GRAD': 0}, inplace=True)
+    # GRAD solo se usa en 0. El tamaño óptico (opsz) se fija en 24: casi todos los íconos se ven entre
+    # 18 y 28 px y el eje duplicaba el peso de la fuente (364 KB -> 174 KB la Rounded).
+    instancer.instantiateVariableFont(font, {'GRAD': 0, 'opsz': 24}, inplace=True)
 
     kept = ligatures(font)
     lost = [n for n in icons if n in lig and n not in kept]

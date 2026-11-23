@@ -5,10 +5,13 @@ import {
 import { CommonModule } from '@angular/common';
 import type { TavernTableScene } from './tavern-table.scene';
 import { TavernTableAction, TavernTableAnchor } from './tavern-table.types';
+import { TAVERN_LITE_QUERY } from '../tavern-motion';
 
 /** Cuadros por segundo de la mesa: fluida mientras alguien interactúa, en reposo el resto del tiempo. */
 const ACTIVE_FPS = 30;
 const IDLE_FPS = 15;
+/** En el celular, en reposo: el bucle de la mesa era ~13 % del procesador a 15 cps (CPU 4x más lenta). */
+const LITE_IDLE_FPS = 8;
 /** Sin puntero, resaltado ni reacción durante este tiempo, la mesa pasa a reposo. */
 const IDLE_AFTER_MS = 4000;
 
@@ -83,6 +86,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   private resize?: ResizeObserver;
   private intersection?: IntersectionObserver;
   private motion = matchMedia('(prefers-reduced-motion: reduce)');
+  private lite = matchMedia(TAVERN_LITE_QUERY);
   private stage?: HTMLElement;
   private frame = 0;
   private lastFrame = 0;
@@ -182,7 +186,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!this.lastFrame) this.lastFrame = now;
     const delta = now - this.lastFrame;
     // Las llamas y el vapor avanzan con `elapsed`: en reposo se ven al mismo ritmo, con menos cuadros.
-    const fps = now - this.lastActivity < IDLE_AFTER_MS ? ACTIVE_FPS : IDLE_FPS;
+    const fps = now - this.lastActivity < IDLE_AFTER_MS ? ACTIVE_FPS : (this.lite.matches ? LITE_IDLE_FPS : IDLE_FPS);
     // 2 ms de holgura: en una pantalla de 60 Hz los cuadros llegan cada 16,7 ms y, sin ella,
     // 30 cps se volvían 20 (y 15, 12).
     if (delta >= 1000 / fps - 2) {

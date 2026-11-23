@@ -8,18 +8,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-  <!-- ── Google Fonts: Preconnect para carga ultra-rápida ── -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- ── Supabase Storage: Preconnect para adelantar DNS/TLS de las portadas ── -->
-  <link rel="preconnect" href="https://tknsbrxgkreikcbowvla.supabase.co" crossorigin>
-  <link rel="preconnect" href="https://srbmswjsbkpftjabcurg.supabase.co" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+  <!-- ── Conexiones adelantadas ──
+    API (Azure): la primera llamada salía recién cuando Angular terminaba de arrancar y pagaba ahí
+    la conexión nueva (DNS + TCP + TLS: 1-2 s en un celular con 4G lenta). Las llamadas van por
+    fetch/XHR sin credenciales, por eso `crossorigin`.
+    Portadas y retratos (Supabase Storage): se piden con <img> normales, que usan conexiones *sin*
+    `crossorigin`; con ese atributo el navegador abría una conexión que las imágenes no reutilizaban.
+    El otro proyecto de Supabase solo lo usa el cliente supabase-js en algunas pantallas: basta el DNS. -->
+  <link rel="preconnect" href="https://literatus-novelist.westus.cloudapp.azure.com" crossorigin>
+  <link rel="preconnect" href="https://tknsbrxgkreikcbowvla.supabase.co">
+  <link rel="dns-prefetch" href="https://srbmswjsbkpftjabcurg.supabase.co">
 
   <!--
     Iconos Material Symbols servidos desde el sitio, con solo los iconos que usa el código
-    (363 KB y 277 KB en vez de 5,4 MB y 4 MB). Se generan con scripts/icon-fonts/subset_icons.py;
+    (174 KB y 135 KB en vez de 5,4 MB y 4 MB; el tamaño óptico va fijo en 24). Se generan con scripts/icon-fonts/subset_icons.py;
     `npm start` y `npm run build` avisan si el código usa un icono que no está.
     Sin <link rel="preload">: en 4G lenta competía con el JS y atrasaba la primera pintura.
   -->
@@ -38,18 +40,30 @@
     Plus Jakarta Sans   → UI / Body / Nav (moderna, premium, excelente legibilidad)
     Cinzel              → Logo de marca (romana clásica, autoridad literaria)
     EB Garamond         → Citas y textos literarios (se mantiene para blockquotes)
-  -->
 
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&amp;family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&amp;family=Cinzel:wght@400;600;700;900&amp;family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,500&amp;display=swap" rel="stylesheet">
-
-  <!--
-    TIPOGRAFÍAS DEL LECTOR (opciones de "Aa" → Tipografía).
-    Hoja de estilos normal (~2 KB): con display=swap NO bloquea el texto, y así
-    la carga es fiable (el truco media="print"+onload puede no dispararse).
-    Sólo los pesos que el lector usa (cuerpo 400, énfasis 500/600, negrita 700).
+    Se sirven desde el propio sitio (woff2 variables de Google Fonts, licencia OFL). Antes eran tres
+    hojas de fonts.googleapis.com que bloqueaban la primera pintura: en un celular con 4G lenta eso
+    sumaba dos conexiones nuevas (googleapis + gstatic) antes de ver nada. Solo se descarga el
+    subconjunto que la página usa (latin; latin-ext si aparece un carácter de ese rango).
+    Las letras del lector y del cuaderno (Literata, Merriweather, Space Grotesk…) se piden al abrir
+    esas pantallas: ver src/app/core/utils/lazy-fonts.ts.
   -->
-  <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Literata:ital,wght@0,400;0,700;1,400&amp;family=Merriweather:wght@400;700&amp;family=Outfit:wght@400;500;600&amp;family=Open+Sans:wght@400;600&amp;family=Atkinson+Hyperlegible:wght@400;700&amp;family=Lexend:wght@400;500&amp;display=swap">
+  <style>
+    @font-face{font-family:'Cinzel';font-style:normal;font-weight:400 900;font-display:swap;src:url(/assets/fonts/cinzel-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+    @font-face{font-family:'Cinzel';font-style:normal;font-weight:400 900;font-display:swap;src:url(/assets/fonts/cinzel-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+    @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:300 700;font-display:swap;src:url(/assets/fonts/cormorant-garamond-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+    @font-face{font-family:'Cormorant Garamond';font-style:normal;font-weight:300 700;font-display:swap;src:url(/assets/fonts/cormorant-garamond-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+    @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:300 600;font-display:swap;src:url(/assets/fonts/cormorant-garamond-italic-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+    @font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:300 600;font-display:swap;src:url(/assets/fonts/cormorant-garamond-italic-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+    @font-face{font-family:'EB Garamond';font-style:normal;font-weight:400 700;font-display:swap;src:url(/assets/fonts/eb-garamond-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+    @font-face{font-family:'EB Garamond';font-style:normal;font-weight:400 700;font-display:swap;src:url(/assets/fonts/eb-garamond-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+    @font-face{font-family:'EB Garamond';font-style:italic;font-weight:400 500;font-display:swap;src:url(/assets/fonts/eb-garamond-italic-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+    @font-face{font-family:'EB Garamond';font-style:italic;font-weight:400 500;font-display:swap;src:url(/assets/fonts/eb-garamond-italic-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+    @font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/assets/fonts/plus-jakarta-sans-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+    @font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:300 800;font-display:swap;src:url(/assets/fonts/plus-jakarta-sans-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+    @font-face{font-family:'Plus Jakarta Sans';font-style:italic;font-weight:400;font-display:swap;src:url(/assets/fonts/plus-jakarta-sans-italic-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+    @font-face{font-family:'Plus Jakarta Sans';font-style:italic;font-weight:400;font-display:swap;src:url(/assets/fonts/plus-jakarta-sans-italic-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+  </style>
   <link rel="manifest" href="manifest.webmanifest">
   <!-- Color de la barra del navegador/sistema; SettingsService lo actualiza al cambiar de tema. -->
   <meta name="theme-color" content="#15233B">

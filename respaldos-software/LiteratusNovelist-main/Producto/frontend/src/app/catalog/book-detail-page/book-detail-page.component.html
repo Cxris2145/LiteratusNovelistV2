@@ -18,13 +18,15 @@
          ──────────────────────────────────────────────────────── -->
     <div class="hero-section">
       <!-- Background blur -->
-      <div class="hero-backdrop" [style.background-image]="'url(' + (book.cover_image || 'assets/default_cover.jpg') + ')'"></div>
+      <!-- El fondo va desenfocado a 40 px: basta una miniatura diminuta. -->
+      <div class="hero-backdrop" [style.background-image]="'url(' + coverThumb(book.cover_image, 80, 120, 40) + ')'"></div>
       <div class="hero-overlay"></div>
 
       <div class="hero-content">
-        <!-- PORTADA -->
+        <!-- PORTADA (con alto reservado, para que el texto no salte cuando termina de bajar) -->
         <div class="cover-wrapper">
-          <img [src]="book.cover_image || 'assets/default_cover.jpg'" alt="{{book.title}}" class="book-cover">
+          <img [src]="coverThumb(book.cover_image)" alt="{{book.title}}" class="book-cover"
+               width="360" height="540" fetchpriority="high" decoding="async">
         </div>
 
         <!-- INFO PRINCIPAL -->
@@ -164,7 +166,8 @@
             <div class="avatars-carousel" #avatarCarousel>
               <div class="avatar-card" *ngFor="let avatar of displayAvatars" (click)="selectAvatar(avatar)">
                 <div class="avatar-img-container">
-                  <img [src]="avatar.avatar_image || 'assets/images/default-avatar.svg'" alt="{{avatar.name}}" class="avatar-img">
+                  <img [src]="avatar.avatar_image ? imageThumb(avatar.avatar_image, 280) : 'assets/images/default-avatar.svg'" alt="{{avatar.name}}" class="avatar-img"
+                       width="140" height="180" loading="lazy" decoding="async">
                   <div class="avatar-overlay">
                     <svg lucideMessageCircle style="color: white;"></svg>
                   </div>
@@ -290,7 +293,7 @@
   <div class="avatar-modal glass-panel" (click)="$event.stopPropagation()">
     <button class="modal-close-btn" (click)="closeAvatarModal()"><svg lucideX></svg></button>
     
-    <img [src]="selectedAvatar.avatar_image || 'assets/images/default-avatar.svg'" 
+    <img [src]="selectedAvatar.avatar_image ? imageThumb(selectedAvatar.avatar_image, 640) : 'assets/images/default-avatar.svg'"
          alt="{{selectedAvatar.name}}" 
          class="avatar-modal-img">
     

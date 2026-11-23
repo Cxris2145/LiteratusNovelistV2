@@ -75,7 +75,10 @@ describe('HomeComponent public data', () => {
     }));
     fixture.detectChanges();
     const thumb = `${storage.replace('/object/', '/render/image/')}`;
-    expect(component.wallColumns.flat().every(src => src.startsWith(thumb) && src.includes('width=320'))).toBeTrue();
+    // En pantallas angostas el muro usa 4 columnas con miniaturas de 240 px; en las anchas, 6 de 320 px.
+    const narrow = window.matchMedia('(max-width: 899px)').matches;
+    expect(component.wallColumns.length).toBe(narrow ? 4 : 6);
+    expect(component.wallColumns.flat().every(src => src.startsWith(thumb) && src.includes(narrow ? 'width=240' : 'width=320'))).toBeTrue();
     expect(component.starterBooks[0].cover).toContain(`${thumb}/book_covers/libro-0.jpg?width=300&height=450`);
     expect(component.genreTiles[0].image).toBe(`${thumb}/category_covers/clasicos.webp?width=800&quality=62`);
     expect(component.cast[0].image).toBe(`${thumb}/ai_avatars/odiseo.webp?width=480&quality=62`);

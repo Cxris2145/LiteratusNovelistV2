@@ -81,12 +81,12 @@
   /* La pintura y su gente se miden contra este recuadro (unidades cqw / cqh). */
   container-type: size;
   /* Una pintura por hora del día; las copias de muebles de app-tavern-crowd leen la misma. */
-  --th-room-image: url('/assets/images/tavern-room-night.jpg');
+  --th-room-image: url('/assets/images/tavern-room-night.webp');
   --th-shade: rgba(12, 10, 20, .5);
 }
-.th-backdrop[data-light='day'] { --th-room-image: url('/assets/images/tavern-room-day.jpg'); --th-shade: rgba(28, 20, 14, .3); }
-.th-backdrop[data-light='dusk'] { --th-room-image: url('/assets/images/tavern-room-dusk.jpg'); --th-shade: rgba(30, 14, 10, .4); }
-.th-backdrop[data-light='twilight'] { --th-room-image: url('/assets/images/tavern-room-empty.jpg'); }
+.th-backdrop[data-light='day'] { --th-room-image: url('/assets/images/tavern-room-day.webp'); --th-shade: rgba(28, 20, 14, .3); }
+.th-backdrop[data-light='dusk'] { --th-room-image: url('/assets/images/tavern-room-dusk.webp'); --th-shade: rgba(30, 14, 10, .4); }
+.th-backdrop[data-light='twilight'] { --th-room-image: url('/assets/images/tavern-room-empty.webp'); }
 .th-backdrop[data-light='night'] { --th-shade: rgba(8, 8, 22, .58); }
 /* El salón: misma proporción que la pintura (1376 × 768), recortado como "cover" y apoyado abajo.
    La gente del fondo (app-tavern-crowd) vive dentro, así pisa siempre el piso pintado. */

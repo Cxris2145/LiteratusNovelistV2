@@ -23,6 +23,7 @@ import {
 import { InkLayer, InkTool } from '../notebook-ink';
 import { NotebookBookPanelComponent } from '../notebook-book-panel/notebook-book-panel.component';
 import { Viewport, clampGeometry, defaultGeometry, parseGeometry } from '../window-geometry';
+import { loadFontSheet } from '../../core/utils/lazy-fonts';
 
 type Mode = 'write' | 'draw';
 type ResizeEdge = 'e' | 's' | 'se';
@@ -48,6 +49,12 @@ const CONTENT_DEBOUNCE_MS = 350;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NotebookWindowComponent implements AfterViewInit, OnDestroy {
+  constructor() {
+    // Opciones de letra del cuaderno (Literata, Merriweather, Space Grotesk…).
+    loadFontSheet('reader');
+    loadFontSheet('notebook');
+  }
+
   readonly notebook = inject(NotebookService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly zone = inject(NgZone);

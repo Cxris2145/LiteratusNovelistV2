@@ -38,6 +38,7 @@ import { ReaderBookFlip } from './reader-book/reader-book-flip';
 import { ReaderBookCover } from './reader-book/reader-book-cover';
 import { FoldCorner } from './reader-book/reader-book-fold';
 import { AuthService } from '../../core/services/auth.service';
+import { loadFontSheet } from '../../core/utils/lazy-fonts';
 
 export interface ProgressData {
   percentage: number;
@@ -613,6 +614,7 @@ export class ReaderComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
+    loadFontSheet('reader');
     if (openReaders++ === 0) {
       document.documentElement.classList.add(READER_OPEN_CLASS);
       document.body.classList.add(READER_OPEN_CLASS);

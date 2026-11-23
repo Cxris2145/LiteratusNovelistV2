@@ -2,6 +2,13 @@ import { animate, animateChild, query, style, transition, trigger } from '@angul
 
 import { prefersReducedMotion } from '../core/utils/motion.util';
 
+/**
+ * Celulares (y teléfonos acostados): la Taberna va en modo liviano. Medido en un celular de gama
+ * media simulado (CPU 4x más lenta): con la gente del salón animada, el procesador quedaba al 100 %
+ * aun sin tocar nada y el desplazamiento bajaba a 17 cps; con la gente quieta, 60 cps.
+ */
+export const TAVERN_LITE_QUERY = '(max-width: 700px), (pointer: coarse) and (max-height: 500px)';
+
 /** Curva de salida fuerte de la Taberna (la misma que --ease-out de styles.css). */
 const EASE_OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
 

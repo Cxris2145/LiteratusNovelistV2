@@ -7,6 +7,7 @@ import { MAGUITO_BASIC_COLORS, MaguitoCustomColors } from '../../core/components
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
 import { TavernLight } from '../tavern-daylight';
+import { TAVERN_LITE_QUERY } from '../tavern-motion';
 
 /** Cada cuánto brindan los amigos del fondo, y cuánto dura el choque de jarras. */
 const CHEERS_EVERY_MS = 6500;
@@ -70,8 +71,10 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
   private host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   private readonly motion = matchMedia('(prefers-reduced-motion: reduce)');
+  /** Celular: la gente queda quieta (ver TAVERN_LITE_QUERY); las velas y el polvo siguen. */
+  private readonly lite = matchMedia(TAVERN_LITE_QUERY);
   get reduced(): boolean { return this.motion.matches; }
-  paused = document.hidden;
+  paused = document.hidden || this.lite.matches;
   /** La hora del día de la sala: cambia la luz de las velas, el sol o la luna por los ventanales y
    *  cuánto alumbra a los personajes. */
   @Input() light: TavernLight = 'night';
@@ -187,6 +190,7 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
     this.zone.runOutsideAngular(() => {
       document.addEventListener('visibilitychange', this.syncAnimation);
       this.motion.addEventListener('change', this.onMotionChange);
+      this.lite.addEventListener('change', this.syncAnimation);
       this.intersection = new IntersectionObserver(entries => {
         this.visible = entries[0]?.isIntersecting ?? false;
         this.syncAnimation();
@@ -214,6 +218,7 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
     this.stopLife();
     document.removeEventListener('visibilitychange', this.syncAnimation);
     this.motion.removeEventListener('change', this.onMotionChange);
+    this.lite.removeEventListener('change', this.syncAnimation);
   }
 
   private stopCheers(): void {
@@ -326,10 +331,13 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
 
   private readonly syncAnimation = (): void => {
     if (this.destroyed) return;
-    const paused = document.hidden || !this.visible;
+    const hidden = document.hidden || !this.visible;
+    const lite = this.lite.matches;
+    const paused = hidden || lite;
     const pauseChanged = this.paused !== paused;
     const wasToasting = this.toasting;
-    this.host.classList.toggle('is-paused', paused);
+    this.host.classList.toggle('is-paused', hidden);
+    this.host.classList.toggle('is-lite', lite && !hidden);
     this.paused = paused;
     if (this.paused || this.reduced) {
       this.stopCheers();

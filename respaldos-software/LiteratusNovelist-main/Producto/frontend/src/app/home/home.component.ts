@@ -10,6 +10,7 @@ import { AuthService } from '../core/services/auth.service';
 import { ScrollRevealService } from '../core/services/scroll-reveal.service';
 import { coverThumb, imageThumb } from '../core/utils/cover-thumb.util';
 import { HomeDataService } from '../core/services/home-data.service';
+import { loadFontSheet } from '../core/utils/lazy-fonts';
 
 export interface Book {
   id: string;
@@ -259,10 +260,14 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private buildWall(books: Book[]): string[][] {
+    // Bajo 900 px el CSS esconde las columnas 5 y 6, pero sus portadas se descargaban igual: en el
+    // celular se arman solo 4, y más chicas (van tenues detrás del título).
+    const narrow = typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 899px)').matches;
+    const size = narrow ? 240 : 320;
     const covers = Array.from(new Set(books.map(b => b.cover_image).filter((c): c is string => !!c)))
-      .map(c => coverThumb(c, 320, 320));
+      .map(c => coverThumb(c, size, size));
     if (covers.length < 10) return [];
-    const columns = 6;
+    const columns = narrow ? 4 : 6;
     const perColumn = Math.min(6, Math.floor(covers.length / columns));
     return Array.from({ length: columns }, (_, col) =>
       Array.from({ length: perColumn }, (_, row) => covers[(col * perColumn + row) % covers.length])
@@ -418,6 +423,8 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   // ─── Cómo funciona: pasos que cambian el panel ──────────────────────────
   setReadingMode(mode: ReadingMode): void {
     this.readingMode = mode;
+    // El modo Dislexia de la muestra usa Atkinson Hyperlegible / Lexend: se piden recién aquí.
+    if (mode === 'dyslexia') loadFontSheet('reader');
   }
 
   private observeHowSteps(): void {

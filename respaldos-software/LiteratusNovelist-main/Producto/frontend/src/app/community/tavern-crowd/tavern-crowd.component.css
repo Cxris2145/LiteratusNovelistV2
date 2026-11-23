@@ -44,7 +44,7 @@
 /* La misma pintura que la sala (cambia con la hora del día: la pone tavern-hall). */
 .cr-furniture {
   z-index: 1;
-  background: var(--th-room-image, url('/assets/images/tavern-room-night.jpg')) center / 100% 100% no-repeat;
+  background: var(--th-room-image, url('/assets/images/tavern-room-night.webp')) center / 100% 100% no-repeat;
 }
 .cr-activity { z-index: 4; }
 .cr-counter {
@@ -59,6 +59,12 @@
 :host(.is-paused) *,
 :host(.is-paused) *::before,
 :host(.is-paused) *::after { animation-play-state: paused !important; }
+/* Celular (TAVERN_LITE_QUERY): la gente queda quieta. Sus animaciones dentro del SVG y las variables
+   con que caminan obligaban a recalcular miles de nodos en cada cuadro. Las velas y el polvo siguen:
+   solo cambian opacidad y transform, y los compone la GPU sin tocar el hilo principal. */
+:host(.is-lite) *:not(.cr-glow):not(.cr-mote),
+:host(.is-lite) *:not(.cr-glow)::before,
+:host(.is-lite) *::after { animation-play-state: paused !important; }
 
 /* ── Personajes ─────────────────────────────────────────────────── */
 .cr-actor {

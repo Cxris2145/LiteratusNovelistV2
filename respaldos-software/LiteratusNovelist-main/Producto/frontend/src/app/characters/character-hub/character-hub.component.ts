@@ -520,6 +520,19 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
     this.showHero(idx);
   }
 
+  /**
+   * Retratos del carrusel que ya se pidieron. Solo baja el visible y sus vecinos (el siguiente queda
+   * listo para cuando avance): antes se pedían los de todas las diapositivas al entrar, ~100 KB cada uno.
+   */
+  private readonly heroRequested = new Set<number>();
+
+  heroImageSrc(i: number, portrait: string): string | null {
+    const count = this.heroCharacters.length;
+    const d = count ? (i - this.currentHeroIndex + count) % count : 0;
+    if (d === 0 || d === 1 || d === count - 1) this.heroRequested.add(i);
+    return this.heroRequested.has(i) ? portrait : null;
+  }
+
   private showHero(index: number) {
     const count = this.heroCharacters.length;
     if (!count) return;
@@ -611,7 +624,9 @@ export class CharacterHubComponent implements OnInit, OnDestroy {
   // ─── Utilidades ──────────────────────────────────────────────────────────────
 
   private toSlide(char: HubAvatar): HeroSlide {
-    const portrait = this.thumb(char.avatar_image_url, 800);
+    // En el celular el retrato se ve a ~250 px de ancho: 560 px basta para pantallas de alta densidad.
+    const narrow = typeof window !== 'undefined' && window.innerWidth <= 640;
+    const portrait = this.thumb(char.avatar_image_url, narrow ? 560 : 800);
     return {
       ...char,
       excerpt: this.excerpt(char.description),

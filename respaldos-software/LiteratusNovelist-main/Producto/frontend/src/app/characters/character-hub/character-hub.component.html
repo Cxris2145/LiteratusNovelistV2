@@ -31,7 +31,7 @@
           </div>
 
           <div class="hero-image-container">
-             <img [src]="char.portrait" [alt]="char.name" class="hero-portrait"
+             <img [attr.src]="heroImageSrc(i, char.portrait)" [alt]="char.name" class="hero-portrait"
                decoding="async" width="480" height="640"
                (error)="onImgError($event, char.avatar_image_url)">
           </div>
