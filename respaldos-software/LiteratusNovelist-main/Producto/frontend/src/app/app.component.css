@@ -1,6 +1,7 @@
 :host {
   --navbar-h: 182px;
 }
+.tavern-search-toggle.quick-action-btn { display: none; }
 
 /* Curvas del header: --ease-out (entradas, presiones) e --ease-in-out (movimiento), de styles.css. */
 
@@ -526,6 +527,41 @@
 }
 @media (max-width: 480px) {
   .guest-chip { padding: 2px 7px; font-size: 0.66rem; }
+}
+
+/* La Taberna reserva el espacio al salón; el buscador se despliega al pedirlo. */
+@media (max-width: 700px), (max-height: 500px) and (pointer: coarse) {
+  .tavern-mobile-shell .header-top-container { min-height: 60px; box-sizing: border-box; padding: 4px 12px; gap: 4px; }
+  .tavern-mobile-shell .header-left { flex: 0 1 auto; min-width: 0; }
+  .tavern-mobile-shell .brand-logo { min-height: 44px; justify-content: center; }
+  .tavern-mobile-shell .brand-literatus { font-size: .875rem; }
+  .tavern-mobile-shell .brand-novelist { font-size: .6rem; letter-spacing: .5em; }
+  .tavern-mobile-shell .brand-mascot,
+  .tavern-mobile-shell .brand-sparkle,
+  .tavern-mobile-shell .quick-filters,
+  .tavern-mobile-shell .qa-secondary,
+  .tavern-mobile-shell .guest-chip,
+  .tavern-mobile-shell .nav-bubbles-bar,
+  .tavern-mobile-shell .nav-toggle-btn { display: none; }
+  .tavern-mobile-shell .header-right { flex: none; gap: 0; margin-left: auto; }
+  .tavern-mobile-shell .quick-action-btn,
+  .tavern-mobile-shell .profile-trigger,
+  .tavern-mobile-shell .user-account-btn { min-width: 44px; min-height: 44px; padding: 4px; box-sizing: border-box; }
+  .tavern-mobile-shell .quick-action-btn .action-label,
+  .tavern-mobile-shell .account-texts,
+  .tavern-mobile-shell .profile-caret { display: none; }
+  .tavern-mobile-shell .tavern-search-toggle { display: inline-grid; place-items: center; }
+  .tavern-mobile-shell .ink-widget { min-height: 44px; max-width: 68px; margin: 0; padding-inline: 6px; gap: 3px; }
+  .tavern-mobile-shell .ink-balance { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: .8rem; }
+  .tavern-mobile-shell .ink-icon { font-size: 17px; }
+  .tavern-mobile-shell .header-center { display: none; }
+  .tavern-mobile-shell:not(:has(.tavern-search-toggle[aria-expanded='true'])) .header-top-container { flex-wrap: nowrap; }
+  .tavern-mobile-shell:has(.tavern-search-toggle[aria-expanded='true']) .header-center { display: block; flex: 1 0 100%; min-width: 100%; order: 3; }
+  .tavern-mobile-shell .header-top-container:has(.guest-chip) { flex-wrap: wrap; }
+  .tavern-mobile-body.with-bottom-nav { --bottom-nav-h: calc(60px + env(safe-area-inset-bottom, 0px)); padding-bottom: var(--bottom-nav-h); min-height: 0; }
+  :host-context(body.keyboard-open) .tavern-mobile-body.with-bottom-nav { --bottom-nav-h: 0px; padding-bottom: 0; }
+  .tavern-mobile-body > .site-content { padding-bottom: 0; container-type: normal; overflow: visible; }
+  .tavern-mobile-body .site-content > main.container:not(.dashboard-mode) { min-height: 0; padding: 0; }
 }
 
 /* ── Perfil con menú desplegable ──────────────────────────────────── */

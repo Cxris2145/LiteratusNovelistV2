@@ -7,6 +7,9 @@
 @media (max-width: 640px) {
   :host { display: block; }
 }
+@media (max-width: 700px), (max-height: 500px) and (pointer: coarse) {
+  :host(.tavern-bottom-nav) { display: block; }
+}
 /* Mientras se escribe, la barra no flota sobre el teclado. */
 :host-context(body.keyboard-open) {
   display: none;

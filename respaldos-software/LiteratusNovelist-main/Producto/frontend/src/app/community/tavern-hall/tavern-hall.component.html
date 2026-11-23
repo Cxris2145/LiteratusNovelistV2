@@ -1,9 +1,9 @@
-<main class="th-hall" [class.is-cinema]="cinemaMode">
+<main class="th-hall" [class.is-cinema]="cinemaMode" [class.is-mobile]="isMobile" [class.has-mobile-panel]="scenePaused" [class.is-visitor]="!loggedIn">
   <!-- El salón ilustrado: una capa pegajosa que no obliga a repintar la página al desplazarse. -->
   <!-- La luz sigue el sol de la zona del lector: día, tarde, crepúsculo o noche. -->
   <div class="th-backdrop" aria-hidden="true" [attr.data-light]="daylight.info().light">
     <!-- El salón con su gente: magos que pasan, la mesera, la pelotita, amigos que brindan. -->
-    <div class="th-room"><app-tavern-crowd [light]="daylight.info().light"></app-tavern-crowd></div>
+    <div class="th-room"><app-tavern-crowd [light]="daylight.info().light" [paused]="scenePaused"></app-tavern-crowd></div>
   </div>
   <!-- Cabecera compacta para dejar el protagonismo al salón. -->
   <header class="th-hero">
@@ -13,7 +13,7 @@
         La Taberna de Tinta
       </h1>
       <p class="th-lead">
-        Donde las historias nos reúnen.
+        <span class="th-motto">Donde las historias nos reúnen.</span>
         <span class="th-clock" [attr.data-light]="daylight.info().light"
               [attr.title]="'La taberna sigue la hora de tu zona (' + daylight.info().zone + ')'">
           <svg viewBox="0 0 24 24" aria-hidden="true" [ngSwitch]="daylight.info().light">
@@ -24,6 +24,16 @@
           {{ daylight.info().label }}
         </span>
       </p>
+    </div>
+    <div class="th-mobile-tools" *ngIf="isMobile">
+      <button *ngIf="loggedIn" type="button" class="th-mobile-profile" (click)="openLocalPanel('profile')"
+              aria-label="Ver mi perfil" aria-controls="tavern-profile" [attr.aria-expanded]="localPanel === 'profile'">
+        <span aria-hidden="true">{{ (me?.username || 'M').charAt(0) | uppercase }}</span>
+      </button>
+      <button type="button" class="th-icon-toggle" (click)="toggleCinema()" [attr.aria-pressed]="cinemaMode"
+              [attr.aria-label]="cinemaMode ? 'Salir del modo cine' : 'Modo cine: solo la mesa'">
+        <span class="material-symbols-rounded" aria-hidden="true">{{ cinemaMode ? 'fullscreen_exit' : 'fullscreen' }}</span>
+      </button>
     </div>
     <div class="th-actions" *ngIf="loggedIn; else visitorActions">
       <!-- Control de la vista del salón. -->
@@ -70,6 +80,23 @@
     </ng-template>
   </header>
 
+  <nav class="th-mobile-nav" *ngIf="loggedIn && isMobile && !cinemaMode" aria-label="En la taberna">
+    <button type="button" (click)="openLocalPanel('friends')" aria-controls="tavern-friends" [attr.aria-expanded]="localPanel === 'friends'">
+      <span class="material-symbols-rounded" aria-hidden="true">group</span><span>Amigos</span>
+      <span *ngIf="incoming.length" class="th-mobile-badge" [attr.aria-label]="incoming.length + ' solicitudes pendientes'">{{ incoming.length }}</span>
+    </button>
+    <button type="button" (click)="openChat(chatCode)" aria-controls="friend-chat" [attr.aria-expanded]="chatOpen">
+      <span class="material-symbols-rounded" aria-hidden="true">{{ isGuest ? 'lock' : 'forum' }}</span><span>Charlas</span>
+      <span *ngIf="chatUnread.total && !isGuest" class="th-mobile-badge" [attr.aria-label]="chatUnread.total + ' mensajes sin leer'">{{ chatUnread.total > 99 ? '99+' : chatUnread.total }}</span>
+    </button>
+    <button type="button" (click)="openClubs(activeClubId)" aria-controls="tavern-reading-clubs" [attr.aria-expanded]="clubsOpen">
+      <span class="material-symbols-rounded" aria-hidden="true">menu_book</span><span>Lecturas</span>
+    </button>
+    <button type="button" (click)="openBazar()" aria-controls="tavern-bazar" [attr.aria-expanded]="bazarOpen">
+      <span class="material-symbols-rounded" aria-hidden="true">storefront</span><span>Bazar</span>
+    </button>
+  </nav>
+
   <!-- Modo cine activo: una pastilla que explica cómo volver. -->
   <div class="th-cinema-banner" *ngIf="cinemaMode" role="status">
     <span class="material-symbols-rounded" aria-hidden="true">movie</span>
@@ -85,10 +112,19 @@
   <!-- Una sola ilustración cubre el salón; los paneles flotan a sus lados. -->
   <div class="th-layout" [class.is-bazar-open]="bazarOpen" *ngIf="loggedIn; else visitor">
     <!-- Columna izquierda: Tu perfil -->
-    <app-profile-card #profileCard class="area-profile" [class.is-spotlight]="profileSpotlight"
+    <aside id="tavern-profile" class="area-profile" [class.is-open]="localPanel === 'profile'" [class.is-spotlight]="profileSpotlight"
+           [appTavernMobilePanel]="localPanel === 'profile'" (mobilePanelClose)="closeLocalPanel()" aria-labelledby="tavern-profile-title">
+      <header class="tmp-header">
+        <h2 id="tavern-profile-title" data-mobile-panel-heading tabindex="-1">Tu perfil</h2>
+        <button type="button" class="th-icon-toggle" (click)="closeLocalPanel()" aria-label="Cerrar mi perfil"><span class="material-symbols-rounded" aria-hidden="true">close</span></button>
+      </header>
+      <div class="tmp-body">
+      <app-profile-card #profileCard [class.is-spotlight]="profileSpotlight"
                       [compact]="true" [card]="me" [mine]="true"
                       [dressing]="bazarOpen" (dress)="openBazar('ropero')" (customize)="openBazar('tintes')"
                       [savingPrivacy]="savingPrivacy" (privacyChange)="setPrivacy($event)"></app-profile-card>
+      </div>
+    </aside>
 
     <!-- Columna central: mesa interactiva y chat sobre el fondo compartido. -->
     <div class="area-scene-wrap">
@@ -107,6 +143,7 @@
         [messages]="messages"
         [reactions]="recentReactions"
         [toasting]="toasting"
+        [paused]="scenePaused"
         [fitting]="bazarOpen"
         [fittingTick]="fittingTick"
         [fittingGesture]="fittingGesture"
@@ -120,7 +157,13 @@
     </div>
 
     <!-- Columna derecha: Amigos -->
-    <div class="area-side">
+    <aside id="tavern-friends" class="area-side" [class.is-open]="localPanel === 'friends'"
+           [appTavernMobilePanel]="localPanel === 'friends'" (mobilePanelClose)="closeLocalPanel()" aria-labelledby="tavern-friends-title">
+      <header class="tmp-header">
+        <h2 id="tavern-friends-title" data-mobile-panel-heading tabindex="-1">Tus amigos</h2>
+        <button type="button" class="th-icon-toggle" (click)="closeLocalPanel()" aria-label="Cerrar amigos"><span class="material-symbols-rounded" aria-hidden="true">close</span></button>
+      </header>
+      <div class="tmp-body">
       <app-friend-list
         [friends]="friends"
         [incoming]="incoming"
@@ -137,12 +180,13 @@
         (remove)="remove($event)"
         (addFriend)="openAddFriend()">
       </app-friend-list>
-    </div>
+      </div>
+    </aside>
   </div>
 
   <!-- El Bazar se abre sobre la columna de amigos: la mesa sigue a la vista y hace de espejo. -->
   <app-tavern-bazar
-    *ngIf="loggedIn"
+    *ngIf="loggedIn && bazarVisited"
     [open]="bazarOpen"
     [tab]="bazarTab"
     [wearing]="me?.outfit"
@@ -154,7 +198,7 @@
 
   <!-- Charlas privadas: el mismo cajón lateral que El Bazar. -->
   <app-friend-chat
-    *ngIf="loggedIn"
+    *ngIf="loggedIn && chatVisited"
     [open]="chatOpen"
     [code]="chatCode"
     [friends]="friends"
@@ -165,7 +209,7 @@
 
   <!-- Lecturas conjuntas: leer libros a la vez con amigos y conversar por capítulos. -->
   <app-tavern-reading-clubs
-    *ngIf="loggedIn"
+    *ngIf="loggedIn && clubsVisited"
     [open]="clubsOpen"
     [clubId]="activeClubId"
     [friends]="friends"

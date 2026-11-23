@@ -2,7 +2,8 @@
 <div class="fc-backdrop" [class.is-open]="open" (click)="close()" aria-hidden="true"></div>
 
 <aside id="friend-chat" class="fc-drawer" [class.is-open]="open" [attr.inert]="open ? null : ''"
-       aria-labelledby="fc-title" (keydown.escape)="close()">
+       [appTavernMobilePanel]="open" (mobilePanelClose)="close()"
+       aria-labelledby="fc-title" (keydown.escape)="closeOnDesktop()">
   <span class="fc-grip" aria-hidden="true"></span>
 
   <!-- Lista de charlas -->

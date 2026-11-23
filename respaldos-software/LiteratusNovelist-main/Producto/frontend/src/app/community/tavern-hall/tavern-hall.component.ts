@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestr
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, Subject, forkJoin } from 'rxjs';
-import { filter, take, takeUntil } from 'rxjs/operators';
+import { filter, finalize, take, takeUntil } from 'rxjs/operators';
 
 import { MaguitoOutfit } from '../../core/components/maguito/maguito-outfit';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,6 +18,7 @@ import { TavernTableAction } from '../tavern-table/tavern-table.types';
 import { prefersReducedMotion } from '../../core/utils/motion.util';
 import { TavernDaylightService } from '../tavern-daylight';
 import { listContainerMotion, listItemMotion, listItemParams, morphLayout } from '../tavern-motion';
+import { TAVERN_MOBILE_QUERY } from '../mobile-panel/tavern-mobile-panel.directive';
 
 const POLL_MS = 8000;
 /** Cuántos mensajes trae el sondeo de actividad y cuántos guarda el historial de la mesa. */
@@ -64,7 +65,7 @@ const DEMO_GUESTS: SceneGuest[] = [
 @Component({
   selector: 'app-tavern-hall',
   templateUrl: './tavern-hall.component.html',
-  styleUrls: ['../community-shared.css', './tavern-hall.component.css'],
+  styleUrls: ['../community-shared.css', './tavern-hall.component.css', '../mobile-panel/tavern-mobile-panel.css', './tavern-hall.mobile.css'],
   animations: [listItemMotion, listContainerMotion],
 })
 export class TavernHallComponent implements OnInit, OnDestroy {
@@ -78,6 +79,33 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
   private poll: ReturnType<typeof setInterval> | null = null;
+  private readonly mobileMedia = window.matchMedia(TAVERN_MOBILE_QUERY);
+  isMobile = this.mobileMedia.matches;
+  localPanel: 'profile' | 'friends' | null = null;
+  bazarVisited = false;
+  chatVisited = false;
+  clubsVisited = false;
+  private refreshInFlight = false;
+  private reloadPending = false;
+  private destroyed = false;
+  get scenePaused(): boolean {
+    return this.isMobile && !!(this.localPanel || this.bazarOpen || this.chatOpen || this.clubsOpen || this.dialog.openDialogs.length);
+  }
+  private readonly onMobileChange = (event: MediaQueryListEvent) => this.zone.run(() => {
+    this.isMobile = event.matches;
+    if (!this.isMobile) this.localPanel = null;
+    this.cdr.markForCheck();
+  });
+
+  openLocalPanel(panel: 'profile' | 'friends'): void {
+    if (!this.loggedIn) return;
+    this.closeChat();
+    this.closeClubs();
+    this.closeBazar();
+    this.localPanel = panel;
+  }
+
+  closeLocalPanel(): void { this.localPanel = null; }
   /** La sala de día, de tarde, al crepúsculo o de noche, según el sol de la zona del lector. */
   readonly daylight = inject(TavernDaylightService);
   private stopDaylight = this.daylight.watch();
@@ -152,6 +180,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   busy: string | null = null;
 
   ngOnInit(): void {
+    this.mobileMedia.addEventListener('change', this.onMobileChange);
     const paypal = this.route.snapshot.queryParamMap.get('paypal');
     if (paypal) {
       this.router.navigate(['/planes'], { queryParams: { paypal }, replaceUrl: true });
@@ -172,9 +201,14 @@ export class TavernHallComponent implements OnInit, OnDestroy {
         this.onBazarPreview(null);
       }
       this.chatOpen = params.has('charla') && !bazar && !this.isGuest;
-      this.chatCode = this.chatOpen ? (params.get('charla') || '').trim().toUpperCase() : '';
+      // Cerrada, la charla o la lectura recuerda dónde estaba: en el celular, «Charlas» y «Lecturas» vuelven ahí.
+      if (this.chatOpen) this.chatCode = (params.get('charla') || '').trim().toUpperCase();
       this.clubsOpen = params.has('lectura') && !bazar && !this.chatOpen;
-      this.activeClubId = this.clubsOpen ? (params.get('lectura') || '').trim() : '';
+      if (this.clubsOpen) this.activeClubId = (params.get('lectura') || '').trim();
+      this.bazarVisited ||= this.bazarOpen;
+      this.chatVisited ||= this.chatOpen;
+      this.clubsVisited ||= this.clubsOpen;
+      if (this.bazarOpen || this.chatOpen || this.clubsOpen) this.closeLocalPanel();
     });
     // #mi-perfil: tu tarjeta es tu perfil público; se centra y brilla un momento.
     this.route.fragment.pipe(takeUntil(this.destroy$)).subscribe(fragment => {
@@ -193,6 +227,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    this.mobileMedia.removeEventListener('change', this.onMobileChange);
     this.stopDaylight();
     if (this.poll) clearInterval(this.poll);
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
@@ -204,6 +240,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   loadAll(): void {
+    if (this.refreshInFlight) { this.reloadPending = true; return; }
+    this.refreshInFlight = true;
     this.error = '';
     forkJoin({
       presence: this.community.heartbeat(),
@@ -211,7 +249,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       friends: this.community.friends(),
       requests: this.community.requests(),
       activity: this.community.getActivity(),
-    }).pipe(takeUntil(this.destroy$)).subscribe({
+    }).pipe(takeUntil(this.destroy$), finalize(() => this.finishRefresh())).subscribe({
       next: data => {
         this.me = data.me;
         this.setFriends(data.friends.results);
@@ -237,6 +275,7 @@ export class TavernHallComponent implements OnInit, OnDestroy {
     this.wantsProfileSpotlight = false;
     this.cinemaMode = false;
     this.router.navigate([], { relativeTo: this.route, queryParamsHandling: 'preserve', replaceUrl: true });
+    if (this.isMobile) { this.openLocalPanel('profile'); return; }
     this.profileSpotlight = false;
     if (this.spotlightTimer) clearTimeout(this.spotlightTimer);
     // Un cuadro después: la tarjeta ya se ve (sin modo cine) y la clase vuelve a disparar la animación.
@@ -333,6 +372,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.notification.info('Inicia sesión con tu cuenta para usar las charlas privadas con amigos.', 'Taberna');
       return;
     }
+    this.closeLocalPanel();
+    this.chatVisited = true;
     if (this.bazarOpen) { this.bazarOpen = false; this.onBazarPreview(null); }
     this.clubsOpen = false;
     this.activeClubId = '';
@@ -344,7 +385,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   closeChat(): void {
     if (!this.chatOpen) return;
     this.chatOpen = false;
-    this.chatCode = '';
     this.syncPanelsUrl();
     this.refreshLive(); // los no leídos cambian al leer
   }
@@ -353,6 +393,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   openClubs(clubId = ''): void {
     if (!this.loggedIn) return;
+    this.closeLocalPanel();
+    this.clubsVisited = true;
     if (this.bazarOpen) { this.bazarOpen = false; this.onBazarPreview(null); }
     this.chatOpen = false;
     this.chatCode = '';
@@ -364,7 +406,6 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   closeClubs(): void {
     if (!this.clubsOpen) return;
     this.clubsOpen = false;
-    this.activeClubId = '';
     this.syncPanelsUrl();
   }
 
@@ -375,6 +416,8 @@ export class TavernHallComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login'], { queryParams: { returnUrl: '/tavern?bazar=' + tab } });
       return;
     }
+    this.closeLocalPanel();
+    this.bazarVisited = true;
     this.chatOpen = false;
     this.chatCode = '';
     this.clubsOpen = false;
@@ -414,14 +457,15 @@ export class TavernHallComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.dialog.openDialogs.length) return;
+    if (this.localPanel) { this.closeLocalPanel(); return; }
+    if (this.chatOpen) { this.closeChat(); return; }
+    if (this.clubsOpen) { this.closeClubs(); return; }
+    if (this.bazarOpen) { this.closeBazar(); return; }
     if (this.cinemaMode) {
       this.setCinema(false);
       return;
     }
-    if (this.dialog.openDialogs.length) return;
-    if (this.chatOpen) this.closeChat();
-    else if (this.clubsOpen) this.closeClubs();
-    else if (this.bazarOpen) this.closeBazar();
   }
 
   /** El Bazar, las charlas y las lecturas viven en la URL (?bazar= / ?charla= / ?lectura=); nunca dos a la vez. */
@@ -466,6 +510,10 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   }
 
   openGuest(guest: SceneGuest): void {
+    if (this.isMobile && guest.code === this.me?.friend_code) {
+      this.openLocalPanel('profile');
+      return;
+    }
     this.router.navigate(guest.code === this.me?.friend_code ? ['/profile'] : ['/tavern/amigo', guest.code]);
   }
 
@@ -608,12 +656,14 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   trackInvitation = (_: number, invitation: TavernInvitation) => invitation.id;
 
   private refreshLive(): void {
+    if (this.refreshInFlight || !this.loggedIn || document.hidden) return;
+    this.refreshInFlight = true;
     forkJoin({
       presence: this.community.heartbeat(),
       friends: this.community.friends(),
       requests: this.community.requests(),
       activity: this.community.getActivity(),
-    }).pipe(takeUntil(this.destroy$)).subscribe({
+    }).pipe(takeUntil(this.destroy$), finalize(() => this.finishRefresh())).subscribe({
       next: data => {
         this.setFriends(data.friends.results);
         this.incoming = data.requests.incoming;
@@ -632,13 +682,17 @@ export class TavernHallComponent implements OnInit, OnDestroy {
   private onVisibility = () => {
     if (document.hidden) return;
     this.zone.run(() => {
-      this.refreshLive();
-      this.community.me().pipe(takeUntil(this.destroy$)).subscribe({
-        next: me => { this.me = me; this.updateSceneMe(); },
-        error: () => {},
-      });
+      this.loadAll();
     });
   };
+
+  private finishRefresh(): void {
+    this.refreshInFlight = false;
+    if (this.reloadPending && !this.destroyed) {
+      this.reloadPending = false;
+      this.loadAll();
+    }
+  }
 
   private setFriends(friends: FriendCard[]): void {
     this.friends = friends;

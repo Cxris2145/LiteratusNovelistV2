@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 import { FriendCard } from '../../core/services/community.service';
+import { AuthService } from '../../core/services/auth.service';
 import { FriendListComponent } from './friend-list.component';
 
 function friend(code: string, avatar: string | null = null): FriendCard {
@@ -21,7 +22,10 @@ describe('FriendListComponent: gestos y presencia', () => {
       onchange: null, addListener: () => {}, removeListener: () => {},
       addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => true,
     } as MediaQueryList));
-    TestBed.configureTestingModule({ declarations: [FriendListComponent] });
+    TestBed.configureTestingModule({
+      declarations: [FriendListComponent],
+      providers: [{ provide: AuthService, useValue: { isGuest: () => false } }],
+    });
     // Estas pruebas cubren el ciclo de los gestos, independiente del diseño de las filas.
     TestBed.overrideComponent(FriendListComponent, { set: { template: '' } });
     fixture = TestBed.createComponent(FriendListComponent);

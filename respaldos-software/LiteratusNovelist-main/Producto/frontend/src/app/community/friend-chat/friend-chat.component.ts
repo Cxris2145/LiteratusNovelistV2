@@ -8,6 +8,7 @@ import {
   ChatThread, ChatUnread, CommunityService, FriendCard, FriendChatMessage,
 } from '../../core/services/community.service';
 import { clockTime, dayLabel, timeAgo } from '../time-ago.util';
+import { isTavernMobilePanel } from '../mobile-panel/tavern-mobile-panel.directive';
 
 const POLL_MS = 4000;
 export const CHAT_MAX_LENGTH = 500;
@@ -22,7 +23,7 @@ type ChatRow = { kind: 'day'; key: string; label: string } | { kind: 'message'; 
 @Component({
   selector: 'app-friend-chat',
   templateUrl: './friend-chat.component.html',
-  styleUrls: ['../community-shared.css', './friend-chat.component.css'],
+  styleUrls: ['../community-shared.css', './friend-chat.component.css', '../mobile-panel/tavern-mobile-panel.css'],
 })
 export class FriendChatComponent implements OnChanges, OnDestroy {
   private community = inject(CommunityService);
@@ -62,27 +63,30 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
   private poll: ReturnType<typeof setInterval> | null = null;
   private request?: Subscription;
   private returnFocus: HTMLElement | null = null;
+  private drafts = new Map<string, string>();
 
   get friend(): FriendCard | null {
     return this.friends.find(friend => friend.friend_code === this.code) ?? null;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['code']?.previousValue) this.drafts.set(changes['code'].previousValue, this.draft);
+    else if (changes['open'] && !this.open && this.code) this.drafts.set(this.code, this.draft);
     // Abrir el cajón ya es un movimiento; pasar de la lista a una charla (o volver) desliza la vista.
     if (changes['open']) this.enter = null;
     else if (changes['code'] && this.open) this.enter = this.code ? 'forward' : 'back';
     if (changes['open']) {
       if (this.open) {
-        this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        if (!isTavernMobilePanel()) this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         setTimeout(() => this.focusStart(), 60);
       } else if (!changes['open'].firstChange) {
         this.stopPolling();
-        this.restoreFocus();
+        if (!isTavernMobilePanel()) this.restoreFocus();
       }
     }
     if ((changes['open'] || changes['code']) && this.open) {
       this.error = '';
-      this.draft = '';
+      this.draft = this.drafts.get(this.code) || '';
       if (this.code) this.openThread();
       else { this.stopPolling(); this.loadThreads(); }
       if (changes['code'] && !changes['code'].firstChange) setTimeout(() => this.focusStart(), 60);
@@ -104,6 +108,8 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
   close(): void {
     if (this.open) this.closed.emit();
   }
+
+  closeOnDesktop(): void { if (!isTavernMobilePanel()) this.close(); }
 
   back(): void {
     this.threadChange.emit('');
@@ -132,10 +138,11 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
     this.community.sendChatMessage(code, content).pipe(takeUntil(this.destroy$)).subscribe({
       next: res => {
         this.sending = false;
+        this.drafts.delete(code);
         if (code !== this.code) return;
         this.draft = '';
         this.append([res.item], true, true);
-        setTimeout(() => this.composer?.nativeElement.focus());
+        setTimeout(() => { if (this.open && this.code === code) this.composer?.nativeElement.focus(); });
       },
       error: err => {
         this.sending = false;
@@ -241,7 +248,7 @@ export class FriendChatComponent implements OnChanges, OnDestroy {
   }
 
   private focusStart(): void {
-    if (!this.open) return;
+    if (!this.open || isTavernMobilePanel()) return;
     if (this.code && this.composer) this.composer.nativeElement.focus({ preventScroll: true });
     else this.heading?.nativeElement.focus({ preventScroll: true });
   }

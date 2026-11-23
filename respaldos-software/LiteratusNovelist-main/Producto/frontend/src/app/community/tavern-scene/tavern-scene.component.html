@@ -1,4 +1,5 @@
 <section class="ts-stage" [class.is-fitting]="fitting" [attr.aria-label]="summary">
+  <div class="ts-scene-art">
 
   <!-- Mensaje de interacción con objetos de la mesa (gato, poción, reloj) -->
   <div *ngIf="catMessage" class="ts-object-bubble" [class.is-leaving]="catLeaving" role="status" aria-live="polite">
@@ -58,6 +59,7 @@
       [greetOnEnter]="seat.isMe"
       [followPointer]="seat.isMe"
       [calm]="lite"
+      [paused]="ambientPaused"
       [glances]="!lite"
       [interactive]="true">
     </app-maguito>
@@ -71,6 +73,7 @@
   </button>
 
   <app-tavern-table class="ts-table-overlay" [toasting]="toasting" [hoverAction]="tableHover"
+    [paused]="ambientPaused"
     [reaction]="tableReaction" [reactionTick]="tableReactionTick"
     (readyChange)="table3dReady = $event" (action)="activateTable($event)"></app-tavern-table>
 
@@ -204,6 +207,35 @@
     <span class="ts-name-text">{{ seat.isMe ? (demo ? seat.guest.username : (me?.username || 'Tú')) : seat.guest.username }}</span>
   </button>
 
+  </div>
+
+  <div class="ts-mobile-toolbar" *ngIf="lite">
+    <button *ngIf="isLoggedIn && !demo && !isGuest" type="button" class="ts-chat-icon-btn ts-mobile-history"
+            (click)="toggleHistory()" [attr.aria-expanded]="historyOpenState" aria-controls="ts-history"
+            [attr.aria-label]="unseenCount ? 'Conversación de la mesa, ' + unseenCount + ' mensajes nuevos' : 'Conversación de la mesa'">
+      <span class="material-symbols-rounded" aria-hidden="true">history</span>
+      <span *ngIf="unseenCount" class="ts-history-badge" aria-hidden="true">{{ unseenCount > 9 ? '9+' : unseenCount }}</span>
+    </button>
+    <div class="ts-participants-wrap">
+      <button #participantsToggle type="button" class="ts-participants-toggle" (click)="toggleParticipants()"
+              [attr.aria-expanded]="participantsOpen" aria-controls="ts-participants-list">
+        <span class="material-symbols-rounded" aria-hidden="true">group</span>
+        <span class="ts-participants-label">Participantes ({{ participants.length }})</span>
+        <span class="material-symbols-rounded ts-participants-chevron" aria-hidden="true">expand_more</span>
+      </button>
+      <nav *ngIf="participantsOpen" id="ts-participants-list" class="ts-participants" aria-label="Personas en la mesa" tabindex="-1" [style.max-height.px]="popoverMaxHeight">
+        <button *ngFor="let guest of participants; trackBy: trackGuest" type="button" class="ts-participant"
+                [disabled]="demo" (click)="selectParticipant(guest)"
+                [attr.aria-label]="'Ver perfil de ' + guest.username">
+          <app-maguito crop="bust" [outfit]="guest.outfit" [paused]="true" [calm]="true"
+                       [interactive]="false" [followPointer]="false" aria-hidden="true"></app-maguito>
+          <span>{{ guest.username }}{{ guest.code === me?.code && !demo ? ' (Tú)' : '' }}</span>
+        </button>
+        <span class="ts-participants-empty" *ngIf="!participants.length">Tu mesa te espera</span>
+      </nav>
+    </div>
+  </div>
+
 
   <!-- ============================================================ -->
   <!-- BARRA DE CHAT Y REACCIONES RÁPIDAS DE LA TABERNA             -->
@@ -211,7 +243,7 @@
   <footer class="ts-chat-dock" *ngIf="isLoggedIn && !demo">
     <ng-container *ngIf="!isGuest; else guestBar">
       <!-- Historial de la mesa: lo que se dijo, del más viejo al más nuevo. -->
-      <section class="ts-history" id="ts-history" *ngIf="historyOpenState" aria-labelledby="ts-history-title">
+      <section class="ts-history" id="ts-history" *ngIf="historyOpenState" aria-labelledby="ts-history-title" [style.max-height.px]="popoverMaxHeight">
         <header class="ts-history-head">
           <h3 id="ts-history-title">Conversación de la mesa</h3>
           <button type="button" class="ts-chat-icon-btn" (click)="closeHistory()" aria-label="Cerrar el historial">
@@ -259,7 +291,7 @@
                   aria-label="Acciones de la mesa" title="Acciones de la mesa">
             <span class="material-symbols-rounded" aria-hidden="true">add</span>
           </button>
-          <div class="ts-actions-menu" id="ts-actions-menu" *ngIf="actionsOpen">
+          <div class="ts-actions-menu" id="ts-actions-menu" *ngIf="actionsOpen" [style.max-height.px]="popoverMaxHeight">
             <button type="button" (click)="runAction('book')" (pointerenter)="tableHover = 'book'" (pointerleave)="tableHover = null">
               <span class="material-symbols-rounded" aria-hidden="true">auto_stories</span>Compartir lectura
             </button>
@@ -283,7 +315,9 @@
         </div>
 
         <input
+          #chatInput
           type="text"
+          enterkeyhint="send"
           class="ts-chat-input"
           [(ngModel)]="chatText"
           (keydown.enter)="sendChat()"
@@ -295,15 +329,26 @@
 
         <div class="ts-chat-tools">
           <!-- Selector rápido de emojis -->
-          <div class="ts-emoji-picker-wrap" *ngIf="showEmojiList">
+          <div class="ts-emoji-picker-wrap" *ngIf="showEmojiList" [style.max-height.px]="popoverMaxHeight">
+            <section class="ts-expression-reactions" *ngIf="lite" aria-label="Reaccionar a la mesa">
+              <h3>Reaccionar a la mesa</h3>
+              <div class="ts-expression-reactions-list">
+                <button type="button" class="ts-react-pill" (click)="react('🍺'); showEmojiList = false" aria-label="Reaccionar: ¡Salud!">🍺</button>
+                <button type="button" class="ts-react-pill" (click)="react('❤️'); showEmojiList = false" aria-label="Reaccionar: me encanta">❤️</button>
+                <button type="button" class="ts-react-pill" (click)="react('👏'); showEmojiList = false" aria-label="Reaccionar: ¡gran logro!">👏</button>
+                <button type="button" class="ts-react-pill" (click)="react('📖'); showEmojiList = false" aria-label="Reaccionar: buena lectura">📖</button>
+                <button type="button" class="ts-react-pill" (click)="react('✨'); showEmojiList = false" aria-label="Reaccionar: mágico">✨</button>
+              </div>
+            </section>
+            <h3 *ngIf="lite">Añadir al mensaje</h3>
             <div class="ts-emoji-grid">
-              <button *ngFor="let em of quickEmojis" type="button" class="ts-emoji-pick-btn" (click)="insertEmoji(em)">
+              <button *ngFor="let em of quickEmojis" type="button" class="ts-emoji-pick-btn" (click)="insertEmoji(em)" [attr.aria-label]="'Añadir al mensaje: ' + em">
                 {{ em }}
               </button>
             </div>
           </div>
 
-          <button type="button" class="ts-chat-icon-btn ts-emoji-toggle" (click)="toggleEmojiList()" title="Añadir emoji" aria-label="Añadir emoji" [attr.aria-expanded]="showEmojiList">
+          <button type="button" class="ts-chat-icon-btn ts-emoji-toggle" (click)="toggleEmojiList()" [attr.title]="lite ? 'Expresiones' : 'Añadir emoji'" [attr.aria-label]="lite ? 'Expresiones: reaccionar o añadir emoji' : 'Añadir emoji'" [attr.aria-expanded]="showEmojiList">
             <span class="material-symbols-rounded" aria-hidden="true">mood</span>
           </button>
 

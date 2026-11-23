@@ -1,6 +1,6 @@
 import {
   ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostListener, Input, NgZone,
-  OnChanges, OnDestroy, OnInit, Output, QueryList, SimpleChanges, ViewChildren, inject,
+  OnChanges, OnDestroy, OnInit, Output, QueryList, SimpleChanges, ViewChild, ViewChildren, inject,
 } from '@angular/core';
 
 import { MaguitoComponent } from '../../core/components/maguito/maguito.component';
@@ -103,6 +103,8 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   @Input() me: SceneGuest | null = null;
   @Input() guests: SceneGuest[] = [];
   @Input() demo = false;
+  /** Una hoja móvil cubre la mesa: conservar su estado sin animar lo que no se ve. */
+  @Input() paused = false;
   @Input() messages: TavernChatMessage[] = [];
   @Input() reactions: TavernReactionItem[] = [];
   @Input() toasting = false;
@@ -121,6 +123,8 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   @Output() guestSelect = new EventEmitter<SceneGuest>();
 
   @ViewChildren('seatMaguito') private seatMaguitos?: QueryList<MaguitoComponent>;
+  @ViewChild('chatInput') private chatInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('participantsToggle') private participantsToggle?: ElementRef<HTMLButtonElement>;
 
   /**
    * Celular: los Maguitos de la mesa van calmados (sin mecer las piezas del dibujo) y respiran con
@@ -130,6 +134,11 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   lite = this.liteQuery.matches;
 
   seats: Seat[] = [];
+  /** Incluye también a quienes no caben en los cuatro asientos dibujados. */
+  participants: SceneGuest[] = [];
+  ambientPaused = false;
+  participantsOpen = false;
+  popoverMaxHeight: number | null = null;
   emptySlots: Slot[] = [];
   summary = '';
 
@@ -166,6 +175,8 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   private observer?: IntersectionObserver;
   private seenReactionIds = new Set<string>();
   private reactionLoads = 0;
+  private destroyed = false;
+  private effects = new Set<ReturnType<typeof setTimeout>>();
 
   ngOnInit(): void {
     if (typeof IntersectionObserver === 'function') {
@@ -178,12 +189,14 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
       });
     }
     document.addEventListener('visibilitychange', this.syncAmbient);
+    window.visualViewport?.addEventListener('resize', this.updatePopoverSpace);
+    window.visualViewport?.addEventListener('scroll', this.updatePopoverSpace);
     this.liteQuery.addEventListener('change', this.onLiteChange);
     this.syncAmbient();
     if (!prefersReducedMotion()) {
       this.zone.runOutsideAngular(() => {
         this.timer = setInterval(() => {
-          if (document.hidden || this.host.dataset['onscreen'] === 'false') return;
+          if (this.paused || document.hidden || this.host.dataset['onscreen'] === 'false') return;
           this.tick++;
           this.zone.run(() => this.build());
         }, ROTATE_MS);
@@ -192,6 +205,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['paused']) this.syncAmbient();
     if (changes['messages']) this.buildHistory();
     this.build();
     if (changes['reactions'] && this.reactions) {
@@ -210,6 +224,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     if (this.welcomeShownInSession) {
       this.saveWelcomeDismissed();
     }
@@ -218,19 +233,34 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     if (this.catTimer) clearTimeout(this.catTimer);
     if (this.welcomeTimer) clearTimeout(this.welcomeTimer);
     if (this.welcomeFadeTimer) clearTimeout(this.welcomeFadeTimer);
+    this.effects.forEach(timer => clearTimeout(timer));
+    this.effects.clear();
     this.observer?.disconnect();
     document.removeEventListener('visibilitychange', this.syncAmbient);
+    window.visualViewport?.removeEventListener('resize', this.updatePopoverSpace);
+    window.visualViewport?.removeEventListener('scroll', this.updatePopoverSpace);
     this.liteQuery.removeEventListener('change', this.onLiteChange);
   }
 
   /** Al girar el teléfono o cambiar el ancho de la ventana. */
   private onLiteChange = (event: MediaQueryListEvent): void => {
     this.lite = event.matches;
+    if (!this.lite) {
+      this.popoverMaxHeight = null;
+      this.closeParticipants(false);
+    }
     this.cdr.markForCheck();
   };
 
   private syncAmbient = (): void => {
-    this.host.dataset['ambientPaused'] = String(document.hidden || this.host.dataset['onscreen'] === 'false');
+    if (this.destroyed) return;
+    const paused = this.paused || document.hidden || this.host.dataset['onscreen'] === 'false';
+    this.host.dataset['ambientPaused'] = String(paused);
+    if (this.ambientPaused === paused) return;
+    this.zone.run(() => {
+      this.ambientPaused = paused;
+      this.cdr.markForCheck();
+    });
   };
 
   trackSeat = (_: number, seat: Seat) => seat.slot + seat.guest.code;
@@ -240,6 +270,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   trackBurst = (_: number, burst: number) => burst;
   trackGroup = (_: number, group: HistoryGroup) => group.key;
   trackMessage = (_: number, message: TavernChatMessage) => message.id;
+  trackGuest = (_: number, guest: SceneGuest) => guest.code;
 
   sendChat(): void {
     if (this.isGuest) return;
@@ -265,6 +296,8 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   toggleActions(): void {
     if (this.isGuest) return;
     this.actionsOpen = !this.actionsOpen;
+    if (this.actionsOpen) this.measurePopoverSpace('.ts-actions-toggle');
+    this.closeParticipants(false);
     if (this.actionsOpen) {
       this.historyOpenState = false;
       this.showEmojiList = false;
@@ -281,9 +314,11 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   toggleHistory(): void {
     if (this.isGuest) return;
     this.historyOpenState = !this.historyOpenState;
+    this.closeParticipants(false);
     this.showEmojiList = false;
     this.actionsOpen = false;
     if (this.historyOpenState) {
+      this.measurePopoverSpace('.ts-chat-dock');
       // Lo que ya estaba (y lo más viejo que traiga la sala) no anima; solo lo posterior.
       this.historyBaseline = this.newestMessageAt();
       this.historyFresh.clear();
@@ -306,20 +341,77 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   insertEmoji(emoji: string): void {
     this.chatText += emoji;
     this.showEmojiList = false;
+    this.chatInput?.nativeElement.focus({ preventScroll: true });
   }
 
   toggleEmojiList(): void {
     if (this.isGuest) return;
     this.showEmojiList = !this.showEmojiList;
+    if (this.showEmojiList) this.measurePopoverSpace('.ts-emoji-toggle');
     this.actionsOpen = false;
+    this.historyOpenState = false;
+    this.closeParticipants(false);
   }
+
+  toggleParticipants(): void {
+    if (this.participantsOpen) { this.closeParticipants(); return; }
+    this.participantsOpen = true;
+    this.measurePopoverSpace('.ts-participants-toggle');
+    this.actionsOpen = false;
+    this.showEmojiList = false;
+    this.historyOpenState = false;
+    this.runLater(() => {
+      const first = this.host.querySelector<HTMLElement>('.ts-participant:not(:disabled)') ?? this.host.querySelector<HTMLElement>('.ts-participants');
+      first?.focus({ preventScroll: true });
+    }, 0);
+  }
+
+  closeParticipants(restoreFocus = true): void {
+    if (!this.participantsOpen) return;
+    this.participantsOpen = false;
+    if (restoreFocus) this.participantsToggle?.nativeElement.focus({ preventScroll: true });
+    this.cdr.markForCheck();
+  }
+
+  selectParticipant(guest: SceneGuest): void {
+    // El foco vuelve al botón antes de abrir el perfil: así, al cerrarlo, regresa ahí (la lista ya no existe).
+    this.closeParticipants();
+    this.guestSelect.emit(guest);
+  }
+
+  /** La hoja sale sobre su botón y cabe entre este y el encabezado visible, también con teclado. */
+  private measurePopoverSpace(anchorSelector: string): void {
+    if (!this.lite) { this.popoverMaxHeight = null; return; }
+    const anchor = this.host.querySelector<HTMLElement>(anchorSelector);
+    if (!anchor) return;
+    const styles = getComputedStyle(this.host);
+    const headerOffset = Number.parseFloat(styles.getPropertyValue('--header-offset'))
+      || Number.parseFloat(styles.getPropertyValue('--navbar-h')) || 0;
+    const top = Math.max(window.visualViewport?.offsetTop ?? 0, headerOffset);
+    this.popoverMaxHeight = Math.min(360, Math.max(44, Math.floor(anchor.getBoundingClientRect().top - top - 12)));
+  }
+
+  @HostListener('window:resize')
+  onViewportResize(): void { this.updatePopoverSpace(); }
+
+  private updatePopoverSpace = (): void => {
+    if (this.destroyed) return;
+    const selector = this.participantsOpen ? '.ts-participants-toggle'
+      : this.historyOpenState ? '.ts-chat-dock'
+      : this.actionsOpen ? '.ts-actions-toggle'
+      : this.showEmojiList ? '.ts-emoji-toggle' : '';
+    if (!selector) return;
+    this.measurePopoverSpace(selector);
+    this.cdr.markForCheck();
+  };
 
   /** El selector de emojis se cierra al pulsar fuera o con Escape. */
   @HostListener('document:pointerdown', ['$event'])
   onDocumentPointer(event: PointerEvent): void {
     const target = event.target as Element | null;
+    if (this.participantsOpen && !target?.closest('.ts-participants-wrap')) this.closeParticipants(false);
     // Escribir o reaccionar no cierra el historial: así se ve llegar lo que uno manda.
-    if (this.historyOpenState && !target?.closest('.ts-chat-dock')) this.closeHistory();
+    if (this.historyOpenState && !target?.closest('.ts-chat-dock, .ts-mobile-history')) this.closeHistory();
     if (this.actionsOpen && !target?.closest('.ts-actions')) { this.actionsOpen = false; this.cdr.markForCheck(); }
     if (!this.showEmojiList) return;
     if (target?.closest('.ts-emoji-picker-wrap, .ts-emoji-toggle')) return;
@@ -327,8 +419,13 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  @HostListener('keydown.escape')
-  onEscape(): void {
+  @HostListener('keydown.escape', ['$event'])
+  onEscape(event?: KeyboardEvent): void {
+    if (this.participantsOpen || this.actionsOpen || this.showEmojiList || this.historyOpenState) {
+      event?.stopPropagation();
+      event?.preventDefault();
+    }
+    if (this.participantsOpen) { this.closeParticipants(); return; }
     if (this.actionsOpen) {
       this.actionsOpen = false;
       this.cdr.markForCheck();
@@ -434,7 +531,7 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     if (this.fittingGesture !== 'try') return;
     const burst = this.fittingTick;
     this.fitBursts = [...this.fitBursts.slice(-2), burst];
-    setTimeout(() => {
+    this.runLater(() => {
       this.fitBursts = this.fitBursts.filter(item => item !== burst);
       this.cdr.markForCheck();
     }, 700);
@@ -457,13 +554,18 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
     };
     this.particles.push(p);
     this.cdr.markForCheck();
-    setTimeout(() => {
+    this.runLater(() => {
       this.particles = this.particles.filter(item => item.id !== p.id);
       this.cdr.markForCheck();
     }, 2400);
   }
 
   private build(): void {
+    const participants = this.demo ? this.guests : this.guests.filter(guest => guest.status?.kind === 'tavern');
+    this.participants = [
+      ...(this.me ? [this.me] : []),
+      ...participants.filter(guest => guest.code !== this.me?.code),
+    ];
     if (this.demo) {
       // Distribución idéntica a la maqueta:
       // Izquierda: Tercer amigo (sombrero rojo con flor)
@@ -680,10 +782,18 @@ export class TavernSceneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private scrollHistoryToEnd(): void {
-    setTimeout(() => {
+    this.runLater(() => {
       const list = this.host.querySelector<HTMLElement>('.ts-history-list');
       if (list) list.scrollTop = list.scrollHeight;
-    });
+    }, 0);
+  }
+
+  private runLater(callback: () => void, delay: number): void {
+    const timer = setTimeout(() => {
+      this.effects.delete(timer);
+      if (!this.destroyed) callback();
+    }, delay);
+    this.effects.add(timer);
   }
 
   private describe(seated: SceneGuest[]): string {

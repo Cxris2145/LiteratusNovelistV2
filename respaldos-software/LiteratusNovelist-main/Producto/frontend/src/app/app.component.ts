@@ -54,6 +54,13 @@ export class AppComponent implements OnInit {
   isDashboard = false;
   isEnigma = false;
   isTavernHall = /^\/tavern\/?(?:[?#]|$)/.test(this.router.url);
+  tavernSearchOpen = false;
+
+  toggleTavernSearch(): void {
+    this.tavernSearchOpen = !this.tavernSearchOpen;
+    if (this.tavernSearchOpen) requestAnimationFrame(() =>
+      this.headerEl?.querySelector<HTMLInputElement>('.header-center input')?.focus());
+  }
   /** El mapa de La Senda ocupa toda la pantalla bajo el encabezado: sin pie de página. */
   isSendaMap = /^\/learn\/?(?:[?#]|$)/.test(this.router.url);
   /** Un encuentro abierto (/encuentro/:id) también: solo se desplazan sus mensajes. */
@@ -166,6 +173,7 @@ export class AppComponent implements OnInit {
         this.isDashboard = url.startsWith('/dashboard') || url.startsWith('/reader');
         this.isEnigma = url.includes('enigma');
         this.isTavernHall = /^\/tavern\/?(?:[?#]|$)/.test(url);
+        if (!this.isTavernHall) this.tavernSearchOpen = false;
         this.isSendaMap = /^\/learn\/?(?:[?#]|$)/.test(url);
         this.isEncounterChat = /^\/encuentro\/[^/?#]+/.test(url);
         this.isPlayingLevel = url.startsWith('/learn/play') || url.startsWith('/learn/skip');

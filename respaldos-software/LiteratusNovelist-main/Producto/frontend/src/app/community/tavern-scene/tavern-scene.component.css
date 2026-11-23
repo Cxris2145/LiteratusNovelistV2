@@ -2,14 +2,16 @@
   display: block;
   width: 100%;
 }
+.ts-scene-art { display: contents; }
+.ts-mobile-toolbar { display: none; }
+.ts-participants-toggle[aria-expanded='true'] .ts-participants-chevron { transform: rotate(180deg); }
 
 .ts-stage {
   container-type: inline-size;
   --ts-table-bottom: 50px;
   position: relative;
   isolation: isolate;
-  overflow: visible !important;
-  overflow: hidden;
+  overflow: visible;
   /* Los asientos y Maguito crecen con el ANCHO de la mesa (cqw y %), pero el alto sale de la ventana.
      El borde de arriba del globo de Maguito queda a ~0,425 × ancho + 112px del piso; con 20px de aire,
      la mesa necesita 0,425 × ancho + 132px de alto. En pantallas anchas y bajas la mesa se angosta
@@ -742,69 +744,6 @@ app-tavern-table.ts-table-overlay::before {
 
 /* Responsive */
 
-@media (max-width: 720px) {
-  .ts-stage {
-    --ts-table-bottom: 100px;
-    height: var(--th-stage-height, 460px);
-  }
-  .ts-bubble { max-width: 28vw; padding: 6px 8px; font-size: .7rem; }
-  .ts-seat.seat-l1 .ts-bubble { left: 0; translate: 0; }
-  .ts-seat.seat-r1 .ts-bubble { left: auto; right: 0; translate: 0; }
-  .seat-center,
-  .seat-me {
-    width: 35%;
-    bottom: calc(var(--ts-table-bottom) + 14cqw);
-  }
-  .seat-l1 {
-    left: 20%;
-    width: 29%;
-    bottom: calc(var(--ts-table-bottom) + 12cqw);
-  }
-  .seat-r1 {
-    left: 80%;
-    width: 29%;
-    bottom: calc(var(--ts-table-bottom) + 12cqw);
-  }
-  .seat-l2,
-  .seat-r2,
-  .ts-name.seat-l2,
-  .ts-name.seat-r2 {
-    display: none;
-  }
-  .ts-name.seat-center,
-  .ts-name.seat-me {
-    bottom: 126px;
-  }
-  .ts-name.seat-l1 {
-    left: 20%;
-    bottom: 132px;
-  }
-  .ts-name.seat-r1 {
-    left: 80%;
-    bottom: 132px;
-  }
-  .ts-chat-dock {
-    left: 8px;
-    right: 8px;
-    bottom: 8px;
-  }
-  .ts-chat-bar {
-    flex-wrap: wrap;
-    padding: 8px;
-    gap: 8px;
-  }
-  .ts-dock-separator {
-    display: none;
-  }
-  .ts-dock-reactions {
-    flex-basis: 100%;
-    justify-content: center;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
-  }
-  .ts-seat-chair { border-width: 5px; border-bottom-width: 10px; }
-}
-
 /* La barra de chat se parte en dos filas solo cuando la mesa es angosta (no según la ventana):
    en un notebook cabe en una fila y la mesa baja, dejando aire entre los bocadillos y los botones. */
 @media (min-width: 721px) {
@@ -1119,4 +1058,190 @@ app-tavern-table.ts-table-overlay::before {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* En móvil el dibujo, las personas y el compositor ocupan filas reales: abrir el teclado
+   puede reducir la ilustración sin mover los controles unos encima de otros. */
+@media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  :host { height: 100%; min-height: 0; }
+  .ts-stage {
+    container-type: size;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: 6px;
+    width: 100%;
+    height: var(--th-stage-height, 100%);
+    min-height: 0;
+    padding: 0 8px 8px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  .ts-scene-art {
+    container-type: size;
+    position: relative;
+    display: block;
+    min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .ts-seat { translate: -50% 0; }
+  .ts-seat.seat-center, .ts-seat.seat-me {
+    left: 50%;
+    bottom: 24%;
+    width: min(34cqw, 56cqh);
+  }
+  .ts-seat.seat-l1, .ts-seat.seat-r1 {
+    bottom: 20%;
+    width: min(29cqw, 49cqh);
+  }
+  .ts-seat.seat-l1 { left: 20%; }
+  .ts-seat.seat-r1 { left: 80%; }
+  .ts-seat.seat-l2, .ts-seat.seat-r2, .ts-name, .ts-empty-seat { display: none; }
+  .ts-seat-chair { border-width: 5px; border-bottom-width: 10px; }
+  .ts-table-overlay {
+    bottom: 0;
+    width: min(104cqw, 190cqh);
+    height: auto;
+  }
+  .ts-bubble { max-width: min(180px, 48cqw); padding: 6px 8px; font-size: .875rem; bottom: calc(100% + 6px); }
+  .ts-bubble-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .ts-seat:not(.is-me) .ts-bubble:not(.is-chat) { display: none; }
+  .ts-seat.seat-l1 .ts-bubble { left: 0; translate: 0; }
+  .ts-seat.seat-r1 .ts-bubble { left: auto; right: 0; translate: 0; }
+  .ts-bubble-close, .ts-object-bubble-close { width: 44px; height: 44px; }
+  .ts-bubble.is-dismissible { max-width: min(260px, 84cqw); padding-block: 0; }
+  .ts-object-bubble { max-width: calc(100% - 8px); padding: 0 4px 0 12px; top: 4px; }
+  .ts-mobile-toolbar { display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 44px; }
+  .ts-mobile-history { position: relative; flex: none; }
+  .ts-history-badge { top: -2px; right: -2px; }
+  .ts-participants-wrap { position: relative; flex: 1; min-width: 0; }
+  .ts-participants-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 226, 187, .2);
+    border-radius: 12px;
+    background: rgba(24, 17, 17, .88);
+    color: #fff1d8;
+    font: 600 .875rem/1.3 var(--font-ui);
+    cursor: pointer;
+  }
+  .ts-participants-toggle .material-symbols-rounded { font-size: 20px; }
+  .ts-participants-chevron { margin-left: auto; }
+  .ts-participants-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ts-participants {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    z-index: 35;
+    display: grid;
+    gap: 4px;
+    width: min(320px, calc(100cqw - 16px));
+    max-height: max(88px, calc(100cqh - 112px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 6px;
+    border: 1px solid rgba(255, 226, 187, .3);
+    border-radius: 14px;
+    background: rgba(24, 17, 17, .98);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+    box-sizing: border-box;
+  }
+  .ts-participant {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 4px 10px 4px 6px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #fff1d8;
+    font: 600 .875rem/1.4 var(--font-ui);
+    text-align: left;
+    cursor: pointer;
+  }
+  .ts-participant app-maguito { display: block; width: 28px; height: 28px; flex: none; overflow: hidden; border-radius: 50%; }
+  .ts-participant span { min-width: 0; overflow-wrap: anywhere; }
+  .ts-participant:disabled { cursor: default; }
+  .ts-participant:focus-visible, .ts-participants-toggle:focus-visible { outline: 2px solid #ffcf87; outline-offset: -3px; }
+  .ts-participant:active { background: rgba(255, 207, 135, .12); }
+  .ts-participants-empty { padding: 10px; color: #fff1d8; font-size: .875rem; }
+  .ts-chat-dock { position: relative; inset: auto; translate: none; width: auto; min-width: 0; }
+  .ts-chat-bar { flex-wrap: nowrap; gap: 6px; padding: 4px; border-radius: 14px; }
+  .ts-chat-input { height: 44px; font-size: 16px; }
+  .ts-chat-tools { gap: 6px; }
+  .ts-chat-icon-btn, .ts-chat-send-btn, .ts-react-pill, .ts-emoji-pick-btn, .ts-history-delete {
+    width: 44px;
+    height: 44px;
+    flex: none;
+  }
+  .ts-history-toggle, .ts-dock-separator, .ts-dock-reactions { display: none; }
+  .ts-chat-icon-btn:focus-visible, .ts-chat-send-btn:focus-visible, .ts-react-pill:focus-visible, .ts-emoji-pick-btn:focus-visible {
+    outline: 2px solid #ffcf87;
+    outline-offset: -3px;
+  }
+  .ts-history {
+    width: 100%;
+    max-height: max(140px, calc(100cqh - 64px));
+    bottom: calc(100% + 8px);
+  }
+  .ts-history-head { flex: none; padding: 4px 6px 4px 12px; }
+  .ts-history-head h3 { font-size: 1rem; }
+  .ts-history-list { min-height: 0; gap: 10px; padding: 10px; }
+  .ts-history-message { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px; }
+  .ts-history-text { grid-column: 1; font-size: .9rem; }
+  .ts-history-time { grid-column: 1; grid-row: 2; }
+  .ts-history-delete { grid-column: 2; grid-row: 1 / span 2; }
+  .ts-emoji-picker-wrap, .ts-actions-menu {
+    width: min(280px, calc(100cqw - 16px));
+    max-height: max(140px, calc(100cqh - 64px));
+    min-width: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+    bottom: calc(100% + 10px);
+  }
+  .ts-emoji-picker-wrap { right: 0; padding: 10px; }
+  .ts-emoji-picker-wrap h3 { margin: 0 0 6px; color: #fff1d8; font: 600 .875rem/1.4 var(--font-ui); }
+  .ts-expression-reactions { padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255, 226, 187, .2); }
+  .ts-expression-reactions-list { display: flex; gap: 4px; }
+  .ts-emoji-grid { grid-template-columns: repeat(4, 44px); gap: 4px; }
+  .ts-actions-menu { left: 0; }
+  .ts-actions-menu button { min-height: 44px; }
+  .ts-guest-lock-bar { backdrop-filter: none; }
+  .ts-guest-btn { min-height: 44px; }
+}
+
+@media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
+  :host-context([data-theme='high-contrast-light']) .ts-participant,
+  :host-context([data-theme='high-contrast-light']) .ts-participants,
+  :host-context([data-theme='high-contrast-light']) .ts-participants-toggle { background: #fff; color: #171717; border-color: #171717; }
+  :host-context([data-theme='high-contrast-light']) .ts-emoji-picker-wrap { background: #fff; border-color: #171717; }
+  :host-context([data-theme='high-contrast-light']) .ts-emoji-picker-wrap h3 { color: #171717; }
+  @container (max-height: 150px) {
+    .ts-scene-art .ts-bubble { display: none; }
+  }
+}
+
+/* Teléfono acostado: la mesa ocupa el ancho y los participantes van junto a la caja de escribir,
+   en una sola fila, para no robarle alto al dibujo. */
+@media (pointer: coarse) and (max-height: 500px) {
+  .ts-stage {
+    grid-template-columns: minmax(212px, 2fr) minmax(0, 3fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 8px;
+  }
+  .ts-scene-art { grid-column: 1 / -1; }
+  .ts-mobile-toolbar { grid-column: 1; grid-row: 2; }
+  .ts-chat-dock { grid-column: 2; grid-row: 2; }
+  .ts-mobile-toolbar:last-child { grid-column: 1 / -1; }
+  .ts-participants { left: 0; right: auto; }
 }

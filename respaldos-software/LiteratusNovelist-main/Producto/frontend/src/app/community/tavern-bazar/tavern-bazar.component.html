@@ -1,7 +1,9 @@
 <!-- En el celular el Bazar es una hoja sobre la mesa: el fondo la cierra. -->
 <div class="bz-backdrop" [class.is-open]="open" (click)="close()" aria-hidden="true"></div>
 
-<aside id="tavern-bazar" class="bz-drawer" [class.is-open]="open" [attr.inert]="open ? null : ''" aria-labelledby="bz-title" (keydown.escape)="close()">
+<aside id="tavern-bazar" class="bz-drawer" [class.is-open]="open" [attr.inert]="open ? null : ''"
+       [appTavernMobilePanel]="open" (mobilePanelClose)="close()"
+       aria-labelledby="bz-title" (keydown.escape)="closeOnDesktop()">
   <span class="bz-grip" aria-hidden="true"></span>
 
   <header class="bz-head">

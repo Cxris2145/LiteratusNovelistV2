@@ -11,6 +11,8 @@
     "test:home-snapshot": "node --test scripts/public-home.test.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:tavern": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/community/**/*.spec.ts",
+    "test:tavern-mobile": "node scripts/tavern-mobile-qa.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs --write",
     "audit:capture": "node scripts/capture-visual-audit.mjs"
   },

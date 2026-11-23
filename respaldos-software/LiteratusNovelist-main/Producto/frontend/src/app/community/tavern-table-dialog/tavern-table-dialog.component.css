@@ -596,6 +596,24 @@ textarea:focus-visible { outline: 2px solid var(--th-gold); outline-offset: 2px;
 }
 
 /* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
+@media (max-width: 700px), (max-height: 500px) and (pointer: coarse) {
+  :host {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - var(--kb-inset, 0px) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
+  }
+  .td-header { flex: none; }
+  .td-close { width: 44px; height: 44px; }
+  :host mat-dialog-content { flex: 1 1 auto; min-height: 0; max-height: none; overscroll-behavior: contain; }
+  mat-dialog-actions { flex-shrink: 0; max-height: 35dvh; overflow-y: auto; }
+  mat-dialog-actions .th-btn { min-height: 44px; }
+}
+@media (max-height: 500px) and (pointer: coarse) {
+  .td-header { padding: 10px 12px; }
+  .td-header app-table-object-art { width: 44px; height: 44px; }
+  .td-tagline { display: none; }
+  mat-dialog-actions { padding: 8px 12px; }
+}
 @media (pointer: coarse) {
   textarea { font-size: 16px; }
 }

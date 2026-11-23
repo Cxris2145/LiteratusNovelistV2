@@ -69,6 +69,7 @@ const FRAME_SLACK_MS = 8;
 export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('canvas', { static: true }) private canvas!: ElementRef<HTMLCanvasElement>;
   @Input() toasting = false;
+  @Input() paused = false;
   @Input() reaction = '';
   @Input() reactionTick = 0;
   @Input() hoverAction: TavernTableAction | null = null;
@@ -142,6 +143,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['paused']) this.syncAnimation();
     if (changes['hoverAction'] || changes['reactionTick'] || changes['toasting']) this.wake();
     this.scene?.setToast(this.toasting);
     if (changes['hoverAction']) this.scene?.setHover(this.hoverAction);
@@ -175,7 +177,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   private syncAnimation = (): void => {
     this.cancelFrame();
     this.lastFrame = 0;
-    if (!this.scene || document.hidden || !this.visible || this.destroyed || this.contextLost) return;
+    if (!this.scene || this.paused || document.hidden || !this.visible || this.destroyed || this.contextLost) return;
     if (this.motion.matches) {
       this.scene.render(this.elapsed, false);
       return;
@@ -185,7 +187,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
 
   private animate = (now: number): void => {
     if (!this.scene || this.destroyed) return;
-    if (this.motion.matches || document.hidden || !this.visible || this.contextLost) {
+    if (this.paused || this.motion.matches || document.hidden || !this.visible || this.contextLost) {
       this.syncAnimation();
       return;
     }
@@ -240,6 +242,7 @@ export class TavernTableComponent implements AfterViewInit, OnChanges, OnDestroy
   private onPointerLeave = (): void => { this.wake(); this.scene?.setPointer(0, 0); };
   /** Vuelve a 30 cps: el puntero se movió, algo se resaltó o hubo una reacción. */
   private wake(): void {
+    if (this.paused) return;
     const now = performance.now();
     const wasIdle = now - this.lastActivity >= IDLE_AFTER_MS;
     this.lastActivity = now;

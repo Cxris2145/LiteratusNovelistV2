@@ -11,6 +11,7 @@ import {
 } from '../../core/services/community.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { clockTime, dayLabel, timeAgo } from '../time-ago.util';
+import { isTavernMobilePanel } from '../mobile-panel/tavern-mobile-panel.directive';
 
 const POLL_MS = 4000;
 const LIVE_POLL_MS = 6000;  // dónde va cada uno y quién lee ahora, mientras el círculo está abierto
@@ -22,7 +23,7 @@ type ClubChatRow = { kind: 'day'; key: string; label: string } | { kind: 'messag
 @Component({
   selector: 'app-tavern-reading-clubs',
   templateUrl: './tavern-reading-clubs.component.html',
-  styleUrls: ['../community-shared.css', './tavern-reading-clubs.component.css'],
+  styleUrls: ['../community-shared.css', './tavern-reading-clubs.component.css', '../mobile-panel/tavern-mobile-panel.css'],
 })
 export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   private community = inject(CommunityService);
@@ -92,6 +93,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   private poll: ReturnType<typeof setInterval> | null = null;
   private livePoll: ReturnType<typeof setInterval> | null = null;
   private request?: Subscription;
+  private drafts = new Map<string, { text: string; spoiler: boolean }>();
 
   readonly modes: ReadingClubMode[] = ['spoiler_safe', 'host_paced', 'free'];
 
@@ -129,6 +131,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['open'] || changes['clubId']) this.rememberDraft();
     if (changes['open']) {
       this.enter = null;
       if (!this.open) {
@@ -164,7 +167,10 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
     if (this.open) this.closed.emit();
   }
 
+  closeOnDesktop(): void { if (!isTavernMobilePanel()) this.close(); }
+
   backToList(): void {
+    this.rememberDraft();
     this.stopPolling();
     this.stopLivePolling();
     this.enter = 'back';
@@ -176,6 +182,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   }
 
   backToClub(): void {
+    this.rememberDraft();
     this.stopPolling();
     this.enter = 'back';
     this.activeChapter = null;
@@ -249,9 +256,11 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   }
 
   openClubDetail(id: string, quiet = false): void {
+    if (!quiet) this.rememberDraft();
     this.stopPolling();
     if (!quiet) {
       this.detailLoading = true;
+      this.activeChapter = null;
       this.view = 'club';
     }
     this.error = '';
@@ -398,12 +407,14 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
       this.notification.info(chapter.lock_reason || 'Este capítulo aún está bloqueado.', 'Capítulo bloqueado');
       return;
     }
+    this.rememberDraft();
     this.enter = 'forward';
     this.activeChapter = chapter;
     this.view = 'chapter';
     this.error = '';
-    this.draft = '';
-    this.draftSpoiler = false;
+    const saved = this.drafts.get(this.activeClub.id + ':' + chapter.order);
+    this.draft = saved?.text || '';
+    this.draftSpoiler = saved?.spoiler || false;
     this.messages = [];
     this.rows = [];
     this.arrived.clear();
@@ -418,7 +429,7 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
         this.messagesLoading = false;
         this.appendMessages(res.messages, true, false);
         this.startPolling();
-        setTimeout(() => this.composer?.nativeElement.focus({ preventScroll: true }), 60);
+        if (!isTavernMobilePanel()) setTimeout(() => { if (this.open) this.composer?.nativeElement.focus({ preventScroll: true }); }, 60);
       },
       error: err => {
         this.messagesLoading = false;
@@ -445,14 +456,15 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: res => {
           this.sending = false;
-          if (this.activeChapter?.order !== order) return;
+          this.drafts.delete(clubId + ':' + order);
+          if (this.activeClub?.id !== clubId || this.activeChapter?.order !== order) return;
           this.draft = '';
           this.draftSpoiler = false;
           this.appendMessages([res.item], true, true);
           if (this.activeChapter) {
             this.activeChapter.message_count = (this.activeChapter.message_count || 0) + 1;
           }
-          setTimeout(() => this.composer?.nativeElement.focus());
+          setTimeout(() => { if (this.open && this.activeClub?.id === clubId && this.activeChapter?.order === order) this.composer?.nativeElement.focus(); });
         },
         error: err => {
           this.sending = false;
@@ -464,6 +476,12 @@ export class TavernReadingClubsComponent implements OnChanges, OnDestroy {
   toggleRevealSpoiler(msgId: string): void {
     if (this.revealedSpoilers.has(msgId)) this.revealedSpoilers.delete(msgId);
     else this.revealedSpoilers.add(msgId);
+  }
+
+  private rememberDraft(): void {
+    if (this.activeClub && this.activeChapter) {
+      this.drafts.set(this.activeClub.id + ':' + this.activeChapter.order, { text: this.draft, spoiler: this.draftSpoiler });
+    }
   }
 
   trackClub = (_: number, club: ReadingClubSummary) => club.id;

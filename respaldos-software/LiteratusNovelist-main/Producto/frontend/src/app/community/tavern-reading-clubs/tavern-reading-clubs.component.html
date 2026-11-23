@@ -2,7 +2,8 @@
 <div class="rc-backdrop" [class.is-open]="open" (click)="close()" aria-hidden="true"></div>
 
 <aside id="tavern-reading-clubs" class="rc-drawer" [class.is-open]="open" [attr.inert]="open ? null : ''"
-       aria-labelledby="rc-title" (keydown.escape)="close()">
+       [appTavernMobilePanel]="open" (mobilePanelClose)="close()"
+       aria-labelledby="rc-title" (keydown.escape)="closeOnDesktop()">
   <span class="rc-grip" aria-hidden="true"></span>
 
   <!-- 1. LISTA DE LECTURAS GRUPALES -->

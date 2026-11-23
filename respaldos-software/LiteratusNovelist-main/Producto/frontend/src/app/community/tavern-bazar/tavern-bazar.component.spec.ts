@@ -101,7 +101,7 @@ describe('TavernBazarComponent', () => {
     const shield = object('shield', 'streak_shield');
     items = [monocle, stars, crown, shield];
     open();
-    expect(component.tabs).toEqual(['ropero', 'racha']);
+    expect(component.tabs).toEqual(['ropero', 'tintes', 'racha']);
     expect(component.visibleItems).toEqual([monocle, stars, crown]);
     component.setWearFilter('eyes');
     component.query = 'MONOCULO'; component.ownedOnly = true; component.applyFilter();

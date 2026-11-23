@@ -1,0 +1,107 @@
+/* Shared by the drawers and by the profile/friends panels in the hall. */
+.tmp-header { display: none; }
+
+@media (max-width: 700px), (max-height: 500px) and (pointer: coarse) {
+  .tavern-mobile-panel.tavern-mobile-panel {
+    position: fixed;
+    z-index: 1100;
+    inset: var(--vv-top, 0px) 0 var(--kb-inset, 0px);
+    width: auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    margin: 0;
+    box-sizing: border-box;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    border-radius: 0;
+    border: 0;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background-color: var(--home-bg-surface, #161321);
+    transform: translateY(100%);
+    visibility: hidden;
+    transition: transform 180ms var(--th-ease-out, ease), visibility 0s linear 180ms;
+  }
+  .tavern-mobile-panel.tavern-mobile-panel.is-open {
+    display: flex;
+    flex-direction: column;
+    transform: none;
+    visibility: visible;
+    transition: transform 220ms var(--th-ease-out, ease), visibility 0s;
+  }
+  .th-local-panel.tavern-mobile-panel:not(.is-open) { display: none; }
+  .tavern-mobile-panel .tmp-header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--th-panel-border, #d4af3759);
+  }
+  .tmp-header h2 { margin: 0; font-size: 1.35rem; }
+  .tmp-header button { flex: none; min-width: 44px; min-height: 44px; }
+  .tavern-mobile-panel .tmp-body {
+    flex: 1 1 0%;
+    min-height: 0;
+    padding: 12px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .tavern-mobile-panel .tmp-footer { flex: none; }
+  .tavern-mobile-panel input,
+  .tavern-mobile-panel textarea,
+  .tavern-mobile-panel select { font-size: 16px; }
+  .tavern-mobile-panel .fc-view,
+  .tavern-mobile-panel .rc-view { flex: 1 1 0%; min-height: 0; overflow: hidden; }
+  .tavern-mobile-panel .fc-head,
+  .tavern-mobile-panel .rc-head,
+  .tavern-mobile-panel .bz-head,
+  .tavern-mobile-panel .fc-composer,
+  .tavern-mobile-panel .rc-composer-wrap,
+  .tavern-mobile-panel .bz-tabs,
+  .tavern-mobile-panel .bz-purse { flex-shrink: 0; }
+  .tavern-mobile-panel .fc-threads,
+  .tavern-mobile-panel .fc-messages,
+  .tavern-mobile-panel .rc-clubs,
+  .tavern-mobile-panel .rc-form,
+  .tavern-mobile-panel .rc-club-body,
+  .tavern-mobile-panel .rc-messages,
+  .tavern-mobile-panel .bz-body { min-height: 0; overscroll-behavior: contain; }
+  .tavern-mobile-panel .fc-grip,
+  .tavern-mobile-panel .rc-grip,
+  .tavern-mobile-panel .bz-grip { display: none; }
+  .tavern-mobile-panel .fc-send,
+  .tavern-mobile-panel .rc-send,
+  .tavern-mobile-panel .rc-close,
+  .tavern-mobile-panel .rc-back,
+  .tavern-mobile-panel .bz-close { width: 44px; height: 44px; }
+  .tavern-mobile-panel .fc-head,
+  .tavern-mobile-panel .rc-head,
+  .tavern-mobile-panel .bz-head { padding: 12px 14px; }
+  .tavern-mobile-panel .bz-body { padding-bottom: 20px; }
+  .tavern-mobile-panel .bz-fitting { grid-template-columns: 112px minmax(0, 1fr); align-items: center; }
+  .tavern-mobile-panel .bz-mirror,
+  .tavern-mobile-panel .bz-mirror app-maguito,
+  .tavern-mobile-panel .bz-hint-mirror { display: block; }
+  .tavern-mobile-panel .bz-hint-table { display: none; }
+}
+
+@media (max-height: 500px) and (pointer: coarse) {
+  .tavern-mobile-panel .fc-head p,
+  .tavern-mobile-panel .rc-head p,
+  .tavern-mobile-panel .bz-head p,
+  .tavern-mobile-panel .fc-emblem,
+  .tavern-mobile-panel .rc-emblem,
+  .tavern-mobile-panel .bz-emblem { display: none; }
+  .tavern-mobile-panel .bz-head { grid-template-columns: minmax(0, 1fr) auto; }
+  .tavern-mobile-panel .fc-head,
+  .tavern-mobile-panel .rc-head,
+  .tavern-mobile-panel .bz-head,
+  .tavern-mobile-panel .tmp-header { padding-block: 4px; }
+  .tavern-mobile-panel .bz-purse { margin-bottom: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tavern-mobile-panel.tavern-mobile-panel { transition: none; }
+}

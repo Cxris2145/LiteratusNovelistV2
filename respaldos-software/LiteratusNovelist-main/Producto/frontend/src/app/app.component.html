@@ -6,7 +6,7 @@
      rápidos (centro), accesos con avisos (der) y, abajo, la navegación
      con menús amplios y el botón "Sé parte de Literatus".
 ═════════════════════════════════════════════════════════════════════ -->
-<header #mainHeader class="main-header glass-navbar" *ngIf="!isDashboard && !isPlayingLevel" aria-label="Navegación principal">
+<header #mainHeader class="main-header glass-navbar" [class.tavern-mobile-shell]="isTavernHall" [class.is-search-open]="tavernSearchOpen" *ngIf="!isDashboard && !isPlayingLevel" aria-label="Navegación principal">
 
   <!-- Fila 1: Marca + Buscador + Accesos rápidos -->
   <div class="header-top-bar">
@@ -26,7 +26,7 @@
       </div>
 
       <!-- Centro: Buscador destacado y filtros rápidos -->
-      <div class="header-center">
+      <div class="header-center" id="header-search-region">
         <app-header-search></app-header-search>
 
         <nav class="quick-filters" aria-label="Filtros rápidos">
@@ -39,6 +39,11 @@
 
       <!-- Derecha: Accesos rápidos con avisos -->
       <div class="header-right">
+
+        <button *ngIf="isTavernHall" type="button" class="tavern-search-toggle quick-action-btn" (click)="toggleTavernSearch()"
+                [attr.aria-expanded]="tavernSearchOpen" aria-controls="header-search-region" aria-label="Mostrar u ocultar el buscador">
+          <span class="material-symbols-rounded" aria-hidden="true">{{ tavernSearchOpen ? 'close' : 'search' }}</span>
+        </button>
 
         <button type="button" class="quick-action-btn qa-secondary" (click)="goToFavorites()" title="Mis Favoritos"
                 [attr.aria-label]="favoritesCount > 0 ? 'Favoritos, ' + favoritesCount : 'Favoritos'">
@@ -231,7 +236,7 @@
 </header>
 
 <!-- ═══ SITE BODY: Contenido a ancho completo ═══ -->
-<div class="site-body" *ngIf="!isDashboard" [class.with-bottom-nav]="!isPlayingLevel">
+<div class="site-body" *ngIf="!isDashboard" [class.with-bottom-nav]="!isPlayingLevel" [class.tavern-mobile-body]="isTavernHall">
   <div class="site-content">
     <!-- DEBUGGING: Global Error Banner -->
     <div *ngIf="globalError" style="background: red; color: white; padding: 20px; font-weight: bold; z-index: 9999; position: relative;">
@@ -259,7 +264,7 @@
 </ng-container>
 
 <!-- Celular: barra inferior con las secciones (reemplaza a la fila de secciones del encabezado). -->
-<app-bottom-nav *ngIf="!isDashboard && !isPlayingLevel" [rewardReady]="dailyRewardClaimable$ | async"></app-bottom-nav>
+<app-bottom-nav *ngIf="!isDashboard && !isPlayingLevel" [class.tavern-bottom-nav]="isTavernHall" [rewardReady]="dailyRewardClaimable$ | async"></app-bottom-nav>
 
 <!-- Asistente global de la plataforma: solo para usuarios con sesión iniciada,
      oculto en el panel de administración. -->

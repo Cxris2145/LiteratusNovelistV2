@@ -1512,6 +1512,12 @@ body:where(:not(.reader-open)):has(.bz-drawer.is-open) :is(.lit-panel, .lit-note
     --floating-btn-display: none;
   }
 }
+/* El teléfono acostado usa el mismo diseño de la Taberna (TAVERN_MOBILE_QUERY): tampoco caben ahí. */
+@media (max-height: 500px) and (pointer: coarse) {
+  body:where(:not(.reader-open)):has(app-tavern-hall) {
+    --floating-btn-display: none;
+  }
+}
 
 /* Espaciado inferior seguro (Safe Area) en móvil (<= 768px):
    Garantiza que ningún contenido interactivo quede tapado bajo el botón flotante unificado */

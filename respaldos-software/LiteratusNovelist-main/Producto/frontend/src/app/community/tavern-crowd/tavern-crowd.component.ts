@@ -1,6 +1,6 @@
 import {
-  AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy,
-  QueryList, ViewChildren, inject,
+  AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnChanges, OnDestroy,
+  QueryList, SimpleChanges, ViewChildren, inject,
 } from '@angular/core';
 
 import { MAGUITO_BASIC_COLORS, MaguitoCustomColors } from '../../core/components/maguito/maguito-colors';
@@ -65,7 +65,7 @@ interface Star { x: number; y: number; size: number; d: number; delay: number }
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'aria-hidden': 'true', 'data-renderer': 'svg', '[attr.data-light]': 'light' },
 })
-export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
+export class TavernCrowdComponent implements AfterViewInit, OnChanges, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private zone = inject(NgZone);
   private host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
@@ -74,7 +74,8 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
   /** Celular: la gente queda quieta (ver TAVERN_LITE_QUERY); las velas y el polvo siguen. */
   private readonly lite = matchMedia(TAVERN_LITE_QUERY);
   get reduced(): boolean { return this.motion.matches; }
-  paused = document.hidden || this.lite.matches;
+  @Input() paused = false;
+  animationPaused = document.hidden || this.lite.matches;
   /** La hora del día de la sala: cambia la luz de las velas, el sol o la luna por los ventanales y
    *  cuánto alumbra a los personajes. */
   @Input() light: TavernLight = 'night';
@@ -185,8 +186,14 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
   private intersection?: IntersectionObserver;
   private visible = true;
   private destroyed = false;
+  private viewReady = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.viewReady && changes['paused']) this.syncAnimation();
+  }
 
   ngAfterViewInit(): void {
+    this.viewReady = true;
     this.zone.runOutsideAngular(() => {
       document.addEventListener('visibilitychange', this.syncAnimation);
       this.motion.addEventListener('change', this.onMotionChange);
@@ -201,10 +208,10 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
   }
 
   private startCheers(): void {
-    if (this.cheersTimer || this.paused || this.reduced) return;
+    if (this.cheersTimer || this.animationPaused || this.reduced) return;
     this.zone.runOutsideAngular(() => {
       this.cheersTimer = setInterval(() => {
-        if (this.paused || this.reduced) return;
+        if (this.animationPaused || this.reduced) return;
         this.setToasting(true);
         this.cheersOff = setTimeout(() => this.setToasting(false), CHEERS_FOR_MS);
       }, CHEERS_EVERY_MS);
@@ -240,7 +247,7 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
   // la vez y por poco rato: así el resto del salón sigue quieto y no se repinta de más.
 
   private startLife(): void {
-    if (this.gestureTimer || this.talkTimer || this.paused || this.reduced) return;
+    if (this.gestureTimer || this.talkTimer || this.animationPaused || this.reduced) return;
     this.zone.runOutsideAngular(() => {
       this.scheduleGesture();
       this.talkTimer = setInterval(() => this.talk(), TALK_EVERY_MS);
@@ -260,7 +267,7 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
   private scheduleGesture(): void {
     this.gestureTimer = setTimeout(() => {
       this.gestureTimer = null;
-      if (this.destroyed || this.paused || this.reduced) return;
+      if (this.destroyed || this.animationPaused || this.reduced) return;
       this.randomGesture();
       this.scheduleGesture();
     }, GESTURE_EVERY_MS + Math.random() * GESTURE_JITTER_MS);
@@ -306,7 +313,7 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
 
   /** Habla uno de los dos de la charla: aparece su globito con otro emoji y mueve el brazo. */
   private talk(): void {
-    if (this.destroyed || this.paused || this.reduced) return;
+    if (this.destroyed || this.animationPaused || this.reduced) return;
     const side = this.talkTurn;
     this.talkTurn = side === 'l' ? 'r' : 'l';
     const bubble = this.host.querySelector<HTMLElement>(side === 'l' ? '.cr-say-a' : '.cr-say-b');
@@ -331,15 +338,15 @@ export class TavernCrowdComponent implements AfterViewInit, OnDestroy {
 
   private readonly syncAnimation = (): void => {
     if (this.destroyed) return;
-    const hidden = document.hidden || !this.visible;
+    const hidden = this.paused || document.hidden || !this.visible;
     const lite = this.lite.matches;
     const paused = hidden || lite;
-    const pauseChanged = this.paused !== paused;
+    const pauseChanged = this.animationPaused !== paused;
     const wasToasting = this.toasting;
     this.host.classList.toggle('is-paused', hidden);
     this.host.classList.toggle('is-lite', lite && !hidden);
-    this.paused = paused;
-    if (this.paused || this.reduced) {
+    this.animationPaused = paused;
+    if (this.animationPaused || this.reduced) {
       this.stopCheers();
       this.stopLife();
     } else {

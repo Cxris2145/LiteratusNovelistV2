@@ -13,6 +13,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { GamificationService } from '../../core/services/gamification.service';
 import { LearningService, ShopItem } from '../../core/services/learning.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { isTavernMobilePanel } from '../mobile-panel/tavern-mobile-panel.directive';
 
 /** Mostradores del Bazar: el ropero de Maguito, los marcos, lo que cuida tu racha y lo que adorna tu perfil. */
 export type BazarTab = 'ropero' | 'tintes' | 'marcos' | 'racha' | 'perfil';
@@ -44,7 +45,7 @@ export function isBazarTab(value: string | null | undefined): value is BazarTab 
 @Component({
   selector: 'app-tavern-bazar',
   templateUrl: './tavern-bazar.component.html',
-  styleUrls: ['../community-shared.css', './tavern-bazar.component.css'],
+  styleUrls: ['../community-shared.css', './tavern-bazar.component.css', '../mobile-panel/tavern-mobile-panel.css'],
 })
 export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   private learning = inject(LearningService);
@@ -127,12 +128,12 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (!changes['open']) return;
     if (this.open) {
-      this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      if (!isTavernMobilePanel()) this.returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
       if (!this.loaded && !this.loading) this.load();
       this.chat.loadInitialInk();
       this.loadReward();
       // El encabezado recibe el foco cuando el panel ya es visible: se anuncia y no salta la página.
-      setTimeout(() => this.heading?.nativeElement.focus({ preventScroll: true }), 60);
+      if (!isTavernMobilePanel()) setTimeout(() => { if (this.open) this.heading?.nativeElement.focus({ preventScroll: true }); }, 60);
       this.emitPreview();
     } else if (!changes['open'].firstChange) {
       this.pinnedCodes = {};
@@ -151,10 +152,13 @@ export class TavernBazarComponent implements OnInit, OnChanges, OnDestroy {
   close(): void {
     if (!this.open) return;
     this.closed.emit();
+    if (isTavernMobilePanel()) return;
     const target = this.returnFocus;
     this.returnFocus = null;
     if (target?.isConnected) setTimeout(() => target.focus({ preventScroll: true }));
   }
+
+  closeOnDesktop(): void { if (!isTavernMobilePanel()) this.close(); }
 
   load(): void {
     this.loading = true;
