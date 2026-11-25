@@ -1,6 +1,20 @@
-import { Component, inject } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { animate, style, transition, trigger } from '@angular/animations';
+import { ChangeDetectorRef, Component, ElementRef, OnDestroy, ViewChild, inject } from '@angular/core';
+import { MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
+import { take } from 'rxjs/operators';
+
+export const GUIDE_DIALOG_CONFIG: MatDialogConfig = {
+  id: 'literatus-guide',
+  panelClass: 'guide-custom-dialog-panel',
+  width: '640px',
+  maxWidth: 'calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))',
+  maxHeight: 'calc(100dvh - 24px)',
+  autoFocus: '.guide-close-btn',
+  restoreFocus: true,
+  ariaLabelledBy: 'guide-title',
+  ariaDescribedBy: 'guide-description',
+};
 
 export interface GuideStep {
   title: string;
@@ -16,85 +30,117 @@ export interface GuideStep {
 @Component({
   selector: 'app-guide-dialog',
   templateUrl: './guide-dialog.component.html',
-  styleUrls: ['./guide-dialog.component.css']
+  styleUrls: ['./guide-dialog.component.css'],
+  animations: [
+    trigger('guideStep', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateX({{ enterX }}px)' }),
+        animate('240ms cubic-bezier(0.22, 1, 0.36, 1)', style({ opacity: 1, transform: 'translateX(0)' })),
+      ], { params: { enterX: 18 } }),
+    ]),
+  ],
 })
-export class GuideDialogComponent {
+export class GuideDialogComponent implements OnDestroy {
   dialogRef = inject(MatDialogRef<GuideDialogComponent>);
   router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly motionQuery = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null;
+
+  @ViewChild('scrollArea') private scrollArea?: ElementRef<HTMLElement>;
 
   currentStepIndex = 0;
+  animationDirection = 1;
+  prefersReducedMotion = this.motionQuery?.matches ?? true;
   dontShowAgain = false;
 
   readonly steps: GuideStep[] = [
     {
-      title: 'Bienvenido a Literatus Novelist',
-      subtitle: 'Tu universo interactivo de lectura, aprendizaje e inteligencia artificial',
+      title: 'Encuentra tu próxima lectura',
+      subtitle: 'Los libros del catálogo se leen gratis',
       icon: 'auto_stories',
-      tag: 'Inicio Rápido',
-      description: 'Literatus combina la magia de los libros clásicos con herramientas modernas para que disfrutes y comprendas cada obra a tu propio ritmo.',
+      tag: 'Descubre',
+      description: 'Empieza por el catálogo de Literatus Novelist y elige la historia que quieres leer.',
       points: [
-        { icon: 'explore', text: 'Accede a más de 200 obras maestras libres de derechos.' },
-        { icon: 'psychology', text: 'Conversa con personajes literarios impulsados por IA.' },
-        { icon: 'menu_book', text: 'Lector inteligente con narración por voz y seguimiento.' }
-      ]
-    },
-    {
-      title: 'Explora y Adquiere Obras',
-      subtitle: 'Navega por el Catálogo, Categorías y Autores',
-      icon: 'explore',
-      tag: 'Paso 1: Descubrir',
-      description: 'Encuentra libros organizados por géneros, autores y niveles de dificultad (Principiante a Maestro).',
-      points: [
-        { icon: 'grid_view', text: 'Filtra por categorías: Ciencia Ficción, Novela, Filosofía y más.' },
-        { icon: 'ink_pen', text: 'Usa tus gotas de Tinta para adquirir obras y guardarlas en tu biblioteca.' },
-        { icon: 'search', text: 'Buscador inteligente por título, autor o contenido.' }
+        { icon: 'search', text: 'Busca por título o autor y explora las categorías.' },
+        { icon: 'menu_book', text: 'Abre una obra y comienza a leer sin gastar Tinta.' },
+        { icon: 'favorite', text: 'Guarda tus favoritos para encontrarlos después.' }
       ],
       route: '/catalog',
-      actionText: 'Ver Catálogo de Libros'
+      actionText: 'Explorar el catálogo'
     },
     {
-      title: 'Tu Biblioteca y Lector Inmersivo',
-      subtitle: 'Tu colección personal y experiencia de lectura avanzada',
+      title: 'Lee a tu manera',
+      subtitle: 'Tu biblioteca conserva el punto donde te quedaste',
       icon: 'menu_book',
-      tag: 'Paso 2: Lectura',
-      description: 'Accede a "Mi Biblioteca" para continuar tus lecturas exactamente donde las dejaste.',
+      tag: 'Lee',
+      description: 'Añade libros a Mi Biblioteca y adapta el lector para sentirte cómodo.',
       points: [
-        { icon: 'volume_up', text: 'Narración de voz neuronal (Kokoro & Web TTS) para escuchar los libros.' },
-        { icon: 'translate', text: 'Diccionario integrado y preguntas en vivo a personajes del libro.' },
-        { icon: 'format_size', text: 'Ajuste de tipografía, tamaño de letra, interlineado y modo concentración.' }
+        { icon: 'bookmark', text: 'Retoma tus lecturas y guarda marcadores.' },
+        { icon: 'format_size', text: 'Ajusta letra, tamaño, tema y modos de lectura asistida.' },
+        { icon: 'volume_up', text: 'Usa la narración para escuchar mientras sigues el texto.' }
       ],
       route: '/library',
-      actionText: 'Ir a Mi Biblioteca'
+      actionText: 'Abrir Mi Biblioteca'
     },
     {
-      title: 'Personajes IA y La Taberna',
-      subtitle: 'Conversaciones vivas y recarga de energía',
-      icon: 'theater_comedy',
-      tag: 'Paso 3: Interacción',
-      description: 'Sumérgete en debates únicos con los protagonistas y autores de las obras.',
+      title: 'Conversa con los personajes',
+      subtitle: 'Otra forma de acercarte a las historias',
+      icon: 'forum',
+      tag: 'Comprende',
+      description: 'Elige un personaje o autor disponible y hazle preguntas sobre su mundo.',
       points: [
-        { icon: 'forum', text: 'Chatea o habla por voz con Don Quijote, Sherlock Holmes y más.' },
-        { icon: 'local_bar', text: 'En La Taberna te reúnes con tus amigos; en su Tienda recargas Tinta y vistes a tu Maguito.' },
-        { icon: 'mail', text: 'Recibe correspondencia literaria y avisos importantes en tu buzón.' }
+        { icon: 'psychology', text: 'Explora ideas, decisiones y temas de la obra con ayuda de IA.' },
+        { icon: 'ink_pen', text: 'La Tinta se usa en interacciones con IA y extras; leer sigue siendo gratis.' },
+        { icon: 'payments', text: 'Consulta en Planes las opciones de membresía y recarga de Tinta.' }
       ],
       route: '/characters',
-      actionText: 'Conocer Personajes'
+      actionText: 'Conocer a los personajes'
     },
     {
-      title: 'Progreso, Niveles y Recompensas',
-      subtitle: 'Gamificación diseñada para motivar tu hábito lector',
-      icon: 'emoji_events',
-      tag: 'Paso 4: Logros',
-      description: 'Cada página leída y cada interacción te otorgan Experiencia (XP) y Tinta.',
+      title: 'Encuentra tu mesa en La Taberna',
+      subtitle: 'Comparte la lectura con otras personas',
+      icon: 'local_bar',
+      tag: 'Comparte',
+      description: 'Reúnete con tus amigos, comenta lo que estás leyendo y dale tu estilo a Maguito.',
       points: [
-        { icon: 'featured_seasonal_and_gifts', text: 'Reclama tu Recompensa Diaria de Tinta gratis cada día.' },
-        { icon: 'military_tech', text: 'Sube de nivel para desbloquear descuentos exclusivos en la tienda.' },
-        { icon: 'local_fire_department', text: 'Mantén tu racha diaria de lectura y consigue logros épicos.' }
+        { icon: 'group', text: 'Añade amigos y conversa con ellos en la mesa.' },
+        { icon: 'auto_stories', text: 'Descubre lecturas conjuntas para compartir historias.' },
+        { icon: 'redeem', text: 'Visita El Bazar para personalizar a tu Maguito.' }
       ],
-      route: '/achievements',
-      actionText: 'Ver Mis Logros'
+      route: '/tavern',
+      actionText: 'Entrar a La Taberna'
+    },
+    {
+      title: 'Avanza a tu propio ritmo',
+      subtitle: 'Cada etapa es una ocasión para volver a leer',
+      icon: 'emoji_events',
+      tag: 'Aprende',
+      description: 'Recorre La Senda y consulta tus logros para seguir tu progreso.',
+      points: [
+        { icon: 'explore', text: 'Completa las etapas y actividades de La Senda.' },
+        { icon: 'military_tech', text: 'Consulta tu nivel, experiencia y logros desbloqueados.' },
+        { icon: 'local_fire_department', text: 'Sigue tu racha y vuelve cuando quieras continuar.' }
+      ],
+      route: '/learn',
+      actionText: 'Explorar La Senda'
     }
   ];
+
+  private readonly onMotionChange = (event: MediaQueryListEvent): void => {
+    this.prefersReducedMotion = event.matches;
+    this.cdr.markForCheck();
+  };
+
+  constructor() {
+    this.motionQuery?.addEventListener?.('change', this.onMotionChange);
+    this.dialogRef.beforeClosed().pipe(take(1)).subscribe(() => this.savePreference());
+  }
+
+  ngOnDestroy(): void {
+    this.motionQuery?.removeEventListener?.('change', this.onMotionChange);
+  }
 
   get currentStep(): GuideStep {
     return this.steps[this.currentStepIndex];
@@ -104,26 +150,30 @@ export class GuideDialogComponent {
     return this.currentStepIndex === this.steps.length - 1;
   }
 
+  trackStep(_index: number, step: GuideStep): GuideStep {
+    return step;
+  }
+
   nextStep(): void {
     if (!this.isLastStep) {
-      this.currentStepIndex++;
+      this.goToStep(this.currentStepIndex + 1);
     } else {
       this.close();
     }
   }
 
   prevStep(): void {
-    if (this.currentStepIndex > 0) {
-      this.currentStepIndex--;
-    }
+    this.goToStep(this.currentStepIndex - 1);
   }
 
   goToStep(index: number): void {
+    if (!Number.isInteger(index) || index < 0 || index >= this.steps.length || index === this.currentStepIndex) return;
+    this.animationDirection = index > this.currentStepIndex ? 1 : -1;
     this.currentStepIndex = index;
+    if (this.scrollArea) this.scrollArea.nativeElement.scrollTop = 0;
   }
 
   navigateToSection(route?: string): void {
-    this.savePreference();
     this.dialogRef.close();
     if (route) {
       this.router.navigate([route]);
@@ -131,7 +181,6 @@ export class GuideDialogComponent {
   }
 
   close(): void {
-    this.savePreference();
     this.dialogRef.close();
   }
 

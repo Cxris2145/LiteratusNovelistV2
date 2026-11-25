@@ -17,7 +17,7 @@ import { GamificationService, GamificationNotification } from './core/services/g
 import { AchievementsService } from './core/services/achievements.service';
 import { NotificationService, AppNotification } from './core/services/notification.service';
 import { MatDialog } from '@angular/material/dialog';
-import { GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
+import { GUIDE_DIALOG_CONFIG, GuideDialogComponent } from './core/components/guide-dialog/guide-dialog.component';
 import { QUICK_GENRES } from './core/components/main-nav/nav-genres';
 import { firstTimeThisSession } from './core/components/main-nav/main-nav.component';
 import { watchKeyboard } from './core/utils/keyboard-inset.util';
@@ -363,7 +363,9 @@ export class AppComponent implements OnInit {
     if (!isDismissed && !isSeen) {
       // Mostrar tras una breve pausa para que la vista cargue suavemente
       setTimeout(() => {
-        if (!this.isDashboard) {
+        if (!this.isDashboard
+            && localStorage.getItem('literatus_guide_seen') !== 'true'
+            && localStorage.getItem('literatus_guide_dismissed') !== 'true') {
           this.openGuideDialog();
         }
       }, 1200);
@@ -371,12 +373,8 @@ export class AppComponent implements OnInit {
   }
 
   openGuideDialog() {
-    this.dialog.open(GuideDialogComponent, {
-      panelClass: 'guide-custom-dialog-panel',
-      autoFocus: false,
-      maxWidth: '92vw',
-      width: '580px'
-    });
+    if (this.dialog.getDialogById(GUIDE_DIALOG_CONFIG.id!)) return;
+    this.dialog.open(GuideDialogComponent, GUIDE_DIALOG_CONFIG);
   }
 
   toggleNavBubbles() {

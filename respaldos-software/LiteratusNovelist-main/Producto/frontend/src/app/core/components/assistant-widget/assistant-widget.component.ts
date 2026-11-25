@@ -80,9 +80,9 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
       this.unreadCount = v;
     });
 
-    this.assistant.bootstrap();
-    this.loadMascot();
     this.initMobileListeners();
+    this.assistant.bootstrap({ autoOpen: !this.isMobile });
+    this.loadMascot();
   }
 
   private initMobileListeners(): void {

@@ -108,8 +108,10 @@ export class AssistantService {
   }
 
   /** Punto de entrada llamado por el widget al montarse (usuario autenticado). */
-  bootstrap(): void {
+  bootstrap({ autoOpen = true }: { autoOpen?: boolean } = {}): void {
     const justLoggedIn = this.auth.consumeFreshLogin();
+    // En móvil, esperar a que el usuario abra el asistente para cargar el chat.
+    if (!autoOpen) return;
     this.loadConversations().subscribe(conversations => {
       if (justLoggedIn) {
         this.openMostRecentOrNew(conversations);

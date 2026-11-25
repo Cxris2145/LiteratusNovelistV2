@@ -883,18 +883,30 @@ body:where(:not(.reader-open)):has(.container.dashboard-mode) {
 [data-theme="light-gallery"] .tts-btn:hover { background: var(--color-hover) !important; }
 
 /* ── MODAL GUÍA DE LITERATUS (GLOBAL DIALOG OVERRIDE) ─────────────────── */
+.guide-custom-dialog-panel {
+  margin: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+
 .guide-custom-dialog-panel .mat-mdc-dialog-container {
   padding: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 
 .guide-custom-dialog-panel .mat-mdc-dialog-surface {
   background: transparent !important;
   box-shadow: none !important;
-  overflow: visible !important;
-  border-radius: 20px !important;
+  overflow: hidden !important;
+  border-radius: 22px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-custom-dialog-panel .mdc-dialog__container,
+  .guide-custom-dialog-panel .mat-mdc-dialog-surface {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* La Taberna (comunidad) y "Eliminar cuenta" del perfil: el diálogo dibuja su propio panel */

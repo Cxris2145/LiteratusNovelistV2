@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { GuideDialogComponent } from '../guide-dialog/guide-dialog.component';
+import { GUIDE_DIALOG_CONFIG, GuideDialogComponent } from '../guide-dialog/guide-dialog.component';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -21,12 +21,8 @@ export class FooterComponent {
   }
 
   openGuide() {
-    this.dialog.open(GuideDialogComponent, {
-      panelClass: 'guide-custom-dialog-panel',
-      autoFocus: false,
-      maxWidth: '92vw',
-      width: '580px'
-    });
+    if (this.dialog.getDialogById(GUIDE_DIALOG_CONFIG.id!)) return;
+    this.dialog.open(GuideDialogComponent, GUIDE_DIALOG_CONFIG);
   }
 }
 

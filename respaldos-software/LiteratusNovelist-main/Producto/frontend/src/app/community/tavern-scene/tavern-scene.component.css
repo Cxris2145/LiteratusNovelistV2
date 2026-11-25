@@ -518,8 +518,6 @@ app-tavern-table.ts-table-overlay::before {
 }
 .ts-chat-bar:focus-within {
   background: rgba(14, 16, 30, .94);
-  border-color: #efbd6880;
-  box-shadow: 0 0 18px #ffb54d18, 0 8px 24px rgba(0, 0, 0, .3);
 }
 
 .ts-chat-lead-icon {
@@ -536,15 +534,17 @@ app-tavern-table.ts-table-overlay::before {
   border: 0;
   outline: none;
   color: #fff;
-  font: 500 .88rem var(--font-ui);
+  /* Al menos 16px incluso fuera del breakpoint móvil: evita el zoom de foco de iOS. */
+  font: 500 max(16px, 1rem)/1.4 var(--font-ui);
+  touch-action: manipulation;
 }
 .ts-chat-input::placeholder {
   color: #b9c4d8;
 }
 .ts-chat-input:focus-visible {
-  outline: 2px solid var(--th-gold);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: none;
+  background: rgba(255, 255, 255, .08);
+  border-radius: 6px;
 }
 
 .ts-chat-tools {
@@ -836,13 +836,6 @@ app-tavern-table.ts-table-overlay::before {
   .ts-object-bubble-close:hover { background: rgba(255, 214, 120, .14); color: #fff; }
 }
 
-/* En pantallas táctiles, iOS agranda la página al enfocar un campo con letra menor a 16 px. */
-@media (pointer: coarse) {
-  .ts-chat-input {
-    font-size: 16px;
-  }
-}
-
 /* ── Historial de la mesa ─────────────────────────────────────── */
 .ts-history-toggle { position: relative; flex: none; }
 .ts-history-badge {
@@ -1065,6 +1058,7 @@ app-tavern-table.ts-table-overlay::before {
 @media (max-width: 700px), (pointer: coarse) and (max-height: 500px) {
   :host { height: 100%; min-height: 0; }
   .ts-stage {
+    --ts-table-width: min(104cqw, 190cqh);
     container-type: size;
     display: grid;
     grid-template-rows: minmax(0, 1fr) auto auto;
@@ -1088,11 +1082,12 @@ app-tavern-table.ts-table-overlay::before {
   .ts-seat { translate: -50% 0; }
   .ts-seat.seat-center, .ts-seat.seat-me {
     left: 50%;
-    bottom: 24%;
+    /* Silla y tablero comparten escala; el alto de la pantalla no separa al personaje. */
+    bottom: calc(var(--ts-table-width) * .18);
     width: min(34cqw, 56cqh);
   }
   .ts-seat.seat-l1, .ts-seat.seat-r1 {
-    bottom: 20%;
+    bottom: calc(var(--ts-table-width) * .14);
     width: min(29cqw, 49cqh);
   }
   .ts-seat.seat-l1 { left: 20%; }
@@ -1101,7 +1096,7 @@ app-tavern-table.ts-table-overlay::before {
   .ts-seat-chair { border-width: 5px; border-bottom-width: 10px; }
   .ts-table-overlay {
     bottom: 0;
-    width: min(104cqw, 190cqh);
+    width: var(--ts-table-width);
     height: auto;
   }
   .ts-bubble { max-width: min(180px, 48cqw); padding: 6px 8px; font-size: .875rem; bottom: calc(100% + 6px); }
@@ -1176,7 +1171,7 @@ app-tavern-table.ts-table-overlay::before {
   .ts-participants-empty { padding: 10px; color: #fff1d8; font-size: .875rem; }
   .ts-chat-dock { position: relative; inset: auto; translate: none; width: auto; min-width: 0; }
   .ts-chat-bar { flex-wrap: nowrap; gap: 6px; padding: 4px; border-radius: 14px; }
-  .ts-chat-input { height: 44px; font-size: 16px; }
+  .ts-chat-input { height: 44px; }
   .ts-chat-tools { gap: 6px; }
   .ts-chat-icon-btn, .ts-chat-send-btn, .ts-react-pill, .ts-emoji-pick-btn, .ts-history-delete {
     width: 44px;
