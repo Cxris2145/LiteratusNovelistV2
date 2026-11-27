@@ -182,9 +182,11 @@ export class ScrollRevealService implements OnDestroy {
     if (this.scanTimeoutId) {
       clearTimeout(this.scanTimeoutId);
     }
-    this.scanTimeoutId = setTimeout(() => {
-      this.scan();
-    }, delay);
+    this.ngZone.runOutsideAngular(() => {
+      this.scanTimeoutId = setTimeout(() => {
+        this.scan();
+      }, delay);
+    });
   }
 
   /**

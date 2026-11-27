@@ -910,3 +910,12 @@
     display: none;
   }
 }
+
+@media (max-width: 768px), (pointer: coarse) {
+  .back-link-btn,
+  .stat-card,
+  .toolbar-section {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

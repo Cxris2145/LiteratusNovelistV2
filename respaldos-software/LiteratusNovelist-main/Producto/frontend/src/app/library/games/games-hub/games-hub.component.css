@@ -471,3 +471,10 @@
     justify-content: center;
   }
 }
+
+@media (max-width: 768px), (pointer: coarse) {
+  .oraculo-glow {
+    filter: blur(48px);
+    opacity: 0.7;
+  }
+}

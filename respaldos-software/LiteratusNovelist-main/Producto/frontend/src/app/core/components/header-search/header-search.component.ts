@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { NavigationStart, Router } from '@angular/router';
 import { Subject, Subscription, of, timer } from 'rxjs';
@@ -75,13 +75,6 @@ const MEMO_LIMIT = 60;
 export class HeaderSearchComponent implements OnInit, OnDestroy {
   isMobile = typeof window !== 'undefined' ? window.innerWidth <= 768 : false;
 
-  @HostListener('window:resize')
-  onResize(): void {
-    if (typeof window !== 'undefined') {
-      this.isMobile = window.innerWidth <= 768;
-    }
-  }
-
   get searchPlaceholder(): string {
     return this.isMobile ? 'Buscar libros o autores…' : 'Buscar libros, autores, sagas…';
   }
@@ -89,7 +82,10 @@ export class HeaderSearchComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly speech = inject(SpeechRecognitionService);
+  private readonly zone = inject(NgZone);
   private readonly host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private resizeRaf: number | null = null;
+  private unbindGlobalListeners?: () => void;
 
   @ViewChild('searchInput', { static: true }) private inputRef!: ElementRef<HTMLInputElement>;
 
@@ -168,9 +164,37 @@ export class HeaderSearchComponent implements OnInit, OnDestroy {
     }));
 
     this.subs.add(this.router.events.pipe(filter(e => e instanceof NavigationStart)).subscribe(() => this.close()));
+
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const onResize = () => {
+        if (this.resizeRaf !== null) return;
+        this.resizeRaf = requestAnimationFrame(() => {
+          this.resizeRaf = null;
+          const next = window.innerWidth <= 768;
+          if (next !== this.isMobile) {
+            this.zone.run(() => { this.isMobile = next; });
+          }
+        });
+      };
+      const onPointerDown = (event: PointerEvent) => {
+        if (this.open && !this.host.contains(event.target as Node)) {
+          this.zone.run(() => this.close());
+        }
+      };
+      this.zone.runOutsideAngular(() => {
+        window.addEventListener('resize', onResize, { passive: true });
+        document.addEventListener('pointerdown', onPointerDown, { passive: true });
+      });
+      this.unbindGlobalListeners = () => {
+        window.removeEventListener('resize', onResize);
+        document.removeEventListener('pointerdown', onPointerDown);
+      };
+    }
   }
 
   ngOnDestroy(): void {
+    this.unbindGlobalListeners?.();
+    if (this.resizeRaf !== null) cancelAnimationFrame(this.resizeRaf);
     this.subs.unsubscribe();
     this.stopVoice();
     this.clearSlowTimer();
@@ -364,11 +388,6 @@ export class HeaderSearchComponent implements OnInit, OnDestroy {
     this.open = false;
     this.activeIndex = -1;
     this.slow = false;
-  }
-
-  @HostListener('document:pointerdown', ['$event'])
-  onDocumentPointerDown(event: PointerEvent): void {
-    if (this.open && !this.host.contains(event.target as Node)) this.close();
   }
 
   // ── Acciones del formulario ───────────────────────────────────────────────

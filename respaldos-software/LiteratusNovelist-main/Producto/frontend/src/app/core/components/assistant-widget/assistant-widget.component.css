@@ -698,9 +698,7 @@
 .lit-mobile-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5, 12, 9, 0.45);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(5, 12, 9, 0.56);
   z-index: 2998;
   animation: lit-dial-fade 0.2s ease-out;
 }
@@ -802,10 +800,21 @@
     right: 16px;
     width: 48px;
     height: 48px;
+    animation: none;
     transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
                 opacity 0.28s ease,
                 scale 0.28s ease,
                 box-shadow 0.2s ease;
+  }
+
+  .lit-bubble-glow,
+  .lit-bubble-orbit-ring,
+  .lit-bubble-ping {
+    animation: none;
+  }
+
+  .lit-bubble-tooltip {
+    display: none;
   }
 
   .lit-bubble-avatar {

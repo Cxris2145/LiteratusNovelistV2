@@ -1,5 +1,5 @@
 import {
-  Component, ElementRef, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject,
+  Component, ElementRef, Input, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges, inject,
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
@@ -60,7 +60,9 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly subscriptions = inject(SubscriptionService);
+  private readonly zone = inject(NgZone);
   private readonly host: HTMLElement = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private unbindDocListeners?: () => void;
 
   @Input() isLoggedIn = false;
   @Input() rewardReady: boolean | null = false;
@@ -130,6 +132,29 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
         this.close();
         this.syncActive(e.urlAfterRedirects);
       });
+
+    if (typeof document !== 'undefined') {
+      const onEscape = (event: KeyboardEvent) => {
+        if (event.key !== 'Escape' || !this.openPanel) return;
+        const panel = this.openPanel;
+        const focusInside = this.host.querySelector(`#mn-panel-${panel}`)?.contains(document.activeElement);
+        this.zone.run(() => this.close());
+        if (focusInside) this.caret(panel)?.focus();
+      };
+      const onDocClick = (event: MouseEvent) => {
+        if (this.openPanel && !this.host.contains(event.target as Node)) {
+          this.zone.run(() => this.close());
+        }
+      };
+      this.zone.runOutsideAngular(() => {
+        document.addEventListener('keydown', onEscape, { passive: true });
+        document.addEventListener('click', onDocClick, { passive: true });
+      });
+      this.unbindDocListeners = () => {
+        document.removeEventListener('keydown', onEscape);
+        document.removeEventListener('click', onDocClick);
+      };
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -143,6 +168,7 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.unbindDocListeners?.();
     this.routerSub?.unsubscribe();
     this.subscribedSub?.unsubscribe();
     clearTimeout(this.openTimer);
@@ -255,20 +281,6 @@ export class MainNavComponent implements OnInit, OnChanges, OnDestroy {
       const next = this.host.querySelectorAll<HTMLElement>('.mn-link, .mn-cta')[index + 1];
       next?.focus();
     }
-  }
-
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    if (!this.openPanel) return;
-    const panel = this.openPanel;
-    const focusInside = this.host.querySelector(`#mn-panel-${panel}`)?.contains(document.activeElement);
-    this.close();
-    if (focusInside) this.caret(panel)?.focus();
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    if (this.openPanel && !this.host.contains(event.target as Node)) this.close();
   }
 
   close(): void {

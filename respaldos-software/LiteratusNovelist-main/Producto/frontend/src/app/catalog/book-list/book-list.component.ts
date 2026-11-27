@@ -1,9 +1,10 @@
-import { Component, DestroyRef, OnInit, Input, inject, HostListener } from '@angular/core';
+import { Component, DestroyRef, NgZone, OnInit, Input, inject } from '@angular/core';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { HttpParams } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -64,8 +65,10 @@ export class BookListComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private scrollRevealService = inject(ScrollRevealService);
   private destroyRef = inject(DestroyRef);
+  private zone = inject(NgZone);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private booksRequest?: Subscription;
 
   @Input() isHome: boolean = false;
   getBookPages = getBookPages;
@@ -225,18 +228,31 @@ export class BookListComponent implements OnInit {
   searchTerm = '';
   private searchTimeout: any;
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.more-genres-wrapper, .more-genres-dropdown')) {
-      this.moreGenresOpen = false;
-    }
-    if (!target.closest('.sort-dropdown-container')) {
-      this.sortDropdownOpen = false;
-    }
-  }
-
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.searchTimeout);
+      clearTimeout(this.toastTimer);
+      this.booksRequest?.unsubscribe();
+    });
+    if (typeof document !== 'undefined') {
+      const onDocClick = (event: MouseEvent) => {
+        if (!this.moreGenresOpen && !this.sortDropdownOpen) return;
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const closeGenres = this.moreGenresOpen && !target.closest('.more-genres-wrapper, .more-genres-dropdown');
+        const closeSort = this.sortDropdownOpen && !target.closest('.sort-dropdown-container');
+        if (closeGenres || closeSort) {
+          this.zone.run(() => {
+            if (closeGenres) this.moreGenresOpen = false;
+            if (closeSort) this.sortDropdownOpen = false;
+          });
+        }
+      };
+      this.zone.runOutsideAngular(() => {
+        document.addEventListener('click', onDocClick, { passive: true });
+      });
+      this.destroyRef.onDestroy(() => document.removeEventListener('click', onDocClick));
+    }
     this.favoritesService.bookKeys$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(keys => this.favoritesSet = new Set(keys));
@@ -248,7 +264,7 @@ export class BookListComponent implements OnInit {
       this.loadReaderAge();
     }
 
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['search'] !== undefined) {
         this.searchTerm = params['search'] || '';
         this.currentPage = 1;
@@ -366,7 +382,7 @@ export class BookListComponent implements OnInit {
   loadUserInventory(): void {
     if (!this.authService.isLoggedIn()) return;
 
-    this.api.get<any[]>('library/inventory/').subscribe({
+    this.api.get<any[]>('library/inventory/').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res: any) => {
         const items = Array.isArray(res) ? res : (res?.results || []);
         this.userInventoryMap.clear();
@@ -416,7 +432,7 @@ export class BookListComponent implements OnInit {
       ? this.api.get<any>('catalog/books/recommendations/')
       : this.api.getCached<any>('catalog/books/recommendations/', undefined, 10 * 60 * 1000);
 
-    req$.subscribe({
+    req$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         const list = Array.isArray(res) ? res : (res?.results || []);
         this.recommendedBooks = this.decorateBooks(list.slice(0, 6));
@@ -430,7 +446,8 @@ export class BookListComponent implements OnInit {
 
   /* ── Carga de Géneros ── */
   private loadGenres(): void {
-    this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000).subscribe({
+    this.api.getCached<any>('catalog/genres/?page_size=100', undefined, 15 * 60 * 1000)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         const list: GenreCount[] = (res?.results ?? res ?? [])
           .map((g: any) => ({
@@ -449,7 +466,8 @@ export class BookListComponent implements OnInit {
       error: () => {}
     });
 
-    this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000).subscribe({
+    this.api.getCached<any>('catalog/stats/', undefined, 10 * 60 * 1000)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (stats: any) => {
         if (typeof stats?.total_books === 'number') this.totalBooksCount = stats.total_books;
       },
@@ -632,6 +650,8 @@ export class BookListComponent implements OnInit {
 
   /* ── Consulta y ordenamiento determinístico ── */
   fetchBooks(): void {
+    clearTimeout(this.searchTimeout);
+    this.booksRequest?.unsubscribe();
     this.isLoading = true;
     this.errorMsg = '';
 
@@ -658,9 +678,11 @@ export class BookListComponent implements OnInit {
       this.totalCount = cached.count;
       this.applySortAndFilter();
       this.isLoading = false;
+      return;
     }
 
-    this.api.getCached<PaginatedResponse>('catalog/books/', params, 10 * 60 * 1000).subscribe({
+    this.booksRequest = this.api.getCached<PaginatedResponse>('catalog/books/', params, 10 * 60 * 1000)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.rawBooks = this.decorateBooks(response.results);
         this.totalCount = response.count;

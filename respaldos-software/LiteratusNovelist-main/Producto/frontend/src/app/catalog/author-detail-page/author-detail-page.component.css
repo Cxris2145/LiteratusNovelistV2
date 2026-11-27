@@ -7,6 +7,13 @@
   margin: 0 auto;
 }
 
+@media (max-width: 768px), (pointer: coarse) {
+  :host .glass-panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 .loading-state, .error-state {
   display: flex;
   flex-direction: column;

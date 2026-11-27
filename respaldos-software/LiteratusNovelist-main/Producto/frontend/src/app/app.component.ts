@@ -1,4 +1,4 @@
-import { Component, ComponentRef, ElementRef, inject, NgZone, OnInit, HostListener, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ComponentRef, ElementRef, inject, NgZone, OnDestroy, OnInit, ViewChild, ViewContainerRef } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { ApiService } from './core/services/api.service';
 import { AuthService, userStorageKey } from './core/services/auth.service';
@@ -33,7 +33,7 @@ import { AppUpdateService } from './core/services/app-update.service';
   styleUrl: './app.component.css',
   animations: [routeTransitionAnimations, shakeAnimation]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   title = 'frontend';
   apiService = inject(ApiService);
   authService = inject(AuthService);
@@ -230,6 +230,9 @@ export class AppComponent implements OnInit {
     if (this.headerMeasureFrame !== null) cancelAnimationFrame(this.headerMeasureFrame);
     this.headerMeasureFrame = null;
     this.headerEl = el;
+    this.lastNavbarH = -1;
+    this.lastExpandedH = -1;
+    this.lastNavFill = -1;
     this.headerHidden = false;
     this.hostEl.style.removeProperty('--header-offset');
     this.hostEl.style.removeProperty('--navbar-h');
@@ -247,15 +250,39 @@ export class AppComponent implements OnInit {
         // El contenido conserva su alto al plegar max-height; en móvil display:none mide cero.
         const openNavHeight = Math.min(navContent?.offsetHeight || 0, 120);
         const expandedHeight = actualHeight - (nav?.offsetHeight || 0) + openNavHeight;
-        this.hostEl.style.setProperty('--navbar-h', `${actualHeight}px`);
-        this.hostEl.style.setProperty('--navbar-expanded-h', `${expandedHeight}px`);
-        this.hostEl.style.setProperty('--tavern-nav-fill', `${Math.max(0, expandedHeight - actualHeight)}px`);
+        const fillHeight = Math.max(0, expandedHeight - actualHeight);
+        if (actualHeight !== this.lastNavbarH) {
+          this.lastNavbarH = actualHeight;
+          this.hostEl.style.setProperty('--navbar-h', `${actualHeight}px`);
+        }
+        if (expandedHeight !== this.lastExpandedH) {
+          this.lastExpandedH = expandedHeight;
+          this.hostEl.style.setProperty('--navbar-expanded-h', `${expandedHeight}px`);
+        }
+        if (fillHeight !== this.lastNavFill) {
+          this.lastNavFill = fillHeight;
+          this.hostEl.style.setProperty('--tavern-nav-fill', `${fillHeight}px`);
+        }
       });
     });
-    this.headerObserver.observe(el);
+    this.zone.runOutsideAngular(() => this.headerObserver?.observe(el));
   }
 
+  private lastNavbarH = -1;
+  private lastExpandedH = -1;
+  private lastNavFill = -1;
+  private readonly onPopupKeydown = (event: KeyboardEvent) => {
+    if (this.currentNotification && (event.key === 'Escape' || event.key === 'Enter')) {
+      this.zone.run(() => this.dismissNotification(this.currentNotification!.id));
+    }
+  };
+
   ngOnInit() {
+    if (typeof document !== 'undefined') {
+      this.zone.runOutsideAngular(() => {
+        document.addEventListener('keydown', this.onPopupKeydown, { passive: true });
+      });
+    }
 
     this.isEnigma = this.router.url.includes('enigma');
     // Cargar la configuración global (Tema) apenas inicie
@@ -528,11 +555,12 @@ export class AppComponent implements OnInit {
     return this.notifications.length > 0 ? this.notifications[0] : null;
   }
 
-  @HostListener('document:keydown', ['$event'])
-  handlePopupKeyboard(event: KeyboardEvent): void {
-    if (this.currentNotification && (event.key === 'Escape' || event.key === 'Enter')) {
-      this.dismissNotification(this.currentNotification.id);
+  ngOnDestroy(): void {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('keydown', this.onPopupKeydown);
     }
+    this.headerObserver?.disconnect();
+    if (this.headerMeasureFrame !== null) cancelAnimationFrame(this.headerMeasureFrame);
   }
 
   onBackdropClick(event: MouseEvent): void {

@@ -59,6 +59,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     :host-context(.scene-paused) * { animation-play-state:paused!important; }
     @keyframes flag-wave { 50% { transform:skewY(-8deg) scaleX(.88); } }
     @keyframes window-glow { 0%, 100% { opacity:1; } 40% { opacity:.72; } 55% { opacity:.95; } 70% { opacity:.8; } }
+    @media(max-width:800px),(pointer:coarse){.landmark-light{filter:none;}}
     @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,

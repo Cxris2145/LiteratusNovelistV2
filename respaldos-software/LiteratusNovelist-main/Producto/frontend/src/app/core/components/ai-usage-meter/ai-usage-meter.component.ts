@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, HostListener, ElementRef, inject } from '@angular/core';
+import { Component, Input, NgZone, OnInit, OnDestroy, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SubscriptionService, AIUsage } from '../../services/subscription.service';
@@ -56,11 +56,13 @@ export class AIUsageMeterComponent implements OnInit, OnDestroy {
   private service = inject(SubscriptionService);
   readonly chat = inject(ChatService);
   private element = inject(ElementRef);
+  private zone = inject(NgZone);
   private clientId = crypto.randomUUID();
   private lastActivity = Date.now();
   private serverOffset = 0;
   private timer?: ReturnType<typeof setInterval>;
   private subscription?: Subscription;
+  private unbindListeners?: () => void;
   private alive = true;
   usage: AIUsage | null = null;
   busy = false;
@@ -85,12 +87,31 @@ export class AIUsageMeterComponent implements OnInit, OnDestroy {
     this.service.usage().subscribe({ error: () => {} });
     this.pulse();
     this.timer = setInterval(() => { this.now = Date.now(); this.pulse(); }, 30000);
+    if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+      const onVisibility = () => this.pulse();
+      const onHide = () => this.pulse(false);
+      const onActivity = (event: Event) => this.activity(event);
+      this.zone.runOutsideAngular(() => {
+        document.addEventListener('visibilitychange', onVisibility, { passive: true });
+        window.addEventListener('blur', onHide, { passive: true });
+        window.addEventListener('pagehide', onHide, { passive: true });
+        window.addEventListener('focus', onVisibility, { passive: true });
+        document.addEventListener('keydown', onActivity, { passive: true });
+        document.addEventListener('pointerdown', onActivity, { passive: true });
+        document.addEventListener('wheel', onActivity, { passive: true });
+      });
+      this.unbindListeners = () => {
+        document.removeEventListener('visibilitychange', onVisibility);
+        window.removeEventListener('blur', onHide);
+        window.removeEventListener('pagehide', onHide);
+        window.removeEventListener('focus', onVisibility);
+        document.removeEventListener('keydown', onActivity);
+        document.removeEventListener('pointerdown', onActivity);
+        document.removeEventListener('wheel', onActivity);
+      };
+    }
   }
-  @HostListener('document:visibilitychange') visibility(): void { this.pulse(); }
-  @HostListener('window:blur') blur(): void { this.pulse(false); }
-  @HostListener('window:pagehide') pageHide(): void { this.pulse(false); }
-  @HostListener('window:focus') focus(): void { this.pulse(); }
-  @HostListener('document:keydown', ['$event']) @HostListener('document:pointerdown', ['$event']) @HostListener('document:wheel', ['$event']) activity(event: Event): void {
+  private activity(event: Event): void {
     if ((event.target as HTMLElement)?.closest('textarea, .chat-messages, .dchat-messages, app-ai-usage-meter')) {
       const inactive = Date.now() - this.lastActivity >= 120000;
       this.lastActivity = Date.now();
@@ -100,7 +121,9 @@ export class AIUsageMeterComponent implements OnInit, OnDestroy {
   private pulse(force?: boolean): void {
     if (!this.sessionId) return;
     const active = force ?? (this.alive && this.element.nativeElement.isConnected && this.element.nativeElement.getClientRects().length > 0 && !document.hidden && document.hasFocus() && Date.now() - this.lastActivity < 120000);
-    this.service.heartbeat(this.sessionId, this.clientId, active).subscribe({ error: () => {} });
+    this.zone.runOutsideAngular(() => {
+      this.service.heartbeat(this.sessionId!, this.clientId, active).subscribe({ error: () => {} });
+    });
   }
-  ngOnDestroy(): void { this.alive = false; if (this.timer) clearInterval(this.timer); this.subscription?.unsubscribe(); this.pulse(false); }
+  ngOnDestroy(): void { this.alive = false; this.unbindListeners?.(); if (this.timer) clearInterval(this.timer); this.subscription?.unsubscribe(); this.pulse(false); }
 }

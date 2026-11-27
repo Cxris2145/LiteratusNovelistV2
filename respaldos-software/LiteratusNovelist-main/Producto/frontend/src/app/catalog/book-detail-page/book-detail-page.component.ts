@@ -1,4 +1,6 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, inject, ViewChild, ElementRef, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, DestroyRef, OnInit, AfterViewInit, OnDestroy, inject, ViewChild, ElementRef, ChangeDetectorRef, NgZone } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { CharacterChatService } from '../../core/services/character-chat.service';
@@ -24,7 +26,7 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   private _avatarCarousel!: ElementRef;
   @ViewChild('avatarCarousel') set avatarCarousel(el: ElementRef) {
     this._avatarCarousel = el;
-    setTimeout(() => this.updateAvatarOverflow(), 0);
+    this.scheduleOverflowUpdate();
   }
   get avatarCarousel(): ElementRef {
     return this._avatarCarousel;
@@ -38,6 +40,13 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   private router = inject(Router);
   private api = inject(ApiService);
   private cdr = inject(ChangeDetectorRef);
+  private zone = inject(NgZone);
+  private destroyRef = inject(DestroyRef);
+  private detailsRequest?: Subscription;
+  private unbindResize?: () => void;
+  private resizeRaf: number | null = null;
+  private greetingTimer?: ReturnType<typeof setTimeout>;
+  private carouselResetTimer?: ReturnType<typeof setTimeout>;
   private liyumi = inject(LiyumiService);
   private chatService = inject(ChatService);
   private notificationService = inject(NotificationService);
@@ -73,7 +82,7 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngOnInit(): void {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    this.route.paramMap.subscribe(params => {
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.slug = params.get('slug');
       if (this.slug) {
         this.loadBookDetails(this.slug);
@@ -83,10 +92,22 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngAfterViewInit(): void {
     this.startAutoScroll();
+    if (typeof window !== 'undefined') {
+      const onResize = () => this.scheduleOverflowUpdate();
+      this.zone.runOutsideAngular(() => {
+        window.addEventListener('resize', onResize, { passive: true });
+      });
+      this.unbindResize = () => window.removeEventListener('resize', onResize);
+    }
     this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {
+    this.unbindResize?.();
+    if (this.resizeRaf !== null) cancelAnimationFrame(this.resizeRaf);
+    clearTimeout(this.greetingTimer);
+    clearTimeout(this.carouselResetTimer);
+    this.detailsRequest?.unsubscribe();
     if (this.autoScrollInterval) {
       clearInterval(this.autoScrollInterval);
     }
@@ -96,43 +117,55 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
 
   startAutoScroll(): void {
     if (this.autoScrollInterval) clearInterval(this.autoScrollInterval);
-    
-    this.autoScrollInterval = setInterval(() => {
-      if (this.avatarCarousel && this.avatarCarousel.nativeElement && !this.selectedAvatar && !this.showPurchaseModal) {
-        const carousel = this.avatarCarousel.nativeElement;
-        const maxScroll = carousel.scrollWidth - carousel.clientWidth;
-        
-        if (carousel.scrollLeft >= maxScroll - 50) {
-          carousel.style.scrollBehavior = 'auto';
-          carousel.scrollLeft = carousel.scrollWidth / 4;
-          setTimeout(() => {
-             carousel.style.scrollBehavior = 'smooth';
-             carousel.scrollLeft += 250;
-          }, 50);
-        } else {
-          carousel.scrollLeft += 250;
+    clearTimeout(this.carouselResetTimer);
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    this.zone.runOutsideAngular(() => {
+      this.autoScrollInterval = setInterval(() => {
+        if (document.hidden) return;
+        if (this.avatarCarousel && this.avatarCarousel.nativeElement && !this.selectedAvatar && !this.showPurchaseModal) {
+          const carousel = this.avatarCarousel.nativeElement;
+          const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+          if (maxScroll <= 8) return;
+
+          if (carousel.scrollLeft >= maxScroll - 50) {
+            carousel.style.scrollBehavior = 'auto';
+            carousel.scrollLeft = carousel.scrollWidth / 4;
+            this.carouselResetTimer = setTimeout(() => {
+              carousel.style.scrollBehavior = 'smooth';
+              if (document.hidden || this.selectedAvatar || this.showPurchaseModal) return;
+              carousel.scrollLeft += 250;
+            }, 50);
+          } else {
+            carousel.scrollLeft += 250;
+          }
         }
-      }
-    }, 2500);
+      }, 2500);
+    });
   }
 
   loadBookDetails(slug: string): void {
+    this.detailsRequest?.unsubscribe();
+    clearTimeout(this.greetingTimer);
+    clearTimeout(this.carouselResetTimer);
     this.isLoading = true;
-    this.api.get<any>(`catalog/books/${slug}/details/`).subscribe({
+    this.errorMsg = '';
+    this.detailsRequest = this.api.get<any>(`catalog/books/${slug}/details/`)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.book = data;
         this.isOwned = data.is_owned;
         this.userInkBalance = data.ink_balance;
         this.chatService.updateInkBalance(this.userInkBalance);
         
-        if (data.avatars && data.avatars.length > 0) {
-          this.displayAvatars = data.avatars;
-        }
+        this.displayAvatars = data.avatars || [];
         
         this.isLoading = false;
 
         // Liyumi saluda con el nombre del libro
-        setTimeout(() => {
+        this.greetingTimer = setTimeout(() => {
           this.liyumi.speak({
             text: `📖 "${data.title}" — Una historia que no olvidarás. ¡Escucha la sinopsis!`,
             duration: 5000
@@ -186,7 +219,13 @@ export class BookDetailPageComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   stopSynopsis(): void {
-    window.speechSynthesis.cancel();
+    if (this.ttsUtterance) {
+      this.ttsUtterance.onstart = null;
+      this.ttsUtterance.onend = null;
+      this.ttsUtterance.onerror = null;
+      this.ttsUtterance = null;
+    }
+    window.speechSynthesis?.cancel();
     this.isTalking = false;
     this.liyumi.stopSpeaking();
   }
@@ -242,7 +281,8 @@ handleAction(): void {
     this.purchaseLoading = true;
     this.purchaseErrorMsg = '';
 
-    this.api.post<any>(`catalog/books/${this.slug}/purchase/`, {}).subscribe({
+    this.api.post<any>(`catalog/books/${this.slug}/purchase/`, {})
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.isOwned = true;
         if (this.book) {
@@ -290,7 +330,7 @@ handleAction(): void {
   downloadPDF(): void {
     if (this.book.inventory_id) {
       const endpoint = `library/inventory/${this.book.inventory_id}/download/`;
-      this.api.getBlob(endpoint).subscribe({
+      this.api.getBlob(endpoint).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (blob: Blob) => {
           const downloadUrl = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -321,10 +361,24 @@ handleAction(): void {
     carousel.scrollBy({ left: step * 2 * direction, behavior: 'smooth' });
   }
 
-  @HostListener('window:resize')
+  private scheduleOverflowUpdate(): void {
+    if (this.resizeRaf !== null || typeof window === 'undefined') return;
+    this.zone.runOutsideAngular(() => {
+      this.resizeRaf = requestAnimationFrame(() => {
+        this.resizeRaf = null;
+        this.updateAvatarOverflow();
+      });
+    });
+  }
+
   updateAvatarOverflow(): void {
     const el = this.avatarCarousel?.nativeElement as HTMLElement | undefined;
-    this.avatarsCanScroll = !!el && el.scrollWidth - el.clientWidth > 8;
+    const nextCanScroll = !!el && el.scrollWidth - el.clientWidth > 8;
+    if (nextCanScroll !== this.avatarsCanScroll) {
+      this.zone.run(() => {
+        this.avatarsCanScroll = nextCanScroll;
+      });
+    }
   }
 
   private static readonly PROFANE_WORDS = new Set<string>([
@@ -494,7 +548,8 @@ handleAction(): void {
       comment: trimmedComment
     };
 
-    this.api.post<any>(`catalog/books/${this.slug}/add_review/`, payload).subscribe({
+    this.api.post<any>(`catalog/books/${this.slug}/add_review/`, payload)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.isSubmittingReview = false;
         if (!this.book.reviews) this.book.reviews = [];

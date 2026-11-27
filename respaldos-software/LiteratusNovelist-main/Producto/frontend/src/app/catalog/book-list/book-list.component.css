@@ -1949,10 +1949,14 @@
 @media (hover: none), (max-width: 768px) {
   .card-favorite-btn,
   .rec-heart-btn,
-  .card-reading-progress {
+  .card-reading-progress,
+  .more-genres-dropdown,
+  .favorite-toast,
+  .modal-backdrop {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
+  .modal-backdrop { background: rgba(8, 14, 26, 0.72); }
   .card-favorite-btn,
   .rec-heart-btn { background: rgba(8, 14, 26, 0.82); }
   .card-favorite-btn.active { background: rgba(72, 22, 24, 0.86); }

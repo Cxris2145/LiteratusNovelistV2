@@ -1,4 +1,5 @@
-import { Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { CharacterChatService } from '../../core/services/character-chat.service';
 import { NotebookService } from '../../notebook/notebook.service';
@@ -20,6 +21,10 @@ export class LibraryListComponent implements OnInit, OnDestroy {
   public auth = inject(AuthService);
   private characterChat = inject(CharacterChatService);
   private notebook = inject(NotebookService);
+  private destroyRef = inject(DestroyRef);
+  private zone = inject(NgZone);
+  private unbindKeydown?: () => void;
+  private summaryFocusTimer?: ReturnType<typeof setTimeout>;
   getBookPages = getBookPages;
 
   inventoryItems: any[] = [];
@@ -37,7 +42,18 @@ export class LibraryListComponent implements OnInit, OnDestroy {
   summaryItem: any | null = null;
   @ViewChild('summaryClose') summaryClose?: ElementRef<HTMLButtonElement>;
 
+  private filteredSource?: any[];
+  private filteredMode?: string;
+  private filteredQuery?: string;
+  private filteredResult: any[] = [];
+  private countsSource?: any[];
+  private counts = { reading: 0, completed: 0, unread: 0 };
+
   get filteredItems(): any[] {
+    const q = this.searchTerm.trim().toLowerCase();
+    if (this.filteredSource === this.inventoryItems && this.filteredMode === this.activeFilter && this.filteredQuery === q) {
+      return this.filteredResult;
+    }
     let items = this.inventoryItems;
 
     // Filtro por estado de lectura
@@ -59,7 +75,6 @@ export class LibraryListComponent implements OnInit, OnDestroy {
     }
 
     // Filtro por término de búsqueda (título y autor)
-    const q = this.searchTerm.trim().toLowerCase();
     if (q) {
       items = items.filter(item => {
         const title = (item.book_title || item.edition?.book?.title || '').toLowerCase();
@@ -68,7 +83,11 @@ export class LibraryListComponent implements OnInit, OnDestroy {
       });
     }
 
-    return items;
+    this.filteredSource = this.inventoryItems;
+    this.filteredMode = this.activeFilter;
+    this.filteredQuery = q;
+    this.filteredResult = items;
+    return this.filteredResult;
   }
 
   clearSearch(): void {
@@ -77,18 +96,30 @@ export class LibraryListComponent implements OnInit, OnDestroy {
 
 
   get readingCount(): number {
-    return this.inventoryItems.filter(item => {
-      const pct = item.progress?.completion_percentage || 0;
-      return pct > 0 && pct < 100;
-    }).length;
+    return this.readingCounts.reading;
   }
 
   get completedCount(): number {
-    return this.inventoryItems.filter(item => (item.progress?.completion_percentage || 0) >= 100).length;
+    return this.readingCounts.completed;
   }
 
   get unreadCount(): number {
-    return this.inventoryItems.filter(item => (item.progress?.completion_percentage || 0) === 0).length;
+    return this.readingCounts.unread;
+  }
+
+  private get readingCounts(): typeof this.counts {
+    if (this.countsSource !== this.inventoryItems) {
+      const counts = { reading: 0, completed: 0, unread: 0 };
+      for (const item of this.inventoryItems) {
+        const pct = item.progress?.completion_percentage || 0;
+        if (pct === 0) counts.unread++;
+        else if (pct >= 100) counts.completed++;
+        else if (pct > 0) counts.reading++;
+      }
+      this.countsSource = this.inventoryItems;
+      this.counts = counts;
+    }
+    return this.counts;
   }
 
   setFilter(filter: 'all' | 'reading' | 'completed' | 'unread'): void {
@@ -97,8 +128,13 @@ export class LibraryListComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
+    const onKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && this.summaryItem) this.zone.run(() => this.closeSummary());
+    };
+    this.zone.runOutsideAngular(() => document.addEventListener('keydown', onKeydown));
+    this.unbindKeydown = () => document.removeEventListener('keydown', onKeydown);
     // Los accesos del menú de Mi Biblioteca llegan con ?estado=leyendo|completados|pendientes.
-    this.route.queryParamMap.subscribe(params => {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       const estado = params.get('estado');
       this.activeFilter = estado === 'leyendo' ? 'reading'
         : estado === 'completados' ? 'completed'
@@ -115,6 +151,8 @@ export class LibraryListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.unbindKeydown?.();
+    clearTimeout(this.summaryFocusTimer);
     document.body.style.overflow = '';
   }
 
@@ -138,12 +176,13 @@ export class LibraryListComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.summaryItem = item;
     document.body.style.overflow = 'hidden';
-    setTimeout(() => this.summaryClose?.nativeElement.focus());
+    clearTimeout(this.summaryFocusTimer);
+    this.summaryFocusTimer = setTimeout(() => this.summaryClose?.nativeElement.focus());
   }
 
-  @HostListener('document:keydown.escape')
   closeSummary(): void {
     if (!this.summaryItem) return;
+    clearTimeout(this.summaryFocusTimer);
     this.summaryItem = null;
     document.body.style.overflow = '';
   }
@@ -172,7 +211,7 @@ export class LibraryListComponent implements OnInit, OnDestroy {
 
   fetchInventory(): void {
     // Datos por usuario y mutables (progreso) → GET normal, sin caché compartida.
-    this.api.get<any[]>('library/inventory/').subscribe({
+    this.api.get<any[]>('library/inventory/').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res: any) => {
         this.inventoryItems = this.decorate(Array.isArray(res) ? res : (res.results || []));
         this.isLoading = false;

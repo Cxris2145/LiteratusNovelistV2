@@ -465,3 +465,11 @@
     overflow: hidden;
   }
 }
+
+@media (max-width: 768px), (pointer: coarse) {
+  .book-badge,
+  .pagination-bar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

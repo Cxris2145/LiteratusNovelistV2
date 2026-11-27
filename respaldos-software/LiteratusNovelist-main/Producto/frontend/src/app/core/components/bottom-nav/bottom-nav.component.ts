@@ -1,4 +1,4 @@
-import { Component, HostListener, Input, OnDestroy, inject } from '@angular/core';
+import { Component, Input, NgZone, OnDestroy, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 
@@ -35,6 +35,12 @@ const PRIMARY: Record<string, string> = {
 export class BottomNavComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly subscriptions = inject(SubscriptionService);
+  private readonly zone = inject(NgZone);
+  private readonly onDocKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && this.isMoreOpen) {
+      this.zone.run(() => { this.isMoreOpen = false; });
+    }
+  };
 
   @Input() rewardReady: boolean | null = false;
 
@@ -53,6 +59,14 @@ export class BottomNavComponent implements OnDestroy {
       this.url = (e as NavigationEnd).urlAfterRedirects;
       this.isMoreOpen = false;
     });
+
+  constructor() {
+    if (typeof document !== 'undefined') {
+      this.zone.runOutsideAngular(() => {
+        document.addEventListener('keydown', this.onDocKeydown, { passive: true });
+      });
+    }
+  }
 
   private moreItems(subscribed: boolean): BottomItem[] {
     return [
@@ -76,12 +90,10 @@ export class BottomNavComponent implements OnDestroy {
     this.isMoreOpen = !this.isMoreOpen;
   }
 
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    this.isMoreOpen = false;
-  }
-
   ngOnDestroy(): void {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('keydown', this.onDocKeydown);
+    }
     this.sub.unsubscribe();
     this.subscribedSub.unsubscribe();
   }

@@ -13,6 +13,7 @@
     "test": "ng test",
     "test:tavern": "ng test --watch=false --browsers=ChromeHeadless --include=src/app/community/**/*.spec.ts",
     "test:tavern-mobile": "node scripts/tavern-mobile-qa.mjs",
+    "test:mobile-performance": "node scripts/mobile-performance-qa.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs --write",
     "audit:capture": "node scripts/capture-visual-audit.mjs"
   },

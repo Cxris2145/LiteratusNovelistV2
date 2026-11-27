@@ -348,7 +348,7 @@
     </header>
 
     <div class="shelf-carousel-wrap">
-      <div class="shelf-track" #shelfTrack (scroll)="onShelfScroll()">
+      <div class="shelf-track" #shelfTrack>
         <ul class="shelf-row" *ngIf="starterBooks.length; else shelfSkeleton" data-scroll-reveal>
           <li *ngFor="let b of starterBooks; let i = index; trackBy: trackBySlug" class="shelf-item" [style.--i]="i">
             <a [routerLink]="['/book', b.slug]" class="book-card">

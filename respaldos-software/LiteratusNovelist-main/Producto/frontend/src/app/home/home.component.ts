@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, inject, ChangeDetectorRef, ElementRef, NgZone, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, AfterViewInit, PLATFORM_ID, inject, ChangeDetectorRef, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -74,7 +74,8 @@ const ODYSSEY_OPENING = [
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
+  styleUrls: ['./home.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
@@ -90,6 +91,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private observers: IntersectionObserver[] = [];
   private headerObserver?: ResizeObserver;
+  private lastHeaderHeight = -1;
+  private shelfScrollRaf: number | null = null;
+  private unbindShelfScroll?: () => void;
   private timers: any[] = [];
 
   prefersReducedMotion = false;
@@ -211,17 +215,31 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     // inferiores conservan su carga diferida en la plantilla.
     this.runStatsCounter();
 
-    if (this.shelfTrack?.nativeElement && 'ResizeObserver' in window) {
-      this.shelfObserver = new ResizeObserver(() => {
-        this.zone.run(() => this.updateShelfPagination());
+    if (this.shelfTrack?.nativeElement) {
+      const trackEl = this.shelfTrack.nativeElement;
+      const onScroll = () => {
+        if (this.shelfScrollRaf !== null) return;
+        this.shelfScrollRaf = requestAnimationFrame(() => {
+          this.shelfScrollRaf = null;
+          this.onShelfScroll();
+        });
+      };
+      this.zone.runOutsideAngular(() => {
+        trackEl.addEventListener('scroll', onScroll, { passive: true });
+        if ('ResizeObserver' in window) {
+          this.shelfObserver = new ResizeObserver(() => this.updateShelfPagination());
+          this.shelfObserver.observe(trackEl);
+        }
       });
-      this.shelfObserver.observe(this.shelfTrack.nativeElement);
+      this.unbindShelfScroll = () => trackEl.removeEventListener('scroll', onScroll);
     }
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.unbindShelfScroll?.();
+    if (this.shelfScrollRaf !== null) cancelAnimationFrame(this.shelfScrollRaf);
     this.observers.forEach(o => o.disconnect());
     this.headerObserver?.disconnect();
     this.shelfObserver?.disconnect();
@@ -370,21 +388,27 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.shelfTrack?.nativeElement) return;
     const el = this.shelfTrack.nativeElement;
     const maxScroll = el.scrollWidth - el.clientWidth;
-    if (maxScroll <= 5) {
-      this.canShelfPrev = false;
-      this.canShelfNext = false;
-      this.shelfCurrentPage = 0;
-      this.cdr.markForCheck();
-      return;
-    }
-    this.canShelfPrev = el.scrollLeft > 10;
-    this.canShelfNext = el.scrollLeft < maxScroll - 10;
+    let nextPrev = false;
+    let nextNext = false;
+    let nextPage = 0;
 
-    const cardWidth = 184 + 22;
-    const visibleCards = Math.max(1, Math.floor(el.clientWidth / cardWidth));
-    const pageFraction = el.scrollLeft / (visibleCards * cardWidth);
-    this.shelfCurrentPage = Math.min(Math.max(0, this.shelfDots.length - 1), Math.max(0, Math.round(pageFraction)));
-    this.cdr.markForCheck();
+    if (maxScroll > 5) {
+      nextPrev = el.scrollLeft > 10;
+      nextNext = el.scrollLeft < maxScroll - 10;
+      const cardWidth = 184 + 22;
+      const visibleCards = Math.max(1, Math.floor(el.clientWidth / cardWidth));
+      const pageFraction = el.scrollLeft / (visibleCards * cardWidth);
+      nextPage = Math.min(Math.max(0, this.shelfDots.length - 1), Math.max(0, Math.round(pageFraction)));
+    }
+
+    if (nextPrev !== this.canShelfPrev || nextNext !== this.canShelfNext || nextPage !== this.shelfCurrentPage) {
+      this.zone.run(() => {
+        this.canShelfPrev = nextPrev;
+        this.canShelfNext = nextNext;
+        this.shelfCurrentPage = nextPage;
+        this.cdr.markForCheck();
+      });
+    }
   }
 
   updateShelfPagination(): void {
@@ -392,11 +416,15 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     const el = this.shelfTrack.nativeElement;
     const cardWidth = 184 + 22;
     const visibleCards = Math.max(1, Math.floor(el.clientWidth / cardWidth));
-    const pages = Math.ceil(this.starterBooks.length / visibleCards);
-    this.shelfTotalPages = Math.max(1, pages);
-    this.shelfDots = Array.from({ length: this.shelfTotalPages }, (_, i) => i);
+    const pages = Math.max(1, Math.ceil(this.starterBooks.length / visibleCards));
+    if (pages !== this.shelfTotalPages) {
+      this.zone.run(() => {
+        this.shelfTotalPages = pages;
+        this.shelfDots = Array.from({ length: pages }, (_, i) => i);
+        this.cdr.markForCheck();
+      });
+    }
     this.onShelfScroll();
-    this.cdr.markForCheck();
   }
 
   scrollShelfPage(direction: number): void {
@@ -506,7 +534,11 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!header || !('ResizeObserver' in window)) return;
     this.zone.runOutsideAngular(() => {
       this.headerObserver = new ResizeObserver(() => {
-        host.style.setProperty('--header-h', `${Math.round(header.getBoundingClientRect().height)}px`);
+        const nextHeight = Math.round(header.getBoundingClientRect().height);
+        if (nextHeight !== this.lastHeaderHeight) {
+          this.lastHeaderHeight = nextHeight;
+          host.style.setProperty('--header-h', `${nextHeight}px`);
+        }
       });
       this.headerObserver.observe(header);
     });
@@ -515,7 +547,9 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Vuelve a registrar los elementos recién pintados en el observador de scroll. */
   private rescan(): void {
     this.cdr.detectChanges();
-    this.timers.push(setTimeout(() => this.scrollReveal.scan(this.host.nativeElement), 0));
+    this.zone.runOutsideAngular(() => {
+      this.timers.push(setTimeout(() => this.scrollReveal.scan(this.host.nativeElement), 0));
+    });
   }
 
   /** Cifras del hero: cuentan hacia arriba una sola vez al cargar la portada. */

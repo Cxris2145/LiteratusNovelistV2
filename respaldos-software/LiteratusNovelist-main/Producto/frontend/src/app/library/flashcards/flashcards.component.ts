@@ -1,4 +1,5 @@
-import { Component, HostListener, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, NgZone, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserVocabularyCard, VocabularyService } from '../../core/services/vocabulary.service';
 
@@ -11,6 +12,8 @@ export class FlashcardsComponent implements OnInit {
   private vocabularyService = inject(VocabularyService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
+  private zone = inject(NgZone);
 
   cards: UserVocabularyCard[] = [];
   currentIndex = 0;
@@ -48,8 +51,11 @@ export class FlashcardsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const onKeydown = (event: KeyboardEvent) => this.handleKeyboardEvent(event);
+    this.zone.runOutsideAngular(() => document.addEventListener('keydown', onKeydown));
+    this.destroyRef.onDestroy(() => document.removeEventListener('keydown', onKeydown));
     // Si viene con book_id en query params, usarlo
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['book_id']) {
         this.selectedBookId = params['book_id'];
       }
@@ -57,24 +63,24 @@ export class FlashcardsComponent implements OnInit {
     });
   }
 
-  @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent): void {
     // Evitar capturar teclas si el usuario está en un input
-    const tag = (event.target as HTMLElement)?.tagName?.toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])') || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (!this.currentCard) return;
 
     if (event.code === 'Space' || event.key === ' ' || event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
-      this.flipCard();
+      this.zone.run(() => this.flipCard());
     } else if (event.key === 'ArrowRight') {
       event.preventDefault();
-      this.nextCard();
+      this.zone.run(() => this.nextCard());
     } else if (event.key === 'ArrowLeft') {
       event.preventDefault();
-      this.prevCard();
+      this.zone.run(() => this.prevCard());
     } else if (event.key === 'l' || event.key === 'L') {
       if (this.currentCard) {
-        this.toggleLearnedStatus();
+        this.zone.run(() => this.toggleLearnedStatus());
       }
     }
   }
@@ -84,7 +90,7 @@ export class FlashcardsComponent implements OnInit {
     this.errorMsg = '';
 
     // Cargar todo el vocabulario del usuario para estadísticas y libros
-    this.vocabularyService.getVocabulary().subscribe({
+    this.vocabularyService.getVocabulary().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (allWords) => {
         this.totalCount = allWords.length;
         this.learnedCount = allWords.filter(w => w.is_learned).length;

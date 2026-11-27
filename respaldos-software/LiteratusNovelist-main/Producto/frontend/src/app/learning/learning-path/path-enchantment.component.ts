@@ -244,13 +244,15 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
     :host(.is-paused) *, :host-context(.motion-reduced) * { animation-play-state: paused !important; }
     :host-context(.motion-reduced) * { animation: none !important; }
 
-    @media (max-width: 600px) {
-      .butterfly { width: 44px; }
-      .floating-book { width: 61px; }
+    @media (max-width: 600px), (pointer: coarse) {
+      .butterfly { width: 44px; filter: none; }
+      .floating-book { width: 61px; filter: none; }
       .rune-crystal { width: 94px; }
+      .crystal-stone { filter: none; }
       .sky-lantern { width: 35px; }
-      .aurora-ribbon { width: 36%; height: 27%; }
+      .aurora-ribbon { width: 36%; height: 27%; filter: none; }
       .silver-star { width: 9px; height: 9px; }
+      .mote:nth-child(even) { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, DestroyRef, NgZone, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { ApiService } from '../core/services/api.service';
 import { AuthService, userStorageKey } from '../core/services/auth.service';
@@ -29,6 +30,8 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
+  private zone = inject(NgZone);
 
   allBooks: any[] = [];
   isLoading = true;
@@ -92,7 +95,7 @@ export class DiscoverComponent implements OnInit, OnDestroy {
      ═══════════════════════════════════════════════════════════════════ */
   private loadBooks(): void {
     this.isLoading = true;
-    this.api.get<any>('catalog/books/?ordering=-view_count,-created_at&page_size=50').subscribe({
+    this.api.get<any>('catalog/books/?ordering=-view_count,-created_at&page_size=50').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res.results ?? []);
         // Filter books with synopsis (needed for quotes & TTS)
@@ -104,7 +107,13 @@ export class DiscoverComponent implements OnInit, OnDestroy {
 
         // Pick hero (first book, refresh every 30s)
         this.setHeroBook();
-        this.heroRefreshInterval = setInterval(() => this.setHeroBook(), 30000);
+        if (this.allBooks.length > 1) {
+          this.zone.runOutsideAngular(() => {
+            this.heroRefreshInterval = setInterval(() => {
+              if (!document.hidden) this.setHeroBook();
+            }, 30000);
+          });
+        }
 
         // Build rows
         this.buildRows();
@@ -121,7 +130,8 @@ export class DiscoverComponent implements OnInit, OnDestroy {
   private setHeroBook(): void {
     if (this.allBooks.length === 0) return;
     const idx = Math.floor(Math.random() * Math.min(12, this.allBooks.length));
-    this.heroBook = this.allBooks[idx];
+    const next = this.allBooks[idx];
+    if (next !== this.heroBook) this.zone.run(() => this.heroBook = next);
   }
 
   private buildRows(pool: any[] = this.allBooks): void {

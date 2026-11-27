@@ -142,8 +142,12 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
   private boundScroller: HTMLElement | null = null;
   private trackObserver?: ResizeObserver;
   private realmBounds: { start: number; end: number }[] = [];
+  private trackDocTop = 0;
+  private railSegments: { left: number; width: number }[] = [];
+  private unbindDialogKeydown?: () => void;
   private markerAt = 0;
   private viewFrame = 0;
+  private worldMeasurePending = false;
   private wheelTarget: number | null = null;
   private wheelFrame = 0;
   private wheelLast = 0;
@@ -180,10 +184,14 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
       this.queryUnit = params.get('unit');
       if (!this.isLoading) this.scrollToCurrent();
     });
+    const handleKeydown = (event: KeyboardEvent) => this.onDialogKeydown(event);
     this.zone.runOutsideAngular(() => {
       window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+      window.addEventListener('resize', this.scheduleMeasure, { passive: true });
+      document.addEventListener('keydown', handleKeydown);
       for (const type of USER_INPUT) window.addEventListener(type, this.armTrailMotion, { passive: true, capture: true });
     });
+    this.unbindDialogKeydown = () => document.removeEventListener('keydown', handleKeydown);
     this.loadPath();
   }
 
@@ -208,6 +216,8 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
     this.motionQuery?.removeEventListener('change', this.motionChanged);
     this.layoutQuery?.removeEventListener('change', this.layoutChanged);
     window.removeEventListener('scroll', this.onWindowScroll);
+    window.removeEventListener('resize', this.scheduleMeasure);
+    this.unbindDialogKeydown?.();
     for (const type of USER_INPUT) window.removeEventListener(type, this.armTrailMotion, { capture: true });
     this.unbindScroller();
     this.timers.forEach(timer => clearTimeout(timer));
@@ -400,9 +410,10 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
       scroller.addEventListener('pointercancel', this.onPointerUp);
       scroller.addEventListener('click', this.onClickCapture, true);
       if (typeof ResizeObserver !== 'undefined' && this.trackRef) {
-        this.trackObserver = new ResizeObserver(() => this.measureWorld());
+        this.trackObserver = new ResizeObserver(this.scheduleMeasure);
         this.trackObserver.observe(this.trackRef.nativeElement);
         this.trackObserver.observe(scroller);
+        if (this.railRef) this.trackObserver.observe(this.railRef.nativeElement);
       }
     });
     // Medir fuera de este ciclo de detección de cambios: el camino puede cambiar de forma al medirse.
@@ -414,6 +425,8 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
     this.trackObserver?.disconnect();
     this.trackObserver = undefined;
     this.boundScroller = null;
+    this.realmBounds = [];
+    this.railSegments = [];
     if (!scroller) return;
     scroller.removeEventListener('scroll', this.onWorldScroll);
     scroller.removeEventListener('wheel', this.onWheel);
@@ -497,21 +510,43 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
 
   private readonly onWorldScroll = (): void => { if (this.horizontal) this.scheduleView(); };
   private readonly onWindowScroll = (): void => { if (!this.horizontal) this.scheduleView(); };
+  private readonly scheduleMeasure = (): void => {
+    this.worldMeasurePending = true;
+    this.scheduleView();
+  };
 
   private scheduleView(): void {
-    if (!this.viewFrame) this.viewFrame = requestAnimationFrame(() => { this.viewFrame = 0; this.updateView(); });
+    if (this.viewFrame) return;
+    this.zone.runOutsideAngular(() => {
+      this.viewFrame = requestAnimationFrame(() => {
+        this.viewFrame = 0;
+        if (this.worldMeasurePending) this.measureWorld();
+        else this.updateView();
+      });
+    });
   }
 
   /** Mide dónde empieza y termina cada reino en el mundo; el mini-mapa reparte un sexto a cada uno. */
   private measureWorld(): void {
+    this.worldMeasurePending = false;
     const track = this.trackRef?.nativeElement;
     if (!track) return;
     this.updateShape();
     const sections = Array.from(track.querySelectorAll<HTMLElement>(':scope > .realm'));
     const trackTop = track.getBoundingClientRect().top + window.scrollY;
-    this.realmBounds = sections.map(section => this.horizontal
-      ? { start: section.offsetLeft, end: section.offsetLeft + section.offsetWidth }
-      : { start: section.getBoundingClientRect().top + window.scrollY - trackTop, end: section.getBoundingClientRect().bottom + window.scrollY - trackTop });
+    this.trackDocTop = trackTop;
+    const rail = this.railRef?.nativeElement;
+    this.railSegments = rail
+      ? Array.from(rail.querySelectorAll<HTMLElement>('.minimap-segment')).map(s => ({ left: s.offsetLeft, width: s.offsetWidth }))
+      : [];
+    this.realmBounds = sections.map(section => {
+      if (this.horizontal) {
+        const start = section.offsetLeft;
+        return { start, end: start + section.offsetWidth };
+      }
+      const box = section.getBoundingClientRect();
+      return { start: box.top + window.scrollY - trackTop, end: box.bottom + window.scrollY - trackTop };
+    });
     const node = this.currentNode();
     if (node) {
       const box = node.getBoundingClientRect();
@@ -524,7 +559,7 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
   }
 
   /** Convierte una posición del mundo a píxeles del riel: cada reino cae sobre su propio segmento. */
-  private railPosition(position: number, segments: HTMLElement[]): number {
+  private railPosition(position: number, segments: { left: number; width: number }[]): number {
     const bounds = this.realmBounds;
     if (!bounds.length || segments.length !== bounds.length) return 0;
     for (let index = 0; index < bounds.length; index++) {
@@ -532,7 +567,7 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
       if (position < end || index === bounds.length - 1) {
         const local = Math.min(1, Math.max(0, (position - start) / Math.max(1, end - start)));
         const segment = segments[index];
-        return segment.offsetLeft + local * segment.offsetWidth;
+        return segment.left + local * segment.width;
       }
     }
     return 0;
@@ -550,30 +585,38 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
       size = scroller.clientWidth;
       this.updateArrows(scroller);
     } else {
-      start = window.scrollY - (track.getBoundingClientRect().top + window.scrollY);
+      start = window.scrollY - this.trackDocTop;
       size = window.innerHeight;
     }
-    const segments = Array.from(rail.querySelectorAll<HTMLElement>('.minimap-segment'));
+    if (!this.railSegments.length) {
+      this.railSegments = Array.from(rail.querySelectorAll<HTMLElement>('.minimap-segment'))
+        .map(s => ({ left: s.offsetLeft, width: s.offsetWidth }));
+    }
+    const segments = this.railSegments;
     const centre = start + size / 2;
-    const visible = Math.max(0, this.realmBounds.findIndex(({ start: from, end }) => centre >= from && centre < end));
-    // La lente enmarca el reino que estás viendo; la marca sobre la barra es la porción visible.
+    const visible = Math.max(0, this.realmBounds.findIndex(({ end }, index) => centre < end || index === this.realmBounds.length - 1));
+    // Precalculamos posiciones antes de modificar el DOM para evitar lecturas/escrituras intercaladas.
     const segment = segments[visible];
+    const from = this.railPosition(start, segments);
+    const to = this.railPosition(start + size, segments);
+    const markerPos = this.railPosition(this.markerAt, segments);
+
+    // La lente enmarca el reino que estás viendo; la marca sobre la barra es la porción visible.
     if (segment) {
-      lens.style.transform = `translateX(${(segment.offsetLeft - 5).toFixed(1)}px)`;
-      lens.style.width = `${(segment.offsetWidth + 10).toFixed(1)}px`;
+      lens.style.transform = `translateX(${(segment.left - 5).toFixed(1)}px)`;
+      lens.style.width = `${(segment.width + 10).toFixed(1)}px`;
     }
     const view = this.viewRef?.nativeElement;
     if (view) {
-      const from = this.railPosition(start, segments);
-      const to = this.railPosition(start + size, segments);
       view.style.transform = `translateX(${from.toFixed(1)}px)`;
       view.style.width = `${Math.max(6, to - from).toFixed(1)}px`;
     }
     const marker = this.markerRef?.nativeElement;
-    if (marker) marker.style.transform = `translateX(${this.railPosition(this.markerAt, segments).toFixed(1)}px)`;
+    if (marker) marker.style.transform = `translateX(${markerPos.toFixed(1)}px)`;
     if (visible !== this.visibleRealm) {
       this.zone.run(() => { this.visibleRealm = visible; this.cdr.markForCheck(); });
       // En celular el segmento visible se ensancha: la lente se recoloca tras ese cambio.
+      this.railSegments = [];
       this.scheduleView();
     }
   }
@@ -720,16 +763,19 @@ export class LearningPathComponent implements OnInit, OnDestroy, AfterViewChecke
     this.later(() => this.element.nativeElement.querySelector<HTMLElement>('[role="dialog"] .close-btn')?.focus());
   }
 
-  @HostListener('document:keydown', ['$event']) onDialogKeydown(event: KeyboardEvent): void {
+  private onDialogKeydown(event: KeyboardEvent): void {
+    if (!this.selectedChest && !this.showLevelModal && !this.showSkipModal && !this.showStreakModal && !this.showHeartsModal) return;
     const dialog = this.element.nativeElement.querySelector<HTMLElement>('[role="dialog"]');
     if (!dialog) return;
     if (event.key === 'Escape') {
       event.preventDefault();
-      if (this.selectedChest) this.closeChest();
-      else if (this.showLevelModal) this.closeLevelModal();
-      else if (this.showSkipModal) this.closeSkipModal();
-      else if (this.showStreakModal) this.closeStreakModal();
-      else if (this.showHeartsModal) this.closeHeartsModal();
+      this.zone.run(() => {
+        if (this.selectedChest) this.closeChest();
+        else if (this.showLevelModal) this.closeLevelModal();
+        else if (this.showSkipModal) this.closeSkipModal();
+        else if (this.showStreakModal) this.closeStreakModal();
+        else if (this.showHeartsModal) this.closeHeartsModal();
+      });
     } else if (event.key === 'Tab') {
       const controls = Array.from(dialog.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], [tabindex="0"]'));
       const first = controls[0], last = controls[controls.length - 1];

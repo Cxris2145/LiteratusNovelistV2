@@ -969,3 +969,28 @@
   .match-pair { grid-template-columns: 1fr; gap: 0.8rem; }
   .match-arrow { transform: rotate(90deg); }
 }
+
+@media (max-width: 768px), (pointer: coarse) {
+  .hero-badge,
+  .hero-stat,
+  .cta-hero-audio,
+  .cta-hero-save,
+  .mood-pill,
+  .row-card-hover,
+  .row-hover-btn,
+  .ia-badge-discover,
+  .quick-badge,
+  .match-pair {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .hero-backdrop {
+    filter: blur(24px) brightness(0.25) saturate(1.3);
+  }
+  .hero-cover-shine {
+    filter: blur(14px);
+  }
+  .quote-card-backdrop {
+    filter: blur(10px) brightness(0.35) saturate(1.2);
+  }
+}

@@ -329,8 +329,10 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private startLoops(): void {
-    if (!this.blinkTimer) this.scheduleBlink();
-    if (!this.glanceTimer && !this.reducedMotion && this.glances) this.scheduleGlance();
+    this.zone.runOutsideAngular(() => {
+      if (!this.blinkTimer) this.scheduleBlink();
+      if (!this.glanceTimer && !this.reducedMotion && this.glances) this.scheduleGlance();
+    });
   }
 
   private stopLoops(): void {
@@ -353,9 +355,12 @@ export class MaguitoComponent implements OnChanges, AfterViewInit, OnDestroy {
   private blink(): void {
     const classes = this.host.classList;
     classes.remove('mg-blink');
-    void this.host.getBoundingClientRect();
-    classes.add('mg-blink');
-    setTimeout(() => classes.remove('mg-blink'), 200);
+    this.zone.runOutsideAngular(() => {
+      requestAnimationFrame(() => {
+        classes.add('mg-blink');
+        setTimeout(() => classes.remove('mg-blink'), 200);
+      });
+    });
   }
 
   // ── Mirada: sigue al puntero o mira alrededor ──────────────────────

@@ -1,4 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { HttpParams } from '@angular/common/http';
 import { getAuthorPhoto, handleAuthorPhotoError } from '../../core/utils/author-photo.util';
@@ -20,6 +22,8 @@ export class AuthorListComponent implements OnInit {
   filteredAuthors: any[] = [];
   loading = true;
   api = inject(ApiService);
+  private destroyRef = inject(DestroyRef);
+  private authorsRequest?: Subscription;
   getAuthorPhoto = getAuthorPhoto;
   handleAuthorPhotoError = handleAuthorPhotoError;
 
@@ -41,10 +45,16 @@ export class AuthorListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.destroyRef.onDestroy(() => {
+      clearTimeout(this.searchTimeout);
+      this.authorsRequest?.unsubscribe();
+    });
     this.fetchAuthors();
   }
 
   fetchAuthors(page = 1) {
+    clearTimeout(this.searchTimeout);
+    this.authorsRequest?.unsubscribe();
     this.loading = true;
     let params = new HttpParams()
       .set('page', page)
@@ -63,7 +73,8 @@ export class AuthorListComponent implements OnInit {
       params = params.set('ordering', '-book_count');
     }
 
-    this.api.getCached<PaginatedResponse<any>>('catalog/authors/', params, 10 * 60 * 1000).subscribe({
+    this.authorsRequest = this.api.getCached<PaginatedResponse<any>>('catalog/authors/', params, 10 * 60 * 1000)
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.totalCount = data.count;
         this.nextUrl = data.next;

@@ -58,7 +58,7 @@
       </span>
       <div class="lit-bubble-avatar">
         <!-- Siempre a la vista: modo calmado (parpadea y te sigue con la mirada) -->
-        <app-maguito class="lit-mascot-avatar" crop="bust" [mine]="true" [calm]="true" [interactive]="false"></app-maguito>
+        <app-maguito class="lit-mascot-avatar" crop="bust" [mine]="true" [calm]="true" [interactive]="false" [glances]="false"></app-maguito>
       </div>
       <span class="lit-bubble-tooltip" aria-hidden="true">¡Hola! ¿Leemos algo? ✨</span>
       <span class="lit-bubble-ping" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { NgZone } from '@angular/core';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { BehaviorSubject, of, Subject } from 'rxjs';
@@ -205,6 +206,52 @@ describe('LearningPathComponent: mapa y tesoros', () => {
   it('escala el camino sin deformar sus comandos', () => {
     expect(scalePath('M-14 456C150 456 250 372 363 372V774', 2, 0.5)).toBe('M-28 228C300 228 500 186 726 186V387');
   });
+
+  it('recalcula el riel al ensanchar el reino visible y conserva la caché durante el scroll', fakeAsync(() => {
+    path.units = [unit(1), unit(6)];
+    render(); tick(32);
+    const map = component as unknown as {
+      horizontal: boolean;
+      realmBounds: { start: number; end: number }[];
+      trackDocTop: number;
+      railSegments: { left: number; width: number }[];
+      updateView(): void;
+    };
+    map.horizontal = false;
+    map.realmBounds = [{ start: 0, end: 1000 }, { start: 1000, end: 2000 }];
+    map.trackDocTop = window.scrollY + window.innerHeight / 2 - 1200;
+    component.visibleRealm = 0;
+    map.railSegments = [{ left: 0, width: 100 }, { left: 104, width: 40 }];
+    const segments = Array.from(fixture.nativeElement.querySelectorAll('.minimap-segment')) as HTMLElement[];
+    const width = jasmine.createSpy('segment width').and.callFake((index: number) => component.visibleRealm === index ? 100 : 40);
+    segments.forEach((segment, index) => {
+      Object.defineProperty(segment, 'offsetWidth', { configurable: true, get: () => width(index) });
+      Object.defineProperty(segment, 'offsetLeft', { configurable: true, get: () => index === 0 ? 0 : component.visibleRealm === 0 ? 104 : 44 });
+    });
+    map.updateView();
+    expect(component.visibleRealm).toBe(1);
+    tick(16);
+    const lens = fixture.nativeElement.querySelector('.minimap-lens') as HTMLElement;
+    expect(lens.style.transform).toBe('translateX(39px)');
+    expect(lens.style.width).toBe('110px');
+    const reads = width.calls.count();
+    map.updateView(); map.updateView();
+    expect(width.calls.count()).toBe(reads);
+  }));
+
+  it('agrupa los resize en un cuadro y mide fuera de Angular', fakeAsync(() => {
+    render(); tick(32);
+    const map = component as unknown as { measureWorld(): void };
+    const zones: boolean[] = [];
+    const measure = spyOn(map, 'measureWorld').and.callFake(() => zones.push(NgZone.isInAngularZone()));
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
+    expect(measure).not.toHaveBeenCalled();
+    tick(16);
+    expect(measure).toHaveBeenCalledTimes(1);
+    expect(zones).toEqual([false]);
+  }));
 
   it('en escritorio arma el mapa de lado y la rueda lo mueve hacia los lados', () => {
     path.units = Array.from({ length: 10 }, (_, index) => unit(index + 1));

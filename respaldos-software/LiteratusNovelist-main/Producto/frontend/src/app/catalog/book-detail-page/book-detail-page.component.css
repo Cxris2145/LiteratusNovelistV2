@@ -1092,3 +1092,15 @@
   cursor: pointer;
 }
 .avatar-modal-chat:focus-visible { outline: 2px solid var(--color-focus, #FFB353); outline-offset: 3px; }
+
+@media (max-width: 768px), (pointer: coarse) {
+  .hero-backdrop {
+    filter: none;
+    opacity: 0.16;
+  }
+  .avatar-modal-overlay,
+  .mini-modal-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

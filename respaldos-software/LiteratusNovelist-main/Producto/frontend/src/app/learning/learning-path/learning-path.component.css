@@ -2222,6 +2222,32 @@ h1,h2,h3 {
   .chest-reveal { width: 150px; height: 128px; }
 }
 
+/* Al final de la hoja para que los modales también eviten desenfoques en móvil. */
+@media (max-width: 800px), (pointer: coarse) {
+  .layout-v .senda-hud,
+  .unit-banner,
+  .treasury-plaque,
+  .modal-backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .layout-v .senda-hud {
+    background: rgba(11, 22, 30, 0.94);
+  }
+  .modal-backdrop {
+    background: rgba(6, 12, 18, 0.82);
+  }
+  .node-games.node-current,
+  .node-exam.node-current,
+  .node-exam.node-completed,
+  .bonus-available .chest-map-btn,
+  .treasury-available .realm-chest-btn,
+  .current-companion,
+  .chest-reveal {
+    filter: none;
+  }
+}
+
 /* ── Movimiento reducido: menos y más suave, nunca roto ────────────── */
 
 @media (prefers-reduced-motion: reduce) {

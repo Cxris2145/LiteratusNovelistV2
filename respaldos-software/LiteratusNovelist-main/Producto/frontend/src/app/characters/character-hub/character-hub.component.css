@@ -1559,3 +1559,10 @@
     opacity: 0;
   }
 }
+
+@media (max-width: 768px), (pointer: coarse) {
+  .search-bar-wrapper {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

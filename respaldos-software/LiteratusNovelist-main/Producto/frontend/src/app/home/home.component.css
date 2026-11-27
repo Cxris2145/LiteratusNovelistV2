@@ -2155,6 +2155,28 @@
 /* ═════════════════════════════════════════════════════════════════════════
    RESPONSIVE
    ═════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 899px), (pointer: coarse) {
+  .hero-pill,
+  .float-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: color-mix(in srgb, var(--hero-bg) 92%, var(--hero-ink) 8%);
+  }
+
+  .wall-strip,
+  .card-group.is-shown .float-card,
+  .scroll-cue-line::after {
+    animation: none;
+  }
+
+  .hero-inner,
+  .wall-track,
+  .hero-cards {
+    animation: none;
+    animation-timeline: auto;
+  }
+}
+
 @media (max-width: 899px) {
   .hero {
     align-items: end;

@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, NgZone, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { slideUpPanelAnimation } from '../../animations';
@@ -23,6 +23,9 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
 
   @ViewChild('messagesEl') private messagesEl?: ElementRef<HTMLDivElement>;
   @ViewChild('bubbleLottie') private bubbleLottie?: ElementRef<HTMLDivElement>;
+  private readonly zone = inject(NgZone);
+  private scrollRafId: number | null = null;
+  private blurTimer: ReturnType<typeof setTimeout> | null = null;
 
   isOpen = false;
   isEphemeral = false;
@@ -87,20 +90,31 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
 
   private initMobileListeners(): void {
     if (typeof window === 'undefined') return;
-    this.checkViewport();
-    window.addEventListener('resize', this.onWindowResize, { passive: true });
-    window.addEventListener('scroll', this.onWindowScroll, { passive: true });
-    document.addEventListener('focusin', this.onDocFocusIn, { passive: true });
-    document.addEventListener('focusout', this.onDocFocusOut, { passive: true });
-  }
-
-  private checkViewport = () => {
     this.isMobile = window.innerWidth <= 768;
     if (!this.isMobile) {
       this.isMobileSpeedDialOpen = false;
       this.isScrolledDown = false;
       this.isInputFocused = false;
     }
+    this.zone.runOutsideAngular(() => {
+      window.addEventListener('resize', this.onWindowResize, { passive: true });
+      window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+      document.addEventListener('focusin', this.onDocFocusIn, { passive: true });
+      document.addEventListener('focusout', this.onDocFocusOut, { passive: true });
+    });
+  }
+
+  private checkViewport = () => {
+    const nextMobile = window.innerWidth <= 768;
+    if (nextMobile === this.isMobile) return;
+    this.zone.run(() => {
+      this.isMobile = nextMobile;
+      if (!this.isMobile) {
+        this.isMobileSpeedDialOpen = false;
+        this.isScrolledDown = false;
+        this.isInputFocused = false;
+      }
+    });
   };
 
   private onWindowResize = () => {
@@ -109,30 +123,41 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
 
   private onWindowScroll = () => {
     if (!this.isMobile || this.isOpen) return;
-    const currentY = window.scrollY;
-    const delta = currentY - this.lastScrollY;
-    this.lastScrollY = currentY;
+    if (this.scrollRafId !== null) return;
+    this.scrollRafId = requestAnimationFrame(() => {
+      this.scrollRafId = null;
+      if (!this.isMobile || this.isOpen) return;
+      const currentY = window.scrollY;
+      const delta = currentY - this.lastScrollY;
+      this.lastScrollY = currentY;
 
-    if (delta > 8 && currentY > 60) {
-      // Desplazamiento hacia abajo: ocultar o reducir escala
-      if (!this.isScrolledDown) {
-        this.isScrolledDown = true;
-        this.isMobileSpeedDialOpen = false;
+      if (delta > 8 && currentY > 60) {
+        // Desplazamiento hacia abajo: ocultar o reducir escala
+        if (!this.isScrolledDown || this.isMobileSpeedDialOpen) {
+          this.zone.run(() => {
+            this.isScrolledDown = true;
+            this.isMobileSpeedDialOpen = false;
+          });
+        }
+      } else if (delta < -8) {
+        // Desplazamiento hacia arriba: reaparecer
+        if (this.isScrolledDown) {
+          this.zone.run(() => {
+            this.isScrolledDown = false;
+          });
+        }
       }
-    } else if (delta < -8) {
-      // Desplazamiento hacia arriba: reaparecer
-      if (this.isScrolledDown) {
-        this.isScrolledDown = false;
-      }
-    }
 
-    // Al detenerse el scroll, reaparecer
-    if (this.scrollStopTimer) clearTimeout(this.scrollStopTimer);
-    this.scrollStopTimer = setTimeout(() => {
-      if (this.isScrolledDown) {
-        this.isScrolledDown = false;
-      }
-    }, 700);
+      // Al detenerse el scroll, reaparecer
+      if (this.scrollStopTimer) clearTimeout(this.scrollStopTimer);
+      this.scrollStopTimer = setTimeout(() => {
+        if (this.isScrolledDown) {
+          this.zone.run(() => {
+            this.isScrolledDown = false;
+          });
+        }
+      }, 700);
+    });
   };
 
   private isInputElement(el: Element | null): boolean {
@@ -143,17 +168,23 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
   private onDocFocusIn = (event: FocusEvent) => {
     if (!this.isMobile) return;
     const target = event.target as Element | null;
-    if (this.isInputElement(target)) {
-      this.isInputFocused = true;
-      this.isMobileSpeedDialOpen = false;
+    if (this.isInputElement(target) && (!this.isInputFocused || this.isMobileSpeedDialOpen)) {
+      this.zone.run(() => {
+        this.isInputFocused = true;
+        this.isMobileSpeedDialOpen = false;
+      });
     }
   };
 
   private onDocFocusOut = () => {
-    if (!this.isMobile) return;
-    setTimeout(() => {
-      if (!this.isInputElement(document.activeElement)) {
-        this.isInputFocused = false;
+    if (!this.isMobile || !this.isInputFocused) return;
+    if (this.blurTimer) clearTimeout(this.blurTimer);
+    this.blurTimer = setTimeout(() => {
+      this.blurTimer = null;
+      if (!this.isInputElement(document.activeElement) && this.isInputFocused) {
+        this.zone.run(() => {
+          this.isInputFocused = false;
+        });
       }
     }, 100);
   };
@@ -177,7 +208,9 @@ export class AssistantWidgetComponent implements OnInit, OnDestroy, AfterViewChe
       document.removeEventListener('focusin', this.onDocFocusIn);
       document.removeEventListener('focusout', this.onDocFocusOut);
     }
+    if (this.scrollRafId !== null) cancelAnimationFrame(this.scrollRafId);
     if (this.scrollStopTimer) clearTimeout(this.scrollStopTimer);
+    if (this.blurTimer) clearTimeout(this.blurTimer);
     this.destroy$.next();
     this.destroy$.complete();
     this.lottieAnim?.destroy?.();

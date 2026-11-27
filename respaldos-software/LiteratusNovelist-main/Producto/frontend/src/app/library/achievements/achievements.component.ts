@@ -5,7 +5,7 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  HostListener,
+  NgZone,
 } from '@angular/core';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -42,6 +42,7 @@ interface CategoryTab {
 })
 export class AchievementsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private unbindDocClick?: () => void;
 
   userAchievements: UserAchievement[] = [];
   catalogAchievements: Achievement[] = [];
@@ -169,10 +170,23 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private auth: AuthService,
     private cdr: ChangeDetectorRef,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
+    if (typeof document !== 'undefined') {
+      const onDocClick = () => {
+        if (this.sortMenuOpen) {
+          this.ngZone.run(() => {
+            this.sortMenuOpen = false;
+            this.cdr.markForCheck();
+          });
+        }
+      };
+      this.ngZone.runOutsideAngular(() => document.addEventListener('click', onDocClick, { passive: true }));
+      this.unbindDocClick = () => document.removeEventListener('click', onDocClick);
+    }
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params.get('tab') === 'collection') {
         this.activeTab = 'collection';
@@ -190,14 +204,6 @@ export class AchievementsComponent implements OnInit, OnDestroy {
     this.loadData();
     this.loadDailyReward();
     this.loadCollection();
-  }
-
-  @HostListener('document:click')
-  onDocumentClick(): void {
-    if (this.sortMenuOpen) {
-      this.sortMenuOpen = false;
-      this.cdr.markForCheck();
-    }
   }
 
   loadDailyReward(): void {
@@ -267,6 +273,7 @@ export class AchievementsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.unbindDocClick?.();
     this.destroy$.next();
     this.destroy$.complete();
   }
